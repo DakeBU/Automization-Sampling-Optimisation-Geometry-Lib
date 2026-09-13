@@ -97,6 +97,26 @@ passes108 audits/7repairs and cells116. Earlier connection failures below/above
 are historical; this fetch/merge does not itself assert a successful push or
 deployment. The pre-existing Measure.lean modification remains untouched.
 
+Final delivery candidate: `b4750e1d3922e43382b429240b87aea8a11adc2c` also preserves
+the next four collaborator commits through `bce39f7` (normalized gradient-descent
+rates). The lossless ledger union now has657 distinct rows. At this exact
+candidate, the canonical gate passed build9037, Tests9232, ASTIS and ATLAS;
+source digest `6121aa7d252c98f5fa18d9386d214164024d85e689d169de5b0c66783b7e3c6d`.
+Publication check against bce39f7 passes91 source items; semantic checks pass110
+audits/8repairs and Frontier Cells118. Site build/check passes12 chapters,
+430 Registry leaves,701 modules,4018 indexed declarations and77 reviewed teaching
+declarations. These are distinct inventory metrics, not completed-paper counts.
+The unchanged resolvent lesson has six formula-proof steps with per-step collapsed
+Lean; root and independent reviewer inspected desktop/mobile/graph PNGs at the
+preceding f6479e4 candidate. That precise acceptance is persisted separately.
+
+Remote delivery is still pending: the first ordinary push after this final merge
+failed a15-second low-speed timeout; one bounded retry failed with connection
+reset. No authentication failure, successful push or deployment is inferred.
+Keep these local commits and use a safe fetch/divergence check before retrying.
+Do not rerun unchanged global builds merely to update an evidence-only receipt.
+The canonical gate above belongs to the named candidate, not later receipt commits.
+
 Next PBPS dependency-ready candidate: establish local square integrability for
 every Gibbs L2 representative, applying it to the same u,G,f before invoking any
 L2 interior regularity. The bounded reviewed API route is in

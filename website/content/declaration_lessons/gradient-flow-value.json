@@ -1,0 +1,73 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
+      "kind": "theorem",
+      "title": "Convex gradient flows have an explicit objective rate",
+      "statement": "Let E be a complete real inner-product space, f:E→R be Frechet differentiable everywhere and globally alpha-convex, with alpha>=0 in the alpha/2 chord convention. Let z be a global minimizer and T>=0. Supply X:R→E continuous on [0,T], satisfying the actual right gradient ODE at every s in [0,T). Then at each strictly positive observation time t<=T, its objective gap has the following bound, with a separate zero-curvature case.",
+      "formula": "\\begin{gathered}X^{\\prime+}(s)=-\\nabla f(X(s))\\quad(0\\le s<T),\\qquad z\\in\\arg\\min f,\\quad\\alpha\\ge0,\\\\0\\le f(X(t))-f(z)\\le\\begin{cases}\\dfrac{\\|X(0)-z\\|^2}{2t},&\\alpha=0,\\\\\\dfrac{\\alpha\\|X(0)-z\\|^2}{2(e^{\\alpha t}-1)},&\\alpha>0,\\end{cases}\\quad0<t\\le T.\\end{gathered}",
+      "assumptions": [
+        "Complete real inner-product space E; f is Frechet differentiable everywhere.",
+        "Alpha>=0 and StrongConvexOn univ alpha f: f((1-lambda)x+lambda y)<=(1-lambda)f(x)+lambda f(y)-(alpha/2)lambda(1-lambda)norm(y-x) squared for all x,y and lambda in [0,1].",
+        "A supplied z satisfies f(z)<=f(x) for every x:E; T>=0.",
+        "X is continuous on [0,T]; for each s in [0,T), HasDerivWithinAt X (-gradient f(X(s))) (Ici s) s. The observation satisfies 0<t<=T."
+      ],
+      "steps": [
+        {
+          "title": "Derive objective descent from the actual ODE",
+          "text": "Represent the derivative of f by its gradient, compose with the actual right derivative of X, and obtain minus the squared gradient norm. On each subinterval [a,b], scalar Gronwall with zero coefficient and zero forcing proves f(X(b))<=f(X(a)). This uses continuity at both endpoints and only right derivatives before b.",
+          "formula": "\\partial_t^+f(X(t))=-\\|\\nabla f(X(t))\\|^2\\le0,\\qquad f(X(b))\\le f(X(a))\\quad(0\\le a\\le b\\le T).",
+          "lean": "DifferentiableAt.hasGradientAt, HasFDerivAt.comp_hasDerivWithinAt and le_gronwallBound_of_liminf_deriv_right_le with K=epsilon=0."
+        },
+        {
+          "title": "Obtain distance dissipation with the value gap",
+          "text": "Fix an observation time t and put r(s)=norm(X(s)-z) squared, e(s)=f(X(s))-f(z). Differentiate r using the actual ODE. The existing first-order strong-convexity inequality at X(s) with comparator z gives r prime<=-alpha r-2e(s). Descent implies e(s)>=e(t) for s<=t, so the forcing can be bounded by the fixed constant -2e(t).",
+          "formula": "r^{\\prime+}(s)=-2\\langle\\nabla f(X(s)),X(s)-z\\rangle\\le-\\alpha r(s)-2e(s)\\le-\\alpha r(s)-2e(t)\\quad(0\\le s<t).",
+          "lean": "HasDerivWithinAt.norm_sq, StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn, and the derived AntitoneOn objective."
+        },
+        {
+          "title": "Compare with a constant-forcing scalar equation",
+          "text": "Apply existing scalar interval Gronwall to r on [0,t] with coefficient -alpha and forcing -2e(t). The scalar version permits negative forcing. Nonnegativity of r(t) gives the left side of each displayed bound. Alpha=0 is evaluated directly; no zero denominator is substituted into the other branch.",
+          "formula": "\\begin{aligned}\\alpha=0:&\\quad0\\le r(t)\\le r(0)-2t e(t),\\\\\\alpha>0:&\\quad0\\le r(t)\\le r(0)e^{-\\alpha t}-\\frac{2e(t)}\\alpha(1-e^{-\\alpha t}).\\end{aligned}",
+          "lean": "le_gronwallBound_of_liminf_deriv_right_le, gronwallBound_K0 and gronwallBound_of_K_ne_0."
+        },
+        {
+          "title": "Divide only by positive quantities",
+          "text": "For t>0, the zero branch divides by 2t. In the positive branch multiply by alpha exp(alpha t), use exp(-alpha t)exp(alpha t)=1, then divide by 2(exp(alpha t)-1)>0. The supplied global minimum gives a nonnegative objective gap.",
+          "formula": "0\\le e(t)\\le\\begin{cases}r(0)/(2t),&\\alpha=0,\\\\\\alpha r(0)/(2(e^{\\alpha t}-1)),&\\alpha>0,\\end{cases}\\qquad0<t\\le T.",
+          "lean": "Real.exp_add, Real.one_lt_exp_iff, le_div_iff₀ and IsMinOn."
+        }
+      ],
+      "boundary": [
+        "The finite real-valued quotient is asserted only for 0<t<=T. The printed source says t>=0, although its denominator vanishes at t=0. The original source statement is retained and a separately reviewed positive-time clarification is exposed. Lean total division at zero is not the source limiting or infinite convention.",
+        "Alpha>=0 and the alpha/2 chord normalization are preserved. Alpha=0 is proved directly with coefficient 1/(2t); alpha>0 uses alpha/(2(exp(alpha*t)-1)). No analytic alpha-to-zero limit theorem or sharpness claim is made.",
+        "The source C2 Euclidean objective is generalized to an everywhere Frechet differentiable objective on a complete real Hilbert space. A global minimizer z and an actual continuous trajectory on [0,T] are supplied. Right gradient dynamics are assumed only on [0,T); no terminal or negative-time derivative, ODE existence, minimum existence, discrete method, stochastic flow or companion-paper result is asserted."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "HasFDerivAt.comp_hasDerivWithinAt",
+        "HasDerivWithinAt.norm_sq",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_K0",
+        "gronwallBound_of_K_ne_0"
+      ],
+      "lean_statement": "Positive-time objective gap bound with direct alpha=0 branch.",
+      "lean_proof": "Represent the derivative of f by its gradient, compose with the actual right derivative of X, and obtain minus the squared gradient norm. On each subinterval [a,b], scalar Gronwall with zero coefficient and zero forcing proves f(X(b))<=f(X(a)). This uses continuity at both endpoints and only right derivatives before b. Fix an observation time t and put r(s)=norm(X(s)-z) squared, e(s)=f(X(s))-f(z). Differentiate r using the actual ODE. The existing first-order strong-convexity inequality at X(s) with comparator z gives r prime<=-alpha r-2e(s). Descent implies e(s)>=e(t) for s<=t, so the forcing can be bounded by the fixed constant -2e(t). Apply existing scalar interval Gronwall to r on [0,t] with coefficient -alpha and forcing -2e(t). The scalar version permits negative forcing. Nonnegativity of r(t) gives the left side of each displayed bound. Alpha=0 is evaluated directly; no zero denominator is substituted into the other branch. For t>0, the zero branch divides by 2t. In the positive branch multiply by alpha exp(alpha t), use exp(-alpha t)exp(alpha t)=1, then divide by 2(exp(alpha t)-1)>0. The supplied global minimum gives a nonnegative objective gap.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Theorem2.4",
+          "scope": "Exact rate for positive observation times; printed t0 wording is singular and retained as a source qualification."
+        },
+        {
+          "path": "Tests/Shared/GradientFlowValue.lean",
+          "label": "Actual quadratic trajectory and endpoint witness",
+          "scope": "Nonstationary exp(-t) trajectory tests every curvature in [0,1], including both rate branches. A t0 test refutes interpreting the printed quotient through Lean total division."
+        }
+      ]
+    }
+  ]
+}

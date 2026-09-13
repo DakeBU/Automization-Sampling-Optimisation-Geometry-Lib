@@ -26,8 +26,34 @@ The first harness attempt was denied localhost binding by the sandbox; rerun
 with local networking permission passed, without changing checks.
 Publication91/semantic111audits8repairs/frontier119 passed. Preserved108unrelated
 audit objects, old bindings and formulas, other source items and ledger prefixes.
-Reader/graph and final integration evidence pending.
+Reader/graph and final independent integration accepted; see final evidence below.
 
 Next intended bounded main-route work: Chapter4 reduction, after checking its
 exact dependency-ready source edge; do not fill all exercises by default.
 Remember root Tests import; preserve unrelated local files.
+
+Reader verification lesson: the generator/site checker does not execute browser
+MathJax. A display line break immediately followed by `[R>0...]` was interpreted
+as a line-height option and failed at runtime, although site-check passed.
+Use explicit grouping delimiters after a line break and inspect actual rendered
+formulas; check `mjx-merror`/`merror` as well as `.katex-error`. The corrected
+formula was independently reviewed at cb4a569 with unchanged Lean proof/test.
+Desktop1280 and mobile390 reader inspections found no math errors or document
+horizontal overflow; real statement/proof disclosures and all three formula
+steps were inspected. Final graph and integration acceptance are recorded below.
+
+Final canonical gate also PASS9234 at4877ed3685dbb0e9278d3e29827d3e036acc40de,
+with identical Lean source digest; exact canonical-gate-evidence-final.json kept.
+Final canonical site build/check PASS:431local leaves,703modules,4019declarations.
+Affected graph-check passed; actual browser graph showed9nodes/13edges and4direct
+relations for the new declaration: solid module ownership, dashed source chapter,
+scanned parent reference and audit relation. Compiled badge and current gate
+banner confirmed. Fidelity view retains accepted implicit-assumption-exposed,
+source-hidden reconstruction and seven slots; it does not claim unrestricted
+source identity. Desktop graph had no formula errors or horizontal overflow.
+The initially described renderer as KaTeX was actually MathJax; observed runtime
+node was MJX-UTEXT. The delimiter fix and error-selector check cover both.
+
+Final independent pl_pullback_review integration accepted at4877ed3 with no
+pending local checks. Exact report retained in integration-review.json.
+Remote main9729cf5 unchanged on final fetch; no collaborator edits overwritten.

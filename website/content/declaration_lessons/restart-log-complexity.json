@@ -1,0 +1,83 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
+      "kind": "theorem",
+      "title": "An explicit logarithmic horizon for restarted optimization",
+      "statement": "E is a complete real inner-product space. The fixed function f:E→R is C1 and alpha-strongly convex on E with the alpha/2 convention. A global minimizer z is supplied. Alpha,beta,R,epsilon are positive; ||x0-z||<=R. R is a supplied upper radius. For every point y and positive radius r and tolerance delta with ||y-z||<=r, A(y,r,delta) returns a point whose objective gap is <=delta and a natural cost <=phi(beta*r²/delta). Phi:R→N is arbitrary. Beta is the positive budget parameter of this contract; beta-smoothness and an oracle implementation are not independently inferred. Let q=alpha R²/epsilon, L=log(q)/log4 and N=ceil(L) in the natural numbers, so a nonpositive L yields N=0. Define the actual restart states and final call below; C counts all returned stage costs plus the final cost. The stated radius, accuracy and cost bounds hold. Budget absorption and the small-error bound are conditional as detailed below.",
+      "formula": "\\begin{gathered}q=\\alpha R^2/\\varepsilon,\\quad\\kappa=\\beta/\\alpha,\\quad L=\\log q/\\log4,\\quad N=\\lceil L\\rceil_{\\mathbb N},\\\\r_k=R/2^k,\\quad (x_0,c_0)=(x_0,0),\\\\(w_k,a_k)=A(x_k,r_k,\\alpha r_k^2/8),\\\\(x_{k+1},c_{k+1})=(w_k,c_k+a_k),\\\\(x_{\\rm out},a_{\\rm out})=A(x_N,\\sqrt{\\varepsilon/\\alpha},\\varepsilon),\\quad C=c_N+a_{\\rm out},\\\\N\\le\\max\\{0,L\\}+1,\\quad(N=0\\Leftrightarrow\\alpha R^2\\le\\varepsilon),\\\\\\|x_N-z\\|\\le r_N,\\quad f(x_{\\rm out})-f(z)\\le\\varepsilon,\\\\C\\le N\\phi(8\\kappa)+\\phi(\\kappa)\\le(\\max\\{0,L\\}+1)\\phi(8\\kappa)+\\phi(\\kappa).\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space. The fixed function f:E→R is C1 and alpha-strongly convex on E with the alpha/2 convention. A global minimizer z is supplied.",
+        "Alpha,beta,R,epsilon are positive; ||x0-z||<=R. R is a supplied upper radius. For every point y and positive radius r and tolerance delta with ||y-z||<=r, A(y,r,delta) returns a point whose objective gap is <=delta and a natural cost <=phi(beta*r²/delta).",
+        "Phi:R→N is arbitrary. Beta is the positive budget parameter of this contract; beta-smoothness and an oracle implementation are not independently inferred.",
+        "Let q=alpha R²/epsilon, L=log(q)/log4 and N=ceil(L) in the natural numbers, so a nonpositive L yields N=0. Define the actual restart states and final call below; C counts all returned stage costs plus the final cost."
+      ],
+      "steps": [
+        {
+          "title": "Choose an adequate integer horizon",
+          "text": "All logarithm arguments are positive. Natural ceiling gives L<=N. Multiply by the positive log4 and use monotonicity of log together with log(4^N)=N log4 to obtain q<=4^N. Since (2^N)²=4^N, this is exactly the horizon condition required by the finite restart theorem.",
+          "formula": "L\\le N\\ \\Longrightarrow\\ \\log q\\le N\\log4=\\log(4^N)\\ \\Longrightarrow\\ \\alpha(R/2^N)^2\\le\\varepsilon.",
+          "lean": "Nat.le_ceil; Real.log_pow and Real.log_le_log_iff on positive arguments; positive-denominator algebra."
+        },
+        {
+          "title": "Control rounding and the zero-round case",
+          "text": "For L>=0, the natural ceiling is less than L+1. For L<0, it equals zero. Thus N<=max(0,L)+1 globally. More precisely, N=0 iff L<=0 iff q<=1 iff alpha R²<=epsilon. This certifies only that no halving stage is needed; the final solver call remains.",
+          "formula": "N\\le\\max\\{0,L\\}+1,\\qquad N=0\\ \\Longleftrightarrow\\ \\alpha R^2\\le\\varepsilon.",
+          "lean": "Nat.ceil_lt_add_one requires nonnegative L; Nat.ceil_eq_zero handles the other branch. Real.log_le_log_iff relates q and1."
+        },
+        {
+          "title": "Consume the actual finite restart theorem",
+          "text": "Apply the existing radius_accuracy_and_cost theorem at this N using the horizon just proved. Its Nat.rec is exactly the recursion below. It supplies the actual state radius, final output error, and the natural sum of all certified call costs. The new theorem does not assume a radius invariant or an adequate iteration count.",
+          "formula": "\\|x_N-z\\|\\le R/2^N,\\qquad f(x_{\\rm out})-f(z)\\le\\varepsilon,\\qquad C\\le N\\phi(8\\kappa)+\\phi(\\kappa).",
+          "lean": "RestartReduction.radius_accuracy_and_cost; alpha/2 quadratic growth and the genuine solver recursion are reused, not reproved."
+        },
+        {
+          "title": "Keep the final cost while normalizing the stage count",
+          "text": "Cast the natural cost inequality to real numbers. Both phi values are nonnegative, so replacing N by its upper bound preserves the inequality. This global logarithmic bound uses no comparison between the two phi values.",
+          "formula": "C\\le(\\max\\{0,L\\}+1)\\phi(8\\kappa)+\\phi(\\kappa).",
+          "lean": "Nat.cast_le, Nat.cast_add, Nat.cast_mul and multiplication by a nonnegative natural-valued budget."
+        },
+        {
+          "title": "State exactly when the source-shaped bound follows",
+          "text": "Under the additional condition phi(kappa)<=phi(8kappa), the final cost can be absorbed with the displayed universal factor. The result is (max(0,L)+2)phi(8kappa). If additionally q>=4, then L>=1, so L+2<=3L. This gives the explicit constant3/log4 in front of phi(8kappa)logq. These are conditional consequences; no monotonicity of phi or all-accuracy logarithmic bound is silently asserted.",
+          "formula": "\\begin{gathered}\\phi(\\kappa)\\le\\phi(8\\kappa)\\ \\Longrightarrow\\ C\\le(\\max\\{0,L\\}+2)\\phi(8\\kappa),\\\\q\\ge4\\ \\Longrightarrow\\ C\\le3L\\phi(8\\kappa)=\\frac3{\\log4}\\phi(8\\kappa)\\log q.\\end{gathered}",
+          "lean": "Order of natural casts, Real.log_le_log, division by positive log4, and nonnegative multiplication. The last implication is inside the phi-comparison implication."
+        }
+      ],
+      "boundary": [
+        "This closes logarithmic horizon selection and certified cost normalization for the actual fixed-objective restart construction. It does not formalize oracle execution, uniform algorithm existence over the source function class, or the entire Lemma4.1.",
+        "The positive radius and supplied minimizer/base-solver contract are inherited. Literal R=0 stopping, minimizer existence and reverse regularization remain separate. C1 Hilbert geometry generalizes the smooth Euclidean source specialization.",
+        "The unconditional bound retains both phi values and the final call for N=0. The displayed absorbed bound is an implication with phi(kappa)<=phi(8kappa); the pure logarithmic constant3/log4 also requires q>=4. These are sufficient conditions for these consequences, not an accepted repair of the original source.",
+        "No whole-lemma source equivalence or asymptotic first-order class theorem is claimed. An actual oracle interpretation needs an external implementation of the supplied A contract.",
+        "Tests instantiate a real step1/2 gradient-descent solver on x²/2, with each call executing and counting ceil(r²/delta)+1 updates. For every positive epsilon the theorem gives C<=9N+2, a global real bound9(max(0,L)+1)+2 and, for epsilon<=1/4, C<=27L. Separate ceiling checks cover q=4³,q=1/4 and q=1."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost"
+      ],
+      "mathlib_dependencies": [
+        "Nat.le_ceil",
+        "Nat.ceil_eq_zero",
+        "Nat.ceil_lt_add_one",
+        "Real.log_pos",
+        "Real.log_pow",
+        "Real.log_le_log_iff",
+        "Real.log_le_log",
+        "Nat.cast_le"
+      ],
+      "lean_statement": "The exact logarithmic count, recursive calls and conditional cost conclusions.",
+      "lean_proof": "All logarithm arguments are positive. Natural ceiling gives L<=N. Multiply by the positive log4 and use monotonicity of log together with log(4^N)=N log4 to obtain q<=4^N. Since (2^N)²=4^N, this is exactly the horizon condition required by the finite restart theorem. For L>=0, the natural ceiling is less than L+1. For L<0, it equals zero. Thus N<=max(0,L)+1 globally. More precisely, N=0 iff L<=0 iff q<=1 iff alpha R²<=epsilon. This certifies only that no halving stage is needed; the final solver call remains. Apply the existing radius_accuracy_and_cost theorem at this N using the horizon just proved. Its Nat.rec is exactly the recursion below. It supplies the actual state radius, final output error, and the natural sum of all certified call costs. The new theorem does not assume a radius invariant or an adequate iteration count. Cast the natural cost inequality to real numbers. Both phi values are nonnegative, so replacing N by its upper bound preserves the inequality. This global logarithmic bound uses no comparison between the two phi values. Under the additional condition phi(kappa)<=phi(8kappa), the final cost can be absorbed with the displayed universal factor. The result is (max(0,L)+2)phi(8kappa). If additionally q>=4, then L>=1, so L+2<=3L. This gives the explicit constant3/log4 in front of phi(8kappa)logq. These are conditional consequences; no monotonicity of phi or all-accuracy logarithmic bound is silently asserted.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.1, logarithmic rounds and final call",
+          "scope": "Explicit integer and cost elaboration of the finite argument; whole oracle/class reduction remains open."
+        },
+        {
+          "path": "Tests/Shared/RestartLogComplexity.lean",
+          "label": "Actual counted GD consumer",
+          "scope": "Uniform positive accuracies, coarse regime and conditional logarithmic cost."
+        }
+      ]
+    }
+  ]
+}

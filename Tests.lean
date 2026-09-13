@@ -149,6 +149,7 @@ import Tests.ProximalBPSConditionalGradient
 import Tests.ProximalBPSConditionalResolvent
 import Tests.WeightedGradientWeak
 import Tests.WeightedGradientDistribution
+import Tests.WeightedResolvent
 import Tests.SmoothedPicardHMCTruncation
 import Tests.SmoothedPicardHMCGaussianPowerMoment
 import Tests.SmoothedPicardHMCGaussianMixture

@@ -76,12 +76,35 @@ The latest bounded, noninteractive HTTP/1.1 fetch also failed with a GitHub
 low-speed timeout. No remote update, push or deployment is claimed; preserve
 all local commits and fetch/check divergence before delivery.
 
-Next PBPS dependency-ready candidate: embed genuine smooth compact tests into
-the SAME closed-gradient domain and turn its existing weak resolvent identity
-into the weighted divergence-form distributional PDE, using actual L2 pairing
-integrabilities. Do not use exp(W)*psi as a C-infinity core test when W is only
-C1/C2. That would require a separate test-domain extension. Reuse
-WeightedGradientDistribution, ConditionalGradient and ConditionalResolvent. A gradient
+The weighted resolvent PDE bridge is now independently VERIFIED at
+`86e334d2abd4f046ce9f7f069f5b133459a97308`: see
+`ASTIS-SW-PBPS-resolvent-distributional`. Production constructs one actual
+resolvent witness in the same gradient domain, proves the genuine compact smooth
+test embedding and all three weighted-volume integrabilities, and retains its
+all-domain equation and ordinary weak gradient. Focused PASS3035, full proof/
+lesson review and independent blind/source acceptance passed. No separately
+chosen conditional solution is definitionally identified; that would use
+uniqueness. Root aggregate/publication acceptance is separate from this proof
+commit and must be read from subsequent exact integration evidence.
+
+Network recovered on the next bounded fetch. Collaborator main
+`83a40eb8b8f50917845e3dce940973bccba08e82` adds three reviewed optimisation
+gradient-flow results and updates technical Registry to428. It was merged at
+`cf9e2de9986c0a54e0bb51b966b952d10cbfd436`, preserving both histories. The only
+conflict was the append-only SAU ledger: both sides' exact record union and its
+650-row count were checked before removing markers. Merged semantic registry
+passes108 audits/7repairs and cells116. Earlier connection failures below/above
+are historical; this fetch/merge does not itself assert a successful push or
+deployment. The pre-existing Measure.lean modification remains untouched.
+
+Next PBPS dependency-ready candidate: establish local square integrability for
+every Gibbs L2 representative, applying it to the same u,G,f before invoking any
+L2 interior regularity. The bounded reviewed API route is in
+`proof-blueprints/PBPS-resolvent-distributional.md`: squared-norm integrability,
+positive inverse-weight local multiplication, compact restrictions, and explicit
+representative measurability transfer. Keep the PDE in divergence form. Do not
+use exp(W)*psi as a C-infinity core test when W is only C1/C2; that requires a
+separate test-domain extension. A gradient
 graph core is not an operator core for D*D; elliptic regularity, operator-core
 approximation, mean-zero resolvent limits, Poincare and macroscopic coercivity
 must remain separate. Do not increase the source C2 hypothesis silently.

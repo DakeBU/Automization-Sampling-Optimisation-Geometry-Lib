@@ -1,0 +1,140 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.convex_value_le",
+      "kind": "theorem",
+      "title": "Convex gradient descent has a normalized final-value bound",
+      "statement": "E is a complete real inner-product space and f:E→R is C1. The gradient is the genuine Riesz gradient of f. For all x,y, f(y)<=f(x)+<gradient f(x),y-x>+(beta/2)||y-x||². The step satisfies h>0 and beta*h<=1; N is a positive natural number. x0 and z are arbitrary points; X_N is exactly N iterations of x ↦ x-h gradient f(x) starting at x0. No minimizer is required for the comparator bound. f is convex on the whole space. No positivity assumption on beta is needed beyond the upper model and admissible step. The following bound holds for the actual final iterate.",
+      "formula": "X_N=(\\mathrm{id}-h\\nabla f)^N(x_0),\\qquad f(X_N)-f(z)\\le\\frac{\\|x_0-z\\|^2}{2hN}.",
+      "assumptions": [
+        "E is a complete real inner-product space and f:E→R is C1. The gradient is the genuine Riesz gradient of f.",
+        "For all x,y, f(y)<=f(x)+<gradient f(x),y-x>+(beta/2)||y-x||². The step satisfies h>0 and beta*h<=1; N is a positive natural number.",
+        "x0 and z are arbitrary points; X_N is exactly N iterations of x ↦ x-h gradient f(x) starting at x0. No minimizer is required for the comparator bound.",
+        "f is convex on the whole space. No positivity assumption on beta is needed beyond the upper model and admissible step."
+      ],
+      "steps": [
+        {
+          "title": "Reuse the actual-iterate energy estimate",
+          "text": "Write q=1-alpha h, R=||x0-z|| and e_N=f(X_N)-f(z). The existing weighted theorem already derives objective descent and the forced recurrence for the actual gradient iterates. Invoke it directly; its conclusion also allows negative comparator gaps.",
+          "formula": "2h\\Bigl(\\sum_{k=0}^{N-1}q^k\\Bigr)e_N\\le q^N R^2.",
+          "lean": "GradientDescentValue.gradient_descent_weighted_value_bound."
+        },
+        {
+          "title": "Evaluate the zero-curvature sum",
+          "text": "For a convex objective set alpha=0, hence q=1. Every summand equals one and there are exactly N summands. Thus the weighted estimate becomes 2hN e_N<=R².",
+          "formula": "\\alpha=0:\\quad q=1,\\qquad\\sum_{k=0}^{N-1}q^k=N,\\qquad2hNe_N\\le R^2.",
+          "lean": "strongConvexOn_zero; Finset.sum_const, card_range, one_pow and nsmul_eq_mul."
+        },
+        {
+          "title": "Divide on the positive domain",
+          "text": "Since h>0 and N>0, the coefficient 2hN is positive. Dividing preserves the inequality. With beta>0, substituting h=1/beta gives exactly beta R²/(2N), the source prescribed-step convex rate. This substitution is exercised by a compiled consumer test.",
+          "formula": "e_N\\le\\frac{R^2}{2hN};\\qquad h=1/\\beta\\Longrightarrow e_N\\le\\frac{\\beta R^2}{2N}.",
+          "lean": "le_div_iff₀; Tests.Shared.GradientDescentRates verifies the reciprocal-step specialization."
+        }
+      ],
+      "boundary": [
+        "These are public integrations of the existing weighted theorem and previously compiled test normalizations. The new representation edge is the exact inverse-power equality; no new descent or recurrence proof is claimed.",
+        "C1 on a complete real Hilbert space and arbitrary comparator generalize the C2 Euclidean minimizer-based source rate. Source smoothness is represented by its global quadratic upper model. The condition beta*h<=1 agrees with h<=1/beta when beta>0.",
+        "Finite normalized bounds require h>0 and N>0. No real-valued normalized h=0 or N=0 assertion, analytic alpha-to-zero limit, iteration-complexity theorem, minimum existence, Riemannian or stochastic result is claimed."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentValue.gradient_descent_weighted_value_bound"
+      ],
+      "mathlib_dependencies": [
+        "strongConvexOn_zero",
+        "Finset.sum_const",
+        "Finset.card_range",
+        "le_div_iff₀"
+      ],
+      "lean_statement": "Convex gradient descent has a normalized final-value bound.",
+      "lean_proof": "Write q=1-alpha h, R=||x0-z|| and e_N=f(X_N)-f(z). The existing weighted theorem already derives objective descent and the forced recurrence for the actual gradient iterates. Invoke it directly; its conclusion also allows negative comparator gaps. For a convex objective set alpha=0, hence q=1. Every summand equals one and there are exactly N summands. Thus the weighted estimate becomes 2hN e_N<=R². Since h>0 and N>0, the coefficient 2hN is positive. Dividing preserves the inequality. With beta>0, substituting h=1/beta gives exactly beta R²/(2N), the source prescribed-step convex rate. This substitution is exercised by a compiled consumer test.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Theorem3.4",
+          "scope": "Normalized source rate and weighted proof; endpoint interpretation explicitly separated."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentValue.lean",
+          "label": "Previously compiled normalization proofs",
+          "scope": "The convex and strong rational algebra existed as test consumers before this public interface."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentRates.lean",
+          "label": "Public interface consumer tests",
+          "scope": "Actual unit quadratic, arbitrary comparators, positive and zero geometric base, reciprocal step and singular inverse-power counterexample."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.strongly_convex_value_le",
+      "kind": "theorem",
+      "title": "Strongly convex gradient descent has rational and inverse-power rates",
+      "statement": "E is a complete real inner-product space and f:E→R is C1. The gradient is the genuine Riesz gradient of f. For all x,y, f(y)<=f(x)+<gradient f(x),y-x>+(beta/2)||y-x||². The step satisfies h>0 and beta*h<=1; N is a positive natural number. x0 and z are arbitrary points; X_N is exactly N iterations of x ↦ x-h gradient f(x) starting at x0. No minimizer is required for the comparator bound. f is alpha-strongly convex on the whole space with normalization alpha/2; alpha>0 and alpha*h<=1. The rational bound includes q=1-alpha*h=0; the second, conditional inverse-power bound additionally requires alpha*h<1. The following bound holds for the actual final iterate.",
+      "formula": "\\begin{gathered}q=1-\\alpha h\\in[0,1),\\qquad f(X_N)-f(z)\\le\\frac{\\alpha q^N\\|x_0-z\\|^2}{2(1-q^N)},\\\\q>0\\Longrightarrow f(X_N)-f(z)\\le\\frac{\\alpha}{2(q^{-N}-1)}\\|x_0-z\\|^2.\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space and f:E→R is C1. The gradient is the genuine Riesz gradient of f.",
+        "For all x,y, f(y)<=f(x)+<gradient f(x),y-x>+(beta/2)||y-x||². The step satisfies h>0 and beta*h<=1; N is a positive natural number.",
+        "x0 and z are arbitrary points; X_N is exactly N iterations of x ↦ x-h gradient f(x) starting at x0. No minimizer is required for the comparator bound.",
+        "f is alpha-strongly convex on the whole space with normalization alpha/2; alpha>0 and alpha*h<=1.",
+        "The rational bound includes q=1-alpha*h=0; the second, conditional inverse-power bound additionally requires alpha*h<1."
+      ],
+      "steps": [
+        {
+          "title": "Reuse the actual-iterate energy estimate",
+          "text": "Write q=1-alpha h, R=||x0-z|| and e_N=f(X_N)-f(z). The existing weighted theorem already derives objective descent and the forced recurrence for the actual gradient iterates. Invoke it directly; its conclusion also allows negative comparator gaps.",
+          "formula": "2h\\Bigl(\\sum_{k=0}^{N-1}q^k\\Bigr)e_N\\le q^N R^2.",
+          "lean": "GradientDescentValue.gradient_descent_weighted_value_bound."
+        },
+        {
+          "title": "Normalize the geometric sum without inverting q",
+          "text": "Positive alpha and h with alpha h<=1 give 0<=q<1. For N>0, q^N<1. The finite geometric identity, multiplied by 2, yields 2alpha h sum(q^k)=2(1-q^N). Multiply the weighted estimate by positive alpha and divide by positive 2(1-q^N). This rational form remains valid at q=0.",
+          "formula": "2\\alpha h\\sum_{k=0}^{N-1}q^k=2(1-q^N)>0,\\qquad e_N\\le\\frac{\\alpha q^N R^2}{2(1-q^N)}.",
+          "lean": "geom_sum_mul_neg, pow_lt_one₀, mul_le_mul_of_nonneg_left and le_div_iff₀."
+        },
+        {
+          "title": "Recover the source inverse-power expression",
+          "text": "Under the additional strict inequality alpha h<1, q>0 and q^N>0. Integer negative powers equal inverse positive powers. Multiplying numerator and denominator by q^N proves the exact displayed equality. At q=0 only the preceding rational conclusion applies; the negative-power formula is undefined in ordinary real arithmetic.",
+          "formula": "0<q<1:\\quad\\frac{\\alpha q^N R^2}{2(1-q^N)}=\\frac{\\alpha}{2(q^{-N}-1)}R^2.",
+          "lean": "zpow_neg, zpow_natCast, pow_pos and field_simp. The positive q^N fact discharges inverse cancellation."
+        }
+      ],
+      "boundary": [
+        "These are public integrations of the existing weighted theorem and previously compiled test normalizations. The new representation edge is the exact inverse-power equality; no new descent or recurrence proof is claimed.",
+        "C1 on a complete real Hilbert space and arbitrary comparator generalize the C2 Euclidean minimizer-based source rate. Source smoothness is represented by its global quadratic upper model. The condition beta*h<=1 agrees with h<=1/beta when beta>0.",
+        "Finite normalized bounds require h>0 and N>0. No real-valued normalized h=0 or N=0 assertion, analytic alpha-to-zero limit, iteration-complexity theorem, minimum existence, Riemannian or stochastic result is claimed.",
+        "The rational coefficient equals zero at q=0 and N>0. With an actual minimizing comparator it forces exact objective optimality. This does not make the source inverse-power expression meaningful at zero."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentValue.gradient_descent_weighted_value_bound"
+      ],
+      "mathlib_dependencies": [
+        "geom_sum_mul_neg",
+        "pow_lt_one₀",
+        "pow_pos",
+        "zpow_neg",
+        "zpow_natCast",
+        "le_div_iff₀"
+      ],
+      "lean_statement": "Strongly convex gradient descent has rational and inverse-power rates.",
+      "lean_proof": "Write q=1-alpha h, R=||x0-z|| and e_N=f(X_N)-f(z). The existing weighted theorem already derives objective descent and the forced recurrence for the actual gradient iterates. Invoke it directly; its conclusion also allows negative comparator gaps. Positive alpha and h with alpha h<=1 give 0<=q<1. For N>0, q^N<1. The finite geometric identity, multiplied by 2, yields 2alpha h sum(q^k)=2(1-q^N). Multiply the weighted estimate by positive alpha and divide by positive 2(1-q^N). This rational form remains valid at q=0. Under the additional strict inequality alpha h<1, q>0 and q^N>0. Integer negative powers equal inverse positive powers. Multiplying numerator and denominator by q^N proves the exact displayed equality. At q=0 only the preceding rational conclusion applies; the negative-power formula is undefined in ordinary real arithmetic.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Theorem3.4",
+          "scope": "Normalized source rate and weighted proof; endpoint interpretation explicitly separated."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentValue.lean",
+          "label": "Previously compiled normalization proofs",
+          "scope": "The convex and strong rational algebra existed as test consumers before this public interface."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentRates.lean",
+          "label": "Public interface consumer tests",
+          "scope": "Actual unit quadratic, arbitrary comparators, positive and zero geometric base, reciprocal step and singular inverse-power counterexample."
+        }
+      ]
+    }
+  ]
+}

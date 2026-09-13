@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue

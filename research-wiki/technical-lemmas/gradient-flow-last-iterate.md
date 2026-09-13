@@ -58,3 +58,7 @@ positive-part sharpness witness with its local smooth-arc/global C2 boundary.
 
 Final independent integration review accepted by pl_pullback_review, with no
 pending checks; exact report retained beside canonical gate evidence.
+
+Merged and pushed directly to `main` at `d72e9f5a994f91ee2d64d6b5377d806d8caba0f5` under standing
+user authorization. SAU `MERGED` releases the single stabilization lane. Remote
+post-push CI/deployment is separate from passed local evidence.

@@ -64,3 +64,7 @@ Next bounded candidate: source/reuse audit of Chewi Theorem2.2 actual two-flow
 contraction from the existing strong-convex gradient-monotonicity interface.
 Keep flow existence and gradient-distance decay separate from this PL value rate.
 Do not count the scalar Gronwall helper or a wrapper as another mathematical SAU.
+
+Merged and pushed directly to `main` at `34693737eb639d23f4a68410fd0839537e1bca70` under standing
+user authorization. SAU `MERGED` releases the single stabilization lane. Remote
+post-push CI/deployment is separate from passed local evidence.

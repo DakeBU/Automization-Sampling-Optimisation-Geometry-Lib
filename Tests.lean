@@ -1,3 +1,4 @@
+import Tests.Shared.GradientFlowLastIterate
 import Tests.Shared.GradientFlowStationarity
 import Tests.Shared.GradientFlowValue
 import Tests.Shared.GradientFlowContraction

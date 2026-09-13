@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-flow.last-time-lyapunov",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate.lyapunov_and_rates",
+    upstreamDecl := "Exercise2.1; ConvexityC2.gradient_mono_iff_fderiv2_lower; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Actual convex-flow Lyapunov antitonicity and last-time gradient-square/value upper bounds.",
+    note := "Hessian positivity derived; C2 Hilbert and right-time generalization explicit. Positive-time normalized coefficients 1/t squared and 1/(4t); nonsmooth sharpness and Exercise2.2 remain separate."
+  },
+  {
     key := "analysis.gradient-flow.attained-stationarity",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
     upstreamDecl := "Corollary2.8; IsCompact.exists_isMinOn; le_gronwallBound_of_liminf_deriv_right_le",

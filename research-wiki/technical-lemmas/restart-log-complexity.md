@@ -42,3 +42,7 @@ exact current source digest and frozen files. Actual gate/site/graph logs and
 root-only visual attestation checked; direct-main release recommended. Retained
 final-integration-review.json; no additional build for unchanged mathematics.
 Next: reverse quadratic-regularization reduction, with oracle/class gaps retained.
+
+Merged and pushed directly to main at `22a0d2a8e2b72e6d2c0a8401aa8d25785f4af547` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

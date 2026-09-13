@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedResolvent.weak_resolvent_distributional",
+      "title": "The closed-gradient resolvent is a genuine weak PDE solution",
+      "boundary": "Weighted distributional PDE existence only. No H2, converse domain characterization, D*D operator core, Poincare, measurable fiberwise solution selection, or complete paper. Separately chosen resolvent witnesses are not definitionally identified.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS Appendix C.1: analytic prerequisite",
+          "scope": "Weighted distributional PDE existence only. No H2, converse domain characterization, D*D operator core, Poincare, measurable fiberwise solution selection, or complete paper. Separately chosen resolvent witnesses are not definitionally identified."
+        },
+        {
+          "url": "https://arxiv.org/html/1310.2526v7#S2.SS5",
+          "label": "Kolesnikov–Milman §§2.4–2.5: weighted Poisson/Sobolev background",
+          "scope": "Direct Euclidean weak equation only; no automatic compact-manifold regularity transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.WeightedResolvent"
+      ],
+      "assumptions": [
+        "E is any finite-dimensional real inner-product space with a Borel measurable structure, including dimension zero. W:E→R is C1, exp(-W) is volume-integrable, and μ is its normalized exponential tilt.",
+        "D is a given closable partial real-linear operator from scalar L²(μ) to vector L²(μ). Its graph is exactly the pairs represented μ-almost everywhere by (φ,∇φ) for smooth compact φ; WeightedGradient constructs such an operator.",
+        "ε is positive and f is an arbitrary scalar L²(μ) forcing. The theorem constructs one u in this same D.closure.domain and uses G=D.closure u everywhere. No weak equation, differentiability of u, or higher regularity is assumed.",
+        "The ordinary gradient identity uses all C1 compact tests and constant directions. The resolvent PDE uses smooth compact scalar tests ψ, embedded in the original gradient graph. Coercions select L2 representatives; all asserted integrabilities specify μ or volume."
+      ],
+      "statement": "There exists u in the domain of the same closed gradient such that ε⟨u,v⟩L²(μ)+⟨G,D.closure v⟩L²(μ)=⟨f,v⟩L²(μ) for every domain test v, with G=D.closure u. The representatives u and G are locally volume-integrable and satisfy the ordinary weak gradient identity against every C1 compact scalar test and constant direction, including both integrable test products. For every smooth compact ψ, each of e^(−W)uψ, e^(−W)⟨G,∇ψ⟩ and e^(−W)fψ is volume-integrable and satisfies the displayed equation. This is εe^(−W)u−div(e^(−W)G)=e^(−W)f in the distributional sense, not a classical second-order equation.",
+      "formula": "\\varepsilon\\!\\int e^{-W}u\\psi\\,dx+\\int e^{-W}\\langle G,\\nabla\\psi\\rangle\\,dx=\\int e^{-W}f\\psi\\,dx,\\qquad G=\\overline D u.",
+      "steps": [
+        {
+          "title": "Construct the actual same-domain solution",
+          "text": "The existing closed-graph resolvent theorem applies to D.closure, whose closedness follows from closability of D. For positive ε it supplies a domain element u and an equation against every element of that domain. This step constructs a solution; it does not postulate the weak equation. All later uses refer to this one witness.",
+          "formula": "\\exists u\\in\\operatorname{Dom}(\\overline D),\\quad\\varepsilon\\langle u,v\\rangle_\\mu+\\langle\\overline D u,\\overline D v\\rangle_\\mu=\\langle f,v\\rangle_\\mu\\quad(\\forall v\\in\\operatorname{Dom}(\\overline D)).",
+          "lean": "ClosedGraphResolvent.weak_resolvent D.closure hD.closure_isClosed ε hε f"
+        },
+        {
+          "title": "Identify its ordinary weak gradient",
+          "text": "Apply the previously compiled distributional-gradient theorem to (u,G), where G=D.closure u and the pair belongs to that exact closure graph. It yields local volume integrability and the directional weak identity, with both integrable products. It never differentiates u pointwise.",
+          "formula": "u,G\\in L^1_{\\mathrm{loc}}(dx),\\qquad\\int\\chi\\langle G,a\\rangle\\,dx=-\\int uD_a\\chi\\,dx\\quad(\\chi\\in C_c^1,\\ a\\in E).",
+          "lean": "WeightedGradientDistribution.closed_gradient_distributional; D.closure.mem_graph u"
+        },
+        {
+          "title": "Embed a genuine smooth compact test",
+          "text": "For ψ smooth and compactly supported, both ψ and ∇ψ are continuous and compactly supported, hence in L²(μ). Choose their Lp classes p and q. The exact original graph places (p,q) in D.graph and graph closure places it in D.closure.graph. Thus there is a domain test v whose scalar class is p and whose image is q. No inverse-weighted test is presumed smooth.",
+          "formula": "p=[\\psi]_\\mu,\\quad q=[\\nabla\\psi]_\\mu,\\qquad(p,q)\\in\\operatorname{graph}(D)\\subseteq\\operatorname{graph}(\\overline D).",
+          "lean": "hgCont,hgComp,hp,hg,hpq,hpqc; MemLp.toLp; LinearPMap.mem_graph_iff"
+        },
+        {
+          "title": "Expand three integrable L2 pairings",
+          "text": "Test the abstract equation at this v. The L2 inner-product integrability theorem proves each product integrable for μ. Almost-everywhere representative equalities replace p by ψ and q by ∇ψ, both in the integrability proofs and in the integral formula. The scalar inner product is ordinary real multiplication.",
+          "formula": "\\varepsilon\\int u\\psi\\,d\\mu+\\int\\langle G,\\nabla\\psi\\rangle\\,d\\mu=\\int f\\psi\\,d\\mu.",
+          "lean": "hu v; hpe,hge; L2.integrable_inner.congr; L2.inner_def, integral_congr_ae"
+        },
+        {
+          "title": "Transfer all three products to volume",
+          "text": "For this actual normalized Gibbs tilt, integrable_tilted_iff converts each of the three μ-integrability facts to volume-integrability after multiplication by e^(−W). In particular, the displayed PDE integrals are not assigned values by a totalized fallback for nonintegrable functions.",
+          "formula": "u\\psi,\\ \\langle G,\\nabla\\psi\\rangle,\\ f\\psi\\in L^1(\\mu)\\Longrightarrow e^{-W}u\\psi,\\ e^{-W}\\langle G,\\nabla\\psi\\rangle,\\ e^{-W}f\\psi\\in L^1(dx).",
+          "lean": "hwu,hwG,hwf via integrable_tilted_iff hI"
+        },
+        {
+          "title": "Cancel only the positive normalization",
+          "text": "Write μ=Z⁻¹e^(−W)dx. Its finite normalization Z is strictly positive. Rewrite the three tilted integrals and cancel the common nonzero factor Z⁻¹. The plus sign on the gradient pairing is precisely the distributional minus-divergence convention. No Hessian, Laplacian or operator-core conclusion is used.",
+          "formula": "Z=\\int e^{-W}dx>0,\\qquad\\varepsilon e^{-W}u-\\operatorname{div}(e^{-W}G)=e^{-W}f\\quad\\text{in distributions}.",
+          "lean": "ht, integral_tilted; mul_left_cancel₀ (inv_ne_zero (integral_exp_pos hI).ne'); ring"
+        }
+      ],
+      "lean_statement": "The exact quantifiers, same-operator domain and all integrabilities appear below.",
+      "lean_proof": "Construct u once; identify its weak gradient; embed smooth compact tests; expand L2 pairings and cancel normalization.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ClosedGraphResolvent.weak_resolvent",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientDistribution.closed_gradient_distributional"
+      ],
+      "mathlib_dependencies": [
+        "LinearPMap.IsClosable.closure_isClosed",
+        "LinearPMap.IsClosable.graph_closure_eq_closure_graph",
+        "LinearPMap.mem_graph_iff",
+        "MeasureTheory.MemLp.coeFn_toLp",
+        "MeasureTheory.L2.integrable_inner",
+        "MeasureTheory.L2.inner_def",
+        "MeasureTheory.integrable_tilted_iff",
+        "MeasureTheory.integral_tilted"
+      ]
+    }
+  ]
+}

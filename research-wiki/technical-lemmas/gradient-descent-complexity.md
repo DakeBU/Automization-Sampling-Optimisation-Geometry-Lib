@@ -57,3 +57,7 @@ node was MJX-UTEXT. The delimiter fix and error-selector check cover both.
 Final independent pl_pullback_review integration accepted at4877ed3 with no
 pending local checks. Exact report retained in integration-review.json.
 Remote main9729cf5 unchanged on final fetch; no collaborator edits overwritten.
+
+Merged and pushed directly to main at `0d1a15874a263cc9fca34a3419b480c475939eac` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

@@ -73,6 +73,26 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-descent.convex-normalized-value",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.convex_value_le",
+    upstreamDecl := "Theorem3.4; GradientDescentValue.gradient_descent_weighted_value_bound",
+    upstreamFile := "Chewi Lectures on Optimization arXiv2605.07006v1 Section3",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-descent"],
+    saldUse := "Normalized actual-iterate function-value rate from existing weighted parent.",
+    note := "Positive h,N; arbitrary comparator; source beta reciprocal specialization tested; no analytic alpha limit."
+  },
+  {
+    key := "analysis.gradient-descent.strong-normalized-value",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.strongly_convex_value_le",
+    upstreamDecl := "Theorem3.4; GradientDescentValue.gradient_descent_weighted_value_bound",
+    upstreamFile := "Chewi Lectures on Optimization arXiv2605.07006v1 Section3",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-descent"],
+    saldUse := "Normalized actual-iterate function-value rate from existing weighted parent.",
+    note := "Rational q0 extension and exact inverse power only q>0; source singular domain independently reviewed."
+  },
+  {
     key := "analysis.gradient-flow.last-time-lyapunov",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate.lyapunov_and_rates",
     upstreamDecl := "Exercise2.1; ConvexityC2.gradient_mono_iff_fderiv2_lower; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",

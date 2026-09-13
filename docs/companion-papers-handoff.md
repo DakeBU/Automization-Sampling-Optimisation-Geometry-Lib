@@ -21,9 +21,14 @@ claim that this representative still needs construction is superseded.
 Current local packet: `ASTIS-SW-SPHMC-proximal-estimator-lipschitz`, with source
 and proof blueprint `proof-blueprints/SPHMC-proximal-estimator-lipschitz.md`.
 Focused compilation, including an actual zero-dimensional/eta=1/2 constructor
-test, passes. Independent mathematical proof review passed; final source and
-commit-bound admission/integration are tracked by the cell and
-`runs/20260913-companion-priority/`, not inferred from this paragraph.
+test, passes. Independent proof/source and commit-bound admission passed at
+`4b75ac75c484c82385455d73b24d8e1dc60c9d41`; the source verdict is explicitly
+`lean-strengthened-assumptions`, not unrestricted source equivalence. Local
+integration passed root Tests (9218 jobs), canonical ASTIS check, publication,
+site and graph checks. Root inspected rendered desktop/mobile proof and graph
+PNGs. Exact evidence is in the cell and `runs/20260913-companion-priority/`.
+Two subsequent safe GitHub fetches failed (connection reset, then port443
+connection failure). Do not assume a push or deployment has occurred.
 
 This packet derives actual proximal nonexpansiveness and estimator input bounds
 with constants 1 and sqrt(eta). Its 0<eta<=1/2 domain is inherited from the

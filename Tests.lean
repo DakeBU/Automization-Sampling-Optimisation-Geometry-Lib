@@ -182,6 +182,7 @@ import Tests.SmoothedPicardHMCEnhancedKLOneStep
 import Tests.SmoothedPicardHMCEnhancedFiniteOutputKL
 import Tests.SmoothedPicardHMCProximalGaussianEstimator
 import Tests.SmoothedPicardHMCGibbsPositionMoment
+import Tests.SmoothedPicardHMCProximalEstimatorLipschitz
 import Tests.SmoothedPicardHMCClippedGradientProgram
 
 /-!

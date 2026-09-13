@@ -1,0 +1,69 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentComplexity.distance_le_of_log_bound",
+      "kind": "theorem",
+      "title": "A logarithmic iteration budget gives distance accuracy",
+      "statement": "E is a complete real inner-product space; f:E→R is continuously Frechet differentiable. Its gradient is its actual Riesz gradient. Alpha, beta and epsilon are strictly positive. The objective is alpha-strongly convex on E, with the alpha/2 quadratic convention. For every x,y, f(y)<=f(x)+<gradient f(x),y-x>+(beta/2)||y-x||². This is the source smoothness upper model. A global minimizer xstar is supplied. The initial point x0 is arbitrary and N is a natural number, including zero. X_N is exactly N iterations of x ↦ x-beta⁻¹ gradient f(x). Write R=||x0-xstar||. If R>0, assume 2(beta/alpha)log(R/epsilon)<=N. When R=0 no logarithmic threshold is required. Then the actual final iterate has distance at most epsilon from xstar.",
+      "formula": "\\begin{gathered}X_N=(\\mathrm{id}-\\beta^{-1}\\nabla f)^N(x_0),\\quad R=\\|x_0-x_\\star\\|,\\\\[R>0\\Rightarrow N\\ge2(\\beta/\\alpha)\\log(R/\\varepsilon)]\\quad\\Longrightarrow\\quad\\|X_N-x_\\star\\|\\le\\varepsilon.\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space; f:E→R is continuously Frechet differentiable. Its gradient is its actual Riesz gradient.",
+        "Alpha, beta and epsilon are strictly positive. The objective is alpha-strongly convex on E, with the alpha/2 quadratic convention.",
+        "For every x,y, f(y)<=f(x)+<gradient f(x),y-x>+(beta/2)||y-x||². This is the source smoothness upper model.",
+        "A global minimizer xstar is supplied. The initial point x0 is arbitrary and N is a natural number, including zero. X_N is exactly N iterations of x ↦ x-beta⁻¹ gradient f(x).",
+        "Write R=||x0-xstar||. If R>0, assume 2(beta/alpha)log(R/epsilon)<=N. When R=0 no logarithmic threshold is required."
+      ],
+      "steps": [
+        {
+          "title": "Use the actual exponential contraction",
+          "text": "Apply the existing distance theorem at the positive step h=1/beta. Its first conclusion bounds the actual iterate by the geometric factor; compose it with the second conclusion to obtain the exponential bound.",
+          "formula": "\\|X_N-x_\\star\\|\\le e^{-\\alpha N/(2\\beta)}R.",
+          "lean": "GradientDescentContraction.gradient_descent_distance_bound; compose its two inequalities with trans."
+        },
+        {
+          "title": "Separate the stationary initial point",
+          "text": "If R=0, the exponential bound has zero right-hand side. Thus every iterate has zero distance and meets any positive tolerance. This branch uses neither a real logarithm at zero nor a positive iteration count.",
+          "formula": "R=0\\quad\\Longrightarrow\\quad\\|X_N-x_\\star\\|=0\\le\\varepsilon.",
+          "lean": "Case split on the initial norm; simplify the existing bound."
+        },
+        {
+          "title": "Invert the exponential estimate on its positive domain",
+          "text": "For R>0, the ratio R/epsilon is positive. Multiply the threshold by alpha/beta>0 and divide by two. The log comparison gives R/epsilon<=exp(alpha N/(2beta)). Multiply by exp(-alpha N/(2beta)) and then by epsilon>0; the two exponential factors cancel. Combining with the first step proves the accuracy bound.",
+          "formula": "\\log(R/\\varepsilon)\\le\\frac{\\alpha N}{2\\beta}\\ \\Longrightarrow\\ \\frac R\\varepsilon\\le e^{\\alpha N/(2\\beta)}\\ \\Longrightarrow\\ e^{-\\alpha N/(2\\beta)}R\\le\\varepsilon.",
+          "lean": "Real.log_le_iff_le_exp, Real.exp_pos, Real.exp_add and div_le_iff₀; positive alpha and beta justify reciprocal cancellation."
+        }
+      ],
+      "boundary": [
+        "This closes the logarithmic-complexity obligation of Theorem3.3 by integrating the existing actual-iterate contraction; it does not reprove that contraction. Earlier binding-local statements that exclude complexity retain their historical scope.",
+        "C1 on a complete real Hilbert space generalizes the source C2 Euclidean setting. The explicit quadratic upper model is sufficient; no Hessian or finite dimension is used.",
+        "The source condition number is beta/alpha. Alpha<=beta is not needed as an additional hypothesis: the parent theorem handles a singleton space too. On the ordinary nontrivial source setting the usual compatible-modulus regime is recovered.",
+        "Positive moduli and positive accuracy expose the denominator and logarithm domains. R=0 is treated without log0; for 0<R<=epsilon the threshold is nonpositive, so N=0 is allowed.",
+        "The sufficient integer budget can be the natural ceiling of the real threshold when R>0, and zero when R=0. The compiled quadratic consumer also uses Lean totalized log0 inside its ceiling expression; its zero-radius proof is independent of that expression. No minimality or lower complexity bound is claimed.",
+        "A minimizer is assumed, not constructed. No full Table1, Chapter3 exercises, Riemannian or stochastic convergence, or companion-paper result is claimed."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_descent_distance_bound"
+      ],
+      "mathlib_dependencies": [
+        "Real.log_le_iff_le_exp",
+        "Real.exp_pos",
+        "Real.exp_add",
+        "div_le_iff₀"
+      ],
+      "lean_statement": "Positive-domain logarithmic budget for actual gradient iterates.",
+      "lean_proof": "Apply the existing distance theorem at the positive step h=1/beta. Its first conclusion bounds the actual iterate by the geometric factor; compose it with the second conclusion to obtain the exponential bound. If R=0, the exponential bound has zero right-hand side. Thus every iterate has zero distance and meets any positive tolerance. This branch uses neither a real logarithm at zero nor a positive iteration count. For R>0, the ratio R/epsilon is positive. Multiply the threshold by alpha/beta>0 and divide by two. The log comparison gives R/epsilon<=exp(alpha N/(2beta)). Multiply by exp(-alpha N/(2beta)) and then by epsilon>0; the two exponential factors cancel. Combining with the first step proves the accuracy bound.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Theorem3.3 following rate paragraph",
+          "scope": "Exact sufficient count N>=2kappa log(R/epsilon)."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentComplexity.lean",
+          "label": "Compiled quadratic consumers",
+          "scope": "Actual quadratic with alpha1,beta2; integer ceiling, zero initial distance and already accurate zero-iteration branches."
+        }
+      ]
+    }
+  ]
+}

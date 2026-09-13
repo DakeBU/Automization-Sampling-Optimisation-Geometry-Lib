@@ -1,0 +1,64 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
+      "kind": "theorem",
+      "title": "PL gradient flows decrease the objective exponentially",
+      "statement": "Let E be a complete real inner-product space, f:E→R be Frechet differentiable everywhere, z a global minimizer, alpha>0 and T>=0. Let X:R→E be continuous on [0,T] and have right derivative -gradient f(X(t)) for every t in [0,T). Assume the global numerical PL inequality below. Then the actual objective has the stated right derivative before T, and its nonnegative gap satisfies the exponential bound at every t in [0,T].",
+      "formula": "\\begin{gathered}2\\alpha(f(x)-f(z))\\le\\|\\nabla f(x)\\|^2\\quad(\\forall x\\in E),\\qquad X^{\\prime+}(t)=-\\nabla f(X(t)),\\quad 0\\le t<T,\\\\\\partial_t^+f(X(t))=-\\|\\nabla f(X(t))\\|^2\\quad(0\\le t<T),\\\\0\\le f(X(t))-f(z)\\le (f(X(0))-f(z))\\exp(-2\\alpha t)\\quad(0\\le t\\le T).\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space; f is Frechet differentiable at every point.",
+        "Alpha>0 and T>=0; f(z)<=f(x) for every x:E.",
+        "X is continuous on [0,T]; for each t in [0,T), HasDerivWithinAt X (-gradient f(X(t))) (Ici t) t. No negative-time derivative is required.",
+        "For every x:E, 2 alpha (f(x)-f(z))<=norm gradient f(x) squared."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate the actual objective along the curve",
+          "text": "Frechet differentiability represents Df(X(t)) by its Riesz gradient. Compose this derivative with the supplied right derivative X prime(t)=-gradient f(X(t)). The inner product of the gradient with its negative is minus its squared norm. This constructs the energy identity from the actual dynamics.",
+          "formula": "\\partial_t^+ f(X(t))=Df(X(t))[X^{\\prime+}(t)]=\\langle\\nabla f(X(t)),-\\nabla f(X(t))\\rangle=-\\|\\nabla f(X(t))\\|^2.",
+          "lean": "DifferentiableAt.hasGradientAt, HasFDerivAt.comp_hasDerivWithinAt, InnerProductSpace.toDual_apply_apply, inner_neg_right, real_inner_self_eq_norm_sq."
+        },
+        {
+          "title": "Convert PL into a differential inequality",
+          "text": "Let e(t)=f(X(t))-f(z). Subtracting the constant minimum preserves the derivative. PL gives 2 alpha e(t)<=norm gradient f(X(t)) squared, hence the actual right derivative satisfies e prime(t)<=-2 alpha e(t).",
+          "formula": "e(t)=f(X(t))-f(z),\\qquad e^{\\prime+}(t)=-\\|\\nabla f(X(t))\\|^2\\le-2\\alpha e(t).",
+          "lean": "HasDerivWithinAt.sub_const and the supplied PL inequality, with rate exactly 2*alpha."
+        },
+        {
+          "title": "Apply the existing interval comparison and retain endpoints",
+          "text": "Differentiability makes f continuous, so the supplied continuity of X makes e continuous on the closed interval. Each right derivative supplies the one-sided slope hypothesis for Mathlib Gronwall on [0,T]. With constant coefficient -2 alpha and zero forcing, its bound is e(0) exp(-2 alpha t), including the terminal endpoint. The global minimum gives e(t)>=0.",
+          "formula": "0\\le e(t)\\le e(0)\\exp(-2\\alpha t),\\qquad 0\\le t\\le T.",
+          "lean": "Continuous.comp_continuousOn, HasDerivWithinAt.liminf_right_slope_le, le_gronwallBound_of_liminf_deriv_right_le, gronwallBound_ε0, IsMinOn."
+        }
+      ],
+      "boundary": [
+        "The objective is generalized from the source finite Euclidean C2 setting to an everywhere Frechet differentiable function on a complete real Hilbert space. The proof requires the actual derivative, not a supplied scalar dissipation identity. It does not assert continuous differentiability of the gradient.",
+        "A supplied continuous curve is considered on [0,T], T>=0. Its right gradient-flow derivative is assumed only for 0<=t<T. Terminal continuity is retained, but no derivative at T, negative-time dynamics, existence, uniqueness or extension of the flow is asserted. For T=0 the rate is equality and the derivative conclusion is vacuous.",
+        "The source positive PL modulus and attained minimum are explicit. The minimum supplies nonnegative gap; positivity specifies the exponential-decay regime although the comparison algebra also works without that sign. No convexity, point-distance rate, gradient Lipschitzness, discretization, stochastic flow or companion-paper theorem is concluded."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasFDerivAt.comp_hasDerivWithinAt",
+        "DifferentiableAt.hasGradientAt",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_ε0"
+      ],
+      "lean_statement": "Actual objective right derivative and nonnegative PL gap decay on a finite forward interval.",
+      "lean_proof": "Frechet differentiability represents Df(X(t)) by its Riesz gradient. Compose this derivative with the supplied right derivative X prime(t)=-gradient f(X(t)). The inner product of the gradient with its negative is minus its squared norm. This constructs the energy identity from the actual dynamics. Let e(t)=f(X(t))-f(z). Subtracting the constant minimum preserves the derivative. PL gives 2 alpha e(t)<=norm gradient f(X(t)) squared, hence the actual right derivative satisfies e prime(t)<=-2 alpha e(t). Differentiability makes f continuous, so the supplied continuity of X makes e continuous on the closed interval. Each right derivative supplies the one-sided slope hypothesis for Mathlib Gronwall on [0,T]. With constant coefficient -2 alpha and zero forcing, its bound is e(0) exp(-2 alpha t), including the terminal endpoint. The global minimum gives e(t)>=0.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Lemma2.1 and Corollary2.6",
+          "scope": "Supplied gradient dynamics and positive PL modulus; no well-posedness theorem."
+        },
+        {
+          "path": "Tests/Shared/GradientFlowPL.lean",
+          "label": "Nonstationary quadratic flow",
+          "scope": "Actual X(t)=exp(-t), f(x)=x squared/2, with proved gradient, PL, minimum and sharp rate."
+        }
+      ]
+    }
+  ]
+}

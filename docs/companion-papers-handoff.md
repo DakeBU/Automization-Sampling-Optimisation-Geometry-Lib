@@ -56,11 +56,27 @@ delivery revision. Prior normal fetch and push attempts failed with GitHub
 connection errors, not evidence of an authentication problem. Technical Registry
 remains 425 compiled leaves; route publication inventory is a separate measure.
 
-Next PBPS dependency-ready candidate: establish local volume integrability and
-use phi=exp(W)*psi to turn the weighted identity into an unweighted distributional
-gradient identity. Pinned Mathlib `integrable_tilted_iff` and both absolute-
-continuity directions are available. Reuse WeightedGradientWeak,
-ConditionalGradient and the existing ConditionalResolvent blueprint. A gradient
+The next PBPS bridge is now independently VERIFIED at
+`767058015387071c7d7907dbc5f3eeb293c11945`: see
+`ASTIS-SW-PBPS-gradient-distributional`. It establishes local volume integrability
+for both L2 representatives and the ordinary weak gradient identity against C1
+compact tests, including both product integrabilities. The same D.closure is
+retained. Focused PASS3033, independent full proof/lesson review and source-blind
+round trip passed; source acceptance is for the authored prerequisite only.
+The six-step reader lesson is `pbps-gradient-distributional`. Aggregate and
+website acceptance must be read from the exact subsequent integration evidence;
+proof admission alone does not assert that those gates ran.
+
+The latest bounded, noninteractive HTTP/1.1 fetch also failed with a GitHub
+low-speed timeout. No remote update, push or deployment is claimed; preserve
+all local commits and fetch/check divergence before delivery.
+
+Next PBPS dependency-ready candidate: embed genuine smooth compact tests into
+the SAME closed-gradient domain and turn its existing weak resolvent identity
+into the weighted divergence-form distributional PDE, using actual L2 pairing
+integrabilities. Do not use exp(W)*psi as a C-infinity core test when W is only
+C1/C2. That would require a separate test-domain extension. Reuse
+WeightedGradientDistribution, ConditionalGradient and ConditionalResolvent. A gradient
 graph core is not an operator core for D*D; elliptic regularity, operator-core
 approximation, mean-zero resolvent limits, Poincare and macroscopic coercivity
 must remain separate. Do not increase the source C2 hypothesis silently.

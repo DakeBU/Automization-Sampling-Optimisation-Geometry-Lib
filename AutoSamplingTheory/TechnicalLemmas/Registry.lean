@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-descent.distance-complexity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentComplexity.distance_le_of_log_bound",
+    upstreamDecl := "GradientDescentContraction.gradient_descent_distance_bound; Real.log_le_iff_le_exp",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section3 Theorem3.3 following rate paragraph",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-descent"],
+    saldUse := "Actual reciprocal-step gradient iterates reach distance accuracy under the exact logarithmic budget.",
+    note := "Positive alpha,beta,epsilon; threshold only R>0, zero radius and zero iterations retained. C1 Hilbert upper-model generalization; supplied minimizer. Sufficient count, not optimal complexity or companion-paper progress."
+  },
+  {
     key := "analysis.gradient-descent.convex-normalized-value",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.convex_value_le",
     upstreamDecl := "Theorem3.4; GradientDescentValue.gradient_descent_weighted_value_bound",

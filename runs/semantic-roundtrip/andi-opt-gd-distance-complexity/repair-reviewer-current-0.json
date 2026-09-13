@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "task": "independent-theorem-repair-review",
+  "packet_id": "ASTIS-REPAIR-REVIEW-cf1906ec8104feba",
+  "anti_anchoring": {
+    "prior_fidelity_verdict_included": false,
+    "prior_semantic_deltas_included": false,
+    "prior_source_review_included": false,
+    "prior_repair_review_included": false
+  },
+  "roles": {
+    "formalizer": "andi-gd-worker",
+    "blind_decoder": "gd_blind",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-theorem-3-3",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S3; Theorem3.3 single-step",
+    "original_text": "In Section3 of Chewi Lectures on Optimization, f is C2 on Euclidean d-space, alpha-strongly convex and beta-smooth. The gradient step is T(x)=x-h grad f(x). Theorem3.3 states that for all x,y and h<=1/beta, ||T(y)-T(x)||<=sqrt(1-alpha h)||y-x||. The printed step restriction does not explicitly state h>=0. Definition3.2 uses kappa=beta/alpha>=1 in the positive condition-number setting. ",
+    "text_sha256": "ee1b2ade351fc95c0646240cefacb88d71740b87a4875a0d2bd014effea746cc"
+  },
+  "lean": {
+    "statement": "\u2200 {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace \u211d E] [inst_2 : CompleteSpace E] {f : E \u2192 \u211d} {\u03b1 \u03b2 h : \u211d},\n  ContDiff \u211d 1 f \u2192\n    StrongConvexOn Set.univ \u03b1 f \u2192\n      0 \u2264 \u03b1 \u2192\n        0 \u2264 \u03b2 \u2192\n          0 \u2264 h \u2192\n            \u03b2 * h \u2264 1 \u2192\n              (\u2200 (x y : E), f y \u2264 f x + inner \u211d (gradient f x) (y - x) + \u03b2 / 2 * \u2016y - x\u2016 ^ 2) \u2192\n                \u2200 (x y : E), \u2016y - h \u2022 gradient f y - (x - h \u2022 gradient f x)\u2016 \u2264 \u221a(1 - \u03b1 * h) * \u2016y - x\u2016",
+    "statement_sha256": "ed57cf213b01d7ce24c3023b0ef0906c84c8f7dcbbe3857fb110db35781b6701",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any complete real inner product space, with its compatible norm and additive group structure; no finite-dimensional hypothesis is imposed. Let f:E\u2192\u211d and \u03b1,\u03b2,h\u2208\u211d be arbitrary. Assume (1) f is continuously Fr\u00e9chet differentiable on all of E; (2) for every x,y\u2208E and every t\u2208[0,1], f((1\u2212t)x+ty)\u2264(1\u2212t)f(x)+tf(y)\u2212(\u03b1/2)t(1\u2212t)\u2016y\u2212x\u2016\u00b2; (3) \u03b1\u22650; (4) \u03b2\u22650; (5) h\u22650; (6) \u03b2h\u22641; and (7) for every x,y\u2208E, f(y)\u2264f(x)+\u27e8\u2207f(x),y\u2212x\u27e9+(\u03b2/2)\u2016y\u2212x\u2016\u00b2, where \u2207f(x) is the Riesz vector representing the derivative of f at x. All these hypotheses hold globally and for the same fixed f,\u03b1,\u03b2,h. Define T(x)=x\u2212h\u2207f(x), and q=Real.sqrt(1\u2212\u03b1h), the nonnegative real square root with value zero on negative inputs. Then, for every x,y\u2208E, \u2016T(y)\u2212T(x)\u2016\u2264q\u2016y\u2212x\u2016. Thus the declaration gives a uniform global one-step Lipschitz bound for the gradient update, with stated factor q depending only on \u03b1 and h; \u03b2 appears in the assumed upper quadratic model and step-size constraint. There are no other constants, restrictions on the two points, or dependence on dimension.",
+    "text_sha256": "e8de6610f89d5d90539d79b3db0cbb5a482c8e7f33683090be66fc28283df739",
+    "decoder": "gd_blind",
+    "decoder_packet_sha256": "0db3328cc3dd54907edc8e8d33bd071055ce96ad2cfe1b69563c118e7331fbd1",
+    "decoder_run_sha256": "59503b845e72afaaf3b9ee9aa799ad1c1243467d12d30cf2d723e07a86c58a07"
+  },
+  "proposal": {
+    "id": "ASTIS-REPAIR-ANDI-GD-NONNEGATIVE-STEP",
+    "class": "assumption-addition",
+    "necessity": "mathematically-necessary",
+    "proposed_change": "In Theorem3.3 replace the printed step restriction h<=1/beta with 0<=h<=1/beta. Retain the pinned source statement separately; do not overwrite it.",
+    "reconstructed_statement": "In the source C2 Euclidean setting, let f be alpha-convex and beta-smooth. For every x,y and step size 0 <= h <= 1/beta, with T(z)=z-h grad f(z), ||T(y)-T(x)|| <= sqrt(1-alpha h)||y-x||. The source positive reciprocal and ordinary square-root domains remain unchanged; this proposal only makes the missing nonnegative-step restriction explicit.",
+    "statement_sha256": "8a047dafe3d5c1e8605ca06c74c3f9817afa64874f9eab0afc6ebeb75c5f34de",
+    "justification": "The literal all-real-step statement fails for every negative h on f(t)=t^2/2 with alpha=beta=1. The proof needs h>=0 when multiplying the curvature and step bounds.",
+    "minimality_evidence": "Only add h>=0; include h=0 because T is then identity and the factor is 1. No strict positivity of h, no additional smoothness, and no dimension restriction is proposed. Existing reciprocal/square-root source domains are not redefined. Removing h>=0 admits the explicit quadratic counterexample.",
+    "reference_or_counterexample": "{\"counterexample\": \"f(t)=t^2/2 on R, alpha=beta=1, h=-1, x=0,y=1: h<=1/beta but 2>sqrt(2). For every h<0, (1-h)^2-(1-h)=h(h-1)>0.\", \"url\": \"https://arxiv.org/html/2605.07006v1#S3\"}",
+    "proposal_sha256": "605e0d27935fc270ca0a51aa0780b62154443a56935bc35649cd3722687862a6"
+  },
+  "review_contract": {
+    "rule": "Decide whether this exact minimal change is source-correct, not merely helpful to the current Lean proof route.",
+    "allowed_states": [
+      "accepted",
+      "needs-revision",
+      "rejected"
+    ]
+  },
+  "output_contract": {
+    "state": "",
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": "",
+    "proposal_sha256": "605e0d27935fc270ca0a51aa0780b62154443a56935bc35649cd3722687862a6"
+  },
+  "publication_binding_sha256": "8fd034b9d047ddfd607a6f7212eaed358607cc7e18283bfaf6fa5d2939bf09df",
+  "candidate_publication_context": {
+    "file": "d12a1ad0e67ba09a5696850fb8be4e01345363c52f5960745d5e0f3630293177",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient\nimport Mathlib.Analysis.Calculus.LocalExtr.Basic\nimport Mathlib.Analysis.SpecialFunctions.Exp\nimport Mathlib.Dynamics.FixedPoints.Basic\n\n/-!\n# Gradient descent: contraction and distance rates\n\nSource: Chewi, Lectures on Optimization, arXiv:2605.07006v1, Theorem 3.3.\nCompose the squared-distance expansion with Exercise 3.1 cocoercivity and\nProposition 1.6 strong gradient monotonicity. Iteration uses an actual global\nminimizer, whose gradient vanishes by Fermat's theorem.\n\nWe expose the necessary nonnegative-step condition implicit in the source.\nThe division-free restriction `\u03b2 * h \u2264 1` includes zero modulus, and C\u00b9 on a\ncomplete real inner-product space generalizes the section's C\u00b2 Euclidean\nsetting. No `\u03b1 \u2264 \u03b2` assumption is needed, including on a singleton space:\nreal square root is total and the squared estimate forces zero distance if its\ncoefficient is negative. The source's positive-modulus instance has the usual\nnonnegative coefficient. Its stray gradient before `y - x` in the middle\nproof display is read as the displacement, as in the preceding expansion.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction\n\nopen Set\nopen scoped RealInnerProductSpace Topology\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace \u211d E] [CompleteSpace E]\n\n/-- One gradient step contracts by `sqrt (1 - \u03b1 * h)` under the global curvature\nand quadratic upper models, with explicit nonnegative step. -/\ntheorem gradient_step_contraction {f : E \u2192 \u211d} {\u03b1 \u03b2 h : \u211d}\n    (hf : ContDiff \u211d 1 f) (hsc : StrongConvexOn univ \u03b1 f)\n    (h\u03b1 : 0 \u2264 \u03b1) (h\u03b2 : 0 \u2264 \u03b2) (hh : 0 \u2264 h) (hstep : \u03b2 * h \u2264 1)\n    (hu : \u2200 x y, f y \u2264 f x + inner \u211d (gradient f x) (y - x) + \u03b2 / 2 * \u2016y - x\u2016 ^ 2)\n    (x y : E) :\n    \u2016(y - h \u2022 gradient f y) - (x - h \u2022 gradient f x)\u2016 \u2264\n      Real.sqrt (1 - \u03b1 * h) * \u2016y - x\u2016 := by\n  have hc : ConvexOn \u211d univ f := hsc.convexOn (by intro r; positivity)\n  have hm := StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn\n    hsc (fun z _ => (hf.differentiable_one z).hasGradientAt) (mem_univ x) (mem_univ y)\n  have hg := ConvexSmoothGradient.gradient_cocoercive hf hc h\u03b2 hu x y\n  have hp : 0 \u2264 inner \u211d (gradient f y - gradient f x) (y - x) :=\n    le_trans (mul_nonneg h\u03b1 (sq_nonneg _)) hm\n  have hg' := mul_le_mul_of_nonneg_left hg (sq_nonneg h)\n  have hs := mul_le_mul_of_nonneg_left hstep (mul_nonneg hh hp)\n  have hm' := mul_le_mul_of_nonneg_left hm hh\n  have hv : (y - h \u2022 gradient f y) - (x - h \u2022 gradient f x) =\n      (y - x) - h \u2022 (gradient f y - gradient f x) := by rw [smul_sub]; abel\n  have hb : \u2016(y - h \u2022 gradient f y) - (x - h \u2022 gradient f x)\u2016 ^ 2 \u2264\n      (1 - \u03b1 * h) * \u2016y - x\u2016 ^ 2 := by\n    rw [hv, norm_sub_sq_real, inner_smul_right,\n      real_inner_comm (gradient f y - gradient f x), norm_smul,\n      Real.norm_eq_abs, mul_pow, sq_abs]\n    nlinarith\n  simpa only [Real.sqrt_mul' _ (sq_nonneg _), Real.sqrt_sq (norm_nonneg _)] using\n    Real.le_sqrt_of_sq_le hb\n\n/-- The actual Nth gradient-descent iterate has geometric, then exponential,\ndistance control about a supplied global minimizer. -/\ntheorem gradient_descent_distance_bound {f : E \u2192 \u211d} {\u03b1 \u03b2 h : \u211d}\n    (hf : ContDiff \u211d 1 f) (hsc : StrongConvexOn univ \u03b1 f)\n    (h\u03b1 : 0 \u2264 \u03b1) (h\u03b2 : 0 \u2264 \u03b2) (hh : 0 \u2264 h) (hstep : \u03b2 * h \u2264 1)\n    (hu : \u2200 x y, f y \u2264 f x + inner \u211d (gradient f x) (y - x) + \u03b2 / 2 * \u2016y - x\u2016 ^ 2)\n    {xstar : E} (hmin : IsMinOn f univ xstar) (x\u2080 : E) (N : \u2115) :\n    \u2016(fun x => x - h \u2022 gradient f x)^[N] x\u2080 - xstar\u2016 \u2264\n        Real.sqrt (1 - \u03b1 * h) ^ N * \u2016x\u2080 - xstar\u2016 \u2227\n      Real.sqrt (1 - \u03b1 * h) ^ N * \u2016x\u2080 - xstar\u2016 \u2264\n        Real.exp (-(\u03b1 * h * N) / 2) * \u2016x\u2080 - xstar\u2016 := by\n  let T : E \u2192 E := fun x => x - h \u2022 gradient f x\n  have hg : gradient f xstar = 0 := by\n    simp [gradient, (hmin.isLocalMin Filter.univ_mem).fderiv_eq_zero]\n  have hfix : Function.IsFixedPt T xstar := by simp [Function.IsFixedPt, T, hg]\n  have hl : LipschitzWith (Real.toNNReal (Real.sqrt (1 - \u03b1 * h))) T := by\n    rw [lipschitzWith_iff_norm_sub_le]\n    intro x y\n    simpa only [Real.coe_toNNReal _ (Real.sqrt_nonneg _)] using\n      gradient_step_contraction hf hsc h\u03b1 h\u03b2 hh hstep hu y x\n  constructor\n  \u00b7 have hi := (hl.iterate N).dist_le_mul x\u2080 xstar\n    simpa only [dist_eq_norm, (hfix.iterate N).eq, NNReal.coe_pow, Real.coe_toNNReal _ (Real.sqrt_nonneg _), T] using hi\n  \u00b7 have he : Real.sqrt (1 - \u03b1 * h) \u2264 Real.exp (-(\u03b1 * h) / 2) := by\n      apply (Real.sqrt_le_left (Real.exp_nonneg _)).mpr\n      have hx := Real.add_one_le_exp (-(\u03b1 * h))\n      rw [pow_two, \u2190 Real.exp_add, show -(\u03b1 * h) / 2 + -(\u03b1 * h) / 2 = -(\u03b1 * h) by ring]\n      simpa only [sub_eq_add_neg, add_comm] using hx\n    have hp := pow_le_pow_left\u2080 (Real.sqrt_nonneg _) he N\n    have hr := mul_le_mul_of_nonneg_right hp (norm_nonneg (x\u2080 - xstar))\n    rw [\u2190 Real.exp_nat_mul, show (N : \u211d) * (-(\u03b1 * h) / 2) =\n      -(\u03b1 * h * N) / 2 by ring] at hr\n    exact hr\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S3",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Section3, Theorem3.3, proof and immediately following distance-rate paragraph",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+    },
+    "statement": "In the section\u2019s C\u00b2 Euclidean setting, an \u03b1-strongly convex \u03b2-smooth objective gives the displayed contraction of the gradient update x\u207a=x\u2212h\u2207f(x), for all x,y and h\u22641/\u03b2. Taking y to be a global minimizer x\u22c6, using h=1/\u03b2, \u03ba=\u03b2/\u03b1 and R=\u2016x\u2080\u2212x\u22c6\u2016, iteration yields the geometric and exponential distance estimates. The following logarithmic complexity conclusion is a separate proof obligation with its own declaration binding. The printed step restriction omits h\u22650; its necessary domain is exposed in the bindings without rewriting the source.",
+    "formulae": [
+      {
+        "label": "Single-step distance",
+        "tex": "\\|y^+-x^+\\|\\le\\sqrt{1-\\alpha h}\\|y-x\\|"
+      },
+      {
+        "label": "Distance after N steps, h=1/\u03b2",
+        "tex": "\\begin{gathered}\\|x_N-x_\\star\\|\\le(1-1/\\kappa)^{N/2}R,\\\\(1-1/\\kappa)^{N/2}R\\le e^{-N/(2\\kappa)}R.\\end{gathered}"
+      },
+      {
+        "label": "Subsequent logarithmic iteration complexity",
+        "tex": "N\\ge2\\kappa\\log(R/\\varepsilon)\\ \\Longrightarrow\\ \\|x_N-x_\\star\\|\\le\\varepsilon"
+      }
+    ],
+    "assumptions": [
+      "f:\u211d\u1d48\u2192\u211d is C\u00b2 throughout the section, \u03b1-strongly convex and \u03b2-smooth, with nonnegative curvature parameters.",
+      "The theorem prints h\u22641/\u03b2; the rate paragraph uses h=1/\u03b2, \u03ba=\u03b2/\u03b1\u22651 and a minimizer x\u22c6. Positive denominator domains are implicit."
+    ],
+    "obligations": [
+      {
+        "id": "step-contraction",
+        "label": "Single-step contraction with the necessary step domain explicit"
+      },
+      {
+        "id": "iterated-distance",
+        "label": "Geometric and exponential distance bounds about an actual minimizer"
+      },
+      {
+        "id": "logarithmic-complexity",
+        "label": "Subsequent logarithmic iteration-complexity consequence with its positive domains"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_step_contraction",
+      "kind": "theorem",
+      "title": "A strongly convex gradient step contracts distances",
+      "statement": "For every pair x,y, the actual step T satisfies the displayed contraction estimate under the stated global curvature and step conditions.",
+      "formula": "\\begin{gathered}T(x)=x-h\\nabla f(x),\\\\r=\\sqrt{1-\\alpha h},\\\\f(y)\\le f(x)+\\langle\\nabla f(x),y-x\\rangle\\\\{}+\\frac\\beta2\\|y-x\\|^2,\\\\\\|T(y)-T(x)\\|\\le r\\|y-x\\|.\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space, f:E\u2192\u211d is C\u00b9, and all point quantifiers range over E. The gradient is the genuine Riesz representative of its Fr\u00e9chet derivative.",
+        "The real parameters \u03b1, \u03b2 and h are nonnegative and \u03b2h\u22641.",
+        "f is \u03b1-strongly convex on all E: the convex chord inequality has the subtraction (\u03b1/2)t(1\u2212t)\u2016y\u2212x\u2016\u00b2 for t\u2208[0,1]. The displayed \u03b2 quadratic upper model holds for all x,y.",
+        "Write T(x)=x\u2212h\u2207f(x) and r=\u221a(1\u2212\u03b1h), with the nonnegative real square root (zero on negative arguments)."
+      ],
+      "steps": [
+        {
+          "title": "Use the two compiled curvature inequalities",
+          "text": "For arbitrary x,y define v=y\u2212x, d=\u2207f(y)\u2212\u2207f(x) and p=\u27e8d,v\u27e9. Strong convexity with \u03b1\u22650 supplies convexity and the lower pairing bound. Cocoercivity supplies the upper gradient-square bound.",
+          "formula": "\\begin{gathered}\\alpha\\|v\\|^2\\le p,\\quad p\\ge0,\\\\\\|d\\|^2\\le\\beta p.\\end{gathered}",
+          "lean": "StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn; UniformConvexOn.convexOn; ConvexSmoothGradient.gradient_cocoercive."
+        },
+        {
+          "title": "Expand one actual step",
+          "text": "Since h\u22650 and \u03b2h\u22641, multiplying the cocoercivity bound by h\u00b2 gives h\u00b2\u2016d\u2016\u00b2\u2264h\u00b2\u03b2p\u2264hp. Insert this into the exact squared-norm expansion, then use hp\u2265\u03b1h\u2016v\u2016\u00b2.",
+          "formula": "\\begin{gathered}\\|v-hd\\|^2=\\|v\\|^2-2hp+h^2\\|d\\|^2,\\\\\\|v-hd\\|^2\\le\\|v\\|^2-hp\\\\\\le(1-\\alpha h)\\|v\\|^2.\\end{gathered}",
+          "lean": "norm_sub_sq_real, inner_smul_right, norm_smul; three mul_le_mul_of_nonneg_left applications and nlinarith."
+        },
+        {
+          "title": "Take a square root without adding compatibility",
+          "text": "The squared norm is nonnegative. Taking square roots and factoring the nonnegative factor \u2016v\u2016\u00b2 yields the asserted distance bound. If 1\u2212\u03b1h is negative and v\u22600, the squared estimate is impossible; hence no nontrivial negative-coefficient case is hidden.",
+          "formula": "\\sqrt{(1-\\alpha h)\\|v\\|^2}=r\\|v\\|.",
+          "lean": "Real.le_sqrt_of_sq_le; Real.sqrt_mul' with sq_nonneg; Real.sqrt_sq with norm_nonneg."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient.gradient_cocoercive"
+      ],
+      "mathlib_dependencies": [
+        "UniformConvexOn.convexOn; ContDiff.differentiable_one; DifferentiableAt.hasGradientAt",
+        "norm_sub_sq_real; inner_smul_right; norm_smul; mul_le_mul_of_nonneg_left; Real.le_sqrt_of_sq_le; Real.sqrt_mul'; Real.sqrt_sq"
+      ],
+      "lean_statement": "For every pair x,y, the actual step T satisfies the displayed contraction estimate under the stated global curvature and step conditions.",
+      "lean_proof": "For arbitrary x,y define v=y\u2212x, d=\u2207f(y)\u2212\u2207f(x) and p=\u27e8d,v\u27e9. Strong convexity with \u03b1\u22650 supplies convexity and the lower pairing bound. Cocoercivity supplies the upper gradient-square bound. Since h\u22650 and \u03b2h\u22641, multiplying the cocoercivity bound by h\u00b2 gives h\u00b2\u2016d\u2016\u00b2\u2264h\u00b2\u03b2p\u2264hp. Insert this into the exact squared-norm expansion, then use hp\u2265\u03b1h\u2016v\u2016\u00b2. The squared norm is nonnegative. Taking square roots and factoring the nonnegative factor \u2016v\u2016\u00b2 yields the asserted distance bound. If 1\u2212\u03b1h is negative and v\u22600, the squared estimate is impossible; hence no nontrivial negative-coefficient case is hidden.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Sinho Chewi, Theorem3.3 and its proof",
+          "scope": "ASTIS-authored restatement and proof explanation; necessary step condition exposed."
+        },
+        {
+          "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/GD/GradientDescentStronglyConvex.lean",
+          "label": "Pinned Optlib gradient_method_strong_convex",
+          "scope": "Related stronger interpolation route, Apache-2.0; external reference only, not an imported dependency."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentContraction.lean",
+          "label": "Reciprocal step, one-step termination and zero-modulus consumers",
+          "scope": "Compiled calls of the actual new interfaces."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_step_contraction",
+      "role": "proof-edge",
+      "supports": [
+        "step-contraction"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "C\u00b2 on Euclidean d-space.",
+        "lean": "C\u00b9 on a complete real inner-product space."
+      },
+      {
+        "source": "The source prints h\u22641/\u03b2.",
+        "lean": "h\u22650, \u03b2\u22650 and \u03b2h\u22641."
+      },
+      {
+        "source": "Nonnegative curvature moduli; the rate uses \u03ba=\u03b2/\u03b1\u22651.",
+        "lean": "\u03b1\u22650, \u03b2\u22650; factor sqrt(1\u2212\u03b1h) raised to a natural power."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "e279d92f0a10dc3fab0cb0fa3289c297a01df657795edb1daec78f06c9197482"
+}

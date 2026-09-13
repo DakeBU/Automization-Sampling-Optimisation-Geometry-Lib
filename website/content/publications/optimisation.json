@@ -1932,6 +1932,92 @@
           "audit_id": "ASTIS-RT-ANDI-OPT-GradientFlowLastIterate"
         }
       ]
+    },
+    {
+      "id": "chewi-opt-v1-lemma-4-1",
+      "library": "optimisation",
+      "chapter": "04",
+      "chapter_path": "libraries/optimisation/chapter-04.html",
+      "title": "Lemma4.1 · restarting a convex optimization method",
+      "source": {
+        "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+        "edition": "arXiv:2605.07006v1",
+        "anchor": "Section4.1 opening radius-certified optimization convention; Lemma4.1 statement and proof (4.1)",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+      },
+      "statement": "Assume an algorithm optimizes every convex beta-smooth Euclidean objective from a point within radius R of a minimizer to objective error epsilon in phi(beta R²/epsilon) first-order queries. For an alpha-strongly convex beta-smooth objective, Lemma4.1 constructs a restarted method with stated order O(phi(8kappa) log(alpha R²/epsilon)), kappa=beta/alpha. Its proof calls the base method at radii R/2^k and tolerances alpha(R/2^k)²/8; quadratic growth halves the radius after each call. After reaching radius at most sqrt(epsilon/alpha), one final call at tolerance epsilon gives the desired objective accuracy. The proof records per-stage phi(8kappa) and final phi(kappa) costs. The finite construction, final call and full asymptotic/oracle conclusion are distinct obligations.",
+      "assumptions": [
+        "A base first-order optimization algorithm works uniformly on the convex beta-smooth class under a supplied upper initial-distance bound.",
+        "The target objective is alpha-strongly convex and beta-smooth with an attained minimum. Positive moduli, radii and accuracy are the ordinary finite-call regime; the source logarithmic expression requires an appropriate accuracy regime."
+      ],
+      "formulae": [
+        {
+          "label": "Restart schedule and quadratic-growth consequence",
+          "tex": "r_k=R/2^k,\\quad\\delta_k=\\alpha r_k^2/8,\\quad\\frac\\alpha2\\|x_{k+1}-x_\\star\\|^2\\le\\delta_k\\Rightarrow\\|x_{k+1}-x_\\star\\|\\le r_{k+1}."
+        },
+        {
+          "label": "Exact finite budget before asymptotic normalization",
+          "tex": "C_{\\rm total}\\le N\\phi(8\\kappa)+\\phi(\\kappa),\\qquad\\alpha r_N^2\\le\\varepsilon."
+        },
+        {
+          "label": "Source asymptotic conclusion; separate obligation",
+          "tex": "O\\!\\left(\\phi(8\\kappa)\\log\\frac{\\alpha R^2}{\\varepsilon}\\right)."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "restart-radius",
+          "label": "Construct actual recursive solver calls and derive the radius invariant"
+        },
+        {
+          "id": "finite-accuracy-cost",
+          "label": "Final polishing accuracy and exact cumulative certified finite cost"
+        },
+        {
+          "id": "asymptotic-oracle-reduction",
+          "label": "Logarithmic round selection, accuracy/cost conventions and full first-order-oracle class reduction (not closed)"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+          "cell": "ASTIS-SHARED-restart-reduction",
+          "role": "proof-edge",
+          "supports": [
+            "restart-radius",
+            "finite-accuracy-cost"
+          ],
+          "boundary": "This is the finite restart construction and certified cost composition in the proof of Lemma4.1. It is not a new proof of correctness of every possible base solver, a formal first-order-oracle machine, or the full class-level asymptotic reduction. The solver contract is exactly the assumed ingredient being transformed. The formal reduction works for C1 strongly convex Hilbert objectives admitting the stated base solver contract. Source beta-smoothness motivates that contract; it is not independently inferred from beta or from an arbitrary returned pair. No supplied quadratic-growth or stage-radius invariant replaces the proof. R>0 avoids zero-tolerance calls. An exactly minimizing initial point is allowed by any positive upper-radius certificate, but the R=0 stopping branch is outside this declaration. N=0 still makes the distinct final polishing call; the radius condition alone is not used as an objective-accuracy certificate. The radius supplied to a base call is a known upper bound, consistent with the opening definition in Section4.1. The final call uses sqrt(epsilon/alpha) rather than the unknown exact distance; its cost is exactly bounded by phi(kappa) without monotonicity. No logarithmic round-count normalization or absorption of phi(kappa) into phi(8kappa) is claimed. A global bound must account for the last call when the logarithm is small or nonpositive; an asymptotic small-tolerance convention and any phi comparison must be stated when formalized. The concrete test uses actual gradient descent on x²/2 at step1/2. Each base call executes ceil(r²/delta)+1 gradient updates and reports that count; the existing convex value theorem proves its uniform contract. All restart counts, including zero, exercise the real recursion and final call. No hidden access to the supplied minimizer is passed to A. No minimizer-existence, reverse regularization reduction, oracle lower bound, Riemannian/stochastic method or companion-paper completion is asserted.",
+          "assumption_deltas": [
+            {
+              "source": "Convex beta-smooth class algorithm applied to an alpha-strongly convex Euclidean objective.",
+              "lean": "C1 strongly convex Hilbert objective plus a uniform radius-certified output/cost contract for A.",
+              "classification": "generalization",
+              "reason": "The restart argument only uses sharp quadratic growth and base-call guarantees. Smoothness belongs to the assumed base algorithm correctness; the theorem does not certify a first-order implementation or construct it for all objectives."
+            },
+            {
+              "source": "Initial radius, strong-convexity parameter and tolerances in repeated calls.",
+              "lean": "Alpha,beta,R,epsilon strictly positive, with actual initial distance at most R.",
+              "classification": "source-implicit",
+              "reason": "Positive scheduled radii prevent zero-tolerance calls and justify exact cancellation. An initially optimal point is permitted via positive R; literal R0 is deferred."
+            },
+            {
+              "source": "Radius R_k bounds the current distance; final radius at most sqrt(epsilon/alpha).",
+              "lean": "A receives the prescribed upper radius; final call uses exactly sqrt(epsilon/alpha).",
+              "classification": "same",
+              "reason": "The opening source convention is for an upper distance bound. Exact ratios give phi(8kappa) and phi(kappa) without assuming monotonicity."
+            },
+            {
+              "source": "Full asymptotic query complexity in the lemma conclusion.",
+              "lean": "Given N satisfying the algebraic radius condition, actual output accuracy and N phi(8kappa)+phi(kappa) certified cost.",
+              "classification": "same",
+              "reason": "This binding covers the finite proof components only. Choosing N logarithmically, formal oracle-machine semantics and comparing the two phi terms remain separate obligations."
+            }
+          ],
+          "audit_id": "ASTIS-RT-ANDI-OPT-RestartReduction"
+        }
+      ]
     }
   ]
 }

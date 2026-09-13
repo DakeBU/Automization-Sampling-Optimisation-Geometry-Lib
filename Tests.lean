@@ -1,3 +1,4 @@
+import Tests.Shared.RestartReduction
 import Tests.Shared.GradientDescentComplexity
 import Tests.Shared.GradientDescentRates
 import Tests.Shared.GradientFlowLastIterate

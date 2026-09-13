@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.optimisation.restart-reduction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+    upstreamDecl := "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; IsLocalMin.fderiv_eq_zero; Nat.rec",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.1 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "restart"],
+    saldUse := "Actual radius-halving restart, final objective accuracy and cumulative certified solver cost.",
+    note := "Positive upper radius, C1 Hilbert, supplied minimizer/base solver; exact finite N phi(8kappa)+phi(kappa). No phi monotonicity, oracle-machine or full logarithmic reduction claim; N0 retains polishing."
+  },
+  {
     key := "analysis.gradient-descent.distance-complexity",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentComplexity.distance_le_of_log_bound",
     upstreamDecl := "GradientDescentContraction.gradient_descent_distance_bound; Real.log_le_iff_le_exp",

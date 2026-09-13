@@ -1,0 +1,98 @@
+{
+  "reviewer_id": "pl_pullback_review",
+  "role": "bounded independent route/reuse audit; not frozen proof or independent semantic admission",
+  "checked_head": "71d35fcf51d0a77be0c9364022a05c5e6b293383",
+  "verdict": "Proceed with actual finite restart recursion and explicit finite cost; preserve source asymptotic/domain omissions separately.",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+    "anchor": "Section4.1 definition before Lemma4.1 and proof, HTML710-728",
+    "paraphrase": "The solver guarantee is uniform for initial distance at most a prescribed radius. The reduction repeatedly requests accuracy alpha times the squared scheduled radius divided by8, halves that radius, and finally calls the solver at requested accuracy. The source describes per-stage cost phi(8*kappa), final cost phi(kappa), and an O(phi(8*kappa) log(alpha R\u00b2/epsilon)) total. It first writes actual initial distances, then substitutes upper radius schedules. Positive moduli and tolerances, admissible logarithm domains, and a cost-comparison convention are not all stated. Lemma4.2 is a separate reverse reduction by quadratic regularization."
+  },
+  "retrieval": [
+    {
+      "scope": "ASTIS TechnicalLemmas and Tests.Shared",
+      "finding": "No exact restart reduction or actual restart recursion found in bounded restart/regularization searches. Existing sharp first-order strong-convexity and actual convex GD rate parents are available."
+    },
+    {
+      "scope": "Mathlib pinned local Analysis.Convex and scalar log/finite sum APIs",
+      "finding": "No matching optimization restart reduction found. Reuse natural recursion/induction, pow_succ, div_pow, Finset.sum_le_sum/sum_const/card_range, Real.log_pow/log_le_log_iff/log_pos, Nat.le_ceil. No scalar log or sum reproof needed."
+    },
+    {
+      "scope": "Optlib and CvxLean",
+      "finding": "No pinned local checkouts located in workspace/outer_repos; prior pinned audit identifies Optlib5da27c5 and CvxLeanc62c2f. Bounded primary GitHub search and current Optlib Algorithm import index found GD/Nesterov/proximal methods but no generic restart reduction; CvxLean primary README concerns verified problem transformations/DCP, a different reduction notion. Attempts to open pinned tree pages returned cache miss. This is not an exhaustive pinned code absence certificate.",
+      "primary_links": [
+        "https://github.com/optsuite/optlib/blob/main/Optlib/Algorithm.lean",
+        "https://github.com/verified-optimization/CvxLean"
+      ]
+    }
+  ],
+  "load_bearing_reuse": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "use": "Apply at minimizing z and arbitrary y, derive gradient(z)=0 via hmin.isLocalMin Filter.univ_mem and fderiv_eq_zero (as existing GradientDescentContraction). Obtain alpha/2*norm(y-z)^2<=f(y)-f(z). Genuine strong convexity plus true derivatives, no supplied QG assumption."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity.centered_quadratic_lower_bound_of_strongConvexOn_minimizer",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/StrongConvexity.lean:57",
+      "warning": "This existing differentiability-free midpoint lemma has alpha/4, explicitly not sharp alpha/2. At tolerance alpha Rk\u00b2/8 it only proves radius Rk/sqrt2, so cannot be used for the intended halving constant."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.convex_value_le",
+      "use": "Concrete non-oracle-dependent test consumer: run actual convex GD with a supplied radius-based natural budget to realize a convex solver. Avoid tests consisting only of A returning z, since that tests analysis but not a useful solver."
+    }
+  ],
+  "recommended_contract": {
+    "space": "Complete real Hilbert E, actual differentiable or C1 f, StrongConvexOn univ alpha f, alpha>0, supplied global minimizer z. Beta>0 is the solver class parameter. If all smoothness/convex solver correctness is supplied as an abstract solver contract, explicitly scope theorem as reduction adapter for that contract, not a newly verified first-order oracle machine.",
+    "solver": "Prefer A(x,r,delta) and cost(x,r,delta), or a single returned point/cost pair, with a contract for every delta>0 and r>0, norm(x-z)<=r: returned gap<=delta and cost<=phi(beta*r\u00b2/delta). The numerical radius is a supplied upper bound and need not equal an unknown actual distance. A may be specialized to f; it must not take the unknown z as an algorithm input.",
+    "recursion": "Rk=R/(2^k), x0 supplied, x(k+1)=A(xk,Rk,alpha Rk\u00b2/8). Define this actual recursion once using Nat.rec or a transparent recursive def. Prove norm(xk-z)<=Rk by induction, and the actual kth call gap and cost bounds.",
+    "final_call": "For K with alpha*(R/(2^K))\u00b2<=epsilon, invoke A(xK,sqrt(epsilon/alpha),epsilon), whose radius budget is justified and whose cost argument equals kappa. Alternatively use scheduled RK for final call and either retain phi(beta RK\u00b2/epsilon) or assume appropriate monotonicity.",
+    "finite_total": "Define total as sum k in range K of actual per-call costs plus actual final-call cost. Conclude finite total<=K*phi(8*kappa)+phi(kappa). Natural-valued costs avoid negative-query artifacts; phi may be natural-valued or nonnegative real-valued with casts stated.",
+    "substantive_delta": "Actual radius-invariant recursion plus composed finite cost and final objective accuracy is the new integration edge. A one-step QG wrapper, or a theorem assuming all stage radius invariants/cost bounds and merely restating them, is not sufficient.",
+    "optional_exact_round_count": "For R>0,epsilon>0 choose K=Nat.ceil(log(alpha R\u00b2/epsilon)/log4), using log4>0 and Nat.le_ceil. No additional max0 needed for natural ceiling. A simpler initial theorem may accept the algebraic final-radius condition and leave the logarithmic consumer explicitly uncovered if proof size grows."
+  },
+  "hidden_domains_and_failure_boundaries": [
+    {
+      "issue": "Upper radius versus actual radius; phi monotonicity",
+      "analysis": "The source definition gives a uniform upper-radius solver guarantee. If the formal contract preserves this, scheduled stage argument beta Rk\u00b2/(alpha Rk\u00b2/8)=8kappa is exact and needs no monotonicity. If the only premise instead bounds cost by phi(beta*actualDistance\u00b2/delta), substituting Rk requires monotonic phi on the relevant interval. Do not silently treat actual distance as the known radius."
+    },
+    {
+      "issue": "Absorbing the last call",
+      "analysis": "Even under the uniform radius contract, replacing Kphi(8kappa)+phi(kappa) by (K+1)phi(8kappa) requires at least phi(kappa)<=phi(8kappa). Monotonic phi suffices but is stronger than needed; without it keep the additive exact cost. This is a source convention/omission to expose and separately audit."
+    },
+    {
+      "issue": "Bare logarithmic big-O at large tolerance",
+      "analysis": "For q=alpha R\u00b2/epsilon<=1 the logarithm is nonpositive, while the final polishing call can still have positive cost. Even q approaching1 from above cannot uniformly absorb that call into C logq. A global bound needs 1+max(0,logq), or a quantitatively small-tolerance regime q>=c>1. Do not silently interpret the printed big-O expression as globally valid."
+    },
+    {
+      "issue": "Zero rounds do not imply objective accuracy",
+      "analysis": "R\u00b2<=epsilon/alpha is distance information. With beta much greater than alpha, initial objective error can exceed epsilon. Keep the actual final solver call even when K0; do not simply return x0 based on this radius criterion."
+    },
+    {
+      "issue": "Zero initial radius",
+      "analysis": "R0 implies x0=z and already zero gap; return x0 with zero additional calls. The proposed alpha Rk\u00b2/8 calls have zero tolerance at R0 and violate a positive-tolerance solver contract, so separate R0 or state R>0 for recursion theorem."
+    },
+    {
+      "issue": "Abstract cost is not verified oracle trace",
+      "analysis": "An output/cost function under a supplied contract proves a conditional solver reduction and cost composition. It does not by itself prove the returned cost equals a first-order query count or that the solver cannot access z. A class-level existential algorithm reduction needs explicit oracle-realizability discipline or must remain outside this adapter scope."
+    },
+    {
+      "issue": "Regularization direction",
+      "analysis": "Lemma4.2 needs separate minimizer, curvature/smoothness and approximation-transfer adapters; do not claim both-direction equivalence from Lemma4.1 restart alone."
+    }
+  ],
+  "focused_tests": [
+    "Actual nontrivial quadratic plus a radius/tolerance-based convex GD solver; exercise more than one restart, actual changing point and finite accumulated cost.",
+    "A deliberately loose supplied radius checks that solver contract uses an upper bound rather than secretly requiring exact initial norm.",
+    "K0 with alpha small relative to beta: demonstrate the final polishing call is retained.",
+    "Zero-radius branch avoids all positive-tolerance calls; log consumer includes q<=1 and ordinary positive-domain q>1.",
+    "If no monotonicity is imposed, use nonmonotone phi with phi(kappa)>phi(8kappa) to demonstrate why additive final cost cannot be silently absorbed."
+  ],
+  "unresolved_findings": [],
+  "limitations": [
+    "Read-only route audit; no Lean elaboration or suites.",
+    "External-library absence search bounded and pinned external pages unavailable; no external declaration is promoted to local truth.",
+    "Independent frozen proof and source acceptance must follow implementation; no self-source approval."
+  ],
+  "next_action": "Root implement one transparent restart recursion and finite cost theorem, retaining exact source conventions and outstanding logarithmic/asymptotic or oracle-realizability boundaries."
+}

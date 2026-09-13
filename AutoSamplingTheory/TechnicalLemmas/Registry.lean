@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.optimisation.restart-log-complexity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
+    upstreamDecl := "RestartReduction.radius_accuracy_and_cost; Nat.le_ceil; Nat.ceil_eq_zero; Real.log_le_log_iff; Real.log_pow",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.1 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "restart", "complexity"],
+    saldUse := "Actual logarithmic restart horizon, final accuracy and explicit certified call-cost bounds.",
+    note := "Positive radius, C1 Hilbert, supplied minimizer/base solver. N0 retains final call. Global two-term cost; pure-log3/log4 bound only under phi comparison and q>=4. No formal oracle/class realization."
+  },
+  {
     key := "analysis.optimisation.restart-reduction",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
     upstreamDecl := "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; IsLocalMin.fderiv_eq_zero; Nat.rec",

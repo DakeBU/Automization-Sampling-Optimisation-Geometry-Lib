@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity
 import AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentComplexity
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates

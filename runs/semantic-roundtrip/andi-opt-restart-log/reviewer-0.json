@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-8af0efcc809cfbfb",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "andi-restart-log-worker",
+    "blind_decoder": "restart_log_blind_2700",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-lemma-4-1",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S4.SS1; Section4.1 opening radius-certified optimization convention; Lemma4.1 statement and proof (4.1)",
+    "original_text": "Assume an algorithm optimizes every convex beta-smooth Euclidean objective from a point within radius R of a minimizer to objective error epsilon in phi(beta R²/epsilon) first-order queries. For an alpha-strongly convex beta-smooth objective, Lemma4.1 constructs a restarted method with stated order O(phi(8kappa) log(alpha R²/epsilon)), kappa=beta/alpha. Its proof calls the base method at radii R/2^k and tolerances alpha(R/2^k)²/8; quadratic growth halves the radius after each call. After reaching radius at most sqrt(epsilon/alpha), one final call at tolerance epsilon gives the desired objective accuracy. The proof records per-stage phi(8kappa) and final phi(kappa) costs. The finite construction, final call and full asymptotic/oracle conclusion are distinct obligations.",
+    "text_sha256": "08da4ef939fe28956040e603ba65b39f21d1e812569ce4c0dffc3dc05155c3b0"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/RestartLogComplexity.lean",
+    "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [CompleteSpace E] {f : E → ℝ} {α β R ε : ℝ},\n  ContDiff ℝ 1 f →\n    StrongConvexOn Set.univ α f →\n      0 < α →\n        0 < β →\n          0 < R →\n            0 < ε →\n              ∀ {z x₀ : E},\n                IsMinOn f Set.univ z →\n                  ‖x₀ - z‖ ≤ R →\n                    ∀ (A : E → ℝ → ℝ → E × ℕ) (φ : ℝ → ℕ),\n                      (∀ (y : E) (r δ : ℝ),\n                          0 < r → 0 < δ → ‖y - z‖ ≤ r → f (A y r δ).1 - f z ≤ δ ∧ (A y r δ).2 ≤ φ (β * r ^ 2 / δ)) →\n                        have L := Real.log (α * R ^ 2 / ε) / Real.log 4;\n                        have N := ⌈L⌉₊;\n                        have r := fun k => R / 2 ^ k;\n                        have run := fun t =>\n                          Nat.rec (x₀, 0)\n                            (fun k p =>\n                              have w := A p.1 (r k) (α * r k ^ 2 / 8);\n                              (w.1, p.2 + w.2))\n                            t;\n                        have last := A (run N).1 (√(ε / α)) ε;\n                        have C := (run N).2 + last.2;\n                        ↑N ≤ max 0 L + 1 ∧\n                          (N = 0 ↔ α * R ^ 2 ≤ ε) ∧\n                            ‖(run N).1 - z‖ ≤ r N ∧\n                              f last.1 - f z ≤ ε ∧\n                                C ≤ N * φ (8 * (β / α)) + φ (β / α) ∧\n                                  ↑C ≤ (max 0 L + 1) * ↑(φ (8 * (β / α))) + ↑(φ (β / α)) ∧\n                                    (φ (β / α) ≤ φ (8 * (β / α)) →\n                                      ↑C ≤ (max 0 L + 2) * ↑(φ (8 * (β / α))) ∧\n                                        (4 ≤ α * R ^ 2 / ε → ↑C ≤ 3 * L * ↑(φ (8 * (β / α)))))",
+    "statement_sha256": "2a069eedd6e705c8aa36fafc3d45b5f40b782db3693ffe1ef136048e7785c51f",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any complete real inner-product space with its normed additive commutative group structure, and let f:E→ℝ be continuously Fréchet differentiable on all of E. Let α, β, R, ε be strictly positive real numbers. Assume f is α-strongly convex on E with the normalization f((1−t)x+ty) ≤ (1−t)f(x)+tf(y)−(α/2)t(1−t)‖x−y‖² for every x,y∈E and t∈[0,1]. For every z,x₀∈E such that f(z)≤f(x) for all x∈E and ‖x₀−z‖≤R, consider any map A:E×ℝ×ℝ→E×ℕ and any map φ:ℝ→ℕ. Suppose that for every y∈E and every real r,δ, if r>0, δ>0, and ‖y−z‖≤r, then, writing A(y,r,δ)=(v,c), both f(v)−f(z)≤δ and c≤φ(βr²/δ) hold. The same fixed minimizer z is used in every such call guarantee. No condition on A for other inputs, no smoothness bound involving β, and no monotonicity assumption on φ is asserted.\n\nDefine L=ln(αR²/ε)/ln(4), N=⌈L⌉₊∈ℕ (the natural-number ceiling, equal to zero for L≤0 and otherwise the least natural number at least L), and r_k=R/2^k for every k∈ℕ. Define a state-and-cost sequence (x_k,c_k) by (x_0,c_0)=(x₀,0), and for each k∈ℕ define (v_k,d_k)=A(x_k,r_k,αr_k²/8) and (x_{k+1},c_{k+1})=(v_k,c_k+d_k). After these N recursive calls, define (x_*,d_*)=A(x_N,√(ε/α),ε) and the natural-number total cost C=c_N+d_*. The square root is the nonnegative real square root; its argument here is positive.\n\nThen all of the following conclusions hold simultaneously: (1) N≤max{0,L}+1, interpreting N as a real number; (2) N=0 if and only if αR²≤ε; (3) ‖x_N−z‖≤r_N; (4) f(x_*)−f(z)≤ε; (5) C≤N·φ(8(β/α))+φ(β/α), an inequality in ℕ; and (6) C≤(max{0,L}+1)·φ(8(β/α))+φ(β/α), an inequality in ℝ with C and the values of φ coerced to real numbers. In addition, the single extra hypothesis φ(β/α)≤φ(8(β/α)) implies the conjunction of both (7) C≤(max{0,L}+2)·φ(8(β/α)) and (8) if 4≤αR²/ε, then C≤3L·φ(8(β/α)); these latter bounds are real inequalities. Thus the bound in (8) is nested under both the comparison of the two φ values and the ratio condition 4≤αR²/ε; the ratio condition alone is not stated to imply that bound.\n\nWhen αR²≤ε, N=0 and the recursion contributes the initial pair (x₀,0); the final call A(x₀,√(ε/α),ε) is still made and contributes its cost. In this case the natural-number bound (5) reduces to C≤φ(β/α). Equality αR²=ε is included in this zero-recursion case. Costs and φ values may themselves be zero: they are only required to be natural numbers, and the stated inequalities remain valid without any positivity assumption on them.",
+    "text_sha256": "c72f3d3598db3e01470c66eac669c17fa5e1d3adb2283d919720118bad0228e7",
+    "decoder": "restart_log_blind_2700",
+    "decoder_packet_sha256": "3f99af6fa440b5b2e1865c2010c83e0e51162897b3d7b9dc3c4cd16f26351415",
+    "decoder_run_sha256": "357983274552904a8632a156dfd21a51d020572f143d2ea4294c7db27d267bc1",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "c46a4ceb069ff2fa8c216f41baf33cc242f7c83e30cabb5de159b530298de922",
+  "candidate_publication_context": {
+    "file": "f27cd78976ba8ab498d6d4d647f5ba05844cf2fe49663c13f6b31cefe6bda40a",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction\nimport Mathlib.Analysis.SpecialFunctions.Log.Basic\nimport Mathlib.Algebra.Order.Floor.Semiring\n\n/-!\n# Logarithmic restart complexity\n\nChewi arXiv2605.07006v1 Section4.1 Lemma4.1, logarithmic rounds and final call.\nThis closes the horizon premise of the actual finite restart construction.\nNatural ceiling includes the coarse-accuracy, zero-round regime. Final cost is\nretained; absorbing it requires an explicit comparison of the two budgets.\nThe small-error bound is conditional, not an unqualified source repair.\nAs with the parent, a fixed-objective solver contract does not certify oracle\nexecution or a class-uniform first-order algorithm.\n-/\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity\nopen Set\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- A rounded logarithmic horizon gives actual restart accuracy and explicit\ncost, including zero rounds; budget absorption and small-error order are conditional. -/\ntheorem logarithmic_accuracy_and_cost {f : E → ℝ} {α β R ε : ℝ}\n    (hf : ContDiff ℝ 1 f) (hsc : StrongConvexOn univ α f)\n    (hα : 0 < α) (hβ : 0 < β) (hR : 0 < R) (hε : 0 < ε)\n    {z x₀ : E} (hmin : IsMinOn f univ z) (hx₀ : ‖x₀-z‖ ≤ R)\n    (A : E → ℝ → ℝ → E × ℕ) (φ : ℝ → ℕ)\n    (hA : ∀ y r δ, 0 < r → 0 < δ → ‖y-z‖ ≤ r →\n      f (A y r δ).1 - f z ≤ δ ∧ (A y r δ).2 ≤ φ (β*r^2/δ)) :\n    let L := Real.log (α*R^2/ε) / Real.log 4\n    let N := ⌈L⌉₊\n    let r := fun k : ℕ => R / (2:ℝ)^k\n    let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =>\n      let w := A p.1 (r k) (α*(r k)^2/8)\n      (w.1, p.2 + w.2))\n    let last := A (run N).1 (Real.sqrt (ε/α)) ε\n    let C := (run N).2 + last.2\n    (N : ℝ) ≤ max 0 L + 1 ∧ (N = 0 ↔ α*R^2 ≤ ε) ∧\n      ‖(run N).1-z‖ ≤ r N ∧ f last.1 - f z ≤ ε ∧\n      C ≤ N * φ (8*(β/α)) + φ (β/α) ∧\n      (C : ℝ) ≤ (max 0 L + 1) * φ (8*(β/α)) + φ (β/α) ∧\n      (φ (β/α) ≤ φ (8*(β/α)) →\n        (C : ℝ) ≤ (max 0 L + 2) * φ (8*(β/α)) ∧\n        (4 ≤ α*R^2/ε → (C : ℝ) ≤ 3*L*φ (8*(β/α)))) := by\n  let L := Real.log (α*R^2/ε) / Real.log 4\n  let N := ⌈L⌉₊\n  have hlog : 0 < Real.log 4 := Real.log_pos (by norm_num)\n  have hq : 0 < α*R^2/ε := by positivity\n  have hround : (N : ℝ) ≤ max 0 L + 1 := by\n    by_cases hL : 0 ≤ L\n    · exact (Nat.ceil_lt_add_one hL).le.trans (by rw [max_eq_right hL])\n    · have hz : N = 0 := Nat.ceil_eq_zero.mpr (le_of_not_ge hL)\n      rw [hz, Nat.cast_zero, max_eq_left (le_of_not_ge hL)]\n      norm_num\n  have hzero : N = 0 ↔ α*R^2 ≤ ε := by\n    change ⌈Real.log (α*R^2/ε) / Real.log 4⌉₊ = 0 ↔ _\n    rw [Nat.ceil_eq_zero, div_le_iff₀ hlog, zero_mul]\n    rw [← Real.log_one, Real.log_le_log_iff hq (by norm_num)]\n    exact (div_le_iff₀ hε).trans (by simp)\n  have hpow : α*R^2/ε ≤ (4:ℝ)^N := by\n    apply (Real.log_le_log_iff hq (by positivity)).mp\n    rw [Real.log_pow]\n    exact (div_le_iff₀ hlog).mp (Nat.le_ceil L)\n  have hid : ((2:ℝ)^N)^2 = (4:ℝ)^N := by\n    rw [← pow_mul, Nat.mul_comm N 2, pow_mul]\n    norm_num\n  have hN : α*(R/(2:ℝ)^N)^2 ≤ ε := by\n    rw [div_pow, ← mul_div_assoc, hid]\n    apply (div_le_iff₀ (by positivity : 0 < (4:ℝ)^N)).mpr\n    have h := (div_le_iff₀ hε).mp hpow\n    nlinarith\n  have hb := RestartReduction.radius_accuracy_and_cost hf hsc hα hβ hR hε\n    hmin hx₀ A φ hA N hN\n  let r := fun k : ℕ => R / (2:ℝ)^k\n  let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =>\n    let w := A p.1 (r k) (α*(r k)^2/8)\n    (w.1, p.2 + w.2))\n  let last := A (run N).1 (Real.sqrt (ε/α)) ε\n  let C := (run N).2 + last.2\n  have hcast : (C : ℝ) ≤ (N : ℝ) * φ (8*(β/α)) + φ (β/α) := by\n    have hc : C ≤ N * φ (8*(β/α)) + φ (β/α) := hb.2.2.2\n    simpa only [Nat.cast_add, Nat.cast_mul] using ((Nat.cast_le (α := ℝ)).mpr hc)\n  have hm : (N : ℝ) * φ (8*(β/α)) ≤\n      (max 0 L + 1) * φ (8*(β/α)) :=\n    mul_le_mul_of_nonneg_right hround (Nat.cast_nonneg _)\n  have hreal : (C : ℝ) ≤ (max 0 L + 1) * φ (8*(β/α)) + φ (β/α) := by\n    linarith\n  refine ⟨hround, hzero, hb.1, hb.2.2.1, hb.2.2.2, hreal, ?_⟩\n  intro hφ\n  have hp : (φ (β/α) : ℝ) ≤ φ (8*(β/α)) := by exact_mod_cast hφ\n  have ha : (C : ℝ) ≤ (max 0 L + 2) * φ (8*(β/α)) := by nlinarith\n  refine ⟨ha, ?_⟩\n  intro hsmall\n  have hL : 1 ≤ L := by\n    apply (le_div_iff₀ hlog).mpr\n    simpa using (Real.log_le_log (by norm_num : (0:ℝ)<4) hsmall)\n  rw [max_eq_right (by linarith : 0 ≤ L)] at ha\n  have hfactor : L+2 ≤ 3*L := by linarith\n  exact ha.trans (mul_le_mul_of_nonneg_right hfactor (Nat.cast_nonneg _))\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Section4.1 opening radius-certified optimization convention; Lemma4.1 statement and proof (4.1)",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+    },
+    "statement": "Assume an algorithm optimizes every convex beta-smooth Euclidean objective from a point within radius R of a minimizer to objective error epsilon in phi(beta R²/epsilon) first-order queries. For an alpha-strongly convex beta-smooth objective, Lemma4.1 constructs a restarted method with stated order O(phi(8kappa) log(alpha R²/epsilon)), kappa=beta/alpha. Its proof calls the base method at radii R/2^k and tolerances alpha(R/2^k)²/8; quadratic growth halves the radius after each call. After reaching radius at most sqrt(epsilon/alpha), one final call at tolerance epsilon gives the desired objective accuracy. The proof records per-stage phi(8kappa) and final phi(kappa) costs. The finite construction, final call and full asymptotic/oracle conclusion are distinct obligations.",
+    "formulae": [
+      {
+        "label": "Restart schedule and quadratic-growth consequence",
+        "tex": "r_k=R/2^k,\\quad\\delta_k=\\alpha r_k^2/8,\\quad\\frac\\alpha2\\|x_{k+1}-x_\\star\\|^2\\le\\delta_k\\Rightarrow\\|x_{k+1}-x_\\star\\|\\le r_{k+1}."
+      },
+      {
+        "label": "Exact finite budget before asymptotic normalization",
+        "tex": "C_{\\rm total}\\le N\\phi(8\\kappa)+\\phi(\\kappa),\\qquad\\alpha r_N^2\\le\\varepsilon."
+      },
+      {
+        "label": "Source asymptotic conclusion; separate obligation",
+        "tex": "O\\!\\left(\\phi(8\\kappa)\\log\\frac{\\alpha R^2}{\\varepsilon}\\right)."
+      }
+    ],
+    "assumptions": [
+      "A base first-order optimization algorithm works uniformly on the convex beta-smooth class under a supplied upper initial-distance bound.",
+      "The target objective is alpha-strongly convex and beta-smooth with an attained minimum. Positive moduli, radii and accuracy are the ordinary finite-call regime; the source logarithmic expression requires an appropriate accuracy regime."
+    ],
+    "obligations": [
+      {
+        "id": "restart-radius",
+        "label": "Construct actual recursive solver calls and derive the radius invariant"
+      },
+      {
+        "id": "finite-accuracy-cost",
+        "label": "Final polishing accuracy and exact cumulative certified finite cost"
+      },
+      {
+        "id": "logarithmic-certified-cost",
+        "label": "Explicit logarithmic integer horizon and certified cost; conditional absorption with stated accuracy regime"
+      },
+      {
+        "id": "asymptotic-oracle-reduction",
+        "label": "Full first-order-oracle execution and class-uniform algorithm reduction (not closed)"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
+      "kind": "theorem",
+      "title": "An explicit logarithmic horizon for restarted optimization",
+      "statement": "E is a complete real inner-product space. The fixed function f:E→R is C1 and alpha-strongly convex on E with the alpha/2 convention. A global minimizer z is supplied. Alpha,beta,R,epsilon are positive; ||x0-z||<=R. R is a supplied upper radius. For every point y and positive radius r and tolerance delta with ||y-z||<=r, A(y,r,delta) returns a point whose objective gap is <=delta and a natural cost <=phi(beta*r²/delta). Phi:R→N is arbitrary. Beta is the positive budget parameter of this contract; beta-smoothness and an oracle implementation are not independently inferred. Let q=alpha R²/epsilon, L=log(q)/log4 and N=ceil(L) in the natural numbers, so a nonpositive L yields N=0. Define the actual restart states and final call below; C counts all returned stage costs plus the final cost. The stated radius, accuracy and cost bounds hold. Budget absorption and the small-error bound are conditional as detailed below.",
+      "formula": "\\begin{gathered}q=\\alpha R^2/\\varepsilon,\\quad\\kappa=\\beta/\\alpha,\\quad L=\\log q/\\log4,\\quad N=\\lceil L\\rceil_{\\mathbb N},\\\\r_k=R/2^k,\\quad (x_0,c_0)=(x_0,0),\\\\(w_k,a_k)=A(x_k,r_k,\\alpha r_k^2/8),\\\\(x_{k+1},c_{k+1})=(w_k,c_k+a_k),\\\\(x_{\\rm out},a_{\\rm out})=A(x_N,\\sqrt{\\varepsilon/\\alpha},\\varepsilon),\\quad C=c_N+a_{\\rm out},\\\\N\\le\\max\\{0,L\\}+1,\\quad(N=0\\Leftrightarrow\\alpha R^2\\le\\varepsilon),\\\\\\|x_N-z\\|\\le r_N,\\quad f(x_{\\rm out})-f(z)\\le\\varepsilon,\\\\C\\le N\\phi(8\\kappa)+\\phi(\\kappa)\\le(\\max\\{0,L\\}+1)\\phi(8\\kappa)+\\phi(\\kappa).\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space. The fixed function f:E→R is C1 and alpha-strongly convex on E with the alpha/2 convention. A global minimizer z is supplied.",
+        "Alpha,beta,R,epsilon are positive; ||x0-z||<=R. R is a supplied upper radius. For every point y and positive radius r and tolerance delta with ||y-z||<=r, A(y,r,delta) returns a point whose objective gap is <=delta and a natural cost <=phi(beta*r²/delta).",
+        "Phi:R→N is arbitrary. Beta is the positive budget parameter of this contract; beta-smoothness and an oracle implementation are not independently inferred.",
+        "Let q=alpha R²/epsilon, L=log(q)/log4 and N=ceil(L) in the natural numbers, so a nonpositive L yields N=0. Define the actual restart states and final call below; C counts all returned stage costs plus the final cost."
+      ],
+      "steps": [
+        {
+          "title": "Choose an adequate integer horizon",
+          "text": "All logarithm arguments are positive. Natural ceiling gives L<=N. Multiply by the positive log4 and use monotonicity of log together with log(4^N)=N log4 to obtain q<=4^N. Since (2^N)²=4^N, this is exactly the horizon condition required by the finite restart theorem.",
+          "formula": "L\\le N\\ \\Longrightarrow\\ \\log q\\le N\\log4=\\log(4^N)\\ \\Longrightarrow\\ \\alpha(R/2^N)^2\\le\\varepsilon.",
+          "lean": "Nat.le_ceil; Real.log_pow and Real.log_le_log_iff on positive arguments; positive-denominator algebra."
+        },
+        {
+          "title": "Control rounding and the zero-round case",
+          "text": "For L>=0, the natural ceiling is less than L+1. For L<0, it equals zero. Thus N<=max(0,L)+1 globally. More precisely, N=0 iff L<=0 iff q<=1 iff alpha R²<=epsilon. This certifies only that no halving stage is needed; the final solver call remains.",
+          "formula": "N\\le\\max\\{0,L\\}+1,\\qquad N=0\\ \\Longleftrightarrow\\ \\alpha R^2\\le\\varepsilon.",
+          "lean": "Nat.ceil_lt_add_one requires nonnegative L; Nat.ceil_eq_zero handles the other branch. Real.log_le_log_iff relates q and1."
+        },
+        {
+          "title": "Consume the actual finite restart theorem",
+          "text": "Apply the existing radius_accuracy_and_cost theorem at this N using the horizon just proved. Its Nat.rec is exactly the recursion below. It supplies the actual state radius, final output error, and the natural sum of all certified call costs. The new theorem does not assume a radius invariant or an adequate iteration count.",
+          "formula": "\\|x_N-z\\|\\le R/2^N,\\qquad f(x_{\\rm out})-f(z)\\le\\varepsilon,\\qquad C\\le N\\phi(8\\kappa)+\\phi(\\kappa).",
+          "lean": "RestartReduction.radius_accuracy_and_cost; alpha/2 quadratic growth and the genuine solver recursion are reused, not reproved."
+        },
+        {
+          "title": "Keep the final cost while normalizing the stage count",
+          "text": "Cast the natural cost inequality to real numbers. Both phi values are nonnegative, so replacing N by its upper bound preserves the inequality. This global logarithmic bound uses no comparison between the two phi values.",
+          "formula": "C\\le(\\max\\{0,L\\}+1)\\phi(8\\kappa)+\\phi(\\kappa).",
+          "lean": "Nat.cast_le, Nat.cast_add, Nat.cast_mul and multiplication by a nonnegative natural-valued budget."
+        },
+        {
+          "title": "State exactly when the source-shaped bound follows",
+          "text": "Under the additional condition phi(kappa)<=phi(8kappa), the final cost can be absorbed with the displayed universal factor. The result is (max(0,L)+2)phi(8kappa). If additionally q>=4, then L>=1, so L+2<=3L. This gives the explicit constant3/log4 in front of phi(8kappa)logq. These are conditional consequences; no monotonicity of phi or all-accuracy logarithmic bound is silently asserted.",
+          "formula": "\\begin{gathered}\\phi(\\kappa)\\le\\phi(8\\kappa)\\ \\Longrightarrow\\ C\\le(\\max\\{0,L\\}+2)\\phi(8\\kappa),\\\\\\bigl(\\phi(\\kappa)\\le\\phi(8\\kappa)\\ \\land\\ q\\ge4\\bigr)\\ \\Longrightarrow\\\\C\\le3L\\phi(8\\kappa)=\\frac3{\\log4}\\phi(8\\kappa)\\log q.\\end{gathered}",
+          "lean": "Order of natural casts, Real.log_le_log, division by positive log4, and nonnegative multiplication. The last implication is inside the phi-comparison implication."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost"
+      ],
+      "mathlib_dependencies": [
+        "Nat.le_ceil",
+        "Nat.ceil_eq_zero",
+        "Nat.ceil_lt_add_one",
+        "Real.log_pos",
+        "Real.log_pow",
+        "Real.log_le_log_iff",
+        "Real.log_le_log",
+        "Nat.cast_le"
+      ],
+      "lean_statement": "The exact logarithmic count, recursive calls and conditional cost conclusions.",
+      "lean_proof": "All logarithm arguments are positive. Natural ceiling gives L<=N. Multiply by the positive log4 and use monotonicity of log together with log(4^N)=N log4 to obtain q<=4^N. Since (2^N)²=4^N, this is exactly the horizon condition required by the finite restart theorem. For L>=0, the natural ceiling is less than L+1. For L<0, it equals zero. Thus N<=max(0,L)+1 globally. More precisely, N=0 iff L<=0 iff q<=1 iff alpha R²<=epsilon. This certifies only that no halving stage is needed; the final solver call remains. Apply the existing radius_accuracy_and_cost theorem at this N using the horizon just proved. Its Nat.rec is exactly the recursion below. It supplies the actual state radius, final output error, and the natural sum of all certified call costs. The new theorem does not assume a radius invariant or an adequate iteration count. Cast the natural cost inequality to real numbers. Both phi values are nonnegative, so replacing N by its upper bound preserves the inequality. This global logarithmic bound uses no comparison between the two phi values. Under the additional condition phi(kappa)<=phi(8kappa), the final cost can be absorbed with the displayed universal factor. The result is (max(0,L)+2)phi(8kappa). If additionally q>=4, then L>=1, so L+2<=3L. This gives the explicit constant3/log4 in front of phi(8kappa)logq. These are conditional consequences; no monotonicity of phi or all-accuracy logarithmic bound is silently asserted.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.1, logarithmic rounds and final call",
+          "scope": "Explicit integer and cost elaboration of the finite argument; whole oracle/class reduction remains open."
+        },
+        {
+          "path": "Tests/Shared/RestartLogComplexity.lean",
+          "label": "Actual counted GD consumer",
+          "scope": "Uniform positive accuracies, coarse regime and conditional logarithmic cost."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
+      "role": "proof-edge",
+      "supports": [
+        "logarithmic-certified-cost"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Smooth strongly convex Euclidean objective and a first-order solver for the convex class.",
+        "lean": "E is a complete real inner-product space. The fixed function f:E→R is C1 and alpha-strongly convex on E with the alpha/2 convention. A global minimizer z is supplied. Alpha,beta,R,epsilon are positive; ||x0-z||<=R. R is a supplied upper radius. For every point y and positive radius r and tolerance delta with ||y-z||<=r, A(y,r,delta) returns a point whose objective gap is <=delta and a natural cost <=phi(beta*r²/delta). Phi:R→N is arbitrary. Beta is the positive budget parameter of this contract; beta-smoothness and an oracle implementation are not independently inferred."
+      },
+      {
+        "source": "Repeat O(log(alpha R²/epsilon)) rounds.",
+        "lean": "N=Nat.ceil(log(alpha R²/epsilon)/log4); positive parameters; N=0 iff alpha R²<=epsilon."
+      },
+      {
+        "source": "Absorb the last phi(kappa) call in the source O(phi(8kappa)log(alpha R²/epsilon)) expression.",
+        "lean": "Always retain the two-term bound. Only under phi(kappa)<=phi(8kappa) get (max(0,L)+2)phi(8kappa); under q>=4 also get3Lphi(8kappa)."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "2cc0d623a6c5717e5d573db83c2dcbe19dca18d317f1e376b124cd86af6c4692"
+}

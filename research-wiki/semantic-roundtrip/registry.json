@@ -26463,6 +26463,228 @@
         ],
         "run_artifact": "runs/semantic-roundtrip/andi-opt-pl-pullback/decoder-result.json"
       }
+    },
+    {
+      "id": "ASTIS-RT-ANDI-OPT-GradientFlowPL",
+      "state": "accepted",
+      "graph_node": "ASTIS-SHARED-gradient-flow-pl",
+      "source": {
+        "source_id": "chewi-opt-v1-gradient-flow-pl",
+        "anchor": "https://arxiv.org/html/2605.07006v1#S2; Section2 GF and conventions; Lemma2.1; Definition2.5; Corollary2.6",
+        "original_text": "Section2 considers a supplied gradient flow X prime(t)=-gradient f(X(t)) at nonnegative times, assumes a twice continuously differentiable Euclidean objective with an attained minimum, and leaves well-posedness aside. Lemma2.1 derives d f(X(t))/dt=-norm gradient f(X(t)) squared by the chain rule. Definition2.5 uses a positive modulus alpha with 2 alpha(f(x)-f(z))<=norm gradient f(x) squared. Corollary2.6 then gives f(X(t))-f(z)<=(f(X(0))-f(z)) exp(-2 alpha t) for all t>=0.",
+        "text_sha256": "04bc4eea77ac2276536bb4099e980220a8ec5f2b4d0d9f24f6d0783d8163b7f9"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientFlowPL.lean",
+        "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E] {f : E → ℝ} {X : ℝ → E}\n  {z : E} {α T : ℝ},\n  0 < α →\n    0 ≤ T →\n      Differentiable ℝ f →\n        ContinuousOn X (Set.Icc 0 T) →\n          (∀ t ∈ Set.Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Set.Ici t) t) →\n            IsMinOn f Set.univ z →\n              (∀ (x : E), 2 * α * (f x - f z) ≤ ‖gradient f x‖ ^ 2) →\n                (∀ t ∈ Set.Ico 0 T, HasDerivWithinAt (f ∘ X) (-‖gradient f (X t)‖ ^ 2) (Set.Ici t) t) ∧\n                  ∀ t ∈ Set.Icc 0 T, 0 ≤ f (X t) - f z ∧ f (X t) - f z ≤ (f (X 0) - f z) * Real.exp (-2 * α * t)",
+        "statement_sha256": "d660c42e7a8363bc7a848deea958467031a2b08d2c63e6b6715fdbc5cc1ac83a",
+        "compiled": true,
+        "formalizer": "andi-gf-pl-worker",
+        "decoder_context": [
+          "Differentiable R f means Frechet differentiable at every point. gradient f x is the Riesz representing vector of its actual derivative on the specified complete real inner-product space. This predicate does not assert continuity of the derivative.",
+          "Set.Icc a b is the closed interval [a,b]; Set.Ico a b is [a,b); Set.Ici t is [t,infinity). HasDerivWithinAt X v (Set.Ici t) t means the right derivative of X at t is v. The curve has a total function type but derivative assumptions restrict only the specified interval.",
+          "ContinuousOn X (Set.Icc a b) includes both endpoint continuity relative to the interval. IsMinOn f Set.univ z means f(z)<=f(x) for every x. Function composition f composed X is t maps to f(X(t))."
+        ]
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "Objective f, supplied gradient trajectory, minimizer, positive PL modulus.",
+          "reconstructed": "f, X, z, alpha, and a finite horizon T.",
+          "relation": "explicit-elaboration",
+          "evidence": "The gradient is the Riesz representative of the actual derivative of f. The proof composes that derivative with the dynamics; no scalar dissipation premise replaces the trajectory."
+        },
+        "domains": {
+          "original": "Euclidean space; nonnegative time.",
+          "reconstructed": "Complete real inner-product space E; X is represented on R, with hypotheses and results restricted to the specified forward interval.",
+          "relation": "stronger-in-lean",
+          "evidence": "Finite-dimensional Euclidean space satisfies the typeclasses. The Hilbert-space generalization is explicitly disclosed in candidate_assumptions and lesson. A total-function encoding does not require negative-time dynamics."
+        },
+        "quantifiers": {
+          "original": "Every supplied flow and every nonnegative observation time; PL at every spatial point.",
+          "reconstructed": "For arbitrary E,f,X,z,alpha,T satisfying the hypotheses, dissipation at all t in [0,T), and decay at all t in [0,T]; PL at every x:E.",
+          "relation": "explicit-elaboration",
+          "evidence": "For a supplied global classical flow, choose any finite T at least the requested decay time, and strictly greater for dissipation. No existential trajectory quantifier is introduced or discharged."
+        },
+        "assumptions": {
+          "original": "Section 2 uses C2 regularity and an attained minimum; Definition 2.5 uses C1 and positive alpha.",
+          "reconstructed": "Everywhere Frechet differentiability, global minimizer z, alpha>0, T>=0, closed-interval continuity of X, right gradient derivative on [0,T), and the global numerical PL inequality.",
+          "relation": "weaker-in-lean",
+          "evidence": "On the source Euclidean domain, C2 implies the required differentiability. Classical supplied dynamics imply right dynamics and interval continuity. The relaxation is accurately declared; no smoothness or scalar energy identity is hidden in the conclusion. Completeness supplies Riesz representation and holds automatically in the source domain."
+        },
+        "conclusion": {
+          "original": "Objective derivative is minus gradient norm squared, and objective gap has exponential decay with rate 2 alpha.",
+          "reconstructed": "Right objective derivative before T and the same exponential upper bound through T, together with nonnegative gap.",
+          "relation": "explicit-elaboration",
+          "evidence": "The exponent and initial gap agree algebraically. Nonnegativity follows directly from global minimality. At classical source trajectories the right derivative identifies the ordinary derivative; the generalized lesson correctly labels it right-sided."
+        },
+        "scopes": {
+          "original": "Conditional supplied-flow convergence; well-posedness is left aside.",
+          "reconstructed": "Derivative statement on [0,T), value statement on [0,T], PL on all E; no existence, uniqueness, negative-time dynamics, or terminal derivative assertion.",
+          "relation": "explicit-elaboration",
+          "evidence": "The module, blind reconstruction and lesson all use these exact scopes. The reference to Ici t is a local right-derivative filter; for t<T it does not impose remote post-T dynamics. T=0 leaves dissipation empty and gives the exact initial value bound. Arbitrary finite horizons recover each source observation time under a supplied global flow."
+        },
+        "constant_dependencies": {
+          "original": "PL normalization is 2 alpha; decay prefactor is the initial objective gap.",
+          "reconstructed": "Identical normalization and prefactor; exponent -2*alpha*t.",
+          "relation": "same",
+          "evidence": "No dimension, smoothness constant, time-horizon prefactor, or auxiliary comparison constant enters the bound. Gronwall is used with K=-(2*alpha) and zero forcing."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "description": "The implementation generalizes the ambient Euclidean space to a complete real inner-product space, explicitly disclosed.",
+          "severity": "informational",
+          "evidence": "Finite-dimensional Euclidean space satisfies the typeclasses. The Hilbert-space generalization is explicitly disclosed in candidate_assumptions and lesson. A total-function encoding does not require negative-time dynamics."
+        },
+        {
+          "slot": "assumptions",
+          "description": "The implementation relaxes objective regularity and supplied dynamics to the stated Frechet/right-derivative interval assumptions, explicitly disclosed.",
+          "severity": "informational",
+          "evidence": "On the source Euclidean domain, C2 implies the required differentiability. Classical supplied dynamics imply right dynamics and interval continuity. The relaxation is accurately declared; no smoothness or scalar energy identity is hidden in the conclusion. Completeness supplies Riesz representation and holds automatically in the source domain."
+        },
+        {
+          "slot": "scopes",
+          "description": "Arbitrary finite supplied intervals encode forward-time conclusions; only the derivative conclusion excludes the terminal endpoint.",
+          "severity": "informational",
+          "evidence": "The module, blind reconstruction and lesson all use these exact scopes. The reference to Ici t is a local right-derivative filter; for t<T it does not impose remote post-T dynamics. T=0 leaves dissipation empty and gives the exact initial value bound. Arbitrary finite horizons recover each source observation time under a supplied global flow."
+        }
+      ],
+      "verdict": "domain-mismatch",
+      "repairs": [],
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "gf_source_67183",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "The source binding supports the conditional supplied-flow dissipation and PL rate obligation. The current module, lesson, formula proof and explicit assumption differences agree. All seven semantic slots were audited; no undeclared mathematical assumption or required source repair was found. No repair overlay is accepted by this review. The domain-mismatch verdict denotes the disclosed Hilbert-space generalization. Acceptance is restricted to source support through the Euclidean classical-flow specialization and does not certify universal source/Lean equivalence.",
+        "review_run_sha256": "4f354e32b4d6e1613cddcd1a7bdc9a167410cd554f0cc5c3e9fb5bb025841dee",
+        "reviewer_packet_sha256": "17dd4b6b6eb4dda837a20a1cdac2de3fc81e8f1326f1ee458218065634d0d61c",
+        "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-pl/source-review-0.json"
+      },
+      "publication_binding_sha256": "5d94da71e6e9e10347751e7f2887c522f017d6bbf25d3cc60d986cf7f8893cfd",
+      "publication_context": {
+        "file": "399280016c4fc14f37d87234394cc43a56e0c047b591027759b48fc9c8af4499",
+        "current_lean_module": "import Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.ODE.Gronwall\n\n/-!\n# Actual gradient-flow dissipation and PL decay\n\nChewi, arXiv:2605.07006v1, Section 2, Lemma 2.1 and Corollary 2.6.\nThe curve is supplied only on a finite forward interval. We derive its objective\ndissipation by the chain rule rather than assume a scalar energy identity.\nNo existence or uniqueness of the flow is asserted.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL\n\nopen Set\nopen scoped RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- Actual gradient dynamics imply energy dissipation and the PL objective rate,\nincluding the initial and final endpoints of a finite nonnegative time interval. -/\ntheorem dissipation_and_decay {f : E → ℝ} {X : ℝ → E} {z : E} {α T : ℝ}\n    (_hα : 0 < α) (_hT : 0 ≤ T) (hf : Differentiable ℝ f)\n    (hX : ContinuousOn X (Icc 0 T))\n    (hflow : ∀ t ∈ Ico 0 T,\n      HasDerivWithinAt X (-gradient f (X t)) (Ici t) t)\n    (hz : IsMinOn f univ z)\n    (hpl : ∀ x, 2 * α * (f x - f z) ≤ ‖gradient f x‖ ^ 2) :\n    (∀ t ∈ Ico 0 T, HasDerivWithinAt (f ∘ X)\n      (-‖gradient f (X t)‖ ^ 2) (Ici t) t) ∧\n    ∀ t ∈ Icc 0 T, 0 ≤ f (X t) - f z ∧\n      f (X t) - f z ≤ (f (X 0) - f z) * Real.exp (-2 * α * t) := by\n  have hd : ∀ t ∈ Ico 0 T, HasDerivWithinAt (f ∘ X)\n      (-‖gradient f (X t)‖ ^ 2) (Ici t) t := by\n    intro t ht\n    have hgrad : HasFDerivAt f (InnerProductSpace.toDual ℝ E (gradient f (X t))) (X t) :=\n      (hf (X t)).hasGradientAt\n    have h := hgrad.comp_hasDerivWithinAt t (hflow t ht)\n    simpa only [InnerProductSpace.toDual_apply_apply, inner_neg_right,\n      real_inner_self_eq_norm_sq] using h\n  refine ⟨hd, ?_⟩\n  intro t ht\n  refine ⟨sub_nonneg.mpr (hz (mem_univ (X t))), ?_⟩\n  have hc : ContinuousOn (fun u => f (X u) - f z) (Icc 0 T) :=\n    (hf.continuous.comp_continuousOn hX).sub continuousOn_const\n  have hg := le_gronwallBound_of_liminf_deriv_right_le\n    (f := fun u => f (X u) - f z) (f' := fun u => -‖gradient f (X u)‖ ^ 2)\n    (δ := f (X 0) - f z) (K := -(2 * α)) (ε := 0) hc\n    (fun u hu r hr => by\n      simpa [Function.comp_def, slope] using\n        ((hd u hu).sub_const (f z)).liminf_right_slope_le hr)\n    le_rfl\n    (fun u _ => by nlinarith [hpl (X u)]) t ht\n  simpa [gronwallBound_ε0, sub_zero, neg_mul] using hg\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "edition": "arXiv:2605.07006v1",
+          "anchor": "Section2 GF and conventions; Lemma2.1; Definition2.5; Corollary2.6",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS-authored restatement; no endorsement implied."
+        },
+        "statement": "Section2 considers a supplied gradient flow X prime(t)=-gradient f(X(t)) at nonnegative times, assumes a twice continuously differentiable Euclidean objective with an attained minimum, and leaves well-posedness aside. Lemma2.1 derives d f(X(t))/dt=-norm gradient f(X(t)) squared by the chain rule. Definition2.5 uses a positive modulus alpha with 2 alpha(f(x)-f(z))<=norm gradient f(x) squared. Corollary2.6 then gives f(X(t))-f(z)<=(f(X(0))-f(z)) exp(-2 alpha t) for all t>=0.",
+        "formulae": [
+          {
+            "label": "Objective dissipation and PL value decay",
+            "tex": "\\partial_t f(X(t))=-\\|\\nabla f(X(t))\\|^2,\\qquad f(X(t))-f(z)\\le(f(X(0))-f(z))e^{-2\\alpha t}."
+          }
+        ],
+        "assumptions": [
+          "Euclidean C2 objective in the Section2 setting; attained minimizer z.",
+          "A supplied gradient flow for nonnegative time.",
+          "Positive PL modulus alpha; global gradient-gap inequality."
+        ],
+        "obligations": [
+          {
+            "id": "actual-flow-dissipation-and-rate",
+            "label": "Derive the objective derivative from the actual gradient ODE, then prove the PL value rate on every supplied finite forward interval"
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
+          "kind": "theorem",
+          "title": "PL gradient flows decrease the objective exponentially",
+          "statement": "Let E be a complete real inner-product space, f:E→R be Frechet differentiable everywhere, z a global minimizer, alpha>0 and T>=0. Let X:R→E be continuous on [0,T] and have right derivative -gradient f(X(t)) for every t in [0,T). Assume the global numerical PL inequality below. Then the actual objective has the stated right derivative before T, and its nonnegative gap satisfies the exponential bound at every t in [0,T].",
+          "formula": "\\begin{gathered}2\\alpha(f(x)-f(z))\\le\\|\\nabla f(x)\\|^2\\quad(\\forall x\\in E),\\qquad X^{\\prime+}(t)=-\\nabla f(X(t)),\\quad 0\\le t<T,\\\\\\partial_t^+f(X(t))=-\\|\\nabla f(X(t))\\|^2\\quad(0\\le t<T),\\\\0\\le f(X(t))-f(z)\\le (f(X(0))-f(z))\\exp(-2\\alpha t)\\quad(0\\le t\\le T).\\end{gathered}",
+          "assumptions": [
+            "E is a complete real inner-product space; f is Frechet differentiable at every point.",
+            "Alpha>0 and T>=0; f(z)<=f(x) for every x:E.",
+            "X is continuous on [0,T]; for each t in [0,T), HasDerivWithinAt X (-gradient f(X(t))) (Ici t) t. No negative-time derivative is required.",
+            "For every x:E, 2 alpha (f(x)-f(z))<=norm gradient f(x) squared."
+          ],
+          "steps": [
+            {
+              "title": "Differentiate the actual objective along the curve",
+              "text": "Frechet differentiability represents Df(X(t)) by its Riesz gradient. Compose this derivative with the supplied right derivative X prime(t)=-gradient f(X(t)). The inner product of the gradient with its negative is minus its squared norm. This constructs the energy identity from the actual dynamics.",
+              "formula": "\\partial_t^+ f(X(t))=Df(X(t))[X^{\\prime+}(t)]=\\langle\\nabla f(X(t)),-\\nabla f(X(t))\\rangle=-\\|\\nabla f(X(t))\\|^2.",
+              "lean": "DifferentiableAt.hasGradientAt, HasFDerivAt.comp_hasDerivWithinAt, InnerProductSpace.toDual_apply_apply, inner_neg_right, real_inner_self_eq_norm_sq."
+            },
+            {
+              "title": "Convert PL into a differential inequality",
+              "text": "Let e(t)=f(X(t))-f(z). Subtracting the constant minimum preserves the derivative. PL gives 2 alpha e(t)<=norm gradient f(X(t)) squared, hence the actual right derivative satisfies e prime(t)<=-2 alpha e(t).",
+              "formula": "e(t)=f(X(t))-f(z),\\qquad e^{\\prime+}(t)=-\\|\\nabla f(X(t))\\|^2\\le-2\\alpha e(t).",
+              "lean": "HasDerivWithinAt.sub_const and the supplied PL inequality, with rate exactly 2*alpha."
+            },
+            {
+              "title": "Apply the existing interval comparison and retain endpoints",
+              "text": "Differentiability makes f continuous, so the supplied continuity of X makes e continuous on the closed interval. Each right derivative supplies the one-sided slope hypothesis for Mathlib Gronwall on [0,T]. With constant coefficient -2 alpha and zero forcing, its bound is e(0) exp(-2 alpha t), including the terminal endpoint. The global minimum gives e(t)>=0.",
+              "formula": "0\\le e(t)\\le e(0)\\exp(-2\\alpha t),\\qquad 0\\le t\\le T.",
+              "lean": "Continuous.comp_continuousOn, HasDerivWithinAt.liminf_right_slope_le, le_gronwallBound_of_liminf_deriv_right_le, gronwallBound_ε0, IsMinOn."
+            }
+          ],
+          "astis_dependencies": [],
+          "mathlib_dependencies": [
+            "HasFDerivAt.comp_hasDerivWithinAt",
+            "DifferentiableAt.hasGradientAt",
+            "HasDerivWithinAt.liminf_right_slope_le",
+            "le_gronwallBound_of_liminf_deriv_right_le",
+            "gronwallBound_ε0"
+          ],
+          "lean_statement": "Actual objective right derivative and nonnegative PL gap decay on a finite forward interval.",
+          "lean_proof": "Frechet differentiability represents Df(X(t)) by its Riesz gradient. Compose this derivative with the supplied right derivative X prime(t)=-gradient f(X(t)). The inner product of the gradient with its negative is minus its squared norm. This constructs the energy identity from the actual dynamics. Let e(t)=f(X(t))-f(z). Subtracting the constant minimum preserves the derivative. PL gives 2 alpha e(t)<=norm gradient f(X(t)) squared, hence the actual right derivative satisfies e prime(t)<=-2 alpha e(t). Differentiability makes f continuous, so the supplied continuity of X makes e continuous on the closed interval. Each right derivative supplies the one-sided slope hypothesis for Mathlib Gronwall on [0,T]. With constant coefficient -2 alpha and zero forcing, its bound is e(0) exp(-2 alpha t), including the terminal endpoint. The global minimum gives e(t)>=0.",
+          "sources": [
+            {
+              "url": "https://arxiv.org/html/2605.07006v1#S2",
+              "label": "Chewi Lemma2.1 and Corollary2.6",
+              "scope": "Supplied gradient dynamics and positive PL modulus; no well-posedness theorem."
+            },
+            {
+              "path": "Tests/Shared/GradientFlowPL.lean",
+              "label": "Nonstationary quadratic flow",
+              "scope": "Actual X(t)=exp(-t), f(x)=x squared/2, with proved gradient, PL, minimum and sharp rate."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
+          "role": "proof-edge",
+          "supports": [
+            "actual-flow-dissipation-and-rate"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "Section2 C2 objective on R^d (Definition2.5 requires C1).",
+            "lean": "Everywhere Frechet differentiable objective on a complete real Hilbert space."
+          },
+          {
+            "source": "Supplied gradient flow for t>=0, with well-posedness left aside.",
+            "lean": "ContinuousOn X [0,T], T>=0, with right gradient derivative on [0,T)."
+          },
+          {
+            "source": "Positive alpha and attained minimum z.",
+            "lean": "alpha>0 and IsMinOn f univ z; global numeric PL bound."
+          }
+        ]
+      },
+      "reconstruction": {
+        "text": "Let E be a complete real inner-product space and let f:E→ℝ be Fréchet differentiable everywhere. Let X:ℝ→E, z∈E, and α,T∈ℝ. Assume α>0 and T≥0; X is continuous on [0,T]; for every t∈[0,T), the right derivative of X at t, taken within [t,∞), exists and equals −∇f(X(t)); z is a global minimizer of f; and for every x∈E, 2α(f(x)−f(z))≤‖∇f(x)‖². Then for each t∈[0,T), the right derivative of f∘X at t within [t,∞) equals −‖∇f(X(t))‖². Moreover, for every t∈[0,T], 0≤f(X(t))−f(z)≤(f(X(0))−f(z)) exp(−2αt).",
+        "text_sha256": "80afd595a18cadc50644ed658c638bfda3b98a2f4df372296850246e52729a43",
+        "decoder": "gf_decode_67183",
+        "decoder_run_sha256": "df6d1f0d74f69e6c17f21b4a540b605319dccedab6bed93c4fe708649605c0fd",
+        "decoder_packet_sha256": "82969e495d3ef210517c03c0e5f7ea1d85830608fb53e6a3ceb5d2ecc2406be3",
+        "source_text_visible": false,
+        "lean_statement_sha256": "d660c42e7a8363bc7a848deea958467031a2b08d2c63e6b6715fdbc5cc1ac83a",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-pl/decoder-result.json"
+      }
     }
   ]
 }

@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-flow.pl-dissipation-decay",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
+    upstreamDecl := "Lemma2.1 and Corollary2.6; HasFDerivAt.comp_hasDerivWithinAt; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "PL", "optimisation", "gradient-flow"],
+    saldUse := "Actual Hilbert gradient dynamics yield objective dissipation and PL exponential value decay on a finite forward interval.",
+    note := "Source C2 Euclidean setting generalized to differentiable Hilbert objective and right derivatives. Terminal continuity retained; no negative-time dynamics, existence/uniqueness, point-distance or stochastic-flow claim."
+  },
+  {
     key := "analysis.strong-convex.nonlinear-pl-pullback",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexPLPullback.exists_minimizer_and_pl",
     upstreamDecl := "Exercise2.3 (numerical PL inequality component)",

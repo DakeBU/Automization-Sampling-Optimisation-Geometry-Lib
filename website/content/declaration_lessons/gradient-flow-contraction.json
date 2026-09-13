@@ -1,0 +1,66 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
+      "kind": "theorem",
+      "title": "Two gradient flows contract under strong convexity",
+      "statement": "Let E be a complete real inner-product space and f:E→R be Frechet differentiable everywhere. Let alpha>=0 and T>=0, and assume f is globally alpha-convex in the chord sense. Let X,Y:R→E be continuous on [0,T], with right derivatives -gradient f(X(t)) and -gradient f(Y(t)) for every 0<=t<T. Then the distance between the trajectories satisfies the following bound for every 0<=t<=T.",
+      "formula": "\\begin{gathered}f((1-\\lambda)x+\\lambda y)\\le(1-\\lambda)f(x)+\\lambda f(y)-\\tfrac\\alpha2\\lambda(1-\\lambda)\\|y-x\\|^2\\quad(x,y\\in E,\\ 0\\le\\lambda\\le1),\\\\X^{\\prime+}(t)=-\\nabla f(X(t)),\\qquad Y^{\\prime+}(t)=-\\nabla f(Y(t)),\\quad 0\\le t<T,\\\\\\|Y(t)-X(t)\\|\\le e^{-\\alpha t}\\|Y(0)-X(0)\\|,\\qquad0\\le t\\le T.\\end{gathered}",
+      "assumptions": [
+        "Complete real inner-product space E; f is Frechet differentiable everywhere.",
+        "Alpha>=0, T>=0, and StrongConvexOn univ alpha f with the alpha/2 chord normalization.",
+        "X and Y are continuous on the closed interval [0,T]; their actual right ODE derivatives exist at every point of [0,T)."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate squared separation",
+          "text": "Put D(t)=Y(t)-X(t). Subtract the two actual right ODE derivatives, then differentiate the smooth squared norm. This remains valid when the two points coincide, so no division by their distance is needed.",
+          "formula": "\\partial_t^+\\|D(t)\\|^2=2\\langle D(t),Y^{\\prime+}(t)-X^{\\prime+}(t)\\rangle=-2\\langle\\nabla f(Y(t))-\\nabla f(X(t)),D(t)\\rangle.",
+          "lean": "HasDerivWithinAt.sub and HasDerivWithinAt.norm_sq; inner_neg_right and real_inner_comm."
+        },
+        {
+          "title": "Reuse the strong-convex gradient bound",
+          "text": "Differentiability identifies the actual gradient. The existing shared result derives gradient monotonicity from the global strong-convex chord inequality. Applied at X(t) and Y(t), it bounds the squared-separation derivative by -2 alpha times the squared separation.",
+          "formula": "\\langle\\nabla f(Y(t))-\\nabla f(X(t)),D(t)\\rangle\\ge\\alpha\\|D(t)\\|^2,\\qquad (\\|D\\|^2)^{\\prime+}(t)\\le-2\\alpha\\|D(t)\\|^2.",
+          "lean": "StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn, with DifferentiableAt.hasGradientAt."
+        },
+        {
+          "title": "Compare on the closed interval and take square roots",
+          "text": "Continuity of both curves gives continuity of the squared separation including endpoints. Right derivatives provide the one-sided slope hypothesis of the existing interval Gronwall bound. Zero forcing yields the squared-distance estimate. Both the norm and exponential multiple of the initial norm are nonnegative; comparing their squares gives the exact alpha rate.",
+          "formula": "\\|D(t)\\|^2\\le\\|D(0)\\|^2e^{-2\\alpha t}=(e^{-\\alpha t}\\|D(0)\\|)^2\\quad\\Longrightarrow\\quad\\|D(t)\\|\\le e^{-\\alpha t}\\|D(0)\\|.",
+          "lean": "HasDerivWithinAt.liminf_right_slope_le, le_gronwallBound_of_liminf_deriv_right_le, gronwallBound_ε0, Real.exp_add and sq_le_sq₀."
+        }
+      ],
+      "boundary": [
+        "The source C2 Euclidean objective is generalized to an everywhere Frechet differentiable objective on a complete real Hilbert space. StrongConvexOn univ alpha f is the global chord inequality with alpha/2 normalization. Alpha>=0 retains Definition1.5: positive alpha contracts exponentially and zero alpha is nonexpansive.",
+        "The two curves are supplied and continuous on [0,T], T>=0, with actual right derivatives equal to the negative gradient on [0,T). Ordinary source flows restrict to these hypotheses. Terminal continuity is retained; no derivative at T or negative-time dynamics is assumed. T=0 gives equality.",
+        "The source standing attained-minimum convention is unnecessary for this pairwise estimate and is omitted explicitly. There is no flow existence, extension, minimizer construction, discrete algorithm, stochastic coupling, Wasserstein or companion-paper result. No nonzero separation or gradient Lipschitz premise is used."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "HasDerivWithinAt.norm_sq",
+        "DifferentiableAt.hasGradientAt",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_ε0",
+        "sq_le_sq₀"
+      ],
+      "lean_statement": "Finite-interval pairwise norm contraction for actual gradient flows.",
+      "lean_proof": "Put D(t)=Y(t)-X(t). Subtract the two actual right ODE derivatives, then differentiate the smooth squared norm. This remains valid when the two points coincide, so no division by their distance is needed. Differentiability identifies the actual gradient. The existing shared result derives gradient monotonicity from the global strong-convex chord inequality. Applied at X(t) and Y(t), it bounds the squared-separation derivative by -2 alpha times the squared separation. Continuity of both curves gives continuity of the squared separation including endpoints. Right derivatives provide the one-sided slope hypothesis of the existing interval Gronwall bound. Zero forcing yields the squared-distance estimate. Both the norm and exponential multiple of the initial norm are nonnegative; comparing their squares gives the exact alpha rate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Theorem2.2",
+          "scope": "Pairwise contraction from actual gradient dynamics; Definition1.5 nonnegative curvature convention."
+        },
+        {
+          "path": "Tests/Shared/GradientFlowContraction.lean",
+          "label": "Sharp quadratic trajectories and zero curvature",
+          "scope": "Proves the actual ODE and strong convexity for f(x)=x squared/2, with arbitrary initial positions, plus a zero-curvature constant-objective case."
+        }
+      ]
+    }
+  ]
+}

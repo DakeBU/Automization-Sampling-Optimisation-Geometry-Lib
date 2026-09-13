@@ -53,3 +53,7 @@ or stochastic/conceptual transport is marked compiled. Temporary tabs21/22
 closed, viewport reset and local server stopped.
 Next candidate: source Theorem2.4 objective rate, with alpha0 limiting case
 handled explicitly, after searching existing convex-flow energy interfaces.
+
+Merged and pushed directly to `main` at `3db5e6829342bd673ec6e2b0f0e70af7607af05d` under standing
+user authorization. SAU `MERGED` releases the single stabilization lane. Remote
+post-push CI/deployment is separate from passed local evidence.

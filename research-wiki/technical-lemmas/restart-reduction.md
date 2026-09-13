@@ -46,3 +46,7 @@ recommended under standing user authorization; final-integration-review.json ret
 Next: logarithmic round-count normalization with explicit final-call and phi
 comparison conventions, then reverse quadratic-regularization reduction.
 Remember root Tests import and browser MathJax error checks after rendering.
+
+Merged and pushed directly to main at `ccf517a454add94652397dd2a56dede8b51e70a9` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

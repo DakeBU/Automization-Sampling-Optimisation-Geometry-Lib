@@ -44,8 +44,16 @@ by continuous L2 pairings. Focused tests pass (3032 jobs), including the real
 gradient constructor on every member of its closure domain. Independent blind
 and source review accepts it as an elaborated analytic prerequisite only.
 The seven-step lesson includes formulas and separate collapsed Lean disclosures.
-Exact integration/site/gate evidence is recorded separately in the cell and run
-records; this paragraph does not certify remote delivery. Technical Registry
+Exact local integration at `2c20567436ebbfe1351d4f01b4c94236f1c53366` passed
+build9031, Tests9220, canonical ASTIS/ATLAS gates, site/graph checks and actual
+desktop/mobile/graph visual review. The final independent integration record is
+`runs/20260913-companion-priority/closed-gradient-weak.integration-admission.json`.
+The local stabilization lane is released, not MERGED. Later evidence-only commits
+do not claim a new gate execution; these acceptance results and the generated
+site snapshot are pinned to the named mathematical integration commit. Before
+remote delivery, fetch safely, check divergence and regenerate/gate the actual
+delivery revision. Prior normal fetch and push attempts failed with GitHub
+connection errors, not evidence of an authentication problem. Technical Registry
 remains 425 compiled leaves; route publication inventory is a separate measure.
 
 Next PBPS dependency-ready candidate: establish local volume integrability and

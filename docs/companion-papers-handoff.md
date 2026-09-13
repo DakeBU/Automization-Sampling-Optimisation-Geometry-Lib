@@ -1,5 +1,46 @@
 # Companion-paper formalization handoff
 
+## Resumed checkpoint — 2026-09-13
+
+The current project is **Automization-Sampling-Optimisation-Geometry-Lib**;
+Samplinglib is the reader-facing library. The September 10 pause and counts below
+are historical, not the current frontier. Main was safely updated to collaborator
+commit `08b7eb3913ea7423f2cec34cfa1f68ac28ffd30c`. Preserve the pre-existing
+line-ending-only modification to `TechnicalLemmas/Measure.lean`.
+
+The current owner resumed the two-paper priority in this thread. One active Goal
+remains; neither complete paper is proved. No detached ASTIS session is running.
+Read current Frontier Cells and the bounded harness capsule rather than treating
+the old thirteen-result count or old next-step description as live state.
+
+Collaborator results now include actual parameterized proximal Gaussian estimator
+construction, Gibbs position moments, and further recursive execution/finite-output
+KL results. PBPS already includes its actual macroscopic representative. The old
+claim that this representative still needs construction is superseded.
+
+Current local packet: `ASTIS-SW-SPHMC-proximal-estimator-lipschitz`, with source
+and proof blueprint `proof-blueprints/SPHMC-proximal-estimator-lipschitz.md`.
+Focused compilation, including an actual zero-dimensional/eta=1/2 constructor
+test, passes. Independent mathematical proof review passed; final source and
+commit-bound admission/integration are tracked by the cell and
+`runs/20260913-companion-priority/`, not inferred from this paragraph.
+
+This packet derives actual proximal nonexpansiveness and estimator input bounds
+with constants 1 and sqrt(eta). Its 0<eta<=1/2 domain is inherited from the
+existing constructor, not a mathematical necessity or source correction.
+Bias, Gaussian concentration, smoothing regularity, Picard accuracy and total
+cost remain separate. The source-facing decoder/reviewer protocol remains required.
+
+Next PBPS dependency-ready candidate, independently audited: pass weighted
+compact-test integration by parts through the **same closed-gradient graph** to
+identify its elements as actual distributional gradients. Reuse WeightedGradient,
+ConditionalGradient and the existing ConditionalResolvent blueprint. A gradient
+graph core is not an operator core for D*D; elliptic regularity, operator-core
+approximation, mean-zero resolvent limits, Poincare and macroscopic coercivity
+must remain separate. Do not increase the source C2 hypothesis silently.
+
+## Historical checkpoint — 2026-09-10
+
 Updated: 2026-09-10. Project: **Auto-Sampling-Theory-In-Sleep (ASTIS)**.
 
 The owner requested an immediate push and a pause because their usage allowance

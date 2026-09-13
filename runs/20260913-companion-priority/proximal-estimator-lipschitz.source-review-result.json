@@ -1,0 +1,99 @@
+{
+  "reviewer": "input_stability_source_review",
+  "reviewer_identity": "/root/input_stability_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_packet_sha256": "5387d36784d76565174fe73329c35d43de860449b3cb3009508ab7d3e5716ef3",
+  "reviewer_packet_sha256": "5387d36784d76565174fe73329c35d43de860449b3cb3009508ab7d3e5716ef3",
+  "review_packet_file_sha256": "9bf7ddb494895392275c0eb69d5b4f2dbdaee156758a5285fe75bd8cc905bba9",
+  "decision": "accepted",
+  "verdict": "lean-strengthened-assumptions",
+  "fidelity_verdict": "Accepted as a faithful, explicitly restricted constructed-oracle proof component for the two deterministic input-stability estimates. It is not equivalent to the unrestricted source paraphrase in its eta range, and is not a formalization of complete Lemma 4.2.",
+  "semantic_slots": {
+    "objects": {
+      "original": "The genuine proximal minimizer p and the estimator obtained by evaluating the genuine gradient of V at p(y)+sqrt(eta)G.",
+      "reconstructed": "One measurable p satisfying exact proximal optimality and a unique-global-minimum certificate; the same gradient expression is used in both final bounds.",
+      "relation": "explicit-elaboration",
+      "evidence": "Packet source.original_text, lean.statement, and blind_reconstruction.text agree on the estimator expression. The F-minimum equivalence binds p to the proximal minimizer, rather than merely assigning that name to an arbitrary Lipschitz function."
+    },
+    "domains": {
+      "original": "Normalized Euclidean C2 setting.",
+      "reconstructed": "Finite-dimensional complete real inner-product E with its Borel measurable structure, including dimension zero.",
+      "relation": "explicit-elaboration",
+      "evidence": "The public theorem exposes these typeclasses. Finite-dimensional real inner-product spaces admit Euclidean orthonormal coordinates; the proof also handles the zero space without division by a potentially zero displacement. The lesson explicitly labels this coordinate-free extension."
+    },
+    "quantifiers": {
+      "original": "Fix the potential and positive eta; the two bounds hold for every center and noise input, sharing the fixed noise or center respectively.",
+      "reconstructed": "For each admissible E,V,kappa,eta, there exists one p before all center and noise quantifiers; both bounds hold for arbitrary deterministic vectors.",
+      "relation": "explicit-elaboration",
+      "evidence": "In lean.statement, the existential p precedes both universally quantified gradient bounds. The first branch uses one G, and the second one y. The decoder preserves this ordering and does not introduce a distribution or input-dependent choice of p. The eta restriction is recorded separately under assumptions."
+    },
+    "assumptions": {
+      "original": "C2 potential, kappa>=1, Hessian quadratic-form bounds kappa^-1 and 1, and positive eta.",
+      "reconstructed": "The corresponding genuine Frechet differentiability and Hessian hypotheses, plus 0<eta<=1/2.",
+      "relation": "stronger-in-lean",
+      "evidence": "The public declaration requires hsmall : eta <= 1/2; source.original_text only requires positivity. The private nonexpansiveness theorem requires merely nonnegative eta, and hsmall enters the public proof through the imported proximal constructor."
+    },
+    "conclusion": {
+      "original": "The two pointwise estimates have constants 1 and sqrt(eta), justified using proximal nonexpansiveness and gradient Lipschitz continuity.",
+      "reconstructed": "Those exact estimates together with measurable proximal existence, the proximal equation, quantitative unique minimality, and nonexpansiveness.",
+      "relation": "explicit-elaboration",
+      "evidence": "The final two conjuncts match the packet's source formulas. Additional conjuncts identify and expose properties of the actual oracle. They are not substituted assumptions for the desired input bounds."
+    },
+    "scopes": {
+      "original": "The pinned paraphrase selects two deterministic estimates rather than the complete stochastic-gradient lemma.",
+      "reconstructed": "A restricted exact-oracle proof component; no bias, centered exponential moments, Gaussian concentration, smoothed-score identity, Picard accuracy, initialization, or query-cost theorem.",
+      "relation": "same",
+      "evidence": "The module header, lesson.sources[0].scope, and final lesson step all expressly exclude broader results. Complete Lemma 4.2 additionally has bias and exponential-moment conclusions. [Primary source, Lemma 4.2](https://arxiv.org/html/2609.06906v1#S4.SS1)."
+    },
+    "constant_dependencies": {
+      "original": "Input constants 1 and sqrt(eta), under normalized Hessian constants kappa^-1 and 1.",
+      "reconstructed": "Exactly those input constants; additional quadratic-growth coefficient (kappa^-1+eta^-1)/2.",
+      "relation": "explicit-elaboration",
+      "evidence": "No hidden dimension or kappa factor appears in either final input bound. The growth coefficient occurs only in the retained minimum certificate. The same p is chosen for fixed structural data, V and eta; unique minimality prevents a genuinely different p from arising solely through a different valid kappa bound."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "assumptions",
+      "severity": "material-scoped-restriction",
+      "description": "The formal theorem only establishes the selected estimates for 0<eta<=1/2. The upper bound is a constructor restriction, not a necessary threshold for the displayed deterministic argument and not a correction to the source.",
+      "evidence": "Public hsmall is supplied to ProximalGaussianEstimator.proximal_gaussian_estimator. The private monotone-optimality argument accepts eta>=0. The module header and lesson already disclose the restriction."
+    },
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Euclidean coordinates are replaced by finite-dimensional real inner-product spaces, explicitly allowing dimension zero.",
+      "evidence": "Public typeclasses and lesson assumptions disclose this extension; the private proof's hzero branch covers the degenerate displacement case."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The formal conclusion retains measurable existence and a quantitative unique-minimum certificate in addition to the selected source bounds.",
+      "evidence": "The existential tuple returns hp, heq, hmin and hpLip before the two estimator bounds. The lesson explains their role in identifying the exact proximal oracle."
+    },
+    {
+      "slot": "scopes",
+      "severity": "coverage-boundary",
+      "description": "Acceptance must not be recorded as complete Lemma 4.2 coverage or as coverage of unrestricted positive eta.",
+      "evidence": "The publication binding is a proof-edge supporting position-input and noise-input only, and the lesson explicitly identifies partial coverage."
+    }
+  ],
+  "whole_module_review": {
+    "decision": "accepted",
+    "evidence": "I inspected the entire module embedded in the packet. The private lemma subtracts optimality equations, pairs with the proximal displacement, uses monotonicity and eta>=0, applies Cauchy-Schwarz, and separates zero from positive displacement before cancellation. The public proof obtains the actual proximal map from the existing constructor, derives genuine gradient controls from the C2/Hessian hypotheses, proves rather than assumes proximal nonexpansiveness, then performs the correct two cancellation estimates. I found no mathematical mismatch between this proof and its displayed statement.",
+    "limits": "No build was run. The packet's compiled flag is not independent compilation evidence from this review. Imported dependency bodies were outside the supplied module and were not re-audited."
+  },
+  "lesson_review": {
+    "decision": "accepted",
+    "evidence": "The six authored steps accurately explain the visible proof and its constants. They preserve the unique-minimum identification, explain the zero case, distinguish the public eta range from the private argument, and separate deterministic input control from probabilistic and algorithmic conclusions.",
+    "limits": "The sentence saying that the imported parent constructs p as a limit of contracting iterations is dependency-provenance information not established by the visible module. This review does not independently certify that imported implementation detail."
+  },
+  "primary_source_check": {
+    "source": "[Smoothed Picard Hamiltonian Monte Carlo, arXiv:2609.06906v1](https://arxiv.org/html/2609.06906v1)",
+    "evidence": "Checked the normalized setting, proximal definition, estimator definition, and Lemma 4.2. Equations (4.4)-(4.5) match the selected bounds; the source proof invokes proximal nonexpansiveness and gradient Lipschitz continuity. The paper also mentions small proximal query steps for implementation, which does not make eta<=1/2 necessary for these deterministic estimates."
+  },
+  "repairs": [],
+  "review_evidence": "Independently reviewed the anti-anchored packet, its complete embedded Lean module, blind reconstruction, scoped publication context and authored explanation, and the linked primary source. No earlier verdicts, repair records or planning decisions were inspected. Accepted solely as the disclosed restricted proof component, with fidelity verdict lean-strengthened-assumptions.",
+  "recording_authorization": "Root is authorized to faithfully record this exact review result and evidence, including its strengthened-assumption verdict, scope restrictions and audit limitations. Do not convert acceptance into exact source equivalence or complete lemma coverage. I performed no writes, builds or state merges."
+}

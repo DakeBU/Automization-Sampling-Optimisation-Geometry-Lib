@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-flow.attained-stationarity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+    upstreamDecl := "Corollary2.8; IsCompact.exists_isMinOn; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "gradient-flow", "stationarity"],
+    saldUse := "Attained minimum of actual gradient norm over a positive time interval, bounded by the square root of initial objective gap divided by time.",
+    note := "C1 Hilbert and right-time generalization explicit; global minimum and actual flow supplied. No convexity, PL, existence, final-time gradient or full trajectory convergence claim."
+  },
+  {
     key := "analysis.gradient-flow.convex-value-rate",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
     upstreamDecl := "Theorem2.4; firstOrder_lower_bound_of_strongConvexOn; le_gronwallBound_of_liminf_deriv_right_le",

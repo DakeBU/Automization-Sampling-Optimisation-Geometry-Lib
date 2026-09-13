@@ -27195,6 +27195,253 @@
         ],
         "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-value/decoder-result.json"
       }
+    },
+    {
+      "id": "ASTIS-RT-ANDI-OPT-GradientFlowStationarity",
+      "state": "accepted",
+      "graph_node": "ASTIS-SHARED-gradient-flow-stationarity",
+      "source": {
+        "source_id": "chewi-opt-v1-gradient-flow-stationarity",
+        "anchor": "https://arxiv.org/html/2605.07006v1#S2; Section2 standing C2 and attained-minimum conventions; Lemma2.1; displayed integrated dissipation immediately before Corollary2.8; Corollary2.8",
+        "original_text": "In the standing Section2 setting, f is C2 on R^d, X is its supplied forward gradient flow and fstar=f(z) for an attained global minimizer z. Corollary2.8 bounds the minimum gradient norm over [0,t] by sqrt((f(X(0))-fstar)/t), without convexity. The preceding display bounds the time average of squared gradient norm by the same initial objective gap divided by t. The displayed finite quotient uses positive elapsed time; it gives a minimum over the interval rather than a final-time bound.",
+        "text_sha256": "55457381a5e6619be9e72a8b1c4f5e606aa1fc6afb70758f76ae466382218e36"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientFlowStationarity.lean",
+        "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup.{u_1} E] [inst_1 : InnerProductSpace.{0, u_1} ℝ E] [inst_2 : CompleteSpace.{u_1} E]\n  {f : E → ℝ} {X : ℝ → E} {z : E} {T : ℝ},\n  LT.lt.{0} 0 T →\n    ContDiff.{0, u_1, 0} ℝ 1 f →\n      IsMinOn.{u_1, 0} f Set.univ.{u_1} z →\n        ContinuousOn.{0, u_1} X (Set.Icc.{0} 0 T) →\n          (∀ (t : ℝ),\n              Membership.mem.{0, 0} (Set.Ico.{0} 0 T) t →\n                HasDerivWithinAt.{0, u_1} X (Neg.neg.{u_1} (gradient.{0, u_1} f (X t))) (Set.Ici.{0} t) t) →\n            ∃ s,\n              Membership.mem.{0, 0} (Set.Icc.{0} 0 T) s ∧\n                IsMinOn.{0, 0} (fun u => norm.{u_1} (gradient.{0, u_1} f (X u))) (Set.Icc.{0} 0 T) s ∧\n                  LE.le.{0} (norm.{u_1} (gradient.{0, u_1} f (X s)))\n                    √(HDiv.hDiv.{0, 0, 0} (HSub.hSub.{0, 0, 0} (f (X 0)) (f z)) T)",
+        "statement_sha256": "999852132645f58605f49c9dc88762f9573e3bac0981f4340f8d0acfa5e757e7",
+        "compiled": true,
+        "formalizer": "andi-flow-stationarity-worker",
+        "decoder_context": [
+          "ContDiff R 1 f means continuously Frechet differentiable. gradient f x is the Riesz representative of its Frechet derivative in the complete real inner-product space.",
+          "Set.Icc a b is [a,b]; Set.Ico a b is [a,b); Set.Ici t is [t,infinity). HasDerivWithinAt X v (Set.Ici t) t is the right derivative equal to v. ContinuousOn means relative continuity including both endpoints of a closed interval.",
+          "IsMinOn g S s means g(s)<=g(u) for every u in S; membership of s in S must be separately supplied. Set.univ is the entire space. Real.sqrt is the nonnegative real square root (zero for negative input)."
+        ]
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "Euclidean objective f, its actual gradient trajectory, and attained minimizer x_star with value f_star.",
+          "reconstructed": "Objective f, actual Riesz gradient, supplied trajectory X, and globally minimizing point z with value f(z).",
+          "relation": "equivalent",
+          "evidence": "The complete real inner-product structure identifies the gradient with the Frechet derivative by the Riesz map. IsMinOn f univ z states global minimality; no surrogate gradient or freely chosen energy replaces f."
+        },
+        "domains": {
+          "original": "R^d and a forward trajectory indexed by nonnegative real time.",
+          "reconstructed": "Any complete real inner-product space; X is defined on R but constrained only on [0,T], with right derivatives on [0,T).",
+          "relation": "different",
+          "evidence": "This is a valid Hilbert-space and finite-horizon generalization, not literal domain equivalence. Only the time interval is required compact: the proof takes the minimum of a continuous real-valued function on [0,T], never assumes compact bounded subsets of E. Negative-time values and values beyond T are unused."
+        },
+        "quantifiers": {
+          "original": "Every admissible objective and supplied flow, at positive elapsed time, with a minimum over the whole elapsed interval.",
+          "reconstructed": "Universal f, X, z, T subject to the hypotheses; existential s in [0,T] satisfying IsMinOn and the rate.",
+          "relation": "explicit-elaboration",
+          "evidence": "The existential s realizes the source minimum and is allowed to depend on the curve and T. The witness minimizes over every u in [0,T], not just a finite sample or terminal time. Universal z is harmless because every global minimizer has the same value."
+        },
+        "assumptions": {
+          "original": "Standing C2 regularity and attained minimum; supplied gradient ODE; no convexity or PL condition.",
+          "reconstructed": "C1 Frechet regularity; global minimizing z; T>0; continuous X on [0,T] with the actual right-gradient ODE on [0,T).",
+          "relation": "weaker-in-lean",
+          "evidence": "C1 replaces C2 and finite-horizon right-derivative data replace a full forward flow. These are mathematically sufficient: C1 gives continuous gradient, the chain rule gives right energy derivative minus gradient norm squared, and scalar right-slope comparison closes the estimate. Explicit continuity and global minimality do not add restrictions to the source setting. No flow existence or uniqueness is proved."
+        },
+        "conclusion": {
+          "original": "Corollary 2.8 bounds the minimum gradient norm by sqrt((f(x_0)-f_star)/t).",
+          "reconstructed": "A minimizing time s exists and its gradient norm is at most sqrt((f(X(0))-f(z))/T).",
+          "relation": "equivalent",
+          "evidence": "The exact square-root bound and attained minimum are retained. Continuity of gradient composed with X and nonempty compact [0,T] establish attainment. The preceding source average inequality is proof context, not an additional claimed exported conclusion; no terminal-time rate is asserted."
+        },
+        "scopes": {
+          "original": "Section 2 supplies forward-time conventions; the normalized expression requires positive elapsed time.",
+          "reconstructed": "Strict T>0, including both endpoints in the minimizing interval; the ODE is required before T only.",
+          "relation": "explicit-elaboration",
+          "evidence": "The pinned Corollary 2.8 does not state a separate explicit t>0 clause, while its denominator t rules out a finite real interpretation at zero. The packet correctly restricts its claimed finite quotient to positive time. This review does not certify the formula at t=0, nor propose any zero-time repair. No derivative at T is needed by the checked right-slope comparison."
+        },
+        "constant_dependencies": {
+          "original": "Unit coefficient, initial objective gap and elapsed time only.",
+          "reconstructed": "Unit coefficient, f(X(0))-f(z), and T only.",
+          "relation": "same",
+          "evidence": "K=0 and forcing minus the attained minimum squared yield T*m^2 <= initial gap. Division by T>0 and the nonnegative square root preserve coefficient one. There are no dimension, smoothness, convexity, PL, or hidden comparison constants."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "kind": "valid-generalization",
+          "source": "Finite-dimensional Euclidean state space and full forward trajectory.",
+          "lean": "Complete real Hilbert state space with finite-horizon flow assumptions.",
+          "mathematical_impact": "Strictly broader ambient setting; the exact source result is recovered by Euclidean specialization.",
+          "resolution": "Accepted as an explicitly classified generalization, not exact source equivalence.",
+          "severity": "informational",
+          "description": "Hilbert-space and local-horizon generalization.",
+          "evidence": "This is a valid Hilbert-space and finite-horizon generalization, not literal domain equivalence. Only the time interval is required compact: the proof takes the minimum of a continuous real-valued function on [0,T], never assumes compact bounded subsets of E. Negative-time values and values beyond T are unused."
+        },
+        {
+          "slot": "assumptions",
+          "kind": "valid-generalization",
+          "source": "Standing twice continuous differentiability.",
+          "lean": "ContDiff R 1 f, supplied continuous curve and right-gradient ODE.",
+          "mathematical_impact": "Weaker regularity suffices for the same bound; no source assumption is silently strengthened.",
+          "resolution": "Accepted with the C1-versus-C2 difference retained in publication metadata.",
+          "severity": "informational",
+          "description": "C1 regularity suffices for this argument.",
+          "evidence": "C1 replaces C2 and finite-horizon right-derivative data replace a full forward flow. These are mathematically sufficient: C1 gives continuous gradient, the chain rule gives right energy derivative minus gradient norm squared, and scalar right-slope comparison closes the estimate. Explicit continuity and global minimality do not add restrictions to the source setting. No flow existence or uniqueness is proved."
+        },
+        {
+          "slot": "scopes",
+          "kind": "explicit-elaboration",
+          "source": "Normalized positive-elapsed-time interpretation of the displayed quotient.",
+          "lean": "0 < T.",
+          "mathematical_impact": "Excludes division at zero without assigning a new zero-time meaning to the source.",
+          "resolution": "Accept the positive-time source boundary only; no repair proposed.",
+          "severity": "informational",
+          "description": "Positive time is explicit.",
+          "evidence": "The pinned Corollary 2.8 does not state a separate explicit t>0 clause, while its denominator t rules out a finite real interpretation at zero. The packet correctly restricts its claimed finite quotient to positive time. This review does not certify the formula at t=0, nor propose any zero-time repair. No derivative at T is needed by the checked right-slope comparison."
+        }
+      ],
+      "verdict": "domain-mismatch",
+      "repairs": [],
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "stationarity_source_93582",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Accepted for the stated positive-time source obligation, with explicit valid generalizations recorded in domains and assumptions. Independently checked the pinned primary source https://arxiv.org/html/2605.07006v1#S2 (standing conventions, Lemma 2.1, pre-Corollary 2.8 dissipation display, Corollary 2.8), the supplied anonymous reconstruction, full Lean module and reader lesson. The reader proof accurately follows compact-time minimum attainment, the chain rule, constant right-derivative comparison, global lower bound and square root. Checked Mathlib Analysis/ODE/Gronwall.lean lines 112-128: the scalar comparison has continuous closed-interval data and right-slope hypotheses on the half-open interval, with no positivity condition on the forcing. The source does not establish well-posedness; neither does this theorem. No prior audit, repair, registry or other chat was inspected. Compilation was supplied in the packet, not rerun by this source reviewer.",
+        "review_run_sha256": "d482addc6f76f628371057793414dad37b08934e64e9db556a53674c896fcf21",
+        "reviewer_packet_sha256": "47871620f49bc525842460eb9462c5c2452a2a18546f0bbdb68a8005e8338171",
+        "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-stationarity/source-review-0.json"
+      },
+      "publication_binding_sha256": "4c1440cb3e240c87db0263d987316c6b1a5a3c19c8ec44cb5b141939b311334f",
+      "publication_context": {
+        "file": "ac4282b158809124cb3bf282672fad9e3c6b40b8122e05cb4d2e9cf34abf2fbd",
+        "current_lean_module": "import Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.Calculus.ContDiff.Basic\nimport Mathlib.Analysis.ODE.Gronwall\nimport Mathlib.Topology.Order.Compact\n\n/-!\n# An attained gradient-norm bound along a gradient flow\n\nChewi, arXiv:2605.07006v1, Section 2, Corollary 2.8. The finite normalized\nbound is for positive time. Neither convexity nor a PL condition is required.\nThe objective and actual trajectory are supplied; no flow existence is claimed.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity\n\nopen Set\nopen scoped RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- A minimum gradient norm is attained on the supplied time interval, and is\nbounded by the square root of the initial objective gap divided by elapsed time. -/\ntheorem exists_min_norm_le {f : E → ℝ} {X : ℝ → E} {z : E} {T : ℝ}\n    (hT : 0 < T) (hf : ContDiff ℝ 1 f) (hz : IsMinOn f univ z)\n    (hX : ContinuousOn X (Icc 0 T))\n    (hflow : ∀ t ∈ Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Ici t) t) :\n    ∃ s ∈ Icc 0 T, IsMinOn (fun u => ‖gradient f (X u)‖) (Icc 0 T) s ∧\n      ‖gradient f (X s)‖ ≤ Real.sqrt ((f (X 0) - f z) / T) := by\n  have hdf : Differentiable ℝ f := hf.differentiable (by norm_num)\n  have hcg : Continuous (gradient f) :=\n    (InnerProductSpace.toDual ℝ E).symm.continuous.comp (hf.continuous_fderiv (by norm_num))\n  obtain ⟨s, hs, hmin⟩ := isCompact_Icc.exists_isMinOn\n    (nonempty_Icc.mpr hT.le) (hcg.comp_continuousOn hX).norm\n  refine ⟨s, hs, hmin, ?_⟩\n  have hd (u : ℝ) (hu : u ∈ Ico 0 T) :\n      HasDerivWithinAt (fun v => f (X v)) (-‖gradient f (X u)‖ ^ 2) (Ici u) u := by\n    have hg : HasFDerivAt f (InnerProductSpace.toDual ℝ E (gradient f (X u))) (X u) :=\n      (hdf (X u)).hasGradientAt\n    simpa only [Function.comp_def, InnerProductSpace.toDual_apply_apply,\n      inner_neg_right, real_inner_self_eq_norm_sq] using\n      hg.comp_hasDerivWithinAt u (hflow u hu)\n  have hb := le_gronwallBound_of_liminf_deriv_right_le\n    (f' := fun u => -‖gradient f (X u)‖ ^ 2) (δ := f (X 0))\n    (K := 0) (ε := -‖gradient f (X s)‖ ^ 2)\n    (hf.continuous.comp_continuousOn hX)\n    (fun u hu r hr => by simpa [slope] using (hd u hu).liminf_right_slope_le hr)\n    le_rfl (fun u hu => by\n      have hm := hmin (show u ∈ Icc 0 T from ⟨hu.1, hu.2.le⟩)\n      have hsq := sq_le_sq₀ (norm_nonneg (gradient f (X s))) (norm_nonneg (gradient f (X u)))\n      simpa using (neg_le_neg (hsq.mpr hm))) T ⟨hT.le, le_rfl⟩\n  simp only [gronwallBound_K0, sub_zero] at hb\n  apply (Real.le_sqrt (norm_nonneg _) (div_nonneg\n    (sub_nonneg.mpr (hz (mem_univ _))) hT.le)).mpr\n  apply (le_div_iff₀ hT).mpr\n  have hzT : f z ≤ f (X T) := hz (mem_univ (X T))\n  change f (X T) ≤ _ at hb\n  nlinarith\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "edition": "arXiv:2605.07006v1",
+          "anchor": "Section2 standing C2 and attained-minimum conventions; Lemma2.1; displayed integrated dissipation immediately before Corollary2.8; Corollary2.8",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS-authored mathematical restatement; no endorsement implied."
+        },
+        "statement": "In the standing Section2 setting, f is C2 on R^d, X is its supplied forward gradient flow and fstar=f(z) for an attained global minimizer z. Corollary2.8 bounds the minimum gradient norm over [0,t] by sqrt((f(X(0))-fstar)/t), without convexity. The preceding display bounds the time average of squared gradient norm by the same initial objective gap divided by t. The displayed finite quotient uses positive elapsed time; it gives a minimum over the interval rather than a final-time bound.",
+        "formulae": [
+          {
+            "label": "Source gradient-norm bound",
+            "tex": "\\min_{s\\in[0,t]}\\|\\nabla f(X(s))\\|\\le\\sqrt{\\frac{f(X(0))-f_\\star}{t}}."
+          }
+        ],
+        "assumptions": [
+          "C2 Euclidean objective, supplied gradient flow and an attained global minimum, by Section2 conventions.",
+          "Positive elapsed time for the normalized 1/t bound; no convexity or PL assumption."
+        ],
+        "obligations": [
+          {
+            "id": "attained-minimum-gradient-rate",
+            "label": "An attained minimum of gradient norm on a positive time interval satisfies the exact square-root objective-gap bound"
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+          "kind": "theorem",
+          "title": "A gradient flow reaches a small gradient",
+          "statement": "Let E be a complete real inner-product space and f:E→R be C1. Supply a global minimizer z, a time T>0, and a curve X:R→E continuous on [0,T] whose right derivative equals minus the actual gradient of f at X(u), for each 0<=u<T. Then some s in [0,T] attains the smallest gradient norm on that entire interval and satisfies the displayed bound.",
+          "formula": "\\begin{gathered}X^{\\prime+}(u)=-\\nabla f(X(u))\\quad(0\\le u<T),\\qquad z\\in\\arg\\min f,\\quad T>0,\\\\\\exists s\\in[0,T]:\\quad\\|\\nabla f(X(s))\\|=\\min_{u\\in[0,T]}\\|\\nabla f(X(u))\\|\\le\\sqrt{\\frac{f(X(0))-f(z)}{T}}.\\end{gathered}",
+          "assumptions": [
+            "Complete real inner-product space E; f is continuously Frechet differentiable (ContDiff R 1 f).",
+            "A supplied z satisfies f(z)<=f(x) for every x:E; elapsed time T is strictly positive.",
+            "X is continuous on [0,T]; for every u in [0,T), HasDerivWithinAt X (-gradient f(X(u))) (Ici u) u."
+          ],
+          "steps": [
+            {
+              "title": "Attain the smallest gradient norm",
+              "text": "The C1 assumption makes the Frechet derivative continuous. The Riesz inverse is continuous, so the actual gradient, and hence its norm along X, is continuous. The nonempty compact time interval therefore contains a minimizing time s. Put m=norm(gradient f(X(s))).",
+              "formula": "\\exists s\\in[0,T],\\qquad 0\\le m:=\\|\\nabla f(X(s))\\|\\le\\|\\nabla f(X(u))\\|\\quad(0\\le u\\le T).",
+              "lean": "ContDiff.continuous_fderiv, continuity of InnerProductSpace.toDual.symm, and IsCompact.exists_isMinOn."
+            },
+            {
+              "title": "Derive the actual energy dissipation",
+              "text": "Compose the Frechet derivative of f with the supplied right derivative of X. The gradient ODE makes the resulting inner product minus the squared gradient norm. Minimality of m bounds that derivative above by -m squared.",
+              "formula": "\\partial_u^+f(X(u))=\\langle\\nabla f(X(u)),-\\nabla f(X(u))\\rangle=-\\|\\nabla f(X(u))\\|^2\\le-m^2\\quad(0\\le u<T).",
+              "lean": "DifferentiableAt.hasGradientAt and HasFDerivAt.comp_hasDerivWithinAt derive the identity; sq_le_sq₀ compares nonnegative norms."
+            },
+            {
+              "title": "Use the available energy budget",
+              "text": "Integrating this constant derivative bound gives f(X(T))<=f(X(0))-T m squared. In Lean the existing scalar right-slope Gronwall theorem with coefficient zero and forcing -m squared performs this comparison. The supplied minimum gives f(z)<=f(X(T)), so T m squared cannot exceed the initial objective gap.",
+              "formula": "Tm^2\\le f(X(0))-f(X(T))\\le f(X(0))-f(z).",
+              "lean": "le_gronwallBound_of_liminf_deriv_right_le with K=0, epsilon=-m²; gronwallBound_K0 and IsMinOn."
+            },
+            {
+              "title": "Convert to the gradient-norm rate",
+              "text": "Divide by the strictly positive T, then take the nonnegative square root. Because s was chosen as a minimizer, this bounds the attained minimum over the whole time interval, not necessarily the gradient at its final time.",
+              "formula": "\\min_{0\\le u\\le T}\\|\\nabla f(X(u))\\|=m\\le\\sqrt{\\frac{f(X(0))-f(z)}{T}}.",
+              "lean": "le_div_iff₀ and Real.le_sqrt; the global minimum supplies nonnegativity of the initial gap."
+            }
+          ],
+          "astis_dependencies": [],
+          "mathlib_dependencies": [
+            "ContDiff.continuous_fderiv",
+            "IsCompact.exists_isMinOn",
+            "HasFDerivAt.comp_hasDerivWithinAt",
+            "HasDerivWithinAt.liminf_right_slope_le",
+            "le_gronwallBound_of_liminf_deriv_right_le",
+            "gronwallBound_K0",
+            "Real.le_sqrt"
+          ],
+          "lean_statement": "An attained time-interval minimum of gradient norm with the exact square-root objective-gap rate.",
+          "lean_proof": "The C1 assumption makes the Frechet derivative continuous. The Riesz inverse is continuous, so the actual gradient, and hence its norm along X, is continuous. The nonempty compact time interval therefore contains a minimizing time s. Put m=norm(gradient f(X(s))). Compose the Frechet derivative of f with the supplied right derivative of X. The gradient ODE makes the resulting inner product minus the squared gradient norm. Minimality of m bounds that derivative above by -m squared. Integrating this constant derivative bound gives f(X(T))<=f(X(0))-T m squared. In Lean the existing scalar right-slope Gronwall theorem with coefficient zero and forcing -m squared performs this comparison. The supplied minimum gives f(z)<=f(X(T)), so T m squared cannot exceed the initial objective gap. Divide by the strictly positive T, then take the nonnegative square root. Because s was chosen as a minimizer, this bounds the attained minimum over the whole time interval, not necessarily the gradient at its final time.",
+          "sources": [
+            {
+              "url": "https://arxiv.org/html/2605.07006v1#S2",
+              "label": "Chewi Corollary2.8",
+              "scope": "Nonconvex gradient-norm rate; standing C2, attained-minimum and actual-flow conventions of Section2."
+            },
+            {
+              "path": "Tests/Shared/GradientFlowStationarity.lean",
+              "label": "Actual quadratic and constant trajectories",
+              "scope": "Nonstationary positive-gap and stationary zero-gap examples invoke the public theorem and retain the minimum witness."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+          "role": "proof-edge",
+          "supports": [
+            "attained-minimum-gradient-rate"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "C2 on R^d by the Section2 standing convention.",
+            "lean": "ContDiff R 1 f on a complete real Hilbert space."
+          },
+          {
+            "source": "Supplied forward gradient flow and attained global minimizer.",
+            "lean": "IsMinOn f univ z, continuous X on [0,T], actual right gradient ODE on [0,T)."
+          },
+          {
+            "source": "Finite normalized expression containing 1/t.",
+            "lean": "T>0."
+          },
+          {
+            "source": "Minimum over all s in [0,t].",
+            "lean": "Existential witness s in [0,T] with IsMinOn gradient norm and the bound."
+          }
+        ]
+      },
+      "reconstruction": {
+        "text": "For every complete real inner-product space E, every function f:E→ℝ, every curve X:ℝ→E, every point z∈E, and every real number T>0, assume f is continuously Fréchet differentiable on E, z is a global minimizer of f (f(z)≤f(x) for every x∈E), X is continuous on [0,T], and for every t∈[0,T) the right derivative of X at t exists and equals −∇f(X(t)). Then there exists s∈[0,T] such that ‖∇f(X(s))‖≤‖∇f(X(u))‖ for every u∈[0,T], and ‖∇f(X(s))‖≤√((f(X(0))−f(z))/T). The square root is the nonnegative real square root, and its argument is nonnegative by global minimality and T>0.",
+        "text_sha256": "82446863b5084e00a84aaa218e1c77cbe689dddc2a779c9c1effa7583dfedee6",
+        "decoder": "stationarity_blind_93582",
+        "decoder_run_sha256": "15173229877a6ebd60908d5ec157324ab48455099ea600815d0e83db0fcf82c4",
+        "decoder_packet_sha256": "b17c119e07c3d20935a5ffa68680d3c99d93c05ce802d3d1d4821f6dc797ba47",
+        "source_text_visible": false,
+        "lean_statement_sha256": "999852132645f58605f49c9dc88762f9573e3bac0981f4340f8d0acfa5e757e7",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-stationarity/decoder-result.json"
+      }
     }
   ]
 }

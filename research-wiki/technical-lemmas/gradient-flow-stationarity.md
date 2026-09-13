@@ -65,3 +65,7 @@ retrieval and differentiable-gradient/Hessian interface audit.
 Final independent integration accepted by pl_pullback_review. Metadata-refreshed
 site/check and graph passed; graph slice matches the inspected version exactly.
 Exact review retained in the existing semantic evidence folder.
+
+Merged and pushed directly to `main` at `487920ef5add83a7ff7a0f3de4e65a3117d41fa6` under standing
+user authorization. SAU `MERGED` releases the single stabilization lane. Remote
+post-push CI/deployment is separate from passed local evidence.

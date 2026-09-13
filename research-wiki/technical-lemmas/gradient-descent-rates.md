@@ -50,3 +50,7 @@ Remember root Tests import; preserve unrelated local files.
 
 Final independent integration accepted by pl_pullback_review with no pending
 checks; exact report retained beside canonical gate evidence.
+
+Merged and pushed directly to main at `ae66dcb6a36d4ed761c5cd2880258b90a8612787` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

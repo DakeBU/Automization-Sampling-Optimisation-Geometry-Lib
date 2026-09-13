@@ -1,0 +1,119 @@
+{
+  "reviewer_id": "pl_pullback_review",
+  "role": "bounded independent retrieval/source-route audit; not frozen proof verification or canonical anti-anchored source acceptance",
+  "review_tier": "targeted route audit",
+  "checked_repository_head": "42be71de96786a9961a5b2c08c18ccccd38f9fda",
+  "verdict": "PASS for proposed route, conditional on implementation and independent source admission",
+  "source": {
+    "identity": "Chewi arXiv:2605.07006v1 Section 2 Corollary 2.8",
+    "url": "https://arxiv.org/html/2605.07006v1#S2",
+    "anchors": [
+      "Section 2 standing assumptions, lines 328-335 in fetched HTML",
+      "Integrated descent immediately before Corollary 2.8, lines 464-472"
+    ],
+    "statement": "min_{s in [0,t]} ||gradient f(x_s)|| <= sqrt((f(x_0)-f_star)/t)",
+    "normalization": "Exact factor 1 inside square root, not discrete-descent factor 2.",
+    "standing_conditions": "Euclidean global C2 objective, supplied forward gradient flow, and generally an attained global minimum f_star. Corollary does not repeat regularity or minimizer convention. Positive t is implicit in its finite normalized quotient and preceding averaged integral.",
+    "route": "Source applies fundamental theorem of calculus to actual objective dissipation, then minimum <= average of squared norms. Proposed constant-slope scalar comparison implements the same integrated inequality without asserting a Bochner integral result."
+  },
+  "candidate_boundary": {
+    "space": "Complete real Hilbert space, a documented generalization of finite Euclidean source.",
+    "objective": "ContDiff R 1 f suffices: differentiability supplies chain rule; continuous derivative through Riesz inverse supplies continuous gradient norm and attained compact minimum. C2 not used.",
+    "flow": "ContinuousOn X (Icc 0 T), actual right ODE on Ico 0 T; no derivative required at T and no ODE existence or uniqueness asserted.",
+    "lower_bound": "Only f_star <= f(X T) is mathematically needed; this is weaker than source global attained minimum and must be labelled as such. Initial gap nonnegativity follows from descent and terminal bound; do not assume it merely to make sqrt work.",
+    "time": "T > 0 required. At T=0, Lean total division gives zero and generally false gradient <= 0; no time-zero normalized conclusion.",
+    "output": "Exist s in Icc 0 T with IsMinOn (fun u => norm(gradient f(X u))) (Icc 0 T) s and norm(gradient f(X s)) <= sqrt((f(X 0)-f_star)/T). Preserve IsMinOn or its full forall comparison, not merely an arbitrary small-norm witness.",
+    "excluded": [
+      "last-iterate stationarity",
+      "convergence of the whole trajectory",
+      "stationary subsequence at unbounded times",
+      "global minimum attainment or minimizer existence",
+      "convexity or PL hypotheses",
+      "global flow construction",
+      "analytic alpha/step-size asymptotic claims"
+    ]
+  },
+  "reuse_audit": [
+    {
+      "scope": "Samplinglib TechnicalLemmas Analysis",
+      "classification": "adapt existing calculus pattern; new substantive compact-selection edge",
+      "nearby": [
+        "GradientFlowPL.dissipation_and_decay",
+        "GradientFlowValue.value_le",
+        "GradientDescentStationarity.exists_gradient_descent_norm_le"
+      ],
+      "finding": "First two already derive actual chain-rule energy identity locally but conclusions require PL/convexity. Discrete theorem has finite iterates and factor 2, not continuous finite-time minimum. No duplicate continuous nonconvex stationarity theorem found by bounded search."
+    },
+    {
+      "scope": "fixed local Mathlib Analysis ODE/Calculus/Topology",
+      "classification": "reuse",
+      "finding": "No exact actual gradient-flow minimum theorem found. Existing compact extreme-value, scalar right Gronwall, gradient/Riesz, square-root APIs suffice."
+    },
+    {
+      "scope": "Optlib pinned 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3 and CvxLean pinned c62c2f292c6420f31a12e738ebebdfed50f6f840 in /private/tmp/samplinglib-reuse-audit",
+      "classification": "no exact target found",
+      "finding": "Bounded gradient-flow/gronwall/dissipation/stationarity search found no exact continuous-flow minimum result. Optlib contains convex gradient/subgradient and discrete-method material; do not mark external results compiled locally."
+    }
+  ],
+  "exact_apis": [
+    {
+      "name": "ContDiff.continuous_fderiv",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Defs.lean:1272",
+      "contract": "h : ContDiff k n f; hn : n != 0; returns continuous fderiv. For C1 use by norm_num or one_ne_zero."
+    },
+    {
+      "name": "gradient",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean:82",
+      "contract": "Defined as (InnerProductSpace.toDual R E).symm (fderiv R f x); compose continuous Riesz inverse with continuous_fderiv, then hX and norm."
+    },
+    {
+      "name": "IsCompact.exists_isMinOn",
+      "file": ".lake/packages/mathlib/Mathlib/Topology/Order/Compact.lean:230",
+      "contract": "hs : IsCompact s, ne_s : s.Nonempty, hf : ContinuousOn f s; returns exists x in s, IsMinOn f s x. Use isCompact_Icc and 0 in Icc 0 T."
+    },
+    {
+      "name": "DifferentiableAt.hasGradientAt; HasFDerivAt.comp_hasDerivWithinAt",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean; existing GradientFlowPL.lean",
+      "contract": "Same actual chain-rule pattern as GradientFlowPL; comp_hasDerivWithinAt takes explicit time t. Simplify toDual_apply_apply, inner_neg_right, real_inner_self_eq_norm_sq."
+    },
+    {
+      "name": "HasDerivWithinAt.liminf_right_slope_le; le_gronwallBound_of_liminf_deriv_right_le",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/ODE/Gronwall.lean:112",
+      "contract": "Energy ContinuousOn Icc, right derivatives Ico, initial bound, derivative bound; K and epsilon arbitrary real. Set K=0, epsilon=-m^2; negative forcing is allowed."
+    },
+    {
+      "name": "gronwallBound_K0",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/ODE/Gronwall.lean:46",
+      "contract": "gronwallBound delta 0 epsilon = fun x => delta + epsilon*x."
+    },
+    {
+      "name": "Real.le_sqrt_of_sq_le",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Real/Sqrt.lean:258",
+      "contract": "m^2 <= B directly yields m <= sqrt B; no extra positivity hypothesis needed by this lemma."
+    }
+  ],
+  "proof_route": [
+    "Derive continuity of u -> norm(gradient f(X u)) from C1 and hX.",
+    "Choose attained minimum s on compact nonempty Icc 0 T; let m be its nonnegative norm.",
+    "Derive actual right derivative of f o X equal to -norm(gradient f(X u))^2 on Ico.",
+    "Minimality and nonnegative norms imply derivative <= -m^2.",
+    "Apply existing scalar Gronwall K0 with epsilon=-m^2 to obtain f(X T) <= f(X 0)-m^2*T.",
+    "Combine supplied terminal lower bound and T>0 to infer m^2 <= (f(X 0)-f_star)/T.",
+    "Apply Real.le_sqrt_of_sq_le and return the attained-minimum witness with full comparison."
+  ],
+  "mvt_alternative": {
+    "recommendation": "Keep compact minimum plus existing right-sided scalar comparison.",
+    "reason": "Standard exists_hasDerivAt_eq_slope requires two-sided HasDerivAt on Ioo. An Ici derivative is not directly a two-sided derivative, even at an interior observation point. A continuous-right-derivative recovery theorem or integral primitive argument could bridge under these C1 hypotheses, but adds work and does not remove compactness when literal attained minimum is required. With a stronger supplied two-sided flow interface MVT is viable, but changing that interface is unnecessary."
+  },
+  "substantive_delta": "The minimum is constructed from compactness, actual dissipation from gradient dynamics, and quantitative bound from comparison. Neither dissipation nor stationarity bound is supplied. This is a reusable continuous nonconvex best-time theorem, distinct from existing PL/convex/discrete leaves.",
+  "focused_test_recommendations": [
+    "Nonstationary quadratic f(x)=x^2/2, X(t)=exp(-t), global minimum 0, T>0. Invoke target and exercise full IsMinOn output.",
+    "Linear f(x)=x, X(t)=-t, f_star=-T: C1 and actual flow, terminal lower bound equality, no global minimizer; min norm=1 and sqrt(T/T)=1. This directly tests intended generalized lower-bound interface and exact coefficient.",
+    "Constant objective/flow at positive T: zero initial gap and zero gradient, no accidental strict positivity requirement.",
+    "Optional precise T=0 rejection with quadratic starting at 1: normalized RHS is zero but initial gradient norm is 1; do not promote this source endpoint observation into a proved source theorem."
+  ],
+  "failure_policy": "Do not assume continuous gradient or energy identity without either C1 derivation or explicit documented hypothesis. Do not convert right derivative to HasDerivAt using an invalid neighborhood argument. Stop repeated identical compiler failures to diagnose API shape; no source mutation.",
+  "evidence_scope": "Read-only repository/API/source inspection only. No Lean compile or tests run in this route audit, and no implementation or peer source-review verdict inspected.",
+  "unresolved_findings": [],
+  "next_action": "Root implement and freeze; independent fresh proof review and separate canonical anti-anchored source acceptance remain required."
+}

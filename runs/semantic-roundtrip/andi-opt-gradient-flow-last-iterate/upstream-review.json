@@ -1,0 +1,98 @@
+{
+  "reviewer_id": "pl_pullback_review",
+  "role": "bounded independent retrieval and route audit, not frozen proof verification or canonical source review",
+  "checked_head": "7f367b1d37375757b0e68e4d51cb2f68b3c28b49",
+  "verdict": "PASS for proposed route and bounded value-rate extension",
+  "source": {
+    "identity": "Chewi arXiv:2605.07006v1 Section 2 Exercise 2.1",
+    "url": "https://arxiv.org/html/2605.07006v1#S2",
+    "scope": "Standing C2 Euclidean objective and supplied forward gradient flow, global minimizer z; Exercise adds convexity. Defines L(t)=t^2*norm(grad f(Xt))^2+2t*(f(Xt)-f(z))+norm(Xt-z)^2, asks L decreasing, then last-time grad squared <=D0 squared/t squared. Next requests gap<=D0 squared/(4t), with nonsmooth max-function sharpness example.",
+    "boundary": "Finite normalized rates require t>0; antitone Lyapunov and division-free bounds include zero. C2 complete real Hilbert and finite interval right-time flow are explicit generalizations. Sharpness witness is outside globally C2 assumptions and stays a separate source obligation."
+  },
+  "reuse_audit": [
+    {
+      "scope": "Samplinglib shared Analysis",
+      "finding": "No exact Exercise2.1 actual-flow Lyapunov/last-time-rate theorem found. Exact difficult parent already present: ConvexityC2.gradient_mono_iff_fderiv2_lower on complete real Hilbert spaces, derived via limit and FTC. Existing GradientDescentOptimalStep and QuadraticRegularization contain matching Riesz-gradient derivative bridge. Reuse these APIs/patterns, do not reprove scalar monotone-derivative positivity."
+    },
+    {
+      "scope": "Pinned Mathlib Analysis Convex/Calculus/ODE",
+      "finding": "No exact actual convex gradient-flow Lyapunov theorem found. Reuse continuous differentiability of fderiv, Riesz map, chain rule, squared norm derivative, scalar right-derivative comparison. Scalar ConvexOn.monotoneOn_deriv is a one-dimensional alternative but adds line-restriction algebra unnecessarily."
+    },
+    {
+      "scope": "Pinned Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3, CvxLean c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "finding": "Bounded gradient-flow/Lyapunov/last-iterate searches found no exact target. Optlib Convex_monotone_gradient supplies nearby first-order gradient monotonicity, already locally covered by StrongConvexFirstOrder. External reference is not a compiled local dependency."
+    }
+  ],
+  "exact_parent_route": [
+    {
+      "api": "strongConvexOn_zero.mpr hc",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Convex/Strong.lean:136",
+      "role": "Turns ConvexOn R univ f into StrongConvexOn univ 0 f."
+    },
+    {
+      "api": "StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean:97",
+      "role": "Use actual gradients supplied by C2-derived differentiability to derive global monotonicity with modulus zero."
+    },
+    {
+      "api": "ConvexityC2.gradient_mono_iff_fderiv2_lower hf",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC2.lean:46",
+      "role": "Forward direction at m=0 yields 0 <= (fderiv R (fderiv R f) x v) v, with no supplied Hessian sign assumption. This theorem, unlike the later Euclidean specialization, already supports complete real Hilbert spaces."
+    },
+    {
+      "api": "ContDiff.fderiv_right; ContDiff.differentiable_one",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentOptimalStep.lean:46",
+      "role": "hf.fderiv_right (by norm_num) yields C1 fderiv from C2 f."
+    },
+    {
+      "api": "R.hasFDerivAt.comp x; InnerProductSpace.toDual_symm_apply",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentOptimalStep.lean:39-54; QuadraticRegularization.lean:78-89",
+      "role": "Use existing concrete real continuous linear map R inverse Riesz. H(x)=R.comp(fderiv R (fderiv R f) x). Composition proves HasFDerivAt (gradient f) (H x) x. hgrad.fderiv identifies actual fderiv gradient; inner(Hx v,w)=Hessian(v,w). real_inner_comm changes inner order. Hessian symmetry is not necessary for diagonal sign."
+    },
+    {
+      "api": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+      "role": "At modulus0, x=Xt,y=z, derive gap<=inner(gradient f(Xt),Xt-z)."
+    },
+    {
+      "api": "HasFDerivAt.comp_hasDerivWithinAt; HasDerivWithinAt.norm_sq",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Calculus.lean:223",
+      "role": "Actual right derivatives of gradient along flow, gradient norm squared, and squared distance. norm_sq derivative is 2*inner(value,derivative). comp_hasDerivWithinAt takes explicit point."
+    },
+    {
+      "api": "image_le_of_deriv_right_le_deriv_boundary",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/MeanValue.lean:199",
+      "role": "Direct scalar comparison from continuous Icc function and right derivative Ico; set B constant=L(a), Bprime=0, get L(b)<=L(a). Can reuse Gronwall K=epsilon=0 instead; no new scalar theorem required."
+    },
+    {
+      "api": "norm_sub_sq_real",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Basic.lean:435",
+      "role": "Nonnegative norm square of t*gradient minus displacement proves 2t*inner(gradient,displacement)<=t^2*normgradient^2+normdisplacement^2; alternatively Cauchy and scalar Young."
+    }
+  ],
+  "mathematical_route": [
+    "Derive genuine gradient differentiability and Hessian diagonal positivity from C2 plus convexity through existing parents.",
+    "Chain rule yields energy derivative=-normgradient squared, gradient-norm-squared derivative=-2*inner(gradient,H gradient), and squared-distance derivative=-2*inner(displacement,gradient).",
+    "Product rule cancels the two 2t*normgradient squared terms; Lprime=-2t^2*inner(gradient,H gradient)+2gap-2*inner(displacement,gradient)<=0 by diagonal positivity and first-order support.",
+    "Apply existing right-time scalar comparison on every subinterval [a,b] subset [0,T] to obtain AntitoneOn L (Icc 0 T). Endpoint T requires continuity, no ODE beyond or at T.",
+    "Global minimum and t>=0 make the other potential terms nonnegative: t^2*normgradient squared<=L(t)<=L(0)=D0 squared. Divide only for t>0.",
+    "For the bounded source extension, first-order support and squared-distance Young give 2t*gap<=t^2*normgradient squared+D squared, hence 4t*gap<=L(t)<=D0 squared. Divide by4t>0.",
+    "Return exact antitone and both last-time rates, retaining sharpness and any complete Exercise2.1 claim outside compiled scope."
+  ],
+  "substantive_delta": "Actual convex gradient-flow Lyapunov antitonicity joins existing first-order, genuine second-order, chain-rule and scalar-comparison parents. Last-time gradient and 1/(4t) value bounds are direct consequences of the same energy; they differ from previous best-time nonconvex stationarity and non-sharp 1/(2t) convex value bounds.",
+  "failure_boundaries": [
+    "Do not assume Hessian positivity or derivative of gradient as a replacement for deriving them from convex C2 f.",
+    "Do not restrict to Euclidean final ConvexityC2 theorem when its general Hilbert parent already suffices.",
+    "Do not convert right derivative to two-sided derivative using an invalid Ici neighborhood claim.",
+    "Global minimizer supplies gap nonnegativity for discarding potential terms; convexity alone does not supply an attained minimizer.",
+    "Potential at0 has value D0 squared; normalized t0 rate with Lean division0 is generally false. T=0 may be allowed for antitone/unnormalized parts, normalized quantifier then empty.",
+    "No source nonsmooth max sharpness or ODE existence, infinite-time convergence, discrete/stochastic transport certified by this route."
+  ],
+  "focused_tests": [
+    "Nonstationary quadratic f=x^2/2, X=A exp(-t), z=0 should invoke all public conclusions including AntitoneOn at arbitrary0<=a<=b<=T; checks exact factors and nonzero gradients.",
+    "Positive-time constant objective/constant flow checks zero gradient/gap and no hidden positivity assumptions.",
+    "If T>=0 interface selected, zero-horizon case exercises singleton antitonicity without inventing terminal ODE."
+  ],
+  "evidence_scope": "Read-only source and exact local API inspection; no repository edits, no proof or build/test run; no peer semantic verdict inspected.",
+  "unresolved_findings": [],
+  "next_action": "Root implement with compiled parents, freeze theorem/test/lesson, then independent proof and semantic review. No extra parent proof required."
+}

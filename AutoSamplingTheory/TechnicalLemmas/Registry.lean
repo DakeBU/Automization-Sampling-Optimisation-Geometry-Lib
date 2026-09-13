@@ -73,6 +73,36 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-flow.last-time-lyapunov",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate.lyapunov_and_rates",
+    upstreamDecl := "Exercise2.1; ConvexityC2.gradient_mono_iff_fderiv2_lower; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Actual convex-flow Lyapunov antitonicity and last-time gradient-square/value upper bounds.",
+    note := "Hessian positivity derived; C2 Hilbert and right-time generalization explicit. Positive-time normalized coefficients 1/t squared and 1/(4t); nonsmooth sharpness and Exercise2.2 remain separate."
+  },
+  {
+    key := "analysis.gradient-flow.attained-stationarity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+    upstreamDecl := "Corollary2.8; IsCompact.exists_isMinOn; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "gradient-flow", "stationarity"],
+    saldUse := "Attained minimum of actual gradient norm over a positive time interval, bounded by the square root of initial objective gap divided by time.",
+    note := "C1 Hilbert and right-time generalization explicit; global minimum and actual flow supplied. No convexity, PL, existence, final-time gradient or full trajectory convergence claim."
+  },
+  {
+    key := "analysis.gradient-flow.convex-value-rate",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
+    upstreamDecl := "Theorem2.4; firstOrder_lower_bound_of_strongConvexOn; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Actual convex gradient trajectory objective rate with direct zero-curvature branch on finite forward intervals.",
+    note := "Positive observation time: printed t0 quotient singularity has independent domain-clarification review. Hilbert/differentiability/right-time generalization explicit; minimum and flow supplied; no analytic parameter-limit or existence claim."
+  },
+  {
     key := "analysis.gradient-flow.pair-contraction",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
     upstreamDecl := "Theorem2.2; gradient_inner_lower_bound_of_strongConvexOn; HasDerivWithinAt.norm_sq; le_gronwallBound_of_liminf_deriv_right_le",

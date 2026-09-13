@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "task": "independent-theorem-repair-review",
+  "packet_id": "ASTIS-REPAIR-REVIEW-bc18418318406572",
+  "anti_anchoring": {
+    "prior_fidelity_verdict_included": false,
+    "prior_semantic_deltas_included": false,
+    "prior_source_review_included": false,
+    "prior_repair_review_included": false
+  },
+  "roles": {
+    "formalizer": "andi-flow-value-worker",
+    "blind_decoder": "value_blind_92471",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-gradient-flow-value",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S2; Section2 GF and conventions; Lemma2.1; Theorem2.4 statement and proof; Proposition1.6 (1.4)",
+    "original_text": "In the Section2 Euclidean C2 setting with a supplied gradient flow and attained minimizer z, Theorem2.4 assumes alpha-convexity with alpha>=0 and states for all t>=0 that f(X(t))-f(z)<=alpha norm(X(0)-z) squared/[2(exp(alpha*t)-1)]. For alpha=0 it explicitly instructs reading the coefficient as the limiting value 1/(2t). The proof uses squared-distance dissipation, Gronwall and objective descent. The printed all-nonnegative-time wording is preserved here: no finite real-valued coefficient is specified at t=0.",
+    "text_sha256": "10de99ed0ee63186ec6536dc158355ee4ac9275363214675e6491701f3e185a6"
+  },
+  "lean": {
+    "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E]\n  [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E] {f : E → ℝ} {X : ℝ → E} {z : E} {α T : ℝ},\n  0 ≤ α →\n    0 ≤ T →\n      Differentiable ℝ f →\n        StrongConvexOn Set.univ α f →\n          IsMinOn f Set.univ z →\n            ContinuousOn X (Set.Icc 0 T) →\n              (∀ t ∈ Set.Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Set.Ici t) t) →\n                ∀ t ∈ Set.Ioc 0 T,\n                  0 ≤ f (X t) - f z ∧\n                    f (X t) - f z ≤\n                      if α = 0 then ‖X 0 - z‖ ^ 2 / (2 * t) else α / (2 * (Real.exp (α * t) - 1)) * ‖X 0 - z‖ ^ 2",
+    "statement_sha256": "ce0462202edd48f1d9b7b03d1257003c81540236f01e9e7abd404568df15dbf5",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any complete real inner-product space, f:E→ℝ an everywhere Fréchet differentiable function, X:ℝ→E a curve, z∈E, and α,T∈ℝ with α≥0 and T≥0. Suppose f is α-strongly convex on all of E in the convention\nf((1−λ)x+λy) ≤ (1−λ)f(x)+λf(y) − (α/2)λ(1−λ)‖y−x‖²\nfor every x,y∈E and λ∈[0,1]. Suppose z is a global minimizer: f(z)≤f(x) for every x∈E. Suppose X is continuous on the closed interval [0,T], and for every s∈[0,T) its right derivative at s exists and equals −∇f(X(s)), where ∇f is the Riesz representative of the derivative of f. Then for every t∈(0,T],\n0 ≤ f(X(t))−f(z) ≤ B(t),\nwhere B(t)=‖X(0)−z‖²/(2t) when α=0, and B(t)=[α/(2(exp(αt)−1))]‖X(0)−z‖² when α≠0 (hence α>0 under the hypotheses).\nThe differential equation is assumed at time 0 and at every time strictly below T, but not at T. The conclusion includes T when T>0 and excludes 0; for T=0 there are no conclusion times and the differential equation hypothesis has empty time domain. No finite-dimensionality, second differentiability, gradient Lipschitz continuity, or uniqueness of the minimizer is assumed.",
+    "text_sha256": "0f100271b9536c7cbfa441178ee71778decb6792b37c7882e669e6071a7885a4",
+    "decoder": "value_blind_92471",
+    "decoder_packet_sha256": "ccdaeb2c599e7bd612267d3a559de992cec686a1ac5494682a2b785f7de33663",
+    "decoder_run_sha256": "3e92e6a502d41c16827a05a38b6a8c9abd8e3317cb61c81595123026b71575fd"
+  },
+  "proposal": {
+    "id": "ASTIS-REPAIR-ANDI-OPT-GradientFlowValue-positive-time",
+    "class": "domain-clarification",
+    "necessity": "mathematically-necessary",
+    "proposed_change": "Restrict the normalized finite real-valued observation-time inequality from the printed t>=0 to t>0, keeping both the source hypotheses and its explicit alpha=0 coefficient convention unchanged.",
+    "reconstructed_statement": "Under the unchanged source Euclidean C2 alpha-convex setting with alpha>=0, supplied forward gradient flow X and a global minimizer z, for every t>0 one has f(X(t))-f(z)<=alpha*norm(X(0)-z)^2/[2*(exp(alpha*t)-1)] when alpha>0, and <=norm(X(0)-z)^2/(2*t) when alpha=0. No finite real-valued normalized bound at t=0 is asserted.",
+    "statement_sha256": "bbf143dd2bd3cce84417967a86cf4bce1a5ce37cba04188b548198d89d5ca23b",
+    "justification": "At t=0, exp(alpha*t)-1 and 2*t both vanish. The normalized expression has no finite real interpretation there without an additional convention; totalized Lean division instead returns zero and can make the claimed bound false. This domain clarification is separate from the Hilbert/differentiability/right-time generalization and does not alter the pinned original source.",
+    "minimality_evidence": "Only the initial observation point is removed; no source spatial or trajectory hypothesis and no positive-time coefficient is changed. For t>0 and alpha>0, exp(alpha*t)-1>0; for alpha=0,2*t>0. An extended-real infinite bound or a division-free reformulation would be different representations, not this minimal real-quotient clarification.",
+    "reference_or_counterexample": "Chewi2605.07006v1 Theorem2.4 states t>=0 and displays the singular quotient; source proof divides by the exponential integral. Take f(x)=x^2/2 on R, z=0, alpha=1, X(t)=exp(-t). It satisfies the C2 strong-convex source hypotheses and actual gradient ODE. At t=0 the gap is1/2, while Lean1/[2(exp0-1)]*norm(1-0)^2=0. Tests/Shared/GradientFlowValue.lean derives the actual gradient/convexity/minimum/trajectory and compiles the endpoint negated-inequality witness. This is a counterexample to the naive totalized formal reading, not to the source positive-time result.",
+    "proposal_sha256": "60bd497a24495840725322748693635dce94952a4447c42066077d6834cf7875"
+  },
+  "review_contract": {
+    "rule": "Decide whether this exact minimal change is source-correct, not merely helpful to the current Lean proof route.",
+    "allowed_states": [
+      "accepted",
+      "needs-revision",
+      "rejected"
+    ]
+  },
+  "output_contract": {
+    "state": "",
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": "",
+    "proposal_sha256": "60bd497a24495840725322748693635dce94952a4447c42066077d6834cf7875"
+  },
+  "publication_binding_sha256": "4e2f939918a31423c4eb1ff4d4d3608751ea0726b4419edde535ed66ef216a28",
+  "candidate_publication_context": {
+    "file": "17ef3289cc2553d16fb00941203999fbac698adeb684833151b40c0b90e9dfd3",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder\nimport Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.ODE.Gronwall\n\n/-!\n# Objective rate for a convex gradient flow\n\nChewi, arXiv:2605.07006v1, Theorem 2.4. The finite real-valued rate needs\npositive observation time. The zero-curvature coefficient is written explicitly.\nThe flow and its minimizer are supplied; no well-posedness is asserted.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue\n\nopen Set\nopen scoped RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- The objective gap along an actual convex gradient trajectory, including the\nzero-curvature rate, at every positive time of a supplied forward interval. -/\ntheorem value_le {f : E → ℝ} {X : ℝ → E} {z : E} {α T : ℝ}\n    (hα : 0 ≤ α) (_hT : 0 ≤ T) (hf : Differentiable ℝ f)\n    (hsc : StrongConvexOn univ α f) (hz : IsMinOn f univ z)\n    (hX : ContinuousOn X (Icc 0 T))\n    (hflow : ∀ t ∈ Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Ici t) t) :\n    ∀ t ∈ Ioc 0 T, 0 ≤ f (X t) - f z ∧\n      f (X t) - f z ≤ if α = 0 then ‖X 0 - z‖ ^ 2 / (2 * t)\n        else α / (2 * (Real.exp (α * t) - 1)) * ‖X 0 - z‖ ^ 2 := by\n  have hd (u : ℝ) (hu : u ∈ Ico 0 T) :\n      HasDerivWithinAt (fun s => f (X s)) (-‖gradient f (X u)‖ ^ 2) (Ici u) u := by\n    have hgrad : HasFDerivAt f (InnerProductSpace.toDual ℝ E (gradient f (X u))) (X u) :=\n      (hf (X u)).hasGradientAt\n    simpa only [Function.comp_def, InnerProductSpace.toDual_apply_apply,\n      inner_neg_right, real_inner_self_eq_norm_sq] using\n      hgrad.comp_hasDerivWithinAt u (hflow u hu)\n  have hmono : AntitoneOn (fun s => f (X s)) (Icc 0 T) := by\n    intro a ha b hb hab\n    have hc := (hf.continuous.comp_continuousOn hX).mono\n      (show Icc a b ⊆ Icc 0 T from fun u hu => ⟨ha.1.trans hu.1, hu.2.trans hb.2⟩)\n    have hg := le_gronwallBound_of_liminf_deriv_right_le\n      (f' := fun u => -‖gradient f (X u)‖ ^ 2) (δ := f (X a)) (K := 0) (ε := 0) hc\n      (fun u hu r hr => by\n        simpa [slope] using (hd u ⟨ha.1.trans hu.1, hu.2.trans_le hb.2⟩).liminf_right_slope_le hr)\n      le_rfl (fun u _ => by nlinarith [sq_nonneg ‖gradient f (X u)‖]) b ⟨hab, le_rfl⟩\n    simpa [gronwallBound_K0] using hg\n  have hdist (u : ℝ) (hu : u ∈ Ico 0 T) :\n      HasDerivWithinAt (fun s => ‖X s - z‖ ^ 2)\n        (-2 * inner ℝ (gradient f (X u)) (X u - z)) (Ici u) u := by\n    have h := ((hflow u hu).sub_const z).norm_sq\n    simp only [inner_neg_right, real_inner_comm] at h\n    convert h using 1; ring\n  intro t ht\n  refine ⟨sub_nonneg.mpr (hz (mem_univ _)), ?_⟩\n  have hbound := le_gronwallBound_of_liminf_deriv_right_le\n    (f := fun s => ‖X s - z‖ ^ 2)\n    (f' := fun u => -2 * inner ℝ (gradient f (X u)) (X u - z))\n    (δ := ‖X 0 - z‖ ^ 2) (K := -α) (ε := -2 * (f (X t) - f z))\n    (((hX.sub continuousOn_const).norm.pow 2).mono\n      (show Icc 0 t ⊆ Icc 0 T from fun u hu => ⟨hu.1, hu.2.trans ht.2⟩))\n    (fun u hu r hr => by\n      simpa [slope] using (hdist u ⟨hu.1, hu.2.trans_le ht.2⟩).liminf_right_slope_le hr)\n    le_rfl (fun u hu => by\n      have hs := StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn\n        hsc (fun x _ => (hf x).hasGradientAt) (mem_univ (X u)) (mem_univ z)\n      rw [show z - X u = -(X u - z) by abel, inner_neg_right, norm_neg] at hs\n      have hm := hmono ⟨hu.1, hu.2.le.trans ht.2⟩ ⟨ht.1.le, ht.2⟩ hu.2.le\n      nlinarith) t ⟨ht.1.le, le_rfl⟩\n  have hn := (sq_nonneg ‖X t - z‖).trans hbound\n  by_cases ha : α = 0\n  · simp only [ha, neg_zero, gronwallBound_K0, sub_zero] at hn ⊢\n    apply (le_div_iff₀ (mul_pos (by norm_num) ht.1)).mpr\n    nlinarith\n  · rw [if_neg ha]\n    have hap : 0 < α := lt_of_le_of_ne hα (Ne.symm ha)\n    rw [gronwallBound_of_K_ne_0 (neg_ne_zero.mpr ha), sub_zero] at hn\n    have hmul := mul_nonneg hn hap.le\n    have heq : (‖X 0 - z‖ ^ 2 * Real.exp (-α * t) +\n        (-2 * (f (X t) - f z)) / -α * (Real.exp (-α * t) - 1)) * α =\n        α * ‖X 0 - z‖ ^ 2 * Real.exp (-α * t) +\n          2 * (f (X t) - f z) * (Real.exp (-α * t) - 1) := by\n      field_simp\n    rw [heq] at hmul\n    have he : Real.exp (-α * t) * Real.exp (α * t) = 1 := by\n      rw [← Real.exp_add, show -α * t + α * t = 0 by ring, Real.exp_zero]\n    have hp := mul_nonneg hmul (Real.exp_pos (α * t)).le\n    have hcancel : (α * ‖X 0 - z‖ ^ 2 * Real.exp (-α * t) +\n        2 * (f (X t) - f z) * (Real.exp (-α * t) - 1)) * Real.exp (α * t) =\n        α * ‖X 0 - z‖ ^ 2 - 2 * (f (X t) - f z) * (Real.exp (α * t) - 1) := by\n      calc\n        _ = α * ‖X 0 - z‖ ^ 2 * (Real.exp (-α * t) * Real.exp (α * t)) +\n          2 * (f (X t) - f z) * (Real.exp (-α * t) * Real.exp (α * t)) -\n          2 * (f (X t) - f z) * Real.exp (α * t) := by ring\n        _ = _ := by rw [he]; ring\n    rw [hcancel] at hp\n    rw [div_mul_eq_mul_div]\n    apply (le_div_iff₀ (mul_pos (by norm_num) (sub_pos.mpr (Real.one_lt_exp_iff.mpr\n      (mul_pos hap ht.1))))).mpr\n    nlinarith\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S2",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Section2 GF and conventions; Lemma2.1; Theorem2.4 statement and proof; Proposition1.6 (1.4)",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS-authored mathematical restatement; no endorsement implied."
+    },
+    "statement": "In the Section2 Euclidean C2 setting with a supplied gradient flow and attained minimizer z, Theorem2.4 assumes alpha-convexity with alpha>=0 and states for all t>=0 that f(X(t))-f(z)<=alpha norm(X(0)-z) squared/[2(exp(alpha*t)-1)]. For alpha=0 it explicitly instructs reading the coefficient as the limiting value 1/(2t). The proof uses squared-distance dissipation, Gronwall and objective descent. The printed all-nonnegative-time wording is preserved here: no finite real-valued coefficient is specified at t=0.",
+    "formulae": [
+      {
+        "label": "Printed source rate and its zero-curvature convention",
+        "tex": "f(X(t))-f(z)\\le\\frac{\\alpha\\|X(0)-z\\|^2}{2(e^{\\alpha t}-1)},\\quad\\alpha>0;\\qquad\\frac{\\|X(0)-z\\|^2}{2t}\\quad\\text{when }\\alpha=0."
+      }
+    ],
+    "assumptions": [
+      "Euclidean C2 objective; global alpha-convexity with alpha>=0.",
+      "Supplied forward gradient flow and a global minimizer z.",
+      "Printed scope t>=0; alpha0 coefficient interpreted as 1/(2t)."
+    ],
+    "obligations": [
+      {
+        "id": "positive-time-value-rate",
+        "label": "Derive the actual convex-flow objective rate for 0<t<=T, with direct zero-curvature and positive-curvature branches"
+      },
+      {
+        "id": "source-zero-time-convention",
+        "label": "The printed t0 normalized coefficient is singular; original wording retained with separate reviewed domain clarification, not certified as a finite real t0 rate"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
+      "kind": "theorem",
+      "title": "Convex gradient flows have an explicit objective rate",
+      "statement": "Let E be a complete real inner-product space, f:E→R be Frechet differentiable everywhere and globally alpha-convex, with alpha>=0 in the alpha/2 chord convention. Let z be a global minimizer and T>=0. Supply X:R→E continuous on [0,T], satisfying the actual right gradient ODE at every s in [0,T). Then at each strictly positive observation time t<=T, its objective gap has the following bound, with a separate zero-curvature case.",
+      "formula": "\\begin{gathered}X^{\\prime+}(s)=-\\nabla f(X(s))\\quad(0\\le s<T),\\qquad z\\in\\arg\\min f,\\quad\\alpha\\ge0,\\\\0\\le f(X(t))-f(z)\\le\\begin{cases}\\dfrac{\\|X(0)-z\\|^2}{2t},&\\alpha=0,\\\\\\dfrac{\\alpha\\|X(0)-z\\|^2}{2(e^{\\alpha t}-1)},&\\alpha>0,\\end{cases}\\quad0<t\\le T.\\end{gathered}",
+      "assumptions": [
+        "Complete real inner-product space E; f is Frechet differentiable everywhere.",
+        "Alpha>=0 and StrongConvexOn univ alpha f: f((1-lambda)x+lambda y)<=(1-lambda)f(x)+lambda f(y)-(alpha/2)lambda(1-lambda)norm(y-x) squared for all x,y and lambda in [0,1].",
+        "A supplied z satisfies f(z)<=f(x) for every x:E; T>=0.",
+        "X is continuous on [0,T]; for each s in [0,T), HasDerivWithinAt X (-gradient f(X(s))) (Ici s) s. The observation satisfies 0<t<=T."
+      ],
+      "steps": [
+        {
+          "title": "Derive objective descent from the actual ODE",
+          "text": "Represent the derivative of f by its gradient, compose with the actual right derivative of X, and obtain minus the squared gradient norm. On each subinterval [a,b], scalar Gronwall with zero coefficient and zero forcing proves f(X(b))<=f(X(a)). This uses continuity at both endpoints and only right derivatives before b.",
+          "formula": "\\partial_t^+f(X(t))=-\\|\\nabla f(X(t))\\|^2\\le0,\\qquad f(X(b))\\le f(X(a))\\quad(0\\le a\\le b\\le T).",
+          "lean": "DifferentiableAt.hasGradientAt, HasFDerivAt.comp_hasDerivWithinAt and le_gronwallBound_of_liminf_deriv_right_le with K=epsilon=0."
+        },
+        {
+          "title": "Obtain distance dissipation with the value gap",
+          "text": "Fix an observation time t and put r(s)=norm(X(s)-z) squared, e(s)=f(X(s))-f(z). Differentiate r using the actual ODE. The existing first-order strong-convexity inequality at X(s) with comparator z gives r prime<=-alpha r-2e(s). Descent implies e(s)>=e(t) for s<=t, so the forcing can be bounded by the fixed constant -2e(t).",
+          "formula": "r^{\\prime+}(s)=-2\\langle\\nabla f(X(s)),X(s)-z\\rangle\\le-\\alpha r(s)-2e(s)\\le-\\alpha r(s)-2e(t)\\quad(0\\le s<t).",
+          "lean": "HasDerivWithinAt.norm_sq, StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn, and the derived AntitoneOn objective."
+        },
+        {
+          "title": "Compare with a constant-forcing scalar equation",
+          "text": "Apply existing scalar interval Gronwall to r on [0,t] with coefficient -alpha and forcing -2e(t). The scalar version permits negative forcing. Nonnegativity of r(t) gives the left side of each displayed bound. Alpha=0 is evaluated directly; no zero denominator is substituted into the other branch.",
+          "formula": "\\begin{aligned}\\alpha=0:&\\quad0\\le r(t)\\le r(0)-2t e(t),\\\\\\alpha>0:&\\quad0\\le r(t)\\le r(0)e^{-\\alpha t}-\\frac{2e(t)}\\alpha(1-e^{-\\alpha t}).\\end{aligned}",
+          "lean": "le_gronwallBound_of_liminf_deriv_right_le, gronwallBound_K0 and gronwallBound_of_K_ne_0."
+        },
+        {
+          "title": "Divide only by positive quantities",
+          "text": "For t>0, the zero branch divides by 2t. In the positive branch multiply by alpha exp(alpha t), use exp(-alpha t)exp(alpha t)=1, then divide by 2(exp(alpha t)-1)>0. The supplied global minimum gives a nonnegative objective gap.",
+          "formula": "0\\le e(t)\\le\\begin{cases}r(0)/(2t),&\\alpha=0,\\\\\\alpha r(0)/(2(e^{\\alpha t}-1)),&\\alpha>0,\\end{cases}\\qquad0<t\\le T.",
+          "lean": "Real.exp_add, Real.one_lt_exp_iff, le_div_iff₀ and IsMinOn."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "HasFDerivAt.comp_hasDerivWithinAt",
+        "HasDerivWithinAt.norm_sq",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_K0",
+        "gronwallBound_of_K_ne_0"
+      ],
+      "lean_statement": "Positive-time objective gap bound with direct alpha=0 branch.",
+      "lean_proof": "Represent the derivative of f by its gradient, compose with the actual right derivative of X, and obtain minus the squared gradient norm. On each subinterval [a,b], scalar Gronwall with zero coefficient and zero forcing proves f(X(b))<=f(X(a)). This uses continuity at both endpoints and only right derivatives before b. Fix an observation time t and put r(s)=norm(X(s)-z) squared, e(s)=f(X(s))-f(z). Differentiate r using the actual ODE. The existing first-order strong-convexity inequality at X(s) with comparator z gives r prime<=-alpha r-2e(s). Descent implies e(s)>=e(t) for s<=t, so the forcing can be bounded by the fixed constant -2e(t). Apply existing scalar interval Gronwall to r on [0,t] with coefficient -alpha and forcing -2e(t). The scalar version permits negative forcing. Nonnegativity of r(t) gives the left side of each displayed bound. Alpha=0 is evaluated directly; no zero denominator is substituted into the other branch. For t>0, the zero branch divides by 2t. In the positive branch multiply by alpha exp(alpha t), use exp(-alpha t)exp(alpha t)=1, then divide by 2(exp(alpha t)-1)>0. The supplied global minimum gives a nonnegative objective gap.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Theorem2.4",
+          "scope": "Exact rate for positive observation times; printed t0 wording is singular and retained as a source qualification."
+        },
+        {
+          "path": "Tests/Shared/GradientFlowValue.lean",
+          "label": "Actual quadratic trajectory and endpoint witness",
+          "scope": "Nonstationary exp(-t) trajectory tests every curvature in [0,1], including both rate branches. A t0 test refutes interpreting the printed quotient through Lean total division."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
+      "role": "proof-edge",
+      "supports": [
+        "positive-time-value-rate"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "C2 objective on R^d.",
+        "lean": "Everywhere Frechet differentiable f on a complete real Hilbert space."
+      },
+      {
+        "source": "Supplied forward gradient flow and attained minimum.",
+        "lean": "IsMinOn f univ z; ContinuousOn X [0,T] and right gradient dynamics on [0,T)."
+      },
+      {
+        "source": "Alpha>=0; alpha0 coefficient interpreted as 1/(2t).",
+        "lean": "Nonnegative alpha; explicit if alpha=0 branch."
+      },
+      {
+        "source": "The printed statement says t>=0 although both coefficients divide by zero at t0.",
+        "lean": "Observation time lies in Ioc 0 T: 0<t<=T."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "d3e4545737ae1c6e145aefeb1beaa6a8ec1c0fc249749c3b1d3b0a1397896adb"
+}

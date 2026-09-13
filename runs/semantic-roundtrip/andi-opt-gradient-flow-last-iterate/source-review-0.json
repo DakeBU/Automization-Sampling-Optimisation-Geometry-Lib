@@ -1,0 +1,85 @@
+{
+  "reviewer_packet_sha256": "a6f7c0957d86fe48f5967fddcbde3b381c450223c5d5e40f286ad65811350751",
+  "publication_binding_sha256": "ee6cd769e82dca2f4281ead9f9972422bafa874f977011aad34fc701023ae9cc",
+  "semantic_slots": {
+    "objects": {
+      "original": "Euclidean objective, gradient trajectory, attained minimizer, objective gap and Lyapunov function.",
+      "reconstructed": "Real Hilbert objective f, X, z, f(X(t))-f(z), and the same three-term L.",
+      "relation": "explicit-elaboration",
+      "evidence": "The packet module uses the actual gradient of f, not a supplied independent field. IsMinOn identifies f(z) with the minimum value. The Riesz inverse R and derivative H are constructed internally."
+    },
+    "domains": {
+      "original": "Section 2 uses R^d and forward times.",
+      "reconstructed": "Any complete real inner-product space E; L on [0,T], rates on (0,T], actual right ODE on [0,T).",
+      "relation": "stronger-in-lean",
+      "evidence": "Hilbert-space generality is a proved extension, not literal domain equivalence with the source. Every Euclidean case specializes to it. Arbitrary finite T recovers any requested positive forward time of a supplied global flow. Endpoint continuity at T is explicit; no derivative at T is used."
+    },
+    "quantifiers": {
+      "original": "The upper estimates concern each flow and minimizer at each positive time; the exercise separately requests a sharpness example.",
+      "reconstructed": "Universal supplied f, X, z, T>=0; universal a<=b in [0,T] for monotonicity and t in (0,T] for both bounds.",
+      "relation": "explicit-elaboration",
+      "evidence": "No existence or uniqueness theorem is asserted. At T=0 the rate domain is empty. Arbitrary supplied minimizing z is legitimate throughout the proof; neither a best-distance minimizer nor uniqueness is required. The existential sharpness task is outside the supported obligation."
+    },
+    "assumptions": {
+      "original": "Standing C2 regularity, actual gradient ODE and attained minimum; exercise convexity.",
+      "reconstructed": "ContDiff R 2 f, ConvexOn R univ f, IsMinOn f univ z, T>=0, ContinuousOn X [0,T], and HasDerivWithinAt X (-gradient f(X(t))) [t,infinity) t on [0,T).",
+      "relation": "explicit-elaboration",
+      "evidence": "The primary source Section 2 opening explicitly supplies C2 and a minimizing point and does not establish well-posedness. The displayed source flow implies the local right derivative and continuity used here. Lean requires no Lipschitz/Hessian constant and does not assume the Lyapunov inequality or a rate."
+    },
+    "conclusion": {
+      "original": "Lyapunov dissipation and the two displayed upper bounds of Exercise 2.1.",
+      "reconstructed": "AntitoneOn L [0,T], squared-gradient bound with coefficient 1 and objective-gap bound with coefficient 1/4 at positive times.",
+      "relation": "explicit-elaboration",
+      "evidence": "In the supplied proof hd establishes the actual right derivative D, and hneg establishes D<=0. Those derivative facts remain internal rather than separately exported; hm exports their monotonicity consequence. The binding promises the upper-bound component, and the lesson accurately explains the internal dissipation proof."
+    },
+    "scopes": {
+      "original": "The complete exercise also contains a nonsmooth scaled positive-part sharpness task.",
+      "reconstructed": "The declaration supports only lyapunov-and-upper-rates; nonsmooth-sharpness-witness remains separate.",
+      "relation": "explicit-elaboration",
+      "evidence": "The candidate statement, module header, lesson source scope and binding consistently restrict completion. The positive-part objective is not globally C2. This result neither certifies that witness nor completes the whole exercise. L monotonicity includes zero, whereas normalized rates exclude zero."
+    },
+    "constant_dependencies": {
+      "original": "Squared-gradient coefficient 1 and objective-gap coefficient 1/4, multiplied by squared initial distance.",
+      "reconstructed": "Exactly ||X(0)-z||^2/t^2 and ||X(0)-z||^2/(4*t).",
+      "relation": "same",
+      "evidence": "hL compares L(t) to L(0). hz gives nonnegative energy gap, allowing the gradient estimate. hsupp and real_inner_le_norm give e<=||g||||X-z||; sq_nonneg(t||g||-||X-z||) gives 2te<=t^2||g||^2+r, hence 4te<=L. Both divisions are justified by ht.1>0. No hidden dimension, horizon or regularity constants occur."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "The formal domain is a Hilbert-space extension of the source Euclidean setting.",
+      "evidence": "The typeclass context requires completeness and a real inner product but no finite-dimensionality. The proof differentiates the inverse-Riesz representation of Df and uses Hilbert Cauchy-Schwarz; it does not invoke Euclidean compactness or coordinates."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Standing flow/minimum assumptions and one-sided finite-horizon regularity are explicit.",
+      "evidence": "https://arxiv.org/html/2605.07006v1#S2, opening GF/C2/minimizer conventions; in the module hflow, hX and hz are hypotheses, whereas hpos, hd, hneg and hsupp are proved."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "Dissipation is established inside the proof; the exported conjunction gives antitonicity and rates.",
+      "evidence": "The local hd and hneg terms derive D(t)=-2t^2<Hg,g>+2e-2<g,X-z><=0. The declaration conclusion itself exports hm and the two positive-time bounds."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The result covers only the upper-bound component, with no sharpness or normalized t=0 assertion.",
+      "evidence": "Source Exercise 2.1 has a further positive-part example; binding.supports contains only lyapunov-and-upper-rates. Ioc 0 T prevents Lean totalized division at zero from being mistaken for the source rates."
+    }
+  ],
+  "verdict": "implicit-assumption-exposed",
+  "repairs": [],
+  "reviewer": "last_source_94793",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent anti-anchored review used only reviewer-0.json, the pinned primary source https://arxiv.org/html/2605.07006v1#S2 (Section 2 opening and Exercise 2.1), and validator schema constants. All seven slots, full supplied Lean proof, lesson formulas/steps, obligations and binding were checked. The proof constructs H=D(gradient f), obtains its nonnegative quadratic form from convexity, differentiates L by actual flow chain rules, and applies zero-forcing scalar Gronwall on each [a,b]. Endpoint continuity supplies the closed upper endpoint. Global minimality and first-order support justify the two extraction arguments. No unsupported mathematical closure was found in the packet proof. Accepted as the explicitly scoped upper-bound component with a documented Hilbert extension and exposed flow/time/minimum conventions; not exact equivalence of ambient domains, not a sharpness certificate, and not whole-exercise completion. This source review does not replace an independently run Lean build.",
+  "source_review": {
+    "decision": "accepted",
+    "evidence": "Independent anti-anchored review used only reviewer-0.json, the pinned primary source https://arxiv.org/html/2605.07006v1#S2 (Section 2 opening and Exercise 2.1), and validator schema constants. All seven slots, full supplied Lean proof, lesson formulas/steps, obligations and binding were checked. The proof constructs H=D(gradient f), obtains its nonnegative quadratic form from convexity, differentiates L by actual flow chain rules, and applies zero-forcing scalar Gronwall on each [a,b]. Endpoint continuity supplies the closed upper endpoint. Global minimality and first-order support justify the two extraction arguments. No unsupported mathematical closure was found in the packet proof. Accepted as the explicitly scoped upper-bound component with a documented Hilbert extension and exposed flow/time/minimum conventions; not exact equivalence of ambient domains, not a sharpness certificate, and not whole-exercise completion. This source review does not replace an independently run Lean build."
+  },
+  "review_run_sha256": "bdecc18557c9e7e4b6034241a439c65455dc50afac5540b5930ff5056b925dd1"
+}

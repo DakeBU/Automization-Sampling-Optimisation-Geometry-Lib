@@ -1,3 +1,6 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexPLPullback

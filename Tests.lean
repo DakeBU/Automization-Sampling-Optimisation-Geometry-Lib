@@ -1,3 +1,6 @@
+import Tests.Shared.GradientFlowLastIterate
+import Tests.Shared.GradientFlowStationarity
+import Tests.Shared.GradientFlowValue
 import Tests.Shared.GradientFlowContraction
 import Tests.Shared.GradientFlowPL
 import Tests.Shared.StrongConvexPLPullback

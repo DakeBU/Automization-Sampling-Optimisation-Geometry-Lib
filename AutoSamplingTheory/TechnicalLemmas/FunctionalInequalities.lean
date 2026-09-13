@@ -4,6 +4,7 @@ import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedBochner
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientWeak
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ClosedGraphResolvent
 
 /-!

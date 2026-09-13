@@ -36,9 +36,22 @@ existing constructor, not a mathematical necessity or source correction.
 Bias, Gaussian concentration, smoothing regularity, Picard accuracy and total
 cost remain separate. The source-facing decoder/reviewer protocol remains required.
 
-Next PBPS dependency-ready candidate, independently audited: pass weighted
-compact-test integration by parts through the **same closed-gradient graph** to
-identify its elements as actual distributional gradients. Reuse WeightedGradient,
+PBPS weighted compact-test identity is now compiled and independently VERIFIED
+at `019b4d68024c0498e90402d8a6db35e51e87d1bc`: see
+`ASTIS-SW-PBPS-closed-gradient-weak-identity`. It retains the **same closed-gradient
+graph**, proves both integrabilities and extends the actual compact-test identity
+by continuous L2 pairings. Focused tests pass (3032 jobs), including the real
+gradient constructor on every member of its closure domain. Independent blind
+and source review accepts it as an elaborated analytic prerequisite only.
+The seven-step lesson includes formulas and separate collapsed Lean disclosures.
+Exact integration/site/gate evidence is recorded separately in the cell and run
+records; this paragraph does not certify remote delivery. Technical Registry
+remains 425 compiled leaves; route publication inventory is a separate measure.
+
+Next PBPS dependency-ready candidate: establish local volume integrability and
+use phi=exp(W)*psi to turn the weighted identity into an unweighted distributional
+gradient identity. Pinned Mathlib `integrable_tilted_iff` and both absolute-
+continuity directions are available. Reuse WeightedGradientWeak,
 ConditionalGradient and the existing ConditionalResolvent blueprint. A gradient
 graph core is not an operator core for D*D; elliptic regularity, operator-core
 approximation, mean-zero resolvent limits, Poincare and macroscopic coercivity

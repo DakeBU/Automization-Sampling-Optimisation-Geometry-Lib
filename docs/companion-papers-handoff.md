@@ -18,7 +18,7 @@ construction, Gibbs position moments, and further recursive execution/finite-out
 KL results. PBPS already includes its actual macroscopic representative. The old
 claim that this representative still needs construction is superseded.
 
-Current local packet: `ASTIS-SW-SPHMC-proximal-estimator-lipschitz`, with source
+Resumed SPHMC packet: `ASTIS-SW-SPHMC-proximal-estimator-lipschitz`, with source
 and proof blueprint `proof-blueprints/SPHMC-proximal-estimator-lipschitz.md`.
 Focused compilation, including an actual zero-dimensional/eta=1/2 constructor
 test, passes. Independent proof/source and commit-bound admission passed at
@@ -63,9 +63,14 @@ for both L2 representatives and the ordinary weak gradient identity against C1
 compact tests, including both product integrabilities. The same D.closure is
 retained. Focused PASS3033, independent full proof/lesson review and source-blind
 round trip passed; source acceptance is for the authored prerequisite only.
-The six-step reader lesson is `pbps-gradient-distributional`. Aggregate and
-website acceptance must be read from the exact subsequent integration evidence;
-proof admission alone does not assert that those gates ran.
+The six-step reader lesson is `pbps-gradient-distributional`. Exact local
+integration at `6d21910fa55d6b8e294abacafa613e0347d72293` passed build9032,
+Tests9222, canonical ASTIS/ATLAS, site/graph and actual desktop/mobile/graph
+visual checks. Independent acceptance and lane release are recorded in
+`runs/20260913-companion-priority/gradient-distributional.integration-admission.json`.
+The generated snapshot contains 12 chapters, 691 modules and 4012 indexed
+declarations; technical Registry remains 425, a distinct curated metric.
+Subsequent evidence-only commits do not assert a fresh gate or remote merge.
 
 The latest bounded, noninteractive HTTP/1.1 fetch also failed with a GitHub
 low-speed timeout. No remote update, push or deployment is claimed; preserve

@@ -62,3 +62,7 @@ choosing another reachable theorem edge.
 Final independent integration review accepted by pl_pullback_review; report
 retained in the existing semantic evidence folder. Rebuilt the contribution
 graph after lifecycle metadata refresh; final site/graph checks pass.
+
+Merged and pushed directly to `main` at `378303c9ee474067f7d418390fb8ebb637a010cf` under standing
+user authorization. SAU `MERGED` releases the single stabilization lane. Remote
+post-push CI/deployment is separate from passed local evidence.

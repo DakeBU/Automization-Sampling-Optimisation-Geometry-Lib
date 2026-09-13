@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-flow.convex-value-rate",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
+    upstreamDecl := "Theorem2.4; firstOrder_lower_bound_of_strongConvexOn; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Actual convex gradient trajectory objective rate with direct zero-curvature branch on finite forward intervals.",
+    note := "Positive observation time: printed t0 quotient singularity has independent domain-clarification review. Hilbert/differentiability/right-time generalization explicit; minimum and flow supplied; no analytic parameter-limit or existence claim."
+  },
+  {
     key := "analysis.gradient-flow.pair-contraction",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
     upstreamDecl := "Theorem2.2; gradient_inner_lower_bound_of_strongConvexOn; HasDerivWithinAt.norm_sq; le_gronwallBound_of_liminf_deriv_right_le",

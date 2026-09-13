@@ -1,0 +1,90 @@
+{
+  "reviewer_packet_sha256": "5ffe1c3c03262afad3910e9f3232ac0535058a36820fc3080679ff7b122a357a",
+  "publication_binding_sha256": "4e2f939918a31423c4eb1ff4d4d3608751ea0726b4419edde535ed66ef216a28",
+  "reviewer": "value_source_92471",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "semantic_slots": {
+    "objects": {
+      "original": "A scalar objective f, its supplied gradient trajectory, a global minimizer z, and nonnegative curvature alpha.",
+      "reconstructed": "The same functional objects, named f, X, z and alpha, with an explicit finite horizon T.",
+      "relation": "explicit-elaboration",
+      "evidence": "Pinned original and elaborated declaration: f:E→R, X:R→E, z:E and alpha,T:R. IsMinOn f univ z encodes the supplied attained minimum, rather than proving its existence. T serves only to localize the supplied trajectory."
+    },
+    "domains": {
+      "original": "Euclidean space R^d; trajectory and printed rate on nonnegative forward times.",
+      "reconstructed": "Any complete real inner-product space E; continuity on [0,T], right gradient dynamics on [0,T), conclusion on (0,T].",
+      "relation": "different",
+      "evidence": "The production variables require NormedAddCommGroup, InnerProductSpace R and CompleteSpace, with no finite-dimensional hypothesis. Its hflow uses Ico 0 T and its conclusion Ioc 0 T. These are explicit changes of domain, not global equivalence."
+    },
+    "quantifiers": {
+      "original": "For a supplied global gradient flow and minimizer, the printed theorem says every t>=0.",
+      "reconstructed": "For every E,f,X,z,alpha,T satisfying the stated conditions, and every 0<t<=T, the bound holds. T=0 has no observation times.",
+      "relation": "different",
+      "evidence": "The universal binder over T and Ioc 0 T allow applying the theorem at any positive time of a global source flow by choosing T=t. They do not supply a conclusion at zero, nor establish global existence of X."
+    },
+    "assumptions": {
+      "original": "C2 Euclidean objective, global alpha-convexity with alpha>=0, a supplied forward gradient flow and attained minimum.",
+      "reconstructed": "Everywhere Frechet differentiable f on a complete real inner-product space; the same alpha/2 chord convention for global StrongConvexOn; global minimum; interval continuity and actual right ODE before T.",
+      "relation": "different",
+      "evidence": "hf is Differentiable R f, rather than ContDiff of order two. hsc and hz are global on univ. hX and hflow explicitly give only interval continuity and right derivatives. The stronger general theorem has weaker smoothness and flow regularity requirements while expanding the ambient space; it is not an assumption-identical transcription. Candidate assumptions and lesson disclose these distinctions."
+    },
+    "conclusion": {
+      "original": "The objective upper rate has coefficient alpha/[2(exp(alpha*t)-1)], with zero-curvature limit 1/(2t); the printed t>=0 scope leaves the finite-real value at zero unspecified.",
+      "reconstructed": "At positive observation times the identical upper coefficient is selected by an explicit alpha=0 branch, and the nonnegative objective gap is also stated.",
+      "relation": "different",
+      "evidence": "On t>0 and alpha>=0 the two displayed upper bounds coincide algebraically. The added lower bound follows immediately from hz, as the proof shows by sub_nonneg.mpr. Ioc excludes zero, so equivalence holds only for the positive-time upper-bound component, not the full printed statement."
+    },
+    "scopes": {
+      "original": "A classical supplied forward flow in the section-wide Euclidean C2 convention; no well-posedness theorem is included in the target.",
+      "reconstructed": "A conditional local-interval estimate using one-sided derivatives, including the terminal observation T without requiring an ODE at T; no existence, uniqueness or infinite-time continuation claim.",
+      "relation": "different",
+      "evidence": "hd derives objective descent by the chain rule; hmono uses right-slope scalar comparison on closed subintervals; hdist and hbound need dynamics only strictly before the observation. Thus the terminal value is supported by continuity. The lesson accurately states every interval endpoint and makes no additional well-posedness claim."
+    },
+    "constant_dependencies": {
+      "original": "Rate depends on alpha, observation time t, and squared initial distance to the selected minimizer, with normalization 1/2.",
+      "reconstructed": "Exactly these dependencies; T bounds the allowed time but does not enter the coefficient. No dimension, smoothness constant or hidden multiplicative constant appears.",
+      "relation": "same",
+      "evidence": "The two branches in value_le use only alpha,t and norm(X 0-z)^2. The proof separately divides by 2*t>0 or 2*(exp(alpha*t)-1)>0, preserving the normalization and the zero-curvature limit."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "review",
+      "description": "The theorem expands R^d to arbitrary complete real inner-product spaces. This is a disclosed generalization, not a claim that the pinned source already quantifies over Hilbert spaces.",
+      "evidence": "Production E typeclasses and lesson assumption 1; pinned source Euclidean setting."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "review",
+      "description": "C2 is replaced by everywhere Frechet differentiability, and classical forward dynamics by continuous interval trajectories with right dynamics before the endpoint. The source class is covered at positive times, but the full assumptions differ.",
+      "evidence": "Production hf,hX,hflow; candidate assumptions and the first lesson paragraph."
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "review",
+      "description": "The printed nonnegative-time claim becomes a positive-time finite-interval claim. Finite-horizon quantification covers every positive time of a supplied global source flow; zero is omitted and remains a distinct source boundary.",
+      "evidence": "Production conclusion Ioc 0 T; source-zero-time-convention obligation; both source denominators vanish at zero. This review does not accept or reject any separate repair proposal."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The explicit lower bound 0<=f(X(t))-f(z) is a consequence of the supplied global minimizer and introduces no additional requirement.",
+      "evidence": "The first conjunct is proved directly using hz (mem_univ _)."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The proof replaces the source variable-forcing integral comparison with a fixed-observation constant forcing -2e(t), justified by objective descent. This preserves the positive-time estimate and is explained accurately in the lesson.",
+      "evidence": "hmono precedes hbound; the latter sets epsilon=-2*(f(X t)-f z), uses the first-order strong-convexity inequality and hmono, then separates alpha=0 and alpha>0."
+    }
+  ],
+  "verdict": "domain-mismatch",
+  "repairs": [],
+  "source_review": {
+    "decision": "accepted",
+    "evidence": "Accepted as the explicitly scoped source mapping to positive-time-value-rate and as an accurate account of the production theorem and proof, not as global equivalence with the printed source. The publication binding supports only that positive-time obligation; it retains source-zero-time-convention separately. The Hilbert-space and regularity generalizations are disclosed, the blind reconstruction matches the full production statement, and the authored lesson tracks the actual chain-rule/descent/distance-comparison argument without assuming its conclusion. This source review makes no repair-acceptance decision: any time-zero repair remains subject to its separate exact-proposal review."
+  },
+  "review_evidence": "Started only from reviewer-0.json and did not inspect earlier reviews, prior semantic decisions or repair packets. Read the entire embedded production module and lesson, then verified the current on-disk module is byte-identical (SHA256 17ef3289cc2553d16fb00941203999fbac698adeb684833151b40c0b90e9dfd3). Independently checked https://arxiv.org/html/2605.07006v1#S2, Section 2 conventions, Lemma 2.1, Theorem 2.4 and proof, plus Definition 1.5 / Proposition 1.6 normalization. The source confirms the pinned statement. No independent compilation was run in this semantic review; compilation is not used as evidence of source equivalence."
+}

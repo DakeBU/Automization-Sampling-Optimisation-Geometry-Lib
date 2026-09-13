@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexPLPullback
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexGradientGapSharpness

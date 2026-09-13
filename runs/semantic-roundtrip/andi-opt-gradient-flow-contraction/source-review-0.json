@@ -1,0 +1,85 @@
+{
+  "reviewer": "contract_source_81342",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "e4fe1bfbd24aeda680c3e696ca846fd8656e7467724eba63dd28baf0931a3802",
+  "publication_binding_sha256": "a00de108b023f292928955d9fb8b6ff5cd8593cfb94ce982e56d50c14cd86c09",
+  "semantic_slots": {
+    "objects": {
+      "original": "A scalar objective f, two supplied gradient trajectories X and Y for that same objective, and the nonnegative convexity parameter alpha.",
+      "reconstructed": "The same objective/trajectory/curvature roles, with the gradient represented by the real Hilbert inner product; there is also an arbitrary finite terminal time T.",
+      "relation": "explicit-elaboration",
+      "evidence": "The printed statement and current module use one f in both hx and hy, not independent vector fields or supplied dissipation. The lesson subtracts those exact ODE derivatives. The ambient-space extension is separately classified under domains."
+    },
+    "domains": {
+      "original": "Euclidean R^d for the objective and trajectories, with trajectories indexed by nonnegative time.",
+      "reconstructed": "Any complete real inner-product space E, including infinite-dimensional Hilbert spaces; X and Y are total functions on R whose hypotheses and conclusions are local to [0,T].",
+      "relation": "different",
+      "evidence": "The actual module has NormedAddCommGroup E, InnerProductSpace R E, CompleteSpace E and no finite-dimensionality assumption. StrongConvexOn univ makes the objective domain the whole E. The packet source and Section 2 concern R^d. A finite Euclidean instance recovers the source domain, but the full statements are not equivalent. Values at negative times and beyond T play no role in the estimate; Ici t encodes local right differentiation for t<T."
+    },
+    "quantifiers": {
+      "original": "For any supplied pair of forward gradient flows, the contraction estimate holds for every t>=0.",
+      "reconstructed": "For arbitrary alpha,T>=0 and any supplied pair satisfying the interval hypotheses, the estimate holds for every t in [0,T].",
+      "relation": "different",
+      "evidence": "norm_sub_le quantifies T before its hypotheses, then t in Icc 0 T. There is no uniform fixed maximum T. Given the source flows and any requested nonnegative t, choosing T=t provides the source pointwise estimate. Conversely, the Lean hypotheses allow supplied finite-interval trajectories without requiring a global forward trajectory. This is a valid local formulation, not a global existence theorem."
+    },
+    "assumptions": {
+      "original": "Section 2 uses a C2 objective and generally assumes an attained minimum. Alpha-convexity has alpha>=0 and the alpha/2 chord normalization. Two actual classical gradient flows are supplied.",
+      "reconstructed": "The objective is everywhere Frechet differentiable and StrongConvexOn univ alpha f, with alpha>=0. No minimizer is assumed. Each curve is ContinuousOn [0,T] and has the actual right gradient ODE derivative for every t<T; no derivative condition is imposed at T.",
+      "relation": "weaker-in-lean",
+      "evidence": "hf is Differentiable R f, not ContDiff R 2 f; no attainment hypothesis occurs. The actual hx/hy are HasDerivWithinAt on Ici t, and hX/hY explicitly retain terminal continuity. The shared monotonicity dependency accepts HasGradientAt and obtains its inequality from the chord condition, so C2 is not used secretly. The minimizer plays no part in hd, hg or hs. These are genuine relaxations of the source's standing setting, already displayed in the candidate assumptions and lesson, rather than mere equivalent elaborations."
+    },
+    "conclusion": {
+      "original": "The pairwise distance is bounded by its initial value times exp(-alpha*t).",
+      "reconstructed": "norm(Y t-X t) <= exp(-alpha*t)*norm(Y 0-X 0) at every point of the supplied closed interval.",
+      "relation": "same",
+      "evidence": "The formula in the source packet, decoder reconstruction, actual Lean conclusion and authored lesson agrees exactly in norm power, exponent, sign and prefactor. Time/domain quantifier differences are recorded separately. The source estimate follows for each nonnegative t by T=t."
+    },
+    "scopes": {
+      "original": "Pairwise contraction conditional on supplied dynamics. The proof differentiates squared separation, applies gradient monotonicity and uses scalar Gronwall; well-posedness is left aside.",
+      "reconstructed": "The same conditional pairwise mechanism, using right derivatives and closed-interval continuity. No trajectory construction, minimizer convergence, or objective-value convergence is asserted.",
+      "relation": "explicit-elaboration",
+      "evidence": "hd derives the squared-norm derivative from hy.sub hx and norm_sq. hg invokes gradient_inner_lower_bound_of_strongConvexOn and the right-slope Gronwall lemma. hs and sq_le_sq0 recover the norm estimate with nonnegative sides. The authored three-step lesson follows these actual steps. The conclusion includes 0 and T; T=0 has empty derivative obligations and the estimate is equality."
+    },
+    "constant_dependencies": {
+      "original": "Alpha/2 in the chord inequality, alpha in gradient monotonicity, -2 alpha for squared-distance dissipation, and -alpha for distance decay; prefactor one.",
+      "reconstructed": "The same normalization and exact rate, with Gronwall K=-(2*alpha), zero forcing, and initial squared separation as delta.",
+      "relation": "same",
+      "evidence": "The shared first-order bound uses m/2 and its symmetric sum yields m*norm(y-x)^2. In the target module hg sets K:=-(2*alpha), epsilon:=0 and delta:=norm(Y 0-X 0)^2. hs proves exp(-alpha*t)^2=exp(-(2*alpha)*t). No dimension, smoothness, minimizer or terminal-time constant enters. Alpha=0 gives factor one without division or a limiting argument."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "review",
+      "description": "The formal result genuinely enlarges the Euclidean ambient domain to arbitrary real Hilbert spaces. It is an accepted generalization with the source recovered by specialization, not semantic equivalence of the full source and Lean statements.",
+      "evidence": "Actual module scoped E has CompleteSpace and InnerProductSpace but no FiniteDimensional instance. Candidate assumptions explicitly contrast R^d with a complete Hilbert space, and the lesson states the wider domain."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "review",
+      "description": "C2 regularity is relaxed to everywhere Frechet differentiability, and the standing attained-minimum convention is omitted. These weaken assumptions rather than elaborate equivalent assumptions.",
+      "evidence": "hf and the absence of an attainment hypothesis in the complete module; the exact linked gradient monotonicity theorem requires only supplied gradients and chord convexity. The packet states the source convention is unused and displays the difference in candidate assumptions."
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "informational",
+      "description": "The theorem accepts finite-interval supplied dynamics for arbitrary T. The source's conclusion at any finite t is recovered by T=t; no global extension or existence claim is made.",
+      "evidence": "T is universally quantified, with Icc 0 T in continuity and conclusion and Ico 0 T in the ODE hypotheses. The binding's actual-pair-contraction obligation explicitly asks for every supplied finite forward interval."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Classical ODE regularity is replaced by explicit right derivatives before T and continuity including T. This is an accepted weaker trajectory contract and requires no derivative at the terminal endpoint.",
+      "evidence": "hx/hy use HasDerivWithinAt on Ici t for t in Ico 0 T. The actual Gronwall call consumes right slopes and ContinuousOn squared separation, exactly as explained by the lesson."
+    }
+  ],
+  "verdict": "domain-mismatch",
+  "repairs": [],
+  "source_review": {
+    "decision": "accepted",
+    "evidence": "Accepted at the supplied publication binding as an explicitly broader local theorem whose Euclidean C2 specialization proves the source pairwise estimate, with all material assumption differences visible. Acceptance does not assert exact source/Lean equivalence: the domain-mismatch verdict and weaker-assumption deltas must remain visible. The independently decoded statement matches the actual module and authored lesson; the formula proof follows the actual ODE, monotonicity, Gronwall and square comparison route. No source repair is needed, since no additional source hypothesis or changed source conclusion is proposed."
+  },
+  "review_evidence": "Reviewed only the fresh anti-anchored reviewer-0 packet, its exact linked current module, exact linked StrongConvexFirstOrder dependency, applicable semantic/publication protocol instructions, and the pinned source at https://arxiv.org/html/2605.07006v1#S2 (Definition 1.5, Proposition 1.6, Section 2 and Theorem 2.2 proof). No prior reviews, verdicts or repair proposals were read. Canonical packet hash recomputed successfully, and the current Lean module is byte-for-byte identical to candidate_publication_context.current_lean_module. Compilation status is packet evidence, not independently rerun here and not used as a substitute for source fidelity.",
+  "review_run_sha256": "add569d1c4b85b2388b852e2a63fd492b4d3b24e133dffef643abe2c500c8203"
+}

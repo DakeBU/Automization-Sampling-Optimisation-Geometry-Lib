@@ -26685,6 +26685,240 @@
         ],
         "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-pl/decoder-result.json"
       }
+    },
+    {
+      "id": "ASTIS-RT-ANDI-OPT-GradientFlowContraction",
+      "state": "accepted",
+      "graph_node": "ASTIS-SHARED-gradient-flow-contraction",
+      "source": {
+        "source_id": "chewi-opt-v1-gradient-flow-contraction",
+        "anchor": "https://arxiv.org/html/2605.07006v1#S2; Definition1.5; Proposition1.6 (1.5); Section2 GF; Theorem2.2 and its proof",
+        "original_text": "In the Section2 Euclidean C2 setting, let f be alpha-convex with alpha>=0 as in Definition1.5. Given two gradient flows X prime=-gradient f(X) and Y prime=-gradient f(Y) at nonnegative times, their distance at t is at most exp(-alpha*t) times their initial distance. The proof differentiates squared separation, applies the gradient monotonicity characterization (1.5), then Gronwall with coefficient -2 alpha. The section assumes an attained minimum generally, but this pairwise proof does not use it; well-posedness is left aside.",
+        "text_sha256": "3b68e440a9d1386bd9220e074acf1613c613d61475b92d4b98efad116fecceb2"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientFlowContraction.lean",
+        "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E] {f : E → ℝ} {X Y : ℝ → E}\n  {α T : ℝ},\n  0 ≤ α →\n    0 ≤ T →\n      Differentiable ℝ f →\n        StrongConvexOn Set.univ α f →\n          ContinuousOn X (Set.Icc 0 T) →\n            ContinuousOn Y (Set.Icc 0 T) →\n              (∀ t ∈ Set.Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Set.Ici t) t) →\n                (∀ t ∈ Set.Ico 0 T, HasDerivWithinAt Y (-gradient f (Y t)) (Set.Ici t) t) →\n                  ∀ t ∈ Set.Icc 0 T, ‖Y t - X t‖ ≤ Real.exp (-α * t) * ‖Y 0 - X 0‖",
+        "statement_sha256": "e69e46ad58bbf4a4bba18791f288ea256e977dbf386b17a52ed421a4fbf2e379",
+        "compiled": true,
+        "formalizer": "andi-flow-contract-worker",
+        "decoder_context": [
+          "Differentiable R f means Frechet differentiable at every point. gradient f x is the Riesz representing vector of that derivative in the specified complete real inner-product space.",
+          "StrongConvexOn Set.univ a f means f((1-lambda)*x+lambda*y)<= (1-lambda)*f(x)+lambda*f(y)-(a/2)*lambda*(1-lambda)*norm(y-x)^2 for all x,y and lambda in [0,1].",
+          "Set.Icc a b is [a,b]; Set.Ico a b is [a,b); Set.Ici t is [t,infinity). HasDerivWithinAt X v (Set.Ici t) t is the right derivative of X at t equal to v. ContinuousOn is continuity relative to the specified closed interval, including endpoints."
+        ]
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "A scalar objective f, two supplied gradient trajectories X and Y for that same objective, and the nonnegative convexity parameter alpha.",
+          "reconstructed": "The same objective/trajectory/curvature roles, with the gradient represented by the real Hilbert inner product; there is also an arbitrary finite terminal time T.",
+          "relation": "explicit-elaboration",
+          "evidence": "The printed statement and current module use one f in both hx and hy, not independent vector fields or supplied dissipation. The lesson subtracts those exact ODE derivatives. The ambient-space extension is separately classified under domains."
+        },
+        "domains": {
+          "original": "Euclidean R^d for the objective and trajectories, with trajectories indexed by nonnegative time.",
+          "reconstructed": "Any complete real inner-product space E, including infinite-dimensional Hilbert spaces; X and Y are total functions on R whose hypotheses and conclusions are local to [0,T].",
+          "relation": "different",
+          "evidence": "The actual module has NormedAddCommGroup E, InnerProductSpace R E, CompleteSpace E and no finite-dimensionality assumption. StrongConvexOn univ makes the objective domain the whole E. The packet source and Section 2 concern R^d. A finite Euclidean instance recovers the source domain, but the full statements are not equivalent. Values at negative times and beyond T play no role in the estimate; Ici t encodes local right differentiation for t<T."
+        },
+        "quantifiers": {
+          "original": "For any supplied pair of forward gradient flows, the contraction estimate holds for every t>=0.",
+          "reconstructed": "For arbitrary alpha,T>=0 and any supplied pair satisfying the interval hypotheses, the estimate holds for every t in [0,T].",
+          "relation": "different",
+          "evidence": "norm_sub_le quantifies T before its hypotheses, then t in Icc 0 T. There is no uniform fixed maximum T. Given the source flows and any requested nonnegative t, choosing T=t provides the source pointwise estimate. Conversely, the Lean hypotheses allow supplied finite-interval trajectories without requiring a global forward trajectory. This is a valid local formulation, not a global existence theorem."
+        },
+        "assumptions": {
+          "original": "Section 2 uses a C2 objective and generally assumes an attained minimum. Alpha-convexity has alpha>=0 and the alpha/2 chord normalization. Two actual classical gradient flows are supplied.",
+          "reconstructed": "The objective is everywhere Frechet differentiable and StrongConvexOn univ alpha f, with alpha>=0. No minimizer is assumed. Each curve is ContinuousOn [0,T] and has the actual right gradient ODE derivative for every t<T; no derivative condition is imposed at T.",
+          "relation": "weaker-in-lean",
+          "evidence": "hf is Differentiable R f, not ContDiff R 2 f; no attainment hypothesis occurs. The actual hx/hy are HasDerivWithinAt on Ici t, and hX/hY explicitly retain terminal continuity. The shared monotonicity dependency accepts HasGradientAt and obtains its inequality from the chord condition, so C2 is not used secretly. The minimizer plays no part in hd, hg or hs. These are genuine relaxations of the source's standing setting, already displayed in the candidate assumptions and lesson, rather than mere equivalent elaborations."
+        },
+        "conclusion": {
+          "original": "The pairwise distance is bounded by its initial value times exp(-alpha*t).",
+          "reconstructed": "norm(Y t-X t) <= exp(-alpha*t)*norm(Y 0-X 0) at every point of the supplied closed interval.",
+          "relation": "same",
+          "evidence": "The formula in the source packet, decoder reconstruction, actual Lean conclusion and authored lesson agrees exactly in norm power, exponent, sign and prefactor. Time/domain quantifier differences are recorded separately. The source estimate follows for each nonnegative t by T=t."
+        },
+        "scopes": {
+          "original": "Pairwise contraction conditional on supplied dynamics. The proof differentiates squared separation, applies gradient monotonicity and uses scalar Gronwall; well-posedness is left aside.",
+          "reconstructed": "The same conditional pairwise mechanism, using right derivatives and closed-interval continuity. No trajectory construction, minimizer convergence, or objective-value convergence is asserted.",
+          "relation": "explicit-elaboration",
+          "evidence": "hd derives the squared-norm derivative from hy.sub hx and norm_sq. hg invokes gradient_inner_lower_bound_of_strongConvexOn and the right-slope Gronwall lemma. hs and sq_le_sq0 recover the norm estimate with nonnegative sides. The authored three-step lesson follows these actual steps. The conclusion includes 0 and T; T=0 has empty derivative obligations and the estimate is equality."
+        },
+        "constant_dependencies": {
+          "original": "Alpha/2 in the chord inequality, alpha in gradient monotonicity, -2 alpha for squared-distance dissipation, and -alpha for distance decay; prefactor one.",
+          "reconstructed": "The same normalization and exact rate, with Gronwall K=-(2*alpha), zero forcing, and initial squared separation as delta.",
+          "relation": "same",
+          "evidence": "The shared first-order bound uses m/2 and its symmetric sum yields m*norm(y-x)^2. In the target module hg sets K:=-(2*alpha), epsilon:=0 and delta:=norm(Y 0-X 0)^2. hs proves exp(-alpha*t)^2=exp(-(2*alpha)*t). No dimension, smoothness, minimizer or terminal-time constant enters. Alpha=0 gives factor one without division or a limiting argument."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "severity": "review",
+          "description": "The formal result genuinely enlarges the Euclidean ambient domain to arbitrary real Hilbert spaces. It is an accepted generalization with the source recovered by specialization, not semantic equivalence of the full source and Lean statements.",
+          "evidence": "Actual module scoped E has CompleteSpace and InnerProductSpace but no FiniteDimensional instance. Candidate assumptions explicitly contrast R^d with a complete Hilbert space, and the lesson states the wider domain."
+        },
+        {
+          "slot": "assumptions",
+          "severity": "review",
+          "description": "C2 regularity is relaxed to everywhere Frechet differentiability, and the standing attained-minimum convention is omitted. These weaken assumptions rather than elaborate equivalent assumptions.",
+          "evidence": "hf and the absence of an attainment hypothesis in the complete module; the exact linked gradient monotonicity theorem requires only supplied gradients and chord convexity. The packet states the source convention is unused and displays the difference in candidate assumptions."
+        },
+        {
+          "slot": "quantifiers",
+          "severity": "informational",
+          "description": "The theorem accepts finite-interval supplied dynamics for arbitrary T. The source's conclusion at any finite t is recovered by T=t; no global extension or existence claim is made.",
+          "evidence": "T is universally quantified, with Icc 0 T in continuity and conclusion and Ico 0 T in the ODE hypotheses. The binding's actual-pair-contraction obligation explicitly asks for every supplied finite forward interval."
+        },
+        {
+          "slot": "assumptions",
+          "severity": "informational",
+          "description": "Classical ODE regularity is replaced by explicit right derivatives before T and continuity including T. This is an accepted weaker trajectory contract and requires no derivative at the terminal endpoint.",
+          "evidence": "hx/hy use HasDerivWithinAt on Ici t for t in Ico 0 T. The actual Gronwall call consumes right slopes and ContinuousOn squared separation, exactly as explained by the lesson."
+        }
+      ],
+      "verdict": "domain-mismatch",
+      "repairs": [],
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "contract_source_81342",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Accepted at the supplied publication binding as an explicitly broader local theorem whose Euclidean C2 specialization proves the source pairwise estimate, with all material assumption differences visible. Acceptance does not assert exact source/Lean equivalence: the domain-mismatch verdict and weaker-assumption deltas must remain visible. The independently decoded statement matches the actual module and authored lesson; the formula proof follows the actual ODE, monotonicity, Gronwall and square comparison route. No source repair is needed, since no additional source hypothesis or changed source conclusion is proposed.",
+        "review_run_sha256": "e509d8fa90f9d15356cb96eff9ed9f121c8932ac28dfa1790669adc71a00ae24",
+        "reviewer_packet_sha256": "e4fe1bfbd24aeda680c3e696ca846fd8656e7467724eba63dd28baf0931a3802",
+        "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-contraction/source-review-0.json"
+      },
+      "publication_binding_sha256": "a00de108b023f292928955d9fb8b6ff5cd8593cfb94ce982e56d50c14cd86c09",
+      "publication_context": {
+        "file": "d55425caa45b1a7100a902fae496ae9c38ecb8003d82ebf239c61ae83780b69f",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder\nimport Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.ODE.Gronwall\n\n/-!\n# Contraction of two actual gradient flows\n\nChewi, arXiv:2605.07006v1, Theorem 2.2. Derive the squared separation\ninequality from the supplied gradient ODEs and existing gradient monotonicity.\nOnly forward right derivatives before the terminal time are required.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction\n\nopen Set\nopen scoped RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- Two supplied gradient trajectories contract on every finite forward interval.\nZero curvature gives nonexpansiveness; positive curvature gives exponential decay.\nNo existence of a trajectory or of a minimizer is asserted. -/\ntheorem norm_sub_le {f : E → ℝ} {X Y : ℝ → E} {α T : ℝ}\n    (_hα : 0 ≤ α) (_hT : 0 ≤ T) (hf : Differentiable ℝ f)\n    (hsc : StrongConvexOn univ α f)\n    (hX : ContinuousOn X (Icc 0 T)) (hY : ContinuousOn Y (Icc 0 T))\n    (hx : ∀ t ∈ Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Ici t) t)\n    (hy : ∀ t ∈ Ico 0 T, HasDerivWithinAt Y (-gradient f (Y t)) (Ici t) t) :\n    ∀ t ∈ Icc 0 T, ‖Y t - X t‖ ≤ Real.exp (-α * t) * ‖Y 0 - X 0‖ := by\n  have hd (t : ℝ) (ht : t ∈ Ico 0 T) :\n      HasDerivWithinAt (fun u => ‖Y u - X u‖ ^ 2)\n        (-2 * inner ℝ (gradient f (Y t) - gradient f (X t)) (Y t - X t))\n        (Ici t) t := by\n    have h := ((hy t ht).sub (hx t ht)).norm_sq\n    simp only [Pi.sub_apply] at h\n    rw [show -gradient f (Y t) - -gradient f (X t) =\n      -(gradient f (Y t) - gradient f (X t)) by abel,\n      inner_neg_right, real_inner_comm] at h\n    convert h using 1; ring\n  intro t ht\n  have hg := le_gronwallBound_of_liminf_deriv_right_le\n    (f := fun u => ‖Y u - X u‖ ^ 2)\n    (f' := fun u => -2 * inner ℝ (gradient f (Y u) - gradient f (X u)) (Y u - X u))\n    (δ := ‖Y 0 - X 0‖ ^ 2) (K := -(2 * α)) (ε := 0)\n    ((hY.sub hX).norm.pow 2)\n    (fun u hu r hr => by simpa [slope] using (hd u hu).liminf_right_slope_le hr)\n    le_rfl (fun u _ => by\n      have hm := StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn\n        hsc (fun z _ => (hf z).hasGradientAt) (mem_univ (X u)) (mem_univ (Y u))\n      nlinarith) t ht\n  have hs : ‖Y t - X t‖ ^ 2 ≤ (Real.exp (-α * t) * ‖Y 0 - X 0‖) ^ 2 := by\n    rw [mul_pow, show Real.exp (-α * t) ^ 2 = Real.exp (-(2 * α) * t) by\n      rw [sq, ← Real.exp_add]; congr 1; ring, mul_comm]\n    simpa only [gronwallBound_ε0, sub_zero] using hg\n  exact (sq_le_sq₀ (norm_nonneg _) (mul_nonneg (Real.exp_pos _).le (norm_nonneg _))).mp hs\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "edition": "arXiv:2605.07006v1",
+          "anchor": "Definition1.5; Proposition1.6 (1.5); Section2 GF; Theorem2.2 and its proof",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS-authored mathematical restatement; no endorsement implied."
+        },
+        "statement": "In the Section2 Euclidean C2 setting, let f be alpha-convex with alpha>=0 as in Definition1.5. Given two gradient flows X prime=-gradient f(X) and Y prime=-gradient f(Y) at nonnegative times, their distance at t is at most exp(-alpha*t) times their initial distance. The proof differentiates squared separation, applies the gradient monotonicity characterization (1.5), then Gronwall with coefficient -2 alpha. The section assumes an attained minimum generally, but this pairwise proof does not use it; well-posedness is left aside.",
+        "formulae": [
+          {
+            "label": "Pairwise gradient-flow contraction",
+            "tex": "\\|Y(t)-X(t)\\|\\le e^{-\\alpha t}\\|Y(0)-X(0)\\|,\\quad t\\ge0."
+          }
+        ],
+        "assumptions": [
+          "Euclidean C2 objective in the Section2 setting; alpha-convex with alpha>=0.",
+          "Two supplied gradient trajectories for t>=0.",
+          "Standing attained-minimum convention, unused in the pairwise estimate."
+        ],
+        "obligations": [
+          {
+            "id": "actual-pair-contraction",
+            "label": "Derive squared-distance dissipation from both actual ODEs and prove pairwise norm contraction on every supplied finite forward interval"
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
+          "kind": "theorem",
+          "title": "Two gradient flows contract under strong convexity",
+          "statement": "Let E be a complete real inner-product space and f:E→R be Frechet differentiable everywhere. Let alpha>=0 and T>=0, and assume f is globally alpha-convex in the chord sense. Let X,Y:R→E be continuous on [0,T], with right derivatives -gradient f(X(t)) and -gradient f(Y(t)) for every 0<=t<T. Then the distance between the trajectories satisfies the following bound for every 0<=t<=T.",
+          "formula": "\\begin{gathered}f((1-\\lambda)x+\\lambda y)\\le(1-\\lambda)f(x)+\\lambda f(y)-\\tfrac\\alpha2\\lambda(1-\\lambda)\\|y-x\\|^2\\quad(x,y\\in E,\\ 0\\le\\lambda\\le1),\\\\X^{\\prime+}(t)=-\\nabla f(X(t)),\\qquad Y^{\\prime+}(t)=-\\nabla f(Y(t)),\\quad 0\\le t<T,\\\\\\|Y(t)-X(t)\\|\\le e^{-\\alpha t}\\|Y(0)-X(0)\\|,\\qquad0\\le t\\le T.\\end{gathered}",
+          "assumptions": [
+            "Complete real inner-product space E; f is Frechet differentiable everywhere.",
+            "Alpha>=0, T>=0, and StrongConvexOn univ alpha f with the alpha/2 chord normalization.",
+            "X and Y are continuous on the closed interval [0,T]; their actual right ODE derivatives exist at every point of [0,T)."
+          ],
+          "steps": [
+            {
+              "title": "Differentiate squared separation",
+              "text": "Put D(t)=Y(t)-X(t). Subtract the two actual right ODE derivatives, then differentiate the smooth squared norm. This remains valid when the two points coincide, so no division by their distance is needed.",
+              "formula": "\\partial_t^+\\|D(t)\\|^2=2\\langle D(t),Y^{\\prime+}(t)-X^{\\prime+}(t)\\rangle=-2\\langle\\nabla f(Y(t))-\\nabla f(X(t)),D(t)\\rangle.",
+              "lean": "HasDerivWithinAt.sub and HasDerivWithinAt.norm_sq; inner_neg_right and real_inner_comm."
+            },
+            {
+              "title": "Reuse the strong-convex gradient bound",
+              "text": "Differentiability identifies the actual gradient. The existing shared result derives gradient monotonicity from the global strong-convex chord inequality. Applied at X(t) and Y(t), it bounds the squared-separation derivative by -2 alpha times the squared separation.",
+              "formula": "\\langle\\nabla f(Y(t))-\\nabla f(X(t)),D(t)\\rangle\\ge\\alpha\\|D(t)\\|^2,\\qquad (\\|D\\|^2)^{\\prime+}(t)\\le-2\\alpha\\|D(t)\\|^2.",
+              "lean": "StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn, with DifferentiableAt.hasGradientAt."
+            },
+            {
+              "title": "Compare on the closed interval and take square roots",
+              "text": "Continuity of both curves gives continuity of the squared separation including endpoints. Right derivatives provide the one-sided slope hypothesis of the existing interval Gronwall bound. Zero forcing yields the squared-distance estimate. Both the norm and exponential multiple of the initial norm are nonnegative; comparing their squares gives the exact alpha rate.",
+              "formula": "\\|D(t)\\|^2\\le\\|D(0)\\|^2e^{-2\\alpha t}=(e^{-\\alpha t}\\|D(0)\\|)^2\\quad\\Longrightarrow\\quad\\|D(t)\\|\\le e^{-\\alpha t}\\|D(0)\\|.",
+              "lean": "HasDerivWithinAt.liminf_right_slope_le, le_gronwallBound_of_liminf_deriv_right_le, gronwallBound_ε0, Real.exp_add and sq_le_sq₀."
+            }
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+          ],
+          "mathlib_dependencies": [
+            "HasDerivWithinAt.norm_sq",
+            "DifferentiableAt.hasGradientAt",
+            "HasDerivWithinAt.liminf_right_slope_le",
+            "le_gronwallBound_of_liminf_deriv_right_le",
+            "gronwallBound_ε0",
+            "sq_le_sq₀"
+          ],
+          "lean_statement": "Finite-interval pairwise norm contraction for actual gradient flows.",
+          "lean_proof": "Put D(t)=Y(t)-X(t). Subtract the two actual right ODE derivatives, then differentiate the smooth squared norm. This remains valid when the two points coincide, so no division by their distance is needed. Differentiability identifies the actual gradient. The existing shared result derives gradient monotonicity from the global strong-convex chord inequality. Applied at X(t) and Y(t), it bounds the squared-separation derivative by -2 alpha times the squared separation. Continuity of both curves gives continuity of the squared separation including endpoints. Right derivatives provide the one-sided slope hypothesis of the existing interval Gronwall bound. Zero forcing yields the squared-distance estimate. Both the norm and exponential multiple of the initial norm are nonnegative; comparing their squares gives the exact alpha rate.",
+          "sources": [
+            {
+              "url": "https://arxiv.org/html/2605.07006v1#S2",
+              "label": "Chewi Theorem2.2",
+              "scope": "Pairwise contraction from actual gradient dynamics; Definition1.5 nonnegative curvature convention."
+            },
+            {
+              "path": "Tests/Shared/GradientFlowContraction.lean",
+              "label": "Sharp quadratic trajectories and zero curvature",
+              "scope": "Proves the actual ODE and strong convexity for f(x)=x squared/2, with arbitrary initial positions, plus a zero-curvature constant-objective case."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
+          "role": "proof-edge",
+          "supports": [
+            "actual-pair-contraction"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "C2 objective on R^d.",
+            "lean": "Everywhere Frechet differentiable f on a complete real Hilbert space."
+          },
+          {
+            "source": "Global alpha-convexity with alpha>=0 from Definition1.5.",
+            "lean": "StrongConvexOn univ alpha f and alpha>=0."
+          },
+          {
+            "source": "Two supplied gradient flows for all nonnegative time.",
+            "lean": "Supplied X,Y continuous on [0,T], T>=0, with right gradient ODEs on [0,T)."
+          },
+          {
+            "source": "General standing attained-minimum convention of Section2.",
+            "lean": "No minimizer assumption."
+          }
+        ]
+      },
+      "reconstruction": {
+        "text": "Let E be any complete real inner-product space (with its induced norm), let f:E→ℝ, let X,Y:ℝ→E, and let α,T∈ℝ. Suppose α≥0 and T≥0, f is Fréchet differentiable at every point of E, and f is globally α-strongly convex in the convention f((1−λ)x+λy)≤(1−λ)f(x)+λf(y)−(α/2)λ(1−λ)‖y−x‖² for all x,y∈E and λ∈[0,1]. Suppose X and Y are continuous on [0,T] in the relative topology. For every t∈[0,T), suppose their right derivatives exist, using the domain [t,∞), and satisfy X′₊(t)=−∇f(X(t)) and Y′₊(t)=−∇f(Y(t)), where ∇f is the Riesz representative of the Fréchet derivative. Then for every t∈[0,T], ‖Y(t)−X(t)‖≤exp(−αt)‖Y(0)−X(0)‖. Both the initial and final endpoints are included in the conclusion. No derivative condition at T is assumed; if T=0 the derivative assumptions are empty. No finite-dimensionality, continuity of the derivative, Lipschitz gradient, minimizer, or global existence assertion is imposed.",
+        "text_sha256": "6aaf504bb4d60477c67e8d2dd425dedda3f81872827de45acdb59cb61484a1f2",
+        "decoder": "contract_blind_81342",
+        "decoder_run_sha256": "d0ec0dda5d8ba131a222fa38145710c0dbe441d30aa164238fae0934cc0aa55e",
+        "decoder_packet_sha256": "2786bbcdd5379d83c9254e9b302fd01b3185ff7c0993e3845d737bdb39d1e174",
+        "source_text_visible": false,
+        "lean_statement_sha256": "e69e46ad58bbf4a4bba18791f288ea256e977dbf386b17a52ed421a4fbf2e379",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/andi-opt-gradient-flow-contraction/decoder-result.json"
+      }
     }
   ]
 }

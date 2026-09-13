@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.gradient-flow.pair-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
+    upstreamDecl := "Theorem2.2; gradient_inner_lower_bound_of_strongConvexOn; HasDerivWithinAt.norm_sq; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Two actual gradient trajectories contract with exact curvature rate on finite forward intervals.",
+    note := "Source alpha>=0 retained. C2 Euclidean setting generalized to differentiable Hilbert objective and right derivatives; no minimum or nonzero distance needed. No existence, extension or stochastic-flow claim."
+  },
+  {
     key := "analysis.gradient-flow.pl-dissipation-decay",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
     upstreamDecl := "Lemma2.1 and Corollary2.6; HasFDerivAt.comp_hasDerivWithinAt; le_gronwallBound_of_liminf_deriv_right_le",

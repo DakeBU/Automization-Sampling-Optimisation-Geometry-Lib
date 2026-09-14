@@ -31,6 +31,11 @@ This visual attestation is by root, not the independent reviewer.
 Preservation audit PASS for113 unrelated audits,19 other source items,four parent
 bindings and both ledger prefixes. Workflow221 and Harness256 tests PASS(6
 configured skips); Python compileall and6 JavaScript syntax checks PASS.
-Final independent integration review pending.
+Final independent integration and current-main acceptance passed; see research-wiki/technical-lemmas/optimisation-contributor-audit.md for the latest protocol audit, canonical gate, reader and graph checks.
 Next: review and close the remaining model/domain adapters before marking the
 complete source lemma; do not count generic wrapper assumptions as new results.
+
+The current-main candidate includes remote OT work through ba5a58c and the
+contributor audit. Canonical gate at4bbdc7e passed9248 jobs with source digest
+17a8cf47b9a46dd9a5c45d715db223c2373223d743a54574a4bbe6848cf3747f.
+This supersedes the earlier aggregate context without changing this frozen proof.

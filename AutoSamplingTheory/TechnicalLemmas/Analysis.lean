@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer
 import AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity

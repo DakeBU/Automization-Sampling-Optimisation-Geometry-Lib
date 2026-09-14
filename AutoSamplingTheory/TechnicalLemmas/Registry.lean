@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.optimisation.regularization-oracle",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+    upstreamDecl := "QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; Nat.succ_le_succ",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section1.1 and Section4.1 Lemma4.2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "regularization", "oracle", "query-count"],
+    saldUse := "Actual adaptive first-order oracle execution with one original reply per regularized reply.",
+    note := "Finite deterministic query-fuel semantics; exact state/outcome/count preservation. Halt and exhaustion distinct. No class-uniform solver/budget or full Lemma4.2 closure."
+  },
+  {
     key := "analysis.optimisation.regularization-first-order",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
     upstreamDecl := "strongConvexOn_iff_convex; LinearMap.convexOn; HasFDerivAt.norm_sq; LipschitzWith.dist_le_mul",

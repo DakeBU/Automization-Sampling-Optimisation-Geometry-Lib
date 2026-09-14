@@ -85,3 +85,72 @@ All rows have a current lesson and publication binding. Original history is reta
 - Final independent integration review accepted the frozen candidate and evidence-only closeout, with no unresolved findings; retained as `runs/semantic-roundtrip/andi-opt-contributor-audit/integration-review.json`. No claim of a historical encoder/decoder run has been added.
 
 Integrated and pushed to main at `5e469a7617914272b003409345145d8a74845753` under standing user authorization, together with the previously reviewed uniform regularization advance. This is the publication receipt, not a historical review backfill. Remote CI/deployment remains distinct from the passed local gates.
+
+## Alignment with canonical collaborator bootstrap — 2026-09-14
+
+Working-tree candidate based on `6a09b64d294540aa6b05de287de3342906b74716`.
+The earlier uncommitted 13-file strict-mode/hook draft was backed up with
+per-file SHA-256 verification before a safe fast-forward from `d08fd4f8`.
+That draft was not published. Its installed local hook settings were removed;
+no collaborator files were overwritten. The upstream AGENTS, CONTRIBUTING,
+collaborator/optimisation prompts, theorem-publication protocol and root ASTIS
+check remain unchanged by this candidate.
+
+The retained repair has five files: `tools/astis_contributor_contract.py`,
+`tools/tests/test_astis_contributor_contract.py`,
+`.github/workflows/contributor-contract.yml`,
+`docs/contributor-codex-contract.md`, and this existing receipt. It keeps the
+canonical `--base` / `--ci` interface with no `--strict` flag or local push hook.
+It rejects a missing comparison scope, reports an empty mathematical scope as
+N/A, selects metadata-only changes including deletions, and tests this in CI.
+The small documentation correction places `reader_contract` in the bound
+Frontier Cell, matching the implementation. Reader ordering is unchanged.
+
+| Required report | Result |
+|---|---|
+| Source statements | N/A: tool/protocol repair; no textbook/paper statement changed. |
+| Lean declarations | None added, changed or generalized; no theorem/SAU progress claimed. |
+| Hidden/API-only assumptions | No mathematical assumption changes. |
+| External dependencies | Existing Python/Git and production/publication inventory APIs; no Lean or package dependency change. |
+| Semantic and independent review | Existing registry and publication checks passed; no new worker runs were needed or fabricated. |
+| Reuse and consumers | Existing `changed_declarations` inventory reused; contributor CLI and CI consume the same metadata scope validator. No new Lean helper. |
+| Lean/Overview/Functor graphs | No graph/reader facts changed. Site generation and graph/site checks passed; no new visual review claimed. |
+| Boundary/debt | Incremental contract success is not full historical compliance. The previously identified 72 SampleWiki metadata gaps and two historical audit records remain unchanged. The new CI workflow has not yet run remotely. |
+
+Validation on this local candidate:
+
+- Contributor `check --base 6a09b64d294540aa6b05de287de3342906b74716` and
+  `check --ci` with that `PUBLICATION_BASE`: exit 0, explicitly N/A mathematical
+  scope (0 declarations / 0 cells), not a whole-inventory PASS.
+- `python3 tools/astis.py harness-test`: PASS, 275 tests, 6 platform skips,
+  including 18 new scope regressions; run with the required local-server
+  permission and pinned Lean PATH.
+- `python3 website/scripts/lean_gate.py`: PASS, canonical ASTIS check including
+  full Lake build, root Tests, ATLAS memory and fake-closure checks. Current
+  source-bound evidence is `.astis/site-lean-gate.json`.
+- Publication check against `6a09b64d`: PASS, 94 source items; semantic check:
+  PASS, 121 audits / 8 repairs; Frontier Cell check: PASS, 127 cells.
+- Site build/check: PASS, 12 chapters, 437 compiled local leaves, 716 modules,
+  4027 declarations and 77 reviewed teaching declarations.
+- Workflow YAML parsing and `git diff --check`: PASS.
+
+No commit, push or remote CI acceptance is claimed. Before any future push,
+review the actual outgoing diff/base and rerun the relevant canonical checks.
+
+### Final pre-push recheck
+
+The user subsequently authorized review, commit and push. The reviewed base
+remains `6a09b64d294540aa6b05de287de3342906b74716`. Final review found and fixed
+one additional scope boundary: only the Frontier Cell loader excludes
+underscore-prefixed/schema JSON names; lesson/publication files with those names
+must still be checked. A regression now covers both cases.
+
+The final candidate passed 276 Harness tests (6 platform skips; 19 new scope
+regressions), the full canonical Lean/root Tests/ATLAS gate, publication (94
+items), semantic registry (121 audits / 8 repairs), Frontier Cells (127), and
+site generation/graph/site checks. Both contributor `--base` and `--ci` forms
+reported the honest empty mathematical scope. Workflow YAML and whitespace
+checks passed. The eight-part boundary report above remains unchanged: no Lean,
+source, semantic-audit or graph metadata changed. This entry records pre-commit
+validation; the resulting Git commit identifies the exact published five-file
+candidate. Remote CI results are not inferred from these local checks.

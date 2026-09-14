@@ -37,7 +37,7 @@ For every source statement represented by the contribution, the reader must keep
 
 The authored source of truth is `website/content/declaration_lessons/*.json` plus `website/content/publications/*.json`. Do not hand-edit generated `_site` HTML.
 
-Each changed binding records a `reader_contract` whose reference is `textbook/chapter-01/section-1-3.html` and explicitly confirms: source order, source-adjacent statement/proof, natural-language formula proof, visible hidden assumptions, folded Lean, and visible external dependencies.
+Each changed binding's Frontier Cell records a `reader_contract` whose reference is `textbook/chapter-01/section-1-3.html` and explicitly confirms: source order, source-adjacent statement/proof, natural-language formula proof, visible hidden assumptions, folded Lean, and visible external dependencies.
 
 ## 3. Encoder–denoiser is mandatory for source-facing claims
 
@@ -100,6 +100,7 @@ Never overwrite another contributor's append-only or registry work with an old b
 Before merge, run at least:
 
 ```bash
+python3 tools/astis_contributor_contract.py check --base BASE_COMMIT
 python3 tools/astis_publication.py check --base BASE_COMMIT
 python3 tools/astis_semantic_roundtrip.py check
 python3 tools/astis_frontier_cells.py check
@@ -109,6 +110,27 @@ python3 website/scripts/check_site.py
 lake build Tests
 python3 tools/astis.py check
 ```
+
+The incremental contributor check requires `--base`, or `--ci` with
+`PUBLICATION_BASE`. There is no `--strict` flag. It reports the resolved base,
+HEAD and affected declarations/cells; it includes untracked production and
+publication metadata in local checks. No affected targets is reported as N/A,
+not as certification of the whole inventory.
+
+Changed lessons, source items, individual publication bindings and Frontier
+Cells are checked even without a Lean edit. Deletions retain their old targets
+so removing a binding or lesson cannot hide it from the check. Changed unbound
+planned cells must also supply the three cell contracts, without claiming a
+compiled theorem. Unchanged metadata outside the comparison scope is not
+certified by this incremental command; the publication, semantic, Lean and site
+gates remain independently required.
+
+The `Contributor contract` CI workflow runs on pushes, PRs and merge groups.
+It uses the PR/merge-group base or previous push tip. For a new topic branch
+whose previous tip is zero, it uses the merge base with `origin/main`, not
+`HEAD^`. A manual workflow run uses its selected commit as base; this checks
+regressions but may have no changed contribution. Missing CI base, unavailable
+Git history or initial creation of `main` without an explicit base fails closed.
 
 The PR must state the graph delta, remaining mathematical boundary, reuse decision, and reader/source-fidelity status. Generated `_site/` output is never committed.
 

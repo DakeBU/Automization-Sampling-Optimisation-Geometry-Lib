@@ -39,3 +39,7 @@ The current-main candidate includes remote OT work through ba5a58c and the
 contributor audit. Canonical gate at4bbdc7e passed9248 jobs with source digest
 17a8cf47b9a46dd9a5c45d715db223c2373223d743a54574a4bbe6848cf3747f.
 This supersedes the earlier aggregate context without changing this frozen proof.
+
+Merged and pushed directly to main at `5e469a7617914272b003409345145d8a74845753` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are distinct from the passed local acceptance.

@@ -40,3 +40,7 @@ current digest, frozen hashes, exact source bindings, actual gates and preservat
 verified. Retained final-integration-review.json; direct-main release recommended.
 Next: combine actual minimizer/accuracy with curvature and positive parameter
 bounds in the solver/oracle reduction. Do not count arithmetic wrappers as SAUs.
+
+Merged and pushed directly to main at `d726428221022bcf34e43a6addaeae02e064fa20` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

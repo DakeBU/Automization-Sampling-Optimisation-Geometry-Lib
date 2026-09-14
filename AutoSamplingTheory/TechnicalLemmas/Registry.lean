@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.optimisation.regularization-first-order",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+    upstreamDecl := "strongConvexOn_iff_convex; LinearMap.convexOn; HasFDerivAt.norm_sq; LipschitzWith.dist_le_mul",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "regularization", "smoothness"],
+    saldUse := "Actual regularized curvature and gradient Lipschitz shift at first-order regularity.",
+    note := "Differentiable convex Hilbert objective with genuine beta-Lipschitz gradient. Nonnegative precision includes zero. No C2/Hessian, minimizer or oracle/class theorem."
+  },
+  {
     key := "analysis.optimisation.regularization-transfer",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy",
     upstreamDecl := "IsCompact.exists_isMinOn; isCompact_closedBall; Metric.mem_closedBall; dist_eq_norm",

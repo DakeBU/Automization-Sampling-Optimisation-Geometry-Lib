@@ -1,0 +1,112 @@
+{
+  "reviewer_id": "pl_pullback_review",
+  "role": "bounded independent C1 quadratic-regularization curvature/smoothness route audit",
+  "checked_head": "35c4bbd4e785364a96df6bee5dfeb733ba311bdd",
+  "verdict": "PASS new first-derivative interface, reuse direct Mathlib convexity and derivative APIs; avoid C2/Hessian dependency",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+    "anchor": "Lemma4.2 proof738-743 and source smoothness convention",
+    "scope": "Actual centered quadratic W has strong convexity delta and smoothness beta+delta. Under epsilon<=beta R\u00b2 and delta=epsilon/R\u00b2 the proof bounds smoothness by2beta and condition number by2beta R\u00b2/epsilon. Curvature/smoothness is one dependency of the full class/oracle reduction, not that reduction itself.",
+    "regularity": "Convex differentiable f with Lipschitz actual gradient is enough. Do not impose C2 or Hessian bounds to reuse a nearby theorem; source smoothness supplies the appropriate first-derivative control."
+  },
+  "reuse_audit": [
+    {
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "theorem": "strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+      "finding": "Existing theorem assumes ContDiff2 and two-sided actual Hessian bounds, handles arbitrary lower modulus and nonnegative regularization. It proves the shift under stronger hypotheses but is not directly callable at the proposed source-C1 contract. Reuse its short first-derivative calculation as an API pattern, not its Hessian/Spectral proof or stronger assumptions."
+    },
+    {
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean and StrongConvexGradientConverse.lean",
+      "finding": "Existing forward gradient-monotonicity and converse give a valid alternative route: convexity gives monotone gradient, actual shifted gradient is r-strongly monotone, converse returns strong convexity. This route is reusable but not necessary: direct Mathlib strongConvexOn_iff_convex plus affine convexity avoids additional derivative-based proof dependencies."
+    },
+    {
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationTransfer.lean",
+      "finding": "Recent proper continuous-group theorem gives actual minimizer/radius/accuracy, not gradient shift or curvature. Compose downstream; do not identify arbitrary Hilbert spaces with ProperSpace for minimizer existence."
+    },
+    {
+      "scope": "Optlib/CvxLean",
+      "finding": "Reuse existing bounded route evidence in runs/semantic-roundtrip/andi-opt-restart-reduction/upstream-review.json and subsequent regularization route review. No matching weaker-hypothesis interface was found; pinned external checkout/page availability limitation retained. No external port needed, no exhaustive absence certificate claimed."
+    },
+    {
+      "scope": "Pinned Mathlib and local Analysis searches",
+      "finding": "The exact bundled C1 W interface was not found; all required scalar/convex/derivative ingredients already exist. One public bundle is a useful canonical weaker-assumption interface, rather than a second C2 statement."
+    }
+  ],
+  "preferred_proof_route": [
+    "Define W=f+(r:real)/2*norm(x-u)^2. Prove the quadratic derivative directly using HasFDerivAt.norm_sq and const_mul, then add the actual derivative of f.",
+    "Identify that derivative with toDual(gradient f x+(r:real)smul(x-u)) using linearity of Riesz toDual and real inner-product evaluation. HasGradientAt.gradient gives actual gradient equality at every x; the same derivative proof yields Differentiable real W.",
+    "For strong convexity, use Mathlib strongConvexOn_iff_convex. Expand norm_sub_sq_real so W(x)-r/2*normx\u00b2 equals f(x) plus the linear functional -r*inner(u,x) plus constant r/2*normu\u00b2.",
+    "The linear functional is convex by LinearMap.convexOn; combine with given convex f using ConvexOn.add and add_const. This works also at r0 and avoids all Hessian assumptions.",
+    "For Lipschitz, write gradientW(x)-gradientW(y)=(gradientf(x)-gradientf(y))+r smul(x-y). Triangle inequality, norm_smul and r>=0 give <=(beta+r)*norm(x-y). Use lipschitzWith_iff_norm_sub_le or LipschitzWith.add with a separately proved r-Lipschitz affine map."
+  ],
+  "exact_apis": [
+    {
+      "name": "strongConvexOn_iff_convex",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Convex/Strong.lean:168",
+      "contract": "StrongConvexOn s m W iff ConvexOn real s (fun x=>W x-m/2*normx\u00b2); real inner-product space, no differentiability required."
+    },
+    {
+      "name": "LinearMap.convexOn",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Convex/Function.lean:388",
+      "use": "Apply to (-r)smul(innerSL real u).toLinearMap on convex_univ."
+    },
+    {
+      "name": "ConvexOn.add; ConvexOn.add_const",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Convex/Function.lean:228,251",
+      "use": "Add affine correction after centered norm-square expansion."
+    },
+    {
+      "name": "HasFDerivAt.norm_sq; HasFDerivAt.const_mul; HasFDerivAt.add",
+      "use": "Exactly the first-order quadratic calculation in existing QuadraticRegularization.lean49, using hasFDerivAt_id.sub_const u and hf(x).hasFDerivAt."
+    },
+    {
+      "name": "hasGradientAt_iff_hasFDerivAt; HasGradientAt.gradient; DifferentiableAt.hasGradientAt",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean:103,173 and142",
+      "use": "Real gradient must be the actual Riesz representation, not a separately supplied vector field."
+    },
+    {
+      "name": "LipschitzWith.add",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Normed/Group/Uniform.lean:308",
+      "use": "Generated by to_additive from LipschitzWith.mul; combines constants beta+r. Search source may show only multiplicative name."
+    },
+    {
+      "name": "lipschitzWith_iff_norm_sub_le; norm_add_le; norm_smul; smul_sub",
+      "use": "Robust direct bound avoiding uncertain affine-map composition API; NNReal r cast norm simplifies via nonnegativity."
+    }
+  ],
+  "recommended_interface": {
+    "hypotheses": "E complete real Hilbert; f Differentiable real and ConvexOn real univ; beta,r:NNReal; LipschitzWith beta (gradient f); centeru arbitrary.",
+    "conclusion": "For actual W, Differentiable real W, StrongConvexOn univ (r:real) W, pointwise gradientW=gradientf+r smul(x-u), LipschitzWith(beta+r)(gradientW).",
+    "endpoint": "Allow r0 and beta0; these are mathematically valid. The source positive delta specialization comes later. Do not call W strictly convex for r0 or claim unique minimizer without attainment and r>0.",
+    "C1": "Differentiable f plus Lipschitz actual gradient supplies C1-type regularity in the intended real Hilbert setting; an explicit ContDiff1 output is unnecessary unless a consumer needs it. Differentiable W output is useful and free from the proof.",
+    "substance": "This removes load-bearing C2/Hessian requirements from the existing shift interface and supplies the actual gradient needed for first-order oracle simulation. One bundle is appropriate; no standalone wrapper for each conjunct."
+  },
+  "epsilon_radius_parameter_scope": {
+    "needed_for_generic_shift": false,
+    "needed_for_complete_source_parameter_clause": true,
+    "conditions": "R>0,epsilon>0,beta>0,epsilon<=beta R\u00b2; delta=epsilon/R\u00b2.",
+    "derivation": "delta>0,delta<=beta; beta+delta<=2beta and (beta+delta)/delta<=2beta/delta=2beta R\u00b2/epsilon. Gradient identity realizes each W-gradient evaluation algebraically from one f-gradient plus known shift, but does not itself certify a query machine.",
+    "publication_advice": "If current binding is only actual curvature/smoothness shift, parameter specialization may remain an explicitly named downstream obligation or compiled source consumer. If claiming the entire source parameter-control line of Lemma4.2, include its positive epsilon/R\u00b2 specialization and these inequalities in verified evidence; do not infer them from a generic r theorem without a consumer. Prefer one small consumer or bundled conditional result over a new scalar-wrapper SAU.",
+    "coarse_accuracy": "The source epsilon>beta R\u00b2 trivial branch uses original smoothness/minimizer bounds; not automatic from this shift theorem. Preserve separately if not formalized."
+  },
+  "tests": [
+    "r0 case: W=f and actual gradient/Lipschitz modulus recover correctly.",
+    "A nonzero centeru and positive r test checks shift x-u rather than x or x+u.",
+    "Use a C1 but non-C2 convex smooth scalar objective, for example f(x)=max(x,0)^2/2 with 1-Lipschitz derivative max(x,0), if reasonably reusable; otherwise generic first-derivative theorem itself demonstrates no C2 premise, and shifted quadratic consumer tests signs/constants.",
+    "Source delta=epsilon/R\u00b2 specialization with positive R/epsilon and epsilon<=beta R\u00b2 should exercise beta+delta and condition-number upper bounds if that clause is claimed."
+  ],
+  "failure_boundaries": [
+    "Avoid a Hessian-based parent that silently strengthens input to C2.",
+    "General normed groups from the prior transfer theorem are not enough for the r-strong-convexity identity; the parallelogram law is the real inner-product structure required here.",
+    "Actual gradient totalizes to zero without differentiability; keep hf explicit before applying the gradient equality.",
+    "No minimizer-existence, properness, oracle/class cost or full Lemma4.2 follows just from the bundle.",
+    "No negative r in NNReal interface; arbitrary signed r would change convexity and Lipschitz coefficient to absolute value and is outside this source component."
+  ],
+  "publication_requirements": [
+    "Source-blind decoder and fresh independent source review for exact frozen module/lesson/binding after implementation.",
+    "Bind actual curvature/smoothness component separately from already accepted minimum/radius/accuracy and still unproved oracle-class reduction. Refresh affected parent source context if shared source item obligations change.",
+    "Record exact C1 Hilbert generalization and zero-r extension; do not mark whole source lemma complete."
+  ],
+  "unresolved_findings": [],
+  "evidence_scope": "Read-only route/API audit; no repository writes, Lean builds or source certification."
+}

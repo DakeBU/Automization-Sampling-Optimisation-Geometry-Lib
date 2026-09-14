@@ -1,3 +1,4 @@
+import Tests.Shared.QuadraticRegularizationFirstOrder
 import Tests.Shared.QuadraticRegularizationTransfer
 import Tests.Shared.RestartLogComplexity
 import Tests.Shared.RestartReduction

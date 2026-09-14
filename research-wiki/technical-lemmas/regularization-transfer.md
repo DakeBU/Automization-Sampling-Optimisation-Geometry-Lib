@@ -36,3 +36,7 @@ current source digest, frozen files, actual gates and preservation checked.
 Retained final-integration-review.json. Direct-main integration recommended.
 Next bounded edge: source-C1 quadratic curvature/smoothness and parameter bounds,
 then actual solver/oracle cost interface. Do not count prerequisite as fulllemma.
+
+Merged and pushed directly to main at `241076ec0cef63609dfba4b48aa3cfc8b31102b1` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

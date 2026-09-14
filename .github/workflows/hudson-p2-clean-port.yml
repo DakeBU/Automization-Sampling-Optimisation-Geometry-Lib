@@ -1,0 +1,130 @@
+name: Hudson OT P2 clean port
+
+on:
+  push:
+    branches: [codex/hudson-ot-p2-clean]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild branch from current main and preserve Hudson authorship
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "DakeBU integration"
+          git config user.email "159223240+DakeBU@users.noreply.github.com"
+          git fetch origin main hudson/ot-geodesic-p2
+          git reset --hard origin/main
+
+          set +e
+          git cherry-pick b6501fd222c81c974dcad2b38376c692c212fe1f
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            python3 - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+
+          conflicts = subprocess.check_output(
+              ["git", "diff", "--name-only", "--diff-filter=U"], text=True
+          ).splitlines()
+          allowed = {
+              "research-wiki/semantic-roundtrip/registry.json",
+              "runs/substantive_advances.jsonl",
+          }
+          unexpected = sorted(set(conflicts) - allowed)
+          if unexpected:
+              raise SystemExit(f"unexpected cherry-pick conflicts: {unexpected}")
+
+          reg = "research-wiki/semantic-roundtrip/registry.json"
+          if reg in conflicts:
+              ours = json.loads(subprocess.check_output(["git", "show", f":2:{reg}"], text=True))
+              theirs = json.loads(subprocess.check_output(["git", "show", f":3:{reg}"], text=True))
+              if ours.get("schema_version") != theirs.get("schema_version"):
+                  raise SystemExit("semantic registry schema mismatch")
+              existing = {row["id"]: row for row in ours.get("audits", [])}
+              for row in theirs.get("audits", []):
+                  old = existing.get(row["id"])
+                  if old is None:
+                      ours.setdefault("audits", []).append(row)
+                      existing[row["id"]] = row
+                  elif old != row:
+                      raise SystemExit(f"semantic audit collision with different payload: {row['id']}")
+              Path(reg).write_text(json.dumps(ours, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          ledger = "runs/substantive_advances.jsonl"
+          if ledger in conflicts:
+              ours_lines = subprocess.check_output(["git", "show", f":2:{ledger}"], text=True).splitlines()
+              theirs_lines = subprocess.check_output(["git", "show", f":3:{ledger}"], text=True).splitlines()
+              seen = set(ours_lines)
+              merged = list(ours_lines)
+              for line in theirs_lines:
+                  if line and line not in seen:
+                      merged.append(line)
+                      seen.add(line)
+              Path(ledger).write_text("\n".join(merged) + "\n", encoding="utf-8")
+          PY
+            git add research-wiki/semantic-roundtrip/registry.json runs/substantive_advances.jsonl
+            GIT_EDITOR=true git cherry-pick --continue
+          fi
+
+          git cherry-pick 82e8be516217517b2f3e4bc737804442d39633c8
+
+      - name: Integrate theorem into public Lean and root test surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          measure = Path("AutoSamplingTheory/TechnicalLemmas/Measure.lean")
+          text = measure.read_text(encoding="utf-8")
+          line = "import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationP2ConstantSpeed\n"
+          if line not in text:
+              anchor = "import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationConstantSpeed\n"
+              if anchor not in text:
+                  raise SystemExit("Measure.lean integration anchor missing")
+              text = text.replace(anchor, anchor + line, 1)
+              measure.write_text(text, encoding="utf-8")
+
+          tests = Path("Tests.lean")
+          text = tests.read_text(encoding="utf-8")
+          line = "import Tests.DisplacementInterpolationConstantSpeed\n"
+          if line not in text:
+              anchor = "import Tests.DisplacementInterpolation\n"
+              if anchor not in text:
+                  raise SystemExit("Tests.lean integration anchor missing")
+              text = text.replace(anchor, anchor + line, 1)
+              tests.write_text(text, encoding="utf-8")
+          PY
+          git add AutoSamplingTheory/TechnicalLemmas/Measure.lean Tests.lean
+          git commit -m "integrate arbitrary-P2 displacement speed into public graph"
+
+      - name: Validate current-main publication, semantic, Lean, graph, and site gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/astis_frontier_cells.py check
+          python3 tools/astis_semantic_roundtrip.py check
+          python3 tools/astis_publication.py check --base origin/main
+          LEAN_NUM_THREADS=2 lake build Tests.DisplacementInterpolationConstantSpeed
+          LEAN_NUM_THREADS=2 python3 tools/astis.py check
+          python3 website/scripts/build_site.py
+          python3 tools/astis_publication.py graph-check --cell ASTIS-SHARED-displacement-interpolation-p2
+          python3 website/scripts/check_site.py
+          git diff --check
+
+      - name: Push clean integration branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short
+          git push --force origin HEAD:refs/heads/codex/hudson-ot-p2-clean

@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-108d91a32bb8c105",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "andi-uniform-worker",
+    "blind_decoder": "uniform_blind",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-lemma-4-2",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S4.SS1; Section4.1 Lemma4.2 statement and proof; regularized minimum and radius comparisons",
+    "original_text": "Assume a first-order method optimizes the alpha-strongly convex beta-smooth class in phi(kappa) log(alpha R²/epsilon) queries, where kappa=beta/alpha. Lemma4.2 reduces the convex beta-smooth class to it with stated order O(phi(2 beta R²/epsilon)). The proof forms W=f+delta||x-x0||²/2 with delta=epsilon/R², solves W to tolerance epsilon/2, and compares its minimizer w with an original minimizer z. W(w)<=W(z) and f(z)<=f(w) show ||w-x0||<=||z-x0||<=R; the two half-error terms then give f(x)-f(z)<=epsilon. In the regime epsilon<=beta R², the regularized smoothness is beta+delta<=2beta and its condition number is at most2 beta R²/epsilon. The existence/comparison, curvature/smoothness and oracle-complexity obligations are separate.",
+    "text_sha256": "4d3daec39388f683999976d48b6253931c3a640ba2794824692aa0d866e9dd79"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/UniformRegularization.lean",
+    "statement": "∀ {E : Type u_1}\n  {S : Type u_2} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]\n  [ProperSpace E] (β : NNReal) (u : E) {R ε : ℝ} (hR : 0 < R) (hε : 0 < ε),\n  ε ≤ ↑β * R ^ 2 →\n    ∀ (φ : ℝ → ℕ) (next : S → E ⊕ E) (update : S → E → ℝ × E → S) (s₀ : S),\n      have δ := NNReal.mk (ε / R ^ 2) ⋯;\n      have N := ⌈↑(φ (2 * ↑β / ↑δ)) * Real.log (↑δ * R ^ 2 / (ε / 2))⌉₊;\n      (∀ (g : E → ℝ),\n          Differentiable ℝ g →\n            StrongConvexOn Set.univ (↑δ) g →\n              LipschitzWith (2 * β) (gradient g) →\n                ∀ (w : E),\n                  IsMinOn g Set.univ w →\n                    ‖w - u‖ ≤ R →\n                      ∃ t x c,\n                        execute next update (fun y => (g y, gradient g y)) N s₀ = ((t, some x), c) ∧\n                          g x - g w ≤ ε / 2) →\n        have corrected := fun s y a => update s y (a.1 + ↑δ / 2 * ‖y - u‖ ^ 2, a.2 + ↑δ • (y - u));\n        ∀ (f : E → ℝ),\n          Differentiable ℝ f →\n            ConvexOn ℝ Set.univ f →\n              LipschitzWith β (gradient f) →\n                ∀ (z : E),\n                  IsMinOn f Set.univ z →\n                    ‖z - u‖ ≤ R →\n                      ∃ t x c,\n                        execute next corrected (fun y => (f y, gradient f y)) N s₀ = ((t, some x), c) ∧\n                          f x - f z ≤ ε ∧ c ≤ ⌈↑(φ (2 * ↑β * R ^ 2 / ε)) * Real.log 2⌉₊ ∧ c ≤ φ (2 * ↑β * R ^ 2 / ε)",
+    "statement_sha256": "616856a647ca55cf1856e4ee3ef0580ce884f2952d126168217e663f2c76c9c2",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete real inner-product space in which closed bounded balls are compact, and let S be any state type. For every nonnegative real β, center u∈E, positive reals R and ε with ε≤βR², every function φ:ℝ→ℕ, every fixed deterministic pair next:S→E⊕E and update:S→E→(ℝ×E)→S, and every initial state s₀∈S, set δ=ε/R² and N=⌈φ(2β/δ) log(δR²/(ε/2))⌉₊. Here the ceiling is the natural-number ceiling, and log is the real natural logarithm.\nAssume the following uniform success guarantee for this same next, update, s₀, φ and N: for every everywhere Fréchet-differentiable g:E→ℝ that is globally δ-strongly convex and whose actual gradient is globally Lipschitz with constant 2β, and for every global minimizer w of g satisfying ‖w−u‖≤R, there exist a terminal state t∈S, an output x∈E and a query count c∈ℕ such that execute next update (y↦(g(y),∇g(y))) N s₀=((t,some x),c) and g(x)−g(w)≤ε/2. The strong convexity convention subtracts (δ/2)θ(1−θ)‖x−y‖² from the convex chord bound.\nDefine corrected(s,y,a)=update(s,y,(a₁+(δ/2)‖y−u‖²,a₂+δ(y−u))). Then, for every everywhere Fréchet-differentiable globally convex f:E→ℝ with globally β-Lipschitz actual gradient, and every global minimizer z of f with ‖z−u‖≤R, there exist t∈S, x∈E and c∈ℕ such that execute next corrected (y↦(f(y),∇f(y))) N s₀=((t,some x),c), f(x)−f(z)≤ε, c≤⌈φ(2βR²/ε) log 2⌉₊, and c≤φ(2βR²/ε).\nThe execution inspects next at each state, returning a successful some x immediately on its left branch even when remaining query fuel is zero. Its right branch requests an oracle answer and increments c by one only when fuel is positive; a right branch at zero fuel instead returns none. Thus the conclusion asserts actual successful termination within the stated query budget, not merely exhaustion of that budget. The terminal state t, returned point x and count c are the components of that successful run; the conclusion places no further condition on t. The same fixed next, update and s₀ must meet the premise uniformly over g and its qualifying minimizers before the conclusion applies uniformly over f and its qualifying minimizers. The theorem is conditional on that solver guarantee and does not assert that such a solver exists for an arbitrary φ. Only explicit calls through the execution oracle are counted; arbitrary computation inside the supplied functions is uncharged.",
+    "text_sha256": "854406535edb1a0680a96859f740196bec30d47a8d49fa4f176b9d7c3ed3b267",
+    "decoder": "uniform_blind",
+    "decoder_packet_sha256": "1951e0688ace262e62c39aed5d094bf4815f4bc45745196799b1b1485b46876c",
+    "decoder_run_sha256": "38e5781baa5b17d06aaf6c261b9e28919eb9387d32dda5e5759cd80b7dc9d3f1",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "3c145cd9d31625bd03e5592d7a4abccce47abaea025482935f4766bcc6a53faa",
+  "candidate_publication_context": {
+    "file": "ea27d11d25e10dd7dcff4f56b36f1ff1bf1b6d5e7991413e0abd225ddfd35cc9",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer\nimport Mathlib.Analysis.SpecialFunctions.Log.Basic\nimport Mathlib.Algebra.Order.Floor.Ring\n\n/-!\n# A uniform finite-query regularization reduction\n\nChewi arXiv2605.07006v1 §1.1 and §4.1 Lemma4.2. One fixed strongly convex\nsolver is transformed into one fixed convex solver, using actual oracle runs.\nThe natural-valued budget, positive small-error regime and deterministic\nfinite-query semantics are explicit boundaries of this integration theorem.\n-/\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization\nopen Set QuadraticRegularizationOracle\nopen scoped NNReal\n\nset_option backward.isDefEq.respectTransparency false in\n/-- Uniform success and actual query bounds for the corrected program. The\ncallbacks and initial state are fixed before either objective is quantified.\nNo monotonicity of the natural-valued budget function is required. -/\ntheorem uniform_accuracy_and_query_bound\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [ProperSpace E]\n    (β : ℝ≥0) (u : E) {R ε : ℝ} (hR : 0 < R) (hε : 0 < ε)\n    (hsmall : ε ≤ (β : ℝ)*R^2) (φ : ℝ → ℕ)\n    (next : S → Sum E E) (update : S → E → (ℝ × E) → S) (s₀ : S) :\n    let δ : ℝ≥0 := NNReal.mk (ε/R^2) (div_pos hε (sq_pos_of_pos hR)).le\n    let N := ⌈(φ ((2*(β : ℝ))/(δ : ℝ)) : ℝ) *\n      Real.log ((δ : ℝ)*R^2/(ε/2))⌉₊\n    (∀ g : E → ℝ, Differentiable ℝ g → StrongConvexOn univ (δ : ℝ) g →\n      LipschitzWith (2*β) (gradient g) → ∀ w : E,\n      IsMinOn g univ w → ‖w-u‖ ≤ R →\n      ∃ t x c, run next update (fun y => (g y, gradient g y)) N s₀ =\n        ((t, some x), c) ∧ g x-g w ≤ ε/2) →\n    let corrected := fun s y (a : ℝ × E) =>\n      update s y (a.1+(δ : ℝ)/2*‖y-u‖^2, a.2+(δ : ℝ) • (y-u))\n    ∀ f : E → ℝ, Differentiable ℝ f → ConvexOn ℝ univ f →\n      LipschitzWith β (gradient f) → ∀ z : E,\n      IsMinOn f univ z → ‖z-u‖ ≤ R →\n      ∃ t x c, run next corrected (fun y => (f y, gradient f y)) N s₀ =\n        ((t, some x), c) ∧ f x-f z ≤ ε ∧\n        c ≤ ⌈(φ (2*(β : ℝ)*R^2/ε) : ℝ)*Real.log 2⌉₊ ∧\n        c ≤ φ (2*(β : ℝ)*R^2/ε) := by\n  dsimp only\n  let δ : ℝ≥0 := NNReal.mk (ε/R^2) (div_pos hε (sq_pos_of_pos hR)).le\n  let N := ⌈(φ ((2*(β : ℝ))/(δ : ℝ)) : ℝ)*\n    Real.log ((δ : ℝ)*R^2/(ε/2))⌉₊\n  intro hs f hd hc hL z hz hr\n  let W := fun x => f x+(δ : ℝ)/2*‖x-u‖^2\n  have hδβ : (δ : ℝ) ≤ β := (div_le_iff₀ (sq_pos_of_pos hR)).mpr hsmall\n  obtain ⟨hWd,hsc,_,hWL⟩ :=\n    QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness hd hc hL (δ := δ) u\n  have hWL' : LipschitzWith (2*β) (gradient W) := by\n    apply LipschitzWith.of_dist_le_mul\n    intro x y\n    calc\n      dist (gradient W x) (gradient W y) ≤ ((β+δ : ℝ≥0) : ℝ)*dist x y :=\n        hWL.dist_le_mul x y\n      _ ≤ ((2*β : ℝ≥0) : ℝ)*dist x y := by\n        apply mul_le_mul_of_nonneg_right _ dist_nonneg\n        norm_num only [NNReal.coe_add, NNReal.coe_mul, NNReal.coe_ofNat]\n        linarith\n  obtain ⟨w,hw,hwR,haccuracy⟩ :=\n    QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy hd.continuous hz hR hε hr\n  obtain ⟨t,x,c,hex,hgap⟩ := hs W hWd hsc hWL' w hw (hwR.trans hr)\n  obtain ⟨heq,hcount⟩ :=\n    QuadraticRegularizationOracle.simulate_regularized next update hd hc hL (δ := δ) u N s₀\n  have hout : run next\n      (fun s y (a : ℝ × E) => update s y\n        (a.1+(δ : ℝ)/2*‖y-u‖^2,a.2+(δ : ℝ) • (y-u)))\n      (fun y => (f y,gradient f y)) N s₀ = ((t,some x),c) := heq.trans hex\n  have hcN : c ≤ N := by simpa only [hout] using hcount\n  have hratio : 2*(β : ℝ)/(δ : ℝ) = 2*(β : ℝ)*R^2/ε := by\n    change 2*(β : ℝ)/(ε/R^2) = 2*(β : ℝ)*R^2/ε\n    field_simp [ne_of_gt hε, ne_of_gt hR]\n  have hlog : (δ : ℝ)*R^2/(ε/2) = 2 := by\n    change ε/R^2*R^2/(ε/2) = 2\n    field_simp [ne_of_gt hε, ne_of_gt hR]\n  have hN : N = ⌈(φ (2*(β : ℝ)*R^2/ε) : ℝ)*Real.log 2⌉₊ := by\n    simp only [N, hratio, hlog]\n  have hceil : N ≤ φ (2*(β : ℝ)*R^2/ε) := by\n    rw [hN, Nat.ceil_le]\n    have hl : Real.log 2 ≤ 1 := by\n      have := Real.log_le_sub_one_of_pos (by norm_num : (0:ℝ)<2)\n      linarith\n    simpa using mul_le_mul_of_nonneg_left hl\n      (Nat.cast_nonneg (φ (2*(β : ℝ)*R^2/ε)) : (0:ℝ) ≤ _)\n  exact ⟨t,x,c,hout,haccuracy x hgap,by simpa only [← hN] using hcN,hcN.trans hceil⟩\nend AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Section4.1 Lemma4.2 statement and proof; regularized minimum and radius comparisons",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+    },
+    "statement": "Assume a first-order method optimizes the alpha-strongly convex beta-smooth class in phi(kappa) log(alpha R²/epsilon) queries, where kappa=beta/alpha. Lemma4.2 reduces the convex beta-smooth class to it with stated order O(phi(2 beta R²/epsilon)). The proof forms W=f+delta||x-x0||²/2 with delta=epsilon/R², solves W to tolerance epsilon/2, and compares its minimizer w with an original minimizer z. W(w)<=W(z) and f(z)<=f(w) show ||w-x0||<=||z-x0||<=R; the two half-error terms then give f(x)-f(z)<=epsilon. In the regime epsilon<=beta R², the regularized smoothness is beta+delta<=2beta and its condition number is at most2 beta R²/epsilon. The existence/comparison, curvature/smoothness and oracle-complexity obligations are separate.",
+    "formulae": [
+      {
+        "label": "Quadratic regularization and error transfer",
+        "tex": "W(x)=f(x)+\\frac{\\varepsilon}{2R^2}\\|x-x_0\\|^2,\\qquad W(x)-W(w)\\le\\varepsilon/2\\Rightarrow f(x)-f(z)\\le\\varepsilon."
+      },
+      {
+        "label": "The regularized minimizer keeps the radius certificate",
+        "tex": "W(w)\\le W(z),\\quad f(z)\\le f(w)\\ \\Longrightarrow\\ \\|w-x_0\\|\\le\\|z-x_0\\|\\le R."
+      },
+      {
+        "label": "Remaining source complexity reduction",
+        "tex": "\\delta=\\varepsilon/R^2\\le\\beta,\\quad\\beta+\\delta\\le2\\beta,\\quad\\kappa_\\delta\\le2\\beta R^2/\\varepsilon,\\quad O\\!\\left(\\phi(2\\beta R^2/\\varepsilon)\\right)."
+      }
+    ],
+    "assumptions": [
+      "A base first-order algorithm works uniformly on each relevant strongly convex smooth function class with the stated complexity.",
+      "The original function is convex and beta-smooth on Euclidean space with an attained minimum z and ||z-x0||<=R. Positive radii/accuracy are the regularization regime; the source treats coarse accuracy separately."
+    ],
+    "obligations": [
+      {
+        "id": "regularized-minimum",
+        "label": "Construct a global minimizer of the actual regularized objective"
+      },
+      {
+        "id": "radius-comparison",
+        "label": "Compare its distance to the center with the original minimizer"
+      },
+      {
+        "id": "accuracy-transfer",
+        "label": "Transfer epsilon/2 regularized objective error to epsilon original error"
+      },
+      {
+        "id": "curvature-smoothness",
+        "label": "Source-regularity strong convexity and smoothness of the actual W"
+      },
+      {
+        "id": "finite-oracle-simulation",
+        "label": "Finite deterministic implementation of the actual regularized first-order oracle with exact query-count preservation"
+      },
+      {
+        "id": "finite-uniform-reduction",
+        "label": "Uniform finite deterministic solver success, accuracy and normalized natural query budget in the positive small-error regime"
+      },
+      {
+        "id": "oracle-cost-class",
+        "label": "Remaining source-model and parameter-domain adapters: budget convention, smoothness interface, zero-radius/large-tolerance branches (not closed)"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",
+      "kind": "theorem",
+      "title": "A uniform convex solver with the regularized query budget",
+      "statement": "E is a proper complete real inner-product space and S is any state type. Beta is nonnegative; R and epsilon are positive and epsilon<=beta R² (hence beta is actually positive). The center u is fixed. Phi:R→N is an arbitrary natural-valued budget function, with no monotonicity. Fix next:S→E⊕E, update:S→E→(R×E)→S and initial state s0 before quantifying any objective. Left control is a successful output, right control is a query. Set delta=epsilon/R²>0 and N=ceil_nat(Phi(2beta/delta) log(delta R²/(epsilon/2))). For every differentiable delta-strongly-convex g whose genuine gradient is 2beta-Lipschitz, and every global minimizer w with ||w-u||<=R, assume this same program really halts with some x within query allowance N and satisfies g(x)-g(w)<=epsilon/2. The convex consumer is any differentiable convex f with genuine beta-Lipschitz gradient and a supplied global minimizer z satisfying ||z-u||<=R. Neither z nor the subsequently constructed regularized minimizer is passed into the program. Then the fixed corrected program succeeds for every such f with objective error at most epsilon, identical successful state/output, and actual query count at most both ceil_nat(Phi(2beta R²/epsilon)log2) and Phi(2beta R²/epsilon).",
+      "formula": "\\begin{gathered}W=f+\\frac\\delta2\\|\\cdot-u\\|^2,\\quad\\delta=\\frac\\varepsilon{R^2},\\quad q=\\frac{2\\beta R^2}{\\varepsilon},\\\\\\mathrm{run}(P\\circ T,O_f,N,s_0)=((t,\\mathrm{some}(x)),c),\\\\f(x)-f(z)\\le\\varepsilon,\\qquad c\\le\\lceil\\Phi(q)\\log2\\rceil_{\\mathbb N}\\le\\Phi(q).\\end{gathered}",
+      "assumptions": [
+        "E is a proper complete real inner-product space and S is any state type. Beta is nonnegative; R and epsilon are positive and epsilon<=beta R² (hence beta is actually positive). The center u is fixed.",
+        "Phi:R→N is an arbitrary natural-valued budget function, with no monotonicity. Fix next:S→E⊕E, update:S→E→(R×E)→S and initial state s0 before quantifying any objective. Left control is a successful output, right control is a query.",
+        "Set delta=epsilon/R²>0 and N=ceil_nat(Phi(2beta/delta) log(delta R²/(epsilon/2))). For every differentiable delta-strongly-convex g whose genuine gradient is 2beta-Lipschitz, and every global minimizer w with ||w-u||<=R, assume this same program really halts with some x within query allowance N and satisfies g(x)-g(w)<=epsilon/2.",
+        "The convex consumer is any differentiable convex f with genuine beta-Lipschitz gradient and a supplied global minimizer z satisfying ||z-u||<=R. Neither z nor the subsequently constructed regularized minimizer is passed into the program."
+      ],
+      "steps": [
+        {
+          "title": "Choose a declared smoothness bound",
+          "text": "The chosen positive regularization satisfies delta<=beta. The existing first-order theorem proves the actual W=f+delta||x-u||²/2 is differentiable, delta-strongly convex and has (beta+delta)-Lipschitz gradient. Weaken that Lipschitz constant to 2beta and invoke the solver with that declared parameter. This avoids replacing Phi at unequal arguments.",
+          "formula": "\\delta=\\varepsilon/R^2\\le\\beta,\\qquad \\mathrm{Lip}(\\nabla W)\\le\\beta+\\delta\\le2\\beta.",
+          "lean": "QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; LipschitzWith.of_dist_le_mul; multiplication of nonnegative distance bounds."
+        },
+        {
+          "title": "Construct the required minimizer and radius witness",
+          "text": "Apply the existing compact-ball comparison theorem to continuous f and its supplied original minimizer z. It constructs a global minimizer w of the actual W, proves the original radius bound also holds for w, and provides the half-error-to-full-error implication. Do not assume that W already has a minimizer.",
+          "formula": "w\\in\\arg\\min W,\\quad\\|w-u\\|\\le\\|z-u\\|\\le R,\\qquad W(x)-W(w)\\le\\varepsilon/2\\Rightarrow f(x)-f(z)\\le\\varepsilon.",
+          "lean": "QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy; Differentiable.continuous."
+        },
+        {
+          "title": "Apply the same successful program to W",
+          "text": "All premises of the uniform strongly convex solver contract now hold. Its execution against the actual value/gradient oracle of W halts with some x and the required half-error. The program and its initial state were fixed before the function was quantified, so this instantiation cannot choose a new solver using W or w.",
+          "formula": "\\mathrm{run}(P,O_W,N,s_0)=((t,\\mathrm{some}(x)),c),\\qquad W(x)-W(w)\\le\\varepsilon/2.",
+          "lean": "Instantiate the universally quantified actual-execution hypothesis at W and the constructed w."
+        },
+        {
+          "title": "Transfer actual execution and accuracy",
+          "text": "Correct each original reply by the known quadratic value and gradient terms. The previous oracle simulation gives identical final state, successful output and query count, with c<=N. Apply the previously obtained value-transfer implication to this actual halted output. Exhaustion never counts as successful optimization.",
+          "formula": "T_y(v,g)=(v+\\tfrac\\delta2\\|y-u\\|^2,g+\\delta(y-u)),\\qquad\\mathrm{run}(P\\circ T,O_f,N,s_0)=((t,\\mathrm{some}(x)),c),\\quad f(x)-f(z)\\le\\varepsilon.",
+          "lean": "QuadraticRegularizationOracle.simulate_regularized; equality transitivity; constructed accuracy implication."
+        },
+        {
+          "title": "Normalize the budget without monotonicity",
+          "text": "Positive R and epsilon justify cancellation in both budget arguments. The logarithmic ratio is exactly two; the condition-number parameter is exactly 2beta R²/epsilon. Finally log2<=1 and the nonnegative natural value Phi(q) give ceil_nat(Phi(q)log2)<=Phi(q). Thus the actual query count obeys both bounds.",
+          "formula": "\\begin{gathered}\\frac{2\\beta}{\\delta}=\\frac{2\\beta R^2}{\\varepsilon}=q,\\qquad\\frac{\\delta R^2}{\\varepsilon/2}=2,\\\\c\\le N=\\lceil\\Phi(q)\\log2\\rceil_{\\mathbb N}\\le\\Phi(q).\\end{gathered}",
+          "lean": "Field cancellation using R,epsilon>0; Real.log_le_sub_one_of_pos; Nat.ceil_le."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy"
+      ],
+      "mathlib_dependencies": [
+        "LipschitzWith.of_dist_le_mul",
+        "Differentiable.continuous",
+        "Real.log_le_sub_one_of_pos",
+        "Nat.ceil_le"
+      ],
+      "lean_statement": "A single supplied uniform strongly convex program yields one corrected uniform convex program with actual halting accuracy and exact normalized query bound.",
+      "lean_proof": "The chosen positive regularization satisfies delta<=beta. The existing first-order theorem proves the actual W=f+delta||x-u||²/2 is differentiable, delta-strongly convex and has (beta+delta)-Lipschitz gradient. Weaken that Lipschitz constant to 2beta and invoke the solver with that declared parameter. This avoids replacing Phi at unequal arguments. Apply the existing compact-ball comparison theorem to continuous f and its supplied original minimizer z. It constructs a global minimizer w of the actual W, proves the original radius bound also holds for w, and provides the half-error-to-full-error implication. Do not assume that W already has a minimizer. All premises of the uniform strongly convex solver contract now hold. Its execution against the actual value/gradient oracle of W halts with some x and the required half-error. The program and its initial state were fixed before the function was quantified, so this instantiation cannot choose a new solver using W or w. Correct each original reply by the known quadratic value and gradient terms. The previous oracle simulation gives identical final state, successful output and query count, with c<=N. Apply the previously obtained value-transfer implication to this actual halted output. Exhaustion never counts as successful optimization. Positive R and epsilon justify cancellation in both budget arguments. The logarithmic ratio is exactly two; the condition-number parameter is exactly 2beta R²/epsilon. Finally log2<=1 and the nonnegative natural value Phi(q) give ceil_nat(Phi(q)log2)<=Phi(q). Thus the actual query count obeys both bounds.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 and preceding class-success convention",
+          "scope": "Regularization, radius and error transfer, parameter substitution; scoped deterministic/natural-budget interface."
+        },
+        {
+          "path": "Tests/Shared/UniformRegularization.lean",
+          "label": "Uniform one-query gradient-step consumer",
+          "scope": "Proves the base guarantee over the entire stated scalar class from actual gradient smoothness, then consumes the reduction."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",
+      "role": "proof-edge",
+      "supports": [
+        "finite-uniform-reduction"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "A single strongly convex solver succeeds over its function class.",
+        "lean": "Fixed callbacks and initial state, followed by a universal genuine-halting/accuracy contract over differentiable strongly convex gradient-Lipschitz objectives."
+      },
+      {
+        "source": "Euclidean convex beta-smooth objective with initial radius R and accuracy epsilon.",
+        "lean": "Proper complete real inner-product space; actual differentiability and gradient Lipschitzness; R,epsilon positive and epsilon<=beta R²."
+      },
+      {
+        "source": "Phi(kappa)log(alpha R²/tolerance) query bound, yielding O(Phi(2beta R²/epsilon)).",
+        "lean": "Phi:R→Nat and natural ceiling allowance, giving actual count<=ceil(Phi(q)log2)<=Phi(q)."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "5d990c21876aa909dd93c6a606263f8c83c200b5b57d3c97e5f6473e74c2f8e9"
+}

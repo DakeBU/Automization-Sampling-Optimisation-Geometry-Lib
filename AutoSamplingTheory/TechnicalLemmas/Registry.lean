@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.optimisation.uniform-regularization",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",
+    upstreamDecl := "QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy; QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; QuadraticRegularizationOracle.simulate_regularized",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "regularization", "oracle", "uniform-complexity"],
+    saldUse := "Uniform convex solver accuracy and actual normalized query bound from a uniform strongly convex program.",
+    note := "Proper Hilbert; positive small-error regime; natural-valued budget and finite deterministic execution. No Phi monotonicity. Full source model/domain adapters remain."
+  },
+  {
     key := "analysis.optimisation.regularization-oracle",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
     upstreamDecl := "QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; Nat.succ_le_succ",

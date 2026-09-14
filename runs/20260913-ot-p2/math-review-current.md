@@ -32,3 +32,7 @@ The candidate reuses the existing cost-scaling, exact-triangle and finite-second
 ## Admission boundary
 
 Mathematical/source audit: passed on the current working candidate. Commit-bound focused Lean compilation, fake-closure/axiom scan, the repository gate, and publication fidelity admission are separate required checks. No VERIFIED transition is claimed by this report.
+
+## Commit-bound independent verification
+
+Checked commit `b6501fd222c81c974dcad2b38376c692c212fe1f`, initially clean worktree. Focused two-thread Lean build passed (3514 jobs). Fresh printed axioms for the new and historical declarations contain only `propext`, `Classical.choice`, and `Quot.sound`. Canonical forbidden-pattern scan returned no hits; ATLAS check passed. Historical theorem module is unchanged versus the parent commit. Source/fidelity artifacts were rechecked against the independently reviewed exact component. Bounded theorem verification passes; the canonical repository gate remains a separate integration requirement. The read-only root build also passed (9026 jobs). Full Tests and the canonical state-writing gate were not rerun by this reviewer. Full details are in `commit-verification.json`.

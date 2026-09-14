@@ -1,0 +1,98 @@
+{
+  "reviewer_id": "pl_pullback_review",
+  "role": "bounded independent route/reuse review; not frozen proof or source admission",
+  "checked_head": "ae69b853eef162eaa85778123dcc087572e4c545",
+  "verdict": "PASS proposed finite regularization existence/radius/accuracy edge with explicit compactness and source-component scope",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+    "anchor": "Lemma4.2 proof, HTML738-743; opening Section4.1 solver convention",
+    "paraphrase": "The source regularizes f by delta/2 times squared distance from x0, calls a strongly convex solver to error epsilon/2, and chooses delta=epsilon/R\u00b2. Comparison with a supplied minimizer of f transfers error and bounds the regularized minimizer radius. The remaining proof uses smoothness beta+delta and a small-accuracy regime to control condition number and oracle complexity.",
+    "scope": "The proposed theorem closes existence and finite comparison/error ingredients only. Smoothness/strong convexity of W, solver realization, query cost and full Lemma4.2 remain distinct."
+  },
+  "mathematical_assessment": {
+    "assumptions": "Positive R,epsilon; delta=epsilon/R\u00b2>0; continuous real-valued f on a proper normed space, supplied global minimizer z and norm(z-x0)<=R. No differentiability/convexity/smoothness is needed for this finite component.",
+    "existence": "W is continuous. Compact closedBall(x0,R) is nonempty and contains z. Minimize W there. Outside the ball, norm(y-x0)>R>=norm(z-x0) and f(y)>=f(z), so positive penalty implies W(y)>W(z). The compact minimizer has W(w)<=W(z), hence is a global minimizer, not only a constrained-ball minimizer.",
+    "radius": "For every global W-minimizer w, W(w)<=W(z) and f(z)<=f(w) imply delta/2*norm(w-x0)\u00b2<=delta/2*norm(z-x0)\u00b2. Cancel delta>0 and use nonnegative norms to obtain norm(w-x0)<=norm(z-x0)<=R. This is stronger than membership in the construction ball and is not a convexity argument.",
+    "transfer": "For every x with W(x)<=W(w)+epsilon/2, nonnegative penalty and W(w)<=W(z) give f(x)-f(z)<=delta/2*norm(z-x0)\u00b2+epsilon/2<=epsilon. Retain actual W and actual supplied approximate point in the statement; no assumed f-error or surrogate quadratic-growth property.",
+    "uniqueness": "Not guaranteed without convexity/strict convexity; quantify an attained minimizer and possibly make the radius/transfer fact universal over minimizers. Do not claim a unique proximal map.",
+    "properness": "Closed-ball compactness is the load-bearing existence hypothesis. Proper Euclidean finite-dimensional normed spaces specialize correctly. Mere completeness of an arbitrary infinite-dimensional Hilbert space does not justify this compact-ball proof for a general continuous nonconvex f. Properness is a sufficient contract, not asserted necessary.",
+    "zero_domains": "R0 makes delta=epsilon/R\u00b2 invalid under ordinary arithmetic; initial x0=z is already solved but outside this declaration. epsilon0 similarly defeats positive regularization and approximate tolerance. A positive upper R may still be supplied when x0=z, and then the theorem is valid."
+  },
+  "exact_reuse": [
+    {
+      "name": "IsCompact.exists_isMinOn",
+      "file": ".lake/packages/mathlib/Mathlib/Topology/Order/Compact.lean:230",
+      "contract": "For compact s, nonempty s and ContinuousOn W s, obtain x in s with IsMinOn W s x. This is the shortest local proof route; outside-ball comparison upgrades to univ."
+    },
+    {
+      "name": "isCompact_closedBall",
+      "file": ".lake/packages/mathlib/Mathlib/Topology/MetricSpace/ProperSpace.lean:40",
+      "contract": "[ProperSpace E] supplies compactness of every closed ball."
+    },
+    {
+      "name": "Metric.mem_closedBall_self; Metric.closedBall_nonempty",
+      "file": ".lake/packages/mathlib/Mathlib/Topology/MetricSpace/Pseudo/Defs.lean:463",
+      "contract": "Nonnegative radius makes center belong and ball nonempty. Membership is dist<=R; use dist_eq_norm/norm_sub_rev consistently."
+    },
+    {
+      "name": "Continuous.exists_forall_le'",
+      "file": ".lake/packages/mathlib/Mathlib/Topology/Order/Compact.lean:274",
+      "contract": "Alternative global extreme-value route: continuous W and eventual W(z)<=W(y) outside compact sets gives global minimizer. Avoid introducing a cocompact coercivity proof when ball split already suffices."
+    },
+    {
+      "name": "Continuous.add/mul/pow; continuous_norm; continuous_id.sub continuous_const; IsMinOn",
+      "contract": "Only continuity and norm/algebra/minimization APIs are required; no Frechet derivative or Riesz interface."
+    }
+  ],
+  "nearby_astis": [
+    {
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "name": "strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+      "finding": "C2 Hilbert, actual two-sided Hessian bounds and nonnegative precision; concludes shifted strong convexity and gradient Lipschitzness. No regularized minimizer existence, radius comparison or epsilon transfer. Useful downstream only at its exact C2/Hessian contract; do not silently impose it on a source C1 specialization."
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalGaussianEstimator.lean",
+      "name": "private actual_proximal_minimizer and public proximal_gaussian_estimator",
+      "finding": "Existing nearby actual minimizer construction via contraction/fixedPoint, then strong-convexity unique minimality. Uses actual C2 curvature bounds, finite-dimensional measurable framework and restricted positive eta. It establishes a stronger structured proximal map under much stronger assumptions; it does not supply this generic proper continuous/nonconvex radius/error statement. Do not port/copy its private construction."
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalEstimatorLipschitz.lean",
+      "name": "proximal_estimator_lipschitz",
+      "finding": "Consumes that proximal construction and adds nonexpansiveness/noise-input bounds; not a minimal source4.2 finite reduction adapter."
+    },
+    {
+      "scope": "ASTIS TechnicalLemmas Analysis/Geometry and bounded ExampleCases existence/minimizer searches",
+      "finding": "No exact continuous proper-space regularization existence plus radius/epsilon transfer duplicate found. StrongConvexPLPullback lifts a supplied minimizer through a surjective map; unrelated existence mechanism."
+    }
+  ],
+  "external_retrieval": {
+    "reused_evidence": "runs/semantic-roundtrip/andi-opt-restart-reduction/upstream-review.json",
+    "finding": "Bounded Optlib/CvxLean audit found no generic restart/reverse-regularization reduction; CvxLean verified problem equivalences/DCP are a different reduction notion. Prior pinned Optlib5da27c5/CvxLeanc62c2f local checkouts were unavailable and pinned webpages cache-missed; do not claim exhaustive pinned absence. No new external port needed because local Mathlib extreme-value APIs suffice."
+  },
+  "smallest_substantive_statement": "One theorem constructs a genuine global minimizer w of W at delta=epsilon/R\u00b2, proves norm(w-x0)<=norm(z-x0), and proves every epsilon/2-approximate minimizer of this actual W transfers to f-error<=epsilon. This is a reusable existence-plus-comparison integration edge, materially beyond a conditional algebra-only wrapper; no gradient/smoothness/cost theorem required in this SAU.",
+  "proof_route": [
+    "Define delta and W; prove delta>0 and W continuity.",
+    "Apply compact-ball extreme value theorem with known point z in the ball.",
+    "Compare every outside point against z using f global minimality and increasing positive quadratic penalty, obtaining global W minimality of the constructed point.",
+    "Compare W at the constructed minimizer and z, subtract f minimality and cancel positive delta to prove the sharper actual-radius bound.",
+    "For any supplied W-approximate point, discard its nonnegative penalty, compare Wmin to W(z), and substitute delta R\u00b2=epsilon to obtain f-error<=epsilon."
+  ],
+  "focused_consumers": [
+    "Shifted scalar quadratic with center different from its original minimizer; verify an actual regularized minimizer lies strictly between them and exercise approximation transfer.",
+    "A continuous nonsmooth objective such as f(x)=abs x with x0=2,R2,epsilon4 (delta1) validates that no hidden C1/C2 premise is needed; w1 is an actual regularized minimizer.",
+    "Use a loose upper radius as well as the exact original distance to verify only a radius bound is assumed.",
+    "Case x0=z with positive R confirms proper nonzero denominator and valid zero original-distance comparison, without claiming literal R0 support."
+  ],
+  "publication_boundary": [
+    "Create/bind exact Lemma4.2 finite obligations for attained regularized minimum, radius and approximation transfer. Full curvature/smoothness/condition-number/oracle/class reduction remains unbound.",
+    "Disclose proper-space continuity/nonconvex generalization as an extension of the Euclidean smooth-convex finite proof component, not source-domain identity.",
+    "No source repair is needed merely to prove a stronger finite component under explicit properness; any claim repairing omitted existence or extending the full class theorem needs separate source review.",
+    "Keep root sole writer, fresh source-blind reconstruction and independent anti-anchored source review mandatory after frozen proof."
+  ],
+  "unresolved_findings": [],
+  "limitations": [
+    "Read-only route audit, no proofs/builds/suites",
+    "External search bounded and reused with its pinned-availability limitation",
+    "No assertion of full Lemma4.2 or source/oracle equivalence"
+  ]
+}

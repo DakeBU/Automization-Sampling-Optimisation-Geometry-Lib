@@ -2052,6 +2052,101 @@
           "audit_id": "ASTIS-RT-ANDI-OPT-RestartLogComplexity"
         }
       ]
+    },
+    {
+      "id": "chewi-opt-v1-lemma-4-2",
+      "library": "optimisation",
+      "chapter": "04",
+      "chapter_path": "libraries/optimisation/chapter-04.html",
+      "title": "Lemma4.2 · reducing convex optimization by quadratic regularization",
+      "source": {
+        "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+        "edition": "arXiv:2605.07006v1",
+        "anchor": "Section4.1 Lemma4.2 statement and proof; regularized minimum and radius comparisons",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+      },
+      "statement": "Assume a first-order method optimizes the alpha-strongly convex beta-smooth class in phi(kappa) log(alpha R²/epsilon) queries, where kappa=beta/alpha. Lemma4.2 reduces the convex beta-smooth class to it with stated order O(phi(2 beta R²/epsilon)). The proof forms W=f+delta||x-x0||²/2 with delta=epsilon/R², solves W to tolerance epsilon/2, and compares its minimizer w with an original minimizer z. W(w)<=W(z) and f(z)<=f(w) show ||w-x0||<=||z-x0||<=R; the two half-error terms then give f(x)-f(z)<=epsilon. In the regime epsilon<=beta R², the regularized smoothness is beta+delta<=2beta and its condition number is at most2 beta R²/epsilon. The existence/comparison, curvature/smoothness and oracle-complexity obligations are separate.",
+      "assumptions": [
+        "A base first-order algorithm works uniformly on each relevant strongly convex smooth function class with the stated complexity.",
+        "The original function is convex and beta-smooth on Euclidean space with an attained minimum z and ||z-x0||<=R. Positive radii/accuracy are the regularization regime; the source treats coarse accuracy separately."
+      ],
+      "formulae": [
+        {
+          "label": "Quadratic regularization and error transfer",
+          "tex": "W(x)=f(x)+\\frac{\\varepsilon}{2R^2}\\|x-x_0\\|^2,\\qquad W(x)-W(w)\\le\\varepsilon/2\\Rightarrow f(x)-f(z)\\le\\varepsilon."
+        },
+        {
+          "label": "The regularized minimizer keeps the radius certificate",
+          "tex": "W(w)\\le W(z),\\quad f(z)\\le f(w)\\ \\Longrightarrow\\ \\|w-x_0\\|\\le\\|z-x_0\\|\\le R."
+        },
+        {
+          "label": "Remaining source complexity reduction",
+          "tex": "\\delta=\\varepsilon/R^2\\le\\beta,\\quad\\beta+\\delta\\le2\\beta,\\quad\\kappa_\\delta\\le2\\beta R^2/\\varepsilon,\\quad O\\!\\left(\\phi(2\\beta R^2/\\varepsilon)\\right)."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "regularized-minimum",
+          "label": "Construct a global minimizer of the actual regularized objective"
+        },
+        {
+          "id": "radius-comparison",
+          "label": "Compare its distance to the center with the original minimizer"
+        },
+        {
+          "id": "accuracy-transfer",
+          "label": "Transfer epsilon/2 regularized objective error to epsilon original error"
+        },
+        {
+          "id": "curvature-smoothness",
+          "label": "Source-regularity strong convexity and smoothness of the actual W (not closed)"
+        },
+        {
+          "id": "oracle-cost-class",
+          "label": "First-order oracle implementation, cost comparison and class-uniform reduction (not closed)"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy",
+          "cell": "ASTIS-SHARED-regularization-transfer",
+          "role": "proof-edge",
+          "supports": [
+            "regularized-minimum",
+            "radius-comparison",
+            "accuracy-transfer"
+          ],
+          "boundary": "This establishes the regularized-minimum existence, radius comparison and objective-accuracy transfer in Lemma4.2. It does not prove regularized strong convexity or smoothness, an optimizer implementation, query complexity or the complete class-level reduction. The proper normed-group formulation generalizes the source Euclidean geometry. Continuity suffices for this comparison component, so convexity and beta-smoothness are not formal assumptions here. Closed-ball compactness is explicit; no result for arbitrary complete infinite-dimensional Hilbert spaces is asserted. The original global minimizer is supplied; the regularized one is constructed. Uniqueness is not claimed in the broader continuous, possibly nonconvex setting. Positive R and epsilon ensure positive delta; the literal R=0 branch is outside this declaration. The approximation implication is a value-transfer interface, not a claim that every numerical method satisfies its input gap. Tests use an actual gradient step on a quadratic regularized objective to supply that gap without giving the algorithm the constructed minimizer. Existing C2/Hessian QuadraticRegularization and the stronger SPHMC proximal constructor were searched. They do not supply this weaker-assumption interface and are not claimed as invoked dependencies. Future curvature/smoothness and oracle-cost work must preserve the source regularity and budget conventions.",
+          "assumption_deltas": [
+            {
+              "source": "Convex beta-smooth Euclidean objective with an attained original minimum.",
+              "lean": "Continuous real-valued objective on a proper normed additive commutative group with a supplied original global minimizer.",
+              "classification": "generalization",
+              "reason": "Only continuity, closed-ball compactness and the original lower bound are needed for this component. No smoothness is silently strengthened toC2; source Euclidean spaces meet properness."
+            },
+            {
+              "source": "The proof names a minimizer of W.",
+              "lean": "Construct one via compact-ball minimization and a proved outside-ball comparison.",
+              "classification": "source-implicit",
+              "reason": "This supplies the omitted existence justification. No uniqueness is claimed in the broader setting."
+            },
+            {
+              "source": "delta=epsilon/R² and upper initial-radius certificate.",
+              "lean": "R>0,epsilon>0 and ||z-x0||<=R; the same W and same constructed w appear in the uniform approximation implication.",
+              "classification": "source-implicit",
+              "reason": "Positivity justifies the penalty comparison and cancellation. Symmetry of norm makes this radius convention equivalent to ||x0-z||<=R; literal R0 is separate."
+            },
+            {
+              "source": "Full curvature and oracle complexity reduction.",
+              "lean": "Only global-minimum existence, sharp radius comparison and pointwise value transfer.",
+              "classification": "same",
+              "reason": "This binding supports precisely the listed proof components; it makes no full-lemma completion claim."
+            }
+          ],
+          "audit_id": "ASTIS-RT-ANDI-OPT-RegularizationTransfer"
+        }
+      ]
     }
   ]
 }

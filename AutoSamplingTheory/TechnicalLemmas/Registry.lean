@@ -73,6 +73,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.optimisation.regularization-transfer",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy",
+    upstreamDecl := "IsCompact.exists_isMinOn; isCompact_closedBall; Metric.mem_closedBall; dist_eq_norm",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "regularization", "minimizer", "accuracy"],
+    saldUse := "Construct actual regularized minimum and transfer radius and objective approximation.",
+    note := "Continuous proper normed group, supplied original minimum, positive radius and precision. No convexity/C2 assumed; no uniqueness, curvature/smoothness, solver or oracle/class closure."
+  },
+  {
     key := "analysis.optimisation.restart-log-complexity",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
     upstreamDecl := "RestartReduction.radius_accuracy_and_cost; Nat.le_ceil; Nat.ceil_eq_zero; Real.log_le_log_iff; Real.log_pow",

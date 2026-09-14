@@ -38,6 +38,7 @@ import Tests.CarreDuChamp
 import Tests.CoefficientTruncation
 import Tests.ContinuousCostWeakLowerSemicontinuity
 import Tests.DisplacementInterpolation
+import Tests.DisplacementInterpolationConstantSpeed
 import Tests.DisplacementJacobianEntropy
 import Tests.DiscreteDoobL2
 import Tests.ContinuousDoobL2

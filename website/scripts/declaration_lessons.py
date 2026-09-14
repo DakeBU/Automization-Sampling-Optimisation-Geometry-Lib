@@ -127,7 +127,7 @@ def validate_projection(projection: dict, known: dict) -> None:
         raise ValueError(f'Missing projection explanation: {parent}.{field}')
 
 
-def render_unit(unit: dict, page: str) -> str:
+def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
     name = unit['declaration']
     declaration = inline_lean.declarations()[name]
     is_proof = declaration.kind in {'lemma', 'theorem', 'instance'}
@@ -171,14 +171,15 @@ def render_unit(unit: dict, page: str) -> str:
         f'<h2>Statement</h2><p>{base.esc(unit["statement"])}</p>'
         f'<div class="proof-reader-equation">\\[{base.esc(unit["formula"])}\\]</div>'
         '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
-        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'], page=page)
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
         + base.list_html(unit.get('conventions', []), empty='')
         + f'<h2>{proof_title}</h2>' + steps
+        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'], page=page)
         + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page, helpers=tuple(unit.get('helpers', [])))
         + examples
+        + source_comparison
         + '<h2>Scope and omitted-condition boundaries</h2>' + base.list_html(boundary)
-        + '<details><summary>Source and reuse</summary><h3>ASTIS parents called</h3><ul>' + astis
+        + '<section class="proof-reader-provenance"><h2>Source and reuse</h2><h3>ASTIS parents called</h3><ul>' + astis
         + '</ul>'
         + ('<h3>Domain assumptions accessed</h3><p>These are fields of the linked structure, not additional independently authored theorem leaves.</p><ul>' + projections + '</ul>' if projections else '')
         + '<h3>Mathlib API called (external library)</h3>' + external
@@ -188,7 +189,7 @@ def render_unit(unit: dict, page: str) -> str:
         + '</ul>'
         + (f'<p>{base.esc(unit["source_history_boundary"])}</p>' if unit.get('source_history_boundary') else '')
         + '<p>ASTIS prose is not a quotation or a source-equivalence certificate. '
-        'Definitions and aliases are explained as constructions, not counted as new mathematical proofs.</p></details>'
+        'Definitions and aliases are explained as constructions, not counted as new mathematical proofs.</p></section>'
         + '</article>'
     )
 

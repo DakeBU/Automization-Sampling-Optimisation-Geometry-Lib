@@ -1,0 +1,102 @@
+{
+  "task": "Independent read-only shared renderer audit",
+  "scope": "Presentation only. No mathematical audit records inspected or reinterpreted, no repo files modified.",
+  "inspected_files": [
+    "website/scripts/publication_reader.py",
+    "website/scripts/declaration_lessons.py",
+    "website/scripts/chewi_source_first_contract.py",
+    "website/scripts/textbook_math_contract.py",
+    "website/scripts/reader_contract_final.py",
+    "website/scripts/inline_lean.py",
+    "website/scripts/build_site.py",
+    "_site/textbook/chapter-01/section-1-3.html"
+  ],
+  "findings": [
+    {
+      "severity": "review",
+      "location": "website/scripts/publication_reader.py:47-77",
+      "finding": "source_card accumulates every binding comparison in comparisons and every rendered lesson in lessons, then emits all comparisons before all lessons. A multi-binding source card therefore detaches each condition table, audit verdict and boundary from the theorem it qualifies."
+    },
+    {
+      "severity": "review",
+      "location": "website/scripts/publication_reader.py:223-247",
+      "finding": "validate_site currently tests page-wide substring presence, not uniqueness or containment within the intended publication item or declaration. A comparison or lesson elsewhere on the page can satisfy these checks."
+    },
+    {
+      "severity": "informational",
+      "location": "website/scripts/declaration_lessons.py:128-193",
+      "finding": "render_unit already supplies mathematical statement/formula, complete actual premises, natural proof steps with formulas, closed exact Lean statement/proof disclosures, visible scope boundaries and a final closed Source and reuse disclosure. Reuse this common renderer instead of introducing an optimisation-specific component."
+    },
+    {
+      "severity": "informational",
+      "location": "website/scripts/declaration_lessons.py:278-304",
+      "finding": "Existing lesson checks preserve authored strings and require statement/proof marker order but do not prove same-declaration ancestry. The broad any-open-details rejection also conflates folded Lean with arbitrary future disclosures."
+    },
+    {
+      "severity": "informational",
+      "location": "website/scripts/chewi_source_first_contract.py:287-328; website/scripts/inline_lean.py:85-142; website/scripts/build_site.py:193-236",
+      "finding": "The Chapter1.3 reference is a composed final pipeline. The source generator orders source statement, source proof/status, implicit conditions, folded ASTIS expansion, folded Lean. The later inline_lean pass adds exact folded statement/proof and exposes the ASTIS LaTeX expansion. The final HTML, not an intermediate generator, defines the current reading experience."
+    }
+  ],
+  "reference_observation": {
+    "path": "_site/textbook/chapter-01/section-1-3.html",
+    "source_card_count": 11,
+    "source_lean_disclosure_count": 11,
+    "source_lean_disclosures_open": 0,
+    "first_three_card_direct_child_order": [
+      "source header",
+      "source mathematical statement",
+      "closed exact Lean statement",
+      "assumptions and implicit prerequisites",
+      "visible ASTIS LaTeX expansion",
+      "closed exact Lean proof",
+      "closed Lean correspondence links",
+      "external source anchor"
+    ],
+    "interpretation": "The reusable reference properties are source-led displayed mathematics, readable mathematics without opening code, exact Lean folded adjacent to its math, condition provenance and an external source anchor. The newest requested order should take precedence where it differs from the literal historical order."
+  },
+  "smallest_shared_change": {
+    "files": [
+      "website/scripts/publication_reader.py",
+      "website/scripts/declaration_lessons.py"
+    ],
+    "proposal": [
+      "Replace the separate comparison and lesson accumulators in source_card with one loop emitting one declaration unit per binding. Preserve the source statement/formulas once at source-card level.",
+      "Add a keyword-only optional rendered evidence tail argument to render_unit, defaulting to empty. Insert it after the existing full mathematical proof and folded Lean proof, alongside visible scope boundaries, immediately before the existing final Source and reuse disclosure. This preserves standalone lesson callers and applies identically to every publication shelf.",
+      "Build each binding-specific condition comparison, boundary, audit state/verdict, semantic deltas and repair overlays inside that tail. Attach data-publication-binding=<full declaration> and stable role markers so checks can prove association with the containing data-authored-declaration.",
+      "Keep required mathematical premises with the actual theorem statement; the later hidden-assumption section means source-implicit conditions and source/Lean differences, not permission to hide premises needed to interpret the theorem.",
+      "If the user requires every code block strictly after the whole natural proof, move the shared statement disclosure beside the full proof disclosure and move per-step code correspondences into that group for all render_unit callers. Otherwise retain Chapter1.3-style adjacent folded code after each corresponding mathematical part; make this layout choice explicit, not optimisation-dependent.",
+      "Keep source-level provenance identity/wording near the original statement, while detailed external mathematical provenance and separate ASTIS/Mathlib reuse stay at the end. Keep proof-obligation summary separate at source-card level; do not interleave all binding comparisons before all proofs."
+    ],
+    "avoid": [
+      "No authored statement/proof rewriting or duplicated mathematics to implement layout.",
+      "No status recomputation or badge mutation beyond existing publication projection.",
+      "No hand editing generated HTML.",
+      "No brittle rendered-string splice based on a translated heading; use an explicit renderer insertion point.",
+      "No optimisation library-name special case."
+    ]
+  },
+  "evidence_to_preserve": [
+    "Original source statement, exact displayed formulas, source edition/anchor, attribution and faithful-restatement/quote distinction.",
+    "Each declaration identity and kind. A definition or alias remains a construction, not a theorem-completion badge.",
+    "Complete formal premises and actual mathematical conclusion, formulas and explanatory proof steps, including optional conventions/notation and authored examples.",
+    "Exact closed Lean statement and proof for the same declaration; per-step Lean and helper text remain available.",
+    "Source-vs-Lean assumption rows including classification and reason, binding supports/role, exact remaining boundary and audit state/verdict. Pending historical audits must remain visibly pending.",
+    "Semantic deltas and severity, independent-review state, and proposed repair classification/status/justification/minimality/evidence. Repairs must remain visibly separate from the original source theorem.",
+    "ASTIS parent links, structure projection assumptions, Mathlib calls/dependency roles, mathematical source links/scopes, and source-history boundary. A conceptual resemblance or external reference must not acquire formal-dependency presentation.",
+    "Source obligation coverage retains TODO/unclosed status and local-component vs full-source distinctions. A visually moved block must not change admission or progress."
+  ],
+  "robust_structural_checks": [
+    "Parse HTML into a tree. Scope each test to one data-publication-item and one binding wrapper; do not use page-global find() as evidence of adjacency.",
+    "For each expected binding, require exactly one matching data-authored-declaration inside that source item and exactly one assumption/audit evidence block with the same declaration identity inside that authored unit. Reject cross-binding or duplicate blocks.",
+    "Assert direct or role-marker ordering: source statement before bound theorem units; each unit contains natural statement/formula and proof, folded Lean, its own condition/evidence tail, then final provenance. If adjacent-fold layout is retained, assert statement-to-statement-code and proof-to-proof-code correspondence explicitly.",
+    "For every Lean disclosure, require details without open and data-inline-lean equal to the enclosing declaration; verify exactly one full statement and proof disclosure per authored unit, and preserve per-step details separately.",
+    "Check actual theorem statement/formula, every premise and every proof-step formula against authored lesson data after HTML decoding. Do not let collapsed or misplaced unrelated content satisfy this by page-wide text search.",
+    "Verify all condition rows and semantic delta/repair data remain in the same binding block; check nonempty explicit pending/no-verdict text when no independent source audit is present. Preserve open boundary text and repair-not-source label.",
+    "Use a synthetic multi-binding fixture with different conditions and verdicts to detect the original grouping regression, plus theorem and definition cases, an unaudited historical binding, a repair overlay, and no optional external dependencies.",
+    "Exercise at least one non-optimisation publication through the same renderer to ensure common behavior; check its identity/provenance/links and no library-name condition.",
+    "Check nested section/article/details balance and unique anchors with an HTML parser, then check relative internal links from both standalone lesson pages and embedded chapter pages.",
+    "Verify at the final site stage after inline_lean and style inheritance, because later passes can change disclosure wrappers/order. A small browser inspection of the multi-binding source card should confirm readable equations, closed code and adjacent conditions at both normal and narrow widths."
+  ],
+  "limitations": "This audit recommends presentation changes only. It does not certify any historical theorem, audit state, source equivalence or generated-page mathematical content."
+}

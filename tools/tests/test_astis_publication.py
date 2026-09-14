@@ -84,6 +84,9 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual({b['declaration'] for b in self.legacy_bindings}, p.LEGACY_NAMES)
 
     def test_changed_legacy_requires_real_review(self):
+        # Historical debt alone must fail even after a real current-version
+        # audit has been attached to this unchanged migration fixture.
+        self.binding.pop('audit_id', None)
         errors = p.validate(self.items, self.data, strict_names={self.name})
         self.assertTrue(any('historical audit debt' in e for e in errors))
 
@@ -234,7 +237,7 @@ class PublicationTest(unittest.TestCase):
         text = publication_reader.source_card(self.item, self.item['chapter_path'])
         self.assertEqual(text.count('data-authored-declaration='), len(self.item['bindings']))
         self.assertNotIn('<h1>', text)
-        self.assertIn('pending historical audit', text)
+        self.assertIn('Historical audit record: legacy_audit_debt', text)
         # This source item now has a verified component for every obligation;
         # that does not certify the entire chapter or erase historical debt.
         self.assertNotIn('TODO — not closed', text)
@@ -250,6 +253,30 @@ class PublicationTest(unittest.TestCase):
         text = publication_reader.source_card(item, item['chapter_path'])
         self.assertIn('TODO — not closed by these contributions', text)
         self.assertIn('A deliberately unbound proof obligation', text)
+
+    def test_each_proof_keeps_its_own_assumptions_and_provenance_adjacent(self):
+        import publication_reader
+        text = publication_reader.source_card(self.item, self.item['chapter_path'])
+        self.assertLess(text.index('Complete source statement'),
+                        text.index('data-authored-declaration='))
+        for binding in self.item['bindings']:
+            name = binding['declaration']
+            start = text.index(f'<article class="proof-reader" data-authored-declaration="{name}">')
+            # Semantic repairs contain nested articles; stop at the next lesson,
+            # not at the first closing article inside this one.
+            end = text.find('<article class="proof-reader"', start + 1)
+            if end < 0:
+                end = len(text)
+            block = text[start:end]
+            self.assertEqual(block.count('data-source-comparison='), 1)
+            self.assertIn(f'data-source-comparison="{name}"', block)
+            markers = ['Mathematical proof', 'Lean statement ·', 'Lean proof ·',
+                       'Source assumptions versus formal assumptions',
+                       'proof-reader-provenance', 'Mathlib API called (external library)']
+            positions = [block.index(marker) for marker in markers]
+            self.assertEqual(positions, sorted(positions))
+            self.assertNotRegex(block, r'<details\b[^>]*\bopen(?:\s|=|>)')
+            self.assertNotIn('<summary>Source and reuse</summary>', block)
 
     def test_new_default_harness_schema_requires_publication(self):
         self.assertEqual(advance.ADVANCE_SCHEMA_VERSION, 4)

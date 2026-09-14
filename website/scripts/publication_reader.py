@@ -43,22 +43,29 @@ def source_card(item: dict, page: str) -> str:
         supporters = [b for b in item['bindings'] if o['id'] in b.get('supports', []) and b['role'] == 'proof-edge' and publication.verified_binding(b, data)]
         label = 'Local proof component; source adapter/review separate' if supporters else 'TODO — not closed by these contributions'
         obligations.append(f'<li><span class="status status-{"orange" if supporters else "red"}">{label}</span> {escape(o["label"])}</li>')
-    comparisons = []
     lessons = []
     for b in item['bindings']:
         name = b['declaration']
         audit = data['audits'].get(b.get('audit_id'), {})
+        debt = b.get('legacy_audit_debt', {})
+        history = ('<p><strong>Historical audit record: legacy_audit_debt.</strong> '
+                   + escape(debt.get('reason', ''))
+                   + ' Any current review below applies to the current version; it does not certify a historical worker run.</p>') if debt else ''
         rows = ''.join('<tr>' + ''.join(f'<td>{escape(r[k])}</td>' for k in ('source', 'lean', 'classification', 'reason')) + '</tr>'
                        for r in b['assumption_deltas'])
-        comparisons.append(f'<h3>{escape(name.rsplit(".", 1)[-1])}</h3>'
+        comparison = (f'<section data-source-comparison="{escape(name)}">'
+                           '<h3>Source assumptions versus formal assumptions</h3>'
                            '<div class="table-scroll"><table><thead><tr><th>Source</th><th>Actual Lean</th>'
                            '<th>Difference kind</th><th>Why it matters</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                            f'<p>{escape(b["boundary"])}</p>'
-                           '<p><strong>Encoder–denoiser:</strong> ' + escape(audit.get('state', 'pending historical audit'))
-                           + ' · ' + escape(audit.get('verdict', 'No source-fidelity verdict. Local compilation is not source assimilation.')) + '</p>')
-        comparisons.append(semantic_details(audit))
+                           + history
+                           + '<p><strong>Encoder–denoiser:</strong> ' + escape(audit.get('state', 'pending historical audit'))
+                           + ' · ' + escape(audit.get('verdict', 'No source-fidelity verdict. Local compilation is not source assimilation.')) + '</p>'
+                           + semantic_details(audit)
+                           + '<p>A generalization is not a source correction. Proposed missing conditions require separate independent repair review. '
+                           'No proposed repair silently changes the original theorem.</p></section>')
         lesson = data['lessons'][name]
-        rendered = declaration_lessons.render_unit(lesson, page)
+        rendered = declaration_lessons.render_unit(lesson, page, source_comparison=comparison)
         rendered = rendered.replace('<h1>', '<h2>').replace('</h1>', '</h2>')
         rendered = rendered.replace('href="index.html">Teaching coverage',
                                     f'href="{astis_site.relative_prefix(page)}lessons/index.html">Teaching coverage')
@@ -68,13 +75,10 @@ def source_card(item: dict, page: str) -> str:
             f'<p><a href="{escape(source["url"])}">{escape(source["edition"])} · {escape(source["anchor"])}</a>'
             f' · {escape(source["wording_status"])}</p><h3>Complete source statement (ASTIS restatement)</h3>'
             f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
-            + '<h3>Which proof edges are actually covered?</h3><ul>' + ''.join(obligations) + '</ul>'
-            + '<h3>Source assumptions versus formal assumptions</h3>' + ''.join(comparisons)
-            + '<p>A generalization is not a source correction. Proposed missing conditions require separate independent repair review. '
-            'No proposed repair silently changes the original theorem.</p>'
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
             'ASTIS parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
-            + ''.join(lessons) + '</section>')
+            + ''.join(lessons)
+            + '<h3>Which proof edges are actually covered?</h3><ul>' + ''.join(obligations) + '</ul></section>')
 
 
 def enrich_site(output: Path) -> None:

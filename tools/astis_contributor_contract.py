@@ -48,9 +48,13 @@ def validate(base: str | None) -> list[str]:
             lesson = data["lessons"].get(name, {})
             label = f"{name} ({cell_id or 'missing cell'})"
 
-            reader = binding.get("reader_contract")
+            # Reader/layout obligations live in the Frontier Cell rather than in
+            # the semantic publication binding.  This lets us improve the public
+            # reader without invalidating an already accepted source-equivalence
+            # audit whose theorem/source/exposition payload is unchanged.
+            reader = cell.get("reader_contract")
             if not isinstance(reader, dict):
-                errors.append(f"{label}: reader_contract required")
+                errors.append(f"{label}: Frontier Cell reader_contract required")
             else:
                 if reader.get("reference_standard") != REFERENCE_READER:
                     errors.append(f"{label}: reader reference must be {REFERENCE_READER}")

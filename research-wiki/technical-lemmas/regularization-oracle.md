@@ -51,3 +51,7 @@ proof/source/packet/digest/import/count/preservation checks passed. Direct-main
 publication is the remaining integration action.
 Next: quantify a uniform solver program and true halting budget, then compose
 regularized minimizer/radius/accuracy and positive-regime parameters.
+
+Merged and pushed directly to main at `a96e870732d3a65978ab753d9ffe4598e8a1a735` under standing user
+authorization. SAU MERGED releases the single stabilization lane. Remote CI
+and deployment are separate from the passed local checks.

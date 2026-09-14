@@ -2,6 +2,16 @@
 
 Use the following prompt to start a Codex/ChatGPT formalization session for the Optimisation Route.
 
+Before anything else, pull the latest `main` and read the common collaborator bootstrap and contract:
+
+`AGENTS.md`  
+`CONTRIBUTING.md`  
+`.agents/prompts/collaborator-contribution.md`  
+`docs/contributor-codex-contract.md`  
+`docs/theorem-publication-protocol.md`
+
+The common contract is authoritative for reader publication, shared-lemma reuse, encoder–denoiser semantic checks, Lean/Overview/Functor graph publication, collaboration safety, and stabilization. The Optimisation instructions below add route-specific source/dependency guidance; they do not weaken the common contract.
+
 ---
 
 You are working on the **Optimisation Route** of Samplinglib:
@@ -71,6 +81,8 @@ If you discover a missing theorem needed by another textbook/research lane, **do
 
 Register/update the Frontier Cell JSON before substantial implementation.
 
+For every changed production declaration, satisfy the common contributor contract before claiming completion: populate the required `reuse_plan`, `reader_contract`, and `graph_contribution`; publish a Chapter-1.3-quality declaration lesson; run the source-blind encoder–denoiser audit for source-facing claims; and record the exact Lean Branches / Overview / Functor graph delta. Do not add a Functor edge merely because two formulas look similar.
+
 Use the ASTIS state machine:
 
 `claimed → proved_locally → independently_verified → stabilized → merged`
@@ -87,4 +99,6 @@ Prefer focused compilation/tests during exploration. Do not independently edit r
 
 The proving worker may establish `proved_locally`, but **cannot self-assign `independently_verified`**.
 
-Start now by inspecting the latest `main`, the front-loaded shared spine, current Optimisation dashboard, Chewi's next reachable theorem(s), Mathlib/Optlib/CvxLean matches, and existing shared cells. Select the next substantive Frontier Cell, perform the complete reuse audit, register it, and then push the formalization forward as far as real evidence allows.
+Before handoff, run the exact current contract gates. In particular, the incremental contributor-contract command supports `check --base ...` or `check --ci`; there is no `--strict` flag.
+
+Start now by inspecting the latest `main`, the common collaborator contract, the front-loaded shared spine, current Optimisation dashboard, Chewi's next reachable theorem(s), Mathlib/Optlib/CvxLean matches, and existing shared cells. Select the next substantive Frontier Cell, perform the complete reuse audit, register it, and then push the formalization forward as far as real evidence allows.

@@ -1,0 +1,28 @@
+name: Hudson OT P2 final Lean port
+
+on:
+  push:
+    branches: [codex/hudson-ot-p2-clean]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Set up Lean and Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          use-mathlib-cache: true
+      - name: Run audited clean-port helper
+        run: bash tools/hudson_ot_p2_final_port.sh

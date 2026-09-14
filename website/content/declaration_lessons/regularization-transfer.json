@@ -1,0 +1,72 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy",
+      "kind": "theorem",
+      "title": "A regularized minimizer exists and transfers approximation accuracy",
+      "statement": "E is a normed additive commutative group whose closed metric balls are compact (ProperSpace). The function f:E→R is continuous. A global minimizer z of f is supplied: f(z)<=f(x) for every x. The center x0 and positive real numbers R,epsilon satisfy ||z-x0||<=R. Set delta=epsilon/R² and W(x)=f(x)+delta||x-x0||²/2. The theorem constructs a global minimizer w of this same W; it does not assume a regularized minimizer, convexity or differentiability. There exists such a w with the radius bound below, and every epsilon/2-accurate regularized point is epsilon-accurate for f.",
+      "formula": "\\begin{gathered}\\delta=\\varepsilon/R^2,\\quad W(x)=f(x)+\\frac\\delta2\\|x-x_0\\|^2,\\\\\\exists w:\\ \\bigl(\\forall y,\\ W(w)\\le W(y)\\bigr),\\quad\\|w-x_0\\|\\le\\|z-x_0\\|,\\\\\\forall x,\\quad W(x)-W(w)\\le\\varepsilon/2\\ \\Longrightarrow\\ f(x)-f(z)\\le\\varepsilon.\\end{gathered}",
+      "assumptions": [
+        "E is a normed additive commutative group whose closed metric balls are compact (ProperSpace). The function f:E→R is continuous.",
+        "A global minimizer z of f is supplied: f(z)<=f(x) for every x. The center x0 and positive real numbers R,epsilon satisfy ||z-x0||<=R.",
+        "Set delta=epsilon/R² and W(x)=f(x)+delta||x-x0||²/2. The theorem constructs a global minimizer w of this same W; it does not assume a regularized minimizer, convexity or differentiability."
+      ],
+      "steps": [
+        {
+          "title": "Minimize on a compact ball",
+          "text": "Delta is positive because epsilon and R are positive. The squared distance to x0 is continuous, so W is continuous. The closed ball of radius R centered at x0 is compact and contains z. The extreme value theorem gives w in that ball minimizing W there; in particular W(w)<=W(z).",
+          "formula": "K=\\overline B(x_0,R),\\quad z\\in K,\\quad \\exists w\\in K:\\ \\forall x\\in K,\\ W(w)\\le W(x).",
+          "lean": "isCompact_closedBall; IsCompact.exists_isMinOn; continuity of distance and its square. Properness is used here."
+        },
+        {
+          "title": "Upgrade to a global minimum",
+          "text": "Inside the ball the comparison is already proved. Outside it, ||x-x0||>R>=||z-x0||. The original global minimality gives f(z)<=f(x), and the nonnegative quadratic coefficient gives the same order for the two penalties. Therefore W(z)<=W(x), and W(w)<=W(z)<=W(x). This constructs actual global minimality, not just constrained minimality.",
+          "formula": "\\|x-x_0\\|>R\\ \\Longrightarrow\\ W(w)\\le W(z)\\le f(x)+\\frac\\delta2\\|x-x_0\\|^2=W(x).",
+          "lean": "Membership split for closedBall, dist_eq_norm, positive scalar multiplication and the supplied IsMinOn f Set.univ z."
+        },
+        {
+          "title": "Compare the two minimizer radii",
+          "text": "Combine W(w)<=W(z) with f(z)<=f(w). Subtract the objective terms, then cancel the positive delta/2. The squared distance of w from x0 is no larger than that of z. Both norms are nonnegative, so their order follows. No uniqueness or convexity is used.",
+          "formula": "\\frac\\delta2\\|w-x_0\\|^2\\le\\frac\\delta2\\|z-x_0\\|^2\\quad\\Longrightarrow\\quad\\|w-x_0\\|\\le\\|z-x_0\\|.",
+          "lean": "The same compactly constructed w and W(w)<=W(z); positive-coefficient algebra and norm_nonneg."
+        },
+        {
+          "title": "Transfer an approximate regularized value",
+          "text": "For any x whose W-gap above W(w) is at most epsilon/2, nonnegativity of the penalty gives f(x)<=W(x). The minimizer comparison bounds W(w) by W(z). The radius certificate gives delta||z-x0||²/2<=delta R²/2=epsilon/2. Adding the two half-error terms yields f(x)-f(z)<=epsilon.",
+          "formula": "\\begin{gathered}W(x)-W(w)\\le\\varepsilon/2\\ \\Longrightarrow\\\\f(x)\\le W(x)\\le W(w)+\\varepsilon/2\\le W(z)+\\varepsilon/2\\\\\\le f(z)+\\delta R^2/2+\\varepsilon/2=f(z)+\\varepsilon.\\end{gathered}",
+          "lean": "Uniform all-x implication for the same witness w; δ=ε/R² and R>0 justify cancellation, with no totalized division assumption."
+        }
+      ],
+      "boundary": [
+        "This establishes the regularized-minimum existence, radius comparison and objective-accuracy transfer in Lemma4.2. It does not prove regularized strong convexity or smoothness, an optimizer implementation, query complexity or the complete class-level reduction.",
+        "The proper normed-group formulation generalizes the source Euclidean geometry. Continuity suffices for this comparison component, so convexity and beta-smoothness are not formal assumptions here. Closed-ball compactness is explicit; no result for arbitrary complete infinite-dimensional Hilbert spaces is asserted.",
+        "The original global minimizer is supplied; the regularized one is constructed. Uniqueness is not claimed in the broader continuous, possibly nonconvex setting. Positive R and epsilon ensure positive delta; the literal R=0 branch is outside this declaration.",
+        "The approximation implication is a value-transfer interface, not a claim that every numerical method satisfies its input gap. Tests use an actual gradient step on a quadratic regularized objective to supply that gap without giving the algorithm the constructed minimizer.",
+        "Existing C2/Hessian QuadraticRegularization and the stronger SPHMC proximal constructor were searched. They do not supply this weaker-assumption interface and are not claimed as invoked dependencies. Future curvature/smoothness and oracle-cost work must preserve the source regularity and budget conventions."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "IsCompact.exists_isMinOn",
+        "isCompact_closedBall",
+        "Metric.mem_closedBall",
+        "dist_eq_norm",
+        "Continuous.dist",
+        "norm_nonneg"
+      ],
+      "lean_statement": "Existence of one actual W-minimizer, its sharp radius comparison and an all-points approximation implication.",
+      "lean_proof": "Delta is positive because epsilon and R are positive. The squared distance to x0 is continuous, so W is continuous. The closed ball of radius R centered at x0 is compact and contains z. The extreme value theorem gives w in that ball minimizing W there; in particular W(w)<=W(z). Inside the ball the comparison is already proved. Outside it, ||x-x0||>R>=||z-x0||. The original global minimality gives f(z)<=f(x), and the nonnegative quadratic coefficient gives the same order for the two penalties. Therefore W(z)<=W(x), and W(w)<=W(z)<=W(x). This constructs actual global minimality, not just constrained minimality. Combine W(w)<=W(z) with f(z)<=f(w). Subtract the objective terms, then cancel the positive delta/2. The squared distance of w from x0 is no larger than that of z. Both norms are nonnegative, so their order follows. No uniqueness or convexity is used. For any x whose W-gap above W(w) is at most epsilon/2, nonnegativity of the penalty gives f(x)<=W(x). The minimizer comparison bounds W(w) by W(z). The radius certificate gives delta||z-x0||²/2<=delta R²/2=epsilon/2. Adding the two half-error terms yields f(x)-f(z)<=epsilon.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 proof",
+          "scope": "Regularized objective, minimizer-radius comparison and two half-error terms; full reduction remains separate."
+        },
+        {
+          "path": "Tests/Shared/QuadraticRegularizationTransfer.lean",
+          "label": "Actual one-step gradient consumer",
+          "scope": "Quadratic regularized gradient step with arbitrary positive epsilon; output does not receive the minimizer witness."
+        }
+      ]
+    }
+  ]
+}

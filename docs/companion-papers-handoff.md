@@ -1,5 +1,32 @@
 # Companion-paper formalization handoff
 
+## Protocol refresh and continuation — 2026-09-18
+
+The September13 batch was successfully pushed to main at9729cf5; its failed-push
+notes below are historical. This continuation safely fast-forwarded47 commits
+to238ab415 and read the current AGENTS, CONTRIBUTING, collaborator bootstrap,
+contributor contract, publication protocol and optimisation prompt. The new
+incremental contributor gate, reuse_plan, reader_contract and graph_contribution
+are binding; metadata-only changes are within scope too. Registry baseline437.
+The unrelated pre-existing Measure.lean line-ending modification is preserved.
+
+Issue309 and branch codex/pbps-local-l2-20260918 own the next single shared cell,
+ASTIS-SHARED-gibbs-local-l2. At proof commit c856bb09c3940555fd7a48f467c01fde0ccff337,
+WeightedLocalL2.lp_locallyMemLp_volume proves local volume-integrability of squared
+norms and compact-restricted L2 for every Gibbs L2 representative, with only
+continuous W and integrable exp(-W); the target is any normed additive group.
+Focused Tests.WeightedLocalL2 passed3036 jobs/standard3 axioms. The test constructs
+an actual same-operator resolvent and applies the leaf to u, its gradient and f,
+retaining the weak PDE. Static independent proof/lesson review passed; fresh
+source-blind reconstruction and anti-anchored source review are recorded under
+runs/20260918-companion-priority. Read the current cell/audit for admission state,
+not this checkpoint as a claim of acceptance. Five authored formula steps and
+adjacent collapsed Lean are in the new gibbs-local-l2 lesson/publication.
+
+The app Goal was observed paused; no new Goal or detached harness was started.
+Work here follows the existing two-paper objective. Neither paper is complete;
+H2 regularity, operator core, Poincare and all other open paper boundaries remain.
+
 ## Resumed checkpoint — 2026-09-13
 
 The current project is **Automization-Sampling-Optimisation-Geometry-Lib**;

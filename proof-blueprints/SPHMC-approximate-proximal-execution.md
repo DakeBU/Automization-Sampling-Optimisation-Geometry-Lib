@@ -1,9 +1,10 @@
 # Actual stopped proximal queries — Algorithm D.2 / Lemma D.3
 
 Issue #311; cell `ASTIS-SW-SPHMC-approximate-proximal-execution`.
-Status: locally compiled implementation and focused tests; independent static
-proof review found no blocker. SAU remains EXPLORING pending reader publication
-and independent encoder-denoiser admission. Root is the unique writer.
+Status: PROVED_LOCAL with focused compilation, authored lessons, publication
+bindings and independent encoder-denoiser source review. Commit-bound VERIFIED,
+serialized root/site integration and aggregate acceptance remain pending. Root
+is the unique Lean writer; construction is not an extra mathematical theorem.
 
 ## Pinned source and target
 
@@ -122,3 +123,23 @@ review. Next finish publication bindings, compiler-elaborated anonymous decoder
 input, fresh independent decoding and source review; only then request admission
 and serialized site/root integration. No site rendering or visual acceptance is
 claimed for these newly authored units yet.
+
+## Source-review admission checkpoint — 2026-09-18
+
+Both public declarations now have separate publication bindings and audits:
+`ASTIS-RT-20260918-ProximalExecution` and
+`ASTIS-RT-20260918-ProximalQueryInterpreter`. Fresh anonymous compiler-derived
+packets were decoded by `blind_20260918_d`; `source_review_20260918_d` then checked
+fresh anti-anchored packets, primary source and complete module independently.
+The theorem review explicitly compares the attributed expanded contract, not
+an assertion that extra measurability/uniqueness conclusions were printed in D.3.
+The construction review gives no accuracy or eventual-success credit by itself.
+
+Semantic gate passes (124 audits); publication diff gate passes (97 source
+items), including all four private implementation helpers; contributor diff
+gate passes (2 declarations, 2 cells). Frontier Cell check passed at 130 cells.
+SAU `ASTIS-20260918-ApproximateProximalExecution` is PROVED_LOCAL via its real
+publication gate. No root import, Registry update, website build/visual acceptance,
+deployment or commit-bound VERIFIED has occurred in this checkpoint. Registry
+remains 438. Next obtain independent commit-bound verification, then serialize
+integration and inspect the actual generated reader/graph before publication.

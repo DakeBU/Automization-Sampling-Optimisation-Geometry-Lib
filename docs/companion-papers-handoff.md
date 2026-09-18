@@ -33,7 +33,9 @@ folded Lean, six formulas render without errors, and graph ownership edges remai
 distinct from source/audit overlays. Independent stabilization acceptance is in
 `runs/20260918-companion-priority/gibbs-local-l2.integration-review.json`.
 Any later receipt-only commit is not the revision on which these builds ran.
-This checkpoint records local stabilization, not merge or deployment.
+PR #310 subsequently passed remote Lean, reader and contributor CI and merged
+as `bbd66fd17fe1670255abd2b9ed7b61bee227952f` on September 18. This is a merge
+receipt, not a deployment-success or whole-paper-completion claim.
 
 The app Goal was observed paused; no new Goal or detached harness was started.
 Work here follows the existing two-paper objective. Neither paper is complete;

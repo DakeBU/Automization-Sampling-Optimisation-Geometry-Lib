@@ -2450,6 +2450,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "functional-inequality.gibbs-local-l2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume",
+    upstreamDecl := "memLp_two_iff_integrable_sq_norm; integrable_tilted_iff; absolutelyContinuous_tilted",
+    upstreamFile := "Mathlib MeasureTheory; authored PBPS arXiv2609.06905v1 Appendix C.1 prerequisite",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "Gibbs", "local-integrability"],
+    saldUse := "Actual weak-resolvent solution, gradient and forcing acquire compact unweighted L2 inputs.",
+    note := "Continuous potential and finite Gibbs normalization; arbitrary normed additive target. No global L2 bound, H2, Poincare or paper completion."
+  },
+  {
     key := "functional-inequality.chewi-definition-1-2-19",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator.SatisfiesPoincare",
     upstreamDecl := "Chewi Definition 1.2.19",

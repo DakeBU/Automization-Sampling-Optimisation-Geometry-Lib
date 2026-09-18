@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Protocol refresh and continuation — 2026-09-18
+
+The September 13 batch was successfully pushed to main at `9729cf5`; its failed-push
+notes below are historical. This continuation safely fast-forwarded 47 commits
+to `238ab415` and read the current AGENTS, CONTRIBUTING, collaborator bootstrap,
+contributor contract, publication protocol and optimisation prompt. The new
+incremental contributor gate, reuse_plan, reader_contract and graph_contribution
+are binding; metadata-only changes are within scope too. Registry baseline: 437.
+The unrelated pre-existing Measure.lean line-ending modification is preserved.
+
+Issue #309 and branch `codex/pbps-local-l2-20260918` own the next single shared cell,
+ASTIS-SHARED-gibbs-local-l2. At proof commit c856bb09c3940555fd7a48f467c01fde0ccff337,
+WeightedLocalL2.lp_locallyMemLp_volume proves local volume-integrability of squared
+norms and compact-restricted L2 for every Gibbs L2 representative, with only
+continuous W and integrable exp(-W); the target is any normed additive group.
+Focused Tests.WeightedLocalL2 passed3036 jobs/standard3 axioms. The test constructs
+an actual same-operator resolvent and applies the leaf to u, its gradient and f,
+retaining the weak PDE. Static independent proof/lesson review passed; fresh
+source-blind reconstruction and anti-anchored source review are recorded under
+runs/20260918-companion-priority. Read the current cell/audit for admission state,
+not this checkpoint as a claim of acceptance. Five authored formula steps and
+adjacent collapsed Lean are in the new gibbs-local-l2 lesson/publication.
+
+The integration candidate `59807460bcccecf284d019bd86a8139be80449b9` passed
+the canonical Lean/ASTIS gate (Tests: 9,250 jobs), 276 harness tests, publication,
+contributor, semantic and Frontier Cell checks. Registry: **438** compiled leaves.
+The site build/check passed with 12 chapters, 718 modules, 4,028 declarations and
+77 reviewed teaching declarations. Root and the independent verifier inspected
+desktop/mobile formula proofs and the local graph. Five proof steps have adjacent
+folded Lean, six formulas render without errors, and graph ownership edges remain
+distinct from source/audit overlays. Independent stabilization acceptance is in
+`runs/20260918-companion-priority/gibbs-local-l2.integration-review.json`.
+Any later receipt-only commit is not the revision on which these builds ran.
+This checkpoint records local stabilization, not merge or deployment.
+
+The app Goal was observed paused; no new Goal or detached harness was started.
+Work here follows the existing two-paper objective. Neither paper is complete;
+H2 regularity, operator core, Poincare and all other open paper boundaries remain.
+
 ## Resumed checkpoint — 2026-09-13
 
 The current project is **Automization-Sampling-Optimisation-Geometry-Lib**;

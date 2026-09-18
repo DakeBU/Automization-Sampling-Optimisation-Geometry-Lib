@@ -1,7 +1,9 @@
 # Actual stopped proximal queries — Algorithm D.2 / Lemma D.3
 
 Issue #311; cell `ASTIS-SW-SPHMC-approximate-proximal-execution`.
-Status: source/API planning only, no compiled result yet. Root is the unique writer.
+Status: locally compiled implementation and focused tests; independent static
+proof review found no blocker. SAU remains EXPLORING pending reader publication
+and independent encoder-denoiser admission. Root is the unique writer.
 
 ## Pinned source and target
 
@@ -84,3 +86,39 @@ paper completion follows. Existing proofs and Chewi frontier remain untouched.
 Read-only independent scout: `next_frontier_scout`, September 18. Source/APIs
 checked at main bbd66fd1, Mathlib db584cd6, Lean4.33.0. This is planning evidence,
 not theorem verification or a source-equivalence certificate.
+
+## Local checkpoint — 2026-09-18
+
+`lake build Tests.SmoothedPicardHMCApproximateProximalExecution` passed (3252
+build jobs). The principal theorem uses only `propext`, `Classical.choice`, and
+`Quot.sound`. Focused tests cover empty fuel, immediate success, current-iterate
+return with three queries, exhausted fuel, and a genuine potential at eta=3/4.
+The result includes a unique proximal minimizer with quadratic growth,
+measurable first hit and stopped output, epsilon accuracy, and the explicit
+pointwise logarithmic query bound above.
+
+`proximal_execution_proof_review` independently inspected the source, module and
+tests without editing or building. No mathematical blocker was found. This is
+not source-blind review or VERIFIED admission. Exact module SHA256:
+`01d2b711a9916dddfef0a07325f9ce333170a32d5d6f069117a859cd4d174ed5`;
+test SHA256:
+`b20a10e208b06b4dff5042347f4b20f13a09a59503248ac12b61da95c0d9bfae`.
+
+The interpreter is noncomputable exact-real finite-fuel semantics. It records
+the returned point and query count, not a query-list trace; the theorem proves
+successful execution at fuel N+1, not a separate arbitrary-excess-fuel theorem.
+Neither pointwise work nor measurable output proves D.4 expected run-wide work.
+Registry stays at 438 until the serialized admission/integration gates pass.
+Latest main e2f88b3e was fetched and is already contained in this branch;
+the six collaborator-entry documents were reread. No collaborator modification
+or old Chewi frontier was changed.
+
+Reader checkpoint: two declaration lessons are now authored in
+`website/content/declaration_lessons/sphmc-approximate-proximal-execution.json`.
+The native lesson loader passes (364 units), Frontier Cell check passes (129
+cells), and `git diff --check` passes. Contributor admission intentionally still
+fails: private implementation needs a fresh accepted whole-module public theorem
+review. Next finish publication bindings, compiler-elaborated anonymous decoder
+input, fresh independent decoding and source review; only then request admission
+and serialized site/root integration. No site rendering or visual acceptance is
+claimed for these newly authored units yet.

@@ -1,5 +1,27 @@
 # Companion-paper formalization handoff
 
+## Shared progress checkpoint — 2026-09-19
+
+The two-paper Goal is active. Neither complete paper or final sampling-complexity
+theorem is formalized yet. Main contains 438 Registry leaves across the project,
+not 438 completed paper theorems. PR310's local-L2 prerequisite is merged.
+
+Latest SPHMC work is publicly pushed on `codex/sphmc-proximal-execution-20260918`
+at `2a043a5d`: actual Algorithm D.2 execution and Lemma D.3's pointwise accuracy
+and logarithmic gradient-query count, including measurable first stopping/output
+and the final successful query. Focused compilation and independent source-blind
+and source reviews passed. Its SAU is PROVED_LOCAL; commit-bound verification,
+root/site integration and aggregate acceptance remain pending. This is not D.4's
+expected run-wide cost or the full SPHMC theorem. See that branch's proof blueprint,
+Frontier Cells and round-trip artifacts for exact evidence.
+
+Remaining work includes PBPS process/operator/hypocoercivity and implementation
+guarantees, SPHMC smoothing/concentration/Picard and sampling-error guarantees,
+and actual-input expected costs and composition. No reliable completion date is
+established. Do not substitute a calendar promise for dependency-level evidence.
+The provisional project author list has been withdrawn pending agreement;
+primary-source author attribution is preserved.
+
 ## Protocol refresh and continuation — 2026-09-18
 
 The September 13 batch was successfully pushed to main at `9729cf5`; its failed-push

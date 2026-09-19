@@ -53,24 +53,6 @@ import visual_polish  # noqa: E402
 astis_site_source_index.install(astis_site)
 
 
-ORGANIZER_FOOTER_INPUTS = (
-    (
-        "<p>Organized by Dake Bu, Ji Cheng, Atsushi Nitanda, Hau-San Wong, "
-        "and Qingfu Zhang.</p>"
-    ),
-    (
-        "<p>Organized by Dake Bu, Ji Cheng, Huanjian Zhou, Andi Han, "
-        "Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, "
-        "Qingfu Zhang, and Atsushi Nitanda.</p>"
-    ),
-)
-CANONICAL_ORGANIZER_FOOTER = (
-    "<p><strong>Organizer (Authors):</strong> Dake Bu, Ji Cheng, Huanjian Zhou, "
-    "Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, "
-    "Qingfu Zhang, and Atsushi Nitanda.</p>"
-)
-
-
 def repair_final_content_anchors(output: Path) -> None:
     """Keep the global skip-link target valid after all reader overlays."""
     for path in sorted(output.rglob("*.html")):
@@ -89,31 +71,6 @@ def repair_final_content_anchors(output: Path) -> None:
                 f"{path.relative_to(output)}: skip link targets #content but no repairable <main> exists"
             )
         path.write_text(repaired, encoding="utf-8", newline="\n")
-
-
-def repair_project_author_footer(output: Path) -> None:
-    """Keep every generated page aligned with the canonical ASTIS author list.
-
-    `tools/astis_site.py` historically carried an older five-person footer and
-    now carries the canonical ten-person names in its base template.  This final
-    build pass normalizes either source form to the public `Organizer (Authors)`
-    rendering after all late overlays and redirect pages have been generated.
-    """
-    for path in sorted(output.rglob("*.html")):
-        text = path.read_text(encoding="utf-8")
-        original = text
-        for source_footer in ORGANIZER_FOOTER_INPUTS:
-            text = text.replace(source_footer, CANONICAL_ORGANIZER_FOOTER)
-        if text != original:
-            path.write_text(text, encoding="utf-8", newline="\n")
-        if (
-            "Samplinglib</strong> is the public formal library and learning interface"
-            in text
-            and CANONICAL_ORGANIZER_FOOTER not in text
-        ):
-            raise RuntimeError(
-                f"{path.relative_to(output)}: Samplinglib footer is missing the canonical Organizer (Authors) list"
-            )
 
 
 def write_underlying_graph_alias(output: Path) -> None:
@@ -236,7 +193,6 @@ def main() -> int:
     inline_lean.enrich_textbook(output)
 
     inherit_final_reader_contract(output)
-    repair_project_author_footer(output)
     repair_final_content_anchors(output)
     return 0
 

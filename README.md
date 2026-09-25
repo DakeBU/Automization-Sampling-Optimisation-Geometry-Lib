@@ -147,9 +147,12 @@ SAU ledger, not from this historical run note.
 @misc{bu2026astis,
   title  = {Auto-Sampling-Theory-In-Sleep: An Automated Theorem Proving System
             and Visualized Lean Library for Sampling, Optimisation, and Geometry},
+  author = {Dake Bu and Ji Cheng and Huanjian Zhou and Andi Han and
+            Zonghao Chen and Sinho Chewi and Matthew S. Zhang and Hau-San Wong and
+            Qingfu Zhang and Atsushi Nitanda},
   year   = {2026},
   url    = {https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib}
 }
 ```
 
-Project authorship is not yet finalized; the provisional author list is omitted.
+**Project contributors:** Dake Bu, Ji Cheng, Huanjian Zhou, Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, Qingfu Zhang, and Atsushi Nitanda.

@@ -19,8 +19,8 @@ Remaining work includes PBPS process/operator/hypocoercivity and implementation
 guarantees, SPHMC smoothing/concentration/Picard and sampling-error guarantees,
 and actual-input expected costs and composition. No reliable completion date is
 established. Do not substitute a calendar promise for dependency-level evidence.
-The provisional project author list has been withdrawn pending agreement;
-primary-source author attribution is preserved.
+The project author and organizer lists are maintained on the public citation and site surfaces;
+primary-source author attribution remains preserved separately.
 
 ## Protocol refresh and continuation — 2026-09-18
 

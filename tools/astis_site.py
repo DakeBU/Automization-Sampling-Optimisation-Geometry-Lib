@@ -848,7 +848,7 @@ SIDEBAR_GROUPS = (
         ("Verification Workflow", "maintenance.html", "Maintenance"),
     )),
     ("Community", (
-        ("Project", "attribution/index.html#organizers", "Attribution"),
+        ("Organizers", "attribution/index.html#organizers", "Attribution"),
         ("Contribute", "contribute/index.html", "Contribute"),
         ("Related Systems", "related-systems/index.html", "Related Systems"),
         ("Roadmap", "roadmap/index.html", "Roadmap"),
@@ -1050,6 +1050,7 @@ def page(
       <main id="content">{body}</main>
       <footer>
         <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>
+        <p>Organized by Dake Bu, Ji Cheng, Huanjian Zhou, Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, Qingfu Zhang, and Atsushi Nitanda.</p>
         <p><a href="{prefix}contribute/index.html">Contribute</a> · <a href="{prefix}attribution/index.html">Attribution</a> · <a href="{prefix}maintenance.html">Build and maintenance</a> · generated from Lean source, route metadata, and gate evidence.</p>
       </footer>
     </div>
@@ -2383,7 +2384,7 @@ Samplinglib Registry</code></pre>
   <p><a class="text-link" href="workflow/index.html">Read the ASTIS harness architecture →</a></p>
 </section>
 <section id="organizers" class="organizer-strip">
-  <div><span class="eyebrow">Contribute</span><h2>Help build the formal library</h2></div>
+  <div><span class="eyebrow">Organizers</span><h2>Dake Bu · Ji Cheng · Huanjian Zhou · Andi Han · Zonghao Chen · Sinho Chewi · Matthew S. Zhang · Hau-San Wong · Qingfu Zhang · Atsushi Nitanda</h2></div>
   <div class="organizer-links"><a class="text-link" href="contribute/index.html">Become a contributor →</a><a class="text-link" href="attribution/index.html#citation">Citation and attribution →</a></div>
 </section>
 <section class="note"><h2>Build interpretation</h2><p>{esc(gate.note)} The current generated view classifies {local_compiled} production declarations as compiled only when gate evidence matches this Lean source digest. Registry count ({len(entries)}) and textbook completion are separate quantities.</p></section>
@@ -2837,6 +2838,9 @@ def render_attribution_index(git: GitContext) -> str:
     citation = """@misc{bu2026astis,
   title        = {Auto-Sampling-Theory-In-Sleep: A Hierarchical Automated
                   Theorem Proving System for Sampling Theory},
+  author       = {Dake Bu and Ji Cheng and Huanjian Zhou and Andi Han and
+                  Zonghao Chen and Sinho Chewi and Matthew S. Zhang and
+                  Hau-San Wong and Qingfu Zhang and Atsushi Nitanda},
   year         = {2026},
   howpublished = {GitHub repository and Samplinglib formalization website},
   url          = {https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep}
@@ -2845,8 +2849,8 @@ def render_attribution_index(git: GitContext) -> str:
 <section class="page-hero compact"><div class="eyebrow">Provenance and ownership</div>
 <h1>Attribution</h1><p class="lede">ASTIS separates the textbook route, Mathlib facts, external proof references, ASTIS-owned Lean declarations, and generated exposition.</p></section>
 <section id="organizers" class="organizers-panel">
-  <div class="section-heading"><span>Project</span><h2>Contributions and attribution</h2></div>
-  <p>Project authorship is not yet finalized. Source authorship and software attribution below are independent of project membership.</p>
+  <div class="section-heading"><span>Organizers</span><h2>The research and formalization team</h2></div>
+  <p class="organizer-names">Dake Bu · Ji Cheng · Huanjian Zhou · Andi Han · Zonghao Chen · Sinho Chewi · Matthew S. Zhang · Hau-San Wong · Qingfu Zhang · Atsushi Nitanda</p>
 </section>
 <section class="attribution-grid">
   <article><h2>Primary mathematical source</h2><p>Sinho Chewi's <a href="{CHEWI_URL}"><em>Log-Concave Sampling</em></a> determines the chapter route. ASTIS uses original summaries, exact source correspondence, and supplemental regularity details; it does not imply author endorsement.</p></article>
@@ -3087,7 +3091,18 @@ def build_site(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
         "short_name": "ASTIS",
         "public_library": "Samplinglib",
         "tagline": "Verified sampling theory in Lean, from textbook foundations to AI-assisted formalization.",
-        "organizers": [],
+        "organizers": [
+            "Dake Bu",
+            "Ji Cheng",
+            "Huanjian Zhou",
+            "Andi Han",
+            "Zonghao Chen",
+            "Sinho Chewi",
+            "Matthew S. Zhang",
+            "Hau-San Wong",
+            "Qingfu Zhang",
+            "Atsushi Nitanda",
+        ],
         "source_book": {
             "author": source_edition["author"],
             "title": source_edition["title"],

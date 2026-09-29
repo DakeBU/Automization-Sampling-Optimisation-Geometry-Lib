@@ -30,13 +30,12 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 
 ## News
 
-- **2026-09-29:** [An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the **NeurIPS 2026 Workshop MATH-AI**. The accompanying public Lean library is [Samplinglib](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/).
+- **2026-09-29:** [Our system paper](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the NeurIPS 2026 Workshop MATH-AI.
 - **2026-09-10:** Compiled and source-reviewed the first [SPHMC](conversion-windows/ASTIS-SW-SPHMC-2026.md) and [Proximal BPS](conversion-windows/ASTIS-SW-PBPS-2026.md) proof packets.
 - **2026-09-09:** Connected mathematics-first readers to [chapter progress and semantic review](docs/theorem-publication-protocol.md).
 
 - **2026-09-07:** Added Discrete Sampling and MCMC as peer libraries.
 - **2026-09-05:** Added Statistical Optimal Transport and the Functor Hypergraph.
-- **2026-08-30:** Unified cross-library progress and Frontier Cell collaboration.
 - **2026-08-29:** Added source-fidelity checks and theorem denoising.
 - **2026-07-27:** Added the Blueprint-style textbook and formalization website.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.

@@ -1,5 +1,25 @@
 # Companion-paper formalization handoff
 
+## Published checkpoint and next actual-cost edge — 2026-09-29
+
+The previous integration was fast-forwarded and pushed to main at
+`bc851d2155f40671fb36f59e6497eb2029b66a38`. Remote formalization gate
+36527879703 and site deployment 36527879640 both succeeded. The live homepage
+was checked: HTTP200, current commit present, no provisional author footer.
+All 210 website workflow unit tests passed after shortening the News list to
+the existing eight-entry limit. The old integration-pending notes below are
+historical, not current blockers.
+
+Next SAU `ASTIS-20260929-ProximalExpectedWork` is owned solely by root on
+`codex/sphmc-proximal-expected-work-20260929`. It derives integrability and the
+Jensen/L2 expectation bound for the actual stopped proximal program from an
+explicit square-integrable input gradient. Focused compilation passes3488;
+independent mathematical review found no blocker. Five reader proof steps are
+authored. Publication binding and independent encoder–denoiser/source admission
+are still pending, so the ledger remains EXPLORING. Neither the Picard input
+moment bound D.7 nor the total cost D.8 is claimed. See
+`proof-blueprints/SPHMC-proximal-expected-work.md` for the exact continuation.
+
 ## Integration in progress — 2026-09-29
 
 Safely incorporated main `208e36b0`, preserving collaborator title/attribution

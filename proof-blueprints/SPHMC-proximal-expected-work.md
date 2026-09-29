@@ -60,8 +60,9 @@ than being repeated here. The proof uses those parent's actual first-stop
 witnesses. A five-step authored formula proof with adjacent folded Lean is in
 `website/content/declaration_lessons/sphmc-proximal-expected-work.json`.
 
-This is still EXPLORING in the admission ledger: local compilation is not
-source-fidelity admission. Next create the publication binding and draft audit,
-export compiler-derived anonymous input, obtain an independent source-blind
-decoder and anti-anchored reviewer, then request commit-bound verification.
-Do not repeat mathematical implementation or count D.7/D.8 as completed.
+The exact commit `488d0bf5dc574e565ef427acecd17ec9dd26d8c4` is now
+independently VERIFIED. Fresh direct elaboration of production and focused test,
+publication binding, fake-closure scan and the source-reviewed semantic round
+trip all pass; the source verdict is `equivalent-after-elaboration`. Root imports,
+aggregate/site acceptance, merge and deployment remain pending. Do not repeat
+mathematical implementation or count D.7/D.8 as completed.

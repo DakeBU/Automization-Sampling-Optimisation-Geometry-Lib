@@ -16,10 +16,11 @@ Jensen/L2 expectation bound for the actual stopped proximal program from an
 explicit square-integrable input gradient. Focused compilation passes3488;
 independent mathematical review found no blocker. Five reader proof steps are
 authored. Publication binding passes and the independent source-blind decoder
-and source reviewer accept the theorem as `equivalent-after-elaboration`, so the
-ledger is now PROVED_LOCAL. Commit-bound independent verification and root/site
-integration remain pending. Neither the Picard input moment bound D.7 nor the
-total cost D.8 is claimed. See
+and source reviewer accept the theorem as `equivalent-after-elaboration`.
+Commit-bound verification at `488d0bf5` passes focused build plus fresh direct
+elaboration, so the ledger is now VERIFIED. Root imports, aggregate/site
+integration, merge and deployment remain pending. Neither the Picard input
+moment bound D.7 nor the total cost D.8 is claimed. See
 `proof-blueprints/SPHMC-proximal-expected-work.md` for the exact continuation.
 
 ## Integration in progress — 2026-09-29

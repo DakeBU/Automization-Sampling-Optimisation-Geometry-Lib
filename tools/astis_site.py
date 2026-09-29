@@ -2836,14 +2836,13 @@ def render_live_formalization(mapping_count: int) -> str:
 
 def render_attribution_index(git: GitContext) -> str:
     citation = """@misc{bu2026astis,
-  title        = {Auto-Sampling-Theory-In-Sleep: A Hierarchical Automated
-                  Theorem Proving System for Sampling Theory},
+  title        = {An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry},
   author       = {Dake Bu and Ji Cheng and Huanjian Zhou and Andi Han and
                   Zonghao Chen and Sinho Chewi and Matthew S. Zhang and
                   Hau-San Wong and Qingfu Zhang and Atsushi Nitanda},
   year         = {2026},
   howpublished = {GitHub repository and Samplinglib formalization website},
-  url          = {https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep}
+  url          = {https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib}
 }"""
     body = f"""
 <section class="page-hero compact"><div class="eyebrow">Provenance and ownership</div>

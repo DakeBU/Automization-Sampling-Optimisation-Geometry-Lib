@@ -44,6 +44,7 @@ class ProjectAuthorsFooterTests(unittest.TestCase):
         readme = README.read_text(encoding="utf-8")
         self.assertIn("| Library | Primary source |", readme)
         self.assertIn("| Statistical Optimal Transport |", readme)
+        self.assertIn("Sinho Chewi", readme)
 
 
 if __name__ == "__main__":

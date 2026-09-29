@@ -1,6 +1,6 @@
 <div align="center">
 
-# An Automated Theorem Proving System and Visualized Lean Library for Sampling, Optimisation, and Geometry
+# An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry
 
 **Samplinglib:** Verified Sampling, Optimisation, Geometry Theory in Lean
 
@@ -30,6 +30,7 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 
 ## News
 
+- **2026-09-29:** [An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the **NeurIPS 2026 Workshop MATH-AI**. The accompanying public Lean library is [Samplinglib](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/).
 - **2026-09-10:** Compiled and source-reviewed the first [SPHMC](conversion-windows/ASTIS-SW-SPHMC-2026.md) and [Proximal BPS](conversion-windows/ASTIS-SW-PBPS-2026.md) proof packets.
 - **2026-09-09:** Connected mathematics-first readers to [chapter progress and semantic review](docs/theorem-publication-protocol.md).
 
@@ -145,8 +146,7 @@ SAU ledger, not from this historical run note.
 
 ```bibtex
 @misc{bu2026astis,
-  title  = {Auto-Sampling-Theory-In-Sleep: An Automated Theorem Proving System
-            and Visualized Lean Library for Sampling, Optimisation, and Geometry},
+  title  = {An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry},
   author = {Dake Bu and Ji Cheng and Huanjian Zhou and Andi Han and
             Zonghao Chen and Sinho Chewi and Matthew S. Zhang and Hau-San Wong and
             Qingfu Zhang and Atsushi Nitanda},
@@ -155,4 +155,4 @@ SAU ledger, not from this historical run note.
 }
 ```
 
-**Project contributors:** Dake Bu, Ji Cheng, Huanjian Zhou, Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, Qingfu Zhang, Atsushi Nitanda.
+**Project contributors:** Dake Bu, Ji Cheng, Huanjian Zhou, Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, Qingfu Zhang, and Atsushi Nitanda.

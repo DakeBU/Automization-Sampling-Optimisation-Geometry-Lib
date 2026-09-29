@@ -91,14 +91,9 @@ def repair_final_content_anchors(output: Path) -> None:
         path.write_text(repaired, encoding="utf-8", newline="\n")
 
 
-def repair_project_author_footer(output: Path) -> None:
-    """Keep every generated page aligned with the canonical ASTIS author list.
 
-    `tools/astis_site.py` historically carried an older five-person footer and
-    now carries the canonical ten-person names in its base template.  This final
-    build pass normalizes either source form to the public `Organizer (Authors)`
-    rendering after all late overlays and redirect pages have been generated.
-    """
+def repair_project_author_footer(output: Path) -> None:
+    """Keep every generated page aligned with the canonical ASTIS author list."""
     for path in sorted(output.rglob("*.html")):
         text = path.read_text(encoding="utf-8")
         original = text

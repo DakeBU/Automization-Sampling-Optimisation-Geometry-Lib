@@ -54,6 +54,7 @@ import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GibbsPositionMoment
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLipschitz
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram
 
 /-!

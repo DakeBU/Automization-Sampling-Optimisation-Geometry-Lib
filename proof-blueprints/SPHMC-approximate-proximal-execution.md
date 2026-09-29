@@ -143,3 +143,26 @@ publication gate. No root import, Registry update, website build/visual acceptan
 deployment or commit-bound VERIFIED has occurred in this checkpoint. Registry
 remains 438. Next obtain independent commit-bound verification, then serialize
 integration and inspect the actual generated reader/graph before publication.
+
+## Next dependency-ready candidate (not a proved result)
+
+After integration, extract the expectation step of D.4 for the **actual** first-hit
+count under a probability law nu of input centers, assuming
+`Integrable (fun y => norm (gradient V y)^2) nu`. Target:
+
+\[
+\mathbb E_\nu[N(Y)+1]\le C_c\left[1+\log\left(1+
+\frac{\sqrt{\mathbb E_\nu\|\nabla V(Y)\|^2}}{\varepsilon}\right)\right].
+\]
+
+The proof must first establish integrability of the count: log(1+r)<=r,
+L2-to-L1 for a probability measure, and domination by the already compiled
+pointwise bound. Then use Jensen for log(1+r) and Cauchy–Schwarz. Pinned Mathlib
+offers `ConcaveOn.le_map_integral` in `Analysis.Convex.Integral`; alternatively
+`Real.log_le_sub_one_of_pos` supplies the tangent-line proof with explicit
+integrability. This is an API scout, not a frozen statement or new SAU.
+
+The law nu must later be identified with the actual Picard input-center law.
+This does not prove the D.4 uniform second-moment estimate, count the number of
+algorithm phases, or transfer an unbounded cost through TV proximity. Those
+remain independent source edges. No implementation has been started here.

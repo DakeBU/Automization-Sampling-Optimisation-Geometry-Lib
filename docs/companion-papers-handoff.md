@@ -18,8 +18,8 @@ independent mathematical review found no blocker. Five reader proof steps are
 authored. Publication binding passes and the independent source-blind decoder
 and source reviewer accept the theorem as `equivalent-after-elaboration`.
 Commit-bound verification at `488d0bf5` passes focused build plus fresh direct
-elaboration, so the ledger is now VERIFIED. Root imports, aggregate/site
-integration now passes root Tests9254, the canonical ASTIS/ATLAS gate, site and
+elaboration, and the ledger is now STABILIZING. Root integration passes Tests9254,
+the canonical ASTIS/ATLAS gate, site and
 graph checks, 210 reader tests and actual desktop/mobile/local-graph inspection.
 Merge and deployment remain pending. Neither the Picard input moment bound D.7
 nor the total cost D.8 is claimed. See

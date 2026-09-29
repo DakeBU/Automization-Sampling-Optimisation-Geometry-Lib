@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-330dbfbdd638a998",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root",
+    "blind_decoder": "blind_expected_work_decoder",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-d4-jensen-expected-proximal-work",
+    "anchor": "Appendix D.2, Lemma D.4 proof after equation D.7: first Jensen expected-work inequality",
+    "original_text": "Attributed expanded proof component, not the full Lemma D.4: for an actual Algorithm D.2 proximal query at random center Y, Lemma D.3 bounds the number N_prox(Y) of gradient evaluations by C_c[1+log(1+norm(gradient V(Y))/eps)]. If Y has a probability law and E norm(gradient V(Y))^2 is finite, then the actual count is integrable and Jensen together with the probability-space L2-to-L1 inequality gives E N_prox(Y) <= C_c[1+log(1+sqrt(E norm(gradient V(Y))^2)/eps)]. Samplinglib constructs measurable p and first-stop N from the actual exact-real finite-fuel interpreter, retains its proximal equation, eps-accuracy and successful return with count N+1, and uses the explicit admissible C_c=2+(1+log((1-c)^(-1)))/(-log c) already derived for D.3. Assumptions: E is a finite-dimensional complete real inner-product Borel space, V is C2, kappa>=1, kappa^(-1) norm(v)^2 <= D2 V(x)[v,v] <= norm(v)^2, 0<eta<=c<1, eps>0, nu is a probability measure, and y maps to norm(gradient V(y))^2 integrably. The actual Picard center law and numerical D.7 bound, phase counting, D.8, approximate-kernel stability, sampling accuracy and full-paper theorem remain separate. Total variation is not used to transfer unbounded cost.",
+    "text_sha256": "f04a291fde17dbcae5f47f88269ee9b9bddf4d2258b00086f8d3c242da31034c"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork.approximate_proximal_expected_work",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalExpectedWork.lean",
+    "statement": "∀ {E : Type u_1} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] {V : E → ℝ} {κ : ℝ≥0}, 1 ≤ κ → ContDiff ℝ 2 V → (∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧ (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2) → ∀ {eta c eps : ℝ}, 0 < eta → eta ≤ c → c < 1 → 0 < eps → ∀ (ν : Measure E) [IsProbabilityMeasure ν], Integrable (fun y => ‖gradient V y‖^2) ν → let T := fun y x : E => y - eta • gradient V x; let C := 2 + (1 + Real.log ((1-c)⁻¹)) / (-Real.log c); ∃ p : E → E, ∃ N : E → ℕ, Measurable p ∧ Measurable N ∧ Measurable (fun y => (T y)^[N y] y) ∧ (∀ y, p y + eta • gradient V (p y) = y ∧ ‖(T y)^[N y] y - p y‖ ≤ eps ∧ Q (gradient V) eta eps y (N y+1) y = some ((T y)^[N y] y, N y+1)) ∧ Integrable (fun y => (N y : ℝ)+1) ν ∧ (∫ y, (N y : ℝ)+1 ∂ν) ≤ C * (1 + Real.log (1 + Real.sqrt (∫ y, ‖gradient V y‖^2 ∂ν) / eps))",
+    "statement_sha256": "e8b7d226ce26a67d5c13d824fa0d9f6f57b856177f13cf9abef73947d08a6602",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a finite-dimensional complete real inner-product space, equipped with a measurable structure whose measurable sets are the Borel sets. Let V:E->R and let kappa be a nonnegative real number. Assume kappa>=1, V is twice continuously Frechet differentiable, and, for every x,v in E, (1/kappa)||v||^2 <= D^2 V(x)[v,v] <= ||v||^2. Let eta,c,eps be real numbers satisfying 0<eta<=c<1 and eps>0. Let nu be a probability measure on E such that y |-> ||grad V(y)||^2 is integrable. For y in E define T_y:E->E by T_y(x)=y-eta grad V(x), and define C=2+(1+log((1-c)^(-1)))/(-log c). Then there exist measurable functions p:E->E and N:E->N such that y |-> T_y^[N(y)](y) is measurable and, for every y in E, p(y)+eta grad V(p(y))=y, ||T_y^[N(y)](y)-p(y)||<=eps, and Q(grad V,eta,eps,y,N(y)+1,y)=some((T_y^[N(y)](y),N(y)+1)). Moreover, y |-> N(y)+1 is integrable with respect to nu and integral (N(y)+1) dnu(y) <= C(1+log(1+sqrt(integral ||grad V(y)||^2 dnu(y))/eps)). Here T_y^[n] denotes n-fold iteration (with the zeroth iterate equal to the identity), and Q is the stated exact-real recursive interpreter, so N(y)+1 is the number of gradient-oracle evaluations, including the successful test.",
+    "text_sha256": "f8c9551e40129949949f3af76c3b0a13d5995bd24b4b8c4a802ab57b39a21ccd",
+    "decoder": "blind_expected_work_decoder",
+    "decoder_packet_sha256": "abfa0071814a952e2b85c00ff6cf85e19a7e41ad1921456b37f3884130d255c0",
+    "decoder_run_sha256": "dd1d02a46196350882a056ea128555a5f7a81b2a0549efa8a156e23a3dc99573",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "72413a5b1c2a6eded28ca849cde39f2b0d3811610e93e9d2daec8cfe027c1fd6",
+  "candidate_publication_context": {
+    "file": "eb831028f663392ce8412f4d7f01ecf63f41582492c62df0751501de5fa1a44a",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution\nimport Mathlib.Analysis.Convex.Integral\nimport Mathlib.Analysis.Convex.SpecificFunctions.Basic\nimport Mathlib.Probability.Moments.Variance\nimport Mathlib.MeasureTheory.Function.SpecialFunctions.Basic\n\n/-!\n# Expected work of actual stopped proximal execution\n\nChen--Chewi--Lu--Zhang, arXiv:2609.06906v1, Appendix D.2, Lemma D.4:\nthe Jensen step after (D.7), not the Picard input-moment estimate or total\nrun cost (D.8). The input law's second moment remains an explicit dependency.\n-/\n\nnoncomputable section\nopen MeasureTheory Filter InnerProductSpace\nopen scoped Topology NNReal\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork\n\nprivate theorem log_work_integral {α : Type*} [MeasurableSpace α]\n    {μ : Measure α} [IsProbabilityMeasure μ] {g : α → ℝ}\n    (hg : Measurable g) (hgn : ∀ x, 0 ≤ g x)\n    (hgs : Integrable (fun x => g x ^ 2) μ) {eps : ℝ} (heps : 0 < eps) :\n    Integrable (fun x => Real.log (1 + g x / eps)) μ ∧\n    (∫ x, Real.log (1 + g x / eps) ∂μ) ≤\n      Real.log (1 + Real.sqrt (∫ x, g x ^ 2 ∂μ) / eps) := by\n  have hLp : MemLp g 2 μ := (memLp_two_iff_integrable_sq hg.aestronglyMeasurable).mpr hgs\n  have hgi : Integrable g μ := hLp.integrable (by norm_num)\n  have hpos (x) : 0 < 1 + g x / eps := by have := hgn x; positivity\n  have hlog : Integrable (fun x => Real.log (1 + g x / eps)) μ := by\n    apply (hgi.div_const eps).mono'\n      ((measurable_const.add (hg.div_const eps)).log.aestronglyMeasurable)\n    filter_upwards [] with x\n    change ‖Real.log (1 + g x / eps)‖ ≤ g x / eps\n    rw [Real.norm_of_nonneg (Real.log_nonneg (le_add_of_nonneg_right\n      (div_nonneg (hgn x) heps.le)))]\n    have := Real.log_le_sub_one_of_pos (hpos x)\n    linarith\n  refine ⟨hlog, ?_⟩\n  have hconc : ConcaveOn ℝ (Set.Ici (1 : ℝ)) Real.log :=\n    strictConcaveOn_log_Ioi.concaveOn.subset\n      (by intro x hx; exact lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hx)\n      (convex_Ici 1)\n  have hj := hconc.le_map_integral\n    (Real.continuousOn_log.mono (fun x hx => ne_of_gt (lt_of_lt_of_le zero_lt_one hx)))\n    isClosed_Ici (Filter.Eventually.of_forall (fun x => by\n      change 1 ≤ 1 + g x / eps\n      exact le_add_of_nonneg_right (div_nonneg (hgn x) heps.le)))\n      ((integrable_const 1).add (hgi.div_const eps)) hlog\n  have hmean : (∫ x, g x ∂μ) ≤ Real.sqrt (∫ x, g x ^ 2 ∂μ) := by\n    have hv := ProbabilityTheory.variance_nonneg g μ\n    rw [ProbabilityTheory.variance_eq_sub hLp] at hv\n    have hs := Real.sq_sqrt (integral_nonneg (μ := μ) (fun x => sq_nonneg (g x)))\n    have hn := Real.sqrt_nonneg (∫ x, g x ^ 2 ∂μ)\n    change 0 ≤ (∫ x, g x ^ 2 ∂μ) - (∫ x, g x ∂μ)^2 at hv\n    nlinarith\n  change (∫ x, Real.log (1 + g x / eps) ∂μ) ≤ Real.log (∫ x, 1 + g x / eps ∂μ) at hj\n  simp only [integral_add (integrable_const 1) (hgi.div_const eps),\n    integral_const, probReal_univ, smul_eq_mul, one_mul, integral_div] at hj\n  exact hj.trans (Real.log_le_log (by\n    have hn : 0 ≤ ∫ x, g x ∂μ := integral_nonneg hgn\n    positivity) (by gcongr))\n\nsection\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- The actual stopped gradient program has integrable query count under an\ninput law with square-integrable gradient, with the D.4 Jensen work bound.\nThis does not identify that law with the realized Picard centers or prove D.7. -/\ntheorem approximate_proximal_expected_work {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure E) [IsProbabilityMeasure ν]\n    (hmoment : Integrable (fun y => ‖gradient V y‖^2) ν) :\n    let T := fun y x : E => y - eta • gradient V x\n    let C := 2 + (1 + Real.log ((1-c)⁻¹)) / (-Real.log c)\n    ∃ p : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable N ∧ Measurable (fun y => (T y)^[N y] y) ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧\n        ‖(T y)^[N y] y - p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y+1) y =\n          some ((T y)^[N y] y, N y+1)) ∧\n      Integrable (fun y => (N y : ℝ) + 1) ν ∧\n      (∫ y, (N y : ℝ) + 1 ∂ν) ≤\n        C * (1 + Real.log (1 + Real.sqrt (∫ y, ‖gradient V y‖^2 ∂ν) / eps)) := by\n  dsimp only\n  obtain ⟨p, N, hp, hN, hout, hall⟩ :=\n    ApproximateProximalExecution.approximate_proximal_execution hκ hV hH heta hec hc heps\n  have hgcont : Continuous (gradient V) := by\n    unfold gradient\n    exact (InnerProductSpace.toDual ℝ E).symm.continuous.comp\n      (hV.continuous_fderiv (by norm_num))\n  have hg : Measurable (fun y => ‖gradient V y‖) := hgcont.norm.measurable\n  obtain ⟨hlog, hj⟩ := log_work_integral hg (fun y => norm_nonneg _) hmoment heps\n  let C := 2 + (1 + Real.log ((1-c)⁻¹)) / (-Real.log c)\n  have hC : 0 ≤ C := by\n    have hcp : 0 < c := heta.trans_le hec\n    have hd : 0 < 1-c := sub_pos.mpr hc\n    have ha : 0 < -Real.log c := neg_pos.mpr (Real.log_neg hcp hc)\n    have hb : 0 ≤ Real.log ((1-c)⁻¹) := Real.log_nonneg (by\n      have hm := mul_nonneg (inv_nonneg.mpr hd.le) hcp.le\n      have hi := inv_mul_cancel₀ hd.ne'\n      nlinarith)\n    dsimp [C]\n    positivity\n  have hbound (y) : (N y : ℝ)+1 ≤ C*(1+Real.log (1+‖gradient V y‖/eps)) :=\n    (hall y).2.2.2.2.2.1\n  have hdom : Integrable (fun y => C*(1+Real.log (1+‖gradient V y‖/eps))) ν :=\n    ((integrable_const 1).add hlog).const_mul C\n  have hcount : Integrable (fun y => (N y : ℝ)+1) ν := by\n    apply hdom.mono' (by fun_prop)\n    filter_upwards [] with y\n    rw [Real.norm_of_nonneg (by positivity)]\n    exact hbound y\n  refine ⟨p, N, hp, hN, hout, fun y => ⟨(hall y).1, (hall y).2.2.2.2.1,\n    (hall y).2.2.2.2.2.2⟩, hcount, ?_⟩\n  calc\n    (∫ y, (N y : ℝ)+1 ∂ν) ≤ ∫ y, C*(1+Real.log (1+‖gradient V y‖/eps)) ∂ν :=\n      integral_mono hcount hdom hbound\n    _ = C*(1+∫ y, Real.log (1+‖gradient V y‖/eps) ∂ν) := by\n      rw [integral_const_mul, integral_add (integrable_const 1) hlog]\n      simp\n    _ ≤ _ := mul_le_mul_of_nonneg_left (add_le_add_right hj 1) hC\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Appendix D.2, Lemma D.4 proof after equation D.7: the first Jensen expected-work inequality",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib isolates and expands the expectation/Jensen step; this is not the full Lemma D.4, equation D.7 or equation D.8, and is not the authors' original wording or an endorsement."
+    },
+    "statement": "Let an actual Algorithm D.2 query at a random center Y have pointwise count N_prox(Y) bounded by C_c[1+log(1+‖∇V(Y)‖/eps)]. If the center law is a probability measure and E‖∇V(Y)‖² is finite, then the actual count is integrable and E[N_prox(Y)]≤C_c[1+log(1+sqrt(E‖∇V(Y)‖²)/eps)]. Samplinglib constructs the measurable first-stopped execution and its count rather than assuming an accurate oracle or a cost random variable. The explicit C_c is the admissible constant already derived for D.3.",
+    "formulae": [
+      {
+        "label": "Conditional expected query work",
+        "tex": "\\mathbb E_\\nu[N_{\\rm prox}(Y)]\\le C_c\\left[1+\\log\\left(1+\\frac{(\\mathbb E_\\nu\\|\\nabla V(Y)\\|^2)^{1/2}}{\\varepsilon}\\right)\\right]."
+      },
+      {
+        "label": "Samplinglib admissible D.3 constant",
+        "tex": "C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional complete real inner-product space with its Borel measurable structure; the source specializes to Euclidean space.",
+      "V is C², kappa≥1, and kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v. Fix 0<eta≤c<1 and eps>0.",
+      "nu is a probability law for the query center and y↦‖∇V(y)‖² is integrable. Lemma D.4's separate equation D.7 must later supply a uniform numerical bound for the actual Picard center laws."
+    ],
+    "obligations": [
+      {
+        "id": "actual-count",
+        "label": "Measurable actual Algorithm D.2 output and query count"
+      },
+      {
+        "id": "count-integrability",
+        "label": "Integrability of the realized count before taking expectation"
+      },
+      {
+        "id": "jensen-l2",
+        "label": "Jensen and probability-L2 expected-work inequality"
+      },
+      {
+        "id": "picard-moment",
+        "label": "Actual Picard center moment estimate D.7 (remaining)"
+      },
+      {
+        "id": "total-work",
+        "label": "Phase/call aggregation and total gradient work D.8 (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork.approximate_proximal_expected_work",
+      "title": "Expected work of the actual proximal-query program",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, SPHMC Lemma D.4 proof after (D.7)",
+          "scope": "Attributed expansion of the expectation/Jensen step, not the full lemma."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCProximalExpectedWork"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional complete real inner-product space with its Borel sigma algebra. V:E→R is C², kappa≥1, and kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v. The ContDiff assumption makes fderiv a genuine derivative.",
+        "Fix 0<eta≤c<1 and eps>0. No eta≤1/2 restriction is introduced. The explicit constant depends only on c.",
+        "nu is a probability measure on E and y↦‖gradient V y‖² is integrable. This moment hypothesis must later be established for the actual Picard center law; it is not silently assumed to follow from proximity in total variation."
+      ],
+      "statement": "There exist measurable proximal points p and stopping indices N with measurable returned iterate x_N(y), where x_0(y)=y and x_(n+1)(y)=y−eta∇V(x_n(y)). They satisfy p(y)+eta∇V(p(y))=y and ‖x_N(y)−p(y)‖≤eps. The actual finite-fuel interpreter with N(y)+1 fuel returns (x_N(y),N(y)+1). Its real-valued query count is integrable under nu and has the following expectation bound.",
+      "formula": "\\begin{gathered}\\mathbb E_\\nu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\nu\\|\\nabla V(Y)\\|^2}}{\\varepsilon}\\right)\\right],\\\\ C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}.\\end{gathered}",
+      "steps": [
+        {
+          "title": "Use the real stopped program, not an assumed cost certificate",
+          "text": "The existing execution theorem constructs p and N by contraction and the first successful residual test. Reuse these same witnesses, together with their measurable output, accuracy, and exact interpreter equation. In particular N+1 includes the final successful gradient evaluation.",
+          "formula": "Q_{N(y)+1}(y)=\\mathrm{some}(x_{N(y)}(y),N(y)+1),\\quad N(y)+1\\le C_c[1+\\log(1+g(y)/\\varepsilon)],\\quad g(y)=\\|\\nabla V(y)\\|.",
+          "lean": "approximate_proximal_execution supplies hall. Its pointwise work conjunct becomes hbound; its actual execution conjunct is retained in the public conclusion."
+        },
+        {
+          "title": "Establish integrability before taking expectations",
+          "text": "C² regularity makes the gradient continuous and hence g measurable. The assumed integrable square gives g in L²; on a probability space this implies L¹. The nonnegative logarithm is bounded by g/eps, so it is integrable. The count is measurable, nonnegative, and dominated by an integrable multiple of one plus that logarithm.",
+          "formula": "0\\le\\log(1+g/\\varepsilon)\\le g/\\varepsilon,\\qquad 0\\le N+1\\le C_c[1+\\log(1+g/\\varepsilon)]\\in L^1(\\nu).",
+          "lean": "memLp_two_iff_integrable_sq and MemLp.integrable supply L¹. Real.log_le_sub_one_of_pos and Integrable.mono' prove log integrability; a second domination proves hcount."
+        },
+        {
+          "title": "Apply Jensen on a closed positive domain",
+          "text": "The variable 1+g/eps lies in [1,infinity). Restrict concavity and continuity of log to this closed convex half-line. Both the variable and its logarithm are integrable, so Mathlib's integral Jensen theorem applies without any improper-log convention.",
+          "formula": "\\mathbb E_\\nu\\log(1+g/\\varepsilon)\\le\\log(1+\\mathbb E_\\nu g/\\varepsilon).",
+          "lean": "strictConcaveOn_log_Ioi is restricted to Set.Ici 1; ConcaveOn.le_map_integral checks the domain, closedness and both integrability obligations."
+        },
+        {
+          "title": "Compare the first and second moments",
+          "text": "Nonnegative variance yields (E g)²≤E(g²). Since g and the square root are nonnegative, E g≤sqrt(E(g²)). This is the Cauchy–Schwarz step on a probability space, using Mathlib's variance identity rather than reproving a generic inequality.",
+          "formula": "0\\le\\operatorname{Var}_\\nu(g)=\\mathbb E_\\nu g^2-(\\mathbb E_\\nu g)^2,\\qquad\\mathbb E_\\nu g\\le\\sqrt{\\mathbb E_\\nu g^2}.",
+          "lean": "variance_eq_sub is used only after MemLp g 2 is established; variance_nonneg and Real.sq_sqrt give hmean."
+        },
+        {
+          "title": "Integrate the pointwise work estimate",
+          "text": "For 0<c<1, both −log c and 1−c are positive, and log((1−c)⁻¹) is nonnegative, so C_c≥0. Integrate the actual count bound, use linearity for the integrable terms, then combine Jensen and log monotonicity. No distributional identification or exchange of limiting integrals is needed.",
+          "formula": "\\mathbb E_\\nu[N+1]\\le C_c(1+\\mathbb E_\\nu\\log(1+g/\\varepsilon))\\le C_c\\left[1+\\log(1+\\sqrt{\\mathbb E_\\nu g^2}/\\varepsilon)\\right].",
+          "lean": "integral_mono uses hcount and hdom; integral_const_mul and integral_add handle the integral; mul_le_mul_of_nonneg_left uses the checked sign hC."
+        }
+      ],
+      "lean_statement": "The exact adjacent declaration quantifies the input probability measure, genuine curvature bounds, moment hypothesis, constructed interpreter witnesses and integrable expected cost.",
+      "lean_proof": "The public proof applies the existing actual-execution theorem. A private helper packages Mathlib Jensen, L²-to-L¹ and variance arguments; it has no separate leaf credit. No assumed accuracy or expected-cost oracle replaces the real program.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.memLp_two_iff_integrable_sq",
+        "MeasureTheory.MemLp.integrable",
+        "MeasureTheory.Integrable.mono'",
+        "Real.log_le_sub_one_of_pos",
+        "strictConcaveOn_log_Ioi",
+        "ConcaveOn.le_map_integral",
+        "ProbabilityTheory.variance_eq_sub",
+        "ProbabilityTheory.variance_nonneg",
+        "Real.sq_sqrt",
+        "MeasureTheory.integral_mono"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork.approximate_proximal_expected_work",
+      "role": "proof-edge",
+      "supports": [
+        "actual-count",
+        "count-integrability",
+        "jensen-l2"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Lemma D.4 concerns the actual Picard HMC center laws and first proves their numerical second-moment bound D.7.",
+        "lean": "An arbitrary probability measure nu is allowed, under the explicit premise Integrable(y↦‖∇V(y)‖²)."
+      },
+      {
+        "source": "The source works on R^d with the normalized Hessian bounds and its stated algorithmic parameters.",
+        "lean": "Finite-dimensional complete real inner-product Borel space, genuine C² Hessian bounds, kappa≥1 and full 0<eta≤c<1, eps>0."
+      },
+      {
+        "source": "The proof invokes Lemma D.3's pointwise number of gradient evaluations and then Jensen's inequality.",
+        "lean": "The same measurable witnesses p,N returned by the actual finite-fuel interpreter are retained; N+1 is proved integrable before integral_mono and Jensen are used."
+      },
+      {
+        "source": "The paper writes a constant C and obtains the later bound C*L_q after inserting D.7 and parameter choices.",
+        "lean": "The conditional inequality uses the explicit admissible C_c=2+(1+log((1-c)^-1))/(-log c) inherited from the formal D.3 bound."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "0af3773054b19129df14b4f3be3fa63caf8f8c0e62e79d1419faf0ea3e0cce68"
+}

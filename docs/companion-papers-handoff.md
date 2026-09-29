@@ -1,5 +1,31 @@
 # Companion-paper formalization handoff
 
+## Integration in progress — 2026-09-29
+
+Safely incorporated main `208e36b0`, preserving collaborator title/attribution
+updates. Independent verifier `proximal_commit_verifier_0929` admitted the D.2/D.3
+packet at `534c926a` after fresh focused compilation and current reviewed-binding
+checks. Receipt: `runs/20260929-companion-priority/proximal-execution.verified.json`.
+The SAU is now STABILIZING, owned by root. Candidate `80f7e63` adds the actual
+production module to ExampleCases and its focused test to root Tests. Aggregate
+acceptance passed: root Tests (9252 jobs), ASTIS check, publication and contributor
+gates, semantic bindings, site build/check (12 chapters, 720 modules, 4034
+declarations), and both affected graph checks. Desktop/mobile formula proofs and
+the local graph were actually inspected; seven proof steps have adjacent folded
+Lean, with eight rendered formulas and no math rendering errors. Source overlays
+remain dashed and do not assert theorem implication. Merge/deployment remain
+pending; this is not whole-paper completion.
+
+At the owner's current request, unconfirmed project author lists are removed
+from public reader, README and citation surfaces. Source-paper authors remain
+credited. The definition/def reader compatibility fix has regression tests and
+does not change the Lean theorem, lesson or source-review context.
+
+Registry stays at 438: this is a paper theorem and interpreter, not an additional
+canonical technical-lemma entry. The next candidate is the expectation step for
+the actual query count under an explicitly square-integrable input gradient.
+The D.4 moment bound for actual Picard centers and total run cost remain open.
+
 ## Shared progress checkpoint — 2026-09-19
 
 The two-paper Goal is active. Neither complete paper or final sampling-complexity
@@ -19,7 +45,7 @@ Remaining work includes PBPS process/operator/hypocoercivity and implementation
 guarantees, SPHMC smoothing/concentration/Picard and sampling-error guarantees,
 and actual-input expected costs and composition. No reliable completion date is
 established. Do not substitute a calendar promise for dependency-level evidence.
-The project author and organizer lists are maintained on the public citation and site surfaces;
+The previously restored project author list is now withheld pending confirmation;
 primary-source author attribution remains preserved separately.
 
 ## Protocol refresh and continuation — 2026-09-18

@@ -64,7 +64,7 @@ ORGANIZER_FOOTER_INPUTS = (
         "Qingfu Zhang, and Atsushi Nitanda.</p>"
     ),
 )
-CANONICAL_ORGANIZER_FOOTER = (
+PROVISIONAL_ORGANIZER_FOOTER = (
     "<p><strong>Organizer (Authors):</strong> Dake Bu, Ji Cheng, Huanjian Zhou, "
     "Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, "
     "Qingfu Zhang, and Atsushi Nitanda.</p>"
@@ -93,21 +93,17 @@ def repair_final_content_anchors(output: Path) -> None:
 
 
 def repair_project_author_footer(output: Path) -> None:
-    """Keep every generated page aligned with the canonical ASTIS author list."""
+    """Suppress unconfirmed project authors, without touching source attribution."""
     for path in sorted(output.rglob("*.html")):
         text = path.read_text(encoding="utf-8")
         original = text
-        for source_footer in ORGANIZER_FOOTER_INPUTS:
-            text = text.replace(source_footer, CANONICAL_ORGANIZER_FOOTER)
+        for source_footer in (*ORGANIZER_FOOTER_INPUTS, PROVISIONAL_ORGANIZER_FOOTER):
+            text = text.replace(source_footer, "")
         if text != original:
             path.write_text(text, encoding="utf-8", newline="\n")
-        if (
-            "Samplinglib</strong> is the public formal library and learning interface"
-            in text
-            and CANONICAL_ORGANIZER_FOOTER not in text
-        ):
+        if "Organizer (Authors):" in text:
             raise RuntimeError(
-                f"{path.relative_to(output)}: Samplinglib footer is missing the canonical Organizer (Authors) list"
+                f"{path.relative_to(output)}: unconfirmed project authors remain"
             )
 
 

@@ -215,6 +215,11 @@ def coverage(data: dict, units: list[dict], data_lessons: dict | None = None) ->
     return rows
 
 
+def declaration_kind_matches(authored: str, lean: str) -> bool:
+    """Accept the prose spelling of `def`, never a proof-kind promotion."""
+    return {'definition': 'def'}.get(authored, authored) == lean
+
+
 def enrich_site(output: Path) -> None:
     units = load_units()
     export_sources(output, units)
@@ -223,7 +228,7 @@ def enrich_site(output: Path) -> None:
         for name in [unit['declaration'], *unit.get('astis_dependencies', []), *unit.get('helpers', [])]:
             if name not in known:
                 raise ValueError(f'Unknown lesson dependency: {name}')
-        if unit['kind'] != known[unit['declaration']].kind:
+        if not declaration_kind_matches(unit['kind'], known[unit['declaration']].kind):
             raise ValueError(f'{unit["declaration"]}: Lean declaration kind drift')
         for projection in unit.get('astis_projection_dependencies', []):
             validate_projection(projection, known)

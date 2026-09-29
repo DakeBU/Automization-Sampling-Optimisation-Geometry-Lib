@@ -1,10 +1,10 @@
 # Actual stopped proximal queries — Algorithm D.2 / Lemma D.3
 
 Issue #311; cell `ASTIS-SW-SPHMC-approximate-proximal-execution`.
-Status: PROVED_LOCAL with focused compilation, authored lessons, publication
-bindings and independent encoder-denoiser source review. Commit-bound VERIFIED,
-serialized root/site integration and aggregate acceptance remain pending. Root
-is the unique Lean writer; construction is not an extra mathematical theorem.
+Status: independently VERIFIED at 534c926a; STABILIZING under root. Candidate
+80f7e63 includes root production/test imports. Tests (9252 jobs) and canonical
+ASTIS check pass; rendered reader/graph acceptance and merge remain pending.
+Root is the unique Lean writer; construction is not an extra mathematical theorem.
 
 ## Pinned source and target
 

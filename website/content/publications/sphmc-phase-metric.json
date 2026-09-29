@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-phase-metric",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "SPHMC M-kappa phase metric and moment adapter",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "M-kappa display before Theorem 4.5; Lemma D.4 proof",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. ASTIS supplies explicit comparison constants and the omitted near-optimal-coupling details."
+    },
+    "statement": "The paper's exact twisted phase transport cost controls ordinary phase transport and therefore transfers reference position/momentum moments to an incoming law.",
+    "assumptions": ["Real inner-product phase space.", "kappa>=1.", "Explicit reference second moments for the final adapter."],
+    "formulae": [
+      {"label": "Twisted form", "tex": "q_\\kappa(x,p)=(\\frac1{2\\kappa}+\\frac12)\\|x\\|^2+\\langle x,p\\rangle+\\|p\\|^2."},
+      {"label": "Transport comparison", "tex": "W_2^2\\le6 W_{2,M_\\kappa}^2."},
+      {"label": "Moment adapter", "tex": "\\mathbb E[\\|X-x_\\star\\|^2+\\|P\\|^2]\\le2(M_X+M_P)+24r^2."}
+    ],
+    "obligations": [
+      {"id": "cost", "label": "Exact M-kappa point cost"},
+      {"id": "transport", "label": "Twisted Kantorovich value"},
+      {"id": "comparison", "label": "Explicit ordinary/twisted transport comparison"},
+      {"id": "moment", "label": "Twisted-transport phase-state moment"},
+      {"id": "history", "label": "Equation (D.3) actual phase history (remaining)"},
+      {"id": "d7", "label": "All actual query-center moments (remaining)"},
+      {"id": "d8", "label": "Total expected gradient cost (remaining)"}
+    ],
+    "bindings": [
+      {"declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseCost", "cell": "ASTIS-SW-SPHMC-phase-metric-cost", "role": "prerequisite", "audit_id": "ASTIS-RT-20260929-SPHMCPhaseCost", "supports": ["cost"], "boundary": "Point cost only.", "assumption_deltas": [{"source": "The paper gives a positive matrix for kappa>=1.", "lean": "The definition is total; positivity is proved only under kappa>=1 in the consumer module proof.", "classification": "same", "reason": "Separating a total definition from its valid parameter domain avoids hidden partiality."}]},
+      {"declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseWassersteinSq", "cell": "ASTIS-SW-SPHMC-phase-metric-transport", "role": "prerequisite", "audit_id": "ASTIS-RT-20260929-SPHMCPhaseWasserstein", "supports": ["transport"], "boundary": "Raw squared transport infimum; no optimizer.", "assumption_deltas": [{"source": "The paper writes W_{2,M_kappa}.", "lean": "ASTIS stores its square directly as an ENNReal Kantorovich value.", "classification": "same", "reason": "The paper consumers use the squared quantity; ENNReal preserves infinite costs."}]},
+      {"declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.wassersteinDistance_sq_le_phaseWassersteinSq", "cell": "ASTIS-SW-SPHMC-phase-metric-comparison", "role": "proof-edge", "audit_id": "ASTIS-RT-20260929-SPHMCPhaseMetricComparison", "supports": ["comparison"], "boundary": "One-way explicit comparison only; no D.3.", "assumption_deltas": [{"source": "The paper says the norms are uniformly equivalent.", "lean": "ASTIS proves the explicit kappa-uniform one-way constant 6 needed by Lemma D.4.", "classification": "source-implicit", "reason": "The constant follows from the displayed matrix by Cauchy--Schwarz and a completed square."}, {"source": "Finite-dimensional Euclidean optimal couplings are available.", "lean": "The proof uses near-optimal couplings and arbitrary measures.", "classification": "generalization", "reason": "Attainment is unnecessary for the inequality."}]},
+      {"declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phase_state_second_moment_of_phaseWasserstein", "cell": "ASTIS-SW-SPHMC-phase-metric", "role": "proof-edge", "audit_id": "ASTIS-RT-20260929-SPHMCPhaseMetricMoment", "supports": ["moment"], "boundary": "Metric/moment adapter only; D.3, history, D.7, D.8 and main theorems remain open.", "assumption_deltas": [{"source": "The stationary phase law and Lemma 4.16 supply moments in the paper.", "lean": "Reference integrability and bounds Mx,Mp are explicit premises.", "classification": "source-implicit", "reason": "This theorem isolates the metric step from stationary-law construction."}]}
+    ]
+  }]
+}

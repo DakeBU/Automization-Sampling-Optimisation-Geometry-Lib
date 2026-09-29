@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment.gaussianSmoothing_position_second_moment",
+      "title": "Gaussian smoothing adds exactly one noise second moment",
+      "boundary": "Exact position-moment identity only; no stationarity, Hamiltonian invariance, contraction or phase-history estimate.",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1#S3.SS1", "label": "SPHMC Section 3.1 definition of pi_eta", "scope": "ASTIS expands the independent-noise second-moment calculation suppressed by the paper."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCPhaseReferenceMoment"],
+      "assumptions": ["E is a finite-dimensional complete real inner-product Borel space.", "mu is a probability measure.", "The squared distance to xstar is mu-integrable.", "sigma is the Gaussian standard-deviation scale; the paper later uses sigma=sqrt(eta)."],
+      "statement": "Convolving a probability law with an independent centered isotropic Gaussian of scale sigma increases its second moment about xstar by exactly sigma squared times the dimension.",
+      "formula": "\\int\\|y-x_\\star\\|^2\\,d(\\mu*\\mathsf N(0,\\sigma^2I))(y)=\\int\\|x-x_\\star\\|^2\\,d\\mu(x)+\\sigma^2d.",
+      "steps": [
+        {"title": "Expose the independent product", "text": "Gaussian smoothing is the pushforward of an independent pair (X,Z) under X+sigma Z.", "formula": "\\mu*\\mathsf N(0,\\sigma^2I)=(\\mu\\otimes\\gamma)_\\#[(x,z)\\mapsto x+\\sigma z].", "lean": "gaussianSmoothing, scaledStdGaussian, Measure.map_prod_map and Measure.map_map."},
+        {"title": "Expand the square", "text": "Separate the old position energy, the centered cross term, and the Gaussian energy.", "formula": "\\|X+\\sigma Z-x_\\star\\|^2=\\|X-x_\\star\\|^2+2\\sigma\\langle X-x_\\star,Z\\rangle+\\sigma^2\\|Z\\|^2.", "lean": "norm_add_sq_real after an explicit subtraction identity."},
+        {"title": "Justify and cancel the cross term", "text": "The two L2 assumptions imply integrability of the product inner product; independence and E Z=0 then make its integral zero.", "formula": "\\mathbb E\\langle X-x_\\star,Z\\rangle=\\mathbb E\\langle X-x_\\star,\\mathbb EZ\\rangle=0.", "lean": "MemLp.integrable, Integrable.op_fst_snd, integral_prod and integral_strongDual_stdGaussian."},
+        {"title": "Insert the Gaussian trace", "text": "The coordinate-free standard-Gaussian second moment is the real dimension.", "formula": "\\mathbb E\\|Z\\|^2=d.", "lean": "StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian."}
+      ],
+      "lean_statement": "The theorem is generic in mu and permits every real sigma; covariance depends on sigma squared.",
+      "lean_proof": "Pushforward integration, an integrable square expansion, Gaussian centering, and the standard-Gaussian trace identity.",
+      "astis_dependencies": ["AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing", "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"],
+      "mathlib_dependencies": ["Measure.map_prod_map", "integral_prod", "integral_strongDual_stdGaussian", "memLp_two_iff_integrable_sq_norm"]
+    },
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment.phaseReference_second_moment",
+      "title": "The actual SPHMC product reference has controlled phase energy",
+      "boundary": "Reference-law probability and second moments only; no numerical-kernel invariance, D.3, history supremum, D.7 or D.8.",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1#S3.SS1", "label": "SPHMC Pi_eta definition and Lemma D.4 use", "scope": "Faithful prerequisite exposing the omitted product-law and integrability details."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCPhaseReferenceMoment"],
+      "assumptions": ["The hypotheses of the smoothing theorem.", "The original position moment is bounded above by M."],
+      "statement": "The product of the smoothed position law and independent standard-Gaussian momentum is a probability law with exact coordinate moments and an explicit combined phase-energy bound.",
+      "formula": "\\mathbb E_{\\Pi_\\sigma}[\\|X-x_\\star\\|^2+\\|P\\|^2]\\le M+(\\sigma^2+1)d.",
+      "steps": [
+        {"title": "Construct the phase law", "text": "Use the actual product measure, not two unrelated marginal assumptions.", "formula": "\\Pi_\\sigma=(\\mu*\\mathsf N(0,\\sigma^2I))\\otimes\\mathsf N(0,I).", "lean": "piSigma.prod (stdGaussian E), with an explicit probability instance for the smoothing pushforward."},
+        {"title": "Integrate the position coordinate", "text": "The second coordinate has total mass one, so the product integral is the smoothing identity.", "formula": "\\mathbb E_{\\Pi_\\sigma}\\|X-x_\\star\\|^2=\\mathbb E_\\mu\\|X-x_\\star\\|^2+\\sigma^2d.", "lean": "Integrable.comp_fst, integral_prod and probReal_univ."},
+        {"title": "Integrate the momentum coordinate", "text": "The first marginal has total mass one and the momentum is standard Gaussian.", "formula": "\\mathbb E_{\\Pi_\\sigma}\\|P\\|^2=d.", "lean": "Integrable.comp_snd and the standard-Gaussian moment theorem."},
+        {"title": "Add the two energies", "text": "Product integrability legitimizes splitting the integral before applying the supplied base bound.", "formula": "(M+\\sigma^2d)+d=M+(\\sigma^2+1)d.", "lean": "integral_add followed by linarith."}
+      ],
+      "lean_statement": "The paper convention is obtained with sigma=sqrt eta and eta nonnegative; the theorem itself records the more general scale-squared identity.",
+      "lean_proof": "Product probability, coordinate integrability, exact Fubini identities, then addition of the supplied base moment bound.",
+      "astis_dependencies": ["AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment.gaussianSmoothing_position_second_moment", "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"],
+      "mathlib_dependencies": ["Measure.prod", "integral_prod", "probReal_univ"]
+    }
+  ]
+}

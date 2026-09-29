@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-phase-reference-moment",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "SPHMC stationary phase-reference moments",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Section 3.1 definition of pi_eta and Pi_eta; Lemma D.4 proof after equation (D.3)",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. ASTIS supplies the omitted independent-Gaussian and product-integral details."
+    },
+    "statement": "For pi_eta=pi*N(0,eta I) and Pi_eta=pi_eta tensor N(0,I), the stationary reference law has explicit finite position and momentum second moments; ASTIS proves the generic standard-deviation-scale identity used by this specialization.",
+    "assumptions": ["Finite-dimensional real inner-product Borel space.", "A probability base law with an integrable, bounded position second moment.", "Use sigma=sqrt eta to recover the paper's variance parameter eta."],
+    "formulae": [
+      {"label": "Smoothed position", "tex": "\\mathbb E\\|X+\\sigma Z-x_\\star\\|^2=\\mathbb E\\|X-x_\\star\\|^2+\\sigma^2d."},
+      {"label": "Phase reference", "tex": "\\Pi_\\sigma=(\\mu*\\mathsf N(0,\\sigma^2I))\\otimes\\mathsf N(0,I)."},
+      {"label": "Combined phase moment", "tex": "\\mathbb E_{\\Pi_\\sigma}[\\|X-x_\\star\\|^2+\\|P\\|^2]\\le M+(\\sigma^2+1)d."}
+    ],
+    "obligations": [
+      {"id": "smoothing-moment", "label": "Exact independent-noise position moment"},
+      {"id": "phase-reference", "label": "Actual product phase-reference moments"},
+      {"id": "gibbs-specialization", "label": "Insert the compiled Gibbs moment and sigma=sqrt eta (remaining integration)"},
+      {"id": "d3", "label": "Equation (D.3) phase-history bound (remaining)"},
+      {"id": "d7", "label": "Actual query-center moments (remaining)"},
+      {"id": "d8", "label": "Total expected gradient work (remaining)"}
+    ],
+    "bindings": [
+      {"declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment.gaussianSmoothing_position_second_moment", "cell": "ASTIS-SW-SPHMC-phase-reference-smoothing-moment", "role": "prerequisite", "audit_id": "ASTIS-RT-20260929-SPHMCPhaseReferenceSmoothingMoment", "supports": ["smoothing-moment"], "boundary": "Generic smoothing identity only; no phase dynamics.", "assumption_deltas": [{"source": "The paper defines pi_eta using covariance eta I.", "lean": "The theorem accepts every real standard-deviation scale sigma and produces covariance sigma^2 I.", "classification": "generalization", "reason": "The source is recovered by sigma=sqrt eta under eta>=0; sign is immaterial because the second moment depends on sigma squared."}, {"source": "The paper works with its strongly log-concave Gibbs target.", "lean": "The identity holds for any probability law with the displayed finite position second moment.", "classification": "generalization", "reason": "No Gibbs structure is used in the independent-noise calculation."}]},
+      {"declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment.phaseReference_second_moment", "cell": "ASTIS-SW-SPHMC-phase-reference-moment", "role": "proof-edge", "audit_id": "ASTIS-RT-20260929-SPHMCPhaseReferenceMoment", "supports": ["phase-reference"], "boundary": "Reference moments only; D.3, history, D.7 and D.8 remain open.", "assumption_deltas": [{"source": "The paper writes Pi_eta=pi_eta tensor N(0,I) and later uses its moments inside universal constants.", "lean": "ASTIS constructs the actual product measure and states probability, coordinate integrability, exact coordinate integrals and the explicit combined bound.", "classification": "source-implicit", "reason": "These facts are required before the later transport-to-moment and Fubini steps are valid."}, {"source": "Strong convexity supplies the base Gibbs position moment.", "lean": "This bounded packet takes the base moment M as an explicit premise.", "classification": "source-implicit", "reason": "The already compiled Gibbs moment is kept as a separate parent; its final specialization remains a visible integration edge."}]}
+    ]
+  }]
+}

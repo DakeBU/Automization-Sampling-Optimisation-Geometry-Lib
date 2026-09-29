@@ -18,6 +18,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DonskerVaradhan
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.Renyi
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
 import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
 import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsIntegral
 import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsLogConcavity
@@ -1993,6 +1994,16 @@ def measureMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Wasserstein", "P2ac", "absolute-continuity", "second-moment", "Lebesgue"],
     saldUse := "Chewi Definition 1.3.12 root: package probability normalization, finite second moment, and Lebesgue absolute continuity",
     note := "Exact measure-class definition; no Wasserstein metric, optimal map, or gradient-flow theorem is asserted."
+  },
+  {
+    key := "measure.wasserstein.lipschitz-observable-second-moment",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment.of_wassersteinDistance_sq_le",
+    upstreamDecl := "quadratic coupling inequality for Lipschitz observables",
+    upstreamFile := "standard Wasserstein consequence; SPHMC arXiv:2609.06906v1 Lemma D.4 prerequisite",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Wasserstein", "Lipschitz", "second-moment", "integrability", "SPHMC"],
+    saldUse := "transfer square-integrability and a quadratic observable moment bound along a W2 estimate",
+    note := "Uses approximate couplings rather than optimal-plan existence. A twisted paper metric such as SPHMC M_kappa still needs an explicit metric comparison."
   },
   {
     key := "measure.wasserstein.quadratic-optimal-coupling",

@@ -1,0 +1,4 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment
+
+#check AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment.phase_state_second_moment_of_wasserstein
+#print axioms AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment.phase_state_second_moment_of_wasserstein

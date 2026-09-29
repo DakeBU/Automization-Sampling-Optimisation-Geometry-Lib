@@ -59,6 +59,7 @@ import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardCenterMoment
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PartialMomentumRefresh
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram
 
 /-!

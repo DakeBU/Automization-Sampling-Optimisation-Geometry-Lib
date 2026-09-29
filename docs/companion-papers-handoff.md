@@ -21,8 +21,9 @@ Commit-bound verification at `488d0bf5` passes focused build plus fresh direct
 elaboration, and the ledger is now STABILIZING. Root integration passes Tests9254,
 the canonical ASTIS/ATLAS gate, site and
 graph checks, 210 reader tests and actual desktop/mobile/local-graph inspection.
-Merge and deployment remain pending. Neither the Picard input moment bound D.7
-nor the total cost D.8 is claimed. See
+The packet was then fast-forwarded to `main` at `fa25c599`; remote CI and
+deployment remain separately observable. Neither the Picard input moment bound
+D.7 nor the total cost D.8 is claimed. See
 `proof-blueprints/SPHMC-proximal-expected-work.md` for the exact continuation.
 
 ## Integration in progress — 2026-09-29

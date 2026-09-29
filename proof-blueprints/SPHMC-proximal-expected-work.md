@@ -66,3 +66,8 @@ publication binding, fake-closure scan and the source-reviewed semantic round
 trip all pass; the source verdict is `equivalent-after-elaboration`. Root imports,
 aggregate/site acceptance, merge and deployment remain pending. Do not repeat
 mathematical implementation or count D.7/D.8 as completed.
+
+Root stabilization now also passes the complete Tests target (9254 jobs), the
+canonical ASTIS/ATLAS gate, publication and graph checks, a 12-chapter site build,
+210 reader/protocol tests and actual desktop/mobile/local-graph inspection. Only
+remote merge/deployment remain for this edge; the paper boundary is unchanged.

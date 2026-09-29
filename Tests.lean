@@ -1,6 +1,7 @@
 import Tests.Shared.UniformRegularization
 import Tests.WeightedLocalL2
 import Tests.SmoothedPicardHMCApproximateProximalExecution
+import Tests.SmoothedPicardHMCProximalExpectedWork
 import Tests.Shared.QuadraticRegularizationOracle
 import Tests.Shared.QuadraticRegularizationFirstOrder
 import Tests.Shared.QuadraticRegularizationTransfer

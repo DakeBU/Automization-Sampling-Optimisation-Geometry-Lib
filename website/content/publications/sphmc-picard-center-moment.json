@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-picard-center-moment",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "SPHMC D.7 proof edge: two Picard layers from a phase-state moment",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Appendix D.2, Lemma D.4, equation D.7, layer argument on lines 2177–2181",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib expands one conditional two-layer moment edge; it is not the authors' original wording, the whole equation D.7, Lemma D.4, equation D.8 or an endorsement."
+    },
+    "statement": "Conditional on the separate run-wide phase-state second-moment estimate and the Chebyshev–Lobatto integrated-weight row bound, the actual stopped approximate-proximal computation used by the first Picard layer has integrable gradient queries, and those moments propagate through the finite weighted update to every second-layer center. All measurability and integrability obligations are explicit, and marginal Gaussian second moments suffice.",
+    "assumptions": [
+      "Finite-dimensional Euclidean-compatible Borel space; C² normalized Hessian bounds kappa⁻¹I≼D²V≼I and a minimizer x* with ∇V(x*)=0.",
+      "A probability-space realization of one phase with E[‖X−x*‖²+‖P₀‖²]≤M for the post-refresh momentum P₀, including integrability; |t_i|≤1. The refresh adapter from the repeated-chain state remains separate.",
+      "Measurable innovations with integrable squared norm and E‖G_j‖²≤d; no independence premise is used in this conditional edge.",
+      "Absolute integrated-weight row sum at most S and parameters 0<eta≤c<1, eps>0."
+    ],
+    "formulae": [
+      {"label": "Random first-layer query bound", "tex": "B=6M+3\\varepsilon^2+3\\eta d,\\qquad \\mathbb E\\|\\nabla V(q(Y_j^0)+\\sqrt\\eta G_j)\\|^2\\le B."},
+      {"label": "Second-layer center-gradient bound", "tex": "Y_i^1=Y_i^0-\\sum_j\\omega_{ij}Z_j^0,\\qquad \\mathbb E\\|\\nabla V(Y_i^1)\\|^2\\le4M+2S^2B."}
+    ],
+    "obligations": [
+      {"id": "actual-prox", "label": "Actual measurable stopped proximal execution at every first-layer center"},
+      {"id": "layer-zero", "label": "First-center and random proximal-gradient L2 estimates"},
+      {"id": "layer-one", "label": "Finite weighted second-layer L2 propagation"},
+      {"id": "run-state", "label": "Repeated Algorithm 3.1 law, run-wide state moment and post-refresh adapter (remaining)"},
+      {"id": "d7-parameters", "label": "Paper parameter substitution yielding the stated D.7 order (remaining)"},
+      {"id": "total-work", "label": "Phase/call aggregation and D.8 total work (remaining)"}
+    ],
+    "bindings": [{
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardCenterMoment.picard_center_gradient_moment",
+      "cell": "ASTIS-SW-SPHMC-picard-center-moment",
+      "role": "proof-edge",
+      "audit_id": "ASTIS-RT-20260929-PicardCenterMoment",
+      "supports": ["actual-prox", "layer-zero", "layer-one"],
+      "boundary": "Conditional two-layer L2 propagation for one realized phase. The repeated Algorithm 3.1 history law, the source's run-wide W2/state estimate, insertion of eta, eps, d, kappa and L_q, the final C*kappa*d*L_q^18 value, D.8, sampling accuracy and Theorem 5.1 remain unsupported red obligations.",
+      "assumption_deltas": [
+        {"source": "The D.7 proof first invokes the run-wide state estimate from D.3 with q=2 and Lemma 4.16, then Algorithm 3.1 refreshes momentum before forming Y⁰.", "lean": "The realized X and post-refresh P₀ law and its integrable second-moment upper bound M are explicit premises.", "classification": "source-implicit", "reason": "This freezes only the subsequent two-layer propagation. Construction of the repeated state law and the refresh-moment adapter remain separate visible obligations; the same constant is not silently reused."},
+        {"source": "The paper uses standard Gaussian innovations in R^d inside Algorithm 3.1.", "lean": "Each measurable innovation is required only to satisfy integrability and E‖G_j‖²≤finrank(E); no independence is assumed.", "classification": "generalization", "reason": "The displayed moment calculation uses no independence. The future kernel/history theorem must separately construct the correct joint Gaussian law."},
+        {"source": "The paper states a universal C and suppresses the elementary two-layer constants.", "lean": "The conditional theorem records B=6M+3eps²+3eta*d and 4M+2S²B.", "classification": "source-implicit", "reason": "These explicit sufficient constants follow from the same triangle/Cauchy–Schwarz route and are intended to be absorbed by the source's universal C after parameter insertion."},
+        {"source": "Algorithm 3.1 calls an approximate proximal routine and then forms its Picard interpolation layers.", "lean": "The theorem retains the exact finite-fuel interpreter equation and its measurable p,N,q witnesses, while abstracting only the current phase-state variables and finite node/weight data.", "classification": "source-implicit", "reason": "The local execution semantics are real; only the repeated kernel/history law and source-specific node construction remain separate."},
+        {"source": "The source works in R^d under normalized strong-convexity and smoothness assumptions.", "lean": "A finite-dimensional complete real inner-product Borel space and genuine C² Hessian inequalities are used.", "classification": "generalization", "reason": "This includes the Euclidean source setting and makes genuine differentiability explicit instead of relying on totalized fderiv."}
+      ]
+    }]
+  }]
+}

@@ -44,7 +44,18 @@ def validate_data(data=None):
 
 
 def refs_html(d,ids):
-    return ''.join(f'<p><a href="{esc(d["sources"][k]["url"])}">{esc(d["sources"][k]["title"])} ↗</a><br>{esc(', '.join(d["sources"][k].get("authors",[])))} · {esc(d["sources"][k].get("version","author manuscript"))}<br><small>{esc(d["sources"][k]["anchor"])}<br>{esc(d["sources"][k].get("pin_status",""))}</small></p>' for k in ids)
+    rows = []
+    for key in ids:
+        source = d["sources"][key]
+        authors = ", ".join(source.get("authors", []))
+        version = source.get("version", "author manuscript")
+        pin_status = source.get("pin_status", "")
+        rows.append(
+            f'<p><a href="{esc(source["url"])}">{esc(source["title"])} ↗</a><br>'
+            f'{esc(authors)} · {esc(version)}<br><small>{esc(source["anchor"])}<br>'
+            f'{esc(pin_status)}</small></p>'
+        )
+    return "".join(rows)
 
 
 def extension_cards(d,chapter=None):

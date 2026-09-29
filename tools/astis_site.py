@@ -930,10 +930,14 @@ def textbook_section_path(chapter_number: int, section_id: str) -> str:
 def sidebar_html(prefix: str, active: str) -> str:
     groups = []
     for heading, links in SIDEBAR_GROUPS:
-        rows = "".join(
-            f'<a href="{prefix}{href}"{f" aria-current=\"page\"" if marker == active or (marker == "Textbook" and active.startswith("Textbook:")) else ""}>{esc(label)}</a>'
-            for label, href, marker in links
-        )
+        row_parts = []
+        for label, href, marker in links:
+            is_current = marker == active or (
+                marker == "Textbook" and active.startswith("Textbook:")
+            )
+            aria = ' aria-current="page"' if is_current else ""
+            row_parts.append(f'<a href="{prefix}{href}"{aria}>{esc(label)}</a>')
+        rows = "".join(row_parts)
         groups.append(
             f'<section class="sidebar-group"><h2>{esc(heading)}</h2><nav>{rows}</nav></section>'
         )
@@ -952,16 +956,21 @@ def sidebar_html(prefix: str, active: str) -> str:
             section = dict(raw_section)
             section_id = str(section["id"])
             section_marker = f"Textbook:{section_id}"
+            section_aria = ' aria-current="page"' if active == section_marker else ""
             section_rows.append(
                 f'<a href="{prefix}{textbook_section_path(number, section_id)}"'
-                f'{" aria-current=\"page\"" if active == section_marker else ""}>'
+                f'{section_aria}>'
                 f'<span>{esc(section_id)}</span>{esc(section["title"])}</a>'
             )
+        chapter_open = " open" if (
+            active == chapter_marker or active.startswith(f"Textbook:{number}.")
+        ) else ""
+        chapter_aria = ' aria-current="page"' if active == chapter_marker else ""
         chapter_rows.append(
-            f'<details class="toc-chapter"{" open" if active == chapter_marker or active.startswith(f"Textbook:{number}.") else ""}>'
+            f'<details class="toc-chapter"{chapter_open}>'
             f'<summary><span>{number:02d}</span>{esc(chapter["title"])}</summary>'
             f'<a class="chapter-overview-link" href="{prefix}textbook/chapter-{number:02d}.html"'
-            f'{" aria-current=\"page\"" if active == chapter_marker else ""}>Chapter overview</a>'
+            f'{chapter_aria}>Chapter overview</a>'
             f'<nav>{"".join(section_rows)}</nav></details>'
         )
     chapters = "".join(chapter_rows)
@@ -2132,13 +2141,25 @@ def render_attribution() -> str:
 
 
 def render_maintenance(count: int) -> str:
+    build_commands = code_html(
+        "python3 website/scripts/lean_gate.py\n"
+        "python3 website/scripts/build_site.py\n"
+        "python3 website/scripts/check_site.py",
+        "shell",
+    )
+    preview_commands = code_html(
+        "export ASTIS_PREVIEW_USER='reviewer'\n"
+        "export ASTIS_PREVIEW_PASSWORD='generated-outside-git'\n"
+        "python3 website/scripts/ide_server.py --port 8087",
+        "shell",
+    )
     body = f"""
 <section class="page-hero compact"><div class="eyebrow">Contributor guide</div>
 <h1>Build and Maintain the Site</h1><p class="lede">The site is a generated view of Lean source and reviewed route metadata, not a second proof database.</p></section>
 <section class="two-column">
-  <div><h2>Build and certify</h2>{code_html("python3 website/scripts/lean_gate.py\npython3 website/scripts/build_site.py\npython3 website/scripts/check_site.py", "shell")}
+  <div><h2>Build and certify</h2>{build_commands}
   <p>The ignored gate record is valid only for the exact commit and Lean-source digest that passed the canonical ASTIS check.</p></div>
-  <div><h2>Private preview</h2>{code_html("export ASTIS_PREVIEW_USER='reviewer'\nexport ASTIS_PREVIEW_PASSWORD='generated-outside-git'\npython3 website/scripts/ide_server.py --port 8087", "shell")}
+  <div><h2>Private preview</h2>{preview_commands}
   <p>Credentials come only from environment variables. Forward the loopback port over SSH before opening a local Cloudflare Quick Tunnel; it is not a production deployment.</p></div>
 </section>
 <section id="contribute"><h2>Contributing</h2><p>This page documents site operations. The full contribution route covers mathematical scope, module ownership, source correspondence, Lean acceptance, review, and credit.</p><p><a class="button primary" href="contribute/index.html">Open the contributor guide</a></p></section>
@@ -2156,6 +2177,19 @@ def render_maintenance(count: int) -> str:
 
 
 def render_contribute(count: int) -> str:
+    verification_commands = code_html(
+        "lake exe cache get\n"
+        "LEAN_NUM_THREADS=$(nproc) lake build\n"
+        "python3 tools/astis.py check\n"
+        "python3 tools/astis.py harness-test\n"
+        "python3 website/scripts/lean_gate.py\n"
+        "python3 website/scripts/build_site.py\n"
+        "python3 website/scripts/check_site.py",
+        "shell",
+    )
+    coauthor_example = code_html(
+        "Co-authored-by: Full Name <email@example.com>", "text"
+    )
     body = f"""
 <section class="page-hero compact contribution-hero"><div class="eyebrow">Samplinglib contributor guide</div>
 <h1>Move a Mathematical Result into Verified Memory</h1>
@@ -2175,11 +2209,11 @@ def render_contribute(count: int) -> str:
 </tbody></table></div>
 <p class="status-boundary"><strong>Two independent reports are mandatory:</strong> Local declaration status records what this checkout proves; Mathematical route/paper-reproduction status records how far the source theorem route has actually been reconstructed.</p>
 <div class="contribution-rules"><p><strong>Reuse before extension.</strong> Prefer an existing Samplinglib or Mathlib declaration when it is an exact fit.</p><p><strong>Complete proof boundary.</strong> Do not use <code>sorry</code>, <code>admit</code>, hidden axioms, constants, postulates, or fake trivial closure.</p><p><strong>Preserve provenance.</strong> Keep original copyright and author notices for adapted code and record the exact source and substantive changes.</p></div></div></section>
-<section id="verify" class="contribution-step"><div class="step-index">03</div><div class="step-body"><span class="eyebrow">Verify</span><h2>Run the library, harness, and website gates</h2><p>Use the Lean and Mathlib revisions pinned by this checkout. From the repository root:</p>{code_html("lake exe cache get\nLEAN_NUM_THREADS=$(nproc) lake build\npython3 tools/astis.py check\npython3 tools/astis.py harness-test\npython3 website/scripts/lean_gate.py\npython3 website/scripts/build_site.py\npython3 website/scripts/check_site.py", "shell")}
+<section id="verify" class="contribution-step"><div class="step-index">03</div><div class="step-body"><span class="eyebrow">Verify</span><h2>Run the library, harness, and website gates</h2><p>Use the Lean and Mathlib revisions pinned by this checkout. From the repository root:</p>{verification_commands}
 <ul class="verification-checklist"><li>The whole Lean build succeeds.</li><li>No forbidden proof placeholder or fake closure was introduced.</li><li>Imports preserve subject ownership and avoid cycles.</li><li>Sources, assumptions, constants, and endpoints are exact.</li><li>Local proof status and route status are reported independently.</li><li>New reusable leaves have focused evidence and warranted Registry metadata.</li><li>Website metadata names only declarations in this checkout.</li><li>Generated <code>_site/</code> output remains uncommitted.</li></ul>
 <p class="note">This build currently records {count} compiled Registry leaves. That count is a consistency baseline, not a claim that the Log-Concave Sampling route is complete.</p></div></section>
 <section id="submit" class="contribution-step"><div class="step-index">04</div><div class="step-body"><span class="eyebrow">Submit</span><h2>Make the mathematical and formal evidence reviewable</h2><p>Use the repository pull request template. Record the result and source anchor, owning module, API decisions, exact commands run, adapted-code provenance, both status layers, and every remaining obligation.</p>
-<div class="review-route"><div><h3>Reviewer checks</h3><ul><li>source fidelity and hidden hypotheses;</li><li>statement or constant drift;</li><li>module ownership and duplicate APIs;</li><li>proof completeness and current gate evidence;</li><li>honest remaining mathematical frontier.</li></ul></div><div><h3>Credit</h3><p>Accepted contributions are credited in Git history and relevant source-file author headers. Co-written commits should include one <code>Co-authored-by</code> trailer per additional author.</p>{code_html("Co-authored-by: Full Name <email@example.com>", "text")}</div></div>
+<div class="review-route"><div><h3>Reviewer checks</h3><ul><li>source fidelity and hidden hypotheses;</li><li>statement or constant drift;</li><li>module ownership and duplicate APIs;</li><li>proof completeness and current gate evidence;</li><li>honest remaining mathematical frontier.</li></ul></div><div><h3>Credit</h3><p>Accepted contributions are credited in Git history and relevant source-file author headers. Co-written commits should include one <code>Co-authored-by</code> trailer per additional author.</p>{coauthor_example}</div></div>
 <div class="hero-actions"><a class="button primary" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/compare">Open a pull request ↗</a><a class="button" href="../roadmap/index.html">Inspect open milestones</a></div></div></section>
 <section class="note"><h2>Acceptance principle</h2><p>Discussion and implementation can remain flexible, but admission to Samplinglib requires explicit mathematical ownership, source provenance, current Lean evidence, and an independent reviewer decision.</p></section>
 """

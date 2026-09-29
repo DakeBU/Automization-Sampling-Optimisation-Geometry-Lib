@@ -3,6 +3,7 @@ import Tests.WeightedLocalL2
 import Tests.SmoothedPicardHMCApproximateProximalExecution
 import Tests.SmoothedPicardHMCProximalExpectedWork
 import Tests.SmoothedPicardHMCPicardCenterMoment
+import Tests.SmoothedPicardHMCPartialMomentumRefresh
 import Tests.Shared.QuadraticRegularizationOracle
 import Tests.Shared.QuadraticRegularizationFirstOrder
 import Tests.Shared.QuadraticRegularizationTransfer

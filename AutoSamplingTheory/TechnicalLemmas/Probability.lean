@@ -7,6 +7,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianConditionalKernel
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
 import AutoSamplingTheory.TechnicalLemmas.Probability.NormalizedFiniteMeasure
 import AutoSamplingTheory.TechnicalLemmas.Probability.NormalizedFiniteMeasureIntegral
+import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
 import AutoSamplingTheory.TechnicalLemmas.Probability.UniformExpectationGap
 
 /-!

@@ -726,6 +726,16 @@ def analysisMemory : List LemmaMemoryEntry := [
 
 def gaussianMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.std.norm-square-second-moment"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+    upstreamDecl := "IsGaussian.memLp_two_id / covarianceBilin_stdGaussian / finite-dimensional Parseval"
+    upstreamFile := "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["gaussian", "stdGaussian", "integrability", "second-moment", "finite-dimensional", "sampling"]
+    saldUse := "shared Gaussian second-moment leaf for OU momentum refreshes and stochastic-gradient moment estimates"
+    note := "Canonical public owner replacing future repetition of two older private SPHMC helper proofs; no independence or higher-moment claim."
+  },
+  {
     key := "gaussian.product.coordinate-law",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian.map_eval_stdGaussianPi",
     upstreamDecl := "map_eval_stdGaussianPi",

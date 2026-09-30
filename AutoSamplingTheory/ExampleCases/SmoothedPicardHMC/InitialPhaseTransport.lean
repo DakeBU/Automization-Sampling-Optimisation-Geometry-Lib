@@ -1,0 +1,109 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric
+import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
+import Mathlib.MeasureTheory.Integral.Prod
+
+/-!
+# Identical-momentum initialization coupling for SPHMC
+
+The proof of Lemma 4.16 in Chen--Chewi--Lu--Zhang,
+arXiv:2609.06906v1, couples the initial and stationary momenta identically.
+This file isolates that actual coupling and its `M_κ` cost.  The base law is
+kept generic; strong convexity and the reference-point assumption are separate
+inputs to the later numerical `q = 2` specialization.  Nothing here proves the
+paper's all-`q` initialization lemma or a Picard kernel estimate.
+-/
+
+noncomputable section
+
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal RealInnerProductSpace
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private def identicalMomentumCoupling (π : Measure E) (xref : E) :
+    Measure ((E × E) × (E × E)) :=
+  (π.prod (stdGaussian E)).map (fun z => ((xref, z.2), z))
+
+private theorem identicalMomentumCoupling_isCoupling
+    (π : Measure E) [IsProbabilityMeasure π] (xref : E) :
+    Transport.IsCoupling (identicalMomentumCoupling π xref)
+      ((Measure.dirac xref).prod (stdGaussian E))
+      (π.prod (stdGaussian E)) := by
+  constructor
+  · change ((π.prod (stdGaussian E)).map (fun z => ((xref, z.2), z))).fst = _
+    rw [Measure.fst_map_prodMk (by fun_prop)]
+    calc
+      (π.prod (stdGaussian E)).map (fun z : E × E => (xref, z.2)) =
+          ((π.prod (stdGaussian E)).map Prod.snd).map (Prod.mk xref) := by
+        rw [Measure.map_map (by fun_prop) measurable_snd]
+        rfl
+      _ = (stdGaussian E).map (Prod.mk xref) := by simp
+      _ = _ := (Measure.dirac_prod xref).symm
+  · change ((π.prod (stdGaussian E)).map (fun z => ((xref, z.2), z))).snd = _
+    rw [Measure.snd_map_prodMk (by fun_prop)]
+    simp
+
+private theorem phaseCost_identical_momentum_le
+    {κ : ℝ} (hκ : 1 ≤ κ) (xref y p : E) :
+    PhaseMetric.phaseCost κ ((xref, p), (y, p)) ≤
+      ENNReal.ofReal (‖xref - y‖ ^ 2) := by
+  have hκpos : 0 < κ := lt_of_lt_of_le zero_lt_one hκ
+  have hc : 1 / (2 * κ) + 1 / 2 ≤ (1 : ℝ) := by
+    have hi : 1 / κ ≤ 1 := (div_le_one hκpos).2 hκ
+    have hh := mul_le_mul_of_nonneg_right hi (show (0 : ℝ) ≤ 1 / 2 by norm_num)
+    have hhalf : 1 / (2 * κ) ≤ (1 / 2 : ℝ) := by
+      calc
+        1 / (2 * κ) = (1 / κ) * (1 / 2) := by ring
+        _ ≤ 1 * (1 / 2) := hh
+        _ = 1 / 2 := by ring
+    linarith
+  change ENNReal.ofReal ((1 / (2 * κ) + 1 / 2) * ‖xref - y‖ ^ 2 +
+    inner ℝ (xref - y) (p - p) + ‖p - p‖ ^ 2) ≤ _
+  simp only [sub_self, inner_zero_right, norm_zero, zero_pow (by norm_num : (2 : ℕ) ≠ 0),
+    add_zero]
+  exact ENNReal.ofReal_le_ofReal (mul_le_of_le_one_left (sq_nonneg _) hc)
+
+/-- An actual coupling with the same Gaussian momentum bounds the paper's
+`M_κ` transport cost by the position second moment about the initial point.
+This is the `q = 2` coupling edge of Lemma 4.16, before Gibbs specialization. -/
+theorem phaseWassersteinSq_initial_le_position_moment
+    (π : Measure E) [IsProbabilityMeasure π] (xref : E)
+    {κ : ℝ} (hκ : 1 ≤ κ)
+    (hpos : Integrable (fun y : E => ‖xref - y‖ ^ 2) π) :
+    PhaseMetric.phaseWassersteinSq κ
+      ((Measure.dirac xref).prod (stdGaussian E))
+      (π.prod (stdGaussian E)) ≤
+        ENNReal.ofReal (∫ y : E, ‖xref - y‖ ^ 2 ∂π) := by
+  let γ := identicalMomentumCoupling π xref
+  have hγ := identicalMomentumCoupling_isCoupling π xref
+  have hcost := Transport.transportCost_le_lintegral_of_isCoupling
+    (PhaseMetric.phaseCost (E := E) κ) _ _ γ hγ
+  change PhaseMetric.phaseWassersteinSq κ _ _ ≤ _
+  refine hcost.trans ?_
+  have hmeas : Measurable (PhaseMetric.phaseCost (E := E) κ) := by
+    unfold PhaseMetric.phaseCost
+    change Measurable (fun z : (E × E) × (E × E) =>
+      ENNReal.ofReal ((1 / (2 * κ) + 1 / 2) * ‖(z.1 - z.2).1‖ ^ 2 +
+        inner ℝ (z.1 - z.2).1 (z.1 - z.2).2 + ‖(z.1 - z.2).2‖ ^ 2))
+    fun_prop
+  rw [show γ = (π.prod (stdGaussian E)).map (fun z => ((xref, z.2), z)) by rfl,
+    lintegral_map hmeas (by fun_prop)]
+  have hbound : (∫⁻ z : E × E,
+      PhaseMetric.phaseCost κ ((xref, z.2), z) ∂π.prod (stdGaussian E)) ≤
+      ∫⁻ z : E × E, ENNReal.ofReal (‖xref - z.1‖ ^ 2) ∂π.prod (stdGaussian E) := by
+    apply lintegral_mono
+    intro z
+    exact phaseCost_identical_momentum_le hκ xref z.1 z.2
+  refine hbound.trans_eq ?_
+  rw [← ofReal_integral_eq_lintegral_ofReal
+    (hpos.comp_fst (stdGaussian E))
+    (Filter.Eventually.of_forall fun z => sq_nonneg _)]
+  congr 1
+  rw [integral_prod _ (hpos.comp_fst (stdGaussian E))]
+  simp
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport

@@ -1,0 +1,118 @@
+{
+  "publication_binding_sha256": "ddc2fb7bef7c2bd8c2cb3f03be00b49a0c24cb5aaaf3ac8427b9cd5063039669",
+  "publication_context": {
+    "file": "4242d87170745f89877e6062ca1af07789a95d83a19951e738dd7426d565741f",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder\nimport Mathlib.Analysis.Calculus.LocalExtr.Basic\nimport Mathlib.Topology.MetricSpace.ProperSpace\nimport Mathlib.Topology.Order.Compact\nimport Mathlib.Tactic\n\n/-!\n# Existence of a minimizer for a strongly convex potential\n\nA differentiable function with positive strong-convexity modulus on a\nfinite-dimensional real inner-product space grows at least quadratically after\nits linear first-order term is absorbed.  Hence it attains a global minimum,\nand differentiability makes the gradient vanish there.\n\nThis is the source-neutral existence step used implicitly by the initialization\nproof in Chen--Chewi--Lu--Zhang, arXiv:2609.06906v1, Lemma 4.16.  It is not a\nGibbs normalization, concentration, transport, or sampler theorem.\n-/\n\nnoncomputable section\n\nopen Set Metric InnerProductSpace\nopen scoped RealInnerProductSpace\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E]\n\n/-- A differentiable, positively strongly convex function on a finite-dimensional\nreal inner-product space has a global minimizer, and its gradient vanishes there.\n\nThe proof does not use a totalized derivative as a regularity witness:\n`Differentiable` supplies the genuine gradient and continuity. -/\ntheorem exists_isMinOn_and_gradient_eq_zero\n    {V : E → ℝ} {m : ℝ} (hm : 0 < m)\n    (hV : Differentiable ℝ V)\n    (hsc : StrongConvexOn (Set.univ : Set E) m V) :\n    ∃ p : E, IsMinOn V Set.univ p ∧ gradient V p = 0 := by\n  let g : E := gradient V 0\n  let R : ℝ := 2 * ‖g‖ / m\n  have hR : 0 ≤ R := by\n    dsimp only [R]\n    positivity\n  have hfirst (x : E) :\n      V 0 + inner ℝ g x + m / 2 * ‖x‖ ^ 2 ≤ V x := by\n    simpa only [g, sub_zero] using\n      StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hsc\n        (fun z _ ↦ (hV z).hasGradientAt) (x := 0) (y := x)\n        (Set.mem_univ _) (Set.mem_univ _)\n  have houtside {x : E} (hx : R < ‖x‖) : V 0 ≤ V x := by\n    have hxpos : 0 < ‖x‖ := lt_of_le_of_lt hR hx\n    have hscale : 2 * ‖g‖ < m * ‖x‖ := by\n      dsimp only [R] at hx\n      have hs := (div_lt_iff₀ hm).mp hx\n      simpa [mul_comm] using hs\n    have hinner : -(‖g‖ * ‖x‖) ≤ inner ℝ g x :=\n      (abs_le.mp (abs_real_inner_le_norm g x)).1\n    have hquad : ‖g‖ * ‖x‖ ≤ m / 2 * ‖x‖ ^ 2 := by\n      nlinarith [mul_pos hm hxpos]\n    linarith [hfirst x]\n  have hzero : (0 : E) ∈ closedBall 0 R := by\n    simp [hR]\n  obtain ⟨p, hpBall, hpMinBall⟩ :=\n    (isCompact_closedBall (0 : E) R).exists_isMinOn\n      ⟨0, hzero⟩ hV.continuous.continuousOn\n  have hpMin : IsMinOn V Set.univ p := by\n    intro x _\n    by_cases hxBall : x ∈ closedBall (0 : E) R\n    · exact hpMinBall hxBall\n    · have hx : R < ‖x‖ := by\n        simpa [mem_closedBall, dist_eq_norm] using hxBall\n      exact (hpMinBall hzero).trans (houtside hx)\n  refine ⟨p, hpMin, ?_⟩\n  simp [gradient, (hpMin.isLocalMin Filter.univ_mem).fderiv_eq_zero]\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/pdf/2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Lemma 4.16 proof, PDF p.22",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. ASTIS supplies the omitted finite-dimensional minimizer argument and composes it with the q=2 proof edge."
+    },
+    "statement": "In the proof of Lemma 4.16 the authors select a minimizer x-star of the positively strongly convex potential, use its zero gradient, and then establish the initialization estimate. ASTIS expands the omitted existence argument and removes the extra critical-point premise from the already compiled q=2 squared-cost conclusion. The all-q concentration part of the source lemma remains separate.",
+    "formulae": [
+      {
+        "label": "Hidden minimizer step",
+        "tex": "\\exists x^*:\\ U(x^*)=\\min U,\\quad\\nabla U(x^*)=0."
+      },
+      {
+        "label": "Unconditional q=2 component",
+        "tex": "W_{2,M_\\kappa}^{2}(\\delta_{x_{\\rm ref}}\\otimes\\gamma,\\Pi_\\eta)\\le5\\kappa d."
+      }
+    ],
+    "assumptions": [
+      "C2 normalized Hessian bounds alpha I <= Hessian U <= I with 0<alpha<=1.",
+      "The source small-gradient condition at xref and smoothing variance 0<=eta<=1.",
+      "Finite-dimensional real Borel phase space."
+    ],
+    "obligations": [
+      {
+        "id": "minimizer-existence",
+        "label": "Construct the minimizer chosen in the source proof"
+      },
+      {
+        "id": "unconditional-q2",
+        "label": "Discharge the critical-point premise in the q=2 initialization bound"
+      },
+      {
+        "id": "all-q",
+        "label": "Prove the q>2 concentration component (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero",
+      "title": "A positive strongly convex potential attains its minimum",
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2609.06906v1",
+          "label": "Smoothed Picard Hamiltonian Monte Carlo, Lemma 4.16 proof, PDF p.22",
+          "scope": "ASTIS expands the omitted existence justification for the minimizer selected in the proof."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCInitialGibbsPhaseTransportUnconditional"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space.",
+        "V is genuinely differentiable on all of E.",
+        "V is strongly convex on all of E with strictly positive modulus m."
+      ],
+      "statement": "There is a point p that minimizes V globally, and the genuine gradient of V vanishes at p.",
+      "formula": "\\exists p\\in E:\\quad V(p)\\le V(x)\\ \\forall x\\in E,\\qquad \\nabla V(p)=0.",
+      "steps": [
+        {
+          "title": "Expose quadratic growth",
+          "text": "Apply the compiled first-order model at the origin. The linear gradient term is the only possible negative contribution.",
+          "formula": "V(x)\\ge V(0)+\\langle\\nabla V(0),x\\rangle+\\frac m2\\|x\\|^2.",
+          "lean": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn supplies the inequality from genuine differentiability."
+        },
+        {
+          "title": "Choose a compact search ball",
+          "text": "Cauchy-Schwarz shows that outside radius two times the origin-gradient norm divided by m, the quadratic term absorbs the linear term.",
+          "formula": "R=\\frac{2\\|\\nabla V(0)\\|}{m},\\quad \\|x\\|>R\\Longrightarrow V(x)\\ge V(0).",
+          "lean": "abs_real_inner_le_norm and positivity justify the comparison without dividing by a possibly zero norm."
+        },
+        {
+          "title": "Attain the global minimum",
+          "text": "The closed ball of radius R is compact in finite dimension. Continuity gives a minimizer p in the ball. Its value is no larger than V(0), while every point outside has value at least V(0), so p is globally minimizing.",
+          "formula": "p\\in\\overline B(0,R),\\quad V(p)\\le V(0)\\le V(x)\\quad(x\\notin\\overline B(0,R)).",
+          "lean": "isCompact_closedBall.exists_isMinOn supplies p; a ball-membership split promotes the restricted minimum to Set.univ."
+        },
+        {
+          "title": "Use Fermat's theorem",
+          "text": "A differentiable function has zero derivative at a local minimum; in an inner-product space this is exactly zero gradient.",
+          "formula": "DV(p)=0\\quad\\Longleftrightarrow\\quad\\nabla V(p)=0.",
+          "lean": "IsLocalMin.fderiv_eq_zero closes the genuine first-order condition."
+        }
+      ],
+      "lean_statement": "The theorem requires positive modulus and finite dimension. It uses Differentiable rather than a totalized fderiv equality as its regularity witness.",
+      "lean_proof": "The Lean proof implements the coercive-ball argument directly, reusing the ASTIS first-order strong-convexity theorem and Mathlib compactness/Fermat APIs.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "isCompact_closedBall",
+        "IsCompact.exists_isMinOn",
+        "abs_real_inner_le_norm",
+        "IsLocalMin.fderiv_eq_zero"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero",
+      "role": "prerequisite",
+      "supports": [
+        "minimizer-existence"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The proof says to let x-star be a minimizer under the standing positive Hessian bound.",
+        "lean": "Differentiable V and StrongConvexOn univ m V with m>0 on a finite-dimensional real inner-product space."
+      }
+    ]
+  }
+}

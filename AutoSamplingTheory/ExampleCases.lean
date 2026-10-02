@@ -64,6 +64,7 @@ import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram
 
 /-!

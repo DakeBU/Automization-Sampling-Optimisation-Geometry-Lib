@@ -1,0 +1,71 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "The paper's proof selects a minimizer x-star of its potential V and uses its vanishing gradient.",
+      "reconstructed": "The Lean theorem constructs a point p minimizing a potential V globally, with gradient V p = 0.",
+      "relation": "explicit-elaboration",
+      "evidence": "Lemma 4.16 proof, PDF p.22, begins by letting x-star minimize V; the candidate makes that selected object an existential conclusion."
+    },
+    "domains": {
+      "original": "The source works on Euclidean R^d under its finite-dimensional C2 potential setup.",
+      "reconstructed": "E is any finite-dimensional real inner-product space; V maps E to R.",
+      "relation": "explicit-elaboration",
+      "evidence": "A finite-dimensional real inner-product space is isometric to Euclidean R^d after a basis choice. Compact closed balls, used in the proof, are available in this domain."
+    },
+    "quantifiers": {
+      "original": "For the source potential, the proof internally chooses a minimizer, not an externally supplied point.",
+      "reconstructed": "For every V and positive m meeting the hypotheses, there exists p with global minimality and zero gradient.",
+      "relation": "explicit-elaboration",
+      "evidence": "The conclusion existentially binds p and no p occurs among the theorem inputs."
+    },
+    "assumptions": {
+      "original": "The standing C2 Hessian lower bound is positive, hence the source potential is differentiable and positively strongly convex.",
+      "reconstructed": "The source-neutral lemma assumes genuine Frechet differentiability, StrongConvexOn univ m V, and m > 0.",
+      "relation": "weaker-in-lean",
+      "evidence": "The lemma's hypotheses are the mathematical consequences actually needed for the existence step, without requiring C2 or an upper Hessian bound. The separate unconditional module derives these hypotheses from the printed C2 lower Hessian bound."
+    },
+    "conclusion": {
+      "original": "The proof uses an attained global minimum x-star satisfying gradient V(x-star)=0.",
+      "reconstructed": "There exists p with IsMinOn V univ p and gradient V p=0.",
+      "relation": "equivalent",
+      "evidence": "IsMinOn on Set.univ means V(p) <= V(x) for every x. The genuine gradient conclusion is precisely the source's first-order condition."
+    },
+    "scopes": {
+      "original": "This is an implicit prerequisite inside Lemma 4.16's initialization proof.",
+      "reconstructed": "The theorem proves only minimizer existence and stationarity; it makes no Gibbs, concentration, transport, or sampler assertion.",
+      "relation": "explicit-elaboration",
+      "evidence": "The publication binding names the declaration a prerequisite supporting only minimizer-existence, and the lesson separates all-q and unconditional-q2 obligations."
+    },
+    "constant_dependencies": {
+      "original": "The source requires positive curvature, normalized as 1/kappa, but states no numerical minimizer-existence constant.",
+      "reconstructed": "The existential conclusion needs m>0; the proof's search radius 2||gradient V(0)||/m is internal and absent from the theorem bound.",
+      "relation": "explicit-elaboration",
+      "evidence": "Quadratic growth dominates the linear first-order term outside that radius; the conclusion has no constant or dependence on a Gibbs or smoothing parameter."
+    }
+  },
+  "deltas": [
+    {
+      "id": "SCM-001",
+      "slot": "assumptions",
+      "classification": "source-implicit-prerequisite",
+      "blocking": false,
+      "description": "The source omits the minimizer-existence argument; Lean isolates it under differentiability and positive whole-space strong convexity."
+    },
+    {
+      "id": "SCM-002",
+      "slot": "domains",
+      "classification": "coordinate-free-generalization",
+      "blocking": false,
+      "description": "Lean permits every finite-dimensional real inner-product space rather than only a chosen R^d coordinate model."
+    }
+  ],
+  "verdict": "implicit-assumption-exposed",
+  "decision": "accepted",
+  "repairs": [],
+  "reviewer": "gibbs_q2_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Primary source: Chen-Chewi-Lu-Zhang, arXiv:2609.06906v1, Lemma 4.16 proof, PDF p.22, explicitly starts with a minimizing x-star. The candidate proof is mathematically sound: the strong-convex first-order inequality at 0 gives V(x) >= V(0)+<gradient V(0),x>+(m/2)||x||^2; for ||x||>2||gradient V(0)||/m, Cauchy-Schwarz yields V(x)>=V(0). Finite-dimensional closed balls are compact, continuous V attains its minimum on that ball, and the outside comparison makes the ball minimizer global. Genuine differentiability and Fermat's theorem give gradient zero. The C2 Hessian lower bound used by the downstream theorem supplies these hypotheses with no hidden extra premise. The lesson and prerequisite binding correctly avoid claiming Gibbs normalization, concentration, transport, or the full paper lemma.",
+  "review_run_sha256": "50a2071b45da432bcfe61a576812bad45338aa733013c3f6262fba1f4d23f51c",
+  "reviewer_packet_sha256": "285e674316f08aa66def4813d87c4d2e8e1112f0383f4364ecd84b8fc7f6b71c"
+}

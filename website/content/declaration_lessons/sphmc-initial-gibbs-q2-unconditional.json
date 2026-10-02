@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero",
+      "title": "A positive strongly convex potential attains its minimum",
+      "boundary": "This is a finite-dimensional existence and first-order optimality theorem. It does not normalize a Gibbs law, prove concentration, or construct a sampling algorithm.",
+      "sources": [{"url": "https://arxiv.org/pdf/2609.06906v1", "label": "Smoothed Picard Hamiltonian Monte Carlo, Lemma 4.16 proof, PDF p.22", "scope": "ASTIS expands the omitted existence justification for the minimizer selected in the proof."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCInitialGibbsPhaseTransportUnconditional"],
+      "assumptions": ["E is a finite-dimensional real inner-product space.", "V is genuinely differentiable on all of E.", "V is strongly convex on all of E with strictly positive modulus m."],
+      "statement": "There is a point p that minimizes V globally, and the genuine gradient of V vanishes at p.",
+      "formula": "\\exists p\\in E:\\quad V(p)\\le V(x)\\ \\forall x\\in E,\\qquad \\nabla V(p)=0.",
+      "steps": [
+        {"title": "Expose quadratic growth", "text": "Apply the compiled first-order model at the origin. The linear gradient term is the only possible negative contribution.", "formula": "V(x)\\ge V(0)+\\langle\\nabla V(0),x\\rangle+\\frac m2\\|x\\|^2.", "lean": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn supplies the inequality from genuine differentiability."},
+        {"title": "Choose a compact search ball", "text": "Cauchy-Schwarz shows that outside radius two times the origin-gradient norm divided by m, the quadratic term absorbs the linear term.", "formula": "R=\\frac{2\\|\\nabla V(0)\\|}{m},\\quad \\|x\\|>R\\Longrightarrow V(x)\\ge V(0).", "lean": "abs_real_inner_le_norm and positivity justify the comparison without dividing by a possibly zero norm."},
+        {"title": "Attain the global minimum", "text": "The closed ball of radius R is compact in finite dimension. Continuity gives a minimizer p in the ball. Its value is no larger than V(0), while every point outside has value at least V(0), so p is globally minimizing.", "formula": "p\\in\\overline B(0,R),\\quad V(p)\\le V(0)\\le V(x)\\quad(x\\notin\\overline B(0,R)).", "lean": "isCompact_closedBall.exists_isMinOn supplies p; a ball-membership split promotes the restricted minimum to Set.univ."},
+        {"title": "Use Fermat's theorem", "text": "A differentiable function has zero derivative at a local minimum; in an inner-product space this is exactly zero gradient.", "formula": "DV(p)=0\\quad\\Longleftrightarrow\\quad\\nabla V(p)=0.", "lean": "IsLocalMin.fderiv_eq_zero closes the genuine first-order condition."}
+      ],
+      "lean_statement": "The theorem requires positive modulus and finite dimension. It uses Differentiable rather than a totalized fderiv equality as its regularity witness.",
+      "lean_proof": "The Lean proof implements the coercive-ball argument directly, reusing the ASTIS first-order strong-convexity theorem and Mathlib compactness/Fermat APIs.",
+      "astis_dependencies": ["AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"],
+      "mathlib_dependencies": ["isCompact_closedBall", "IsCompact.exists_isMinOn", "abs_real_inner_le_norm", "IsLocalMin.fderiv_eq_zero"]
+    },
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional.initial_gibbs_phase_transport_q2_of_hessian_bounds",
+      "title": "The SPHMC q=2 initialization bound with no supplied critical point",
+      "boundary": "This closes the minimizer-existence gap in the q=2 component of Lemma 4.16. The source's q>2 concentration, the Picard kernel, final accuracy and query complexity are still not proved.",
+      "sources": [{"url": "https://arxiv.org/pdf/2609.06906v1", "label": "Smoothed Picard Hamiltonian Monte Carlo, Lemma 4.16, PDF p.22", "scope": "The source selects a minimizer internally; ASTIS now constructs it from the printed curvature assumptions."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCInitialGibbsPhaseTransportUnconditional"],
+      "assumptions": ["E is a finite-dimensional complete real inner-product Borel space.", "U is C2 with alpha I <= Hessian U <= I and 0 < alpha <= 1.", "The reference point has squared gradient norm at most alpha times dimension.", "The smoothing variance eta lies in [0,1]."],
+      "statement": "For the actual normalized Gibbs law, its Gaussian smoothing and standard-Gaussian momentum, the q=2 squared M-kappa transport initialization cost is at most 5 kappa d, with the minimizer derived rather than assumed.",
+      "formula": "W_{2,M_\\kappa}^{2}(\\delta_{x_{\\rm ref}}\\otimes\\gamma,(\\pi*\\mathsf N(0,\\eta I))\\otimes\\gamma)\\le5\\kappa d,\\qquad\\kappa=1/\\alpha.",
+      "steps": [
+        {"title": "Convert Hessian curvature to strong convexity", "text": "The genuine C2 Hessian lower bound implies whole-space strong convexity with the same alpha.", "formula": "D^2U(x)\\succeq\\alpha I\\Longrightarrow U\\text{ is }\\alpha\\text{-strongly convex}.", "lean": "HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower performs the affine-line argument."},
+        {"title": "Construct the source minimizer", "text": "Positive strong convexity and differentiability supply a global minimizer p with zero gradient; p is not added as a theorem hypothesis.", "formula": "\\exists p:\\ U(p)=\\min U,\\quad\\nabla U(p)=0.", "lean": "StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero discharges the hidden source step."},
+        {"title": "Apply the verified numerical transport chain", "text": "The constructed critical point is fed to the already verified Gibbs moment, smoothing and identical-momentum coupling theorem.", "formula": "\\nabla U(p)=0\\Longrightarrow W_{2,M_\\kappa}^{2}(\\mu_0,\\Pi_\\eta)\\le5\\kappa d.", "lean": "InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2 supplies the actual normalized measures and constant."}
+      ],
+      "lean_statement": "The formal statement has exactly the previous q=2 conclusion but no p parameter or gradient-zero premise. Coordinate-free finite-dimensional E and eta=0 remain valid generalizations.",
+      "lean_proof": "The proof composes the genuine Hessian-to-strong-convexity bridge, the new minimizer theorem and the independently verified conditional q=2 theorem.",
+      "astis_dependencies": ["AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower", "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero", "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2"],
+      "mathlib_dependencies": ["ContDiff.differentiable"]
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "publication_binding_sha256": "bbcfc522f9fc3db0efeac3380159e95742a4f2e50af9eac7547a094e4d777b8b",
+  "publication_context": {
+    "file": "e36541a2356c449bef5777eb0cfd90b133b8f9a4ae72858aa937404f47bce5e9",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer\n\n/-!\n# SPHMC q=2 initialization without a supplied minimizer\n\nThis module discharges the minimizer witness used implicitly in the proof of\nChen--Chewi--Lu--Zhang, arXiv:2609.06906v1, Lemma 4.16.  Positive Hessian\ncurvature yields a genuine global minimizer with zero gradient; the already\nverified smoothed-Gibbs phase-transport theorem then supplies the numerical\n`q = 2` estimate.\n\nThe source's all-`q` concentration statement, Picard dynamics, final sampling\naccuracy and query complexity remain separate obligations.\n-/\n\nnoncomputable section\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal NNReal RealInnerProductSpace\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional\n\nopen AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- The actual SPHMC initial phase law satisfies the squared `M_κ` transport\nbound at `q = 2` under the paper's curvature and reference-gradient assumptions,\nwithout taking a critical point as an extra input. -/\ntheorem initial_gibbs_phase_transport_q2_of_hessian_bounds\n    {U : E → ℝ} {α η : ℝ≥0} (hα : 0 < α) (hαone : α ≤ 1)\n    (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n        fderiv ℝ (fderiv ℝ U) x v v ≤ ‖v‖ ^ 2)\n    (xref : E) (href : ‖gradient U xref‖ ^ 2 ≤\n      (α : ℝ) * (Module.finrank ℝ E : ℝ)) (hη : η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x ↦ -U x)\n    let πη := gaussianSmoothing μ (Real.sqrt η)\n    PhaseMetric.phaseWassersteinSq (1 / (α : ℝ))\n      ((Measure.dirac xref).prod (stdGaussian E))\n      (πη.prod (stdGaussian E)) ≤\n        ENNReal.ofReal (5 * (1 / (α : ℝ)) * (Module.finrank ℝ E : ℝ)) := by\n  have hsc : StrongConvexOn (Set.univ : Set E) (α : ℝ) U :=\n    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hU\n      (fun x v ↦ (hH x v).1)\n  obtain ⟨p, _, hp⟩ := StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero\n    (show (0 : ℝ) < α by exact hα) (hU.differentiable (by norm_num)) hsc\n  exact InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2\n    hα hαone hU hH p xref hp href hη\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/pdf/2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Lemma 4.16 proof, PDF p.22",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. ASTIS supplies the omitted finite-dimensional minimizer argument and composes it with the q=2 proof edge."
+    },
+    "statement": "In the proof of Lemma 4.16 the authors select a minimizer x-star of the positively strongly convex potential, use its zero gradient, and then establish the initialization estimate. ASTIS expands the omitted existence argument and removes the extra critical-point premise from the already compiled q=2 squared-cost conclusion. The all-q concentration part of the source lemma remains separate.",
+    "formulae": [
+      {
+        "label": "Hidden minimizer step",
+        "tex": "\\exists x^*:\\ U(x^*)=\\min U,\\quad\\nabla U(x^*)=0."
+      },
+      {
+        "label": "Unconditional q=2 component",
+        "tex": "W_{2,M_\\kappa}^{2}(\\delta_{x_{\\rm ref}}\\otimes\\gamma,\\Pi_\\eta)\\le5\\kappa d."
+      }
+    ],
+    "assumptions": [
+      "C2 normalized Hessian bounds alpha I <= Hessian U <= I with 0<alpha<=1.",
+      "The source small-gradient condition at xref and smoothing variance 0<=eta<=1.",
+      "Finite-dimensional real Borel phase space."
+    ],
+    "obligations": [
+      {
+        "id": "minimizer-existence",
+        "label": "Construct the minimizer chosen in the source proof"
+      },
+      {
+        "id": "unconditional-q2",
+        "label": "Discharge the critical-point premise in the q=2 initialization bound"
+      },
+      {
+        "id": "all-q",
+        "label": "Prove the q>2 concentration component (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional.initial_gibbs_phase_transport_q2_of_hessian_bounds",
+      "title": "The SPHMC q=2 initialization bound with no supplied critical point",
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2609.06906v1",
+          "label": "Smoothed Picard Hamiltonian Monte Carlo, Lemma 4.16, PDF p.22",
+          "scope": "The source selects a minimizer internally; ASTIS now constructs it from the printed curvature assumptions."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCInitialGibbsPhaseTransportUnconditional"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional complete real inner-product Borel space.",
+        "U is C2 with alpha I <= Hessian U <= I and 0 < alpha <= 1.",
+        "The reference point has squared gradient norm at most alpha times dimension.",
+        "The smoothing variance eta lies in [0,1]."
+      ],
+      "statement": "For the actual normalized Gibbs law, its Gaussian smoothing and standard-Gaussian momentum, the q=2 squared M-kappa transport initialization cost is at most 5 kappa d, with the minimizer derived rather than assumed.",
+      "formula": "W_{2,M_\\kappa}^{2}(\\delta_{x_{\\rm ref}}\\otimes\\gamma,(\\pi*\\mathsf N(0,\\eta I))\\otimes\\gamma)\\le5\\kappa d,\\qquad\\kappa=1/\\alpha.",
+      "steps": [
+        {
+          "title": "Convert Hessian curvature to strong convexity",
+          "text": "The genuine C2 Hessian lower bound implies whole-space strong convexity with the same alpha.",
+          "formula": "D^2U(x)\\succeq\\alpha I\\Longrightarrow U\\text{ is }\\alpha\\text{-strongly convex}.",
+          "lean": "HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower performs the affine-line argument."
+        },
+        {
+          "title": "Construct the source minimizer",
+          "text": "Positive strong convexity and differentiability supply a global minimizer p with zero gradient; p is not added as a theorem hypothesis.",
+          "formula": "\\exists p:\\ U(p)=\\min U,\\quad\\nabla U(p)=0.",
+          "lean": "StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero discharges the hidden source step."
+        },
+        {
+          "title": "Apply the verified numerical transport chain",
+          "text": "The constructed critical point is fed to the already verified Gibbs moment, smoothing and identical-momentum coupling theorem.",
+          "formula": "\\nabla U(p)=0\\Longrightarrow W_{2,M_\\kappa}^{2}(\\mu_0,\\Pi_\\eta)\\le5\\kappa d.",
+          "lean": "InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2 supplies the actual normalized measures and constant."
+        }
+      ],
+      "lean_statement": "The formal statement has exactly the previous q=2 conclusion but no p parameter or gradient-zero premise. Coordinate-free finite-dimensional E and eta=0 remain valid generalizations.",
+      "lean_proof": "The proof composes the genuine Hessian-to-strong-convexity bridge, the new minimizer theorem and the independently verified conditional q=2 theorem.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.differentiable"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional.initial_gibbs_phase_transport_q2_of_hessian_bounds",
+      "role": "proof-edge",
+      "supports": [
+        "minimizer-existence",
+        "unconditional-q2"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The proof selects a minimizer internally from the printed Hessian assumptions.",
+        "lean": "No minimizer or critical point is supplied; it is constructed internally."
+      },
+      {
+        "source": "Lemma 4.16 concludes for every q>=2 with an unspecified universal constant.",
+        "lean": "The conclusion is the explicit squared q=2 bound 5 kappa d."
+      },
+      {
+        "source": "The source uses R^d and positive algorithmic smoothing.",
+        "lean": "Any finite-dimensional real inner-product Borel space and eta>=0 are allowed."
+      }
+    ]
+  }
+}

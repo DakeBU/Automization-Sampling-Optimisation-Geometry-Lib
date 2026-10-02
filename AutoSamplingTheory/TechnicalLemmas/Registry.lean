@@ -494,6 +494,16 @@ def analysisMemory : List LemmaMemoryEntry := [
     note := "PR #248 by andyjm3: sum the ASTIS first-order bounds in both directions. Arbitrary real modulus; only the injectivity consumer needs positivity. No reverse implication, Hessian equivalence, flow theorem, Gibbs invariance or new conceptual transport certificate is claimed."
   },
   {
+    key := "analysis.strong-convexity.minimizer-existence",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero",
+    upstreamDecl := "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn / IsCompact.exists_isMinOn / IsLocalMin.fderiv_eq_zero",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer; Mathlib",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "CONV", "SPHMC", "strong-convexity", "minimizer", "gradient", "finite-dimensional"],
+    saldUse := "SPHMC Lemma 4.16 hidden minimizer-selection prerequisite: construct the minimizer used by the initialization argument",
+    note := "Independently verified at exact commit 8be837c. Requires positive modulus, genuine differentiability and finite-dimensional compactness. No uniqueness, Gibbs normalization, concentration or all-q statement is claimed."
+  },
+  {
     key := "analysis.strong-convexity.of-gradient-inner-lower-bound",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound",
     upstreamDecl := "Lower_Strong_Convex",
@@ -2474,6 +2484,16 @@ def measureMemory : List LemmaMemoryEntry := [
     tags := ["SampleWiki", "SPHMC", "Gibbs", "Gaussian-smoothing", "phase-transport", "q2", "initialization"],
     saldUse := "SPHMC Lemma 4.16 q=2 initialization component: assemble the actual smoothed Gibbs position moment with the identical-momentum phase coupling",
     note := "Independently verified at commit c470a1b. Conditional on a supplied critical point; all-q concentration and critical-point existence remain separate open edges. The explicit factor 5 is ASTIS-derived, not source-literal."
+  },
+  {
+    key := "samplewiki.sphmc.initial-gibbs-q2-unconditional",
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional.initial_gibbs_phase_transport_q2_of_hessian_bounds",
+    upstreamDecl := "HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower / StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero / InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2",
+    upstreamFile := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SampleWiki", "SPHMC", "Gibbs", "Gaussian-smoothing", "phase-transport", "q2", "initialization", "unconditional"],
+    saldUse := "SPHMC Lemma 4.16 unconditional q=2 initialization edge: discharge the source's implicit minimizer witness from its Hessian bounds",
+    note := "Independently verified at exact commit 8be837c. The source all-q concentration, Picard dynamics, final accuracy and query cost remain open. The explicit factor 5 is ASTIS-derived, not source-literal."
   }
 ]
 

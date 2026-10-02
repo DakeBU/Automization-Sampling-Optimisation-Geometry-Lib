@@ -19,6 +19,7 @@ import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DonskerVaradhan
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.Renyi
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher
 import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
 import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
 import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsIntegral
@@ -3916,6 +3917,16 @@ def klDensityMemory : List LemmaMemoryEntry := [
     tags := ["SPHMC", "RGO", "quadratic-tilt", "score", "gradient", "representative"],
     saldUse := "SPHMC Lemma 4.17: compute the constant relative score (y-y')/eta for restricted-Gaussian fibers",
     note := "Differentiates only the explicit smooth representative, not Mathlib's canonical measurable llr. The eta != 0 reusable statement is consumed with source eta > 0."
+  },
+  {
+    key := "information-theory.quadratic-tilt-relative-fisher",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher.information_quadratic_representative",
+    upstreamDecl := "TiltedLogRatio.gradient_quadratic_representative / RelativeFisher.information / Lee--Shen--Tian Lemma 2",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio; AutoSamplingTheory.TechnicalLemmas.InformationTheory.RelativeFisher; Lee--Shen--Tian arXiv:2010.03106v4 Lemma 2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "quadratic-tilt", "relative-Fisher", "score", "probability-integral"],
+    saldUse := "SPHMC Lemma 4.17: integrate the exact restricted-Gaussian relative score under the left probability fiber",
+    note := "The common normalizer base and the probability integration law are separate. This evaluates only the explicit smooth representative; canonical score domains, LSI, T2 and W2 contraction remain separate."
   }
 ]
 

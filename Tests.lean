@@ -9,6 +9,7 @@ import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric
 import Tests.SmoothedPicardHMCPhaseReferenceMoment
 import Tests.SmoothedPicardHMCInitialPhaseTransport
+import Tests.SmoothedPicardHMCInitialGibbsPhaseTransport
 import Tests.Shared.QuadraticRegularizationOracle
 import Tests.Shared.QuadraticRegularizationFirstOrder
 import Tests.Shared.QuadraticRegularizationTransfer

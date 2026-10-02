@@ -12,6 +12,43 @@ are in `declaration_lessons/sphmc-recursive-condition.json`,
 `declaration_lessons/sphmc-rgo-closure.json`, `publications/sphmc.json` and
 `publications/sphmc-rgo-closure.json` under `website/content/`.
 
+## Compiled initialization component: Lemma 4.16 at q = 2
+
+`ASTIS-SW-SPHMC-initial-gibbs-q2` connects the actual normalized Gibbs law,
+its Gaussian smoothing, and the phase-space coupling used by Lemma 4.16.  In
+the paper's normalized regime, write $\kappa=1/\alpha$, let $p$ be a supplied
+critical point, and assume
+
+$$
+\|\nabla U(x_{\rm ref})\|^2\le\alpha d,
+\qquad 0<\alpha\le1,
+\qquad 0\le\eta\le1.
+$$
+
+The compiled proof first obtains
+$\|x_{\rm ref}-p\|^2\le d/\alpha$ from genuine Hessian strong convexity.
+It then combines the Gibbs moment about $p$ with the squared triangle
+inequality, adds the exact $\eta d$ Gaussian-smoothing contribution, and
+couples the two momentum coordinates identically:
+
+$$
+\begin{aligned}
+\mathbb E_\pi\|X-x_{\rm ref}\|^2&\le4d/\alpha,\\
+\mathbb E\|X+\sqrt\eta G-x_{\rm ref}\|^2&\le(4\kappa+\eta)d,\\
+W_{2,M_\kappa}^2(\delta_{x_{\rm ref}}\otimes\gamma,
+  \Pi_\eta)&\le5\kappa d.
+\end{aligned}
+$$
+
+This is an explicit conditional $q=2$ proof component, not all of Lemma 4.16.
+The source states a universal-constant bound for every $q\ge2$; the all-$q$
+concentration argument and a source-level theorem constructing the critical
+point from the curvature hypotheses remain separate open edges.  The constant
+$5$ is the ASTIS-derived second-moment constant, not a constant printed by the
+paper.  The reader proof and folded Lean are generated from
+`sphmc-initial-gibbs-q2.json` in the declaration-lesson and publication
+metadata directories.
+
 ## Exact conversion
 
 In (6.1)–(6.2), let $k=\kappa_A\ge2$, $h=\eta_j$, $\tau=k$,

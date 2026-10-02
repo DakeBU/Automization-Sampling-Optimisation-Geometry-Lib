@@ -2464,6 +2464,16 @@ def measureMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Gibbs", "withDensity", "potential", "normalization", "envelope", "probability-measure"],
     saldUse := "Chewi DENS/CONV root: construct the normalized target law once a lower-potential integrable envelope is supplied",
     note := "Useful for Chewi coercivity/growth proofs because the analytic tail estimate only has to provide `W ≤ V` and finite integral for `exp(-W)`."
+  },
+  {
+    key := "samplewiki.sphmc.initial-gibbs-q2",
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2",
+    upstreamDecl := "GibbsPositionMoment.gibbs_position_moment / PhaseReferenceMoment.gaussianSmoothing_position_second_moment / InitialPhaseTransport.phaseWassersteinSq_initial_le_position_moment",
+    upstreamFile := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SampleWiki", "SPHMC", "Gibbs", "Gaussian-smoothing", "phase-transport", "q2", "initialization"],
+    saldUse := "SPHMC Lemma 4.16 q=2 initialization component: assemble the actual smoothed Gibbs position moment with the identical-momentum phase coupling",
+    note := "Independently verified at commit c470a1b. Conditional on a supplied critical point; all-q concentration and critical-point existence remain separate open edges. The explicit factor 5 is ASTIS-derived, not source-literal."
   }
 ]
 

@@ -73,6 +73,48 @@ error and moment propagation; proxy construction; final actual-input cost.
 Theorems 1.1–1.3 remain open. No diagram or citation/download feature is a
 prerequisite for the next correct Lean packet.
 
+## Lemma 4.17: exact RGO recovery is compiled; fiberwise W2 contraction is blocked
+
+The recovery identity is already stronger than a paper-specific invariance
+wrapper: `GaussianConditionalKernel.exists_tilted_isCondKernel` supplies the
+joint disintegration certificate, and `RGOBackward.rgo_backward_recovery`
+records the SPHMC specialization. A duplicate recovery declaration is therefore
+not a new mathematical leaf.
+
+The remaining first inequality in Lemma 4.17 is genuinely analytic. With
+`alpha = kappa^{-1}` and `lambda = alpha + eta^{-1}`, the cited
+Lee--Shen--Tian proof is
+
+\[
+W_2^2(R_{\eta,y},R_{\eta,y'})
+ \le \frac{2}{\lambda}\,\mathrm{KL}(R_{\eta,y}\|R_{\eta,y'})
+ \le \frac{1}{\lambda^2}\,\mathrm{FI}(R_{\eta,y}\|R_{\eta,y'}),
+\]
+
+while direct differentiation of the normalized density ratio gives
+
+\[
+\nabla\log\frac{dR_{\eta,y}}{dR_{\eta,y'}}(x)
+ = \frac{y-y'}{\eta}.
+\]
+
+Consequently
+
+\[
+W_2(R_{\eta,y},R_{\eta,y'})
+ \le \frac{1}{1+\alpha\eta}\,\lVert y-y'\rVert
+ = \frac{\kappa}{\kappa+\eta}\,\lVert y-y'\rVert.
+\]
+
+At the pinned toolchain, neither Mathlib nor Samplinglib contains the required
+strong-convex Gibbs log-Sobolev instance and Otto--Villani `LSI -> T2` backend.
+The route is therefore recorded as the typed blocker
+`ASTIS-SW-SPHMC-rgo-fiber-w2-contraction`, with the strictly smaller shared child
+`ASTIS-SHARED-strong-convex-gibbs-lsi-t2`. A theorem assuming the desired T2
+bound, or a coupling with the desired cost, would only restate the missing
+content. The alternative Wasserstein-subdifferential/JKO proof is source-valid
+but retired for this packet because its absent formal substrate is larger.
+
 ## Compiled normalized-law component: Lemma 6.4
 
 The distribution-level edge is now `RGOClosure.quadratic_tilt_tilt`, not an

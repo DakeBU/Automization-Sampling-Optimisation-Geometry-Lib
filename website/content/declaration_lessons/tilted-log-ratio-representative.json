@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.llr_tilted_tilted_ae",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/TiltedLogRatio.lean",
+      "source_line": 43,
+      "short_name": "llr_tilted_tilted_ae",
+      "title": "Canonical llr equals the explicit normalized tilt ratio a.e.",
+      "classification": "representative-identification theorem",
+      "statement": "For a σ-finite base μ and two integrable exponential tilts, Mathlib's canonical log-likelihood ratio of the f-tilt against the g-tilt agrees almost everywhere under the left tilted law with f−log Z_f−g+log Z_g.",
+      "formula": "\\operatorname{llr}(\\mu_f,\\mu_g)(x)=f(x)-\\log Z_f-g(x)+\\log Z_g\\quad\\mu_f\\text{-a.e.}",
+      "assumptions": [
+        "The common base μ is σ-finite.",
+        "f is measurable and both exp f and exp g are μ-integrable.",
+        "The equality is under the left tilt μ_f, which is the law used by relative Fisher information."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Expand the left tilt",
+          "text": "Mathlib's left-tilt identity contributes f−log Z_f and leaves a base-to-right-tilt llr.",
+          "formula": "\\operatorname{llr}(\\mu_f,\\mu_g)=f-\\log Z_f+\\operatorname{llr}(\\mu,\\mu_g).",
+          "lean": "MeasureTheory.llr_tilted_left"
+        },
+        {
+          "number": 2,
+          "title": "Expand the right tilt",
+          "text": "The right-tilt identity contributes −g+log Z_g, while the self log ratio is zero.",
+          "formula": "\\operatorname{llr}(\\mu,\\mu_g)=-g+\\log Z_g.",
+          "lean": "MeasureTheory.llr_tilted_right; MeasureTheory.llr_self"
+        },
+        {
+          "number": 3,
+          "title": "Transfer the null set",
+          "text": "The equality is first assembled μ-a.e. and then transported to μ_f because every tilted measure is absolutely continuous with respect to its base.",
+          "formula": "\\mu_f\\ll\\mu.",
+          "lean": "MeasureTheory.tilted_absolutelyContinuous"
+        }
+      ],
+      "lean_statement": "The right-hand side is written explicitly in the public theorem, so no hidden selected representative occurs in its interface.",
+      "lean_proof": "The proof combines the three canonical Mathlib llr identities pointwise on a full-measure set and uses absolute continuity to change the a.e. measure.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "MeasureTheory.llr_tilted_left",
+        "MeasureTheory.llr_tilted_right",
+        "MeasureTheory.llr_self",
+        "MeasureTheory.tilted_absolutelyContinuous"
+      ],
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2010.03106v4",
+          "label": "Lee–Shen–Tian, Lemma 2 proof, equation (11)",
+          "scope": "ASTIS exposes the normalized-density representative and its canonical RN relation, implicit in the paper calculation."
+        }
+      ],
+      "boundary": [
+        "Almost-everywhere equality of values does not identify classical gradients of arbitrary representatives.",
+        "No Fisher-information, log-Sobolev, Talagrand or Wasserstein conclusion is included."
+      ],
+      "tests": {
+        "file": "Tests/TiltedLogRatio.lean",
+        "scope": "Explicit quadratic-fiber instance pins the left-law a.e. direction and all normalizer signs."
+      },
+      "review": {
+        "status": "pass",
+        "reviewer": "independent source reviewer",
+        "scope": "A.e. measure direction, signs, integrability assumptions and canonical-versus-smooth boundary accepted."
+      }
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.gradient_quadratic_representative",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/TiltedLogRatio.lean",
+      "source_line": 113,
+      "short_name": "gradient_quadratic_representative",
+      "title": "The restricted-Gaussian relative score is constant",
+      "classification": "source equation theorem",
+      "statement": "For η≠0, the explicit normalized log-ratio representative of the quadratic fiber centered at y against the one centered at y′ has the constant gradient η⁻¹(y−y′). The paper consumer specializes to η>0.",
+      "formula": "\\nabla_x\\!\\left[-\\frac{\\|x-y\\|^2}{2\\eta}-\\log Z_y+\\frac{\\|x-y'\\|^2}{2\\eta}+\\log Z_{y'}\\right]=\\eta^{-1}(y-y').",
+      "assumptions": [
+        "E is a complete real inner-product space.",
+        "η is nonzero; SPHMC and the cited restricted-Gaussian theorem use η>0.",
+        "The differentiated function is displayed explicitly and is not Mathlib's arbitrary canonical measurable llr representative."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Differentiate the two quadratics",
+          "text": "The genuine Fréchet gradients are −η⁻¹(x−y) and −η⁻¹(x−y′).",
+          "formula": "\\nabla q_{\\eta,y}(x)=-\\eta^{-1}(x-y).",
+          "lean": "HasFDerivAt.norm_sq; InnerProductSpace.toDual"
+        },
+        {
+          "number": 2,
+          "title": "Discard only spatial constants",
+          "text": "The two log normalizers may depend on μ, η and the centers, but not on x, so their derivatives vanish.",
+          "formula": "\\nabla_x\\log Z_y=\\nabla_x\\log Z_{y'}=0.",
+          "lean": "HasFDerivAt.sub_const; HasFDerivAt.add_const"
+        },
+        {
+          "number": 3,
+          "title": "Cancel x",
+          "text": "Subtracting the two quadratic scores cancels x and leaves the center displacement with the source sign.",
+          "formula": "-\\eta^{-1}(x-y)+\\eta^{-1}(x-y')=\\eta^{-1}(y-y').",
+          "lean": "module; map_sub"
+        }
+      ],
+      "lean_statement": "The base measure is arbitrary because only the x-independence of its two normalizers is used. No normalization or integrability premise is smuggled into this calculus theorem.",
+      "lean_proof": "A private helper derives the genuine gradient of each quadratic from the norm-square derivative and the Hilbert duality map. The public proof removes constant normalizers and performs the linear cancellation.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasFDerivAt.norm_sq",
+        "InnerProductSpace.toDual",
+        "HasGradientAt.gradient"
+      ],
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2010.03106v4",
+          "label": "Lee–Shen–Tian equation (11)",
+          "scope": "Exact sign and η⁻¹ coefficient; this equation is cited in the route used by SPHMC Lemma 4.17."
+        }
+      ],
+      "boundary": [
+        "The theorem does not differentiate the canonical measurable llr.",
+        "A representative-to-canonical-Fisher adapter, the strong-convex Gibbs LSI/T₂ backend and the W₂ contraction all remain separate red nodes."
+      ],
+      "tests": {
+        "file": "Tests/TiltedLogRatio.lean",
+        "scope": "Explicit goal pins η⁻¹•(y−y′) beside the canonical a.e. identity."
+      },
+      "review": {
+        "status": "pass",
+        "reviewer": "independent source reviewer",
+        "scope": "Sign, coefficient, normalizers and representative boundary accepted against equation (11)."
+      }
+    }
+  ]
+}

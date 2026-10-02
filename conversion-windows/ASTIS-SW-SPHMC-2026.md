@@ -334,3 +334,34 @@ This advances the prior open deterministic-depth boundary only. Independent
 commit admission, integration and rendered-reader validation
 remain pending; stochastic history, FORS, recursive errors and expected costs
 remain separate mathematical obligations. Neither complete paper is admitted.
+
+## Lemma 4.17: the relative-score calculation now compiles
+
+The shared cell ASTIS-SHARED-tilted-log-ratio-representative now isolates the
+source equation used in the Lee--Shen--Tian proof cited by SPHMC. For
+
+\[
+q_{\eta,y}(x)=-\frac{\|x-y\|^2}{2\eta},\qquad
+r_{y,y'}(x)=q_{\eta,y}(x)-\log Z_y-q_{\eta,y'}(x)+\log Z_{y'},
+\]
+
+the new Lean declarations prove both
+
+\[
+\operatorname{llr}(R_{\eta,y},R_{\eta,y'})=r_{y,y'}
+\quad R_{\eta,y}\text{-a.e.},
+\qquad
+\nabla r_{y,y'}(x)=\eta^{-1}(y-y').
+\]
+
+The first equality keeps sigma-finiteness, measurability and both exponential
+integrability obligations explicit. The second differentiates the displayed
+smooth representative only. It does **not** differentiate Mathlib's canonical
+measurable llr: equality almost everywhere does not preserve a classical
+gradient after arbitrary changes on a null set.
+
+This closes the exact algebra/calculus content of equation (11), not SPHMC
+Lemma 4.17. A representative-to-canonical-Fisher adapter and the
+strong-convex Gibbs LSI/Talagrand T2 backend are still red; only after those
+independent analytic edges can the exact
+\(\kappa/(\kappa+\eta)\) Wasserstein contraction be claimed.

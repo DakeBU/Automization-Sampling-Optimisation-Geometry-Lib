@@ -18,6 +18,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DonskerVaradhan
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.Renyi
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio
 import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
 import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
 import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsIntegral
@@ -3895,6 +3896,26 @@ def klDensityMemory : List LemmaMemoryEntry := [
     tags := ["KL", "density", "mass-conservation", "HasDerivAt"],
     saldUse := "remove the integral qdot term in KL differentiation after mass conservation is supplied",
     note := "Small derivative-target rewrite; mass conservation itself remains a separate theorem or hypothesis."
+  },
+  {
+    key := "information-theory.tilted-log-ratio-ae-representative",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.llr_tilted_tilted_ae",
+    upstreamDecl := "MeasureTheory.llr_tilted_left / llr_tilted_right / llr_self",
+    upstreamFile := "Mathlib.MeasureTheory.Measure.Tilted; Lee--Shen--Tian arXiv:2010.03106v4 equation (11)",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "log-density-ratio", "tilted-measure", "representative", "almost-everywhere"],
+    saldUse := "SPHMC Lemma 4.17: identify the canonical measurable llr almost everywhere with the explicit normalized tilt representative",
+    note := "The equality is under the left tilted law. It does not identify derivatives of arbitrary a.e.-equal representatives or prove Fisher, LSI, T2, or Wasserstein bounds."
+  },
+  {
+    key := "information-theory.quadratic-tilt-representative-gradient",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.gradient_quadratic_representative",
+    upstreamDecl := "HasFDerivAt.norm_sq / InnerProductSpace.toDual / Lee--Shen--Tian equation (11)",
+    upstreamFile := "Mathlib.Analysis.InnerProductSpace.Calculus; Lee--Shen--Tian arXiv:2010.03106v4 equation (11)",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "quadratic-tilt", "score", "gradient", "representative"],
+    saldUse := "SPHMC Lemma 4.17: compute the constant relative score (y-y')/eta for restricted-Gaussian fibers",
+    note := "Differentiates only the explicit smooth representative, not Mathlib's canonical measurable llr. The eta != 0 reusable statement is consumed with source eta > 0."
   }
 ]
 

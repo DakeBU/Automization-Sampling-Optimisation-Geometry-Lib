@@ -136,6 +136,7 @@ import Tests.RandomStoppingProcessConsistency
 import Tests.Reversibility
 import Tests.SampledElementaryApproximation
 import Tests.SemigroupDecay
+import Tests.BakryEmeryInterpolation
 import Tests.StoppingTime
 import Tests.TimeMeasureRealBridge
 import Tests.Transport

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+      "kind": "theorem",
+      "title": "Backward interpolation turns growth into contraction",
+      "statement": "Let Φ be a continuous scalar interpolation with an exact right derivative. If Φ'(u)≥rΦ(u) at every time, then reading the interpolation from s to t gives Φ(s)≤Φ(t)e^{-r(t-s)} for every s≤t.",
+      "formula": "\\Phi'(u)\\ge r\\Phi(u)\\Longrightarrow \\Phi(s)\\le \\Phi(t)e^{-r(t-s)}",
+      "assumptions": [
+        "Φ and its supplied derivative are real-valued on the whole real line.",
+        "Φ is continuous.",
+        "At every u, the right derivative within [u,∞) is exactly Φ'(u).",
+        "The lower differential inequality rΦ(u)≤Φ'(u) holds at every real u.",
+        "The endpoints satisfy s≤t.",
+        "No sign condition on Φ or r is required."
+      ],
+      "steps": [
+        {
+          "title": "Reverse the inequality by negating the curve",
+          "text": "For g=-Φ, the lower growth bound becomes the upper differential inequality g'≤rg required by one-sided Grönwall.",
+          "formula": "g=-\\Phi,\\qquad g'=-\\Phi'\\le-r\\Phi=rg",
+          "lean": "Negate `hgrowth`; `HasDerivWithinAt.neg` supplies the exact right derivative of g."
+        },
+        {
+          "title": "Apply one-sided Grönwall between the two endpoints",
+          "text": "The comparison theorem gives -Φ(t)≤-Φ(s)e^{r(t-s)}, equivalently Φ(s)e^{r(t-s)}≤Φ(t).",
+          "formula": "\\Phi(s)e^{r(t-s)}\\le\\Phi(t)",
+          "lean": "Use `le_gronwallBound_of_liminf_deriv_right_le`, then `gronwallBound_ε0`."
+        },
+        {
+          "title": "Move the exponential to the terminal side",
+          "text": "Multiply by the positive inverse exponential and use e^{rΔ}e^{-rΔ}=1.",
+          "formula": "\\Phi(s)\\le\\Phi(t)e^{-r(t-s)}",
+          "lean": "Use `Real.exp_nonneg`, `Real.exp_add`, and exact ring normalization of the exponents."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "HasDerivWithinAt.neg",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "gronwallBound_ε0",
+        "Real.exp_add"
+      ],
+      "lean_statement": "Lean records the interpolation, its derivative function, the rate, and both endpoint times explicitly.",
+      "lean_proof": "The proof applies Mathlib's one-sided Grönwall theorem to the negated interpolation and then cancels the positive exponential exactly.",
+      "boundary": "The theorem is only the scalar endpoint comparison. It does not build a Markov semigroup, identify Φ with P_s Γ(P_{t-s}f), prove its derivative formula, or derive Γ₂≥κΓ for a concrete generator.",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/ODE/Gronwall.lean",
+          "label": "Mathlib one-sided Grönwall theorem",
+          "scope": "The scalar comparison used after negating the interpolation."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/BakryEmeryInterpolation.lean",
+          "label": "Samplinglib compiled interpolation leaf",
+          "scope": "Exact endpoint contraction statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BakryEmeryInterpolation",
+        "lake env lean Tests/BakryEmeryInterpolation.lean"
+      ]
+    }
+  ]
+}

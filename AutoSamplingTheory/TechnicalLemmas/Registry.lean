@@ -13,6 +13,7 @@ import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolev
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ForcedSemigroupDecay
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BakryEmeryInterpolation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates
 import AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity
@@ -2686,6 +2687,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
     tags := ["functional-inequality", "semigroup", "dissipation", "Gronwall", "forcing", "steady-state-floor"],
     saldUse := "turn a forced coercive energy-dissipation inequality into the exact exponential interpolation between the initial energy and forcing floor",
     note := "Scalar reusable leaf. Concrete carré-du-champ differentiation, Bakry–Émery curvature, and generator-domain closure remain separate prerequisites."
+  },
+  {
+    key := "semigroup-decay.backward-interpolation-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+    upstreamDecl := "le_gronwallBound_of_liminf_deriv_right_le / Bakry--Émery backward interpolation",
+    upstreamFile := "Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "semigroup", "gradient-contraction", "interpolation", "Gronwall"],
+    saldUse := "convert a lower differential bound for a backward interpolation quantity into the endpoint exponential contraction estimate",
+    note := "Scalar interpolation leaf only. Concrete carré-du-champ derivative identities, semigroup order preservation, and generator-domain closure remain explicit inputs."
   }
 ]
 

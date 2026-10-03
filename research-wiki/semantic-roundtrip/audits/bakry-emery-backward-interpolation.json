@@ -1,0 +1,212 @@
+{
+  "audits": [
+    {
+      "id": "ASTIS-RT-20261003-bakry-emery-backward-interpolation",
+      "state": "accepted",
+      "source": {
+        "source_id": "bakry-emery-backward-interpolation:backward-interpolation-endpoint-contraction",
+        "anchor": "Mathlib commit db584cd6d46c92f209a44c0f1c829460d327499d, Mathlib/Analysis/ODE/Gronwall.lean: le_gronwallBound_of_liminf_deriv_right_le and gronwallBound_epsilon0",
+        "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/ODE/Gronwall.lean",
+        "original_text": "Let Phi and PhiPrime be real-valued functions on the real line. Assume Phi is continuous and has exact right derivative PhiPrime(u) within [u,infinity) at every u. If r Phi(u) <= PhiPrime(u) for every real u, then for every s <= t, Phi(s) <= Phi(t) exp(-r(t-s)). No sign condition on Phi or r is required. This is only the scalar endpoint comparison; concrete semigroup and curvature identities are outside its scope.",
+        "text_sha256": "ca38e12b8c22b01d812e522f14b75a3eaa6a6b77d6a712331b11552426b352eb"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+        "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/BakryEmeryInterpolation.lean",
+        "statement": "theorem backward_interpolation_contraction_of_growth\n    {interpolation interpolation' : ℝ → ℝ} {rate s t : ℝ}\n    (hcontinuous : Continuous interpolation)\n    (hderiv : ∀ u : ℝ,\n      HasDerivWithinAt interpolation (interpolation' u) (Ici u) u)\n    (hgrowth : ∀ u : ℝ,\n      rate * interpolation u ≤ interpolation' u)\n    (hst : s ≤ t) :\n    interpolation s ≤\n      interpolation t * Real.exp (-rate * (t - s))",
+        "statement_sha256": "b22104752da98109924a14e1cbe7a3e2505d5bf5ad902ea32104d15cb7d6f750",
+        "compiled": true,
+        "formalizer": "root",
+        "compiler_evidence": "Focused production module and Tests/BakryEmeryInterpolation.lean passed with Lean 4.33.0.",
+        "decoder_context": [
+          "HasDerivWithinAt f fPrime (Ici u) u means that f has the supplied one-sided derivative fPrime at u within the right ray [u, infinity).",
+          "Continuous interpolation is global continuity on the real line. Real.exp is the real exponential function and is strictly positive.",
+          "All functions, parameters, products, inequalities, and endpoint times in the proposition are real-valued."
+        ]
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "Real-valued functions Φ and ΦPrime on ℝ, a real rate r, and real endpoints s,t.",
+          "reconstructed": "Real-valued functions I and I' on ℝ, a real rate ρ, and real endpoints s,t.",
+          "relation": "same",
+          "evidence": "The blind reconstruction only renames interpolation/interpolation' and rate. The exact Lean theorem binds both functions as ℝ→ℝ and rate,s,t as ℝ."
+        },
+        "domains": {
+          "original": "Φ,ΦPrime : ℝ→ℝ and r,s,t∈ℝ.",
+          "reconstructed": "I,I' : ℝ→ℝ and ρ,s,t∈ℝ.",
+          "relation": "same",
+          "evidence": "Lean uses {interpolation interpolation' : ℝ → ℝ} {rate s t : ℝ}. There is no restricted time interval, codomain change, or positivity type refinement."
+        },
+        "quantifiers": {
+          "original": "Continuity is global; the exact right derivative and growth inequality hold for every u∈ℝ; the conclusion holds for every s≤t.",
+          "reconstructed": "The derivative and growth hypotheses are universally quantified over all real u, with arbitrary real s,t subject to s≤t.",
+          "relation": "same",
+          "evidence": "Lean states hderiv : ∀ u : ℝ, hgrowth : ∀ u : ℝ, and hst : s ≤ t. The proof restricts these global hypotheses to Ico s t only when invoking Grönwall; it does not weaken or change their stated scope."
+        },
+        "assumptions": {
+          "original": "Φ is continuous; at every u its exact right derivative within [u,∞) equals ΦPrime(u); rΦ(u)≤ΦPrime(u) globally; s≤t; no sign condition on Φ or r.",
+          "reconstructed": "I is continuous; HasDerivWithinAt I (I' u) [u,∞) u for every u; ρI(u)≤I'(u) globally; s≤t; no sign condition on ρ,I,I'.",
+          "relation": "same",
+          "evidence": "The Lean signature uses Continuous interpolation, HasDerivWithinAt … (Ici u) u, the global lower differential bound, and hst only. The negation step and multiplication by Real.exp_nonneg require no sign assumption on the rate or either function."
+        },
+        "conclusion": {
+          "original": "Φ(s)≤Φ(t) exp(-r(t-s)).",
+          "reconstructed": "I(s)≤I(t) exp(-ρ(t-s)).",
+          "relation": "same",
+          "evidence": "The exact Lean target is interpolation s ≤ interpolation t * Real.exp (-rate * (t - s)); the endpoint orientation, minus sign, multiplication by rate, and difference t-s all match exactly."
+        },
+        "scopes": {
+          "original": "Only the scalar endpoint comparison; no semigroup construction or concrete curvature/derivative identity.",
+          "reconstructed": "A scalar comparison for an already supplied interpolation and derivative function.",
+          "relation": "same",
+          "evidence": "The isolated module and lesson keep Markov semigroup construction, carré du champ identification, and derivation of the interpolation formula outside scope. The binding supports only backward-interpolation-endpoint-contraction."
+        },
+        "constant_dependencies": {
+          "original": "The sole comparison factor is exp(-r(t-s)); no prefactor or forcing term occurs.",
+          "reconstructed": "The sole factor is exp(-ρ(t-s)), obtained by cancelling exp(ρ(t-s)) with its positive inverse.",
+          "relation": "same",
+          "evidence": "The proof specializes Grönwall with K=rate and ε=0, rewrites gronwallBound_ε0, and uses Real.exp_add to establish exp(rateΔ)exp(-rateΔ)=1. The listed Mathlib dependencies all occur in the proof, ASTIS dependencies are correctly empty, and no hidden constant appears."
+        }
+      },
+      "deltas": [],
+      "verdict": "exact",
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "general_prereq_source_reviewer",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "reviewer_packet_sha256": "3110fff805ecc10a3b4a07a82a59a39f773bacc7b0c855bafcdf29e2e0274602",
+        "evidence": "Using only the current reviewer-packet.json with packet_sha256 3110fff805ecc10a3b4a07a82a59a39f773bacc7b0c855bafcdf29e2e0274602, independently compared the source restatement, blind reconstruction, exact Lean statement, complete isolated module, lesson, dependency metadata, binding, assumptions, proof, and boundary. The right derivative is exactly within Ici u, all time hypotheses are global, endpoints satisfy only s≤t, no rate/function sign premise is present, and the exponential constant is exactly -rate*(t-s).",
+        "review_run_sha256": "f045e189b24f1355c63271e97aee83defbce573c017219de4d57383fa4cc834b",
+        "run_artifact": "runs/semantic-roundtrip/bakry-emery-backward-interpolation/review-result.json"
+      },
+      "repairs": [],
+      "publication_binding_sha256": "c12e7b3426059017a2b582b4b899ad309afc4bf49a29f7f24b9536d6f3f3ad89",
+      "publication_context": {
+        "file": "10936a695df54ef918348e638bfed891932cd65802a955ebb7b86d9d9d40e335",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay\n\n/-!\n# Scalar Bakry--Émery interpolation\n\nThe Bakry--Émery gradient argument studies a backward interpolation quantity\nwhose derivative is bounded below by a constant multiple of itself.  This file\nisolates the scalar comparison step: exponential growth along the interpolation\nis equivalent to exponential contraction when its endpoints are read in the\nopposite direction.\n\nThe theorem does not construct a Markov semigroup, identify a carré du champ,\nor prove the interpolation derivative formula.  Those remain model-facing\nanalytic inputs.\n-/\n\nnamespace AutoSamplingTheory\nnamespace TechnicalLemmas\nnamespace FunctionalInequalities\nnamespace SemigroupDecay\n\nopen Filter Set\nopen scoped Topology\n\nnoncomputable section\n\n/-- A lower differential bound along a backward interpolation gives the\nendpoint contraction estimate used in the Bakry--Émery method.\n\nNo sign condition on `interpolation` or `rate` is needed for this scalar\ncomparison. -/\ntheorem backward_interpolation_contraction_of_growth\n    {interpolation interpolation' : ℝ → ℝ} {rate s t : ℝ}\n    (hcontinuous : Continuous interpolation)\n    (hderiv : ∀ u : ℝ,\n      HasDerivWithinAt interpolation (interpolation' u) (Ici u) u)\n    (hgrowth : ∀ u : ℝ,\n      rate * interpolation u ≤ interpolation' u)\n    (hst : s ≤ t) :\n    interpolation s ≤\n      interpolation t * Real.exp (-rate * (t - s)) := by\n  have hbound : ∀ x ∈ Ico s t,\n      -interpolation' x ≤ rate * (-interpolation x) + 0 := by\n    intro x _hx\n    have hneg := neg_le_neg (hgrowth x)\n    simpa [neg_mul] using hneg\n  have hgronwall :=\n    le_gronwallBound_of_liminf_deriv_right_le\n      (f := fun x => -interpolation x)\n      (f' := fun x => -interpolation' x)\n      (δ := -interpolation s)\n      (K := rate)\n      (ε := 0)\n      (a := s)\n      (b := t)\n      hcontinuous.neg.continuousOn\n      (fun x _hx r hr => by\n        simpa [slope] using ((hderiv x).neg.liminf_right_slope_le hr))\n      le_rfl\n      hbound\n      t\n      ⟨hst, le_rfl⟩\n  rw [gronwallBound_ε0] at hgronwall\n  have hexponential_growth :\n      interpolation s * Real.exp (rate * (t - s)) ≤ interpolation t := by\n    linarith\n  have hscaled := mul_le_mul_of_nonneg_right hexponential_growth\n    (Real.exp_nonneg (-rate * (t - s)))\n  have hinverse :\n      Real.exp (rate * (t - s)) * Real.exp (-rate * (t - s)) = 1 := by\n    rw [← Real.exp_add]\n    have hzero : rate * (t - s) + -rate * (t - s) = 0 := by ring\n    rw [hzero, Real.exp_zero]\n  calc\n    interpolation s =\n        (interpolation s * Real.exp (rate * (t - s))) *\n          Real.exp (-rate * (t - s)) := by\n      rw [mul_assoc, hinverse, mul_one]\n    _ ≤ interpolation t * Real.exp (-rate * (t - s)) := hscaled\n\nend\n\nend SemigroupDecay\nend FunctionalInequalities\nend TechnicalLemmas\nend AutoSamplingTheory\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/ODE/Gronwall.lean",
+          "edition": "mathlib commit db584cd6d46c92f209a44c0f1c829460d327499d",
+          "anchor": "le_gronwallBound_of_liminf_deriv_right_le and gronwallBound_ε0",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Mathlib supplies the one-sided scalar comparison; Samplinglib packages the endpoint orientation used by Bakry–Émery semigroup interpolation."
+        },
+        "statement": "A continuous scalar interpolation satisfying the exact right-derivative lower bound Φ'≥rΦ obeys Φ(s)≤Φ(t)e^{-r(t-s)} for every s≤t.",
+        "formulae": [
+          {
+            "label": "interpolation growth",
+            "tex": "\\Phi'(u)\\ge r\\Phi(u)"
+          },
+          {
+            "label": "endpoint contraction",
+            "tex": "\\Phi(s)\\le\\Phi(t)e^{-r(t-s)}"
+          }
+        ],
+        "assumptions": [
+          "The interpolation is real-valued and continuous.",
+          "Its exact right derivative is supplied at every time.",
+          "The lower differential inequality holds at every time.",
+          "The endpoints are ordered; no sign condition on the rate or interpolation is needed."
+        ],
+        "obligations": [
+          {
+            "id": "backward-interpolation-endpoint-contraction",
+            "label": "Convert the interpolation derivative lower bound into the exact endpoint contraction factor"
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+          "kind": "theorem",
+          "title": "Backward interpolation turns growth into contraction",
+          "statement": "Let Φ be a continuous scalar interpolation with an exact right derivative. If Φ'(u)≥rΦ(u) at every time, then reading the interpolation from s to t gives Φ(s)≤Φ(t)e^{-r(t-s)} for every s≤t.",
+          "formula": "\\Phi'(u)\\ge r\\Phi(u)\\Longrightarrow \\Phi(s)\\le \\Phi(t)e^{-r(t-s)}",
+          "assumptions": [
+            "Φ and its supplied derivative are real-valued on the whole real line.",
+            "Φ is continuous.",
+            "At every u, the right derivative within [u,∞) is exactly Φ'(u).",
+            "The lower differential inequality rΦ(u)≤Φ'(u) holds at every real u.",
+            "The endpoints satisfy s≤t.",
+            "No sign condition on Φ or r is required."
+          ],
+          "steps": [
+            {
+              "title": "Reverse the inequality by negating the curve",
+              "text": "For g=-Φ, the lower growth bound becomes the upper differential inequality g'≤rg required by one-sided Grönwall.",
+              "formula": "g=-\\Phi,\\qquad g'=-\\Phi'\\le-r\\Phi=rg",
+              "lean": "Negate `hgrowth`; `HasDerivWithinAt.neg` supplies the exact right derivative of g."
+            },
+            {
+              "title": "Apply one-sided Grönwall between the two endpoints",
+              "text": "The comparison theorem gives -Φ(t)≤-Φ(s)e^{r(t-s)}, equivalently Φ(s)e^{r(t-s)}≤Φ(t).",
+              "formula": "\\Phi(s)e^{r(t-s)}\\le\\Phi(t)",
+              "lean": "Use `le_gronwallBound_of_liminf_deriv_right_le`, then `gronwallBound_ε0`."
+            },
+            {
+              "title": "Move the exponential to the terminal side",
+              "text": "Multiply by the positive inverse exponential and use e^{rΔ}e^{-rΔ}=1.",
+              "formula": "\\Phi(s)\\le\\Phi(t)e^{-r(t-s)}",
+              "lean": "Use `Real.exp_nonneg`, `Real.exp_add`, and exact ring normalization of the exponents."
+            }
+          ],
+          "astis_dependencies": [],
+          "mathlib_dependencies": [
+            "le_gronwallBound_of_liminf_deriv_right_le",
+            "HasDerivWithinAt.neg",
+            "HasDerivWithinAt.liminf_right_slope_le",
+            "gronwallBound_ε0",
+            "Real.exp_add"
+          ],
+          "lean_statement": "Lean records the interpolation, its derivative function, the rate, and both endpoint times explicitly.",
+          "lean_proof": "The proof applies Mathlib's one-sided Grönwall theorem to the negated interpolation and then cancels the positive exponential exactly.",
+          "sources": [
+            {
+              "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/ODE/Gronwall.lean",
+              "label": "Mathlib one-sided Grönwall theorem",
+              "scope": "The scalar comparison used after negating the interpolation."
+            },
+            {
+              "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/BakryEmeryInterpolation.lean",
+              "label": "Samplinglib compiled interpolation leaf",
+              "scope": "Exact endpoint contraction statement and proof."
+            }
+          ],
+          "tests": [
+            "lake -Kjobs=1 build AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BakryEmeryInterpolation",
+            "lake env lean Tests/BakryEmeryInterpolation.lean"
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+          "role": "prerequisite",
+          "supports": [
+            "backward-interpolation-endpoint-contraction"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "Mathlib gives an upper right-slope Grönwall comparison for a continuous scalar function on an interval.",
+            "lean": "Samplinglib assumes a globally continuous interpolation with an exact right derivative and a global lower differential bound, then applies Mathlib to its negation between arbitrary ordered endpoints."
+          }
+        ]
+      },
+      "graph_node": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+      "reconstruction": {
+        "text": "Let I,I' : ℝ → ℝ be real-valued functions, and let ρ,s,t ∈ ℝ. Assume that I is continuous on ℝ; that for every u ∈ ℝ, I has right-sided derivative I'(u) at u within the ray [u,∞); and that ρI(u) ≤ I'(u) for every u ∈ ℝ. If s ≤ t, then I(s) ≤ I(t) exp(-ρ(t-s)). No sign assumption is imposed on ρ, I, or I'.",
+        "text_sha256": "b21c2af46442c3043ba7e5910fe3fbadd97ff01737c6c700e425236081649248",
+        "decoder": "general_prereq_blind_decoder",
+        "decoder_run_sha256": "8edca334c22b91f7a8126a8408caabe1b33e4405ad8ee393cde727a3d5299404",
+        "decoder_packet_sha256": "e9be06d24e1502976137c4744b7acda9f4cae61f34bd0da2df89a26268167f5f",
+        "source_text_visible": false,
+        "lean_statement_sha256": "b22104752da98109924a14e1cbe7a3e2505d5bf5ad902ea32104d15cb7d6f750",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/bakry-emery-backward-interpolation/decoder-result.json"
+      }
+    }
+  ]
+}

@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT/'tools'), str(ROOT/'website/scripts')]
 import samplewiki_companions as companion
+import research_workspace
 import cross_domain
 from underlying_lean_graph_model import GraphBuilder
 
@@ -97,6 +98,31 @@ class CompanionTests(unittest.TestCase):
         svg=companion.proof_delta_svg(d)
         self.assertIn('Fan–Li–Lu',svg)
         self.assertEqual(svg.count('<g id='),5)
+
+    def test_research_workspace_is_a_projection_not_a_second_status_source(self):
+        model = companion.load()
+        payload = research_workspace.build_payload(model)
+        self.assertEqual(payload['generated_from'], 'website/content/samplewiki_companion_frontiers.json')
+        self.assertEqual(
+            {row['id'] for row in payload['workspaces']},
+            {row['id'] for row in model['cases']},
+        )
+        cloud = next(
+            row for row in payload['workspaces']
+            if row['id'] == 'ASTIS-SW-GAUSSIAN-CLOUD-2026'
+        )
+        self.assertEqual(cloud['status'], 'planned')
+        self.assertIn('ledger', cloud)
+        tv = next(row for row in cloud['theorems'] if row['id'] == 'gaussian-cloud-tv-ledger')
+        suffix = next(row for row in tv['steps'] if 'data processing' in row['title'].lower())
+        self.assertEqual(suffix['status'], 'compiled-support-only')
+        self.assertTrue(suffix['compiled_support'])
+        text = research_workspace.workspace_markdown(cloud)
+        self.assertIn('AI explanations and generated Lean are unverified', text)
+        self.assertEqual(
+            cloud['evidence_contract']['source_fidelity'],
+            'independent-review-required',
+        )
 
     def test_news_short_and_oldest_is_foundation(self):
         readme=(ROOT/'README.md').read_text(encoding='utf8')

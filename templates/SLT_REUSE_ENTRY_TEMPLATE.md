@@ -12,7 +12,7 @@
 
 - Local file:
 - Local declaration:
-- ASTIS toolchain: `leanprover/lean4:v4.29.1`
+- ASTIS toolchain: `leanprover/lean4:v4.33.0`
 - Status: `direct-port | needs-mathlib-api-update | reference-only | blocked | formalized`
 
 ## Exact Statement Used

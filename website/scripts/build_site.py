@@ -32,6 +32,7 @@ import information_architecture  # noqa: E402
 import lean_tutor  # noqa: E402
 import library_shelves  # noqa: E402
 import reader_contract_final  # noqa: E402
+import research_workspace  # noqa: E402
 import samplewiki_audit_queue  # noqa: E402
 import samplewiki_casebook_assets  # noqa: E402
 import samplewiki_casebook_polish  # noqa: E402
@@ -222,6 +223,7 @@ def main() -> int:
     # those source pages before attaching their checked theorem/proof lessons;
     # running the companion generator later would overwrite the attachments.
     samplewiki_companions.enrich_site(output)
+    research_workspace.enrich_site(output)
     publication_reader.enrich_site(output)
     metadata_lessons.enrich_site(output)
     inline_lean.enrich_textbook(output)

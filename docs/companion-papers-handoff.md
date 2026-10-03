@@ -448,8 +448,9 @@ actual status before claiming result 13 is visible online.
 
 Pinned toolchain: `leanprover/lean4:v4.33.0`.
 Mathlib commit: `db584cd6d46c92f209a44c0f1c829460d327499d`.
-On the owner's machine an inherited Lean 4.29.1 setting is wrong; explicitly
-use the repository toolchain and a conservative two-thread build.
+The ASTIS harness and local research server make this repository pin
+authoritative over any inherited `ELAN_TOOLCHAIN`; use a conservative
+two-thread build.
 
 Run in the repository (Linux-compatible command forms):
 

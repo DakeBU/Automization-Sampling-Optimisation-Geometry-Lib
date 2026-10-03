@@ -1,6 +1,6 @@
 ---
 name: astis-slt-reuse
-description: Port or audit reusable probability/concentration results from YuanheZ/lean-stat-learning-theory into ASTIS-owned TechnicalLemmas under the Lean 4.29.1 toolchain.
+description: Port or audit reusable probability/concentration results from YuanheZ/lean-stat-learning-theory into ASTIS-owned TechnicalLemmas under the repository-pinned Lean 4.33.0 toolchain.
 argument-hint: "[upstream declaration]"
 ---
 
@@ -19,7 +19,7 @@ has been ported as ASTIS-owned Lean code.
 - Local clone: `/home/nitanda_sub/mark/repos/outer_repos/sampling_theory_sde/lean-stat-learning-theory`
 - Local AutoRes clone: `/home/nitanda_sub/mark/repos/outer_repos/automation_systems/lean-rademacher`
 - Upstream toolchain: `leanprover/lean4:v4.27.0-rc1`
-- ASTIS toolchain: `leanprover/lean4:v4.29.1`
+- ASTIS toolchain: `leanprover/lean4:v4.33.0`
 
 ## Workflow
 

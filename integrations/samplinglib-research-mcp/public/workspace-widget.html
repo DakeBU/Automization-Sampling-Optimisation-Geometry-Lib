@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Samplinglib Research Workspace</title>
+  <style>
+    :root { color: #172033; font: 15px/1.55 system-ui, sans-serif; color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: Canvas; color: CanvasText; }
+    header { border-bottom: 1px solid color-mix(in srgb, CanvasText 20%, transparent); padding-bottom: 12px; }
+    h1 { margin: 4px 0; font-size: 1.35rem; }
+    h2 { font-size: 1.05rem; }
+    h3 { font-size: .95rem; }
+    .boundary { margin: 12px 0; padding: 10px; border-left: 4px solid #b54a44; background: color-mix(in srgb, #b54a44 10%, Canvas); }
+    .status { color: #9a3d39; font-weight: 700; text-transform: uppercase; font-size: .75rem; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+    article, section { min-width: 0; padding: 12px; border: 1px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 8px; }
+    pre { padding: 10px; overflow-wrap: anywhere; white-space: pre-wrap; background: color-mix(in srgb, CanvasText 7%, Canvas); }
+    ol { padding-left: 22px; }
+    li { margin: 10px 0; }
+    code { overflow-wrap: anywhere; }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header><small>Auto-Sampling-Theory-In-Sleep · Samplinglib</small><h1 id="title">Research workspace</h1><p id="role">Ask ChatGPT to open a Samplinglib workspace.</p></header>
+  <div class="boundary"><strong>Evidence boundary.</strong> AI output is unverified. Lean compilation, focused tests, and source-fidelity review remain separate.</div>
+  <main id="content"><p>Waiting for a workspace tool result…</p></main>
+  <script>
+    const title = document.getElementById("title");
+    const role = document.getElementById("role");
+    const content = document.getElementById("content");
+    const text = (tag, value, className = "") => {
+      const node = document.createElement(tag);
+      node.textContent = value ?? "";
+      if (className) node.className = className;
+      return node;
+    };
+    const renderWorkspace = (workspace, selectedTheorem, selectedStep) => {
+      title.textContent = workspace.title;
+      role.textContent = workspace.role;
+      content.replaceChildren();
+      const grid = text("div", "", "grid");
+      (workspace.theorems ?? []).forEach((theorem) => {
+        if (selectedTheorem && theorem.id !== selectedTheorem.id) return;
+        const card = document.createElement("article");
+        card.append(text("div", theorem.status, "status"));
+        card.append(text("h2", theorem.title));
+        card.append(text("p", theorem.statement));
+        card.append(text("pre", theorem.formula));
+        const steps = document.createElement("ol");
+        (theorem.steps ?? []).forEach((step) => {
+          if (selectedStep && step.id !== selectedStep.id) return;
+          const item = document.createElement("li");
+          item.append(text("h3", step.title));
+          item.append(text("pre", step.formula));
+          item.append(text("p", step.explanation));
+          item.append(text("p", `Source: ${step.source_anchor}`));
+          item.append(text("p", `Lean status: ${step.status}`, "status"));
+          if (step.compiled_support?.length) {
+            item.append(text("p", `Compiled reusable support: ${step.compiled_support.join(", ")}`));
+          }
+          steps.append(item);
+        });
+        card.append(steps);
+        card.append(text("p", `Strict boundary: ${theorem.boundary}`, "boundary"));
+        grid.append(card);
+      });
+      content.append(grid);
+      if (workspace.ledger) {
+        const ledger = document.createElement("section");
+        ledger.append(text("h2", workspace.ledger.title));
+        ledger.append(text("p", workspace.ledger.intro));
+        const list = document.createElement("ol");
+        workspace.ledger.error_flow.forEach((entry) => {
+          list.append(text("li", `${entry.stage}: ${entry.charge}`));
+        });
+        ledger.append(list);
+        content.append(ledger);
+      }
+    };
+    const render = (data) => {
+      if (!data) return;
+      if (data.workspace) return renderWorkspace(data.workspace, data.theorem, data.step);
+      if (data.workspaces) {
+        content.replaceChildren(text("h2", "Available research workspaces"));
+        const list = document.createElement("ol");
+        data.workspaces.forEach((workspace) => {
+          list.append(text("li", `${workspace.title} — ${workspace.status}`));
+        });
+        content.append(list);
+      }
+    };
+    let rpcId = 0;
+    const pending = new Map();
+    window.addEventListener("message", (event) => {
+      const message = event.data;
+      if (!message || message.jsonrpc !== "2.0") return;
+      if (message.id && pending.has(message.id)) {
+        const { resolve, reject } = pending.get(message.id);
+        pending.delete(message.id);
+        return message.error ? reject(message.error) : resolve(message.result);
+      }
+      if (message.method === "ui/notifications/tool-result") {
+        render(message.params?.structuredContent ?? message.params?.content?.structuredContent);
+      }
+    });
+    const request = (method, params) => new Promise((resolve, reject) => {
+      const id = ++rpcId;
+      pending.set(id, { resolve, reject });
+      window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
+    });
+    const notify = (method, params) =>
+      window.parent.postMessage({ jsonrpc: "2.0", method, params }, "*");
+    request("ui/initialize", {
+      appInfo: { name: "samplinglib-research-widget", version: "0.1.0" },
+      appCapabilities: {},
+      protocolVersion: "2026-01-26",
+    }).then((result) => {
+      notify("ui/notifications/initialized", {});
+      render(result?.toolResult?.structuredContent);
+    }).catch(() => {
+      render(window.openai?.toolOutput);
+    });
+    render(window.openai?.toolOutput);
+  </script>
+</body>
+</html>

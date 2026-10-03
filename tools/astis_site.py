@@ -2796,7 +2796,72 @@ def render_live_formalization(mapping_count: int) -> str:
     body = f"""
 <section class="page-hero compact live-hero"><div class="eyebrow">Mathematics to a typed proof obligation</div>
 <h1>Live Formalization</h1>
-<p class="lede">Render a sampling-theory statement, inspect a reviewed or deterministic Lean candidate, run the pinned compiler locally, and export unresolved work into the ASTIS hierarchy.</p></section>
+<p class="lede">Follow one source theorem step by step, keep recursive calls and error budgets visible, ask a source-grounded assistant, and hand an exact candidate to Lean without confusing explanation, compilation, and reviewed proof.</p></section>
+<section data-research-workspace data-workspace-data="../data/research-workspaces.json" class="research-workspace" aria-labelledby="research-workspace-title">
+  <div class="section-heading"><span>Research proof tracker</span><h2 id="research-workspace-title">Read, question, export, verify</h2></div>
+  <p>The selected source theorem, proof step, assumptions, ledger entries and compiled support are loaded from the same metadata that builds the companion reader. The assistant may explain or propose code; only the separate Lean and source-review gates can certify it.</p>
+  <div class="research-toolbar">
+    <label>Workspace<select data-rw-workspace aria-label="Research workspace"></select></label>
+    <label>Theorem<select data-rw-theorem aria-label="Source theorem"></select></label>
+    <a class="button" data-rw-source href="#">Open source reader</a>
+    <span class="toolbar-spacer"></span>
+    <button type="button" data-rw-copy>Copy agent prompt</button>
+    <a class="button" data-rw-json href="#" download>Download context</a>
+    <a class="button" data-rw-bundle href="#" download>Download research pack</a>
+    <a class="button" data-rw-mcp href="../downloads/samplinglib-research-mcp.zip" download>ChatGPT / MCP App</a>
+  </div>
+  <div class="research-evidence-rail" aria-label="Evidence boundary">
+    <div class="is-pinned"><span>Source context</span><strong>Pinned</strong></div>
+    <div><span>AI response</span><strong data-rw-ai-status>Not requested</strong></div>
+    <div><span>Lean certificate</span><strong data-rw-lean-status>Separate gate</strong></div>
+    <div><span>Source review</span><strong data-rw-review-status>Not implied</strong></div>
+  </div>
+  <div class="research-grid">
+    <aside class="research-route" aria-label="Proof route">
+      <div class="pane-kicker">Proof route</div>
+      <h3 data-rw-title>Select a workspace</h3>
+      <p class="muted" data-rw-role></p>
+      <ol data-rw-steps class="research-step-list"></ol>
+    </aside>
+    <article class="research-step" aria-live="polite">
+      <div class="research-step-head">
+        <div><span class="pane-kicker">Selected mathematical step</span><h3 data-rw-step-title>Loading…</h3></div>
+        <span class="status status-orange" data-rw-step-status>Open</span>
+      </div>
+      <div class="research-formula" data-rw-formula></div>
+      <p data-rw-explanation></p>
+      <dl class="research-source-grid">
+        <div><dt>Source anchor</dt><dd data-rw-anchor></dd></div>
+        <div><dt>Truth boundary</dt><dd data-rw-boundary></dd></div>
+      </dl>
+      <h4>Assumptions in scope</h4><ul data-rw-assumptions></ul>
+      <details class="research-lean-support"><summary>Lean support attached to this step</summary><div data-rw-lean-support></div></details>
+    </article>
+  </div>
+  <section class="research-ledger" data-rw-ledger>
+    <div class="section-heading"><span>Recursive bookkeeping</span><h2>Call and error ledger</h2></div>
+    <p data-rw-ledger-intro></p>
+    <div class="research-ledger-grid">
+      <div><h3>Tracked quantities</h3><div class="table-wrap"><table><thead><tr><th>Symbol</th><th>Meaning</th><th>Update</th><th>Role</th></tr></thead><tbody data-rw-quantities></tbody></table></div></div>
+      <div><h3>Error flow</h3><ol data-rw-error-flow class="research-error-flow"></ol></div>
+    </div>
+  </section>
+  <section class="research-assistant">
+    <div class="research-assistant-head"><div><span class="pane-kicker">Human–AI–Lean handoff</span><h2>Ask about this exact proof step</h2></div><span data-rw-api-mode class="status status-gray">Checking API mode</span></div>
+    <div class="research-action-row" role="group" aria-label="Assistant actions">
+      <button type="button" data-rw-action="explain">Explain the derivation</button>
+      <button type="button" data-rw-action="assumptions">Audit hidden assumptions</button>
+      <button type="button" data-rw-action="lemmas">Find reusable lemmas</button>
+      <button type="button" data-rw-action="lean">Draft a Lean obligation</button>
+      <button type="button" data-rw-action="graph">Show graph impact</button>
+    </div>
+    <label>Optional question<textarea data-rw-question rows="3" placeholder="For example: where is this error charged, and what remains to make the conditional kernel measurable?"></textarea></label>
+    <div class="research-answer" data-rw-answer tabindex="0">Choose an action. In static mode the site creates a bounded prompt that can be copied into ChatGPT or Codex; local API mode can answer here.</div>
+    <p class="muted">Every response is labelled <strong>AI explanation — unverified</strong>. It cannot turn a node blue, modify the Registry, or replace independent source review.</p>
+  </section>
+</section>
+<section id="lean-candidate-lab"><div class="section-heading"><span>Lean candidate lab</span><h2>Inspect and compile an exact snippet</h2></div>
+<p>Use this lower-level panel after the research tracker has fixed the mathematical statement and remaining obligation.</p></section>
 <section data-live-app data-live-data="../data/live-mappings.json" class="live-workspace">
   <div data-live-mode class="live-mode-banner">
     <div><strong data-live-mode-title>Checking execution mode</strong><span data-live-mode-detail>The workspace is testing for the loopback-only Lean service.</span></div>
@@ -2852,9 +2917,12 @@ def render_live_formalization(mapping_count: int) -> str:
   <div class="table-wrap"><table class="capability-table"><thead><tr><th>Capability</th><th>Static Pages</th><th>Local verified mode</th></tr></thead><tbody>
     <tr><td>Render LaTeX and load {mapping_count} reviewed mappings</td><td>Available</td><td>Available</td></tr>
     <tr><td>Browse declaration dependencies and exact source anchors</td><td>Available</td><td>Available</td></tr>
+    <tr><td>Track a source theorem step-by-step with recursive-call and error ledgers</td><td>Available</td><td>Available</td></tr>
+    <tr><td>Download a paper-scoped research pack or visual ChatGPT/MCP App</td><td>Available</td><td>Available</td></tr>
+    <tr><td>Ask a source-bounded AI assistant</td><td>Prompt export</td><td>Optional Responses API; output remains unverified</td></tr>
     <tr><td>Export ASTIS typed-artifact packets</td><td>Available</td><td>Available</td></tr>
     <tr><td>Generate a deterministic candidate for supported templates</td><td>Unavailable</td><td>Available through <code>/api/formalize</code></td></tr>
-    <tr><td>Execute the pinned Lean compiler</td><td>Unavailable</td><td>Available through <code>/api/compile</code></td></tr>
+    <tr><td>Execute the pinned Lean compiler</td><td>Unavailable</td><td>Available through <code>/api/compile</code> only when the active version exactly matches <code>lean-toolchain</code></td></tr>
     <tr><td>General semantic translation or autonomous proof acceptance</td><td>Not claimed</td><td>Not claimed</td></tr>
   </tbody></table></div>
 </section>
@@ -2867,7 +2935,11 @@ def render_live_formalization(mapping_count: int) -> str:
         body,
         active="Live Formalization",
         description="Samplinglib Live Formalization workspace for sampling-theory Lean candidates",
-        extra_scripts=("assets/ide.js",),
+        extra_head='<link rel="stylesheet" href="../assets/research-workspace.css?v=20261003">',
+        extra_scripts=(
+            "assets/research-workspace.js?v=20261003",
+            "assets/ide.js?v=20261003",
+        ),
     )
 
 

@@ -10,6 +10,7 @@ import re
 import textwrap
 from html import escape
 from pathlib import Path
+from urllib.parse import urlencode
 
 import astis_site
 import source_lineage
@@ -144,16 +145,28 @@ def lean_step_fold(step):
 
 
 def theorem_html(m, row, thm):
-    steps = "".join(
-        f'<li><h4>{escape(s["title"])}</h4>{formula_html(s["formula"])}'
-        f'<p>{escape(s["text"])}</p>{sources_html(m, row["source_ids"], s["anchor"])}'
-        f'{lean_step_fold(s)}</li>'
-        for s in thm["steps"]
-    )
+    workspace_base = {
+        "workspace": row["id"],
+        "theorem": thm["id"],
+    }
+    step_fragments = []
+    for index, step in enumerate(thm["steps"]):
+        key = f'{thm["id"]}-step-{index + 1:02d}'
+        query = urlencode({**workspace_base, "step": key})
+        step_fragments.append(
+            f'<li id="{escape(key)}"><h4>{escape(step["title"])}</h4>'
+            f'{formula_html(step["formula"])}<p>{escape(step["text"])}</p>'
+            f'{sources_html(m, row["source_ids"], step["anchor"])}'
+            f'<p><a class="button" href="../../../live/index.html?{query}">'
+            'Track or question this step in Live Formalization</a></p>'
+            f'{lean_step_fold(step)}</li>'
+        )
+    steps = "".join(step_fragments)
     return f'''<section class="companion-theorem" id="{escape(thm['id'])}" data-proof-status="planned">
 <p class="companion-status">RED · source theorem known · local proof open</p>
 <h2>{escape(thm['title'])}</h2>
 {sources_html(m, row['source_ids'], thm['anchor'])}
+<p><a class="button primary" href="../../../live/index.html?{urlencode(workspace_base)}">Open this theorem in the interactive research workspace</a></p>
 <h3>Statement</h3><p>{escape(thm['statement'])}</p>
 {ul(thm['assumptions'])}{formula_html(thm['formula'])}
 {lean_fold('statement', 'A future declaration must bind the probability laws, normalization, regularity, source algorithm and oracle model explicitly. The formula is a source theorem contract, not Lean code.')}

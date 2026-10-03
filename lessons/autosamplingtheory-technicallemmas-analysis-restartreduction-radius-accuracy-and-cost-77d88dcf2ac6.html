@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-theme="blueprint" data-color-scheme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Samplinglib: verified sampling theory in Lean">
+  <meta property="og:title" content="Restarting a convex solver halves the radius and preserves a finite budget · Samplinglib">
+  <meta property="og:description" content="Samplinglib: verified sampling theory in Lean">
+  <link rel="icon" href="data:,">
+  <meta property="og:image" content="../assets/samplinglib-og.png">
+  <meta property="og:site_name" content="Samplinglib">
+  <title>Restarting a convex solver halves the radius and preserves a finite budget · Samplinglib</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="../assets/proof-readers.css">
+  <link rel="stylesheet" href="../assets/information-architecture.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-polish.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-detail-polish.css">
+  <link rel="stylesheet" href="../assets/math-first-reader.css">
+  <link rel="stylesheet" href="../assets/reader-contract-final.css">
+  <link rel="stylesheet" href="../assets/textbook-math-contract.css">
+  <link rel="stylesheet" href="../assets/chewi-source-first-contract.css">
+  <link rel="stylesheet" href="../assets/library-shelves.css">
+  <link rel="stylesheet" href="../assets/source-lineage.css">
+  <link rel="stylesheet" href="../assets/formalization-progress.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="mobile-bar">
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-sidebar">Contents</button>
+    <a href="../index.html"><strong>Samplinglib</strong></a>
+    <button id="scheme-toggle-mobile" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+  </header>
+  <div class="site-shell">
+    <aside id="site-sidebar" class="site-sidebar" aria-label="Samplinglib contents">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark">S</span>
+        <span><strong>Samplinglib</strong><small>Verified Sampling Theory in Lean</small></span>
+      </a>
+      <div class="search-shell">
+        <label class="sr-only" for="global-search">Search declarations and modules</label>
+        <input id="global-search" data-global-search data-search-root="../" type="search" placeholder="Search the library">
+        <ul class="search-results" data-global-results hidden></ul>
+      </div>
+      <div class="sidebar-contents" data-ia-version="2" data-library-shelves="1">
+<section class="sidebar-group sidebar-libraries" data-library-shelves="1">
+  <h2><a href="../libraries/index.html">Libraries</a></h2>
+  <nav class="source-hubs library-source-hubs">
+    <a class="source-hub" href="../textbook/index.html"><span class="source-hub-title">Log-Concave Sampling</span><small>Chewi · textbook graph</small></a>
+    <a class="source-hub" href="../example-cases/samplewiki.html"><span class="source-hub-title">SampleWiki</span><small>sampling frontier cases</small></a>
+    <a class="source-hub" href="../libraries/riemannian-optimization/index.html"><span class="source-hub-title">Riemannian Optimization</span><small>Boumal · 11 chapters</small></a>
+    <a class="source-hub" href="../libraries/optimisation/index.html"><span class="source-hub-title">Optimisation</span><small>Chewi · arXiv:2605.07006</small></a>
+    <a class="source-hub" href="../libraries/statistical-optimal-transport/index.html"><span class="source-hub-title">Statistical Optimal Transport</span><small>Chewi · Niles-Weed · Rigollet</small></a>
+    <a class="source-hub" href="../libraries/discrete-sampling/index.html"><span class="source-hub-title">Discrete Sampling</span><small>Chen · Štefankovič · Vigoda</small></a>
+    <a class="source-hub" href="../libraries/mcmc/index.html"><span class="source-hub-title">Markov Chain Monte Carlo</span><small>Fearnhead · Nemeth · Oates · Sherlock</small></a>
+  </nav>
+</section>
+<section class="sidebar-group sidebar-progress" data-formalization-progress="1">
+  <h2><a href="../progress/index.html">Current Progress</a></h2>
+  <nav class="progress-route-nav">
+    <a href="../progress/index.html#samplewiki">SampleWiki Route</a>
+    <a href="../progress/index.html#riemannian">Riemannian Optimization</a>
+    <a href="../progress/index.html#optimisation">Optimisation</a>
+    <a href="../progress/index.html#optimal-transport">Statistical Optimal Transport Route</a>
+    <a href="../progress/index.html#higher-order-sampling">Higher-Order Smoothness × Sampling</a>
+    <a href="../progress/index.html#discrete-sampling">Discrete Sampling Route</a>
+    <a href="../progress/index.html#mcmc">Markov Chain Monte Carlo Route</a>
+  </nav>
+</section>
+<section class="sidebar-group"><h2>Proof graph</h2><nav>
+<a href="../lean-foundations.html">Proof Atlas</a>
+<a href="../underlying-lean-graph/index.html">Underlying Lean Graph</a>
+<a href="../implementation-map/index.html">Implementation map</a>
+</nav></section>
+<section class="sidebar-group"><h2>Project</h2><nav>
+<a href="../workflow/index.html">ASTIS Harness</a>
+<a href="../contribute/index.html">Contribute</a>
+<a href="../attribution/index.html">Attribution</a>
+</nav></section>
+</div>
+<div class="sidebar-utility">
+        <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub <span aria-hidden="true">↗</span></a>
+        <button id="scheme-toggle" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+      </div>
+    </aside>
+    <button class="sidebar-scrim" type="button" data-sidebar-scrim aria-label="Close contents"></button>
+    <div class="site-stage">
+      <div class="verification-strip unverified">
+        <span><strong>Lean gate not recorded for this source state</strong></span>
+        <span>main · 5a8bc8e56395</span>
+      </div>
+      <main id="content"><article class="proof-reader" data-authored-declaration="AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost"><div class="eyebrow">Samplinglib mathematical lesson</div><h1>Restarting a convex solver halves the radius and preserves a finite budget</h1><p><code>AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost</code> · theorem · <a href="index.html">Teaching coverage</a></p><section class="reader-first-pass" aria-label="First reading"><div class="reader-first-pass-label">Read this first</div><h2>Mathematical statement</h2><p class="reader-claim">E is a complete real inner-product space and f:E→R is C1 and alpha-strongly convex on E, with the alpha/2 chord convention. A global minimizer z is supplied. Alpha,beta,R,epsilon are strictly positive real numbers. The initial point satisfies ||x0-z||&lt;=R. R is a supplied positive upper radius, not an exact unknown distance. A(y,r,delta) returns a point and a natural certified cost. For every y and positive r,delta with ||y-z||&lt;=r, its output gap is &lt;=delta and its cost is &lt;=phi(beta*r²/delta). Phi:R→N is arbitrary; monotonicity is not assumed. N is a natural number, including zero, and alpha*(R/2^N)²&lt;=epsilon. Set r_k=R/2^k and define the actual state/cost recursion and final call below. The recursion has the stated radius and cumulative cost, and its final output has gap at most epsilon.</p><div class="proof-reader-equation reader-main-equation">\[\begin{gathered}r_k=R/2^k,\quad (x_0,c_0)=(x_0,0),\\(w_k,q_k)=A(x_k,r_k,\alpha r_k^2/8),\quad(x_{k+1},c_{k+1})=(w_k,c_k+q_k),\\(x_{\rm out},q_{\rm out})=A(x_N,\sqrt{\varepsilon/\alpha},\varepsilon),\\\|x_N-z\|\le r_N,\quad c_N\le N\phi(8\beta/\alpha),\\ f(x_{\rm out})-f(z)\le\varepsilon,\quad c_N+q_{\rm out}\le N\phi(8\beta/\alpha)+\phi(\beta/\alpha).\end{gathered}\]</div><h3>Proof roadmap</h3><ol class="proof-roadmap"><li><span>1</span><strong>Derive the sharp quadratic growth bound</strong><p>Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant.</p></li><li><span>2</span><strong>Induct on the actual restarted calls</strong><p>Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k&gt;0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis.</p></li><li><span>3</span><strong>Accumulate the certified stage costs</strong><p>At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N&lt;=N phi(8beta/alpha).</p></li><li><span>4</span><strong>Make the final polishing call on a justified radius</strong><p>The chosen horizon gives r_N&lt;=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.</p></li></ol></section><details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary><h3>All objects and hypotheses</h3><ul><li>E is a complete real inner-product space and f:E→R is C1 and alpha-strongly convex on E, with the alpha/2 chord convention. A global minimizer z is supplied.</li><li>Alpha,beta,R,epsilon are strictly positive real numbers. The initial point satisfies ||x0-z||&lt;=R. R is a supplied positive upper radius, not an exact unknown distance.</li><li>A(y,r,delta) returns a point and a natural certified cost. For every y and positive r,delta with ||y-z||&lt;=r, its output gap is &lt;=delta and its cost is &lt;=phi(beta*r²/delta). Phi:R→N is arbitrary; monotonicity is not assumed.</li><li>N is a natural number, including zero, and alpha*(R/2^N)²&lt;=epsilon. Set r_k=R/2^k and define the actual state/cost recursion and final call below.</li></ul><p class="muted"></p></details><h2>Mathematical proof</h2><div class="proof-reader-step"><h4>1. Derive the sharp quadratic growth bound</h4><p>Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant.</p><div class="proof-reader-equation">\[\nabla f(z)=0,\qquad \frac{\alpha}{2}\|y-z\|^2\le f(y)-f(z).\]</div><details><summary>Corresponding Lean step</summary><p>StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; IsLocalMin.fderiv_eq_zero and actual HasGradientAt from C1.</p></details></div><div class="proof-reader-step"><h4>2. Induct on the actual restarted calls</h4><p>Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k&gt;0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis.</p><div class="proof-reader-equation">\[\frac\alpha2\|x_{k+1}-z\|^2\le\frac{\alpha r_k^2}{8}\quad\Longrightarrow\quad\|x_{k+1}-z\|\le\frac{r_k}{2}=r_{k+1}.\]</div><details><summary>Corresponding Lean step</summary><p>Nat.rec and natural induction; solver contract, positive-radius cancellation, pow_succ and div_mul_eq_div_div.</p></details></div><div class="proof-reader-step"><h4>3. Accumulate the certified stage costs</h4><p>At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N&lt;=N phi(8beta/alpha).</p><div class="proof-reader-equation">\[\frac{\beta r_k^2}{\alpha r_k^2/8}=8\frac\beta\alpha,\qquad c_{k+1}=c_k+q_k,\qquad c_N\le N\phi(8\beta/\alpha).\]</div><details><summary>Corresponding Lean step</summary><p>field_simp uses r_k nonzero; Nat.add_le_add and Nat.add_mul propagate the actual accumulated count.</p></details></div><div class="proof-reader-step"><h4>4. Make the final polishing call on a justified radius</h4><p>The chosen horizon gives r_N&lt;=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.</p><div class="proof-reader-equation">\[\rho=\sqrt{\varepsilon/\alpha},\qquad\frac{\beta\rho^2}{\varepsilon}=\frac\beta\alpha,\qquad f(x_{\rm out})-f(z)\le\varepsilon,\qquad c_N+q_{\rm out}\le N\phi(8\beta/\alpha)+\phi(\beta/\alpha).\]</div><details><summary>Corresponding Lean step</summary><p>Real.le_sqrt_of_sq_le, Real.sqrt_pos, Real.sq_sqrt; final hA call and Nat.add_le_add.</p></details></div><section class="lean-verification"><h2>Lean verification</h2><p>The exact proposition and proof begin folded so the mathematical argument remains the primary reading path.</p><details class="inline-lean inline-lean-statement" data-inline-lean="AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost"><summary>Lean statement · radius_accuracy_and_cost</summary><p>Actual scheduled state/cost recursion and final solver call.</p><p>Braces mark parameters Lean can infer; square brackets request structures such as a measurable space or probability measure. Named hypotheses are mathematical premises, not facts established by this declaration. Section parameters are described in the mathematical hypotheses above; the module link retains their exact source context.</p><pre class="code-block"><code class="language-lean">theorem radius_accuracy_and_cost {f : E → ℝ} {α β R ε : ℝ}
+    (hf : ContDiff ℝ 1 f) (hsc : StrongConvexOn univ α f)
+    (hα : 0 &lt; α) (hβ : 0 &lt; β) (hR : 0 &lt; R) (hε : 0 &lt; ε)
+    {z x₀ : E} (hmin : IsMinOn f univ z) (hx₀ : ‖x₀-z‖ ≤ R)
+    (A : E → ℝ → ℝ → E × ℕ) (φ : ℝ → ℕ)
+    (hA : ∀ y r δ, 0 &lt; r → 0 &lt; δ → ‖y-z‖ ≤ r →
+      f (A y r δ).1 - f z ≤ δ ∧ (A y r δ).2 ≤ φ (β*r^2/δ))
+    (N : ℕ) (hN : α * (R / (2:ℝ)^N)^2 ≤ ε) :
+    let r := fun k : ℕ =&gt; R / (2:ℝ)^k
+    let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =&gt;
+      let w := A p.1 (r k) (α*(r k)^2/8)
+      (w.1, p.2 + w.2))
+    let last := A (run N).1 (Real.sqrt (ε/α)) ε
+    ‖(run N).1-z‖ ≤ r N ∧ (run N).2 ≤ N * φ (8*(β/α)) ∧
+      f last.1 - f z ≤ ε ∧ (run N).2 + last.2 ≤ N * φ (8*(β/α)) + φ (β/α)</code></pre><p><a href="../modules/autosamplingtheory-technicallemmas-analysis-restartreduction.html#decl-autosamplingtheory-technicallemmas-analysis-restartreduction-radius-accu-323ab4b1b6">Exact module and namespace context</a></p></details><details class="inline-lean inline-lean-proof" data-inline-lean="AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost"><summary>Lean proof · radius_accuracy_and_cost</summary><p>Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant. Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k&gt;0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis. At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N&lt;=N phi(8beta/alpha). The chosen horizon gives r_N&lt;=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.</p><p>Braces mark parameters Lean can infer; square brackets request structures such as a measurable space or probability measure. Named hypotheses are mathematical premises, not facts established by this declaration. Section parameters are described in the mathematical hypotheses above; the module link retains their exact source context.</p><pre class="code-block"><code class="language-lean">theorem radius_accuracy_and_cost {f : E → ℝ} {α β R ε : ℝ}
+    (hf : ContDiff ℝ 1 f) (hsc : StrongConvexOn univ α f)
+    (hα : 0 &lt; α) (hβ : 0 &lt; β) (hR : 0 &lt; R) (hε : 0 &lt; ε)
+    {z x₀ : E} (hmin : IsMinOn f univ z) (hx₀ : ‖x₀-z‖ ≤ R)
+    (A : E → ℝ → ℝ → E × ℕ) (φ : ℝ → ℕ)
+    (hA : ∀ y r δ, 0 &lt; r → 0 &lt; δ → ‖y-z‖ ≤ r →
+      f (A y r δ).1 - f z ≤ δ ∧ (A y r δ).2 ≤ φ (β*r^2/δ))
+    (N : ℕ) (hN : α * (R / (2:ℝ)^N)^2 ≤ ε) :
+    let r := fun k : ℕ =&gt; R / (2:ℝ)^k
+    let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =&gt;
+      let w := A p.1 (r k) (α*(r k)^2/8)
+      (w.1, p.2 + w.2))
+    let last := A (run N).1 (Real.sqrt (ε/α)) ε
+    ‖(run N).1-z‖ ≤ r N ∧ (run N).2 ≤ N * φ (8*(β/α)) ∧
+      f last.1 - f z ≤ ε ∧ (run N).2 + last.2 ≤ N * φ (8*(β/α)) + φ (β/α) := by
+  let r := fun k : ℕ =&gt; R / (2:ℝ)^k
+  let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =&gt;
+    let w := A p.1 (r k) (α*(r k)^2/8)
+    (w.1, p.2 + w.2))
+  change ‖(run N).1-z‖ ≤ r N ∧ (run N).2 ≤ N * φ (8*(β/α)) ∧ _
+  have hr (k : ℕ) : 0 &lt; r k := div_pos hR (pow_pos (by norm_num) _)
+  have hgrad : gradient f z = 0 := by
+    simp [gradient, (hmin.isLocalMin Filter.univ_mem).fderiv_eq_zero]
+  have hqg (y : E) : α/2 * ‖y-z‖^2 ≤ f y - f z := by
+    have h := StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hsc
+      (fun x _ =&gt; (hf.differentiable_one x).hasGradientAt) (mem_univ z) (mem_univ y)
+    rw [hgrad, inner_zero_left] at h
+    linarith
+  have hind (k : ℕ) : ‖(run k).1-z‖ ≤ r k ∧ (run k).2 ≤ k * φ (8*(β/α)) := by
+    induction k with
+    | zero =&gt; simpa [run, r] using hx₀
+    | succ k ih =&gt;
+      have hδ : 0 &lt; α*(r k)^2/8 := by positivity
+      have hw := hA (run k).1 (r k) (α*(r k)^2/8) (hr k) hδ ih.1
+      have hid : β*(r k)^2 / (α*(r k)^2/8) = 8*(β/α) := by
+        field_simp [ne_of_gt (hr k)]
+      rw [hid] at hw
+      have hs : r (k+1) = r k / 2 := by dsimp [r]; rw [pow_succ, div_mul_eq_div_div]
+      constructor
+      · change ‖(A (run k).1 (r k) (α*(r k)^2/8)).1-z‖ ≤ r (k+1)
+        rw [hs]
+        have hg := (hqg (A (run k).1 (r k) (α*(r k)^2/8)).1).trans hw.1
+        have hsquare : ‖(A (run k).1 (r k) (α*(r k)^2/8)).1-z‖^2 ≤ (r k/2)^2 := by
+          nlinarith
+        nlinarith [norm_nonneg ((A (run k).1 (r k) (α*(r k)^2/8)).1-z), hr k]
+      · change (run k).2 + (A (run k).1 (r k) (α*(r k)^2/8)).2 ≤ (k+1) * φ (8*(β/α))
+        simpa only [Nat.add_mul, Nat.one_mul] using Nat.add_le_add ih.2 hw.2
+  have hs : r N ≤ Real.sqrt (ε/α) := by
+    apply Real.le_sqrt_of_sq_le
+    exact (le_div_iff₀ hα).mpr (by nlinarith [hN])
+  have hlast := hA (run N).1 (Real.sqrt (ε/α)) ε
+    (Real.sqrt_pos.mpr (div_pos hε hα)) hε ((hind N).1.trans hs)
+  have hid : β * (Real.sqrt (ε/α))^2 / ε = β/α := by
+    rw [Real.sq_sqrt (div_nonneg hε.le hα.le)]
+    field_simp
+  rw [hid] at hlast
+  exact ⟨(hind N).1, (hind N).2, hlast.1, Nat.add_le_add (hind N).2 hlast.2⟩
+end AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction</code></pre><p><a href="../modules/autosamplingtheory-technicallemmas-analysis-restartreduction.html#decl-autosamplingtheory-technicallemmas-analysis-restartreduction-radius-accu-323ab4b1b6">Exact module and namespace context</a></p></details></section><details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary><ul><li>This is the finite restart construction and certified cost composition in the proof of Lemma4.1. It is not a new proof of correctness of every possible base solver, a formal first-order-oracle machine, or the full class-level asymptotic reduction. The solver contract is exactly the assumed ingredient being transformed.</li><li>The formal reduction works for C1 strongly convex Hilbert objectives admitting the stated base solver contract. Source beta-smoothness motivates that contract; it is not independently inferred from beta or from an arbitrary returned pair. No supplied quadratic-growth or stage-radius invariant replaces the proof.</li><li>R&gt;0 avoids zero-tolerance calls. An exactly minimizing initial point is allowed by any positive upper-radius certificate, but the R=0 stopping branch is outside this declaration. N=0 still makes the distinct final polishing call; the radius condition alone is not used as an objective-accuracy certificate.</li><li>The radius supplied to a base call is a known upper bound, consistent with the opening definition in Section4.1. The final call uses sqrt(epsilon/alpha) rather than the unknown exact distance; its cost is exactly bounded by phi(kappa) without monotonicity.</li><li>No logarithmic round-count normalization or absorption of phi(kappa) into phi(8kappa) is claimed. A global bound must account for the last call when the logarithm is small or nonpositive; an asymptotic small-tolerance convention and any phi comparison must be stated when formalized.</li><li>The concrete test uses actual gradient descent on x²/2 at step1/2. Each base call executes ceil(r²/delta)+1 gradient updates and reports that count; the existing convex value theorem proves its uniform contract. All restart counts, including zero, exercise the real recursion and final call. No hidden access to the supplied minimizer is passed to A.</li><li>No minimizer-existence, reverse regularization reduction, oracle lower bound, Riemannian/stochastic method or companion-paper completion is asserted.</li></ul></details><details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul><li><a href="../theorems/autosamplingtheory-technicallemmas-analysis-strongconvexfirstorder-firstorder-lower-bound-of-strongconvexon.html"><code>AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn</code></a></li></ul><h3>Mathlib API called (external library)</h3><ul><li>IsLocalMin.fderiv_eq_zero</li><li>Nat.rec</li><li>pow_succ</li><li>Real.le_sqrt_of_sq_le</li><li>Real.sqrt_pos</li><li>Real.sq_sqrt</li><li>Nat.add_le_add</li></ul><h3>Mathematical sources</h3><ul><li><a href="https://arxiv.org/html/2605.07006v1#S4.SS1">Chewi Lemma4.1 and preceding solver convention</a> — Finite restart radius schedule, per-call budget and final accuracy; full logarithmic reduction remains separate.</li><li><a href="../data/lesson-sources/Tests/Shared/RestartReduction.lean.html">Actual gradient-descent base solver test</a> — A nonstationary quadratic optimizer validates the base contract using the existing convex GD rate, then consumes this restart theorem.</li></ul><p>Samplinglib prose is not a quotation or a source-equivalence certificate. Definitions and aliases are explained as constructions, not counted as new mathematical proofs.</p></details></article></main>
+      <footer>
+        <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>
+        <p><a href="../contribute/index.html">Contribute</a> · <a href="../attribution/index.html">Attribution</a> · <a href="../maintenance.html">Build and maintenance</a> · generated from Lean source, route metadata, and gate evidence.</p>
+      </footer>
+    </div>
+  </div>
+  <script src="../assets/site.js"></script>
+  
+</body>
+</html>

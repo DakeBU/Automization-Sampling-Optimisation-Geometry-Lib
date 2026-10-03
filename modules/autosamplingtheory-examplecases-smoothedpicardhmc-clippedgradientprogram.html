@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en" data-theme="blueprint" data-color-scheme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <meta property="og:title" content="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram · Samplinglib">
+  <meta property="og:description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <link rel="icon" href="data:,">
+  <meta property="og:image" content="../assets/samplinglib-og.png">
+  <meta property="og:site_name" content="Samplinglib">
+  <title>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram · Samplinglib</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+  <link rel="stylesheet" href="../assets/lean-tutor.css">
+  <link rel="stylesheet" href="../assets/information-architecture.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-polish.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-detail-polish.css">
+  <link rel="stylesheet" href="../assets/math-first-reader.css">
+  <link rel="stylesheet" href="../assets/reader-contract-final.css">
+  <link rel="stylesheet" href="../assets/textbook-math-contract.css">
+  <link rel="stylesheet" href="../assets/chewi-source-first-contract.css">
+  <link rel="stylesheet" href="../assets/library-shelves.css">
+  <link rel="stylesheet" href="../assets/formalization-progress.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="mobile-bar">
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-sidebar">Contents</button>
+    <a href="../index.html"><strong>Samplinglib</strong></a>
+    <button id="scheme-toggle-mobile" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+  </header>
+  <div class="site-shell">
+    <aside id="site-sidebar" class="site-sidebar" aria-label="Samplinglib contents">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark">S</span>
+        <span><strong>Samplinglib</strong><small>Verified Sampling, Optimisation, Geometry Theory in Lean</small></span>
+      </a>
+      <div class="search-shell">
+        <label class="sr-only" for="global-search">Search declarations and modules</label>
+        <input id="global-search" data-global-search data-search-root="../" type="search" placeholder="Search the library">
+        <ul class="search-results" data-global-results hidden></ul>
+      </div>
+      <div class="sidebar-contents" data-ia-version="2">
+<section class="sidebar-group sidebar-libraries" data-library-shelves="1">
+  <h2><a href="../libraries/index.html">Libraries</a></h2>
+  <nav class="source-hubs library-source-hubs">
+    <a class="source-hub" href="../textbook/index.html"><span class="source-hub-title">Log-Concave Sampling</span><small>Chewi · textbook graph</small></a>
+    <a class="source-hub" href="../example-cases/samplewiki.html"><span class="source-hub-title">SampleWiki</span><small>sampling frontier cases</small></a>
+    <a class="source-hub" href="../libraries/riemannian-optimization/index.html"><span class="source-hub-title">Riemannian Optimization</span><small>Boumal · 11 chapters</small></a>
+    <a class="source-hub" href="../libraries/optimisation/index.html"><span class="source-hub-title">Optimisation</span><small>Chewi · arXiv:2605.07006</small></a>
+    <a class="source-hub" href="../libraries/statistical-optimal-transport/index.html"><span class="source-hub-title">Statistical Optimal Transport</span><small>Chewi · Niles-Weed · Rigollet</small></a>
+    <a class="source-hub" href="../libraries/discrete-sampling/index.html"><span class="source-hub-title">Discrete Sampling</span><small>Chen · Štefankovič · Vigoda</small></a>
+    <a class="source-hub" href="../libraries/mcmc/index.html"><span class="source-hub-title">Markov Chain Monte Carlo</span><small>Fearnhead · Nemeth · Oates · Sherlock</small></a>
+  </nav>
+</section>
+<section class="sidebar-group sidebar-progress" data-formalization-progress="1">
+  <h2><a href="../progress/index.html">Current Progress</a></h2>
+  <nav class="progress-route-nav">
+    <a href="../progress/index.html#samplewiki">SampleWiki Route</a>
+    <a href="../progress/index.html#riemannian">Riemannian Optimization</a>
+    <a href="../progress/index.html#optimisation">Optimisation</a>
+    <a href="../progress/index.html#optimal-transport">Statistical Optimal Transport Route</a>
+    <a href="../progress/index.html#higher-order-sampling">Higher-Order Smoothness × Sampling</a>
+    <a href="../progress/index.html#discrete-sampling">Discrete Sampling Route</a>
+    <a href="../progress/index.html#mcmc">Markov Chain Monte Carlo Route</a>
+  </nav>
+</section>
+<details class="book-nav"><summary>Book contents</summary><div class="book-toc compact-book-toc"><div class="toc-part compact"><span>Part 1</span>Diffusions in Continuous Time</div><a class="compact-chapter-link" href="../textbook/chapter-01.html"><span>01</span><strong>The Langevin Diffusion in Continuous Time</strong></a><a class="compact-chapter-link" href="../textbook/chapter-02.html"><span>02</span><strong>Functional Inequalities</strong></a><a class="compact-chapter-link" href="../textbook/chapter-03.html"><span>03</span><strong>Additional Topics in Stochastic Analysis</strong></a><div class="toc-part compact"><span>Part 2</span>Complexity of Sampling</div><a class="compact-chapter-link" href="../textbook/chapter-04.html"><span>04</span><strong>Analysis of Langevin Monte Carlo</strong></a><a class="compact-chapter-link" href="../textbook/chapter-05.html"><span>05</span><strong>Faster Low-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-06.html"><span>06</span><strong>Convergence in Rényi Divergence</strong></a><a class="compact-chapter-link" href="../textbook/chapter-07.html"><span>07</span><strong>High-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-08.html"><span>08</span><strong>The Proximal Sampler</strong></a><a class="compact-chapter-link" href="../textbook/chapter-09.html"><span>09</span><strong>Lower Bounds for Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-10.html"><span>10</span><strong>Structured Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-11.html"><span>11</span><strong>Non-Log-Concave Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-12.html"><span>12</span><strong>Diffusion Generative Models</strong></a></div></details>
+<section class="sidebar-group">
+  <h2>Chapter 1 companion</h2>
+  <nav>
+    <a href="../textbook/chapter-01-companion.html">Companion guide</a>
+    <a href="../learning-path/index.html">Study guide</a>
+    <a href="../textbook/chapter-01-matrix.html">Formalization status</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Proof graph</h2>
+  <nav>
+    <a href="../lean-foundations.html">Underlying Lean Graph of Libraries</a>
+    <a href="../implementation-map/index.html">Implementation map</a>
+    <a href="../declarations/index.html">Lean declarations</a>
+    <a href="../source-correspondence.html">Source map</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Build</h2>
+  <nav>
+    <a href="../live/index.html">Live formalization</a>
+    <a href="../workflow/index.html">ASTIS harness</a>
+  </nav>
+</section>
+<details class="sidebar-more">
+  <summary>Project</summary>
+  <nav>
+    <a href="../roadmap/index.html">Roadmap</a>
+    <a href="../contribute/index.html">Contribute</a>
+    <a href="../related-systems/index.html">Related systems</a>
+    <a href="../attribution/index.html">Attribution</a>
+    <a href="../maintenance.html">Verification workflow</a>
+  </nav>
+</details>
+</div>
+      <div class="sidebar-utility">
+        <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub <span aria-hidden="true">↗</span></a>
+        <button id="scheme-toggle" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+      </div>
+    </aside>
+    <button class="sidebar-scrim" type="button" data-sidebar-scrim aria-label="Close contents"></button>
+    <div class="site-stage">
+      <div class="verification-strip unverified">
+        <span><strong>Lean gate not recorded for this source state</strong></span>
+        <span>main · 5a8bc8e56395</span>
+      </div>
+      <main id="content">
+<section class="page-hero compact"><div class="eyebrow">production module</div>
+<h1><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram</code></h1><p><a href="../lessons/module-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html">Read the mathematical statements and proofs in order</a></p><p class="lede">14 named declarations scanned from <code>AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean</code>.</p></section>
+<section class="module-meta">
+  <div><dt>Imports</dt><dd class="decl-links"><a href="autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection</code></a><code>Mathlib.Tactic</code> <span class="muted">external</span></dd></div>
+  <div><dt>Imported by</dt><dd class="decl-links"><a href="autosamplingtheory-examplecases.html"><code>AutoSamplingTheory.ExampleCases</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-clippedmeanexponential.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedMeanExponential</code></a><a href="tests-smoothedpicardhmcclippedgradientprogram.html"><code>Tests.SmoothedPicardHMCClippedGradientProgram</code></a></dd></div>
+  <div><dt>Placeholder scan</dt><dd>0 declaration(s) flagged</dd></div>
+  <div><dt>Gate status</dt><dd><span class="status status-yellow">Partial</span></dd></div>
+</section>
+<section><h2>Declarations</h2><div class="declaration-list"><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-0daa469aec">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clip</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def clip (B t : ℝ) := min B (max (-B) t)</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-0daa469aec">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:27</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-a8195dc386">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clip_bounds</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem clip_bounds (B t : ℝ) (hB : 0 ≤ B) : |clip B t| ≤ B := by
+  rw [abs_le]
+  constructor
+  · exact le_min (by linarith) (le_max_left _ _)
+  · exact min_le_left _ _</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-a8195dc386">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:29</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-9b16f83600">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clip_error</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem clip_error (B t : ℝ) (hB : 0 ≤ B) :
+    |clip B t - t| = max (|t| - B) 0 := by
+  by_cases ht : t &lt; -B
+  · have hneg : t ≤ 0 := by linarith
+    simp [clip, max_eq_left ht.le, min_eq_right (by linarith : -B ≤ B),
+      abs_of_nonpos hneg, abs_of_nonneg (by linarith : 0 ≤ -B-t),
+      max_eq_left (by linarith : 0 ≤ -t-B)]
+    ring
+  · have hl : -B ≤ t := le_of_not_gt ht
+    by_cases hu : t ≤ B
+    · have hab : |t| ≤ B := abs_le.mpr ⟨hl,hu⟩
+      simp [clip, max_eq_right hl, min_eq_right hu, max_eq_right (sub_nonpos.mpr hab)]
+    · have hb : B ≤ t := le_of_not_ge hu
+      simp [clip, max_eq_right hl, min_eq_left hb,
+        abs_of_nonneg (le_trans hB hb), abs_of_nonpos (sub_nonpos.mpr hb),
+        max_eq_left (sub_nonneg.mpr hb)]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-9b16f83600">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:35</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-deaffa62ce">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem clipped_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (hi : Integrable W ν) (B : ℝ) (hB : 0 ≤ B) :
+    Integrable (fun z =&gt; clip B (W z)) ν ∧
+    Integrable (fun z =&gt; max (|W z|-B) 0) ν ∧
+    |∫ z, clip B (W z) ∂ν| ≤ B ∧
+    |(∫ z, clip B (W z) ∂ν) - ∫ z, W z ∂ν| ≤
+      ∫ z, max (|W z|-B) 0 ∂ν := by
+  have hc : Measurable (fun z =&gt; clip B (W z)) := by
+    unfold clip
+    fun_prop
+  have hic : Integrable (fun z =&gt; clip B (W z)) ν :=
+    (integrable_const B).mono&#x27; hc.aestronglyMeasurable
+      (Filter.Eventually.of_forall (fun z =&gt; by
+        simpa [Real.norm_eq_abs] using clip_bounds B (W z) hB))
+  have he : Integrable (fun z =&gt; max (|W z|-B) 0) ν := by
+    have hh := (hic.sub hi).abs
+    simpa only [Pi.sub_apply, clip_error B _ hB] using hh
+  have hm : |∫ z, clip B (W z) ∂ν| ≤ B := by
+    apply abs_le.mpr
+    constructor
+    · have hh := integral_mono (integrable_const (-B)) hic
+        (fun z =&gt; (abs_le.mp (clip_bounds B (W z) hB)).1)
+      simpa using hh
+    · have hh := integral_mono hic (integrable_const B)
+        (fun z =&gt; (abs_le.mp (clip_bounds B (W z) hB)).2)
+      simpa using hh
+  refine ⟨hic, he, hm, ?_⟩
+  rw [← integral_sub hic hi]
+  simpa only [clip_error B _ hB] using
+    (abs_integral_le_integral_abs (f := fun z =&gt; clip B (W z)-W z) (μ := ν))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-deaffa62ce">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:52</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-de77ded8d0">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_normalizer</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem clipped_normalizer {X : Type*} [MeasurableSpace X]
+    (q : Measure X) [IsProbabilityMeasure q] (m : X → ℝ)
+    (hm : Measurable m) (B : ℝ) (hb : ∀ x, |m x| ≤ B) :
+    Integrable (fun x =&gt; Real.exp (m x)) q ∧
+    Real.exp (-B) ≤ (∫ x, Real.exp (m x) ∂q) ∧
+    (∫ x, Real.exp (m x) ∂q) ≤ Real.exp B := by
+  have hi : Integrable (fun x =&gt; Real.exp (m x)) q :=
+    (integrable_const (Real.exp B)).mono&#x27; (by fun_prop)
+      (Filter.Eventually.of_forall (fun x =&gt; by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact Real.exp_le_exp.mpr (abs_le.mp (hb x)).2))
+  refine ⟨hi, ?_, ?_⟩
+  · have hh := integral_mono (integrable_const (Real.exp (-B))) hi
+      (fun x =&gt; Real.exp_le_exp.mpr (abs_le.mp (hb x)).1)
+    simpa using hh
+  · have hh := integral_mono hi (integrable_const (Real.exp B))
+      (fun x =&gt; Real.exp_le_exp.mpr (abs_le.mp (hb x)).2)
+    simpa using hh
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-de77ded8d0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:84</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-6a4825eaf0">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.estimator</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def estimator (f : E → ℝ) (h xp : E) (p : E × (ℝ × E)) : ℝ :=
+  inner ℝ ((Real.pi / 2) • (Real.cos (Real.pi / 2 * p.2.1) • (p.1-h) -
+    Real.sin (Real.pi / 2 * p.2.1) • p.2.2))
+    (gradient f xp - gradient f (h + Real.sin (Real.pi / 2 * p.2.1) • (p.1-h) +
+      Real.cos (Real.pi / 2 * p.2.1) • p.2.2))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-6a4825eaf0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:107</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-573becdf92">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.actual_clipped_input</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem actual_clipped_input (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B : ℝ) (heta : 0 &lt; eta) (hbeta : 0 ≤ beta) (hB : 0 &lt; B)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (x0 xp : E) :
+    let h := x0 - eta • gradient f xp
+    let P := (stdGaussian E).map (fun z =&gt; Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let ν := U.prod P
+    let C := (∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h
+    let W := estimator f h xp
+    let m := fun x =&gt; ∫ z, clip B (W (x,z)) ∂ν
+    IsProbabilityMeasure ν ∧ Measurable W ∧
+      Measurable (fun p : E × (ℝ × E) =&gt; clip B (W p)) ∧ Measurable m ∧
+      ∀ x, Integrable (fun z =&gt; W (x,z)) ν ∧
+        Integrable (fun z =&gt; clip B (W (x,z))) ν ∧
+        Integrable (fun z =&gt; max (|W (x,z)|-B) 0) ν ∧ |m x| ≤ B ∧
+        |m x - (inner ℝ (gradient f xp) x - f x + C)| ≤
+          ∫ z, max (|W (x,z)|-B) 0 ∂ν := by
+  dsimp only
+  let h := x0 - eta • gradient f xp
+  let P := (stdGaussian E).map (fun z =&gt; Real.sqrt eta • z)
+  let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+  let ν := U.prod P
+  let W := estimator f h xp
+  obtain ⟨_, hu, _, hx⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.gradient_arc_mean
+      f hf eta beta heta hbeta hlip h xp
+  let : IsProbabilityMeasure U := hu
+  have hp : Measurable (fun z : E =&gt; Real.sqrt eta • z) := by fun_prop
+  let : IsProbabilityMeasure P := Measure.isProbabilityMeasure_map hp.aemeasurable
+  have hw : Measurable W := by
+    have hg := hlip.continuous
+    unfold W estimator
+    fun_prop
+  have hc : Measurable (fun p : E × (ℝ × E) =&gt; clip B (W p)) := by
+    unfold clip
+    fun_prop
+  refine ⟨inferInstance, hw, hc,
+    hc.stronglyMeasurable.integral_prod_right&#x27;.measurable, ?_⟩
+  intro x
+  have hix : Integrable (fun z =&gt; W (x,z)) ν := (hx x).2.1
+  obtain ⟨hic, hie, hm, herr⟩ := clipped_mean ν (fun z =&gt; W (x,z))
+    (hw.comp (by fun_prop)) hix B hB.le
+  refine ⟨hix, hic, hie, hm, ?_⟩
+  have hmean : (∫ z, W (x,z) ∂ν) = inner ℝ (gradient f xp) x - f x +
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-573becdf92">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:113</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-cd2a92495f">
+  <summary><span class="kind">abbrev</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.Attempt</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-cd2a92495f">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:160</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-f814c89e9b">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.attempts</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def attempts {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) (ν : Measure A) (B : ℝ) (hB : 0 &lt; B) : Measure (Attempt X A) :=
+  q.prod ((poissonMeasure (⟨2*B, by positivity⟩ : NNReal)).prod
+    ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod (volume.restrict (Set.Icc 0 1))))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-f814c89e9b">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:162</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-ed130952d4">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.accepted</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2*B)}</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-ed130952d4">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:167</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-318c915568">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.output</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def output {X A : Type*} (W : X × A → ℝ) (B : ℝ) (x0 : X)
+    (ω : ℕ → Attempt X A) : X := by
+  classical
+  exact if h : ∃ n, ω n ∈ accepted W B then (ω (Nat.find h)).1 else x0</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-318c915568">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:170</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-e11986e6d8">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.queryCount</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def queryCount {X A : Type*} (W : X × A → ℝ) (B : ℝ)
+    (ω : ℕ → Attempt X A) : ℝ≥0∞ := by
+  classical
+  exact ∑&#x27; n : ℕ, if ∀ i &lt; n, ω i ∉ accepted W B then (ω n).2.1 else 0</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-e11986e6d8">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:175</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-3c43856f58">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.actual_retry</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem actual_retry {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) [IsProbabilityMeasure q] (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : X × A → ℝ) (hW : Measurable W) (B : ℝ) (hB : 0 &lt; B)
+    (hb : ∀ x z, |W (x,z)| ≤ B) (x0 : X) :
+    let m := fun x =&gt; ∫ z, W (x,z) ∂ν
+    let Z := ∫ x, Real.exp (m x) ∂q
+    let Λ := attempts q ν B hB
+    let ρ := Measure.infinitePi (fun _ : ℕ =&gt; Λ)
+    Measurable (output W B x0) ∧ ρ.map (output W B x0) = q.tilted m ∧
+      ρ {ω | ∀ n, ω n ∉ accepted W B} = 0 ∧
+      Λ (accepted W B) = ENNReal.ofReal (Real.exp (-B) * Z) ∧
+      ENNReal.ofReal (Real.exp (-2*B)) ≤ Λ (accepted W B) ∧
+      (∫⁻ ω, queryCount W B ω ∂ρ) =
+        (ENNReal.ofReal (Real.exp (-B) * Z))⁻¹ * ENNReal.ofReal (2*B) ∧
+      (∫⁻ ω, queryCount W B ω ∂ρ) ≤ ENNReal.ofReal (2*B*Real.exp (2*B)) := by
+  dsimp only
+  obtain ⟨R, hR, hr⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_rejection_output
+      (Kernel.const ℝ q) ν (fun p : (ℝ × X) × A =&gt; W (p.1.2,p.2))
+      (hW.comp (by fun_prop)) B hB (fun _ x z =&gt; hb x z) x0
+  obtain ⟨hmeas, hlaw, htilt, _, _, hmass, hnever, _, hlow, hcost, hupper⟩ := hr 0
+  change Measurable (output W B x0) at hmeas
+  change (Measure.infinitePi (fun _ : ℕ =&gt; attempts q ν B hB)).map
+    (output W B x0) = R 0 at hlaw
+  change R 0 = q.tilted (fun x =&gt; ∫ z, W (x,z) ∂ν) at htilt
+  change attempts q ν B hB (accepted W B) =
+    ∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W (x,z) ∂ν)-B)) ∂q at hmass
+  have hm : Measurable (fun x =&gt; ∫ z, W (x,z) ∂ν) :=
+    hW.stronglyMeasurable.integral_prod_right&#x27;.measurable
+  have hmb (x : X) : |∫ z, W (x,z) ∂ν| ≤ B := by
+    have hi : Integrable (fun z =&gt; W (x,z)) ν :=
+      (integrable_const B).mono&#x27; (hW.comp (by fun_prop)).aestronglyMeasurable
+        (Filter.Eventually.of_forall (fun z =&gt; by simpa [Real.norm_eq_abs] using hb x z))
+    rw [abs_le]
+    constructor
+    · simpa using integral_mono (integrable_const (-B)) hi
+        (fun z =&gt; (abs_le.mp (hb x z)).1)
+    · simpa using integral_mono hi (integrable_const B)
+        (fun z =&gt; (abs_le.mp (hb x z)).2)
+  have hi := (clipped_normalizer q _ hm B hmb).1
+  have hie : Integrable (fun x =&gt; Real.exp ((∫ z, W (x,z) ∂ν)-B)) q := by
+    simpa [Real.exp_sub, div_eq_mul_inv] using hi.mul_const (Real.exp B)⁻¹
+  have hp : attempts q ν B hB (accepted W B) =
+      ENNReal.ofReal (Real.exp (-B) * ∫ x, Real.exp (∫ z, W (x,z) ∂ν) ∂q) := by
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-3c43856f58">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:180</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-ff4cccef52">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_gradient_program</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary><p data-lesson-link="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_gradient_program"><a href="../lessons/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-clipped-gradient-program-4ee870b2f1de.html">Read the complete mathematical statement and proof, with Lean below each</a></p>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">theorem clipped_gradient_program (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B : ℝ) (heta : 0 &lt; eta) (hbeta : 0 ≤ beta) (hB : 0 &lt; B)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (x0 xp : E) :
+    let h := x0 - eta • gradient f xp
+    let P := (stdGaussian E).map (fun z =&gt; Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let ν := U.prod P
+    let q := (stdGaussian E).map (fun z =&gt; h + Real.sqrt eta • z)
+    let C := (∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h
+    let W := estimator f h xp
+    let Wc := fun p =&gt; clip B (W p)
+    let m := fun x =&gt; ∫ z, Wc (x,z) ∂ν
+    let Z := ∫ x, Real.exp (m x) ∂q
+    let Λ := attempts q ν B hB
+    let ρ := Measure.infinitePi (fun _ : ℕ =&gt; Λ)
+    IsProbabilityMeasure ν ∧ IsProbabilityMeasure q ∧
+      Measurable W ∧ Measurable Wc ∧ Measurable m ∧
+      (∀ x, Integrable (fun z =&gt; W (x,z)) ν ∧
+        Integrable (fun z =&gt; Wc (x,z)) ν ∧
+        Integrable (fun z =&gt; max (|W (x,z)|-B) 0) ν ∧ |m x| ≤ B ∧
+        |m x - (inner ℝ (gradient f xp) x - f x + C)| ≤
+          ∫ z, max (|W (x,z)|-B) 0 ∂ν) ∧
+      Integrable (fun x =&gt; Real.exp (m x)) q ∧
+      Real.exp (-B) ≤ Z ∧ Z ≤ Real.exp B ∧
+      Measurable (output Wc B x0) ∧ ρ.map (output Wc B x0) = q.tilted m ∧
+      ρ {ω | ∀ n, ω n ∉ accepted Wc B} = 0 ∧
+      Λ (accepted Wc B) = ENNReal.ofReal (Real.exp (-B)*Z) ∧
+      ENNReal.ofReal (Real.exp (-2*B)) ≤ Λ (accepted Wc B) ∧
+      (∫⁻ ω, queryCount Wc B ω ∂ρ) =
+        (ENNReal.ofReal (Real.exp (-B)*Z))⁻¹ * ENNReal.ofReal (2*B) ∧
+      (∫⁻ ω, queryCount Wc B ω ∂ρ) ≤ ENNReal.ofReal (2*B*Real.exp (2*B)) := by
+  dsimp only
+  let h := x0 - eta • gradient f xp
+  let P := (stdGaussian E).map (fun z =&gt; Real.sqrt eta • z)
+  let ν := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+  let q := (stdGaussian E).map (fun z =&gt; h + Real.sqrt eta • z)
+  let W := estimator f h xp
+  let Wc := fun p =&gt; clip B (W p)
+  obtain ⟨hν, hw, hc, hm, hx⟩ := actual_clipped_input f hf eta beta B heta hbeta hB hlip x0 xp
+  let : IsProbabilityMeasure ν := hν
+  have hq : Measurable (fun z : E =&gt; h + Real.sqrt eta • z) := by fun_prop
+  let : IsProbabilityMeasure q := Measure.isProbabilityMeasure_map hq.aemeasurable
+  obtain ⟨hi, hzlow, hzup⟩ := clipped_normalizer q _ hm B (fun x =&gt; (hx x).2.2.2.1)
+  have hr := actual_retry q ν Wc hc B hB (fun x z =&gt; clip_bounds B (W (x,z)) hB.le) x0
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram-ff4cccef52">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ClippedGradientProgram.lean:235</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details></div></section>
+</main>
+      <footer>
+        <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>
+        <p><a href="../contribute/index.html">Contribute</a> · <a href="../attribution/index.html">Attribution</a> · <a href="../maintenance.html">Build and maintenance</a> · generated from Lean source, route metadata, and gate evidence.</p>
+      </footer>
+    </div>
+  </div>
+  <script src="../assets/site.js"></script>
+  
+  <script>try{localStorage.setItem("samplinglib-lean-language","en");}catch(e){}</script>
+  <script defer src="../assets/module-lean-tutor.js"></script>
+</body>
+</html>

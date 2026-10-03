@@ -1,0 +1,161 @@
+{
+  "id": "ASTIS-RT-20260908-CanonicalFisherTransportPairing",
+  "state": "rejected",
+  "graph_node": "ASTIS-SHARED-canonical-fisher-transport-pairing",
+  "source": {
+    "source_id": "chewi:8.4.1-cauchy-schwarz-substep",
+    "anchor": "Chewi, Log-Concave Sampling, August 9, 2026, Section 8.4, proof of Theorem 8.4.1, printed p.221 / PDF p.233. Only the unnumbered Cauchy-Schwarz substep, not the numbered convergence theorem.",
+    "original_text": "ASTIS supplementary expansion of the source calculation, not a quotation: In the forward simultaneous-flow step, write mu and pi for the current probability laws and T for the optimal transport map from mu to pi. The source pairs the relative score s = gradient log(dmu/dpi) with T-id. The Cauchy-Schwarz substep bounds the absolute value of its mu-expectation by the square root of the mu-expectation of the squared score norm, multiplied by W2(mu,pi). Combined with the preceding first-order KL inequality, this gives FI(mu||pi) W2(mu,pi)^2 >= KL(mu||pi)^2. The selected auxiliary substep does not include that preceding first-order inequality or the later flow/convergence argument. This page does not spell out all measurability, finite-energy, or density-representative conditions for the calculation. The audit must distinguish this source use from any more general coupling statement or restricted smooth representative domain.",
+    "wording_status": "ASTIS supplementary mathematical expansion/paraphrase of an unnumbered source calculation; not source-original prose and not the entire source theorem",
+    "pdf_sha256": "9b454ccf44fe700081e13a766ae9cabb83c3530f5fdc532d59ac335f53652597",
+    "pdf_url": "https://raw.githubusercontent.com/chewisinho/chewisinho.github.io/b3ad6e874119983ae5f689a3295df4cdb44b11a7/main.pdf",
+    "provenance_audit": "runs/20260908-samplewiki-resume/chewi-edition-audit.json",
+    "text_sha256": "4093eff44dd358be8012f87232bb2509e2a05f8213659c1815743520032d1d7c"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalFisherTransportPairing.abs_integral_pairing_le_sqrt_information_mul_wasserstein",
+    "file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/CanonicalFisherTransportPairing.lean",
+    "statement": "∀ {ι : Type u_1} [Fintype ι] {mu pi nu : Measure State} {gamma : Measure (State × State)}\n  (hgamma : DisplacementInterpolation.IsQuadraticOptimalCoupling gamma mu nu) (hscore : SmoothFiniteScoreDomain mu pi)\n  (hmu : Integrable (fun x => ‖x‖ ^ 2) mu) (hnu : Integrable (fun x => ‖x‖ ^ 2) nu),\n  |∫ (z : State × State), ⟪gradient (RNLogRatio.logRatio mu pi) z.1, z.2 - z.1⟫ ∂gamma| ≤\n    √(information mu pi hscore) * (WassersteinSpace.wassersteinDistance mu nu).toReal",
+    "compiled": true,
+    "formalizer": "fisher_transport_worker",
+    "compiler_evidence": "Focused module and Tests.CanonicalFisherTransportPairing PASS; exact code frozen at74243f263bf4ed5fd632f4f3a0950b58ed77b4d7. Independent proof verification pending separately.",
+    "decoder_context": [
+      "State abbreviates EuclideanSpace ℝ ι for the finite index type ι, with its standard Borel measurable structure. mu, pi and nu are measures on this space, and gamma is a measure on its Cartesian square.",
+      "RNLogRatio.logRatio mu pi is MeasureTheory.llr mu pi: x ↦ Real.log ((mu.rnDeriv pi x).toReal). The RN representative is the library-selected one. Real.log and ENNReal.toReal are total functions, including Real.log 0 = 0 and ENNReal.toReal infinity = 0.",
+      "gradient phi x is the Riesz inverse of the real Frechet derivative fderiv at x. This is a total definition, with zero at points where phi is not differentiable.",
+      "SmoothFiniteScoreDomain mu pi consists of mu ≪ pi, mu-almost-everywhere DifferentiableAt ℝ (RNLogRatio.logRatio mu pi), and integrability under mu of x ↦ ‖gradient (RNLogRatio.logRatio mu pi) x‖^2.",
+      "information mu pi hscore is the real Bochner integral under mu of the squared norm of this gradient. The argument hscore is a proof of the domain condition just described.",
+      "Transport.IsCoupling gamma mu nu means that the two coordinate pushforwards of gamma equal mu and nu. It does not itself impose probability normalization or finite total mass.",
+      "DisplacementInterpolation.IsQuadraticOptimalCoupling gamma mu nu means that gamma is a coupling and that its extended-nonnegative integral of quadraticCost equals the infimum of those costs over all couplings of mu and nu.",
+      "quadraticCost(x,y) is ENNReal.ofReal(‖x-y‖^2). WassersteinSpace.wassersteinDistance mu nu is the extended-nonnegative square root (power 1/2) of that infimum. The suffix toReal converts this extended-nonnegative value to a real number."
+    ],
+    "statement_sha256": "9d4bd194002ac6249dce8334b25564e7d8f48c8b3b6a1cba595b37d6b1a0b14a"
+  },
+  "reconstruction": {
+    "text": "For every finite index type iota, let E = EuclideanSpace(R, iota) with its standard Borel structure. For all measures mu, pi, nu on E and gamma on E x E, put ell(x) = Real.log((mu.rnDeriv pi x).toReal), using the library-selected Radon-Nikodym representative, and s(x) = gradient ell x, the Riesz inverse of the real Frechet derivative. For a measure eta on E x E, let C(eta) be the extended-nonnegative integral of ENNReal.ofReal(||x-y||^2), and let K(mu,nu) be the infimum of C(eta) over all measures eta whose coordinate pushforwards are mu and nu. Suppose gamma has these coordinate pushforwards and C(gamma) = K(mu,nu); mu is absolutely continuous with respect to pi; ell is differentiable at mu-almost every point; x -> ||s(x)||^2 is integrable under mu; and x -> ||x||^2 is integrable under both mu and nu. Then |integral_(E x E) <s(x), y-x> dgamma(x,y)| <= sqrt(integral_E ||s(x)||^2 dmu(x)) * (K(mu,nu)^(1/2)).toReal. The integrals outside the definition of C are real Bochner integrals, the displayed sqrt is the real square root, and K^(1/2) is the extended-nonnegative square root. Real.log, ENNReal.toReal, and the gradient are total definitions: Real.log(0) = 0, ENNReal.toReal(+infinity) = 0, and the gradient is zero where ell is not differentiable. No probability normalization or finite-total-mass assumption is imposed.",
+    "text_sha256": "03c1c7a1da50665ed34c73d935b7352728c188876170680d0a3389b913c78b42",
+    "decoder": "Independent Codex blind decoder analytic_blind_decoder; reconstruction uses only the anonymous statement and approved definition context in this packet.",
+    "decoder_run_sha256": "4695de0e2c8f13a996f5f0a7f6f1dd114d605de51511018cb512466fa2ec1d3a",
+    "decoder_packet_sha256": "20a7120fd184e54a7d6efe7e86e119e32cf6ff8f20fa21786775403c21d8fd62",
+    "source_text_visible": false,
+    "lean_statement_sha256": "9d4bd194002ac6249dce8334b25564e7d8f48c8b3b6a1cba595b37d6b1a0b14a",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20260908-samplewiki-resume/fisher-transport.decoder-result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "The current laws mu = mu_0^X Q_t and pi = pi^X Q_t; their relative score s = gradient log(mu/pi); the optimal map T from mu to this same pi; FI(mu||pi) = E_mu ||s||^2; and W2(mu,pi).",
+      "reconstructed": "Three measures mu, pi, nu and a quadratic optimal coupling gamma of mu and nu; s is the gradient of the library-selected real log Radon-Nikodym representative of mu relative to pi. The pairing is integrated over gamma, with displacement y-x, and the transport factor concerns mu and nu.",
+      "relation": "different",
+      "evidence": "Pinned PDF p.233, printed p.221, forward-step first-order display pairs gradient log((mu_0^X Q_t)/(pi^X Q_t)) with T_(mu_0^X Q_t -> pi^X Q_t)-id. The next display labels the squared-score expectation as FI. Example 1.2.27, PDF p.30 / printed p.18, gives the same classical Fisher-information expression. Theorem 1.3.8(4), PDF p.34 / printed p.22, identifies the source transport-map setting. A coupling with an independently quantified destination nu is a genuine generalization of these objects."
+    },
+    "domains": {
+      "original": "Probability laws on finite-dimensional real Euclidean space. The cited Wasserstein first-order calculus is on P_2,ac(R^d). The selected page does not specify a complete finite-energy or density-representative domain for its formal calculation.",
+      "reconstructed": "EuclideanSpace(R,iota) for every finite index type iota; arbitrary measures, without probability normalization or finite-total-mass hypotheses; mu is absolutely continuous with respect to pi, the selected RN log is differentiable mu-almost everywhere, its squared gradient is integrable, and the second moments of mu and nu are integrable.",
+      "relation": "different",
+      "evidence": "Theorem 8.4.1, PDF p.233 / printed p.221, explicitly concerns the law of the proximal-sampler iterate, and PDF p.232 / printed p.220 describes the evolving objects as stochastic-process laws. Definitions 1.3.1 and 1.3.4, PDF p.32 / printed p.20, define couplings using probability measures and define P_2 using probability normalization and finite second moment. Equation (1.4.7), PDF p.46 / printed p.34, states its first-order condition for mu,nu in P_2,ac(R^d). Finite-index Euclidean coordinates are harmless notation, but arbitrary mass and the selected-representative differentiability condition are not the source domain."
+    },
+    "quantifiers": {
+      "original": "Apply the calculation to each current pair of forward heat-flow laws and the optimal transport map from the first law to the second. The reference law in the score and the destination law in transport are identical.",
+      "reconstructed": "For every finite index type and every mu,pi,nu,gamma satisfying the listed hypotheses, the inequality holds. The destination nu is independent of the score reference pi, and gamma ranges over quadratic optimal couplings, not just the source map-induced coupling.",
+      "relation": "different",
+      "evidence": "Both consecutive forward-step displays on PDF p.233 / printed p.221 use pi^X Q_t in the relative score, the transport-map destination, and W2. There is no independent third measure in this source substep. Definitions 1.3.1 and the Monge discussion on PDF p.32 / printed p.20 distinguish a general coupling from the law of (X,T(X)). The reconstructed universal coupling assertion can specialize to the source pair, but is not its exact quantified statement."
+    },
+    "assumptions": {
+      "original": "The ambient theorem assumes a log-concave target and uses simultaneous heat flow. Log-concavity supplies the preceding first-order KL inequality, not Cauchy-Schwarz itself. The selected calculation uses an optimal map and a meaningful score; finite L2 quantities are implicit in a finite-valued Cauchy-Schwarz reading, but the page does not list all analytic hypotheses.",
+      "reconstructed": "Optimal coupling with the specified marginals and minimal quadratic cost; mu << pi; almost-everywhere classical differentiability of the particular library-selected RN log; integrability of its squared gradient; and finite second moments of mu and nu. No log-concavity, heat-flow, or Lebesgue absolute-continuity assumption is made.",
+      "relation": "different",
+      "evidence": "PDF p.233 / printed p.221 explicitly invokes preservation of log-concavity and Theorem 1.4.5 before applying Cauchy-Schwarz. Equation (1.4.7), PDF p.46 / printed p.34, clarifies that first-order context. The finite-moment hypotheses elaborate the source P_2 setting, while finite score energy restricts attention to a finite-valued analytic case not fully delimited on p.233. Neither p.233 nor the FI definition on PDF p.30 specifies differentiability of an arbitrarily library-selected RN representative. Mere almost-everywhere agreement with a smooth density ratio does not by itself ensure differentiability of that selected representative. Omitting log-concavity is appropriate for the isolated Cauchy-Schwarz lemma."
+    },
+    "conclusion": {
+      "original": "The implicit isolated estimate is |E_mu <s,T-id>| <= sqrt(FI(mu||pi)) W2(mu,pi). The actual printed next display is FI(mu||pi) W2(mu,pi)^2 >= KL(mu||pi)^2, obtained using the preceding first-order KL inequality as well.",
+      "reconstructed": "|integral_gamma <s(x),y-x>| <= sqrt(integral_mu ||s||^2) times the real value of the square root of the optimal quadratic cost from mu to nu. No KL bound is asserted.",
+      "relation": "different",
+      "evidence": "On PDF p.233 / printed p.221, the first-order display is followed by the sentence introducing rearrangement and Cauchy-Schwarz, then by the FI times W2-squared lower bound on KL-squared. The packet correctly labels the absolute-pairing estimate as supplementary expansion, not a quotation. The reconstructed estimate has the correct Cauchy-Schwarz shape, sign-insensitive absolute value, and constant. It becomes the isolated source estimate after nu=pi, gamma=(id,T)#mu, and identification of the selected score/information with the source score/FI. Those identifications are not supplied by this statement. Its finite second moments bound transport cost by twice the sum of the second moments, so conversion of infinite transport cost to zero is not a source discrepancy under the stated hypotheses."
+    },
+    "scopes": {
+      "original": "Only the unnumbered Cauchy-Schwarz component in the forward-step proof of Theorem 8.4.1 is selected. The preceding KL first-order inequality, the FI-KL combined consequence, the flow differential inequality, the backward step, and the numbered convergence theorem are outside the selected auxiliary claim.",
+      "reconstructed": "A standalone finite-energy score-displacement pairing estimate. It does not assert KL convexity, Fisher-information dissipation, heat-flow contraction, or proximal-sampler convergence.",
+      "relation": "same",
+      "evidence": "The full PDF p.233 / printed p.221 visibly separates the numbered theorem, forward first-order calculation, Cauchy-Schwarz consequence, subsequent differential inequality, and backward step. The source packet expressly selects only the Cauchy-Schwarz component. Therefore absence of the KL or convergence conclusion is not a missing conclusion for this narrowly declared scope. Broader measure/coupling generality and representative restrictions are recorded in the other slots and must not be hidden by this scope match."
+    },
+    "constant_dependencies": {
+      "original": "The isolated Cauchy-Schwarz estimate has multiplicative constant 1, with no dependence on dimension, time, step size, or a log-concavity parameter.",
+      "reconstructed": "The displayed product has multiplicative constant 1 and no additional parameter-dependent factor.",
+      "relation": "same",
+      "evidence": "The FI(mu||pi) W2(mu,pi)^2 >= KL(mu||pi)^2 display on PDF p.233 / printed p.221 has unit coefficient. The adjacent factor 1/2 belongs to the heat-flow KL dissipation identity, while n and h occur in the separate convergence assertion. None belongs in the selected pairing inequality. Definition 1.3.4, PDF p.32 / printed p.20, uses the unhalved squared Euclidean transport cost, matching the reconstruction."
+    }
+  },
+  "deltas": [
+    {
+      "id": "D1",
+      "slot": "domains",
+      "related_slots": [
+        "objects",
+        "quantifiers"
+      ],
+      "severity": "review",
+      "description": "The source probability-law setting is enlarged to arbitrary, potentially non-finite measures. Finite second moments do not impose probability normalization or finite mass at the origin. This can be useful mathematical generality but is not merely an implicit source assumption made explicit.",
+      "evidence": "Theorem 8.4.1, PDF p.233 / printed p.221, explicitly concerns the law of the proximal-sampler iterate, and PDF p.232 / printed p.220 describes the evolving objects as stochastic-process laws. Definitions 1.3.1 and 1.3.4, PDF p.32 / printed p.20, define couplings using probability measures and define P_2 using probability normalization and finite second moment. Equation (1.4.7), PDF p.46 / printed p.34, states its first-order condition for mu,nu in P_2,ac(R^d). Finite-index Euclidean coordinates are harmless notation, but arbitrary mass and the selected-representative differentiability condition are not the source domain.",
+      "evidence_origin": "original_raw_response.semantic_slots.domains.evidence",
+      "impact": "A supplementary general-measure inequality, not direct certification of the source-law formulation."
+    },
+    {
+      "id": "D2",
+      "slot": "quantifiers",
+      "related_slots": [
+        "objects",
+        "conclusion"
+      ],
+      "severity": "review",
+      "description": "The source map to the score-reference law pi is replaced by any optimal coupling to a separate nu. The integral and transport factor therefore concern a different family of objects.",
+      "evidence": "Both consecutive forward-step displays on PDF p.233 / printed p.221 use pi^X Q_t in the relative score, the transport-map destination, and W2. There is no independent third measure in this source substep. Definitions 1.3.1 and the Monge discussion on PDF p.32 / printed p.20 distinguish a general coupling from the law of (X,T(X)). The reconstructed universal coupling assertion can specialize to the source pair, but is not its exact quantified statement.",
+      "evidence_origin": "original_raw_response.semantic_slots.quantifiers.evidence",
+      "impact": "The source specialization requires nu=pi and the graph coupling of T. This is a mathematically natural Cauchy-Schwarz generalization, not a wrong inequality, but specialization and the pushforward-integral identification remain necessary for source attribution."
+    },
+    {
+      "id": "D3",
+      "slot": "objects",
+      "related_slots": [
+        "domains",
+        "assumptions",
+        "conclusion"
+      ],
+      "severity": "blocking",
+      "description": "Classical source score/FI is replaced by the gradient and energy of a specific totalized library RN-log representative, under a differentiability condition on that very representative. The packet provides no identification with the smooth ratio used in the heat-flow calculation. Existence of a smooth version alone does not discharge this condition.",
+      "evidence": "PDF p.233 / printed p.221 explicitly invokes preservation of log-concavity and Theorem 1.4.5 before applying Cauchy-Schwarz. Equation (1.4.7), PDF p.46 / printed p.34, clarifies that first-order context. The finite-moment hypotheses elaborate the source P_2 setting, while finite score energy restricts attention to a finite-valued analytic case not fully delimited on p.233. Neither p.233 nor the FI definition on PDF p.30 specifies differentiability of an arbitrarily library-selected RN representative. Mere almost-everywhere agreement with a smooth density ratio does not by itself ensure differentiability of that selected representative. Omitting log-concavity is appropriate for the isolated Cauchy-Schwarz lemma.",
+      "evidence_origin": "original_raw_response.semantic_slots.assumptions.evidence",
+      "impact": "Formalization-artifact risk and an unverified source-domain bridge. The result does not by itself certify the source score or any general weak-gradient Fisher information."
+    },
+    {
+      "id": "D4",
+      "slot": "assumptions",
+      "related_slots": [
+        "domains"
+      ],
+      "severity": "review",
+      "description": "The reconstruction explicitly selects finite real score energy and finite second moments. The P_2 moment condition has primary-source context, but the selected page does not delimit all finite-energy cases or prescribe an extension to infinite Fisher information.",
+      "evidence": "PDF p.233 / printed p.221 explicitly invokes preservation of log-concavity and Theorem 1.4.5 before applying Cauchy-Schwarz. Equation (1.4.7), PDF p.46 / printed p.34, clarifies that first-order context. The finite-moment hypotheses elaborate the source P_2 setting, while finite score energy restricts attention to a finite-valued analytic case not fully delimited on p.233. Neither p.233 nor the FI definition on PDF p.30 specifies differentiability of an arbitrarily library-selected RN representative. Mere almost-everywhere agreement with a smooth density ratio does not by itself ensure differentiability of that selected representative. Omitting log-concavity is appropriate for the isolated Cauchy-Schwarz lemma.",
+      "evidence_origin": "original_raw_response.semantic_slots.assumptions.evidence",
+      "impact": "A reasonable finite-energy analytic elaboration with narrower declared scope; not evidence that all cases of the source calculation have been covered. No infinite-energy extension should be inferred."
+    }
+  ],
+  "verdict": "domain-mismatch",
+  "source_review": {
+    "state": "needs-revision",
+    "reviewer": "Independent Codex source-semantic reviewer analytic_source_review; separate from fisher_transport_worker and analytic_blind_decoder.",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Read only the assigned review packet, mandatory PDF skill, and pinned primary PDF; did not inspect proof implementation, registry, source map, worker packet, previous verdicts, goal history, or repair history. Verified packet SHA256 by sorted compact UTF-8 JSON excluding packet_sha256: 7bd955681318e9db9275da3619fdf71d57a1099c941a2e35497846d666badd8c. Verified .astis/source-cache/chewi-main-2026-08-09.pdf SHA256 9b454ccf44fe700081e13a766ae9cabb83c3530f5fdc532d59ac335f53652597 and 329 pages; title page identifies Sinho Chewi, Log-Concave Sampling, August 9, 2026. Rendered and visually inspected the complete canonical PDF p.233 / printed p.221, plus complete PDF pp.232,30,32,34,46 / printed pp.220,18,20,22,34 for necessary context. Only the pinned PDF was used, not a live edition. The supplied packet has no immutable author URL field despite the assignment's provenance description; the matching pinned hash and title were the operative identity checks. Rendering caches are confined to .astis/fisher-source-review/. The packet's compiled=true flag was not treated as source-equivalence evidence. Cauchy-Schwarz and the finite-cost estimate justify the form of this supplementary analytic generalization, but no Lean proof audit was performed and source-equivalence certification is withheld pending the domain and representative bridges. review_state=needs-revision concerns that certification, not a claim that the displayed general coupling inequality is false. Raw response is immutable; review_run_sha256 is intentionally blank for root-side hashing.",
+    "review_run_sha256": "d32e17f0b765cbfe12c3c3155c2c11ab3acb3c18aa05864a973bd8d812a0a1ae",
+    "reviewer_packet_sha256": "7bd955681318e9db9275da3619fdf71d57a1099c941a2e35497846d666badd8c",
+    "run_artifact": "runs/20260908-samplewiki-resume/fisher-transport.source-review-result.json",
+    "schema_projection_artifact": "runs/20260908-samplewiki-resume/fisher-transport.source-review-schema-addendum.json",
+    "schema_projection_sha256": "cac4926541a9b42806ffd5710e59215f9264813f345a4471eee436138a5172f6",
+    "interpretation": "Source-equivalence certification withheld, not a claim that the general coupling inequality is false. One blocking representative/score-FI delta; generalization and finite-energy scope remain review deltas. R1-R4 are unaccepted reviewer recommendations, not canonical source repairs."
+  },
+  "repairs": []
+}

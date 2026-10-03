@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en" data-theme="blueprint" data-color-scheme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <meta property="og:title" content="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean · Samplinglib">
+  <meta property="og:description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <link rel="icon" href="data:,">
+  <meta property="og:image" content="../assets/samplinglib-og.png">
+  <meta property="og:site_name" content="Samplinglib">
+  <title>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean · Samplinglib</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+  <link rel="stylesheet" href="../assets/lean-tutor.css">
+  <link rel="stylesheet" href="../assets/information-architecture.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-polish.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-detail-polish.css">
+  <link rel="stylesheet" href="../assets/math-first-reader.css">
+  <link rel="stylesheet" href="../assets/reader-contract-final.css">
+  <link rel="stylesheet" href="../assets/textbook-math-contract.css">
+  <link rel="stylesheet" href="../assets/chewi-source-first-contract.css">
+  <link rel="stylesheet" href="../assets/library-shelves.css">
+  <link rel="stylesheet" href="../assets/formalization-progress.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="mobile-bar">
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-sidebar">Contents</button>
+    <a href="../index.html"><strong>Samplinglib</strong></a>
+    <button id="scheme-toggle-mobile" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+  </header>
+  <div class="site-shell">
+    <aside id="site-sidebar" class="site-sidebar" aria-label="Samplinglib contents">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark">S</span>
+        <span><strong>Samplinglib</strong><small>Verified Sampling, Optimisation, Geometry Theory in Lean</small></span>
+      </a>
+      <div class="search-shell">
+        <label class="sr-only" for="global-search">Search declarations and modules</label>
+        <input id="global-search" data-global-search data-search-root="../" type="search" placeholder="Search the library">
+        <ul class="search-results" data-global-results hidden></ul>
+      </div>
+      <div class="sidebar-contents" data-ia-version="2">
+<section class="sidebar-group sidebar-libraries" data-library-shelves="1">
+  <h2><a href="../libraries/index.html">Libraries</a></h2>
+  <nav class="source-hubs library-source-hubs">
+    <a class="source-hub" href="../textbook/index.html"><span class="source-hub-title">Log-Concave Sampling</span><small>Chewi · textbook graph</small></a>
+    <a class="source-hub" href="../example-cases/samplewiki.html"><span class="source-hub-title">SampleWiki</span><small>sampling frontier cases</small></a>
+    <a class="source-hub" href="../libraries/riemannian-optimization/index.html"><span class="source-hub-title">Riemannian Optimization</span><small>Boumal · 11 chapters</small></a>
+    <a class="source-hub" href="../libraries/optimisation/index.html"><span class="source-hub-title">Optimisation</span><small>Chewi · arXiv:2605.07006</small></a>
+    <a class="source-hub" href="../libraries/statistical-optimal-transport/index.html"><span class="source-hub-title">Statistical Optimal Transport</span><small>Chewi · Niles-Weed · Rigollet</small></a>
+    <a class="source-hub" href="../libraries/discrete-sampling/index.html"><span class="source-hub-title">Discrete Sampling</span><small>Chen · Štefankovič · Vigoda</small></a>
+    <a class="source-hub" href="../libraries/mcmc/index.html"><span class="source-hub-title">Markov Chain Monte Carlo</span><small>Fearnhead · Nemeth · Oates · Sherlock</small></a>
+  </nav>
+</section>
+<section class="sidebar-group sidebar-progress" data-formalization-progress="1">
+  <h2><a href="../progress/index.html">Current Progress</a></h2>
+  <nav class="progress-route-nav">
+    <a href="../progress/index.html#samplewiki">SampleWiki Route</a>
+    <a href="../progress/index.html#riemannian">Riemannian Optimization</a>
+    <a href="../progress/index.html#optimisation">Optimisation</a>
+    <a href="../progress/index.html#optimal-transport">Statistical Optimal Transport Route</a>
+    <a href="../progress/index.html#higher-order-sampling">Higher-Order Smoothness × Sampling</a>
+    <a href="../progress/index.html#discrete-sampling">Discrete Sampling Route</a>
+    <a href="../progress/index.html#mcmc">Markov Chain Monte Carlo Route</a>
+  </nav>
+</section>
+<details class="book-nav"><summary>Book contents</summary><div class="book-toc compact-book-toc"><div class="toc-part compact"><span>Part 1</span>Diffusions in Continuous Time</div><a class="compact-chapter-link" href="../textbook/chapter-01.html"><span>01</span><strong>The Langevin Diffusion in Continuous Time</strong></a><a class="compact-chapter-link" href="../textbook/chapter-02.html"><span>02</span><strong>Functional Inequalities</strong></a><a class="compact-chapter-link" href="../textbook/chapter-03.html"><span>03</span><strong>Additional Topics in Stochastic Analysis</strong></a><div class="toc-part compact"><span>Part 2</span>Complexity of Sampling</div><a class="compact-chapter-link" href="../textbook/chapter-04.html"><span>04</span><strong>Analysis of Langevin Monte Carlo</strong></a><a class="compact-chapter-link" href="../textbook/chapter-05.html"><span>05</span><strong>Faster Low-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-06.html"><span>06</span><strong>Convergence in Rényi Divergence</strong></a><a class="compact-chapter-link" href="../textbook/chapter-07.html"><span>07</span><strong>High-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-08.html"><span>08</span><strong>The Proximal Sampler</strong></a><a class="compact-chapter-link" href="../textbook/chapter-09.html"><span>09</span><strong>Lower Bounds for Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-10.html"><span>10</span><strong>Structured Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-11.html"><span>11</span><strong>Non-Log-Concave Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-12.html"><span>12</span><strong>Diffusion Generative Models</strong></a></div></details>
+<section class="sidebar-group">
+  <h2>Chapter 1 companion</h2>
+  <nav>
+    <a href="../textbook/chapter-01-companion.html">Companion guide</a>
+    <a href="../learning-path/index.html">Study guide</a>
+    <a href="../textbook/chapter-01-matrix.html">Formalization status</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Proof graph</h2>
+  <nav>
+    <a href="../lean-foundations.html">Underlying Lean Graph of Libraries</a>
+    <a href="../implementation-map/index.html">Implementation map</a>
+    <a href="../declarations/index.html">Lean declarations</a>
+    <a href="../source-correspondence.html">Source map</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Build</h2>
+  <nav>
+    <a href="../live/index.html">Live formalization</a>
+    <a href="../workflow/index.html">ASTIS harness</a>
+  </nav>
+</section>
+<details class="sidebar-more">
+  <summary>Project</summary>
+  <nav>
+    <a href="../roadmap/index.html">Roadmap</a>
+    <a href="../contribute/index.html">Contribute</a>
+    <a href="../related-systems/index.html">Related systems</a>
+    <a href="../attribution/index.html">Attribution</a>
+    <a href="../maintenance.html">Verification workflow</a>
+  </nav>
+</details>
+</div>
+      <div class="sidebar-utility">
+        <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub <span aria-hidden="true">↗</span></a>
+        <button id="scheme-toggle" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+      </div>
+    </aside>
+    <button class="sidebar-scrim" type="button" data-sidebar-scrim aria-label="Close contents"></button>
+    <div class="site-stage">
+      <div class="verification-strip unverified">
+        <span><strong>Lean gate not recorded for this source state</strong></span>
+        <span>main · 5a8bc8e56395</span>
+      </div>
+      <main id="content">
+<section class="page-hero compact"><div class="eyebrow">production module</div>
+<h1><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean</code></h1><p><a href="../lessons/module-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html">Read the mathematical statements and proofs in order</a></p><p class="lede">10 named declarations scanned from <code>AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean</code>.</p></section>
+<section class="module-meta">
+  <div><dt>Imports</dt><dd class="decl-links"><a href="autosamplingtheory-examplecases-smoothedpicardhmc-gaussianarclaw.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw</code></a><code>Mathlib.Analysis.Calculus.Gradient.Basic</code> <span class="muted">external</span><code>Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus</code> <span class="muted">external</span><code>Mathlib.Analysis.Calculus.MeanValue</code> <span class="muted">external</span><code>Mathlib.Tactic</code> <span class="muted">external</span></dd></div>
+  <div><dt>Imported by</dt><dd class="decl-links"><a href="autosamplingtheory-examplecases.html"><code>AutoSamplingTheory.ExampleCases</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-idealrgoidentification.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.IdealRGOIdentification</code></a><a href="tests-smoothedpicardhmcgradientarcmean.html"><code>Tests.SmoothedPicardHMCGradientArcMean</code></a></dd></div>
+  <div><dt>Placeholder scan</dt><dd>0 declaration(s) flagged</dd></div>
+  <div><dt>Gate status</dt><dd><span class="status status-yellow">Partial</span></dd></div>
+</section>
+<section><h2>Declarations</h2><div class="declaration-list"><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-arc-c2819294c3">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.arc</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def arc (h x z : E) (r : ℝ) : E :=
+  h + Real.sin (Real.pi / 2 * r) • (x-h) + Real.cos (Real.pi / 2 * r) • z</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-arc-c2819294c3">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:23</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-veloci-0a2d60319b">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.velocity</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def velocity (h x z : E) (r : ℝ) : E :=
+  (Real.pi / 2) • (Real.cos (Real.pi / 2 * r) • (x-h) -
+    Real.sin (Real.pi / 2 * r) • z)</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-veloci-0a2d60319b">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:25</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-estima-5bb8a5cb84">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.estimator</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def estimator (f : E → ℝ) (h xp x z : E) (r : ℝ) : ℝ :=
+  inner ℝ (velocity h x z r) (gradient f xp - gradient f (arc h x z r))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-estima-5bb8a5cb84">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:28</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-path-i-0687a5ac07">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.path_integral</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem path_integral (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h xp x z : E) :
+    ∫ r in (0 : ℝ)..1, estimator f h xp x z r =
+      inner ℝ (gradient f xp) (x - (h+z)) - f x + f (h+z) := by
+  obtain ⟨_, _, _, hd, he⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw.gaussian_arc_law
+      (E := E) 1 (by norm_num) h
+  have hpath (r : ℝ) : HasDerivAt (arc h x z) (velocity h x z r) r := by
+    exact hd (x,z) r
+  have hderiv (r : ℝ) : HasDerivAt
+      (fun t =&gt; inner ℝ (gradient f xp) (arc h x z t) - f (arc h x z t))
+      (estimator f h xp x z r) r := by
+    have hg := (hf (arc h x z r)).hasGradientAt
+    have hc := hg.hasFDerivAt.comp_hasDerivAt r (hpath r)
+    have hi := (hasDerivAt_const r (gradient f xp)).inner ℝ (hpath r)
+    simpa [Pi.sub_def, Function.comp_def, estimator, inner_sub_right, real_inner_comm]
+      using hi.sub hc
+  have hcont : Continuous (estimator f h xp x z) := by
+    unfold estimator arc velocity
+    exact ((by fun_prop : Continuous (fun r : ℝ =&gt;
+      (Real.pi / 2) • (Real.cos (Real.pi / 2 * r) • (x-h) -
+        Real.sin (Real.pi / 2 * r) • z)))).inner
+      (continuous_const.sub (hlip.continuous.comp (by fun_prop)))
+  have hint := intervalIntegral.integral_eq_sub_of_hasDerivAt
+    (fun r _ =&gt; hderiv r) (hcont.intervalIntegrable (0 : ℝ) 1)
+  have he := he (x,z)
+  change arc h x z 0 = h+z ∧ arc h x z 1 = x ∧ _ at he
+  rw [he.2.1, he.1] at hint
+  rw [hint, inner_sub_right]
+  ring
+
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-path-i-0687a5ac07">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:31</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-potent-013b1e7a71">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.potential_growth</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem potential_growth (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h z : E) :
+    ‖f (h+z)‖ ≤ ‖f h‖ + ‖gradient f h‖ * ‖z‖ + (beta : ℝ) * ‖z‖ ^ 2 := by
+  have hd (t : ℝ) : HasDerivAt (fun s : ℝ =&gt; f (h+s • z))
+      (inner ℝ (gradient f (h+t • z)) z) t := by
+    have hp : HasDerivAt (fun s : ℝ =&gt; h+s • z) z t := by
+      simpa using ((hasDerivAt_id t).smul_const z).const_add h
+    simpa [Function.comp_def] using
+      (hf (h+t • z)).hasGradientAt.hasFDerivAt.comp_hasDerivAt t hp
+  have hg (t : ℝ) (ht : t ∈ Set.Ico (0 : ℝ) 1) :
+      ‖gradient f (h+t • z)‖ ≤ ‖gradient f h‖ + (beta : ℝ) * ‖z‖ := by
+    have hn := norm_le_norm_sub_add (gradient f (h+t • z)) (gradient f h)
+    have hl := hlip.norm_sub_le (h+t • z) h
+    simp only [add_sub_cancel_left, norm_smul, Real.norm_eq_abs, abs_of_nonneg ht.1] at hl
+    have hb := mul_le_mul_of_nonneg_left
+      (mul_le_of_le_one_left (norm_nonneg z) ht.2.le) beta.coe_nonneg
+    linarith
+  have hm := norm_image_sub_le_of_norm_deriv_le_segment_01&#x27;
+    (fun t _ =&gt; (hd t).hasDerivWithinAt)
+    (fun t ht =&gt; (norm_inner_le_norm (gradient f (h+t • z)) z).trans
+      (mul_le_mul_of_nonneg_right (hg t ht) (norm_nonneg z)))
+  simp only [one_smul, zero_smul, add_zero] at hm
+  have hn := norm_le_norm_sub_add (f (h+z)) (f h)
+  nlinarith</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-potent-013b1e7a71">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:63</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-potent-10df6e0ba0">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.potential_integrable</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem potential_integrable (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h : E) (sigma : ℝ) :
+    Integrable (fun z =&gt; f (h+z)) ((stdGaussian E).map (fun z =&gt; sigma • z)) := by
+  have hs : MemLp (fun z : E =&gt; sigma • z) 2 (stdGaussian E) :=
+    (IsGaussian.memLp_two_id (μ := stdGaussian E)).const_smul sigma
+  have hi : Integrable (fun z : E =&gt; ‖sigma • z‖) (stdGaussian E) :=
+    hs.integrable (by norm_num) |&gt;.norm
+  have hsq : Integrable (fun z : E =&gt; ‖sigma • z‖ ^ 2) (stdGaussian E) :=
+    hs.norm.integrable_sq
+  have hm := ((integrable_const ‖f h‖).add (hi.const_mul ‖gradient f h‖)).add
+    (hsq.const_mul (beta : ℝ))
+  apply (integrable_map_measure
+    (hf.continuous.comp (continuous_const.add continuous_id)).aestronglyMeasurable
+    (by fun_prop : Measurable (fun z : E =&gt; sigma • z)).aemeasurable).mpr
+  exact hm.mono&#x27; (hf.continuous.comp (by fun_prop)).aestronglyMeasurable
+    (Filter.Eventually.of_forall (fun z =&gt; potential_growth f hf beta hlip h (sigma • z)))
+
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-potent-10df6e0ba0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:88</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-estima-565e5bc693">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.estimator_bound</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem estimator_bound (f : E → ℝ)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h xp x z : E) (r : ℝ) :
+    ‖estimator f h xp x z r‖ ≤ (Real.pi / 2) * (beta : ℝ) *
+      (‖x-h‖ + ‖z‖) * (‖xp-h‖ + ‖x-h‖ + ‖z‖) := by
+  have hsin (v : E) : ‖Real.sin (Real.pi / 2 * r) • v‖ ≤ ‖v‖ := by
+    rw [norm_smul, Real.norm_eq_abs]
+    exact mul_le_of_le_one_left (norm_nonneg v) (Real.abs_sin_le_one _)
+  have hcos (v : E) : ‖Real.cos (Real.pi / 2 * r) • v‖ ≤ ‖v‖ := by
+    rw [norm_smul, Real.norm_eq_abs]
+    exact mul_le_of_le_one_left (norm_nonneg v) (Real.abs_cos_le_one _)
+  have hpi : 0 ≤ Real.pi / 2 := (div_pos Real.pi_pos (by norm_num)).le
+  have hv : ‖velocity h x z r‖ ≤ (Real.pi / 2) * (‖x-h‖ + ‖z‖) := by
+    simp only [velocity, norm_smul, Real.norm_eq_abs, abs_of_nonneg hpi]
+    apply mul_le_mul_of_nonneg_left _ hpi
+    exact (norm_sub_le _ _).trans (add_le_add (hcos (x-h)) (hsin z))
+  have ha : ‖xp - arc h x z r‖ ≤ ‖xp-h‖ + ‖x-h‖ + ‖z‖ := by
+    have he : arc h x z r - xp = (h-xp) +
+        Real.sin (Real.pi / 2*r) • (x-h) + Real.cos (Real.pi / 2*r) • z := by
+      unfold arc
+      abel
+    rw [norm_sub_rev, he]
+    calc
+      _ ≤ ‖(h-xp) + Real.sin (Real.pi / 2*r) • (x-h)‖ +
+          ‖Real.cos (Real.pi / 2*r) • z‖ := norm_add_le _ _
+      _ ≤ (‖h-xp‖ + ‖Real.sin (Real.pi / 2*r) • (x-h)‖) + ‖z‖ :=
+        add_le_add (norm_add_le _ _) (hcos z)
+      _ ≤ (‖h-xp‖ + ‖x-h‖) + ‖z‖ := by linarith [hsin (x-h)]
+      _ = _ := by rw [norm_sub_rev h xp]
+  have hg : ‖gradient f xp - gradient f (arc h x z r)‖ ≤
+      (beta : ℝ) * (‖xp-h‖ + ‖x-h‖ + ‖z‖) :=
+    (hlip.norm_sub_le _ _).trans (mul_le_mul_of_nonneg_left ha beta.coe_nonneg)
+  calc
+    _ ≤ ‖velocity h x z r‖ * ‖gradient f xp - gradient f (arc h x z r)‖ :=
+      norm_inner_le_norm _ _
+    _ ≤ ((Real.pi / 2) * (‖x-h‖ + ‖z‖)) *
+        ((beta : ℝ) * (‖xp-h‖ + ‖x-h‖ + ‖z‖)) :=
+      mul_le_mul hv hg (norm_nonneg _) (mul_nonneg hpi (add_nonneg (norm_nonneg _) (norm_nonneg _)))
+    _ = _ := by ring</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-estima-565e5bc693">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:106</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-estima-b2607e7100">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.estimator_integrable</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem estimator_integrable (f : E → ℝ)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f))
+    (h xp x : E) (sigma : ℝ) (T : Measure ℝ) [IsFiniteMeasure T] :
+    Integrable (fun q : ℝ × E =&gt; estimator f h xp x q.2 q.1)
+      (T.prod ((stdGaussian E).map (fun z =&gt; sigma • z))) := by
+  let P := (stdGaussian E).map (fun z =&gt; sigma • z)
+  have hp : MemLp (fun z : E =&gt; z) 2 P := by
+    apply (memLp_map_measure_iff (by fun_prop)
+      (by fun_prop : AEMeasurable (fun z : E =&gt; sigma • z) (stdGaussian E))).mpr
+    exact (IsGaussian.memLp_two_id (μ := stdGaussian E)).const_smul sigma
+  have hn : Integrable (fun z : E =&gt; ‖z‖) P := (hp.integrable (by norm_num)).norm
+  have hs : Integrable (fun z : E =&gt; ‖z‖ ^ 2) P := hp.norm.integrable_sq
+  have hm : Integrable (fun z : E =&gt; (Real.pi / 2) * (beta : ℝ) *
+      (‖x-h‖+‖z‖) * (‖xp-h‖+‖x-h‖+‖z‖)) P := by
+    have hpoly := ((integrable_const (‖x-h‖*(‖xp-h‖+‖x-h‖))).add
+      (hn.const_mul (‖xp-h‖+2*‖x-h‖))).add hs
+    convert hpoly.const_mul ((Real.pi / 2)*(beta : ℝ)) using 1
+    funext z
+    simp only [Pi.add_apply]
+    ring
+  have hg := hlip.continuous
+  have hc : Continuous (fun q : ℝ × E =&gt; estimator f h xp x q.2 q.1) := by
+    unfold estimator arc velocity
+    fun_prop
+  exact (hm.comp_snd T).mono&#x27; hc.aestronglyMeasurable
+    (Filter.Eventually.of_forall (fun q =&gt; estimator_bound f beta hlip h xp x q.2 q.1))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-estima-b2607e7100">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:145</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-auxili-a90cfb5724">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.auxiliary_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem auxiliary_mean (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f))
+    (h xp x : E) (sigma : ℝ) :
+    ∫ q : ℝ × E, estimator f h xp x q.2 q.1
+        ∂((volume.restrict (Set.Ioc (0 : ℝ) 1)).prod
+          ((stdGaussian E).map (fun z =&gt; sigma • z))) =
+      inner ℝ (gradient f xp) x - f x +
+        ((∫ z, f (h+z) ∂((stdGaussian E).map (fun z =&gt; sigma • z))) -
+          inner ℝ (gradient f xp) h) := by
+  let P := (stdGaussian E).map (fun z =&gt; sigma • z)
+  have : IsProbabilityMeasure P := by
+    dsimp [P]
+    exact Measure.isProbabilityMeasure_map (by fun_prop)
+  have hz : Integrable (fun z : E =&gt; z) P := by
+    apply (integrable_map_measure (by fun_prop)
+      (by fun_prop : AEMeasurable (fun z : E =&gt; sigma • z) (stdGaussian E))).mpr
+    exact (IsGaussian.integrable_id (μ := stdGaussian E)).smul sigma
+  have hzero : ∫ z : E, z ∂P = 0 := by
+    dsimp [P]
+    rw [integral_map (by fun_prop) (by fun_prop), integral_smul,
+      integral_id_stdGaussian, smul_zero]
+  have hvec : Integrable (fun z : E =&gt; x - (h+z)) P :=
+    (integrable_const x).sub ((integrable_const h).add hz)
+  have hplus : Integrable (fun z : E =&gt; h+z) P := (integrable_const h).add hz
+  have hlin : Integrable (fun z : E =&gt; inner ℝ (gradient f xp) (x-(h+z))) P :=
+    hvec.const_inner (gradient f xp)
+  have hlinear : ∫ z : E, inner ℝ (gradient f xp) (x-(h+z)) ∂P =
+      inner ℝ (gradient f xp) (x-h) := by
+    rw [integral_inner hvec, integral_sub (integrable_const x)
+      hplus, integral_add (integrable_const h) hz,
+      integral_const, integral_const, hzero, add_zero]
+    simp
+  have hw := estimator_integrable f beta hlip h xp x sigma
+    (volume.restrict (Set.Ioc (0 : ℝ) 1))
+  rw [integral_prod_symm _ hw]
+  have he (z : E) : ∫ r in Set.Ioc (0 : ℝ) 1, estimator f h xp x z r =
+      inner ℝ (gradient f xp) (x-(h+z)) - f x + f (h+z) := by
+    have ht := path_integral f hf beta hlip h xp x z
+    rwa [intervalIntegral.integral_of_le (by norm_num : (0 : ℝ) ≤ 1)] at ht
+  simp_rw [he]
+  change (∫ z, (inner ℝ (gradient f xp) (x-(h+z)) - f x + f (h+z)) ∂P) = _
+  have hsub : Integrable (fun z : E =&gt; inner ℝ (gradient f xp) (x-(h+z)) - f x) P :=
+    hlin.sub (integrable_const _)
+  rw [integral_add hsub (potential_integrable f hf beta hlip h sigma),
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-auxili-a90cfb5724">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:172</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-gradie-4cb93850cf">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.gradient_arc_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary><p data-lesson-link="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.gradient_arc_mean"><a href="../lessons/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-gradient-arc-mean-31bcf2109b49.html">Read the complete mathematical statement and proof, with Lean below each</a></p>
+  <div class="declaration-content">
+    <p class="docstring">- The actual unclipped path estimator has a common log-weight mean under
+the independent uniform-time and auxiliary Gaussian input.</p>
+    <pre class="code-block"><code class="language-lean">theorem gradient_arc_mean (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta : ℝ) (heta : 0 &lt; eta) (hbeta : 0 ≤ beta)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (h xp : E) :
+    let P := (stdGaussian E).map (fun z =&gt; Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let C := (∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h
+    (Real.sqrt eta)^2 = eta ∧ IsProbabilityMeasure U ∧
+      Integrable (fun z =&gt; f (h+z)) P ∧
+      ∀ x : E, Measurable (fun q : ℝ × E =&gt; estimator f h xp x q.2 q.1) ∧
+        Integrable (fun q : ℝ × E =&gt; estimator f h xp x q.2 q.1) (U.prod P) ∧
+        (∀ z : E, (∫ r in (0 : ℝ)..1, estimator f h xp x z r) =
+          inner ℝ (gradient f xp) (x-(h+z)) - f x + f (h+z)) ∧
+        (∫ q : ℝ × E, estimator f h xp x q.2 q.1 ∂(U.prod P)) =
+          inner ℝ (gradient f xp) x - f x + C := by
+  dsimp only
+  refine ⟨Real.sq_sqrt heta.le, ⟨by simp⟩,
+    potential_integrable f hf ⟨beta,hbeta⟩ hlip h (Real.sqrt eta), ?_⟩
+  intro x
+  have hg := hlip.continuous
+  have hm : Measurable (fun q : ℝ × E =&gt; estimator f h xp x q.2 q.1) := by
+    unfold estimator arc velocity
+    fun_prop
+  exact ⟨hm, estimator_integrable f ⟨beta,hbeta⟩ hlip h xp x (Real.sqrt eta) _,
+    fun z =&gt; path_integral f hf ⟨beta,hbeta⟩ hlip h xp x z,
+    auxiliary_mean f hf ⟨beta,hbeta⟩ hlip h xp x (Real.sqrt eta)⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-gradientarcmean-gradie-4cb93850cf">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GradientArcMean.lean:224</a><span>local preview source</span></p>
+    
+  </div>
+</details></div></section>
+</main>
+      <footer>
+        <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>
+        <p><a href="../contribute/index.html">Contribute</a> · <a href="../attribution/index.html">Attribution</a> · <a href="../maintenance.html">Build and maintenance</a> · generated from Lean source, route metadata, and gate evidence.</p>
+      </footer>
+    </div>
+  </div>
+  <script src="../assets/site.js"></script>
+  
+  <script>try{localStorage.setItem("samplinglib-lean-language","en");}catch(e){}</script>
+  <script defer src="../assets/module-lean-tutor.js"></script>
+</body>
+</html>

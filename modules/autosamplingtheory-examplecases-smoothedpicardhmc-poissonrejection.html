@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en" data-theme="blueprint" data-color-scheme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <meta property="og:title" content="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection · Samplinglib">
+  <meta property="og:description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <link rel="icon" href="data:,">
+  <meta property="og:image" content="../assets/samplinglib-og.png">
+  <meta property="og:site_name" content="Samplinglib">
+  <title>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection · Samplinglib</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+  <link rel="stylesheet" href="../assets/lean-tutor.css">
+  <link rel="stylesheet" href="../assets/information-architecture.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-polish.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-detail-polish.css">
+  <link rel="stylesheet" href="../assets/math-first-reader.css">
+  <link rel="stylesheet" href="../assets/reader-contract-final.css">
+  <link rel="stylesheet" href="../assets/textbook-math-contract.css">
+  <link rel="stylesheet" href="../assets/chewi-source-first-contract.css">
+  <link rel="stylesheet" href="../assets/library-shelves.css">
+  <link rel="stylesheet" href="../assets/formalization-progress.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="mobile-bar">
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-sidebar">Contents</button>
+    <a href="../index.html"><strong>Samplinglib</strong></a>
+    <button id="scheme-toggle-mobile" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+  </header>
+  <div class="site-shell">
+    <aside id="site-sidebar" class="site-sidebar" aria-label="Samplinglib contents">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark">S</span>
+        <span><strong>Samplinglib</strong><small>Verified Sampling, Optimisation, Geometry Theory in Lean</small></span>
+      </a>
+      <div class="search-shell">
+        <label class="sr-only" for="global-search">Search declarations and modules</label>
+        <input id="global-search" data-global-search data-search-root="../" type="search" placeholder="Search the library">
+        <ul class="search-results" data-global-results hidden></ul>
+      </div>
+      <div class="sidebar-contents" data-ia-version="2">
+<section class="sidebar-group sidebar-libraries" data-library-shelves="1">
+  <h2><a href="../libraries/index.html">Libraries</a></h2>
+  <nav class="source-hubs library-source-hubs">
+    <a class="source-hub" href="../textbook/index.html"><span class="source-hub-title">Log-Concave Sampling</span><small>Chewi · textbook graph</small></a>
+    <a class="source-hub" href="../example-cases/samplewiki.html"><span class="source-hub-title">SampleWiki</span><small>sampling frontier cases</small></a>
+    <a class="source-hub" href="../libraries/riemannian-optimization/index.html"><span class="source-hub-title">Riemannian Optimization</span><small>Boumal · 11 chapters</small></a>
+    <a class="source-hub" href="../libraries/optimisation/index.html"><span class="source-hub-title">Optimisation</span><small>Chewi · arXiv:2605.07006</small></a>
+    <a class="source-hub" href="../libraries/statistical-optimal-transport/index.html"><span class="source-hub-title">Statistical Optimal Transport</span><small>Chewi · Niles-Weed · Rigollet</small></a>
+    <a class="source-hub" href="../libraries/discrete-sampling/index.html"><span class="source-hub-title">Discrete Sampling</span><small>Chen · Štefankovič · Vigoda</small></a>
+    <a class="source-hub" href="../libraries/mcmc/index.html"><span class="source-hub-title">Markov Chain Monte Carlo</span><small>Fearnhead · Nemeth · Oates · Sherlock</small></a>
+  </nav>
+</section>
+<section class="sidebar-group sidebar-progress" data-formalization-progress="1">
+  <h2><a href="../progress/index.html">Current Progress</a></h2>
+  <nav class="progress-route-nav">
+    <a href="../progress/index.html#samplewiki">SampleWiki Route</a>
+    <a href="../progress/index.html#riemannian">Riemannian Optimization</a>
+    <a href="../progress/index.html#optimisation">Optimisation</a>
+    <a href="../progress/index.html#optimal-transport">Statistical Optimal Transport Route</a>
+    <a href="../progress/index.html#higher-order-sampling">Higher-Order Smoothness × Sampling</a>
+    <a href="../progress/index.html#discrete-sampling">Discrete Sampling Route</a>
+    <a href="../progress/index.html#mcmc">Markov Chain Monte Carlo Route</a>
+  </nav>
+</section>
+<details class="book-nav"><summary>Book contents</summary><div class="book-toc compact-book-toc"><div class="toc-part compact"><span>Part 1</span>Diffusions in Continuous Time</div><a class="compact-chapter-link" href="../textbook/chapter-01.html"><span>01</span><strong>The Langevin Diffusion in Continuous Time</strong></a><a class="compact-chapter-link" href="../textbook/chapter-02.html"><span>02</span><strong>Functional Inequalities</strong></a><a class="compact-chapter-link" href="../textbook/chapter-03.html"><span>03</span><strong>Additional Topics in Stochastic Analysis</strong></a><div class="toc-part compact"><span>Part 2</span>Complexity of Sampling</div><a class="compact-chapter-link" href="../textbook/chapter-04.html"><span>04</span><strong>Analysis of Langevin Monte Carlo</strong></a><a class="compact-chapter-link" href="../textbook/chapter-05.html"><span>05</span><strong>Faster Low-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-06.html"><span>06</span><strong>Convergence in Rényi Divergence</strong></a><a class="compact-chapter-link" href="../textbook/chapter-07.html"><span>07</span><strong>High-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-08.html"><span>08</span><strong>The Proximal Sampler</strong></a><a class="compact-chapter-link" href="../textbook/chapter-09.html"><span>09</span><strong>Lower Bounds for Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-10.html"><span>10</span><strong>Structured Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-11.html"><span>11</span><strong>Non-Log-Concave Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-12.html"><span>12</span><strong>Diffusion Generative Models</strong></a></div></details>
+<section class="sidebar-group">
+  <h2>Chapter 1 companion</h2>
+  <nav>
+    <a href="../textbook/chapter-01-companion.html">Companion guide</a>
+    <a href="../learning-path/index.html">Study guide</a>
+    <a href="../textbook/chapter-01-matrix.html">Formalization status</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Proof graph</h2>
+  <nav>
+    <a href="../lean-foundations.html">Underlying Lean Graph of Libraries</a>
+    <a href="../implementation-map/index.html">Implementation map</a>
+    <a href="../declarations/index.html">Lean declarations</a>
+    <a href="../source-correspondence.html">Source map</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Build</h2>
+  <nav>
+    <a href="../live/index.html">Live formalization</a>
+    <a href="../workflow/index.html">ASTIS harness</a>
+  </nav>
+</section>
+<details class="sidebar-more">
+  <summary>Project</summary>
+  <nav>
+    <a href="../roadmap/index.html">Roadmap</a>
+    <a href="../contribute/index.html">Contribute</a>
+    <a href="../related-systems/index.html">Related systems</a>
+    <a href="../attribution/index.html">Attribution</a>
+    <a href="../maintenance.html">Verification workflow</a>
+  </nav>
+</details>
+</div>
+      <div class="sidebar-utility">
+        <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub <span aria-hidden="true">↗</span></a>
+        <button id="scheme-toggle" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+      </div>
+    </aside>
+    <button class="sidebar-scrim" type="button" data-sidebar-scrim aria-label="Close contents"></button>
+    <div class="site-stage">
+      <div class="verification-strip unverified">
+        <span><strong>Lean gate not recorded for this source state</strong></span>
+        <span>main · 5a8bc8e56395</span>
+      </div>
+      <main id="content">
+<section class="page-hero compact"><div class="eyebrow">production module</div>
+<h1><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection</code></h1><p><a href="../lessons/module-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html">Read the mathematical statements and proofs in order</a></p><p class="lede">36 named declarations scanned from <code>AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean</code>.</p></section>
+<section class="module-meta">
+  <div><dt>Imports</dt><dd class="decl-links"><code>Mathlib.Probability.Distributions.Poisson.Basic</code> <span class="muted">external</span><code>Mathlib.MeasureTheory.Integral.Pi</code> <span class="muted">external</span><code>Mathlib.Probability.Independence.InfinitePi</code> <span class="muted">external</span><code>Mathlib.MeasureTheory.Measure.Tilted</code> <span class="muted">external</span><code>Mathlib.MeasureTheory.Measure.Lebesgue.Basic</code> <span class="muted">external</span><code>Mathlib.Tactic</code> <span class="muted">external</span><code>Mathlib.Probability.Kernel.WithDensity</code> <span class="muted">external</span></dd></div>
+  <div><dt>Imported by</dt><dd class="decl-links"><a href="autosamplingtheory-examplecases.html"><code>AutoSamplingTheory.ExampleCases</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-clippedgradientprogram.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-poissonquerytail.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonQueryTail</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-terminalforskernel.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalFORSKernel</code></a><a href="tests-smoothedpicardhmcpoissonrejection.html"><code>Tests.SmoothedPicardHMCPoissonRejection</code></a></dd></div>
+  <div><dt>Placeholder scan</dt><dd>0 declaration(s) flagged</dd></div>
+  <div><dt>Gate status</dt><dd><span class="status status-yellow">Partial</span></dd></div>
+</section>
+<section><h2>Declarations</h2><div class="declaration-list"><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-c42cbbfdfa">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_power_integral</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem poisson_power_integral (r : ℝ≥0) (t : ℝ) :
+    ∫ n, t ^ n ∂poissonMeasure r = Real.exp ((r : ℝ) * (t - 1)) := by
+  rw [integral_poissonMeasure]
+  have hs := (NormedSpace.expSeries_div_hasSum_exp ((r : ℝ) * t)).mul_left
+    (Real.exp (-(r : ℝ)))
+  have he : Real.exp (-(r : ℝ)) * NormedSpace.exp ((r : ℝ) * t) =
+      Real.exp ((r : ℝ) * (t - 1)) := by
+    rw [← Real.exp_eq_exp_ℝ, ← Real.exp_add]
+    congr 1
+    ring
+  rw [he] at hs
+  convert hs.tsum_eq using 1
+  congr 1
+  funext n
+  simp only [smul_eq_mul, mul_pow]
+  ring</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-c42cbbfdfa">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:31</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-finit-ba84e08358">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.finite_auxiliary_product_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem finite_auxiliary_product_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Integrable W ν) (B : ℝ) (n : ℕ) :
+    ∫ z : Fin n → A, ∏ i, (B + W (z i)) / (2 * B)
+      ∂Measure.pi (fun _ : Fin n =&gt; ν) =
+      ((B + ∫ z, W z ∂ν) / (2 * B)) ^ n := by
+  rw [integral_fintype_prod_eq_pow (ι := Fin n) (μ := ν) (fun z =&gt; (B + W z) / (2 * B))]
+  simp only [Fintype.card_fin]
+  congr 1
+  rw [integral_div, integral_add (integrable_const B) hW]
+  simp</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-finit-ba84e08358">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:48</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-9058ca312c">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_auxiliary_product_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem poisson_auxiliary_product_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Integrable W ν) (B : ℝ) (hB : 0 &lt; B) :
+    ∫ n, (∫ z : Fin n → A, ∏ i, (B + W (z i)) / (2 * B)
+      ∂Measure.pi (fun _ : Fin n =&gt; ν))
+      ∂poissonMeasure ⟨2 * B, by positivity⟩ = Real.exp ((∫ z, W z ∂ν) - B) := by
+  calc
+    _ = ∫ n, ((B + ∫ z, W z ∂ν) / (2 * B)) ^ n
+        ∂poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0) := by
+      apply integral_congr_ae
+      exact Filter.Eventually.of_forall (finite_auxiliary_product_mean ν W hW B)
+    _ = Real.exp ((2 * B) * (((B + ∫ z, W z ∂ν) / (2 * B)) - 1)) :=
+      poisson_power_integral (⟨2 * B, by positivity⟩ : ℝ≥0) _
+    _ = _ := by
+      congr 1
+      field_simp [ne_of_gt hB]
+      ring</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-9058ca312c">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:60</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-bound-07fb217887">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.bounded_estimator_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem bounded_estimator_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hb : ∀ z, |W z| ≤ B) :
+    Integrable W ν ∧ -(B : ℝ) ≤ ∫ z, W z ∂ν ∧ (∫ z, W z ∂ν) ≤ B := by
+  have hi : Integrable W ν := (integrable_const B).mono&#x27;
+    hW.aestronglyMeasurable (Filter.Eventually.of_forall fun z =&gt; by simpa using hb z)
+  refine ⟨hi, ?_, ?_⟩
+  · have h := integral_mono (integrable_const (-B)) hi (fun z =&gt; (abs_le.mp (hb z)).1)
+    simpa using h
+  · have h := integral_mono hi (integrable_const B) (fun z =&gt; (abs_le.mp (hb z)).2)
+    simpa using h</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-bound-07fb217887">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:78</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-auxil-5327cd2877">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.auxiliary_product_probability</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem auxiliary_product_probability {A : Type*} (W : A → ℝ)
+    (B : ℝ) (hB : 0 &lt; B) (hb : ∀ z, |W z| ≤ B)
+    (n : ℕ) (z : Fin n → A) :
+    (0 : ℝ) ≤ ∏ i, (B + W (z i)) / (2 * B) ∧
+      (∏ i, (B + W (z i)) / (2 * B)) ≤ 1 := by
+  have hn (i : Fin n) : 0 ≤ (B + W (z i)) / (2 * B) := by
+    apply div_nonneg
+    · linarith [(abs_le.mp (hb (z i))).1]
+    · positivity
+  refine ⟨Finset.prod_nonneg (fun i _ =&gt; hn i), ?_⟩
+  apply Finset.prod_le_one (fun i _ =&gt; hn i)
+  intro i _
+  apply (div_le_one (by positivity : 0 &lt; 2 * B)).2
+  linarith [(abs_le.mp (hb (z i))).2]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-auxil-5327cd2877">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:90</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unitu-d08e210365">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.unitUniform</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private noncomputable def unitUniform : Measure ℝ := volume.restrict (Set.Icc 0 1)
+
+private instance : IsProbabilityMeasure unitUniform := by
+  constructor
+  simp [unitUniform, Real.volume_Icc]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unitu-d08e210365">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:105</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unitu-3a440dae51">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.unitUniform_Iic</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem unitUniform_Iic (t : ℝ) (_ht : 0 ≤ t) (ht&#x27; : t ≤ 1) :
+    unitUniform (Set.Iic t) = ENNReal.ofReal t := by
+  rw [unitUniform, Measure.restrict_apply measurableSet_Iic]
+  have he : Set.Iic t ∩ Set.Icc (0 : ℝ) 1 = Set.Icc 0 t := by
+    ext u
+    simp only [Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc]
+    constructor
+    · rintro ⟨hu, h0, _⟩
+      exact ⟨h0, hu⟩
+    · rintro ⟨h0, hu⟩
+      exact ⟨hu, h0, hu.trans ht&#x27;⟩
+  rw [he, Real.volume_Icc, sub_zero]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unitu-3a440dae51">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:111</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unifo-d05bbd69ad">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.uniform_acceptance_submeasure</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem uniform_acceptance_submeasure {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) (f : X → ℝ) (hf : Measurable f)
+    (h0 : ∀ x, 0 ≤ f x) (h1 : ∀ x, f x ≤ 1) :
+    Measure.map Prod.fst ((μ.prod unitUniform).restrict
+      {p : X × ℝ | p.2 ≤ f p.1}) = μ.withDensity (fun x =&gt; ENNReal.ofReal (f x)) := by
+  have hA : MeasurableSet {p : X × ℝ | p.2 ≤ f p.1} :=
+    measurableSet_le measurable_snd (hf.comp measurable_fst)
+  ext s hs
+  rw [Measure.map_apply measurable_fst hs,
+    Measure.restrict_apply (hs.preimage measurable_fst),
+    Measure.prod_apply ((hs.preimage measurable_fst).inter hA),
+    withDensity_apply _ hs, ← lintegral_indicator hs]
+  apply lintegral_congr
+  intro x
+  by_cases hx : x ∈ s
+  · have he : Prod.mk x ⁻¹&#x27; (Prod.fst ⁻¹&#x27; s ∩ {p : X × ℝ | p.2 ≤ f p.1}) =
+        Set.Iic (f x) := by ext u; simp [hx]
+    rw [he, unitUniform_Iic _ (h0 x) (h1 x)]
+    simp [hx]
+  · have he : Prod.mk x ⁻¹&#x27; (Prod.fst ⁻¹&#x27; s ∩ {p : X × ℝ | p.2 ≤ f p.1}) =
+        ∅ := by ext u; simp [hx]
+    rw [he]
+    simp [hx]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unifo-d05bbd69ad">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:124</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unifo-73327017ed">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.uniform_acceptance_mass</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem uniform_acceptance_mass {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) (f : X → ℝ) (hf : Measurable f)
+    (h0 : ∀ x, 0 ≤ f x) (h1 : ∀ x, f x ≤ 1) :
+    (μ.prod unitUniform) {p : X × ℝ | p.2 ≤ f p.1} =
+      ∫⁻ x, ENNReal.ofReal (f x) ∂μ := by
+  have h := congrArg (fun ρ : Measure X =&gt; ρ Set.univ)
+    (uniform_acceptance_submeasure μ f hf h0 h1)
+  simpa [Measure.map_apply measurable_fst MeasurableSet.univ, withDensity_apply] using h</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-unifo-73327017ed">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:148</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-finit-0b7b94c499">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.finite_uniform_acceptance</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem finite_uniform_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 &lt; B) (hb : ∀ z, |W z| ≤ B) (n : ℕ) :
+    ((Measure.pi (fun _ : Fin n =&gt; ν)).prod unitUniform)
+      {p : (Fin n → A) × ℝ | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)} =
+      ENNReal.ofReal (((B + ∫ z, W z ∂ν) / (2 * B)) ^ n) := by
+  let f : (Fin n → A) → ℝ := fun z =&gt; ∏ i, (B + W (z i)) / (2 * B)
+  have hf : Measurable f := by dsimp [f]; fun_prop
+  have hr z := auxiliary_product_probability W B hB hb n z
+  have hi : Integrable f (Measure.pi (fun _ : Fin n =&gt; ν)) :=
+    (integrable_const (1 : ℝ)).mono&#x27; hf.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun z =&gt; by
+        rw [Real.norm_eq_abs, abs_of_nonneg (hr z).1]
+        exact (hr z).2)
+  change ((Measure.pi (fun _ : Fin n =&gt; ν)).prod unitUniform)
+    {p | p.2 ≤ f p.1} = _
+  rw [uniform_acceptance_mass _ f hf (fun z =&gt; (hr z).1) (fun z =&gt; (hr z).2),
+    ← ofReal_integral_eq_lintegral_ofReal hi (Filter.Eventually.of_forall fun z =&gt; (hr z).1)]
+  congr 1
+  exact finite_auxiliary_product_mean ν W (bounded_estimator_mean ν W hW B hb).1 B n</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-finit-0b7b94c499">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:157</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-9395bf27f5">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_uniform_acceptance</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem poisson_uniform_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 &lt; B) (hb : ∀ z, |W z| ≤ B) :
+    ∫⁻ n, ((Measure.pi (fun _ : Fin n =&gt; ν)).prod unitUniform)
+      {p : (Fin n → A) × ℝ | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)}
+      ∂poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0) =
+      ENNReal.ofReal (Real.exp ((∫ z, W z ∂ν) - B)) := by
+  let r : ℝ≥0 := ⟨2 * B, by positivity⟩
+  let : IsProbabilityMeasure (poissonMeasure r) := inferInstance
+  let t : ℝ := (B + ∫ z, W z ∂ν) / (2 * B)
+  have hm := bounded_estimator_mean ν W hW B hb
+  have ht0 : 0 ≤ t := by
+    apply div_nonneg
+    · linarith [hm.2.1]
+    · positivity
+  have ht1 : t ≤ 1 := by
+    apply (div_le_one (by positivity : 0 &lt; 2 * B)).2
+    linarith [hm.2.2]
+  have hi : Integrable (fun n : ℕ =&gt; t ^ n)
+      (poissonMeasure r) :=
+    (integrable_const (1 : ℝ)).mono&#x27; Measurable.of_discrete.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun n =&gt; by
+        rw [Real.norm_eq_abs, abs_of_nonneg (pow_nonneg ht0 n)]
+        exact pow_le_one₀ ht0 ht1)
+  calc
+    _ = ∫⁻ n, ENNReal.ofReal (t ^ n)
+        ∂poissonMeasure r := by
+      apply lintegral_congr
+      intro n
+      exact finite_uniform_acceptance ν W hW B hB hb n
+    _ = ENNReal.ofReal (∫ n, t ^ n
+        ∂poissonMeasure r) :=
+      (ofReal_integral_eq_lintegral_ofReal hi
+        (Filter.Eventually.of_forall fun n =&gt; pow_nonneg ht0 n)).symm
+    _ = _ := by
+      congr 1
+      rw [poisson_power_integral]
+      congr 1
+      change (2 * B) * ((B + ∫ z, W z ∂ν) / (2 * B) - 1) =
+        (∫ z, W z ∂ν) - B
+      field_simp [ne_of_gt hB]
+      ring</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-9395bf27f5">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:178</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-iid-p-1f54eae7d0">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.iid_prefix_law</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem iid_prefix_law {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ =&gt; ν)).map
+      (fun z (i : Fin n) =&gt; z i.val) = Measure.pi (fun _ : Fin n =&gt; ν) := by
+  rw [Measure.map_infinitePi_infinitePi_of_inj Fin.val_injective,
+    Measure.infinitePi_eq_pi]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-iid-p-1f54eae7d0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:221</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-infin-a5ce08d3f4">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.infinite_uniform_acceptance</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem infinite_uniform_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 &lt; B) (hb : ∀ z, |W z| ≤ B) (n : ℕ) :
+    ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod unitUniform)
+      {p : (ℕ → A) × ℝ | p.2 ≤ ∏ i : Fin n, (B + W (p.1 i.val)) / (2 * B)} =
+      ENNReal.ofReal (((B + ∫ z, W z ∂ν) / (2 * B)) ^ n) := by
+  let f : (ℕ → A) → (Fin n → A) := fun z i =&gt; z i.val
+  have hf : Measurable f := by fun_prop
+  have hl : (((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod unitUniform).map
+      (Prod.map f id)) = (Measure.pi (fun _ : Fin n =&gt; ν)).prod unitUniform := by
+    rw [← Measure.map_prod_map _ _ hf measurable_id, Measure.map_id]
+    rw [iid_prefix_law]
+  have ha : MeasurableSet {p : (Fin n → A) × ℝ |
+      p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)} := by
+    apply measurableSet_le measurable_snd
+    fun_prop
+  have he := congrArg (fun ρ : Measure ((Fin n → A) × ℝ) =&gt;
+    ρ {p | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)}) hl
+  rw [Measure.map_apply (hf.prodMap measurable_id) ha] at he
+  exact he.trans (finite_uniform_acceptance ν W hW B hB hb n)</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-infin-a5ce08d3f4">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:228</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-actua-acf6e59ad9">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.actual_poisson_acceptance</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem actual_poisson_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 &lt; B) (hb : ∀ z, |W z| ≤ B) :
+    ((poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0)).prod
+      ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod unitUniform))
+      {p : ℕ × ((ℕ → A) × ℝ) |
+        p.2.2 ≤ ∏ i : Fin p.1, (B + W (p.2.1 i.val)) / (2 * B)} =
+      ENNReal.ofReal (Real.exp ((∫ z, W z ∂ν) - B)) := by
+  have hf : Measurable (fun p : ℕ × ((ℕ → A) × ℝ) =&gt;
+      ∏ i : Fin p.1, (B + W (p.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : (ℕ → A) × ℝ =&gt;
+      ∏ i : Fin n, (B + W (p.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  rw [Measure.prod_apply (measurableSet_le (by fun_prop) hf)]
+  calc
+    _ = ∫⁻ n, ((Measure.pi (fun _ : Fin n =&gt; ν)).prod unitUniform)
+        {p : (Fin n → A) × ℝ | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)}
+        ∂poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0) := by
+      apply lintegral_congr
+      intro n
+      exact (infinite_uniform_acceptance ν W hW B hB hb n).trans
+        (finite_uniform_acceptance ν W hW B hB hb n).symm
+    _ = _ := poisson_uniform_acceptance ν W hW B hB hb</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-actua-acf6e59ad9">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:249</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-actua-e922f9d677">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.actual_accepted_proposal</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem actual_accepted_proposal {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : X × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hB : 0 &lt; B) (hb : ∀ x z, |W (x,z)| ≤ B) :
+    Measure.map Prod.fst
+      ((μ.prod ((poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0)).prod
+        ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod unitUniform))).restrict
+        {p : X × (ℕ × ((ℕ → A) × ℝ)) |
+          p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)}) =
+      μ.withDensity (fun x =&gt; ENNReal.ofReal (Real.exp ((∫ z, W (x,z) ∂ν) - B))) := by
+  have hf : Measurable (fun p : ℕ × (X × ((ℕ → A) × ℝ)) =&gt;
+      ∏ i : Fin p.1, (B + W (p.2.1,p.2.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : X × ((ℕ → A) × ℝ) =&gt;
+      ∏ i : Fin n, (B + W (p.1,p.2.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  have hA : MeasurableSet {p : X × (ℕ × ((ℕ → A) × ℝ)) |
+      p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)} :=
+    measurableSet_le (by fun_prop) (hf.comp
+      (show Measurable (fun p : X × (ℕ × ((ℕ → A) × ℝ)) =&gt;
+        (p.2.1, (p.1, p.2.2))) by fun_prop))
+  ext s hs
+  rw [Measure.map_apply measurable_fst hs,
+    Measure.restrict_apply (hs.preimage measurable_fst),
+    Measure.prod_apply ((hs.preimage measurable_fst).inter hA),
+    withDensity_apply _ hs, ← lintegral_indicator hs]
+  apply lintegral_congr
+  intro x
+  by_cases hx : x ∈ s
+  · simpa [Set.preimage, hx] using actual_poisson_acceptance ν (fun z =&gt; W (x,z))
+      (hW.comp (by fun_prop)) B hB (hb x)
+  · simp [Set.preimage, hx]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-actua-e922f9d677">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:277</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-failu-35581683a2">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.failure_prefix_probability</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem failure_prefix_probability {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ =&gt; ν))
+      {ω | ∀ i &lt; n, ω i ∉ A} = (ν Aᶜ)^n := by
+  have he : {ω : ℕ → Y | ∀ i &lt; n, ω i ∉ A} =
+      Set.pi (Finset.range n) (fun _ =&gt; Aᶜ) := by
+    ext ω
+    simp
+  rw [he, Measure.infinitePi_pi _ (fun _ _ =&gt; hA.compl)]
+  simp</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-failu-35581683a2">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:313</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-0dc0755b0d">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.first_hit_submeasure</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem first_hit_submeasure {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A E : Set Y)
+    (hA : MeasurableSet A) (hE : MeasurableSet E) (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ =&gt; ν))
+      {ω | (∀ i &lt; n, ω i ∉ A) ∧ ω n ∈ E} = (ν Aᶜ)^n * ν E := by
+  classical
+  have he : {ω : ℕ → Y | (∀ i &lt; n, ω i ∉ A) ∧ ω n ∈ E} =
+      Set.pi (Finset.range (n+1)) (fun i =&gt; if i=n then E else Aᶜ) := by
+    ext ω
+    simp only [Set.mem_ofPred_eq, Set.mem_pi, Finset.mem_coe, Finset.mem_range]
+    constructor
+    · rintro ⟨h, hn⟩ i hi
+      by_cases hin : i=n
+      · simpa [hin] using hn
+      · simpa [hin] using h i (by omega)
+    · intro h
+      refine ⟨?_, ?_⟩
+      · intro i hi
+        simpa [show i≠n by omega] using h i (by omega)
+      · simpa using h n (by omega)
+  rw [he, Measure.infinitePi_pi _ (fun i _ =&gt; by split; exact hE; exact hA.compl)]
+  rw [Finset.prod_range_succ]
+  simp only [ite_true]
+  congr 1
+  calc
+    _ = ∏ _i ∈ Finset.range n, ν Aᶜ := by
+      apply Finset.prod_congr rfl
+      intro i hi
+      simp [show i≠n from Nat.ne_of_lt (Finset.mem_range.mp hi)]
+    _ = _ := by simp</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-0dc0755b0d">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:325</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-never-6f8926e4f0">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.never_hit_null</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem never_hit_null {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (hp : 0 &lt; ν A) :
+    (Measure.infinitePi (fun _ : ℕ =&gt; ν)) {ω | ∀ i, ω i ∉ A} = 0 := by
+  have hq : ν Aᶜ &lt; 1 := by
+    rw [prob_compl_eq_one_sub hA]
+    exact ENNReal.sub_lt_self (by simp) (by simp) hp.ne&#x27;
+  apply le_antisymm ?_ bot_le
+  apply le_of_tendsto_of_tendsto tendsto_const_nhds
+    (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hq)
+  apply Filter.Eventually.of_forall
+  intro n
+  dsimp only
+  rw [← failure_prefix_probability ν A hA n]
+  exact measure_mono (fun ω h i _ =&gt; h i)</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-never-6f8926e4f0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:356</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-a47c7551ab">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.firstOutput</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private noncomputable def firstOutput {Y X : Type*} (A : Set Y) (g : Y → X) (x₀ : X)
+    (ω : ℕ → Y) : X := by
+  classical
+  exact if h : ∃ n, ω n ∈ A then g (ω (Nat.find h)) else x₀</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-a47c7551ab">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:372</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-measu-12815c5cb0">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.measurable_firstOutput</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem measurable_firstOutput {Y X : Type*} [MeasurableSpace Y] [MeasurableSpace X]
+    (A : Set Y) (hA : MeasurableSet A) (g : Y → X) (hg : Measurable g) (x₀ : X) :
+    Measurable (firstOutput A g x₀) := by
+  classical
+  let S : Set (ℕ → Y) := {ω | ∃ n, ω n ∈ A}
+  have hS : MeasurableSet S := by
+    convert MeasurableSet.iUnion (fun n : ℕ =&gt; hA.preimage (measurable_pi_apply n)) using 1
+    ext ω
+    simp [S]
+  have hf : Measurable (fun ω : S =&gt; g (ω.val (Nat.find ω.property))) := by
+    apply Measurable.find (f := fun n (ω : S) =&gt; g (ω.val n))
+      (p := fun n (ω : S) =&gt; ω.val n ∈ A)
+    · intro n
+      exact hg.comp ((measurable_pi_apply n).comp measurable_subtype_coe)
+    · intro n
+      exact hA.preimage ((measurable_pi_apply n).comp measurable_subtype_coe)
+  exact hf.dite measurable_const hS</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-measu-12815c5cb0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:377</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-77b174b0be">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.firstOutput_on_hit</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem firstOutput_on_hit {Y X : Type*} (A : Set Y) (g : Y → X) (x₀ : X)
+    (ω : ℕ → Y) (n : ℕ) (hprev : ∀ i &lt; n, ω i ∉ A) (hn : ω n ∈ A) :
+    firstOutput A g x₀ ω = g (ω n) := by
+  classical
+  have h : ∃ i, ω i ∈ A := ⟨n, hn⟩
+  have hfind : Nat.find h = n := by
+    apply le_antisymm (Nat.find_min&#x27; h hn)
+    exact Nat.le_of_not_gt (fun hlt =&gt; hprev _ hlt (Nat.find_spec h))
+  simp [firstOutput, h, hfind]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-77b174b0be">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:395</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-e8d16c58a0">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.firstOutput_law</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem firstOutput_law {Y X : Type*} [MeasurableSpace Y] [MeasurableSpace X]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y) (hA : MeasurableSet A)
+    (hp : 0 &lt; ν A) (g : Y → X) (hg : Measurable g) (x₀ : X) :
+    (Measure.infinitePi (fun _ : ℕ =&gt; ν)).map (firstOutput A g x₀) =
+      (ν A)⁻¹ • (ν.restrict A).map g := by
+  classical
+  let ρ := Measure.infinitePi (fun _ : ℕ =&gt; ν)
+  have has : ∀ᵐ ω ∂ρ, ∃ n, ω n ∈ A := by
+    rw [ae_iff]
+    simpa only [not_exists] using never_hit_null ν A hA hp
+  ext s hs
+  let E : ℕ → Set (ℕ → Y) := fun n =&gt;
+    {ω | (∀ i &lt; n, ω i ∉ A) ∧ ω n ∈ A ∩ g ⁻¹&#x27; s}
+  have hm (n : ℕ) : MeasurableSet (E n) := by
+    dsimp [E]
+    measurability
+  have hd : Pairwise (fun n m =&gt; Disjoint (E n) (E m)) := by
+    intro n m hnm
+    apply Set.disjoint_left.2
+    intro ω hn hm
+    rcases lt_or_gt_of_ne hnm with hlt | hgt
+    · exact hm.1 n hlt hn.2.1
+    · exact hn.1 m hgt hm.2.1
+  have he : firstOutput A g x₀ ⁻¹&#x27; s =ᵐ[ρ] ⋃ n, E n := by
+    filter_upwards [has] with ω h
+    apply propext
+    constructor
+    · intro hx
+      apply Set.mem_iUnion.2
+      refine ⟨Nat.find h, ?_⟩
+      refine ⟨fun i hi =&gt; Nat.find_min h hi, Nat.find_spec h, ?_⟩
+      change firstOutput A g x₀ ω ∈ s at hx
+      simpa [firstOutput, h] using hx
+    · intro hx
+      obtain ⟨n, hn⟩ := Set.mem_iUnion.1 hx
+      change firstOutput A g x₀ ω ∈ s
+      rw [firstOutput_on_hit A g x₀ ω n hn.1 hn.2.1]
+      exact hn.2.2
+  rw [Measure.map_apply (measurable_firstOutput A hA g hg x₀) hs,
+    measure_congr he, measure_iUnion hd hm]
+  simp only [Measure.smul_apply, smul_eq_mul,
+    Measure.map_apply hg hs, Measure.restrict_apply (hs.preimage hg)]
+  calc
+    _ = ∑&#x27; n : ℕ, (ν Aᶜ)^n * ν (A ∩ g ⁻¹&#x27; s) := by
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-first-e8d16c58a0">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:405</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-survi-b5feb95f1e">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.surviving_current_law</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem surviving_current_law {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (n : ℕ) :
+    ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).restrict
+      {ω | ∀ i &lt; n, ω i ∉ A}).map (fun ω =&gt; ω n) = (ν Aᶜ)^n • ν := by
+  ext E hE
+  rw [Measure.map_apply (measurable_pi_apply n) hE,
+    Measure.restrict_apply (hE.preimage (measurable_pi_apply n))]
+  simp only [Measure.smul_apply, smul_eq_mul]
+  have he : (fun ω : ℕ → Y =&gt; ω n) ⁻¹&#x27; E ∩ {ω | ∀ i &lt; n, ω i ∉ A} =
+      {ω | (∀ i &lt; n, ω i ∉ A) ∧ ω n ∈ E} := by
+    ext ω
+    simp [and_comm]
+  rw [he]
+  exact first_hit_submeasure ν A E hA hE n</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-survi-b5feb95f1e">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:457</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-total-4668459238">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.totalCost</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private noncomputable def totalCost {Y : Type*} (A : Set Y) (c : Y → ℝ≥0∞)
+    (ω : ℕ → Y) : ℝ≥0∞ := by
+  classical
+  exact ∑&#x27; n : ℕ, if ∀ i &lt; n, ω i ∉ A then c (ω n) else 0</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-total-4668459238">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:473</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-expec-6f4ad40bb6">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.expected_totalCost</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem expected_totalCost {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (c : Y → ℝ≥0∞) (hc : Measurable c) :
+    ∫⁻ ω, totalCost A c ω ∂Measure.infinitePi (fun _ : ℕ =&gt; ν) =
+      (ν A)⁻¹ * ∫⁻ y, c y ∂ν := by
+  classical
+  let ρ := Measure.infinitePi (fun _ : ℕ =&gt; ν)
+  have hS (n : ℕ) : MeasurableSet {ω : ℕ → Y | ∀ i &lt; n, ω i ∉ A} := by
+    measurability
+  have hi (n : ℕ) :
+      ∫⁻ ω, (if ∀ i &lt; n, ω i ∉ A then c (ω n) else 0) ∂ρ =
+      (ν Aᶜ)^n * ∫⁻ y, c y ∂ν := by
+    have he : (fun ω : ℕ → Y =&gt; if ∀ i &lt; n, ω i ∉ A then c (ω n) else 0) =
+        Set.indicator {ω : ℕ → Y | ∀ i &lt; n, ω i ∉ A} (fun ω =&gt; c (ω n)) := by
+      funext ω
+      simp [Set.indicator]
+    rw [he]
+    rw [lintegral_indicator (hS n)]
+    rw [← lintegral_map hc (measurable_pi_apply n), surviving_current_law ν A hA n,
+      lintegral_smul_measure, smul_eq_mul]
+  change (∫⁻ ω, ∑&#x27; n : ℕ, if ∀ i &lt; n, ω i ∉ A then c (ω n) else 0 ∂ρ) = _
+  rw [lintegral_tsum]
+  · simp_rw [hi]
+    rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric,
+      ← prob_compl_eq_one_sub hA.compl, compl_compl]
+  · intro n
+    exact ((hc.comp (measurable_pi_apply n)).ite (hS n) measurable_const).aemeasurable</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-expec-6f4ad40bb6">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:478</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-bound-48b0c19c1b">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.bounded_acceptance_mass</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem bounded_acceptance_mass {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsProbabilityMeasure μ] (w : X → ℝ)
+    (B : ℝ) (hb : ∀ x, -B ≤ w x ∧ w x ≤ B) :
+    ENNReal.ofReal (Real.exp (-2 * B)) ≤
+      ∫⁻ x, ENNReal.ofReal (Real.exp (w x - B)) ∂μ ∧
+    (∫⁻ x, ENNReal.ofReal (Real.exp (w x - B)) ∂μ) ≤ 1 := by
+  constructor
+  · calc
+      _ = ∫⁻ _x, ENNReal.ofReal (Real.exp (-2 * B)) ∂μ := by simp
+      _ ≤ _ := lintegral_mono (fun x =&gt; ENNReal.ofReal_le_ofReal
+        (Real.exp_le_exp.mpr (by linarith [(hb x).1])))
+  · calc
+      _ ≤ ∫⁻ _x, (1 : ℝ≥0∞) ∂μ := lintegral_mono (fun x =&gt; by
+        rw [ENNReal.ofReal_le_one]
+        exact Real.exp_le_one_iff.mpr (by linarith [(hb x).2]))
+      _ = _ := by simp</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-bound-48b0c19c1b">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:506</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-norma-6fae6aa6c4">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.normalized_density_kernel</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem normalized_density_kernel {S X : Type*} [MeasurableSpace S] [MeasurableSpace X]
+    (Q : Kernel S X) [IsMarkovKernel Q] (f : S → X → ℝ≥0∞)
+    (hf : Measurable (Function.uncurry f))
+    (hp : ∀ s, 0 &lt; ∫⁻ x, f s x ∂Q s)
+    (hfin : ∀ s, (∫⁻ x, f s x ∂Q s) ≠ ∞) :
+    ∃ R : Kernel S X, IsMarkovKernel R ∧
+      ∀ s, R s = (∫⁻ x, f s x ∂Q s)⁻¹ • (Q s).withDensity (f s) := by
+  let p : S → ℝ≥0∞ := fun s =&gt; ∫⁻ x, f s x ∂Q s
+  have hm : Measurable p := hf.lintegral_kernel_prod_right
+  let F : S → X → ℝ≥0∞ := fun s x =&gt; (p s)⁻¹ * f s x
+  have hF : Measurable (Function.uncurry F) := (hm.inv.comp measurable_fst).mul hf
+  let R := Q.withDensity F
+  have he (s : S) : R s = (p s)⁻¹ • (Q s).withDensity (f s) := by
+    rw [Kernel.withDensity_apply Q hF]
+    exact withDensity_smul _ hf.of_uncurry_left
+  refine ⟨R, ?_, he⟩
+  constructor
+  intro s
+  constructor
+  rw [he, Measure.smul_apply, withDensity_apply _ MeasurableSet.univ,
+    setLIntegral_univ, smul_eq_mul]
+  exact ENNReal.inv_mul_cancel (hp s).ne&#x27; (hfin s)</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-norma-6fae6aa6c4">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:523</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-bound-8a425b3212">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.bounded_estimator_output_kernel</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem bounded_estimator_output_kernel {S X A : Type*}
+    [MeasurableSpace S] [MeasurableSpace X] [MeasurableSpace A]
+    (Q : Kernel S X) [IsMarkovKernel Q]
+    (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : (S × X) × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hb : ∀ s x z, |W ((s,x),z)| ≤ B) :
+    ∃ R : Kernel S X, IsMarkovKernel R ∧ ∀ s,
+      R s = (∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B)) ∂Q s)⁻¹ •
+        (Q s).withDensity (fun x =&gt; ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) := by
+  let w : S × X → ℝ := fun p =&gt; ∫ z, W (p,z) ∂ν
+  have hw : Measurable w := hW.stronglyMeasurable.integral_prod_right&#x27;.measurable
+  let f : S → X → ℝ≥0∞ := fun s x =&gt; ENNReal.ofReal (Real.exp (w (s,x) - B))
+  have hf : Measurable (Function.uncurry f) := by
+    exact (Real.measurable_exp.comp (hw.sub measurable_const)).ennreal_ofReal
+  have hbounds s := bounded_acceptance_mass (Q s) (fun x =&gt; w (s,x)) B (fun x =&gt; by
+    exact (bounded_estimator_mean ν (fun z =&gt; W ((s,x),z))
+      (hW.comp (by fun_prop)) B (hb s x)).2)
+  apply normalized_density_kernel Q f hf
+  · intro s
+    exact lt_of_lt_of_le (ENNReal.ofReal_pos.mpr (Real.exp_pos _)) (hbounds s).1
+  · intro s
+    exact ne_top_of_le_ne_top (by simp) (hbounds s).2</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-bound-8a425b3212">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:546</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-923ced07ad">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_nat_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem poisson_nat_mean (r : ℝ≥0) :
+    ∫⁻ n : ℕ, (n : ℝ≥0∞) ∂poissonMeasure r = (r : ℝ≥0∞) := by
+  let a : ℕ → ℝ := fun n =&gt; Real.exp (-(r : ℝ)) * (r : ℝ)^n / n.factorial * n
+  have hs : HasSum (fun n =&gt; a (n+1)) (r : ℝ) := by
+    convert! (hasSum_one_poissonMeasure r).mul_left (r : ℝ) using 1
+    · funext n
+      dsimp [a]
+      rw [pow_succ, Nat.factorial_succ, Nat.cast_mul, Nat.cast_add, Nat.cast_one]
+      field_simp
+    · simp
+  have ha : HasSum a (r : ℝ) := by
+    rw [← hasSum_nat_add_iff&#x27; 1]
+    simpa [a] using hs
+  have hi : Integrable (fun n : ℕ =&gt; (n : ℝ)) (poissonMeasure r) := by
+    apply integrable_poissonMeasure_iff.mpr
+    simpa [a] using ha.summable
+  have hm : ∫ n : ℕ, (n : ℝ) ∂poissonMeasure r = (r : ℝ) := by
+    rw [integral_poissonMeasure]
+    simpa [smul_eq_mul, a] using ha.tsum_eq
+  have he := ofReal_integral_eq_lintegral_ofReal hi
+    (Filter.Eventually.of_forall (fun n : ℕ =&gt; (Nat.cast_nonneg n : (0 : ℝ) ≤ n)))
+  rw [hm] at he
+  simpa using he.symm</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-923ced07ad">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:569</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-norma-e036484556">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.normalized_exp_tilt</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem normalized_exp_tilt {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsProbabilityMeasure μ] (w : X → ℝ) (hw : Measurable w)
+    (B : ℝ) (hb : ∀ x, w x ≤ B) :
+    (∫⁻ x, ENNReal.ofReal (Real.exp (w x - B)) ∂μ)⁻¹ •
+      μ.withDensity (fun x =&gt; ENNReal.ofReal (Real.exp (w x - B))) = μ.tilted w := by
+  have hi : Integrable (fun x =&gt; Real.exp (w x - B)) μ :=
+    (integrable_const (1 : ℝ)).mono&#x27; (by fun_prop)
+      (Filter.Eventually.of_forall (fun x =&gt; by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact Real.exp_le_one_iff.mpr (sub_nonpos.mpr (hb x))))
+  have he := ofReal_integral_eq_lintegral_ofReal hi
+    (Filter.Eventually.of_forall (fun x =&gt; (Real.exp_pos (w x - B)).le))
+  rw [← he, ← withDensity_smul _ (by fun_prop), Measure.tilted]
+  congr 1
+  funext x
+  change (ENNReal.ofReal (∫ y, Real.exp (w y - B) ∂μ))⁻¹ *
+    ENNReal.ofReal (Real.exp (w x - B)) = _
+  rw [mul_comm, ← div_eq_mul_inv, ← ENNReal.ofReal_div_of_pos (integral_exp_pos hi)]
+  · congr 1
+    simp_rw [Real.exp_sub]
+    rw [integral_div]
+    exact div_div_div_cancel_right₀ (ne_of_gt (Real.exp_pos B)) _ _</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-norma-e036484556">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:593</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-attem-82a04ccdb9">
+  <summary><span class="kind">abbrev</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.Attempt</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-attem-82a04ccdb9">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:616</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-attem-b508801f2f">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.attemptLaw</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private noncomputable def attemptLaw {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) (ν : Measure A) [IsProbabilityMeasure ν] (r : ℝ≥0) :
+    Measure (Attempt X A) :=
+  μ.prod ((poissonMeasure r).prod
+    ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod unitUniform))
+
+private instance {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) [IsProbabilityMeasure μ] (ν : Measure A) [IsProbabilityMeasure ν]
+    (r : ℝ≥0) : IsProbabilityMeasure (attemptLaw μ ν r) := by
+  unfold attemptLaw
+  infer_instance</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-attem-b508801f2f">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:618</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-accep-39494bc1ca">
+  <summary><span class="kind">def</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.accepted</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)}</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-accep-39494bc1ca">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:630</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-measu-cfa7403180">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.measurable_accepted</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem measurable_accepted {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (W : X × A → ℝ) (hW : Measurable W) (B : ℝ) : MeasurableSet (accepted W B) := by
+  have hf : Measurable (fun p : ℕ × (X × ((ℕ → A) × ℝ)) =&gt;
+      ∏ i : Fin p.1, (B + W (p.2.1,p.2.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : X × ((ℕ → A) × ℝ) =&gt;
+      ∏ i : Fin n, (B + W (p.1,p.2.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  exact measurableSet_le (by fun_prop) (hf.comp
+    (show Measurable (fun p : Attempt X A =&gt; (p.2.1, (p.1,p.2.2))) by fun_prop))</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-measu-cfa7403180">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:633</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-attem-cbe9515370">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.attempt_count_mean</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem attempt_count_mean {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) [IsProbabilityMeasure μ] (ν : Measure A) [IsProbabilityMeasure ν]
+    (r : ℝ≥0) : ∫⁻ p : Attempt X A, (p.2.1 : ℝ≥0∞) ∂attemptLaw μ ν r = r := by
+  unfold attemptLaw
+  rw [lintegral_prod _ (by fun_prop)]
+  simp only [lintegral_const, measure_univ, mul_one]
+  rw [lintegral_prod _ (by fun_prop)]
+  simp [poisson_nat_mean]</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-attem-cbe9515370">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:647</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-0ec003d725">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_rejection_output</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary><p data-lesson-link="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_rejection_output"><a href="../lessons/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poisson-rejection-output-fa531727bf0b.html">Read the complete mathematical statement and proof, with Lean below each</a></p>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">theorem poisson_rejection_output {S X A : Type*}
+    [MeasurableSpace S] [MeasurableSpace X] [MeasurableSpace A]
+    (Q : Kernel S X) [IsMarkovKernel Q] (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : (S × X) × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hB : 0 &lt; B) (hb : ∀ s x z, |W ((s,x),z)| ≤ B) (x₀ : X) :
+    let Λ := fun s =&gt; attemptLaw (Q s) ν (⟨2 * B, by positivity⟩ : ℝ≥0)
+    let E := fun s =&gt; accepted (fun p : X × A =&gt; W ((s,p.1),p.2)) B
+    let ρ := fun s =&gt; Measure.infinitePi (fun _ : ℕ =&gt; Λ s)
+    let out := fun s =&gt; firstOutput (E s) Prod.fst x₀
+    ∃ R : Kernel S X, IsMarkovKernel R ∧ ∀ s,
+      Measurable (out s) ∧ (ρ s).map (out s) = R s ∧
+      R s = (Q s).tilted (fun x =&gt; ∫ z, W ((s,x),z) ∂ν) ∧
+      (∀ x, ((poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0)).prod
+        ((Measure.infinitePi (fun _ : ℕ =&gt; ν)).prod unitUniform))
+        {p : ℕ × ((ℕ → A) × ℝ) |
+          p.2.2 ≤ ∏ i : Fin p.1, (B + W ((s,x),p.2.1 i.val)) / (2 * B)} =
+        ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) ∧
+      ((Λ s).restrict (E s)).map Prod.fst = (Q s).withDensity
+        (fun x =&gt; ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) ∧
+      Λ s (E s) = (∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B)) ∂Q s) ∧
+      ρ s {ω | ∀ n, ω n ∉ E s} = 0 ∧
+      (∀ n, ρ s {ω | ∀ i &lt; n, ω i ∉ E s} = (1 - Λ s (E s))^n) ∧
+      ENNReal.ofReal (Real.exp (-2 * B)) ≤ Λ s (E s) ∧
+      (∫⁻ ω, totalCost (E s) (fun p =&gt; (p.2.1 : ℝ≥0∞)) ω ∂ρ s) =
+        (Λ s (E s))⁻¹ * ENNReal.ofReal (2 * B) ∧
+      (∫⁻ ω, totalCost (E s) (fun p =&gt; (p.2.1 : ℝ≥0∞)) ω ∂ρ s) ≤
+        ENNReal.ofReal (2 * B * Real.exp (2 * B)) := by
+  dsimp only
+  let r : ℝ≥0 := ⟨2 * B, by positivity⟩
+  let Λ := fun s =&gt; attemptLaw (Q s) ν r
+  let E := fun s =&gt; accepted (fun p : X × A =&gt; W ((s,p.1),p.2)) B
+  obtain ⟨R, hR, hReq⟩ := bounded_estimator_output_kernel Q ν W hW B hb
+  refine ⟨R, hR, ?_⟩
+  intro s
+  have hWs : Measurable (fun p : X × A =&gt; W ((s,p.1),p.2)) := hW.comp (by fun_prop)
+  have hE : MeasurableSet (E s) := measurable_accepted _ hWs B
+  have ha := actual_accepted_proposal (Q s) ν _ hWs B hB (hb s)
+  change ((Λ s).restrict (E s)).map Prod.fst =
+    (Q s).withDensity (fun x =&gt; ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) at ha
+  have hp : Λ s (E s) =
+      ∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B)) ∂Q s := by
+    have ht := congrArg (fun μ : Measure X =&gt; μ Set.univ) ha
+    simpa [Measure.map_apply measurable_fst MeasurableSet.univ,
+      withDensity_apply, Λ, E, attemptLaw, accepted, r] using ht
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-poissonrejection-poiss-0ec003d725">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PoissonRejection.lean:656</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details></div></section>
+</main>
+      <footer>
+        <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>
+        <p><a href="../contribute/index.html">Contribute</a> · <a href="../attribution/index.html">Attribution</a> · <a href="../maintenance.html">Build and maintenance</a> · generated from Lean source, route metadata, and gate evidence.</p>
+      </footer>
+    </div>
+  </div>
+  <script src="../assets/site.js"></script>
+  
+  <script>try{localStorage.setItem("samplinglib-lean-language","en");}catch(e){}</script>
+  <script defer src="../assets/module-lean-tutor.js"></script>
+</body>
+</html>

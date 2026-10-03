@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "purpose": "Student-facing rigorous derivations that expand Chewi's Chapter 1 source statements without changing their provenance or completion status.",
+  "entries": [
+    {
+      "id": "chewi-1-1-13-rigorous-localization",
+      "source_item": "1.1.13",
+      "title": "Proposition 1.1.13 — canonical localization, with the hidden measure theory exposed",
+      "declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem.chewi_proposition_1_1_13",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.canonicalEnergyLocalizer",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization.IsLocalizingSequence"
+      ],
+      "scope_note": "This is an ASTIS rigorous expansion of Chewi's localization argument. It proves the localization component itself; Proposition 1.1.16 additionally needs random-stopping consistency and cross-horizon gluing, which are now compiled in a separate source-facing route.",
+      "formula_latex": [
+        "\\[A_t(\\omega)=\\int_0^{t\\wedge T}|\\eta_s(\\omega)|^2\\,ds.\\]",
+        "\\[N=\\left\\{\\omega:\\int_0^T|\\eta_s(\\omega)|^2\\,ds=\\infty\\right\\},\\qquad \\mu(N)=0.\\]",
+        "\\[\\widehat A_t(\\omega)=\\begin{cases}0,&\\omega\\in N,\\\\ A_t(\\omega),&\\omega\\notin N.\\end{cases}\\]",
+        "\\[E_c(\\omega)=\\{t\\in[0,T]:\\widehat A_t(\\omega)=c\\},\\qquad \\tau_c(\\omega)=\\begin{cases}\\inf E_c(\\omega),&E_c(\\omega)\\neq\\varnothing,\\\\T,&E_c(\\omega)=\\varnothing.\\end{cases}\\]",
+        "\\[\\tau_c\\le t\\quad\\Longleftrightarrow\\quad T\\le t\\ \\text{ or }\\ c\\le\\widehat A_t.\\]",
+        "\\[\\eta_s^{(c)}=\\widehat\\eta_s\\,\\mathbf 1_{\\{\\widehat A_s<c\\}},\\qquad \\int_0^T|\\eta_s^{(c)}|^2\\,ds=\\widehat A_{\\tau_c}\\le c.\\]",
+        "\\[\\tau_n:=\\tau_{n+1},\\qquad \\tau_n\\uparrow T,\\qquad \\int_0^T|\\eta_s^{(n+1)}|^2\\,ds\\le n+1.\\]"
+      ],
+      "proof_steps": [
+        {
+          "title": "1. Complete the exceptional set instead of ignoring it",
+          "body": "Local square integrability is only almost sure. The bad set N has measure zero, but a stopping-time proof needs a representative defined at every sample point. Under the usual completeness condition, N belongs to every time sigma-algebra. ASTIS replaces the bad energy paths by the zero path, producing a fixed-time measurable representative whose path is continuous and monotone for every omega.",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompletedEnergy.measure_badEnergySet_zero",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompletedEnergy.measurableSet_badEnergySet",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompletedEnergy.continuous_completedEnergy",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompletedEnergy.monotone_completedEnergy"
+          ]
+        },
+        {
+          "title": "2. Use an equality-level set, not a vague first crossing",
+          "body": "For c>=0, continuity makes E_c closed. If the level is reached, the infimum of E_c is therefore itself a member of E_c. If the level is never reached, tau_c is defined to be T. This exact equality-level construction is what later prevents an overshoot in the stopped energy.",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.isClosed_energyLevelSet",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.canonicalEnergyLocalizer_mem",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.canonicalEnergyLocalizer_le_terminal"
+          ]
+        },
+        {
+          "title": "3. The intermediate value theorem supplies the missing hitting time",
+          "body": "Suppose c<=Ahat_t and t<=T. Since Ahat_0=0<=c and the completed energy path is continuous, the intermediate value theorem yields s in [0,t] with Ahat_s=c. This is the analytic step hidden inside the usual informal phrase 'first time the energy reaches c'.",
+          "formula_latex": "\\[0=\\widehat A_0\\le c\\le\\widehat A_t\\quad\\Longrightarrow\\quad\\exists s\\in[0,t],\\ \\widehat A_s=c.\\]",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.exists_level_time_of_le"
+          ]
+        },
+        {
+          "title": "4. Turn the analytic definition into a stopping-time event",
+          "body": "The key equivalence tau_c<=t iff T<=t or c<=Ahat_t converts an infimum-defined random time into a fixed-time threshold event. When t<T the deterministic alternative disappears, so measurability follows from fixed-time measurability of Ahat_t. This is the filtration-level reason tau_c is a stopping time.",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.canonicalEnergyLocalizer_le_iff",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.measurableSet_canonicalEnergyLocalizer_le",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyStoppingTime.canonicalLocalizingTime_isChewiStoppingTime"
+          ]
+        },
+        {
+          "title": "5. Prove no overshoot, including the fallback case",
+          "body": "If E_c is nonempty, Ahat_{tau_c}=c because tau_c belongs to the equality-level set. If E_c is empty and Ahat_T were larger than c, continuity would force an equality-level time, contradiction. Hence Ahat_{tau_c}<=c in both cases.",
+          "formula_latex": "\\[E_c\\neq\\varnothing\\Rightarrow\\widehat A_{\\tau_c}=c,\\qquad E_c=\\varnothing\\Rightarrow\\widehat A_T<c,\\qquad\\therefore\\quad\\widehat A_{\\tau_c}\\le c.\\]",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.completedEnergy_at_canonical_eq_of_nonempty",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.completedEnergy_at_canonical_le"
+          ]
+        },
+        {
+          "title": "6. Stop the integrand progressively and identify its exact energy",
+          "body": "ASTIS stops the completed integrand using the observable threshold Ahat_s<c. Before T, continuity and monotonicity prove Ahat_s<c iff s<tau_c. The single endpoint s=T is null for the time measure, so the time integral of the stopped square is exactly Ahat_{tau_c}, and is therefore at most c.",
+          "formula_latex": "\\[s<T:\\quad\\widehat A_s<c\\iff s<\\tau_c,\\qquad \\int_0^T|\\eta_s^{(c)}|^2ds=\\widehat A_{\\tau_c}\\le c.\\]",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedIntegrand.energyStoppedIntegrand_stronglyProgressive",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedIntegrand.completedEnergy_lt_iff_lt_canonicalEnergyLocalizer",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedIntegrand.integral_energyStoppedIntegrand_sq",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedIntegrand.integral_energyStoppedIntegrand_sq_le"
+          ]
+        },
+        {
+          "title": "7. Choose c=n+1 and show the sequence exhausts the horizon",
+          "body": "Higher energy levels cannot be hit earlier. For each completed path, the terminal energy is a finite real number; once n+1 exceeds it, the equality-level set is empty and tau_n=T. Thus tau_n is increasing and is eventually exactly T pathwise, hence converges to T. Under a probability law, the pathwise bound also gives the global product-L2 integrability needed by the Itô map.",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.canonicalLocalizingTime_mono",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.canonicalLocalizingTime_eventually_eq_terminal",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer.tendsto_canonicalLocalizingTime",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem.chewi_proposition_1_1_13"
+          ]
+        }
+      ],
+      "subtle_points": [
+        "The completion step is mathematically substantive: an almost-surely continuous energy path is not enough for defining a stopping time pointwise on every omega.",
+        "Using the equality-level set plus continuity is what proves no overshoot. A raw infimum of a strict crossing set needs a separate boundary argument.",
+        "The thresholded integrand is defined by Ahat_s<c because this event is progressive/measurable. Its equality with stopping before tau_c is then proved, not assumed.",
+        "The terminal point T is discarded only inside a time integral, where the singleton has zero Lebesgue measure; it is not silently removed from pointwise statements."
+      ]
+    },
+    {
+      "id": "chewi-1-1-14-stopped-global-ito",
+      "source_item": "1.1.14",
+      "title": "Display (1.1.14) — why every energy truncation is an honest continuous martingale",
+      "declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.chewi_display_1_1_14",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.canonicalStoppedItoProcess"
+      ],
+      "scope_note": "This display applies the already-constructed global L2 Ito integral to the canonical energy truncation. The display itself gives deterministic-time restriction compatibility, not arbitrary random-stopping consistency; that extra bridge belongs to Proposition 1.1.16 and is now compiled separately.",
+      "formula_latex": [
+        "\\[\\eta_s^{(n)}:=\\widehat\\eta_s\\,\\mathbf 1_{\\{\\widehat A_s<n+1\\}},\\qquad \\int_0^T|\\eta_s^{(n)}|^2ds\\le n+1.\\]",
+        "\\[M_t^{(n)}:=\\int_0^t\\eta_s^{(n)}\\,dB_s.\\]",
+        "\\[M_t^{(n)}=I_T\\big((\\eta^{(n)})\\vert_{[0,t]}\\big)\\quad\\mu\\text{-a.s.},\\qquad 0\\le t\\le T.\\]"
+      ],
+      "proof_steps": [
+        {
+          "title": "1. Proposition 1.1.13 converts local L2 into global L2",
+          "body": "The pathwise energy bound at level n+1 makes the stopped integrand square integrable on Omega x [0,T] under a probability measure. This is the exact hypothesis needed by the global Itô construction already formalized in Theorem 1.1.8.",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem.canonicalStoppedProgressiveL2",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem.chewi_proposition_1_1_13"
+          ]
+        },
+        {
+          "title": "2. Reuse the global Itô map; do not invent a second integral",
+          "body": "canonicalStoppedItoProcess is literally itoIntegralProcess applied to canonicalStoppedProgressiveL2. Therefore strong adaptedness, the martingale property, and continuous paths are inherited from the global L2 theory rather than reproved by an unrelated construction.",
+          "formula_latex": "\\[\\eta^{(n)}\\in L^2_{\\mathrm{prog}}(\\Omega\\times[0,T])\\quad\\Longrightarrow\\quad M^{(n)}=I(\\eta^{(n)})\\text{ is an adapted continuous martingale}.\\]",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.canonicalStoppedItoProcess",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.canonicalStoppedItoProcess_stronglyAdapted",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.canonicalStoppedItoProcess_martingale",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.canonicalStoppedItoProcess_continuousOn"
+          ]
+        },
+        {
+          "title": "3. Deterministic-time restriction compatibility",
+          "body": "At each deterministic t<=T, the process value agrees almost surely with the terminal L2 Itô integral of the same stopped integrand restricted to [0,t]. This gives a single coherent process-level version rather than unrelated L2 random variables at each time.",
+          "lean_nodes": [
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.canonicalStoppedItoProcess_at_eq_terminal",
+            "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral.chewi_display_1_1_14"
+          ]
+        }
+      ],
+      "subtle_points": [
+        "An energy-truncated integrand being globally L2 is enough to construct M^(n), but it is not yet the statement M_{t wedge tau_n}=M_t^(n).",
+        "For a random tau inside an elementary grid cell, the final Brownian increment must be cut at tau; multiplying the whole cell coefficient by 1_{t_i<tau} alone does not prove the stochastic-integral stopping identity.",
+        "The required grid-valued stopping, dyadic approximation, L2/continuous-path passage, stopping-graph nullity, cross-horizon overlap, and pathwise gluing steps are now compiled and assembled in Proposition 1.1.16."
+      ]
+    }
+  ]
+}

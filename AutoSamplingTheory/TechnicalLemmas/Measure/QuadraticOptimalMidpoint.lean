@@ -10,8 +10,8 @@ transport objective is a lower Lebesgue integral, hence linear in the measure.
 Therefore the midpoint of two optimal couplings with the same marginals is
 again optimal.
 
-This is the optimization-theoretic input for Brenier uniqueness.  No convex
-potential or graph theorem is used here.
+This is the optimization-theoretic input for Brenier uniqueness. No convex
+potential, differentiability, or graph theorem is used here.
 -/
 
 namespace AutoSamplingTheory
@@ -34,7 +34,8 @@ noncomputable def midpointMeasure (gamma₀ gamma₁ : Measure (E × E)) : Measu
 
 private theorem inv_two_add_inv_two :
     (2 : ℝ≥0∞)⁻¹ + (2 : ℝ≥0∞)⁻¹ = 1 := by
-  norm_num
+  rw [← two_mul]
+  exact ENNReal.mul_inv_cancel (by norm_num) (by norm_num)
 
 /-- Couplings with common marginals are closed under the arithmetic midpoint. -/
 theorem isCoupling_midpoint
@@ -43,11 +44,13 @@ theorem isCoupling_midpoint
     (h₁ : IsCoupling gamma₁ mu₀ mu₁) :
     IsCoupling (midpointMeasure gamma₀ gamma₁) mu₀ mu₁ := by
   constructor
-  · rw [Measure.fst]
-    simp only [midpointMeasure, Measure.map_add, Measure.map_smul, h₀.1, h₁.1]
+  · rw [Measure.fst, midpointMeasure,
+      Measure.map_add _ _ measurable_fst]
+    simp only [Measure.map_smul, h₀.1, h₁.1]
     rw [← add_smul, inv_two_add_inv_two, one_smul]
-  · rw [Measure.snd]
-    simp only [midpointMeasure, Measure.map_add, Measure.map_smul, h₀.2, h₁.2]
+  · rw [Measure.snd, midpointMeasure,
+      Measure.map_add _ _ measurable_snd]
+    simp only [Measure.map_smul, h₀.2, h₁.2]
     rw [← add_smul, inv_two_add_inv_two, one_smul]
 
 /-- The lower integral of any nonnegative function over a midpoint measure is

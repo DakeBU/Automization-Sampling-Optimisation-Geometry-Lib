@@ -93,304 +93,370 @@
     <div class="site-stage">
       <div class="verification-strip unverified">
         <span><strong>Lean gate not recorded for this source state</strong></span>
-        <span>codex/generalized-prerequisites · f4319026d92b</span>
+        <span>codex/generalized-prerequisites · 88620fabd1a2</span>
       </div>
       <main id="content"><h1>Exact source context</h1><pre><span id="L1">import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariation</span>
-<span id="L2">import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GaussianFourthMoment</span>
-<span id="L3">import Mathlib.Probability.Moments.Variance</span>
-<span id="L4">import Mathlib.Tactic</span>
-<span id="L5"></span>
-<span id="L6">/-!</span>
-<span id="L7"># Brownian quadratic variation in `L²`</span>
-<span id="L8"></span>
-<span id="L9">This module upgrades the finite-grid mean identity for Brownian quadratic</span>
-<span id="L10">variation to an exact mean-square identity.  For a deterministic monotone grid</span>
-<span id="L11">`t₀ ≤ ⋯ ≤ tₙ`, the compensated error</span>
-<span id="L12"></span>
-<span id="L13">`Q = ∑ᵢ ((B(tᵢ₊₁) - B(tᵢ))² - (tᵢ₊₁ - tᵢ))`</span>
-<span id="L14"></span>
-<span id="L15">satisfies `E[Q²] = 2 ∑ᵢ (tᵢ₊₁ - tᵢ)²`.  The proof uses the</span>
-<span id="L16">Gaussian fourth moment and independence of disjoint Brownian increments.  A</span>
-<span id="L17">mesh bound is then immediate and is the reusable analytic input for dyadic</span>
-<span id="L18">quadratic-variation convergence.</span>
-<span id="L19">-/</span>
-<span id="L20"></span>
-<span id="L21">namespace AutoSamplingTheory</span>
-<span id="L22">namespace TechnicalLemmas</span>
-<span id="L23">namespace StochasticProcesses</span>
-<span id="L24">namespace BrownianQuadraticVariationL2</span>
-<span id="L25"></span>
-<span id="L26">open MeasureTheory ProbabilityTheory Set</span>
-<span id="L27">open scoped BigOperators NNReal</span>
-<span id="L28"></span>
-<span id="L29">open BrownianMotion BrownianQuadraticVariation GaussianFourthMoment</span>
-<span id="L30"></span>
-<span id="L31">variable {Omega : Type*} {m : MeasurableSpace Omega}</span>
-<span id="L32">  {mu : Measure Omega} {B : ℝ≥0 → Omega → ℝ}</span>
-<span id="L33"></span>
-<span id="L34">/-- A future Brownian increment has the centered Gaussian law with variance</span>
-<span id="L35">equal to the elapsed time. -/</span>
-<span id="L36">private theorem increment_hasLaw</span>
-<span id="L37">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L38">    (s t : ℝ≥0) :</span>
-<span id="L39">    HasLaw (fun omega =&gt; B t omega - B s omega)</span>
-<span id="L40">      (gaussianReal 0 (nndist (t : ℝ) (s : ℝ))) mu := by</span>
-<span id="L41">  have h := hB.hasLaw_sub t s</span>
-<span id="L42">  convert h using 1</span>
-<span id="L43">  · ext omega</span>
-<span id="L44">    rfl</span>
-<span id="L45">  · rfl</span>
-<span id="L46"></span>
-<span id="L47">private theorem coe_nndist_eq_elapsed {s t : ℝ≥0} (hst : s ≤ t) :</span>
-<span id="L48">    ((nndist (t : ℝ) (s : ℝ) : ℝ≥0) : ℝ) = ((t - s : ℝ≥0) : ℝ) := by</span>
-<span id="L49">  rw [coe_nndist, Real.dist_eq, abs_of_nonneg]</span>
-<span id="L50">  · exact (NNReal.coe_sub hst).symm</span>
-<span id="L51">  · exact sub_nonneg.mpr (by exact_mod_cast hst)</span>
-<span id="L52"></span>
-<span id="L53">/-- Fourth moment of one Brownian increment. -/</span>
-<span id="L54">private theorem integral_increment_pow_four</span>
-<span id="L55">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L56">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
-<span id="L57">    ∫ omega, (B t omega - B s omega) ^ 4 ∂mu =</span>
-<span id="L58">      3 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
-<span id="L59">  calc</span>
-<span id="L60">    ∫ omega, (B t omega - B s omega) ^ 4 ∂mu =</span>
-<span id="L61">        ∫ x : ℝ, x ^ 4 ∂(gaussianReal 0 (nndist (t : ℝ) (s : ℝ))) := by</span>
-<span id="L62">      simpa only [Function.comp_apply] using</span>
-<span id="L63">        (increment_hasLaw hB s t).integral_comp</span>
-<span id="L64">          (f := fun x : ℝ =&gt; x ^ 4) (by fun_prop)</span>
-<span id="L65">    _ = 3 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
-<span id="L66">      rw [integral_pow_four_gaussianReal_zero, coe_nndist_eq_elapsed hst]</span>
-<span id="L67"></span>
-<span id="L68">/-- Second moment of one Brownian increment, derived only from its Gaussian</span>
-<span id="L69">law. -/</span>
-<span id="L70">private theorem integral_increment_sq</span>
-<span id="L71">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L72">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
-<span id="L73">    ∫ omega, (B t omega - B s omega) ^ 2 ∂mu =</span>
-<span id="L74">      ((t - s : ℝ≥0) : ℝ) := by</span>
-<span id="L75">  have htransport :</span>
-<span id="L76">      ∫ omega, (B t omega - B s omega) ^ 2 ∂mu =</span>
-<span id="L77">        ∫ x : ℝ, x ^ 2 ∂(gaussianReal 0 (nndist (t : ℝ) (s : ℝ))) := by</span>
-<span id="L78">    simpa only [Function.comp_apply] using</span>
-<span id="L79">      (increment_hasLaw hB s t).integral_comp</span>
-<span id="L80">        (f := fun x : ℝ =&gt; x ^ 2) (by fun_prop)</span>
-<span id="L81">  have hv := variance_fun_id_gaussianReal</span>
-<span id="L82">    (μ := (0 : ℝ)) (v := nndist (t : ℝ) (s : ℝ))</span>
-<span id="L83">  rw [variance_of_integral_eq_zero (by fun_prop)</span>
-<span id="L84">      (integral_id_gaussianReal (μ := (0 : ℝ))</span>
-<span id="L85">        (v := nndist (t : ℝ) (s : ℝ)))] at hv</span>
-<span id="L86">  exact htransport.trans (by simpa [coe_nndist_eq_elapsed hst] using hv)</span>
-<span id="L87"></span>
-<span id="L88">/-- A Brownian increment is square-integrable under the pre-Brownian</span>
-<span id="L89">contract. -/</span>
-<span id="L90">private theorem increment_sq_integrable</span>
-<span id="L91">    (hB : IsPreBrownianReal B mu) (s t : ℝ≥0) :</span>
-<span id="L92">    Integrable (fun omega =&gt; (B t omega - B s omega) ^ 2) mu := by</span>
-<span id="L93">  have hmem : MemLp (fun omega =&gt; B t omega - B s omega) 2 mu :=</span>
-<span id="L94">    hB.isGaussianProcess.hasGaussianLaw_fun_sub.memLp_two</span>
-<span id="L95">  exact hmem.integrable_sq</span>
-<span id="L96"></span>
-<span id="L97">/-- The compensated squared increment has mean zero. -/</span>
-<span id="L98">private theorem integral_centered_increment_sq_eq_zero</span>
-<span id="L99">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L100">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
-<span id="L101">    ∫ omega,</span>
-<span id="L102">        ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ∂mu = 0 := by</span>
-<span id="L103">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
-<span id="L104">  rw [integral_sub (increment_sq_integrable hB s t) (integrable_const _),</span>
-<span id="L105">    integral_increment_sq hB hst, integral_const]</span>
-<span id="L106">  simp</span>
-<span id="L107"></span>
-<span id="L108">/-- A compensated squared Brownian increment is square-integrable. -/</span>
-<span id="L109">private theorem centered_increment_sq_memLp_two</span>
-<span id="L110">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L111">    (s t : ℝ≥0) :</span>
-<span id="L112">    MemLp</span>
-<span id="L113">      (fun omega =&gt;</span>
-<span id="L114">        (B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ))</span>
-<span id="L115">      2 mu := by</span>
-<span id="L116">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
-<span id="L117">  let X : Omega → ℝ := fun omega =&gt; B t omega - B s omega</span>
-<span id="L118">  let d : ℝ := ((t - s : ℝ≥0) : ℝ)</span>
-<span id="L119">  have hX4 : Integrable (fun omega =&gt; X omega ^ 4) mu := by</span>
-<span id="L120">    have hX : MemLp X 4 mu :=</span>
-<span id="L121">      hB.isGaussianProcess.hasGaussianLaw_fun_sub.memLp (p := 4) (by norm_num)</span>
-<span id="L122">    have hnorm := hX.integrable_norm_pow&#x27; (p := 4)</span>
-<span id="L123">    exact hnorm.congr (ae_of_all mu fun omega =&gt; by</span>
-<span id="L124">      simp only [Real.norm_eq_abs]</span>
-<span id="L125">      rw [← abs_pow]</span>
-<span id="L126">      exact abs_of_nonneg (by positivity))</span>
-<span id="L127">  have hX2 : Integrable (fun omega =&gt; X omega ^ 2) mu :=</span>
-<span id="L128">    increment_sq_integrable hB s t</span>
-<span id="L129">  have hincmeas : AEStronglyMeasurable</span>
-<span id="L130">      (fun omega =&gt; B t omega - B s omega) mu :=</span>
-<span id="L131">    (hB.aemeasurable t).aestronglyMeasurable.sub</span>
-<span id="L132">      (hB.aemeasurable s).aestronglyMeasurable</span>
-<span id="L133">  have hmeas : AEStronglyMeasurable</span>
-<span id="L134">      (fun omega =&gt;</span>
-<span id="L135">        (B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) mu :=</span>
-<span id="L136">    (hincmeas.pow 2).sub aestronglyMeasurable_const</span>
-<span id="L137">  apply (memLp_two_iff_integrable_sq hmeas).2</span>
-<span id="L138">  have hpoly : (fun omega =&gt; (X omega ^ 2 - d) ^ 2) =</span>
-<span id="L139">      fun omega =&gt; X omega ^ 4 - (2 * d) * X omega ^ 2 + d ^ 2 := by</span>
-<span id="L140">    funext omega</span>
-<span id="L141">    ring</span>
-<span id="L142">  rw [hpoly]</span>
-<span id="L143">  exact (hX4.sub (hX2.const_mul _)).add (integrable_const _)</span>
-<span id="L144"></span>
-<span id="L145">/-- Exact second moment of one compensated squared Brownian increment. -/</span>
-<span id="L146">private theorem integral_centered_increment_sq_sq</span>
-<span id="L147">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L148">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
-<span id="L149">    ∫ omega,</span>
-<span id="L150">        ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ^ 2 ∂mu =</span>
-<span id="L151">      2 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
-<span id="L152">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
-<span id="L153">  have h4 := integral_increment_pow_four hB hst</span>
-<span id="L154">  have h2 := integral_increment_sq hB hst</span>
-<span id="L155">  have h4int : Integrable (fun omega =&gt; (B t omega - B s omega) ^ 4) mu := by</span>
-<span id="L156">    have hmem : MemLp (fun omega =&gt; B t omega - B s omega) 4 mu :=</span>
-<span id="L157">      hB.isGaussianProcess.hasGaussianLaw_fun_sub.memLp (p := 4) (by norm_num)</span>
-<span id="L158">    have hn := hmem.integrable_norm_pow&#x27; (p := 4)</span>
-<span id="L159">    exact hn.congr (ae_of_all mu fun omega =&gt; by</span>
-<span id="L160">      simp only [Real.norm_eq_abs]</span>
-<span id="L161">      rw [← abs_pow]</span>
-<span id="L162">      exact abs_of_nonneg (by positivity))</span>
-<span id="L163">  have h2int := (increment_sq_integrable hB s t).const_mul</span>
-<span id="L164">    (2 * ((t - s : ℝ≥0) : ℝ))</span>
-<span id="L165">  have hcint : Integrable (fun _ : Omega =&gt; ((t - s : ℝ≥0) : ℝ) ^ 2) mu :=</span>
-<span id="L166">    integrable_const _</span>
-<span id="L167">  rw [show (fun omega =&gt;</span>
-<span id="L168">      ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ^ 2) =</span>
-<span id="L169">      fun omega =&gt; (B t omega - B s omega) ^ 4 -</span>
-<span id="L170">        (2 * ((t - s : ℝ≥0) : ℝ)) *</span>
-<span id="L171">          (B t omega - B s omega) ^ 2 +</span>
-<span id="L172">        ((t - s : ℝ≥0) : ℝ) ^ 2 by</span>
-<span id="L173">      funext omega</span>
-<span id="L174">      ring]</span>
-<span id="L175">  calc</span>
-<span id="L176">    ∫ omega, (B t omega - B s omega) ^ 4 -</span>
-<span id="L177">          (2 * ((t - s : ℝ≥0) : ℝ)) * (B t omega - B s omega) ^ 2 +</span>
-<span id="L178">          ((t - s : ℝ≥0) : ℝ) ^ 2 ∂mu =</span>
-<span id="L179">        (∫ omega, (B t omega - B s omega) ^ 4 ∂mu) -</span>
-<span id="L180">          ∫ omega, (2 * ((t - s : ℝ≥0) : ℝ)) *</span>
-<span id="L181">            (B t omega - B s omega) ^ 2 ∂mu +</span>
-<span id="L182">          ∫ _ : Omega, ((t - s : ℝ≥0) : ℝ) ^ 2 ∂mu := by</span>
-<span id="L183">            let A : Omega → ℝ := fun omega =&gt; (B t omega - B s omega) ^ 4</span>
-<span id="L184">            let C : Omega → ℝ := fun omega =&gt;</span>
-<span id="L185">              (2 * ((t - s : ℝ≥0) : ℝ)) * (B t omega - B s omega) ^ 2</span>
-<span id="L186">            let K : Omega → ℝ := fun _ =&gt; ((t - s : ℝ≥0) : ℝ) ^ 2</span>
-<span id="L187">            have hA : Integrable A mu := h4int</span>
-<span id="L188">            have hC : Integrable C mu := h2int</span>
-<span id="L189">            have hK : Integrable K mu := hcint</span>
-<span id="L190">            change ∫ omega, ((A - C) + K) omega ∂mu =</span>
-<span id="L191">              (∫ omega, A omega ∂mu) - (∫ omega, C omega ∂mu) +</span>
-<span id="L192">                ∫ omega, K omega ∂mu</span>
-<span id="L193">            calc</span>
-<span id="L194">              ∫ omega, ((A - C) + K) omega ∂mu =</span>
-<span id="L195">                  (∫ omega, (A - C) omega ∂mu) + ∫ omega, K omega ∂mu := by</span>
-<span id="L196">                    simpa only [Pi.add_apply] using integral_add (hA.sub hC) hK</span>
-<span id="L197">              _ = (∫ omega, A omega ∂mu) - (∫ omega, C omega ∂mu) +</span>
-<span id="L198">                    ∫ omega, K omega ∂mu := by</span>
-<span id="L199">                    rw [show (∫ omega, (A - C) omega ∂mu) =</span>
-<span id="L200">                        (∫ omega, A omega ∂mu) - ∫ omega, C omega ∂mu by</span>
-<span id="L201">                      simpa only [Pi.sub_apply] using integral_sub hA hC]</span>
-<span id="L202">    _ = 2 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
-<span id="L203">      rw [h4, integral_const_mul, h2, integral_const]</span>
-<span id="L204">      simp</span>
-<span id="L205">      ring</span>
-<span id="L206"></span>
-<span id="L207">private theorem grid_cell_le</span>
-<span id="L208">    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}</span>
-<span id="L209">    (hmono : Monotone times) (i : Fin n) :</span>
-<span id="L210">    times i.castSucc ≤ times i.succ :=</span>
-<span id="L211">  hmono Fin.castSucc_lt_succ.le</span>
-<span id="L212"></span>
-<span id="L213">/-- The compensated squared increments on a deterministic monotone grid are</span>
-<span id="L214">jointly independent. -/</span>
-<span id="L215">private theorem iIndepFun_centeredSquaredIncrement</span>
-<span id="L216">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L217">    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}</span>
-<span id="L218">    (hmono : Monotone times) :</span>
-<span id="L219">    iIndepFun (fun i : Fin n =&gt; centeredSquaredIncrement B times i) mu := by</span>
-<span id="L220">  have hinc : iIndepFun</span>
-<span id="L221">      (fun i : Fin n =&gt; fun omega =&gt;</span>
-<span id="L222">        B (times i.succ) omega - B (times i.castSucc) omega) mu :=</span>
-<span id="L223">    hB.hasIndepIncrements n times (fun _ _ hij =&gt; hmono hij)</span>
-<span id="L224">  have hcomp := hinc.comp</span>
-<span id="L225">    (fun i : Fin n =&gt; fun x : ℝ =&gt; x ^ 2 -</span>
-<span id="L226">      ((times i.succ - times i.castSucc : ℝ≥0) : ℝ))</span>
-<span id="L227">    (fun _ =&gt; by fun_prop)</span>
-<span id="L228">  change iIndepFun</span>
-<span id="L229">    (fun i : Fin n =&gt; fun omega =&gt;</span>
-<span id="L230">      (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -</span>
-<span id="L231">        ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)) mu</span>
-<span id="L232">  convert hcomp using 1</span>
-<span id="L233">  funext i omega</span>
-<span id="L234">  rfl</span>
-<span id="L235"></span>
-<span id="L236">/-- Exact finite-grid `L²` error identity for Brownian quadratic variation. -/</span>
-<span id="L237">theorem integral_quadraticVariationError_sq</span>
-<span id="L238">    (hB : IsPreBrownianReal B mu)</span>
-<span id="L239">    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}</span>
-<span id="L240">    (hmono : Monotone times) :</span>
-<span id="L241">    ∫ omega, (quadraticVariationError B times omega) ^ 2 ∂mu =</span>
-<span id="L242">      2 * ∑ i : Fin n,</span>
-<span id="L243">        (((times i.succ - times i.castSucc : ℝ≥0) : ℝ) ^ 2) := by</span>
-<span id="L244">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
-<span id="L245">  let Y : Fin n → Omega → ℝ := fun i =&gt; centeredSquaredIncrement B times i</span>
-<span id="L246">  have hYmem : ∀ i, MemLp (Y i) 2 mu := fun i =&gt; by</span>
-<span id="L247">    change MemLp</span>
-<span id="L248">      (fun omega =&gt;</span>
-<span id="L249">        (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -</span>
-<span id="L250">          ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)) 2 mu</span>
-<span id="L251">    simpa only using</span>
-<span id="L252">      centered_increment_sq_memLp_two hB _ _</span>
-<span id="L253">  have hYind : Set.Pairwise (↑(Finset.univ : Finset (Fin n)) : Set (Fin n))</span>
-<span id="L254">      (fun i j =&gt; Y i ⟂ᵢ[mu] Y j) := by</span>
-<span id="L255">    intro i _ j _ hij</span>
-<span id="L256">    exact (iIndepFun_centeredSquaredIncrement hB hmono).indepFun hij</span>
-<span id="L257">  have hvar := ProbabilityTheory.IndepFun.variance_sum</span>
-<span id="L258">    (s := Finset.univ) (X := Y) (fun i _ =&gt; hYmem i) hYind</span>
-<span id="L259">  have hsumMem : MemLp (∑ i : Fin n, Y i) 2 mu :=</span>
-<span id="L260">    memLp_finsetSum&#x27; Finset.univ (fun i _ =&gt; hYmem i)</span>
-<span id="L261">  have hmean : ∫ omega, (∑ i : Fin n, Y i) omega ∂mu = 0 := by</span>
-<span id="L262">    calc</span>
-<span id="L263">      ∫ omega, (∑ i : Fin n, Y i) omega ∂mu =</span>
-<span id="L264">          ∫ omega, ∑ i ∈ (Finset.univ : Finset (Fin n)), Y i omega ∂mu := by</span>
-<span id="L265">            congr 1</span>
-<span id="L266">            funext omega</span>
-<span id="L267">            simp only [Finset.sum_apply]</span>
-<span id="L268">      _ = ∑ i ∈ (Finset.univ : Finset (Fin n)), ∫ omega, Y i omega ∂mu := by</span>
-<span id="L269">        rw [integral_finsetSum]</span>
-<span id="L270">        intro i _</span>
-<span id="L271">        exact (hYmem i).integrable (by norm_num)</span>
-<span id="L272">      _ = 0 := by</span>
-<span id="L273">        apply Finset.sum_eq_zero</span>
-<span id="L274">        intro i _</span>
-<span id="L275">        simpa [Y, centeredSquaredIncrement] using</span>
-<span id="L276">          integral_centered_increment_sq_eq_zero hB (grid_cell_le hmono i)</span>
-<span id="L277">  rw [variance_of_integral_eq_zero hsumMem.aemeasurable hmean] at hvar</span>
-<span id="L278">  change ∫ omega, (∑ i : Fin n, centeredSquaredIncrement B times i omega) ^ 2 ∂mu = _</span>
-<span id="L279">  change ∫ omega, (∑ i : Fin n, Y i omega) ^ 2 ∂mu = _</span>
-<span id="L280">  rw [show (∫ omega, (∑ i : Fin n, Y i omega) ^ 2 ∂mu) =</span>
-<span id="L281">      ∑ i : Fin n, Var[Y i; mu] by</span>
-<span id="L282">    simpa only [Finset.sum_apply] using hvar]</span>
-<span id="L283">  rw [Finset.mul_sum]</span>
-<span id="L284">  apply Finset.sum_congr rfl</span>
-<span id="L285">  intro i _</span>
-<span id="L286">  have hYiMean : ∫ omega, Y i omega ∂mu = 0 := by</span>
-<span id="L287">    simpa [Y, centeredSquaredIncrement] using</span>
-<span id="L288">      integral_centered_increment_sq_eq_zero hB (grid_cell_le hmono i)</span>
-<span id="L289">  rw [variance_of_integral_eq_zero (hYmem i).aemeasurable hYiMean]</span>
-<span id="L290">  simpa [Y, centeredSquaredIncrement] using</span>
-<span id="L291">    integral_centered_increment_sq_sq hB (grid_cell_le hmono i)</span>
-<span id="L292"></span>
-<span id="L293">end BrownianQuadraticVariationL2</span>
-<span id="L294">end StochasticProcesses</span>
-<span id="L295">end TechnicalLemmas</span>
-<span id="L296">end AutoSamplingTheory</span>
+<span id="L2">import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid</span>
+<span id="L3">import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GaussianFourthMoment</span>
+<span id="L4">import Mathlib.Probability.Moments.Variance</span>
+<span id="L5">import Mathlib.Tactic</span>
+<span id="L6"></span>
+<span id="L7">/-!</span>
+<span id="L8"># Brownian quadratic variation in `L²`</span>
+<span id="L9"></span>
+<span id="L10">This module upgrades the finite-grid mean identity for Brownian quadratic</span>
+<span id="L11">variation to an exact mean-square identity.  For a deterministic monotone grid</span>
+<span id="L12">`t₀ ≤ ⋯ ≤ tₙ`, the compensated error</span>
+<span id="L13"></span>
+<span id="L14">`Q = ∑ᵢ ((B(tᵢ₊₁) - B(tᵢ))² - (tᵢ₊₁ - tᵢ))`</span>
+<span id="L15"></span>
+<span id="L16">satisfies `E[Q²] = 2 ∑ᵢ (tᵢ₊₁ - tᵢ)²`.  The proof uses the</span>
+<span id="L17">Gaussian fourth moment and independence of disjoint Brownian increments.  A</span>
+<span id="L18">mesh bound is then immediate and is the reusable analytic input for dyadic</span>
+<span id="L19">quadratic-variation convergence.</span>
+<span id="L20">-/</span>
+<span id="L21"></span>
+<span id="L22">namespace AutoSamplingTheory</span>
+<span id="L23">namespace TechnicalLemmas</span>
+<span id="L24">namespace StochasticProcesses</span>
+<span id="L25">namespace BrownianQuadraticVariationL2</span>
+<span id="L26"></span>
+<span id="L27">open Filter MeasureTheory ProbabilityTheory Set</span>
+<span id="L28">open scoped BigOperators NNReal</span>
+<span id="L29"></span>
+<span id="L30">open BrownianMotion BrownianQuadraticVariation FiniteTimeGrid GaussianFourthMoment</span>
+<span id="L31">  SampledElementaryApproximation</span>
+<span id="L32"></span>
+<span id="L33">variable {Omega : Type*} {m : MeasurableSpace Omega}</span>
+<span id="L34">  {mu : Measure Omega} {B : ℝ≥0 → Omega → ℝ}</span>
+<span id="L35"></span>
+<span id="L36">/-- A future Brownian increment has the centered Gaussian law with variance</span>
+<span id="L37">equal to the elapsed time. -/</span>
+<span id="L38">private theorem increment_hasLaw</span>
+<span id="L39">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L40">    (s t : ℝ≥0) :</span>
+<span id="L41">    HasLaw (fun omega =&gt; B t omega - B s omega)</span>
+<span id="L42">      (gaussianReal 0 (nndist (t : ℝ) (s : ℝ))) mu := by</span>
+<span id="L43">  have h := hB.hasLaw_sub t s</span>
+<span id="L44">  convert h using 1</span>
+<span id="L45">  · ext omega</span>
+<span id="L46">    rfl</span>
+<span id="L47">  · rfl</span>
+<span id="L48"></span>
+<span id="L49">private theorem coe_nndist_eq_elapsed {s t : ℝ≥0} (hst : s ≤ t) :</span>
+<span id="L50">    ((nndist (t : ℝ) (s : ℝ) : ℝ≥0) : ℝ) = ((t - s : ℝ≥0) : ℝ) := by</span>
+<span id="L51">  rw [coe_nndist, Real.dist_eq, abs_of_nonneg]</span>
+<span id="L52">  · exact (NNReal.coe_sub hst).symm</span>
+<span id="L53">  · exact sub_nonneg.mpr (by exact_mod_cast hst)</span>
+<span id="L54"></span>
+<span id="L55">/-- Fourth moment of one Brownian increment. -/</span>
+<span id="L56">private theorem integral_increment_pow_four</span>
+<span id="L57">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L58">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
+<span id="L59">    ∫ omega, (B t omega - B s omega) ^ 4 ∂mu =</span>
+<span id="L60">      3 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
+<span id="L61">  calc</span>
+<span id="L62">    ∫ omega, (B t omega - B s omega) ^ 4 ∂mu =</span>
+<span id="L63">        ∫ x : ℝ, x ^ 4 ∂(gaussianReal 0 (nndist (t : ℝ) (s : ℝ))) := by</span>
+<span id="L64">      simpa only [Function.comp_apply] using</span>
+<span id="L65">        (increment_hasLaw hB s t).integral_comp</span>
+<span id="L66">          (f := fun x : ℝ =&gt; x ^ 4) (by fun_prop)</span>
+<span id="L67">    _ = 3 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
+<span id="L68">      rw [integral_pow_four_gaussianReal_zero, coe_nndist_eq_elapsed hst]</span>
+<span id="L69"></span>
+<span id="L70">/-- Second moment of one Brownian increment, derived only from its Gaussian</span>
+<span id="L71">law. -/</span>
+<span id="L72">private theorem integral_increment_sq</span>
+<span id="L73">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L74">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
+<span id="L75">    ∫ omega, (B t omega - B s omega) ^ 2 ∂mu =</span>
+<span id="L76">      ((t - s : ℝ≥0) : ℝ) := by</span>
+<span id="L77">  have htransport :</span>
+<span id="L78">      ∫ omega, (B t omega - B s omega) ^ 2 ∂mu =</span>
+<span id="L79">        ∫ x : ℝ, x ^ 2 ∂(gaussianReal 0 (nndist (t : ℝ) (s : ℝ))) := by</span>
+<span id="L80">    simpa only [Function.comp_apply] using</span>
+<span id="L81">      (increment_hasLaw hB s t).integral_comp</span>
+<span id="L82">        (f := fun x : ℝ =&gt; x ^ 2) (by fun_prop)</span>
+<span id="L83">  have hv := variance_fun_id_gaussianReal</span>
+<span id="L84">    (μ := (0 : ℝ)) (v := nndist (t : ℝ) (s : ℝ))</span>
+<span id="L85">  rw [variance_of_integral_eq_zero (by fun_prop)</span>
+<span id="L86">      (integral_id_gaussianReal (μ := (0 : ℝ))</span>
+<span id="L87">        (v := nndist (t : ℝ) (s : ℝ)))] at hv</span>
+<span id="L88">  exact htransport.trans (by simpa [coe_nndist_eq_elapsed hst] using hv)</span>
+<span id="L89"></span>
+<span id="L90">/-- A Brownian increment is square-integrable under the pre-Brownian</span>
+<span id="L91">contract. -/</span>
+<span id="L92">private theorem increment_sq_integrable</span>
+<span id="L93">    (hB : IsPreBrownianReal B mu) (s t : ℝ≥0) :</span>
+<span id="L94">    Integrable (fun omega =&gt; (B t omega - B s omega) ^ 2) mu := by</span>
+<span id="L95">  have hmem : MemLp (fun omega =&gt; B t omega - B s omega) 2 mu :=</span>
+<span id="L96">    hB.isGaussianProcess.hasGaussianLaw_fun_sub.memLp_two</span>
+<span id="L97">  exact hmem.integrable_sq</span>
+<span id="L98"></span>
+<span id="L99">/-- The compensated squared increment has mean zero. -/</span>
+<span id="L100">private theorem integral_centered_increment_sq_eq_zero</span>
+<span id="L101">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L102">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
+<span id="L103">    ∫ omega,</span>
+<span id="L104">        ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ∂mu = 0 := by</span>
+<span id="L105">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
+<span id="L106">  rw [integral_sub (increment_sq_integrable hB s t) (integrable_const _),</span>
+<span id="L107">    integral_increment_sq hB hst, integral_const]</span>
+<span id="L108">  simp</span>
+<span id="L109"></span>
+<span id="L110">/-- A compensated squared Brownian increment is square-integrable. -/</span>
+<span id="L111">private theorem centered_increment_sq_memLp_two</span>
+<span id="L112">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L113">    (s t : ℝ≥0) :</span>
+<span id="L114">    MemLp</span>
+<span id="L115">      (fun omega =&gt;</span>
+<span id="L116">        (B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ))</span>
+<span id="L117">      2 mu := by</span>
+<span id="L118">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
+<span id="L119">  let X : Omega → ℝ := fun omega =&gt; B t omega - B s omega</span>
+<span id="L120">  let d : ℝ := ((t - s : ℝ≥0) : ℝ)</span>
+<span id="L121">  have hX4 : Integrable (fun omega =&gt; X omega ^ 4) mu := by</span>
+<span id="L122">    have hX : MemLp X 4 mu :=</span>
+<span id="L123">      hB.isGaussianProcess.hasGaussianLaw_fun_sub.memLp (p := 4) (by norm_num)</span>
+<span id="L124">    have hnorm := hX.integrable_norm_pow&#x27; (p := 4)</span>
+<span id="L125">    exact hnorm.congr (ae_of_all mu fun omega =&gt; by</span>
+<span id="L126">      simp only [Real.norm_eq_abs]</span>
+<span id="L127">      rw [← abs_pow]</span>
+<span id="L128">      exact abs_of_nonneg (by positivity))</span>
+<span id="L129">  have hX2 : Integrable (fun omega =&gt; X omega ^ 2) mu :=</span>
+<span id="L130">    increment_sq_integrable hB s t</span>
+<span id="L131">  have hincmeas : AEStronglyMeasurable</span>
+<span id="L132">      (fun omega =&gt; B t omega - B s omega) mu :=</span>
+<span id="L133">    (hB.aemeasurable t).aestronglyMeasurable.sub</span>
+<span id="L134">      (hB.aemeasurable s).aestronglyMeasurable</span>
+<span id="L135">  have hmeas : AEStronglyMeasurable</span>
+<span id="L136">      (fun omega =&gt;</span>
+<span id="L137">        (B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) mu :=</span>
+<span id="L138">    (hincmeas.pow 2).sub aestronglyMeasurable_const</span>
+<span id="L139">  apply (memLp_two_iff_integrable_sq hmeas).2</span>
+<span id="L140">  have hpoly : (fun omega =&gt; (X omega ^ 2 - d) ^ 2) =</span>
+<span id="L141">      fun omega =&gt; X omega ^ 4 - (2 * d) * X omega ^ 2 + d ^ 2 := by</span>
+<span id="L142">    funext omega</span>
+<span id="L143">    ring</span>
+<span id="L144">  rw [hpoly]</span>
+<span id="L145">  exact (hX4.sub (hX2.const_mul _)).add (integrable_const _)</span>
+<span id="L146"></span>
+<span id="L147">/-- Exact second moment of one compensated squared Brownian increment. -/</span>
+<span id="L148">private theorem integral_centered_increment_sq_sq</span>
+<span id="L149">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L150">    {s t : ℝ≥0} (hst : s ≤ t) :</span>
+<span id="L151">    ∫ omega,</span>
+<span id="L152">        ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ^ 2 ∂mu =</span>
+<span id="L153">      2 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
+<span id="L154">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
+<span id="L155">  have h4 := integral_increment_pow_four hB hst</span>
+<span id="L156">  have h2 := integral_increment_sq hB hst</span>
+<span id="L157">  have h4int : Integrable (fun omega =&gt; (B t omega - B s omega) ^ 4) mu := by</span>
+<span id="L158">    have hmem : MemLp (fun omega =&gt; B t omega - B s omega) 4 mu :=</span>
+<span id="L159">      hB.isGaussianProcess.hasGaussianLaw_fun_sub.memLp (p := 4) (by norm_num)</span>
+<span id="L160">    have hn := hmem.integrable_norm_pow&#x27; (p := 4)</span>
+<span id="L161">    exact hn.congr (ae_of_all mu fun omega =&gt; by</span>
+<span id="L162">      simp only [Real.norm_eq_abs]</span>
+<span id="L163">      rw [← abs_pow]</span>
+<span id="L164">      exact abs_of_nonneg (by positivity))</span>
+<span id="L165">  have h2int := (increment_sq_integrable hB s t).const_mul</span>
+<span id="L166">    (2 * ((t - s : ℝ≥0) : ℝ))</span>
+<span id="L167">  have hcint : Integrable (fun _ : Omega =&gt; ((t - s : ℝ≥0) : ℝ) ^ 2) mu :=</span>
+<span id="L168">    integrable_const _</span>
+<span id="L169">  rw [show (fun omega =&gt;</span>
+<span id="L170">      ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ^ 2) =</span>
+<span id="L171">      fun omega =&gt; (B t omega - B s omega) ^ 4 -</span>
+<span id="L172">        (2 * ((t - s : ℝ≥0) : ℝ)) *</span>
+<span id="L173">          (B t omega - B s omega) ^ 2 +</span>
+<span id="L174">        ((t - s : ℝ≥0) : ℝ) ^ 2 by</span>
+<span id="L175">      funext omega</span>
+<span id="L176">      ring]</span>
+<span id="L177">  calc</span>
+<span id="L178">    ∫ omega, (B t omega - B s omega) ^ 4 -</span>
+<span id="L179">          (2 * ((t - s : ℝ≥0) : ℝ)) * (B t omega - B s omega) ^ 2 +</span>
+<span id="L180">          ((t - s : ℝ≥0) : ℝ) ^ 2 ∂mu =</span>
+<span id="L181">        (∫ omega, (B t omega - B s omega) ^ 4 ∂mu) -</span>
+<span id="L182">          ∫ omega, (2 * ((t - s : ℝ≥0) : ℝ)) *</span>
+<span id="L183">            (B t omega - B s omega) ^ 2 ∂mu +</span>
+<span id="L184">          ∫ _ : Omega, ((t - s : ℝ≥0) : ℝ) ^ 2 ∂mu := by</span>
+<span id="L185">            let A : Omega → ℝ := fun omega =&gt; (B t omega - B s omega) ^ 4</span>
+<span id="L186">            let C : Omega → ℝ := fun omega =&gt;</span>
+<span id="L187">              (2 * ((t - s : ℝ≥0) : ℝ)) * (B t omega - B s omega) ^ 2</span>
+<span id="L188">            let K : Omega → ℝ := fun _ =&gt; ((t - s : ℝ≥0) : ℝ) ^ 2</span>
+<span id="L189">            have hA : Integrable A mu := h4int</span>
+<span id="L190">            have hC : Integrable C mu := h2int</span>
+<span id="L191">            have hK : Integrable K mu := hcint</span>
+<span id="L192">            change ∫ omega, ((A - C) + K) omega ∂mu =</span>
+<span id="L193">              (∫ omega, A omega ∂mu) - (∫ omega, C omega ∂mu) +</span>
+<span id="L194">                ∫ omega, K omega ∂mu</span>
+<span id="L195">            calc</span>
+<span id="L196">              ∫ omega, ((A - C) + K) omega ∂mu =</span>
+<span id="L197">                  (∫ omega, (A - C) omega ∂mu) + ∫ omega, K omega ∂mu := by</span>
+<span id="L198">                    simpa only [Pi.add_apply] using integral_add (hA.sub hC) hK</span>
+<span id="L199">              _ = (∫ omega, A omega ∂mu) - (∫ omega, C omega ∂mu) +</span>
+<span id="L200">                    ∫ omega, K omega ∂mu := by</span>
+<span id="L201">                    rw [show (∫ omega, (A - C) omega ∂mu) =</span>
+<span id="L202">                        (∫ omega, A omega ∂mu) - ∫ omega, C omega ∂mu by</span>
+<span id="L203">                      simpa only [Pi.sub_apply] using integral_sub hA hC]</span>
+<span id="L204">    _ = 2 * (((t - s : ℝ≥0) : ℝ) ^ 2) := by</span>
+<span id="L205">      rw [h4, integral_const_mul, h2, integral_const]</span>
+<span id="L206">      simp</span>
+<span id="L207">      ring</span>
+<span id="L208"></span>
+<span id="L209">private theorem grid_cell_le</span>
+<span id="L210">    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}</span>
+<span id="L211">    (hmono : Monotone times) (i : Fin n) :</span>
+<span id="L212">    times i.castSucc ≤ times i.succ :=</span>
+<span id="L213">  hmono Fin.castSucc_lt_succ.le</span>
+<span id="L214"></span>
+<span id="L215">/-- The compensated squared increments on a deterministic monotone grid are</span>
+<span id="L216">jointly independent. -/</span>
+<span id="L217">private theorem iIndepFun_centeredSquaredIncrement</span>
+<span id="L218">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L219">    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}</span>
+<span id="L220">    (hmono : Monotone times) :</span>
+<span id="L221">    iIndepFun (fun i : Fin n =&gt; centeredSquaredIncrement B times i) mu := by</span>
+<span id="L222">  have hinc : iIndepFun</span>
+<span id="L223">      (fun i : Fin n =&gt; fun omega =&gt;</span>
+<span id="L224">        B (times i.succ) omega - B (times i.castSucc) omega) mu :=</span>
+<span id="L225">    hB.hasIndepIncrements n times (fun _ _ hij =&gt; hmono hij)</span>
+<span id="L226">  have hcomp := hinc.comp</span>
+<span id="L227">    (fun i : Fin n =&gt; fun x : ℝ =&gt; x ^ 2 -</span>
+<span id="L228">      ((times i.succ - times i.castSucc : ℝ≥0) : ℝ))</span>
+<span id="L229">    (fun _ =&gt; by fun_prop)</span>
+<span id="L230">  change iIndepFun</span>
+<span id="L231">    (fun i : Fin n =&gt; fun omega =&gt;</span>
+<span id="L232">      (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -</span>
+<span id="L233">        ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)) mu</span>
+<span id="L234">  convert hcomp using 1</span>
+<span id="L235">  funext i omega</span>
+<span id="L236">  rfl</span>
+<span id="L237"></span>
+<span id="L238">/-- Exact finite-grid `L²` error identity for Brownian quadratic variation. -/</span>
+<span id="L239">theorem integral_quadraticVariationError_sq</span>
+<span id="L240">    (hB : IsPreBrownianReal B mu)</span>
+<span id="L241">    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}</span>
+<span id="L242">    (hmono : Monotone times) :</span>
+<span id="L243">    ∫ omega, (quadraticVariationError B times omega) ^ 2 ∂mu =</span>
+<span id="L244">      2 * ∑ i : Fin n,</span>
+<span id="L245">        (((times i.succ - times i.castSucc : ℝ≥0) : ℝ) ^ 2) := by</span>
+<span id="L246">  let _ : IsProbabilityMeasure mu := hB.isGaussianProcess.isProbabilityMeasure</span>
+<span id="L247">  let Y : Fin n → Omega → ℝ := fun i =&gt; centeredSquaredIncrement B times i</span>
+<span id="L248">  have hYmem : ∀ i, MemLp (Y i) 2 mu := fun i =&gt; by</span>
+<span id="L249">    change MemLp</span>
+<span id="L250">      (fun omega =&gt;</span>
+<span id="L251">        (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -</span>
+<span id="L252">          ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)) 2 mu</span>
+<span id="L253">    simpa only using</span>
+<span id="L254">      centered_increment_sq_memLp_two hB _ _</span>
+<span id="L255">  have hYind : Set.Pairwise (↑(Finset.univ : Finset (Fin n)) : Set (Fin n))</span>
+<span id="L256">      (fun i j =&gt; Y i ⟂ᵢ[mu] Y j) := by</span>
+<span id="L257">    intro i _ j _ hij</span>
+<span id="L258">    exact (iIndepFun_centeredSquaredIncrement hB hmono).indepFun hij</span>
+<span id="L259">  have hvar := ProbabilityTheory.IndepFun.variance_sum</span>
+<span id="L260">    (s := Finset.univ) (X := Y) (fun i _ =&gt; hYmem i) hYind</span>
+<span id="L261">  have hsumMem : MemLp (∑ i : Fin n, Y i) 2 mu :=</span>
+<span id="L262">    memLp_finsetSum&#x27; Finset.univ (fun i _ =&gt; hYmem i)</span>
+<span id="L263">  have hmean : ∫ omega, (∑ i : Fin n, Y i) omega ∂mu = 0 := by</span>
+<span id="L264">    calc</span>
+<span id="L265">      ∫ omega, (∑ i : Fin n, Y i) omega ∂mu =</span>
+<span id="L266">          ∫ omega, ∑ i ∈ (Finset.univ : Finset (Fin n)), Y i omega ∂mu := by</span>
+<span id="L267">            congr 1</span>
+<span id="L268">            funext omega</span>
+<span id="L269">            simp only [Finset.sum_apply]</span>
+<span id="L270">      _ = ∑ i ∈ (Finset.univ : Finset (Fin n)), ∫ omega, Y i omega ∂mu := by</span>
+<span id="L271">        rw [integral_finsetSum]</span>
+<span id="L272">        intro i _</span>
+<span id="L273">        exact (hYmem i).integrable (by norm_num)</span>
+<span id="L274">      _ = 0 := by</span>
+<span id="L275">        apply Finset.sum_eq_zero</span>
+<span id="L276">        intro i _</span>
+<span id="L277">        simpa [Y, centeredSquaredIncrement] using</span>
+<span id="L278">          integral_centered_increment_sq_eq_zero hB (grid_cell_le hmono i)</span>
+<span id="L279">  rw [variance_of_integral_eq_zero hsumMem.aemeasurable hmean] at hvar</span>
+<span id="L280">  change ∫ omega, (∑ i : Fin n, centeredSquaredIncrement B times i omega) ^ 2 ∂mu = _</span>
+<span id="L281">  change ∫ omega, (∑ i : Fin n, Y i omega) ^ 2 ∂mu = _</span>
+<span id="L282">  rw [show (∫ omega, (∑ i : Fin n, Y i omega) ^ 2 ∂mu) =</span>
+<span id="L283">      ∑ i : Fin n, Var[Y i; mu] by</span>
+<span id="L284">    simpa only [Finset.sum_apply] using hvar]</span>
+<span id="L285">  rw [Finset.mul_sum]</span>
+<span id="L286">  apply Finset.sum_congr rfl</span>
+<span id="L287">  intro i _</span>
+<span id="L288">  have hYiMean : ∫ omega, Y i omega ∂mu = 0 := by</span>
+<span id="L289">    simpa [Y, centeredSquaredIncrement] using</span>
+<span id="L290">      integral_centered_increment_sq_eq_zero hB (grid_cell_le hmono i)</span>
+<span id="L291">  rw [variance_of_integral_eq_zero (hYmem i).aemeasurable hYiMean]</span>
+<span id="L292">  simpa [Y, centeredSquaredIncrement] using</span>
+<span id="L293">    integral_centered_increment_sq_sq hB (grid_cell_le hmono i)</span>
+<span id="L294"></span>
+<span id="L295">private theorem regularGridTimes_monotone (delta : ℝ≥0) (n : ℕ) :</span>
+<span id="L296">    Monotone (regularGridTimes delta n) := by</span>
+<span id="L297">  intro i j hij</span>
+<span id="L298">  unfold regularGridTimes</span>
+<span id="L299">  gcongr</span>
+<span id="L300">  exact_mod_cast hij</span>
+<span id="L301"></span>
+<span id="L302">private theorem regularGridTimes_cellLength</span>
+<span id="L303">    (delta : ℝ≥0) (n : ℕ) (i : Fin n) :</span>
+<span id="L304">    regularGridTimes delta n i.succ - regularGridTimes delta n i.castSucc = delta := by</span>
+<span id="L305">  rw [tsub_eq_iff_eq_add_of_le</span>
+<span id="L306">    (regularGridTimes_monotone delta n Fin.castSucc_lt_succ.le)]</span>
+<span id="L307">  simp only [regularGridTimes, Fin.val_succ, Fin.val_castSucc, Nat.cast_add, Nat.cast_one]</span>
+<span id="L308">  ring</span>
+<span id="L309"></span>
+<span id="L310">private theorem sum_dyadic_cellLengths_sq</span>
+<span id="L311">    (T : ℝ≥0) (level : ℕ) :</span>
+<span id="L312">    ∑ i : Fin (2 ^ level),</span>
+<span id="L313">        (((regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ -</span>
+<span id="L314">          regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc : ℝ≥0) : ℝ) ^ 2) =</span>
+<span id="L315">      (T : ℝ) * ((dyadicMesh T level : ℝ≥0) : ℝ) := by</span>
+<span id="L316">  simp_rw [regularGridTimes_cellLength]</span>
+<span id="L317">  rw [Finset.sum_const, Finset.card_fin, nsmul_eq_mul]</span>
+<span id="L318">  simp only [dyadicMesh, NNReal.coe_div, Nat.cast_pow, Nat.cast_ofNat]</span>
+<span id="L319">  have hpow : (2 : ℝ) ^ level ≠ 0 := by positivity</span>
+<span id="L320">  field_simp</span>
+<span id="L321">  norm_cast</span>
+<span id="L322">  ac_rfl</span>
+<span id="L323"></span>
+<span id="L324">/-- Along the canonical dyadic partitions of `[0,T]`, the mean-square error</span>
+<span id="L325">of scalar Brownian quadratic variation tends to zero.  This includes `T = 0`</span>
+<span id="L326">and uses only the pre-Brownian finite-dimensional laws and independent</span>
+<span id="L327">increments; no filtration or usual-conditions hypothesis is required. -/</span>
+<span id="L328">theorem tendsto_integral_dyadic_quadraticVariationError_sq</span>
+<span id="L329">    (hB : IsPreBrownianReal B mu) (T : ℝ≥0) :</span>
+<span id="L330">    Tendsto</span>
+<span id="L331">      (fun level =&gt;</span>
+<span id="L332">        ∫ omega,</span>
+<span id="L333">          (quadraticVariationError B</span>
+<span id="L334">            (regularGridTimes (dyadicMesh T level) (2 ^ level)) omega) ^ 2 ∂mu)</span>
+<span id="L335">      atTop (nhds 0) := by</span>
+<span id="L336">  have hexact : ∀ level : ℕ,</span>
+<span id="L337">      (∫ omega,</span>
+<span id="L338">          (quadraticVariationError B</span>
+<span id="L339">            (regularGridTimes (dyadicMesh T level) (2 ^ level)) omega) ^ 2 ∂mu) =</span>
+<span id="L340">        2 * (T : ℝ) * ((dyadicMesh T level : ℝ≥0) : ℝ) := by</span>
+<span id="L341">    intro level</span>
+<span id="L342">    rw [integral_quadraticVariationError_sq hB</span>
+<span id="L343">      (regularGridTimes_monotone</span>
+<span id="L344">        (dyadicMesh T level) (2 ^ level))]</span>
+<span id="L345">    rw [sum_dyadic_cellLengths_sq]</span>
+<span id="L346">    ring</span>
+<span id="L347">  have hlimit := (FiniteTimeGrid.dyadicMesh_tendsto_zero T).const_mul (2 * (T : ℝ))</span>
+<span id="L348">  have hfun :</span>
+<span id="L349">      (fun level =&gt;</span>
+<span id="L350">        ∫ omega,</span>
+<span id="L351">          (quadraticVariationError B</span>
+<span id="L352">            (regularGridTimes (dyadicMesh T level) (2 ^ level)) omega) ^ 2 ∂mu) =</span>
+<span id="L353">        fun level =&gt; 2 * (T : ℝ) * ((dyadicMesh T level : ℝ≥0) : ℝ) := by</span>
+<span id="L354">    funext level</span>
+<span id="L355">    exact hexact level</span>
+<span id="L356">  rw [hfun]</span>
+<span id="L357">  simpa using hlimit</span>
+<span id="L358"></span>
+<span id="L359">end BrownianQuadraticVariationL2</span>
+<span id="L360">end StochasticProcesses</span>
+<span id="L361">end TechnicalLemmas</span>
+<span id="L362">end AutoSamplingTheory</span>
 </pre></main>
       <footer>
         <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>

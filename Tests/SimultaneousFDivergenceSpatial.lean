@@ -1,0 +1,8 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial
+
+-- Focused API checks for the spatial-calculus layer of Chewi Theorem 8.3.1.
+#check AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial.HasGradientAt.factorizedNumerator
+#check AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial.HasGradientAt.fPrime_comp
+#check AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial.hasDerivAt_f_sub_id_mul_fPrime
+#check AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial.HasGradientAt.f_sub_mul_fPrime_comp
+#check AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial.common_diffusion_pairing_source

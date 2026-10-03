@@ -1,0 +1,313 @@
+{
+  "id": "ASTIS-SW-GAUSSIAN-CLOUD-2026",
+  "slug": "gaussian-cloud-picard-hmc",
+  "title": "Picard HMC Part I: Gaussian cloud correction",
+  "role": "Recursive implementation route: turn Gaussian-cloud Picard updates into a finite sampler while keeping every adaptive call, cap event and replacement error auditable.",
+  "status": "planned",
+  "source_records": [
+    {
+      "id": "gaussian-cloud-2026",
+      "title": "High-accuracy simulation of Picard HMC, part I: Gaussian cloud correction",
+      "url": "https://arxiv.org/html/2609.38710v1",
+      "version": "2609.38710v1",
+      "authors": [
+        "Fan Chen",
+        "Sinho Chewi",
+        "Jianfeng Lu",
+        "Matthew S. Zhang"
+      ]
+    }
+  ],
+  "source_reader": "../example-cases/samplewiki/companions/gaussian-cloud-picard-hmc.html",
+  "setting": {
+    "formula": "d\\ge1,\\quad V\\in C^2(\\mathbb R^d),\\quad \\|\\nabla V(x)-\\nabla V(y)\\|\\le\\|x-y\\|,\\quad \\pi(dx)=Z^{-1}e^{-V(x)}dx",
+    "notes": [
+      "The source assumes the normalized target pi satisfies KL(mu||pi) <= (kappa/2) I(mu||pi) for every probability measure mu with smooth density, with kappa >= 1. This is an LSI assumption, not a pointwise strong-convexity hypothesis.",
+      "The supplied reference point satisfies ||grad V(x_ref)|| <= sqrt(d/kappa). No warm-start law is assumed.",
+      "The strongly log-concave specialization follows only after rescaling the smoothness and LSI constants; the general source theorem is stated under one-smoothness plus LSI.",
+      "Expected gradient queries include the paper's recursive Gaussian-cloud corrections, implemented RGO calls and cap/fallback accounting. They are not a worst-case runtime bound."
+    ]
+  },
+  "reader_guide": [
+    "Start with the main theorem to see the accuracy and expected-query destination.",
+    "Read Lemma 6.1 to understand why the adaptive request forest has controlled size before the global cap.",
+    "Read Lemma 6.3 beside the bookkeeping ledger: each conditional replacement contributes one delta_t, while the global cap contributes epsilon_cap exactly once."
+  ],
+  "theorems": [
+    {
+      "id": "gaussian-cloud-main",
+      "title": "Main high-accuracy sampling guarantee",
+      "source_anchor": "Theorem 1.1; equations (1.1)–(1.2)",
+      "statement": "For the paper's sampler and parameter choices, a one-smooth target satisfying the displayed logarithmic Sobolev inequality can be sampled to total-variation error epsilon with the stated expected number of gradient queries, without a warm-start assumption.",
+      "assumptions": [
+        "d >= 1; V is C2 on R^d and grad V is 1-Lipschitz; pi is the normalized law proportional to exp(-V).",
+        "pi satisfies KL(mu||pi) <= (kappa/2) times the relative Fisher information for every probability measure mu with smooth density, with kappa >= 1.",
+        "A supplied reference point x_ref satisfies ||grad V(x_ref)|| <= sqrt(d/kappa).",
+        "0 < epsilon <= 1/4; use the source Gaussian-cloud sampler, proximal wrapper and exact parameter schedule rather than an arbitrary Picard discretization."
+      ],
+      "formula": "\\mathsf{TV}(\\widehat\\pi,\\pi)\\le\\varepsilon,\\qquad \\mathbb E Q_{\\nabla}=O\\!\\left(\\kappa\\{d+\\log(\\kappa d/\\varepsilon)\\}^{1/5}\\log^{13/2}(\\kappa d/\\varepsilon)\\right)",
+      "boundary": "No local Lean theorem yet proves the sampler, the adaptive forest, or the complexity bound. The big-O hides only universal constants specified by the source parameter choices; it is not a license to omit kappa, dimension, precision, cap or initialization dependencies.",
+      "status": "planned",
+      "steps": [
+        {
+          "id": "gaussian-cloud-main-step-01",
+          "title": "Represent dependent Picard evaluations by Gaussian clouds",
+          "formula": "X_i^{[k]}=\\bar X_i^{[k]}+\\sqrt{\\eta}\\,G_i^{[k]}",
+          "explanation": "The cloud representation exposes independent Gaussian blocks while preserving the shared dependence needed by Picard iteration. Fluctuation and mean corrections are separate FORS gadgets; independence may not be invented between recursively shared blocks.",
+          "source_anchor": "Sections 3.1 and 4–5",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-main-step-02",
+          "title": "Assemble a finite adaptive computation",
+          "formula": "A_{v+1}=A_v-1+\\zeta_{v+1},\\qquad T=\\inf\\{v:A_v=0\\}",
+          "explanation": "Mandatory predecessor chains are contracted into vertices and optional nested requests become children. Lemmas 6.1 and 6.2 control vertices and attached RGO queries before the deterministic global cap is imposed.",
+          "source_anchor": "Section 6.1; Lemmas 6.1–6.2",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-main-step-03",
+          "title": "Telescope every implementation error",
+          "formula": "\\mathsf{TV}(\\operatorname{Law}(\\widehat X),\\operatorname{Law}(X))\\le\\sum_{t=1}^{T_{\\max}}\\delta_t+\\varepsilon_{\\rm cap}",
+          "explanation": "Dummy filling converts early termination into a common fixed slot space. Hybrids replace one conditional kernel at a time under the ideal history; the cap failure is added only after comparing capped and uncapped ideal algorithms.",
+          "source_anchor": "Lemma 6.3",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-main-step-04",
+          "title": "Insert the Section 6 budgets into the cloud sampler",
+          "formula": "\\mathbb E Q_{\\nabla}\\le C\\mathfrak L^{11/2}(d+\\mathfrak L)^{1/5}",
+          "explanation": "Theorem 6.4 fixes h, smoothing levels, Picard depth, phase count, local correction budgets and RGO accuracies. The proximal wrapper then restores general condition number kappa and produces Theorem 1.1.",
+          "source_anchor": "Theorem 6.4; proof of Theorem 1.1",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        }
+      ]
+    },
+    {
+      "id": "gaussian-cloud-adaptive-tree",
+      "title": "Size and query count of a capped adaptive tree",
+      "source_anchor": "Section 6.1, Lemma 6.1, equations (6.1)–(6.2)",
+      "statement": "A breadth-first request queue with conditionally sub-Poisson child counts and mean offspring at most one quarter has expected total size at most four thirds of its root count and a subexponential upper tail. A deterministic local query cap multiplies the vertex bound.",
+      "assumptions": [
+        "q >= 1 roots; A_0=q and, while A_v>0, A_{v+1}=A_v-1+zeta_{v+1} with zeta_{v+1} a nonnegative integer adapted to the exploration filtration.",
+        "Deterministic m >= 1 and lambda >= 0 satisfy E[exp(s zeta_{v+1}) | F_v] <= exp(lambda(exp(ms)-1)) on {A_v>0}, for every 0 <= s <= 1/m.",
+        "m lambda <= 1/4; T is the first v with A_v=0. The local reference-query count per processed vertex is at most Q_loc."
+      ],
+      "formula": "\\mathbb ET\\le\\frac{4q}{3},\\qquad \\mathbb P\\{T>C(q+mu)\\}\\le e^{-u}\\ (u\\ge1),\\qquad Q_{\\rm ref}\\le Q_{\\rm loc}T",
+      "boundary": "This lemma counts a dominating potential request tree. It does not prove that any particular FORS/cloud implementation satisfies the MGF premise, and it does not include RGO-internal query counts except through the separate attachment analysis.",
+      "status": "planned",
+      "steps": [
+        {
+          "id": "gaussian-cloud-adaptive-tree-step-01",
+          "title": "Differentiate the conditional MGF at zero",
+          "formula": "\\mathbb E[\\zeta_{v+1}\\mid\\mathcal F_v]\\le m\\lambda\\le\\tfrac14",
+          "explanation": "This supplies negative queue drift while the process is alive. Lean must state the conditional-expectation version and the stopped extension after the queue empties.",
+          "source_anchor": "Lemma 6.1 proof, expectation estimate",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-adaptive-tree-step-02",
+          "title": "Sum the stopped drift",
+          "formula": "\\mathbb E A_{n\\wedge T}\\le q-\\tfrac34\\,\\mathbb E(n\\wedge T)",
+          "explanation": "Nonnegativity of the queue yields a uniform bound on the stopped exploration time; monotone convergence then gives the expectation bound for T.",
+          "source_anchor": "Lemma 6.1 proof, expected size",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-adaptive-tree-step-03",
+          "title": "Build the exponential supermartingale",
+          "formula": "\\mathbb P\\{T>C(q+mu)\\}\\le e^{-u}",
+          "explanation": "The conditional MGF assumption controls the stopped queue and gives the tail with a universal constant C. This step must track the permitted range 0 <= s <= 1/m rather than optimize over an illegal exponent.",
+          "source_anchor": "Lemma 6.1 proof, tail bound",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        }
+      ]
+    },
+    {
+      "id": "gaussian-cloud-tv-ledger",
+      "title": "Adaptive conditional-kernel TV error telescope",
+      "source_anchor": "Section 6.1, Lemma 6.3",
+      "statement": "For ideal and implemented adaptive algorithms stopped at the same deterministic number of slots, the output-law error is at most the sum of the mean conditional replacement errors evaluated along the ideal capped histories, plus the probability that the uncapped ideal algorithm exceeds the cap.",
+      "assumptions": [
+        "For each slot 1 <= t <= T_max, K_t(H,.) and Khat_t(H,.) are measurable probability kernels on a common history/output interface.",
+        "Both capped algorithms use the same deterministic T_max and append a measurable dummy symbol after termination.",
+        "The uncapped ideal algorithm exceeds T_max with probability at most epsilon_cap.",
+        "H_{t-1} is the ideal capped history and delta_t is the expectation of TV(K_t(H_{t-1},.), Khat_t(H_{t-1},.))."
+      ],
+      "formula": "\\mathsf{TV}(\\operatorname{Law}(\\widehat X),\\operatorname{Law}(X))\\le\\sum_{t=1}^{T_{\\max}}\\delta_t+\\varepsilon_{\\rm cap}\\le T_{\\max}\\varepsilon+\\varepsilon_{\\rm cap}",
+      "boundary": "The mean conditional-event integral, common-suffix contraction and finite real telescope now compile as reusable Lean edges. The exact dummy-filled history kernel, source-specific delta_t identification and measurability, and capped/uncapped comparison remain separate red obligations; therefore Lemma 6.3 itself is not yet formalized. Uniform epsilon is only a corollary after those adapters.",
+      "status": "planned",
+      "steps": [
+        {
+          "id": "gaussian-cloud-tv-ledger-step-01",
+          "title": "Freeze a common finite history space",
+          "formula": "H=(Y_1,\\ldots,Y_{T_{\\max}}),\\qquad Y_t=\\dagger\\text{ after termination}",
+          "explanation": "Dummy filling makes every adaptive run a fixed-length record. This is what permits the t-th conditional rule to be compared without pretending that both algorithms made the same random number of calls.",
+          "source_anchor": "Lemma 6.3, setup",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-tv-ledger-step-02",
+          "title": "Define adjacent hybrids",
+          "formula": "\\mathcal A^{(t)}=(K_1,\\ldots,K_t,\\widehat K_{t+1},\\ldots,\\widehat K_{T_{\\max}})",
+          "explanation": "Consecutive hybrids share the ideal history distribution through slot t-1. Therefore the only new discrepancy is the conditional kernel at slot t, averaged under precisely that ideal history.",
+          "source_anchor": "Lemma 6.3 proof",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "gaussian-cloud-tv-ledger-step-03",
+          "title": "Use data processing for the adaptive suffix",
+          "formula": "\\mathsf{TV}(\\operatorname{Law}(\\mathcal A^{(t)}),\\operatorname{Law}(\\mathcal A^{(t-1)}))\\le\\delta_t",
+          "explanation": "All later calls may depend on the replaced output, but they form one common measurable downstream kernel for this adjacent pair. Data processing absorbs that adaptive continuation.",
+          "source_anchor": "Lemma 6.3 proof",
+          "status": "compiled-support-only",
+          "compiled_support": [
+            "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+            "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound"
+          ],
+          "support_note": "The reusable mean conditional-error and common-suffix edges compile. Constructing the paper's dummy-filled history and identifying its slot law remain open."
+        },
+        {
+          "id": "gaussian-cloud-tv-ledger-step-04",
+          "title": "Telescope the capped adjacent hybrids",
+          "formula": "\\mathsf{TV}(P_{T_{\\max}},P_0)\\le\\sum_{t=1}^{T_{\\max}}\\delta_t",
+          "explanation": "Apply the triangle inequality to the fixed finite list of hybrid event probabilities. Every slot budget is charged once with unit coefficient.",
+          "source_anchor": "Lemma 6.3 proof",
+          "status": "compiled-support-only",
+          "compiled_support": [
+            "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent"
+          ],
+          "support_note": "The finite real telescope compiles. Its application still needs the source-specific hybrid laws and adjacent bounds."
+        },
+        {
+          "id": "gaussian-cloud-tv-ledger-step-05",
+          "title": "Add cap failure once",
+          "formula": "\\mathsf{TV}(\\widehat P,P)\\le\\mathsf{TV}(\\widehat P,P_{\\rm capped})+\\varepsilon_{\\rm cap}",
+          "explanation": "A final coupling or event comparison handles ideal capped versus ideal uncapped output. This is a separate proof edge, so the cap term is not repeated at every slot.",
+          "source_anchor": "Lemma 6.3 proof",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        }
+      ]
+    }
+  ],
+  "ledger": {
+    "title": "Section 6 recursive-call and accumulated-error ledger",
+    "intro": "The paper's adaptive sampler is easiest to audit as two coupled ledgers. The call ledger counts a breadth-first request forest. The error ledger compares ideal and implemented conditional kernels one slot at a time. They meet at the deterministic cap T_max; they must not be collapsed into one informal union bound.",
+    "quantities": [
+      {
+        "symbol": "q",
+        "meaning": "Initial root requests",
+        "update": "A_0=q",
+        "role": "Starts the request forest; it is not the final query count."
+      },
+      {
+        "symbol": "A_v",
+        "meaning": "Pending requests after v vertices",
+        "update": "A_{v+1}=A_v-1+\\zeta_{v+1}",
+        "role": "Queue state used to define termination."
+      },
+      {
+        "symbol": "\\zeta_{v+1}",
+        "meaning": "Children revealed by the next processed vertex",
+        "update": "\\mathbb E[e^{s\\zeta_{v+1}}\\mid\\mathcal F_v]\\le e^{\\lambda(e^{ms}-1)}",
+        "role": "Controls both drift and the tail of the adaptive tree."
+      },
+      {
+        "symbol": "T",
+        "meaning": "First v with A_v=0",
+        "update": "\\mathbb ET\\le4q/3,\\quad\\mathbb P\\{T>C(q+mu)\\}\\le e^{-u}",
+        "role": "Counts contracted vertices before the global cap."
+      },
+      {
+        "symbol": "Q_{\\rm loc}",
+        "meaning": "Local reference-query cap per vertex",
+        "update": "Q_{\\rm loc}=C\\mathfrak L^2",
+        "role": "Turns a vertex-count bound into a reference-query bound."
+      },
+      {
+        "symbol": "T_{\\max}",
+        "meaning": "Deterministic number of recorded call slots",
+        "update": "T_{\\max}=\\lceil C(N+\\mathfrak L^3)\\mathfrak L^2\\rceil",
+        "role": "Makes the adaptive execution a fixed-length history after dummy filling."
+      },
+      {
+        "symbol": "\\delta_t",
+        "meaning": "Mean TV error at slot t under ideal capped history",
+        "update": "\\mathbb E\\,\\mathsf{TV}(K_t(H_{t-1},\\cdot),\\widehat K_t(H_{t-1},\\cdot))",
+        "role": "Charged once by the adjacent-hybrid comparison."
+      },
+      {
+        "symbol": "\\varepsilon_{\\rm cap}",
+        "meaning": "Ideal probability of exceeding the global cap",
+        "update": "\\mathbb P\\{T>T_{\\max}\\}\\le\\varepsilon_{\\rm cap}",
+        "role": "Charged once when capped ideal output is compared with uncapped ideal output."
+      }
+    ],
+    "error_flow": [
+      {
+        "stage": "Potential request schedule",
+        "input": "FORS attempts and nested cloud/RGO requests",
+        "output": "A dominating adaptive forest",
+        "charge": "No accuracy error; this is a counting enlargement."
+      },
+      {
+        "stage": "Local and global caps",
+        "input": "Tree-size and per-vertex query tails",
+        "output": "A finite record of at most T_max slots",
+        "charge": "Only the ideal global-cap failure contributes epsilon_cap in Lemma 6.3."
+      },
+      {
+        "stage": "Slot t replacement",
+        "input": "Same ideal history H_{t-1}",
+        "output": "Replace K_t by Khat_t",
+        "charge": "delta_t; later adaptive behavior is handled by data processing."
+      },
+      {
+        "stage": "Hybrid telescope",
+        "input": "T_max adjacent algorithm pairs",
+        "output": "Implemented capped law versus ideal capped law",
+        "charge": "Sum from t=1 to T_max of delta_t."
+      },
+      {
+        "stage": "Final cap comparison",
+        "input": "Ideal capped and ideal uncapped outputs",
+        "output": "Actual target algorithm comparison",
+        "charge": "Add epsilon_cap, giving sum delta_t + epsilon_cap."
+      }
+    ],
+    "boundary": "This ledger does not prove the conditional-kernel bounds, the adaptive-tree moment estimate, measurability of histories, or the paper's final parameter substitution. Each remains a separate theorem obligation. Dummy filling is part of the mathematical interface, not presentation-only padding."
+  },
+  "downloads": {
+    "json": "../downloads/gaussian-cloud-picard-hmc-research-context.json",
+    "markdown": "../downloads/gaussian-cloud-picard-hmc-research-context.md",
+    "bundle": "../downloads/gaussian-cloud-picard-hmc-research-pack.zip",
+    "mcp_app": "../downloads/samplinglib-research-mcp.zip"
+  },
+  "evidence_contract": {
+    "source_context": "pinned",
+    "ai_output": "unverified-candidate-only",
+    "lean_compilation": "separate-exact-snippet-gate",
+    "source_fidelity": "independent-review-required",
+    "blue_status": "ASTIS-owned, compiled, tested, reviewed and admitted only"
+  }
+}

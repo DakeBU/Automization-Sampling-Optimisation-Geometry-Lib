@@ -1,0 +1,140 @@
+{
+  "id": "ASTIS-SW-SPHMC-2026",
+  "slug": "smoothed-picard-hmc",
+  "title": "Smoothed Picard HMC and the proxy warm start",
+  "role": "Producer: low-accuracy transport control, then an implementable proxy warm start.",
+  "status": "planned",
+  "source_records": [
+    {
+      "id": "sphmc-2026",
+      "title": "Smoothed Picard Hamiltonian Monte Carlo",
+      "url": "https://arxiv.org/html/2609.06906v1",
+      "version": "2609.06906v1",
+      "authors": [
+        "Fan Chen",
+        "Sinho Chewi",
+        "Jianfeng Lu",
+        "Matthew S. Zhang"
+      ]
+    }
+  ],
+  "source_reader": "../example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+  "setting": {
+    "formula": "d\\ge1,\\quad V\\in C^2(\\mathbb R^d),\\quad 0<\\alpha I\\preceq\\nabla^2V(x)\\preceq\\beta I,\\quad \\kappa=\\beta/\\alpha,\\quad \\pi(dx)=Z^{-1}e^{-V(x)}dx",
+    "notes": [
+      "The Hessian inequalities hold at every point; alpha and beta are positive real numbers. Separate Hessian-to-chord and Gibbs-integrability proofs support the compiled normalized PBPS augmentation certificate: positive Gibbs integral, probability and exact product-volume joint density. Consult linked cells for independent-review and admission states. Conditional kernels, the sampling process and its guarantees remain separate.",
+      "TV(P,Q) means sup over measurable events of |P(A)-Q(A)|. For probability laws with densities it is half their L1 distance.",
+      "R_2(P||Q)=log integral (dP/dQ)^2 dQ when P is absolutely continuous with respect to Q, and infinity otherwise. The PBPS paper writes D_2 and calls the target mu; here the common target is pi.",
+      "Expected oracle queries are not worst-case runtime. Reference-point preparation, proximal access and gradient-only reductions must be charged under the particular theorem's model."
+    ]
+  },
+  "reader_guide": [],
+  "theorems": [
+    {
+      "id": "sphmc-w2",
+      "title": "Low-accuracy W2 guarantee",
+      "source_anchor": "SPHMC Theorem 1.1; Algorithm 3.2; Section 4.5; Appendix D",
+      "statement": "Given a reference point with small gradient, the source algorithm outputs a probability law satisfying the displayed normalized Wasserstein error. This theorem counts gradient and proximal queries; gradient-only implementation is a separate reduction.",
+      "assumptions": [
+        "The common C2 strong-convexity/smoothness setting.",
+        "0 < epsilon <= 1; a supplied x_ref satisfies ||grad V(x_ref)|| <= sqrt(alpha d).",
+        "Use the source algorithm and its parameter choices, not an arbitrary Picard or HMC discretization."
+      ],
+      "formula": "\\sqrt\\alpha W_2(\\widehat\\pi,\\pi)\\le\\varepsilon,\\qquad \\mathbb E Q_{\\nabla,\\mathrm{prox}}=O\\!\\left[\\left(\\kappa^2+\\kappa^{7/6}d^{1/6}\\varepsilon^{-1/3}\\right)\\log^4\\frac{e\\kappa d}{\\varepsilon}\\right]",
+      "boundary": "No Wq, Renyi warmness, exact stationarity of a discretization, or cost-free proximal oracle follows from this W2 statement.",
+      "status": "planned",
+      "steps": [
+        {
+          "id": "sphmc-w2-step-01",
+          "title": "Smooth the density",
+          "formula": "e^{-V_\\eta}=e^{-V}*\\mathcal N(0,\\eta I),\\qquad \\nabla V_\\eta(y)=\\mathbb E[\\nabla V(X)\\mid X+\\sqrt\\eta G=y]",
+          "explanation": "This is not the Gaussian average of V. Differentiation under the integral and a specified conditional-law version justify the score identity. The implementable score estimator has bias as well as variance; it is not assumed exactly unbiased.",
+          "source_anchor": "Section 3.1, (3.1)–(3.2); Section 4.1",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "sphmc-w2-step-02",
+          "title": "Integrate the smoothed Hamiltonian equation",
+          "formula": "X_t=X_0+tP_0-\\int_0^t(t-s)\\nabla V_\\eta(X_s)\\,ds",
+          "explanation": "Picard iteration approximates the trajectory, while Chebyshev–Lobatto quadrature approximates its integrals. Smoothing regularity, quadrature remainder and stochastic score error are separate inputs to the local-error estimate.",
+          "source_anchor": "Sections 3.2, 4.2–4.4; Appendix B",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "sphmc-w2-step-03",
+          "title": "Budget all three errors",
+          "formula": "W_2(\\widehat\\pi,\\pi)\\le W_2(\\widehat\\pi,\\pi_\\eta)+W_2(\\pi_\\eta,\\pi)",
+          "explanation": "The first term includes iteration and numerical errors; the second is the smoothing bias. Finite second moments and the exact-kernel contraction must be supplied before using this triangle inequality.",
+          "source_anchor": "Section 4.5; Appendix C.3",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        }
+      ]
+    },
+    {
+      "id": "sphmc-proxy",
+      "title": "An implementable law near a Renyi-warm proxy",
+      "source_anchor": "SPHMC Theorem 1.2; Theorem 7.1(ii); Sections 5–6",
+      "statement": "For every allowed delta the algorithm produces the actual law below. A second, existential comparison law is close in TV and has bounded order-2 Renyi divergence. The comparison law need not be directly sampled.",
+      "assumptions": [
+        "The common setting and the same reference-point bound as Theorem 1.1.",
+        "0 < delta < 1/2.",
+        "The recursive generator uses higher-moment smoothed sampling and terminal RGO implementation; this is not a general W2-to-Renyi implication."
+      ],
+      "formula": "\\exists\\widehat\\pi_\\delta^\\dagger:\\quad \\operatorname{TV}(\\widehat\\pi_\\delta,\\widehat\\pi_\\delta^\\dagger)\\le\\delta,\\quad R_2(\\widehat\\pi_\\delta^\\dagger\\Vert\\pi)\\le1,\\qquad \\mathbb E Q_\\nabla=O\\!\\left(\\kappa^{7/6}d^{1/6}\\log^9\\frac{e\\kappa d}{\\delta}\\right)",
+      "boundary": "Only the proxy has the displayed Renyi certificate. Genuine Renyi warmness of the actual output requires the stronger W_psi2 input in the separate source theorem.",
+      "status": "planned",
+      "steps": [
+        {
+          "id": "sphmc-proxy-step-01",
+          "title": "Turn a moment bound into a nearby bounded-displacement coupling",
+          "formula": "W_p(P,Q)\\le r\\quad\\Longrightarrow\\quad\\exists P^\\dagger:\\ \\operatorname{TV}(P,P^\\dagger)\\le\\delta,\\quad W_\\infty(P^\\dagger,Q)\\le r\\delta^{-1/p}",
+          "explanation": "For p >= 2 and finite p-moments, replace a coupled sample by its partner on the event where displacement exceeds r delta^(-1/p). Markov's inequality bounds that event; measurability and coupling attainment must be justified.",
+          "source_anchor": "Lemma 6.2",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "sphmc-proxy-step-02",
+          "title": "Regularize both laws before measuring divergence",
+          "formula": "R_q(P^\\dagger*\\gamma_\\tau\\Vert Q*\\gamma_\\tau)\\le\\frac{qW_p(P,Q)^2}{2\\tau\\delta^{2/p}},\\qquad q>1,\\quad\\tau>0",
+          "explanation": "A Gaussian reverse-transport bound applies after convolution. Recursive conditional/RGO updates then recover the desired unsmoothed target; deleting that recursion would change the theorem.",
+          "source_anchor": "Lemma 6.3(ii); Theorems 6.1 and 6.5",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "sphmc-proxy-step-03",
+          "title": "Track the moving conditional target and oracle bill",
+          "formula": "(A^+)^{-1}=A^{-1}+a^{-1},\\qquad u^+=A^+(u/A+y/a)",
+          "explanation": "Completing the square closes the RGO family under another RGO. The recursive stages and outer proximal sampler improve conditioning; the kappa-squared setup term from Theorem 1.1 is not silently discarded.",
+          "source_anchor": "Lemma 6.4; Sections 6.3–6.4 and 7.1",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        }
+      ]
+    }
+  ],
+  "ledger": null,
+  "downloads": {
+    "json": "../downloads/smoothed-picard-hmc-research-context.json",
+    "markdown": "../downloads/smoothed-picard-hmc-research-context.md",
+    "bundle": "../downloads/smoothed-picard-hmc-research-pack.zip",
+    "mcp_app": "../downloads/samplinglib-research-mcp.zip"
+  },
+  "evidence_contract": {
+    "source_context": "pinned",
+    "ai_output": "unverified-candidate-only",
+    "lean_compilation": "separate-exact-snippet-gate",
+    "source_fidelity": "independent-review-required",
+    "blue_status": "ASTIS-owned, compiled, tested, reviewed and admitted only"
+  }
+}

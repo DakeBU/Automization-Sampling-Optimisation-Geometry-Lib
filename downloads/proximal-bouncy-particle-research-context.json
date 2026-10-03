@@ -1,0 +1,104 @@
+{
+  "id": "ASTIS-SW-PBPS-2026",
+  "slug": "proximal-bouncy-particle",
+  "title": "Proximal BPS: high accuracy from a warm start",
+  "role": "Consumer: a Renyi-warm input becomes a high-accuracy position law through an augmented-state discrete chain.",
+  "status": "planned",
+  "source_records": [
+    {
+      "id": "pbps-2026",
+      "title": "Accelerated High-Accuracy Sampling from a Warm Start via the Proximal Bouncy Particle Sampler",
+      "url": "https://arxiv.org/html/2609.06905v1",
+      "version": "2609.06905v1",
+      "authors": [
+        "Fan Chen",
+        "Sinho Chewi",
+        "Jianfeng Lu",
+        "Matthew S. Zhang"
+      ]
+    }
+  ],
+  "source_reader": "../example-cases/samplewiki/companions/proximal-bouncy-particle.html",
+  "setting": {
+    "formula": "d\\ge1,\\quad V\\in C^2(\\mathbb R^d),\\quad 0<\\alpha I\\preceq\\nabla^2V(x)\\preceq\\beta I,\\quad \\kappa=\\beta/\\alpha,\\quad \\pi(dx)=Z^{-1}e^{-V(x)}dx",
+    "notes": [
+      "The Hessian inequalities hold at every point; alpha and beta are positive real numbers. Separate Hessian-to-chord and Gibbs-integrability proofs support the compiled normalized PBPS augmentation certificate: positive Gibbs integral, probability and exact product-volume joint density. Consult linked cells for independent-review and admission states. Conditional kernels, the sampling process and its guarantees remain separate.",
+      "TV(P,Q) means sup over measurable events of |P(A)-Q(A)|. For probability laws with densities it is half their L1 distance.",
+      "R_2(P||Q)=log integral (dP/dQ)^2 dQ when P is absolutely continuous with respect to Q, and infinity otherwise. The PBPS paper writes D_2 and calls the target mu; here the common target is pi.",
+      "Expected oracle queries are not worst-case runtime. Reference-point preparation, proximal access and gradient-only reductions must be charged under the particular theorem's model."
+    ]
+  },
+  "reader_guide": [],
+  "theorems": [
+    {
+      "id": "pbps-warm",
+      "title": "Optimized expected gradient complexity",
+      "source_anchor": "PBPS Corollary 4.4, (4.19)–(4.20); Theorem 4.3, (4.8)–(4.9)",
+      "statement": "With universal positive tuning constants, run the implementable algorithm with the source parameter choices. Its output is epsilon-close to the target in TV and has the following expected gradient-query bound. No fixed worst-case running-time claim is made.",
+      "assumptions": [
+        "The common setting; an input probability law mu_0 with R_2(mu_0||pi) <= Delta, where Delta >= 1.",
+        "0 < epsilon < 1/4; query access to grad V and a sample from mu_0.",
+        "Choose L and eta below and the iteration, resampling, error and solver budgets in source (4.8)–(4.9). The constants c_opt and K_opt are universal, not arbitrary user choices."
+      ],
+      "formula": "\\begin{gathered}L=\\Delta+\\log\\frac{K_{\\rm opt}d\\kappa}{\\varepsilon},\\quad\\eta=\\frac{c_{\\rm opt}}{\\beta(\\sqrt{dL}+L)},\\quad\\operatorname{TV}(\\mathcal L(\\widehat X),\\pi)\\le\\varepsilon,\\\\\\mathbb E Q_\\nabla\\le K_{\\rm opt}\\sqrt\\kappa(d+L)^{1/4}L^{3/4}\\left(\\Delta+\\log\\frac4\\varepsilon\\right)\\log(\\kappa L).\\end{gathered}",
+      "boundary": "This is the discrete augmented Proximal BPS algorithm with curved conditional flights. It is not vanilla continuous-time BPS, and its acceleration does not follow just from invariance or an algebraic reflection identity.",
+      "status": "planned",
+      "steps": [
+        {
+          "id": "pbps-warm-step-01",
+          "title": "Augment, then reflect the auxiliary variable",
+          "formula": "\\pi_\\eta(dx,dy)=\\pi(dx)\\mathcal N(x,\\eta I)(dy),\\qquad (x,y)\\mapsto(x,2x-y)",
+          "explanation": "Gaussian symmetry preserves the augmented law under this reflection. It differs from velocity reflection at a bounce. A conditional half-turn and occasional RGO resampling form the ideal transition; they are not independent ordinary Gibbs redraws at every step.",
+          "source_anchor": "Proposition 2.1; (3.11); Proposition 3.4",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "pbps-warm-step-02",
+          "title": "Use discrete hypocoercivity, not a reversible gap shortcut",
+          "formula": "f=\\mathbb E[f\\mid Y]+(f-\\mathbb E[f\\mid Y]),\\qquad\\chi^2(\\nu_0\\mathcal K^{JN}\\Vert\\pi_\\eta)\\le e^{-J}\\chi^2(\\nu_0\\Vert\\pi_\\eta)",
+          "explanation": "The source chooses eta, rho and a block length N as in Theorem 3.5. Conditional resampling damps the fluctuation; reflection couples it to the conditional mean. A modified L2 energy and half-turn operator bounds are essential. The local unrefreshed process alone need not mix.",
+          "source_anchor": "Theorem 3.5; Appendices B–C",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "pbps-warm-step-03",
+          "title": "Keep implementation mismatch separate from ideal mixing",
+          "formula": "\\mathbb P(\\widehat X\\ne X_T^{\\rm id})\\le3Ta=\\varepsilon/2,\\qquad\\operatorname{TV}(\\mathcal L(\\widehat X),\\pi)\\le\\varepsilon/2+\\varepsilon/2",
+          "explanation": "Solver failure, approximate RGO draws and capped bounce rates each consume an error budget a. Lifted Renyi control bounds bad events along the ideal chain; a coupling union bound transfers its convergence to the implemented output.",
+          "source_anchor": "Theorem 4.3, (4.14)–(4.18)",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        },
+        {
+          "id": "pbps-warm-step-04",
+          "title": "Balance localization against block length",
+          "formula": "(\\alpha\\eta)^{-1/2}=\\sqrt{\\kappa/c_{\\rm opt}}(\\sqrt{dL}+L)^{1/2}",
+          "explanation": "Substitute the chosen eta into the iteration bound and charge proximal solves, RGO calls and candidate bounce queries. Retaining L prevents a hidden warmness or precision dependence from disappearing into the dimension exponent.",
+          "source_anchor": "Corollary 4.4, (4.21)–(4.23)",
+          "status": "open",
+          "compiled_support": [],
+          "support_note": "No ASTIS declaration is attached to this step yet."
+        }
+      ]
+    }
+  ],
+  "ledger": null,
+  "downloads": {
+    "json": "../downloads/proximal-bouncy-particle-research-context.json",
+    "markdown": "../downloads/proximal-bouncy-particle-research-context.md",
+    "bundle": "../downloads/proximal-bouncy-particle-research-pack.zip",
+    "mcp_app": "../downloads/samplinglib-research-mcp.zip"
+  },
+  "evidence_contract": {
+    "source_context": "pinned",
+    "ai_output": "unverified-candidate-only",
+    "lean_compilation": "separate-exact-snippet-gate",
+    "source_fidelity": "independent-review-required",
+    "blue_status": "ASTIS-owned, compiled, tested, reviewed and admitted only"
+  }
+}

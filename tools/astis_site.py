@@ -890,7 +890,7 @@ def local_declaration_status(declaration: SourceDeclaration, gate: GateEvidence)
 
 def source_commit_link_error(url: str, commit: str, web_root: str) -> str | None:
     """Local source uses this checkout; external libraries use their own pins."""
-    root = web_root.rstrip("/") or "https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep"
+    root = web_root.rstrip("/") or "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
     if url.startswith(root + "/blob/"):
         if commit and f"/blob/{commit}/" not in url:
             return f"source link is not pinned to the generated commit: {url}"
@@ -1050,7 +1050,7 @@ def page(
       </div>
       <div class="sidebar-contents">{sidebar}</div>
       <div class="sidebar-utility">
-        <a href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep">GitHub <span aria-hidden="true">↗</span></a>
+        <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub <span aria-hidden="true">↗</span></a>
         <button id="scheme-toggle" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
       </div>
     </aside>
@@ -2198,7 +2198,7 @@ def render_contribute(count: int) -> str:
 <section class="page-hero compact contribution-hero"><div class="eyebrow">Samplinglib contributor guide</div>
 <h1>Move a Mathematical Result into Verified Memory</h1>
 <p class="lede">Contribute a focused correction, reusable Lean leaf, textbook reconstruction, proof-route packet, diagram, or teaching improvement without blurring source mathematics, local proof evidence, and route completion.</p>
-<div class="hero-actions"><a class="button primary" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/issues/new">Discuss a large change ↗</a><a class="button" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep">Repository source ↗</a></div></section>
+<div class="hero-actions"><a class="button primary" href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/issues/new">Discuss a large change ↗</a><a class="button" href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">Repository source ↗</a></div></section>
 <nav class="contribution-jump" aria-label="Contributor steps"><a href="#discuss"><strong>01</strong><span>Discuss</span></a><a href="#develop"><strong>02</strong><span>Develop</span></a><a href="#verify"><strong>03</strong><span>Verify</span></a><a href="#submit"><strong>04</strong><span>Submit</span></a></nav>
 <section><div class="section-heading"><span>Acceptance route</span><h2>One result, explicit ownership, independent review</h2></div>{diagram_block("contribution-route", "Accepted certificates enter Samplinglib; rejected or incomplete work returns with an exact owning layer and blocker.")}</section>
 <section id="discuss" class="contribution-step"><div class="step-index">01</div><div class="step-body"><span class="eyebrow">Discuss</span><h2>Fix the scope before a large development</h2><p>Focused corrections, documentation repairs, and narrow API improvements can remain small. Open an issue before adding a theorem route, module or namespace, changing mathematical assumptions, porting a large external development, or changing the ASTIS gate.</p>
@@ -2218,7 +2218,7 @@ def render_contribute(count: int) -> str:
 <p class="note">This build currently records {count} compiled Registry leaves. That count is a consistency baseline, not a claim that the Log-Concave Sampling route is complete.</p></div></section>
 <section id="submit" class="contribution-step"><div class="step-index">04</div><div class="step-body"><span class="eyebrow">Submit</span><h2>Make the mathematical and formal evidence reviewable</h2><p>Use the repository pull request template. Record the result and source anchor, owning module, API decisions, exact commands run, adapted-code provenance, both status layers, and every remaining obligation.</p>
 <div class="review-route"><div><h3>Reviewer checks</h3><ul><li>source fidelity and hidden hypotheses;</li><li>statement or constant drift;</li><li>module ownership and duplicate APIs;</li><li>proof completeness and current gate evidence;</li><li>honest remaining mathematical frontier.</li></ul></div><div><h3>Credit</h3><p>Accepted contributions are credited in Git history and relevant source-file author headers. Co-written commits should include one <code>Co-authored-by</code> trailer per additional author.</p>{coauthor_example}</div></div>
-<div class="hero-actions"><a class="button primary" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/compare">Open a pull request ↗</a><a class="button" href="../roadmap/index.html">Inspect open milestones</a></div></div></section>
+<div class="hero-actions"><a class="button primary" href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/compare">Open a pull request ↗</a><a class="button" href="../roadmap/index.html">Inspect open milestones</a></div></div></section>
 <section class="note"><h2>Acceptance principle</h2><p>Discussion and implementation can remain flexible, but admission to Samplinglib requires explicit mathematical ownership, source provenance, current Lean evidence, and an independent reviewer decision.</p></section>
 """
     return page(
@@ -2362,7 +2362,7 @@ def render_overview(
     <a class="button primary" href="textbook/index.html">Read Log-Concave Sampling</a>
     <a class="button" href="live/index.html">Open Live Formalization</a>
     <a class="button" href="declarations/index.html">Browse Lean Library</a>
-    <a class="button quiet" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep">GitHub ↗</a>
+    <a class="button quiet" href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub ↗</a>
   </div>
   <div class="metric-row">
     <div><strong>{len(production_modules)}</strong><span>Lean modules</span></div>

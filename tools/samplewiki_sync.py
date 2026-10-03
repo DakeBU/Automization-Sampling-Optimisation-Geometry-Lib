@@ -35,7 +35,7 @@ DEFAULT_OUTPUT = (
 )
 USER_AGENT = (
     "ASTIS-SampleWiki-Watcher/1.0 "
-    "(+https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep)"
+    "(+https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib)"
 )
 SEMANTIC_KEYWORDS = (
     "problem",

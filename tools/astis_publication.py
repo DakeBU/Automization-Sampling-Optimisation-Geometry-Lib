@@ -29,7 +29,7 @@ CONTENT = ROOT / 'website/content/publications'
 MIGRATION_BASE = '5c6adf3b812f3ba9315c92ba78a4ff59ccc2a53e'
 LEGACY_FILE_SHA = '6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17'
 REGISTRY_DATA_NAMES = frozenset(('sltSourceAnchor analysisMemory gaussianMemory taylorMemory '
-    'calculusMemory measureMemory functionalInequalityMemory stochasticProcessMemory '
+    'calculusMemory measureMemory probabilityMemory functionalInequalityMemory stochasticProcessMemory '
     'klDensityMemory renyiDensityMemory variationalMemory geometryMemory saldExtractedMemory '
     'portQueueMemory technicalLemmaMemory formalizedTechnicalLemmaCount').split())
 REGISTRY_METADATA_TYPES = frozenset({

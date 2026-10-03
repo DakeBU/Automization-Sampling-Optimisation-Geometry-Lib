@@ -31,6 +31,7 @@ import AutoSamplingTheory.TechnicalLemmas.Measure.KantorovichDual
 import AutoSamplingTheory.TechnicalLemmas.Measure.Product
 import AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym
 import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
@@ -3900,6 +3901,39 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
   }
 ]
 
+def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.kernel-hybrid.mean-event-error",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+    upstreamDecl := "Chen--Chewi--Lu--Zhang arXiv:2609.38710v1, Lemma 6.3 mean one-call replacement step",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope; arXiv:2609.38710v1 Section 6.1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian-cloud", "Markov-kernel", "total-variation", "adaptive", "integrability"],
+    saldUse := "average a history-dependent eventwise kernel discrepancy under the ideal history law without replacing expectation by a uniform bound",
+    note := "Compiled reusable core only. It does not construct the paper's dummy-filled histories or prove the local conditional-error estimates."
+  },
+  {
+    key := "probability.kernel-hybrid.common-suffix",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound",
+    upstreamDecl := "Lemma 6.3 adjacent-hybrid replacement plus Markov-kernel data processing",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.{KernelHybridTelescope,KernelTotalVariation}; arXiv:2609.38710v1 Section 6.1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian-cloud", "Markov-kernel", "total-variation", "adaptive", "data-processing"],
+    saldUse := "absorb every later adaptive call into one common Markov suffix while preserving the mean one-slot error",
+    note := "The downstream suffix must be the same Markov kernel on both adjacent hybrids; history construction and measurability stay separate."
+  },
+  {
+    key := "probability.kernel-hybrid.finite-adjacent-sum",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent",
+    upstreamDecl := "Lemma 6.3 finite adjacent-hybrid triangle telescope",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope; arXiv:2609.38710v1 Section 6.1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian-cloud", "hybrid-argument", "error-budget", "finite-sum"],
+    saldUse := "sum the event discrepancy of adjacent ideal/implemented hybrids across a fixed finite call cap",
+    note := "Real-valued telescope only; the capped/uncapped comparison epsilon_cap is an independent source obligation."
+  }
+]
+
 def klDensityMemory : List LemmaMemoryEntry := [
   {
     key := "kl-density.pointwise-derivative-simplify",
@@ -4630,7 +4664,7 @@ def portQueueMemory : List LemmaMemoryEntry := [
 
 def technicalLemmaMemory : List LemmaMemoryEntry :=
   analysisMemory ++ gaussianMemory ++ taylorMemory ++ calculusMemory ++ measureMemory ++ functionalInequalityMemory ++ stochasticProcessMemory ++
-    klDensityMemory ++ renyiDensityMemory ++ variationalMemory ++ geometryMemory ++
+    probabilityMemory ++ klDensityMemory ++ renyiDensityMemory ++ variationalMemory ++ geometryMemory ++
     saldExtractedMemory ++ portQueueMemory
 
 def formalizedTechnicalLemmaCount : Nat :=

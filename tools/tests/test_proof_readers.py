@@ -127,7 +127,7 @@ class ProofReaderTests(unittest.TestCase):
 
     def test_local_and_external_sources_use_distinct_commit_pins(self):
         check = reader.base.source_commit_link_error
-        root = 'https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep'
+        root = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib'
         commit = 'a' * 40
         self.assertIsNone(check(root + '/blob/' + commit + '/A.lean', commit, root))
         self.assertIsNotNone(check(root + '/blob/main/A.lean', commit, root))

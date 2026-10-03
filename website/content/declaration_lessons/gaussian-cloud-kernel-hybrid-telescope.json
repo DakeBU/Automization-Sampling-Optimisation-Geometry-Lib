@@ -1,0 +1,131 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+      "kind": "theorem",
+      "title": "Average a history-dependent one-call kernel error",
+      "statement": "Let μ be a probability law on a measurable history space A, let K and L be Markov kernels from A to an output space B, and let ε:A→ℝ be μ-integrable. If, for μ-almost every history x, every measurable output event S satisfies |K(x,S)−L(x,S)|≤ε(x), then every measurable T satisfies |(μK)(T)−(μL)(T)|≤∫ε dμ.",
+      "formula": "\\left|(\\mu K)(T)-(\\mu L)(T)\\right|\\le \\int_A\\varepsilon(x)\\,\\mu(dx),\\qquad \\left|K(x,S)-L(x,S)\\right|\\le\\varepsilon(x).",
+      "assumptions": [
+        "A and B carry measurable spaces; μ is a probability measure and K,L are genuine Markov probability kernels.",
+        "The conditional event bound holds μ-almost everywhere and uniformly over every measurable event S at each accepted history.",
+        "ε is a real-valued μ-integrable function. The event bound itself forces ε≥0 on the histories where it holds; no separate nonnegativity premise is needed.",
+        "All event masses are finite probabilities, so conversion from extended nonnegative values to real values loses no information."
+      ],
+      "steps": [
+        {
+          "title": "Write both output probabilities as history integrals",
+          "text": "Fix a measurable output event T. Kernel measurability makes x↦K(x,T) and x↦L(x,T) measurable, and the Markov property bounds both functions between zero and one. They are therefore integrable under the probability law μ. The definition of passing μ through a kernel gives ordinary real integrals.",
+          "formula": "(\\mu K)(T)=\\int_A K(x,T)\\,\\mu(dx),\\qquad (\\mu L)(T)=\\int_A L(x,T)\\,\\mu(dx).",
+          "lean": "The local hint proves integrability from Kernel.measurable_coe and measureReal_le_one. The local happly unfolds Measure.bind, uses Measure.bind_apply, and invokes integral_toReal after proving every conditional event has finite mass."
+        },
+        {
+          "title": "Move subtraction inside the integral",
+          "text": "Because both conditional event-probability functions are integrable, their integral difference equals the integral of their pointwise difference. This is the hidden condition behind the paper-level instruction to average the conditional error.",
+          "formula": "(\\mu K)(T)-(\\mu L)(T)=\\int_A\\bigl(K(x,T)-L(x,T)\\bigr)\\,\\mu(dx).",
+          "lean": "integral_sub is applied only after hint K and hint L have supplied both integrability witnesses."
+        },
+        {
+          "title": "Use the conditional budget under the ideal history law",
+          "text": "The absolute value of an integral is at most the integral of the absolute value. Specializing the almost-everywhere hypothesis to T then bounds the integrand by ε(x), and monotonicity of the integral yields the claimed mean error. The result retains the expected local budget; it does not replace it by a worst-case bound.",
+          "formula": "\\left|\\int_A(K(x,T)-L(x,T))\\,d\\mu\\right|\\le\\int_A|K(x,T)-L(x,T)|\\,d\\mu\\le\\int_A\\varepsilon(x)\\,d\\mu.",
+          "lean": "abs_integral_le_integral_abs supplies the first inequality. Integrable.abs and integral_mono_ae use hbound specialized to T for the second."
+        }
+      ],
+      "lean_statement": "Lean writes K ∘ₘ μ for the measure obtained by first drawing x∼μ and then drawing from K(x,·). The theorem works eventwise and deliberately uses no competing total-variation definition.",
+      "lean_proof": "The proof establishes bounded conditional-event integrability, expands both kernel compositions, subtracts the two integrals, and applies the pointwise conditional budget almost everywhere.",
+      "boundary": [
+        "This is the mean one-call replacement edge in Lemma 6.3, not the full adaptive hybrid theorem.",
+        "It does not construct the Gaussian-cloud history law, show that a local implementation has the stated conditional TV error, or prove measurability of a supremum-defined TV function.",
+        "It does not add the capped-versus-uncapped error ε_cap."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": ["Kernel.measurable_coe", "Measure.bind_apply", "integral_toReal", "integral_sub", "abs_integral_le_integral_abs", "integral_mono_ae"],
+      "sources": [
+        {"url": "https://arxiv.org/html/2609.38710v1#S6.SS1", "label": "Chen, Chewi, Lu and Zhang, Gaussian cloud correction v1, Section 6.1, Lemma 6.3", "scope": "ASTIS expansion of the conditional mean-error step; no paper prose is reproduced."}
+      ],
+      "tests": {"file": "Tests/KernelHybridTelescope.lean", "command": "lake build Tests.KernelHybridTelescope"}
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound",
+      "kind": "theorem",
+      "title": "Later adaptive computation cannot amplify one replaced call",
+      "statement": "Under the preceding hypotheses, let S be any Markov kernel from the one-call output space B to a final output space C. Applying the same downstream kernel S after K and after L preserves the mean error bound: every measurable final event T differs by at most ∫ε dμ.",
+      "formula": "\\left|\\bigl(\\mu(KS)\\bigr)(T)-\\bigl(\\mu(LS)\\bigr)(T)\\right|\\le\\int_A\\varepsilon\\,d\\mu.",
+      "assumptions": [
+        "The input law, two replacement kernels and conditional error budget satisfy the first theorem.",
+        "S is the same Markov kernel in both hybrids. In an adaptive proof, the history state must contain enough information that all later calls really are represented by this common suffix.",
+        "Kernel associativity is used as equality of composed measures; no informal reassociation of conditional distributions is assumed."
+      ],
+      "steps": [
+        {
+          "title": "Control the laws immediately after the replaced slot",
+          "text": "The first theorem gives an eventwise discrepancy bound between μK and μL equal to the ideal-history mean of the local budget.",
+          "formula": "\\forall U,\\quad |(\\mu K)(U)-(\\mu L)(U)|\\le\\int_A\\varepsilon\\,d\\mu.",
+          "lean": "abs_real_comp_sub_le_integral_eventBound is called with exactly the same μ,K,L,ε and almost-everywhere conditional estimate."
+        },
+        {
+          "title": "Apply total-variation data processing to the common suffix",
+          "text": "A common Markov kernel cannot increase an eventwise total-variation bound. Treat every later adaptive action, including its final readout, as S. This is the mathematical reason adjacent hybrids only pay for the slot at which they differ.",
+          "formula": "\\sup_T|((\\mu K)S)(T)-((\\mu L)S)(T)|\\le\\sup_U|(\\mu K)(U)-(\\mu L)(U)|.",
+          "lean": "KernelTotalVariation.abs_real_comp_sub_le supplies factor-one contraction. Measure.comp_assoc rewrites the result into the source-facing composition order."
+        }
+      ],
+      "lean_statement": "The theorem is generic over three measurable spaces. The common-suffix condition is visible in the single parameter S rather than hidden in prose about continuing the algorithm.",
+      "lean_proof": "First obtain the mean discrepancy of the intermediate laws; then reuse the compiled ASTIS Markov-kernel contraction theorem and associativity.",
+      "boundary": [
+        "A source adapter must still construct the dummy-filled history state and prove that the suffix is common after one slot is replaced.",
+        "Different later kernels, stopping rules not encoded in the state, or uncapped recursion are not covered.",
+        "No Gaussian-cloud-specific local accuracy estimate is proved here."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation.abs_real_comp_sub_le"
+      ],
+      "mathlib_dependencies": ["Measure.comp_assoc"],
+      "sources": [
+        {"url": "https://arxiv.org/html/2609.38710v1#S6.SS1", "label": "Chen, Chewi, Lu and Zhang, Gaussian cloud correction v1, Lemma 6.3 hybrid proof", "scope": "Formal data-processing core for the adjacent-hybrid suffix."}
+      ],
+      "tests": {"file": "Tests/KernelHybridTelescope.lean", "command": "lake build Tests.KernelHybridTelescope"}
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent",
+      "kind": "theorem",
+      "title": "Finite adjacent hybrid errors add",
+      "statement": "For real sequences a and δ and a natural number n, if every adjacent difference |a(i+1)−a(i)| is at most δ(i) for i<n, then the endpoint difference |a(n)−a(0)| is at most the sum of those n budgets.",
+      "formula": "\\bigl|a_n-a_0\\bigr|\\le\\sum_{i=0}^{n-1}\\delta_i\\quad\\text{whenever}\\quad |a_{i+1}-a_i|\\le\\delta_i.",
+      "assumptions": [
+        "The hybrid chain has a fixed finite length n; this theorem says nothing about a random or infinite number of calls.",
+        "Each adjacent discrepancy is a real number with the displayed bound. In the paper consumer, a_i is the probability of one fixed output event under hybrid i.",
+        "The same event is followed through the whole telescope before taking a total-variation supremum."
+      ],
+      "steps": [
+        {
+          "title": "Split the last endpoint difference",
+          "text": "Insert the penultimate value a_n between a_{n+1} and a_0. The real triangle inequality separates the newest replacement error from the accumulated earlier error.",
+          "formula": "|a_{n+1}-a_0|\\le|a_{n+1}-a_n|+|a_n-a_0|.",
+          "lean": "abs_sub_le is the triangle inequality in the required three-point form."
+        },
+        {
+          "title": "Apply the newest budget and the induction hypothesis",
+          "text": "The step assumption bounds the first term by δ_n. The induction hypothesis bounds the second by the sum through n−1. Appending δ_n gives exactly the finite range sum through n.",
+          "formula": "|a_{n+1}-a_0|\\le\\delta_n+\\sum_{i=0}^{n-1}\\delta_i=\\sum_{i=0}^{n}\\delta_i.",
+          "lean": "add_le_add combines the two bounds; Finset.sum_range_succ and commutativity identify the resulting expression with the canonical range sum."
+        }
+      ],
+      "lean_statement": "This small real theorem is intentionally separate from probability-kernel definitions: it can telescope event discrepancies produced by any adjacent-hybrid construction without inventing another total-variation object.",
+      "lean_proof": "Induction on n, one application of the three-point absolute-value inequality, and the finite range-sum recursion.",
+      "boundary": [
+        "This theorem does not produce the adjacent kernel inequalities; the preceding two declarations do that after a suitable history-space construction.",
+        "It does not prove the source paper's stopping-time tail, deterministic cap, or ε_cap comparison.",
+        "Expected query complexity is independent of this deterministic error accumulation."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": ["abs_sub_le", "Finset.sum_range_succ"],
+      "sources": [
+        {"url": "https://arxiv.org/html/2609.38710v1#S6.SS1", "label": "Chen, Chewi, Lu and Zhang, Gaussian cloud correction v1, Lemma 6.3", "scope": "Finite triangle-telescope used after adjacent hybrid comparison."}
+      ],
+      "tests": {"file": "Tests/KernelHybridTelescope.lean", "command": "lake build Tests.KernelHybridTelescope"}
+    }
+  ]
+}

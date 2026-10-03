@@ -93,6 +93,7 @@ import Tests.ItoIntegralProcessCongruence
 import Tests.KantorovichDual
 import Tests.KernelInvariance
 import Tests.KernelTotalVariation
+import Tests.KernelHybridTelescope
 import Tests.LangevinCarreDuChamp
 import Tests.LaggedDyadicApproximation
 import Tests.LaggedDyadicConvergence

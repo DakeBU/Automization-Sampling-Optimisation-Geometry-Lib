@@ -128,11 +128,26 @@ def lean_fold(kind, text):
             'Search locations below are candidates, not established dependencies or copied library proofs.</p></details>')
 
 
+def lean_step_fold(step):
+    declarations = step.get("compiled_support", [])
+    if not declarations:
+        return lean_fold("step", "This mathematical step is still open in Lean. The future declaration must expose exactly the objects and side conditions named above; no source-cited wrapper is counted as a proof.")
+    links = "".join(
+        f'<li><code>{escape(name)}</code></li>' for name in declarations
+    )
+    note = escape(step.get("support_note", "Only the listed reusable edge is compiled; source-specific adapters remain separate."))
+    return (
+        '<details class="companion-lean"><summary>Lean support — compiled reusable edge</summary>'
+        f'<p>{note}</p><ul>{links}</ul>'
+        '<p><a href="#gaussian-cloud-kernel-hybrid-telescope">Read the statement, mathematical proof and folded Lean source below ↓</a></p></details>'
+    )
+
+
 def theorem_html(m, row, thm):
     steps = "".join(
         f'<li><h4>{escape(s["title"])}</h4>{formula_html(s["formula"])}'
         f'<p>{escape(s["text"])}</p>{sources_html(m, row["source_ids"], s["anchor"])}'
-        f'{lean_fold("step", "This mathematical step is still open in Lean. The future declaration must expose exactly the objects and side conditions named above; no source-cited wrapper is counted as a proof.")}</li>'
+        f'{lean_step_fold(s)}</li>'
         for s in thm["steps"]
     )
     return f'''<section class="companion-theorem" id="{escape(thm['id'])}" data-proof-status="planned">
@@ -399,7 +414,11 @@ def validate_site(output):
         text = path.read_text(encoding='utf-8') if path.exists() else ''
         expected_step_folds = 0
         for t in row['theorems']:
-            expected_step_folds += len(t['steps'])
+            expected_step_folds += sum(1 for s in t['steps'] if not s.get('compiled_support'))
+            for step in t['steps']:
+                for declaration in step.get('compiled_support', []):
+                    if declaration not in text:
+                        errors.append(f'{path.name}: missing compiled step support {declaration}')
             for marker in (f'id="{t["id"]}"', formula_html(t['formula']), 'Lean statement — not formalized yet', 'Lean proof — not formalized yet'):
                 if marker not in text:
                     errors.append(f'{path.name}: missing {marker[:90]}')

@@ -1,4 +1,5 @@
 import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
+import AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance
 import AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductPairMarginal
 import AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductSupport
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance

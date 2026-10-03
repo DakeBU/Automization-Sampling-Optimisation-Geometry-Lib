@@ -1,0 +1,219 @@
+{
+  "audits": [
+    {
+      "id": "ASTIS-RT-20261003-empirical-covariance-preconcentration",
+      "state": "accepted",
+      "source": {
+        "source_id": "empirical-covariance-preconcentration:empirical-covariance-preconcentration",
+        "anchor": "Tropp 2015 matrix concentration setup; Samplinglib-authored deterministic prerequisite",
+        "url": "https://arxiv.org/abs/1501.01571",
+        "original_text": "Let E be a real inner-product space and I a nonempty finite type. Let x_i:E be a deterministic sample, let B≥0 with ||x_i||≤B for every i, and let Σ:E→E be a continuous linear operator that is symmetric and satisfies ||Σ||≤B^2. With Σhat=|I|^{-1}sum_i x_i tensor x_i, one has Σhat-Σ=|I|^{-1}sum_i(x_i tensor x_i-Σ). Every centered summand x_i tensor x_i-Σ is symmetric and has operator norm at most 2B^2. This is only the deterministic preprocessing for matrix concentration: it does not assert independence, an expectation identity, a variance proxy, matrix Bernstein, a probability tail, or a sample-complexity bound.",
+        "text_sha256": "baf8eed23f175b49d1cdf345321db215dab10740ad18af59f671456e93b2ad53"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+        "statement": "theorem empiricalSecondMoment_preconcentration\n    [Nonempty κ]\n    (population : E →L[ℝ] E) (sample : κ → E) (B : ℝ)\n    (hB : 0 ≤ B)\n    (hpopulationSymmetric : LinearMap.IsSymmetric (population : E →ₗ[ℝ] E))\n    (hpopulationNorm : ‖population‖ ≤ B ^ 2)\n    (hsampleNorm : ∀ i, ‖sample i‖ ≤ B) :\n    (empiricalSecondMoment sample - population =\n      (Fintype.card κ : ℝ)⁻¹ •\n        ∑ i, (InnerProductSpace.rankOne ℝ (sample i) (sample i) - population)) ∧\n    (∀ i, LinearMap.IsSymmetric\n      ((InnerProductSpace.rankOne ℝ (sample i) (sample i) - population : E →L[ℝ] E) :\n        E →ₗ[ℝ] E)) ∧\n    (∀ i,\n      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖ ≤\n        2 * B ^ 2)",
+        "statement_sha256": "ef7422600011b9cb5b1951d838d65c53e9a3568b281ac095e8ea52c4e78fc2cb",
+        "compiled": true,
+        "formalizer": "audit_finite_particle",
+        "compiler_evidence": "Production module and Tests.EmpiricalCovariance passed under Lean 4.33.0.",
+        "decoder_context": [
+          "E is a real inner-product space and κ is a finite type from the surrounding section variables.",
+          "empiricalSecondMoment sample is the inverse real cardinality times the sum of self rank-one operators.",
+          "LinearMap.IsSymmetric is the real-inner-product symmetry predicate on the underlying linear map.",
+          "The continuous-linear-map norm is the operator norm."
+        ]
+      },
+      "reconstruction": {
+        "text": "Let E be a real inner-product space, let κ be a nonempty finite index type, let Σ : E → E be a continuous linear operator, let x : κ → E, and let B ≥ 0. Assume Σ is symmetric, ‖Σ‖ ≤ B², and ‖x_i‖ ≤ B for every i ∈ κ. Define M̂ = |κ|⁻¹ ∑_{i∈κ} x_i ⊗ x_i. Then\nM̂ − Σ = |κ|⁻¹ ∑_{i∈κ} (x_i ⊗ x_i − Σ);\nfor every i ∈ κ, x_i ⊗ x_i − Σ is symmetric; and for every i ∈ κ,\n‖x_i ⊗ x_i − Σ‖ ≤ 2B²,\nwhere (x_i ⊗ x_i)(y) = ⟨x_i, y⟩x_i.",
+        "text_sha256": "0bfc6c4eac29981ca32c8c329a47cbd96380ca5589ecd69fb2a4c73275ca7a9f",
+        "decoder": "empirical_covariance_blind_decoder",
+        "decoder_run_sha256": "fa0c710d73aa81acaab64518501c28d616f77f0066c801206fc9ba9186b2dea0",
+        "decoder_packet_sha256": "19af891c935d96e1ae44b72e41e7fc6de043ff7537bdffd6a00a60ad3d39d114",
+        "source_text_visible": false,
+        "lean_statement_sha256": "ef7422600011b9cb5b1951d838d65c53e9a3568b281ac095e8ea52c4e78fc2cb",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/empirical-covariance-preconcentration/decoder-result.json"
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "A real inner-product space E, a nonempty finite sample x_i, a nonnegative radius B, a symmetric population continuous linear operator Σ, the empirical second moment Σ̂, and centered summands x_i⊗x_i-Σ.",
+          "reconstructed": "The same E, nonempty finite κ, sample, B, population:E→L[ℝ]E, empiricalSecondMoment sample, and centered Mathlib rank-one operators.",
+          "relation": "equivalent",
+          "evidence": "The source, blind reconstruction, exact conjunction, module, lesson, and binding identify the same deterministic preconcentration package."
+        },
+        "domains": {
+          "original": "E is a real inner-product space; I is a nonempty finite type; sample vectors lie in E; B∈ℝ with B≥0; Σ is a continuous real-linear endomorphism.",
+          "reconstructed": "Lean has NormedAddCommGroup E, InnerProductSpace ℝ E, Fintype κ, Nonempty κ, sample:κ→E, B:ℝ with hB, and population:E→L[ℝ]E.",
+          "relation": "same",
+          "evidence": "All domains and the nonempty/positivity conditions match. No finite-dimensionality, completeness, probability space, or random-variable domain is added."
+        },
+        "quantifiers": {
+          "original": "The sample norm bound, summand symmetry, and summand norm bound hold for every i; the theorem applies to every supplied population, sample, and B satisfying the premises.",
+          "reconstructed": "hsampleNorm, the second conjunct, and the third conjunct are each ∀ i, with all other objects arbitrary theorem parameters.",
+          "relation": "same",
+          "evidence": "Every source quantifier and its scope are explicit in Lean and reproduced by the blind statement and lesson."
+        },
+        "assumptions": {
+          "original": "Nonempty finite sample; B≥0; ‖x_i‖≤B for every i; Σ symmetric; ‖Σ‖≤B²; no independence, expectation identity, variance proxy, tail theorem, or dimension bound.",
+          "reconstructed": "Lean exposes [Nonempty κ], hB, hsampleNorm, hpopulationSymmetric, and hpopulationNorm, and no probabilistic premise.",
+          "relation": "same",
+          "evidence": "The exact signature and lesson assumptions coincide. Symmetry is stated for the underlying real linear map of the continuous operator, matching the source's operator symmetry."
+        },
+        "conclusion": {
+          "original": "Σ̂-Σ=|I|⁻¹∑_i(x_i⊗x_i-Σ); every centered summand is symmetric; and every summand norm is at most 2B².",
+          "reconstructed": "The Lean result is exactly the conjunction of the normalized decomposition, ∀i IsSymmetric(rankOne_i-population), and ∀i ‖rankOne_i-population‖≤2*B^2.",
+          "relation": "same",
+          "evidence": "All three conjuncts, subtraction orientation, normalization, symmetry, and the constant 2B² match term-for-term."
+        },
+        "scopes": {
+          "original": "Only deterministic preprocessing for matrix concentration; no independence, expectation, variance, Bernstein inequality, tail probability, or sample complexity.",
+          "reconstructed": "The module and lesson explicitly package only the decomposition, symmetry, and uniform summand bound.",
+          "relation": "same",
+          "evidence": "The binding supports only empirical-covariance-centered-summands and the publication boundary excludes all downstream probabilistic conclusions."
+        },
+        "constant_dependencies": {
+          "original": "Nonempty cardinality enables cancellation of the repeated Σ term; the norm bound is ‖x_i⊗x_i‖+‖Σ‖≤B²+B²=2B².",
+          "reconstructed": "The proof uses card_ne_zero and inverse scalar cancellation, the exact rank-one norm theorem, norm_sub_le, and the two B² bounds to obtain 2*B^2.",
+          "relation": "same",
+          "evidence": "The ASTIS dependencies empiricalSecondMoment and norm_rankOne_self_eq_sq are exactly used. The listed Mathlib dependencies match the structural proof steps; no variance or dimension constant is introduced."
+        }
+      },
+      "deltas": [],
+      "verdict": "exact",
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "general_prereq_source_reviewer",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "reviewer_packet_sha256": "a5e05e4051244a4c9a0adf852cd830147b59ea67c6e8cbc11e92e581a442f9a3",
+        "evidence": "Reviewed only the empirical-covariance-preconcentration reviewer packet with packet_sha256 a5e05e4051244a4c9a0adf852cd830147b59ea67c6e8cbc11e92e581a442f9a3. The source, blind reconstruction, exact Lean theorem, complete module/proof, lesson, dependencies, binding, assumptions, three-part conclusion, constants, and deterministic boundary agree across all seven slots.",
+        "review_run_sha256": "b6a4428f723b0cd5d25a888054aa0f625e7865c9673700492e92213c6a33e9bb",
+        "run_artifact": "runs/semantic-roundtrip/empirical-covariance-preconcentration/review-result.json"
+      },
+      "repairs": [],
+      "publication_binding_sha256": "3d48437f797f9c6875f9eb551b1bcf8f384bd2cbb64f15c7172ce816e04dc36b",
+      "publication_context": {
+        "file": "eb45cbd4c5ea5d770db22d25cc4b93ec66f9ae891a3e7e5f7b7cc775dfb1c901",
+        "current_lean_module": "import Mathlib.Analysis.InnerProductSpace.LinearMap\nimport Mathlib.Analysis.InnerProductSpace.Symmetric\nimport Mathlib.Algebra.BigOperators.Field\n\n/-!\n# Finite-sample empirical covariance algebra\n\nThis file exposes only the small public interface needed immediately before a\nmatrix concentration theorem: the empirical second-moment operator, the exact\nnorm of a rank-one summand, and one theorem packaging the centered finite-sum\ndecomposition with symmetry and a uniform summand bound. No concentration or\ntarget tail bound is assumed.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory\nnamespace TechnicalLemmas\nnamespace Probability\nnamespace EmpiricalCovariance\n\nopen scoped BigOperators RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\nvariable {κ : Type*} [Fintype κ]\n\n/-- The normalized finite-sample second-moment operator. For an empty sample\nthe inverse-cardinality convention makes this zero; concentration consumers\nnormally assume `[Nonempty κ]`. -/\ndef empiricalSecondMoment (sample : κ → E) : E →L[ℝ] E :=\n  (Fintype.card κ : ℝ)⁻¹ •\n    ∑ i, InnerProductSpace.rankOne ℝ (sample i) (sample i)\n\n/-- The operator norm of the rank-one second-moment operator `x xᵀ` is exactly\n`‖x‖²`. -/\ntheorem norm_rankOne_self_eq_sq (x : E) :\n    ‖InnerProductSpace.rankOne ℝ x x‖ = ‖x‖ ^ 2 := by\n  simp [pow_two]\n\n/-- Deterministic preconcentration package for an empirical second moment.\n\nFor a nonempty finite sample whose vectors have norm at most `B`, and a\nsymmetric population operator with norm at most `B²`, this proves together:\n\n1. the exact normalized decomposition of the empirical error into centered\n   rank-one summands;\n2. symmetry of every centered summand;\n3. the operator-norm bound `2 B²` for every centered summand.\n\nThese are the elementary obligations used to instantiate a standard matrix\nconcentration theorem later; no probabilistic tail conclusion occurs here. -/\ntheorem empiricalSecondMoment_preconcentration\n    [Nonempty κ]\n    (population : E →L[ℝ] E) (sample : κ → E) (B : ℝ)\n    (hB : 0 ≤ B)\n    (hpopulationSymmetric : LinearMap.IsSymmetric (population : E →ₗ[ℝ] E))\n    (hpopulationNorm : ‖population‖ ≤ B ^ 2)\n    (hsampleNorm : ∀ i, ‖sample i‖ ≤ B) :\n    (empiricalSecondMoment sample - population =\n      (Fintype.card κ : ℝ)⁻¹ •\n        ∑ i, (InnerProductSpace.rankOne ℝ (sample i) (sample i) - population)) ∧\n    (∀ i, LinearMap.IsSymmetric\n      ((InnerProductSpace.rankOne ℝ (sample i) (sample i) - population : E →L[ℝ] E) :\n        E →ₗ[ℝ] E)) ∧\n    (∀ i,\n      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖ ≤\n        2 * B ^ 2) := by\n  have hcard : (Fintype.card κ : ℝ) ≠ 0 := by\n    exact_mod_cast Fintype.card_ne_zero\n  constructor\n  · rw [Finset.sum_sub_distrib]\n    unfold empiricalSecondMoment\n    rw [smul_sub]\n    congr 1\n    rw [Finset.sum_const, ← Nat.cast_smul_eq_nsmul ℝ]\n    exact (inv_smul_smul₀ hcard population).symm\n  constructor\n  · intro i\n    exact (InnerProductSpace.isSymmetric_rankOne_self (sample i)).sub\n      hpopulationSymmetric\n  · intro i\n    have hsample_sq : ‖sample i‖ ^ 2 ≤ B ^ 2 :=\n      (sq_le_sq₀ (norm_nonneg (sample i)) hB).2 (hsampleNorm i)\n    calc\n      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖\n          ≤ ‖InnerProductSpace.rankOne ℝ (sample i) (sample i)‖ + ‖population‖ :=\n        norm_sub_le _ _\n      _ = ‖sample i‖ ^ 2 + ‖population‖ := by\n        rw [norm_rankOne_self_eq_sq]\n      _ ≤ B ^ 2 + B ^ 2 := add_le_add hsample_sq hpopulationNorm\n      _ = 2 * B ^ 2 := by ring\n\nend EmpiricalCovariance\nend Probability\nend TechnicalLemmas\nend AutoSamplingTheory\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "edition": "Tropp, An Introduction to Matrix Concentration Inequalities, 2015",
+          "anchor": "matrix Bernstein setup and sample-covariance applications",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Samplinglib isolates the deterministic rank-one decomposition and bounded symmetric summand conditions used before applying a matrix concentration theorem."
+        },
+        "statement": "A bounded finite sample and a bounded symmetric population second-moment operator determine centered symmetric rank-one summands whose normalized sum is the empirical error and whose individual operator norms are at most twice the squared radius.",
+        "formulae": [
+          {
+            "label": "empirical second moment",
+            "tex": "\\widehat\\Sigma=|I|^{-1}\\sum_i x_i\\otimes x_i"
+          },
+          {
+            "label": "centered decomposition and summand bound",
+            "tex": "\\widehat\\Sigma-\\Sigma=|I|^{-1}\\sum_i(x_i\\otimes x_i-\\Sigma),\\qquad\\|x_i\\otimes x_i-\\Sigma\\|\\le2B^2"
+          }
+        ],
+        "assumptions": [
+          "A real inner-product space and a nonempty finite sample index.",
+          "A nonnegative radius B bounding every sample vector.",
+          "A symmetric population continuous linear operator with norm at most B²."
+        ],
+        "obligations": [
+          {
+            "id": "empirical-second-moment-definition",
+            "label": "Define the normalized finite-sample rank-one operator average"
+          },
+          {
+            "id": "rank-one-operator-norm",
+            "label": "Identify the exact operator norm of a self outer product"
+          },
+          {
+            "id": "empirical-covariance-centered-summands",
+            "label": "Prove the exact centered decomposition, summand symmetry, and 2B² bound"
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+          "kind": "theorem",
+          "title": "Empirical covariance is reduced to bounded symmetric centered summands",
+          "statement": "For a nonempty finite sample with ‖x_i‖≤B, a symmetric population operator Σ with ‖Σ‖≤B², and B≥0, the empirical error is the average of x_i⊗x_i−Σ; every summand is symmetric and has operator norm at most 2B².",
+          "formula": "\\widehat\\Sigma-\\Sigma=|I|^{-1}\\sum_i(x_i\\otimes x_i-\\Sigma),\\qquad (x_i\\otimes x_i-\\Sigma)^*=x_i\\otimes x_i-\\Sigma,\\qquad \\|x_i\\otimes x_i-\\Sigma\\|\\le2B^2",
+          "assumptions": [
+            "E is a real inner-product space and I is a nonempty finite type.",
+            "B is nonnegative and every sample vector has norm at most B.",
+            "The supplied population continuous linear operator is symmetric and has norm at most B².",
+            "No independence, expectation, variance proxy, tail theorem, or dimension bound is assumed."
+          ],
+          "steps": [
+            {
+              "title": "Expand the centered finite sum",
+              "text": "Distribute the finite sum over subtraction. Nonemptiness makes the sample cardinality nonzero, so inverse scaling cancels the repeated population term.",
+              "formula": "|I|^{-1}\\sum_i(A_i-\\Sigma)=|I|^{-1}\\sum_iA_i-\\Sigma",
+              "lean": "Use Finset.sum_sub_distrib, Finset.sum_const, and inv_smul_smul₀."
+            },
+            {
+              "title": "Preserve symmetry under centering",
+              "text": "Each x_i⊗x_i is symmetric, and the difference of symmetric operators is symmetric.",
+              "formula": "(x_i\\otimes x_i-\\Sigma)^*=x_i\\otimes x_i-\\Sigma",
+              "lean": "Combine isSymmetric_rankOne_self with LinearMap.IsSymmetric.sub."
+            },
+            {
+              "title": "Bound each centered summand",
+              "text": "The triangle inequality, the exact rank-one norm, ‖x_i‖≤B, and ‖Σ‖≤B² yield the standard 2B² bound.",
+              "formula": "\\|x_i\\otimes x_i-\\Sigma\\|\\le\\|x_i\\|^2+\\|\\Sigma\\|\\le2B^2",
+              "lean": "Use norm_sub_le, norm_rankOne_self_eq_sq, monotonicity of squaring on nonnegative reals, and ring normalization."
+            }
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment",
+            "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq"
+          ],
+          "mathlib_dependencies": [
+            "Finset.sum_sub_distrib",
+            "InnerProductSpace.isSymmetric_rankOne_self",
+            "LinearMap.IsSymmetric.sub",
+            "norm_sub_le",
+            "inv_smul_smul₀"
+          ],
+          "lean_statement": "All boundedness, symmetry, nonemptiness, and normalization assumptions are explicit, and the conclusion is a three-part conjunction.",
+          "lean_proof": "The proof performs the exact finite-sum cancellation, transports symmetry through subtraction, and combines the triangle inequality with the exact rank-one norm.",
+          "sources": [
+            {
+              "url": "https://arxiv.org/abs/1501.01571",
+              "label": "Tropp, An Introduction to Matrix Concentration Inequalities",
+              "scope": "Matrix Bernstein setup and empirical-covariance applications; the Lean theorem isolates the deterministic preprocessing obligations."
+            },
+            {
+              "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+              "label": "Samplinglib compiled preconcentration theorem",
+              "scope": "Exact decomposition, symmetry, and uniform summand norm bound."
+            }
+          ],
+          "tests": [
+            "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+          "role": "prerequisite",
+          "supports": [
+            "empirical-covariance-centered-summands"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "Matrix Bernstein applications first express the empirical error as a sum of centered self-adjoint random matrices and bound each summand.",
+            "lean": "The theorem assumes a nonempty finite deterministic sample, symmetry and norm control of the supplied population operator, and proves exactly the decomposition, symmetry, and 2B² summand bound."
+          }
+        ]
+      }
+    }
+  ]
+}

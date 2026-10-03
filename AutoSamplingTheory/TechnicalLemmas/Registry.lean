@@ -3965,6 +3965,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
   {
+    key := "probability.empirical-covariance.preconcentration",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+    upstreamDecl := "rank-one empirical covariance decomposition before matrix Bernstein",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["empirical-covariance", "rank-one", "matrix-concentration", "operator-norm", "finite-sample"],
+    saldUse := "prepare bounded symmetric centered summands for a later matrix Bernstein or covariance concentration theorem",
+    note := "Proves the exact normalized decomposition, symmetry, and the 2 B^2 summand bound. It does not assume or prove a matrix concentration tail inequality."
+  },
+  {
     key := "probability.kernel-hybrid.mean-event-error",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
     upstreamDecl := "Chen--Chewi--Lu--Zhang arXiv:2609.38710v1, Lemma 6.3 mean one-call replacement step",

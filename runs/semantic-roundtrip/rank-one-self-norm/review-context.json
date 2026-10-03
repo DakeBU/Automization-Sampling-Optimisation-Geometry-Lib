@@ -1,0 +1,106 @@
+{
+  "publication_binding_sha256": "04e097c2654a3a8b3747e550489528a75e80faba3bf3558b603b6fade8e3a64b",
+  "publication_context": {
+    "file": "eb45cbd4c5ea5d770db22d25cc4b93ec66f9ae891a3e7e5f7b7cc775dfb1c901",
+    "current_lean_module": "import Mathlib.Analysis.InnerProductSpace.LinearMap\nimport Mathlib.Analysis.InnerProductSpace.Symmetric\nimport Mathlib.Algebra.BigOperators.Field\n\n/-!\n# Finite-sample empirical covariance algebra\n\nThis file exposes only the small public interface needed immediately before a\nmatrix concentration theorem: the empirical second-moment operator, the exact\nnorm of a rank-one summand, and one theorem packaging the centered finite-sum\ndecomposition with symmetry and a uniform summand bound. No concentration or\ntarget tail bound is assumed.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory\nnamespace TechnicalLemmas\nnamespace Probability\nnamespace EmpiricalCovariance\n\nopen scoped BigOperators RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\nvariable {κ : Type*} [Fintype κ]\n\n/-- The normalized finite-sample second-moment operator. For an empty sample\nthe inverse-cardinality convention makes this zero; concentration consumers\nnormally assume `[Nonempty κ]`. -/\ndef empiricalSecondMoment (sample : κ → E) : E →L[ℝ] E :=\n  (Fintype.card κ : ℝ)⁻¹ •\n    ∑ i, InnerProductSpace.rankOne ℝ (sample i) (sample i)\n\n/-- The operator norm of the rank-one second-moment operator `x xᵀ` is exactly\n`‖x‖²`. -/\ntheorem norm_rankOne_self_eq_sq (x : E) :\n    ‖InnerProductSpace.rankOne ℝ x x‖ = ‖x‖ ^ 2 := by\n  simp [pow_two]\n\n/-- Deterministic preconcentration package for an empirical second moment.\n\nFor a nonempty finite sample whose vectors have norm at most `B`, and a\nsymmetric population operator with norm at most `B²`, this proves together:\n\n1. the exact normalized decomposition of the empirical error into centered\n   rank-one summands;\n2. symmetry of every centered summand;\n3. the operator-norm bound `2 B²` for every centered summand.\n\nThese are the elementary obligations used to instantiate a standard matrix\nconcentration theorem later; no probabilistic tail conclusion occurs here. -/\ntheorem empiricalSecondMoment_preconcentration\n    [Nonempty κ]\n    (population : E →L[ℝ] E) (sample : κ → E) (B : ℝ)\n    (hB : 0 ≤ B)\n    (hpopulationSymmetric : LinearMap.IsSymmetric (population : E →ₗ[ℝ] E))\n    (hpopulationNorm : ‖population‖ ≤ B ^ 2)\n    (hsampleNorm : ∀ i, ‖sample i‖ ≤ B) :\n    (empiricalSecondMoment sample - population =\n      (Fintype.card κ : ℝ)⁻¹ •\n        ∑ i, (InnerProductSpace.rankOne ℝ (sample i) (sample i) - population)) ∧\n    (∀ i, LinearMap.IsSymmetric\n      ((InnerProductSpace.rankOne ℝ (sample i) (sample i) - population : E →L[ℝ] E) :\n        E →ₗ[ℝ] E)) ∧\n    (∀ i,\n      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖ ≤\n        2 * B ^ 2) := by\n  have hcard : (Fintype.card κ : ℝ) ≠ 0 := by\n    exact_mod_cast Fintype.card_ne_zero\n  constructor\n  · rw [Finset.sum_sub_distrib]\n    unfold empiricalSecondMoment\n    rw [smul_sub]\n    congr 1\n    rw [Finset.sum_const, ← Nat.cast_smul_eq_nsmul ℝ]\n    exact (inv_smul_smul₀ hcard population).symm\n  constructor\n  · intro i\n    exact (InnerProductSpace.isSymmetric_rankOne_self (sample i)).sub\n      hpopulationSymmetric\n  · intro i\n    have hsample_sq : ‖sample i‖ ^ 2 ≤ B ^ 2 :=\n      (sq_le_sq₀ (norm_nonneg (sample i)) hB).2 (hsampleNorm i)\n    calc\n      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖\n          ≤ ‖InnerProductSpace.rankOne ℝ (sample i) (sample i)‖ + ‖population‖ :=\n        norm_sub_le _ _\n      _ = ‖sample i‖ ^ 2 + ‖population‖ := by\n        rw [norm_rankOne_self_eq_sq]\n      _ ≤ B ^ 2 + B ^ 2 := add_le_add hsample_sq hpopulationNorm\n      _ = 2 * B ^ 2 := by ring\n\nend EmpiricalCovariance\nend Probability\nend TechnicalLemmas\nend AutoSamplingTheory\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/abs/1501.01571",
+      "edition": "Tropp, An Introduction to Matrix Concentration Inequalities, 2015",
+      "anchor": "matrix Bernstein setup and sample-covariance applications",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib isolates the deterministic rank-one decomposition and bounded symmetric summand conditions used before applying a matrix concentration theorem."
+    },
+    "statement": "A bounded finite sample and a bounded symmetric population second-moment operator determine centered symmetric rank-one summands whose normalized sum is the empirical error and whose individual operator norms are at most twice the squared radius.",
+    "formulae": [
+      {
+        "label": "empirical second moment",
+        "tex": "\\widehat\\Sigma=|I|^{-1}\\sum_i x_i\\otimes x_i"
+      },
+      {
+        "label": "centered decomposition and summand bound",
+        "tex": "\\widehat\\Sigma-\\Sigma=|I|^{-1}\\sum_i(x_i\\otimes x_i-\\Sigma),\\qquad\\|x_i\\otimes x_i-\\Sigma\\|\\le2B^2"
+      }
+    ],
+    "assumptions": [
+      "A real inner-product space and a nonempty finite sample index.",
+      "A nonnegative radius B bounding every sample vector.",
+      "A symmetric population continuous linear operator with norm at most B²."
+    ],
+    "obligations": [
+      {
+        "id": "empirical-second-moment-definition",
+        "label": "Define the normalized finite-sample rank-one operator average"
+      },
+      {
+        "id": "rank-one-operator-norm",
+        "label": "Identify the exact operator norm of a self outer product"
+      },
+      {
+        "id": "empirical-covariance-centered-summands",
+        "label": "Prove the exact centered decomposition, summand symmetry, and 2B² bound"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq",
+      "kind": "theorem",
+      "title": "A self outer product has operator norm equal to the squared vector norm",
+      "statement": "For every vector x in a real inner-product space, the continuous rank-one operator y ↦ ⟪x,y⟫x has operator norm exactly ‖x‖².",
+      "formula": "\\|x\\otimes x\\|_{\\mathrm{op}}=\\|x\\|^2",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "x is arbitrary; finite dimensionality and completeness are not assumed."
+      ],
+      "steps": [
+        {
+          "title": "Use the rank-one norm identity",
+          "text": "Mathlib computes the norm of u⊗v as ‖u‖‖v‖.",
+          "formula": "\\|x\\otimes x\\|=\\|x\\|\\,\\|x\\|",
+          "lean": "Simplify InnerProductSpace.rankOne with its norm theorem."
+        },
+        {
+          "title": "Rewrite the product as a square",
+          "text": "The identical norm factors are exactly ‖x‖².",
+          "formula": "\\|x\\|\\,\\|x\\|=\\|x\\|^2",
+          "lean": "simp [pow_two] closes the equality."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductSpace.rankOne",
+        "ContinuousLinearMap.norm_rankOne"
+      ],
+      "lean_statement": "The equality is stated directly for Mathlib's continuous rank-one operator.",
+      "lean_proof": "The proof uses the library norm formula and the definition of a square.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "label": "Tropp, matrix concentration monograph",
+          "scope": "Rank-one covariance summands in the standard empirical-covariance application."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+          "label": "Samplinglib compiled norm leaf",
+          "scope": "Exact operator-norm equality."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq",
+      "role": "prerequisite",
+      "supports": [
+        "rank-one-operator-norm"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "A self outer product has operator norm ‖x‖².",
+        "lean": "The theorem proves the same identity for Mathlib's continuous rank-one operator on an arbitrary real inner-product space."
+      }
+    ]
+  }
+}

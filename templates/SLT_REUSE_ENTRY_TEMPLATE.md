@@ -6,7 +6,7 @@
 - Local clone: not recorded in public metadata
 - Upstream file:
 - Upstream declaration:
-- Upstream toolchain: `leanprover/lean4:v4.27.0-rc1`
+- Upstream toolchain: `<record the exact upstream toolchain>`
 
 ## ASTIS Port
 

@@ -17,11 +17,14 @@ class CompanionTests(unittest.TestCase):
         companion.validate_data()
         cross_domain.validate_data()
 
-    def test_two_sources_and_one_composition_not_three_papers(self):
+    def test_three_sources_keep_the_two_paper_composition_separate(self):
         m=companion.load()
-        self.assertEqual(len(m['sources']),2)
-        self.assertEqual(len(m['cases']),2)
-        self.assertEqual(set(m['composition']['source_ids']),set(m['sources']))
+        self.assertEqual(len(m['sources']),3)
+        self.assertEqual(len(m['cases']),3)
+        self.assertEqual(set(m['composition']['source_ids']),{'sphmc-2026','pbps-2026'})
+        cloud=next(row for row in m['cases'] if row['id']=='ASTIS-SW-GAUSSIAN-CLOUD-2026')
+        self.assertEqual(cloud['source_ids'],['gaussian-cloud-2026'])
+        self.assertIn('bookkeeping',cloud)
         snapshot=json.loads((ROOT/'research-wiki/source-index/SampleWiki_cases.json').read_text(encoding='utf8'))
         self.assertEqual(len(snapshot['cases']),34)
         active=json.loads((ROOT/'website/content/samplewiki_reader.json').read_text(encoding='utf8'))
@@ -52,7 +55,7 @@ class CompanionTests(unittest.TestCase):
         self.assertIn('dagger',proxy['formula'])
         self.assertIn('Only the proxy',proxy['boundary'])
         self.assertIn('TV proximity alone cannot',m['composition']['theorems'][0]['steps'][-1]['text'])
-        pbps=m['cases'][1]['theorems'][0]
+        pbps=next(row for row in m['cases'] if row['id']=='ASTIS-SW-PBPS-2026')['theorems'][0]
         self.assertIn('discrete augmented',pbps['boundary'])
 
     def test_every_theorem_has_adjacent_closed_lean_folds(self):
@@ -60,15 +63,15 @@ class CompanionTests(unittest.TestCase):
         for row in [*m['cases'],m['composition']]:
             for theorem in row['theorems']:
                 text=companion.theorem_html(m,row,theorem)
-                self.assertEqual(text.count('<details '),2)
+                self.assertEqual(text.count('<details '),2+len(theorem['steps']))
                 self.assertNotIn('<details open',text)
                 self.assertLess(text.index('Lean statement'),text.index('Proof architecture and calculations'))
                 self.assertLess(text.index('Lean proof'),text.index('Strict boundary'))
 
     def test_overlay_does_not_create_compiler_edges(self):
         b=GraphBuilder(); counts=companion.add_to_graph(b)
-        self.assertEqual(counts,{'source_cases':2,'composition_views':1,'technology_candidates':9})
-        self.assertEqual(len(b.nodes),15)
+        self.assertEqual(counts,{'source_cases':3,'composition_views':1,'technology_candidates':12})
+        self.assertEqual(len(b.nodes),19)
         self.assertFalse(any(n.get('status')=='compiled' for n in b.nodes.values()))
         formal={'imports','declares','depends-on','closes leaf'}
         self.assertFalse(any(e['relation'] in formal for e in b.edges.values()))
@@ -86,6 +89,10 @@ class CompanionTests(unittest.TestCase):
         self.assertIn('aria-labelledby',svg)
         self.assertIn('not compiler dependency',svg)
         self.assertIn('#ba3535',svg)
+        self.assertIn('Picard HMC Part I',svg)
+        ledger=companion.gaussian_cloud_ledger_svg()
+        self.assertIn('two ledgers',ledger)
+        self.assertIn('εcap',ledger)
         d=json.loads(companion.DELTAS.read_text(encoding='utf8'))
         svg=companion.proof_delta_svg(d)
         self.assertIn('Fan–Li–Lu',svg)

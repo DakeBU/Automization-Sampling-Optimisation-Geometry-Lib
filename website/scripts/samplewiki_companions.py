@@ -35,12 +35,14 @@ def load():
 
 def validate_data(model=None):
     m = load() if model is None else model
-    if m.get("schema_version") != 1 or len(m["cases"]) != 2:
-        raise ValueError("Expected two companion cases, not a new upstream snapshot")
+    if m.get("schema_version") != 1 or not m.get("cases"):
+        raise ValueError("Expected at least one source-pinned companion case")
     rows = [*m["cases"], m["composition"]]
     ids = [r["id"] for r in rows]
-    if len(set(ids)) != 3 or any(r["status"] != "planned" for r in rows):
+    if len(set(ids)) != len(ids) or any(r["status"] != "planned" for r in rows):
         raise ValueError("Companion cases must have unique ids and remain planned")
+    if set(m["execution"]["targets"]) != {r["id"] for r in m["cases"]}:
+        raise ValueError("Execution targets must list every companion source case exactly once")
     sources = m["sources"]
     for row in rows:
         if not set(row["source_ids"]) <= sources.keys():
@@ -54,6 +56,17 @@ def validate_data(model=None):
                 formula_html(step["formula"])
                 if not step["text"] or not step["anchor"]:
                     raise ValueError("Missing proof explanation or source")
+        if "bookkeeping" in row:
+            book = row["bookkeeping"]
+            if not book.get("quantities") or not book.get("error_flow") or not book.get("boundary"):
+                raise ValueError("Bookkeeping views require quantities, error flow and boundary")
+            for quantity in book["quantities"]:
+                formula_html(quantity["symbol"])
+                formula_html(quantity["update"])
+        if "setting" in row:
+            formula_html(row["setting"]["formula"])
+            if not row["setting"].get("notes"):
+                raise ValueError("Case-specific settings require explanatory notes")
     techs = {r["id"]: r for r in m["technologies"]}
     if len(techs) != len(m["technologies"]):
         raise ValueError("Duplicate shared technology")
@@ -118,7 +131,8 @@ def lean_fold(kind, text):
 def theorem_html(m, row, thm):
     steps = "".join(
         f'<li><h4>{escape(s["title"])}</h4>{formula_html(s["formula"])}'
-        f'<p>{escape(s["text"])}</p>{sources_html(m, row["source_ids"], s["anchor"])}</li>'
+        f'<p>{escape(s["text"])}</p>{sources_html(m, row["source_ids"], s["anchor"])}'
+        f'{lean_fold("step", "This mathematical step is still open in Lean. The future declaration must expose exactly the objects and side conditions named above; no source-cited wrapper is counted as a proof.")}</li>'
         for s in thm["steps"]
     )
     return f'''<section class="companion-theorem" id="{escape(thm['id'])}" data-proof-status="planned">
@@ -132,6 +146,30 @@ def theorem_html(m, row, thm):
 <ol class="companion-steps">{steps}</ol>
 {lean_fold('proof', 'Formalization will first match the named technology interfaces, then assemble this source theorem. No placeholder proof or source-cited wrapper has been added.')}
 <h3>Strict boundary</h3><p>{escape(thm['boundary'])}</p></section>'''
+
+
+def bookkeeping_html(book):
+    quantities = "".join(
+        "<tr>" +
+        f'<th scope="row">{formula_html(row["symbol"])}</th>' +
+        f'<td>{escape(row["meaning"])}</td>' +
+        f'<td>{formula_html(row["update"])}</td>' +
+        f'<td>{escape(row["role"])}</td></tr>'
+        for row in book["quantities"]
+    )
+    flow = "".join(
+        f'<li><h3>{escape(row["stage"])}</h3><p><strong>Input.</strong> {escape(row["input"])}</p>'
+        f'<p><strong>Output.</strong> {escape(row["output"])}</p><p><strong>Ledger charge.</strong> {escape(row["charge"])}</p></li>'
+        for row in book["error_flow"]
+    )
+    return f'''<section class="bookkeeping-ledger" id="section-6-ledger">
+<p class="companion-status">SOURCE-PINNED LEDGER · Lean formalization open</p>
+<h2>{escape(book['title'])}</h2><p>{escape(book['intro'])}</p>
+<figure><a href="../../../assets/gaussian-cloud-section-6-ledger.svg"><img src="../../../assets/gaussian-cloud-section-6-ledger.svg" alt="Gaussian cloud Section 6 call-count and accumulated-error ledger."></a><figcaption>Call count and law error are separate ledgers joined only at the deterministic global cap. Open the SVG to zoom.</figcaption></figure>
+<div class="table-scroll"><table><thead><tr><th>Symbol</th><th>Meaning</th><th>Definition or update</th><th>Why it is tracked</th></tr></thead><tbody>{quantities}</tbody></table></div>
+<h2>Where each error enters</h2><ol class="error-ledger">{flow}</ol>
+{lean_fold('ledger interface', 'The first Lean packet will formalize the fixed finite dummy-filled history and adjacent-hybrid TV telescope. Adaptive-tree tails, concrete cloud kernels and final parameter substitution stay separate.')}
+<h3>Strict boundary</h3><p>{escape(book['boundary'])}</p></section>'''
 
 
 def nav(rel):
@@ -151,31 +189,80 @@ def write(output, rel, title, body):
 
 
 def topology_svg(m):
-    """A small fixed-lane composition view; shared technology has one identity."""
+    """Two readable source routes; shared technology retains one identity."""
     rows = [
-        ("producer", 30, 90, "SPHMC", "Transport sampler + recursion"),
-        ("consumer", 510, 90, "Proximal BPS", "Warm-start engine"),
-        ("proxy", 30, 260, "Actual law + proxy witness", "TV budget and order-2 Renyi"),
-        ("kernel", 510, 260, "Implemented probability kernel", "Mixing and cost are separate"),
-        ("join", 270, 440, "TV-stable handoff", "Same target, same kernel"),
-        ("result", 270, 610, "Cold-to-high-accuracy view", "Source theorem; Lean open"),
+        ("producer", 30, 100, 340, "SPHMC", "Transport sampler + recursion"),
+        ("consumer", 410, 100, 340, "Proximal BPS", "Warm-start engine"),
+        ("proxy", 30, 250, 340, "Actual law + proxy witness", "TV budget + order-2 Renyi"),
+        ("kernel", 410, 250, 340, "Implemented probability kernel", "Mixing and cost stay separate"),
+        ("join", 220, 400, 340, "TV-stable handoff", "Same target, same kernel"),
+        ("result", 220, 550, 340, "Cold-to-high-accuracy view", "Source theorem; Lean open"),
+        ("cloud", 860, 100, 360, "Picard HMC Part I", "Gaussian cloud correction"),
+        ("forest", 860, 250, 360, "Adaptive request forest", "Queue, children, caps, queries"),
+        ("ledger", 860, 400, 360, "Conditional-kernel ledger", "One delta per slot + one cap error"),
+        ("cloud-result", 860, 550, 360, "High-accuracy sampler", "Source theorem; Lean open"),
     ]
-    positions = {key: (x, y) for key, x, y, _, _ in rows}
-    edges = [("producer", "proxy"), ("consumer", "kernel"), ("proxy", "join"), ("kernel", "join"), ("join", "result")]
-    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 780" role="img" aria-labelledby="title desc">',
-           '<title id="title">Two papers, one proxy-stable composition</title>',
-           '<desc id="desc">Red boxes are local proof obligations. Dashed arrows are planned source interfaces, not Lean dependencies.</desc>',
-           '<rect width="940" height="780" fill="#fff"/>',
+    positions = {key: (x, y, width) for key, x, y, width, _, _ in rows}
+    edges = [
+        ("producer", "proxy"), ("consumer", "kernel"), ("proxy", "join"),
+        ("kernel", "join"), ("join", "result"), ("cloud", "forest"),
+        ("forest", "ledger"), ("ledger", "cloud-result"),
+    ]
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 720" role="img" aria-labelledby="title desc">',
+           '<title id="title">Three companion papers in two source-proof routes</title>',
+           '<desc id="desc">Red boxes are local proof obligations. Dashed arrows are planned source interfaces, not Lean dependencies. The left route composes SPHMC with Proximal BPS; the right route tracks Gaussian-cloud recursive calls and errors.</desc>',
+           '<rect width="1260" height="720" fill="#fff"/>',
            '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#9c3434"/></marker></defs>',
-           '<text x="30" y="35" font-family="sans-serif" font-size="24" fill="#18212f">Two papers → one composition view</text>',
+           '<text x="30" y="35" font-family="sans-serif" font-size="24" fill="#18212f">Three papers → two auditable proof routes</text>',
            '<text x="30" y="62" font-family="sans-serif" font-size="16" fill="#6c3434">RED: local proof open. Dashed: planned interface, not compiler dependency.</text>']
     for a, b in edges:
-        x, y = positions[a]; u, v = positions[b]
-        out.append(f'<path d="M{x+200},{y+100} C{x+200},{y+140} {u+200},{v-40} {u+200},{v}" fill="none" stroke="#9c3434" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>')
-    for key, x, y, title, subtitle in rows:
-        out.append(f'<g id="{key}"><rect x="{x}" y="{y}" width="400" height="100" rx="10" fill="#fff4f3" stroke="#ba3535" stroke-width="2"/>')
+        x, y, width = positions[a]; u, v, target_width = positions[b]
+        out.append(f'<path d="M{x+width/2},{y+100} C{x+width/2},{y+126} {u+target_width/2},{v-26} {u+target_width/2},{v}" fill="none" stroke="#9c3434" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>')
+    for key, x, y, width, title, subtitle in rows:
+        out.append(f'<g id="{key}"><rect x="{x}" y="{y}" width="{width}" height="100" rx="10" fill="#fff4f3" stroke="#ba3535" stroke-width="2"/>')
         out.append(f'<text x="{x+18}" y="{y+39}" font-family="sans-serif" font-size="21" fill="#652020">{escape(title)}</text>')
         out.append(f'<text x="{x+18}" y="{y+70}" font-family="sans-serif" font-size="17" fill="#493434">{escape(subtitle)}</text></g>')
+    return "\n".join(out) + "</svg>"
+
+
+def gaussian_cloud_ledger_svg():
+    """Section 6 bookkeeping as two separate ledgers joined by the global cap."""
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" role="img" aria-labelledby="gc-title gc-desc">',
+           '<title id="gc-title">Gaussian cloud Section 6 recursive-call and accumulated-error ledger</title>',
+           '<desc id="gc-desc">The upper lane controls adaptive request count. The lower lane telescopes conditional-kernel replacement errors. They meet at the deterministic global cap.</desc>',
+           '<rect width="1180" height="760" fill="#fff"/>',
+           '<defs><marker id="gc-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8e3030"/></marker></defs>',
+           '<text x="30" y="38" font-family="sans-serif" font-size="25" fill="#18212f">Section 6: two ledgers, one auditable cap</text>',
+           '<text x="30" y="68" font-family="sans-serif" font-size="16" fill="#6c3434">Every red node is a source-pinned Lean obligation, not a compiled theorem.</text>',
+           '<text x="30" y="118" font-family="sans-serif" font-size="20" font-weight="600" fill="#26364a">Call ledger</text>',
+           '<text x="30" y="410" font-family="sans-serif" font-size="20" font-weight="600" fill="#26364a">Error ledger</text>']
+    boxes = [
+        (30,145,245,110,'q roots','A₀ = q'),
+        (320,145,245,110,'Process vertex v','Aᵥ₊₁ = Aᵥ − 1 + ζᵥ₊₁'),
+        (610,145,245,110,'Stop at empty queue','T = inf {v : Aᵥ = 0}'),
+        (900,145,245,110,'Query count','Qref ≤ Qloc T'),
+        (465,290,250,90,'Deterministic cap','Tmax fixed; dummy-fill'),
+        (30,440,245,110,'Ideal slot t','Kₜ(Hₜ₋₁, ·)'),
+        (320,440,245,110,'Implemented slot t','K̂ₜ(Hₜ₋₁, ·)'),
+        (610,440,245,110,'Adjacent hybrid','charge δₜ once'),
+        (900,440,245,110,'Finite telescope','Σₜ δₜ'),
+        (465,610,250,90,'Final output error','Σₜ δₜ + εcap'),
+    ]
+    for x,y,w,h,title,sub in boxes:
+        out.append(f'<g><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="#fff4f3" stroke="#ba3535" stroke-width="2"/>')
+        out.append(f'<text x="{x+16}" y="{y+40}" font-family="sans-serif" font-size="20" fill="#652020">{escape(title)}</text>')
+        out.append(f'<text x="{x+16}" y="{y+74}" font-family="sans-serif" font-size="16" fill="#493434">{escape(sub)}</text></g>')
+    paths = [
+        'M275,200 H315', 'M565,200 H605', 'M855,200 H895',
+        'M1020,255 C1020,330 720,335 720,335',
+        'M275,495 H315', 'M565,495 H605', 'M855,495 H895',
+        'M1020,550 C1020,655 720,655 720,655',
+        'M590,380 V435',
+    ]
+    for path in paths:
+        out.append(f'<path d="{path}" fill="none" stroke="#8e3030" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#gc-arrow)"/>')
+    out.append('<text x="735" y="326" font-family="sans-serif" font-size="15" fill="#5e3b3b">cap-failure probability εcap</text>')
+    out.append('<text x="610" y="398" font-family="sans-serif" font-size="15" fill="#5e3b3b">common fixed history interface</text>')
     return "\n".join(out) + "</svg>"
 
 
@@ -184,24 +271,31 @@ def enrich_site(output):
     assets = output / "assets"
     (assets / "samplewiki-companions.css").write_text((ROOT / "website/static/samplewiki-companions.css").read_text(encoding="utf-8"), encoding="utf-8")
     (assets / "samplewiki-companions.svg").write_text(topology_svg(m), encoding="utf-8")
+    (assets / "gaussian-cloud-section-6-ledger.svg").write_text(gaussian_cloud_ledger_svg(), encoding="utf-8")
     delta_model = json.loads(DELTAS.read_text(encoding='utf-8'))
     (assets / 'samplewiki-proof-delta.svg').write_text(proof_delta_svg(delta_model), encoding='utf-8')
     rows = [*m["cases"], m["composition"]]
     for row in rows:
         body = f'<header><p class="companion-status">Planned local formalization</p><h1>{escape(row["title"])}</h1><p>{escape(row["role"])}</p></header>'
-        body += '<section><h2>Common setting and conventions</h2>' + formula_html(m["setting"]["formula"]) + ul(m["setting"]["notes"]) + '</section>'
-        body += ''.join(theorem_html(m, row, t) for t in row['theorems'])
+        if row.get("reader_guide"):
+            body += '<section class="reader-guide"><h2>Researcher reading path</h2><ol>' + ''.join(f'<li>{escape(item)}</li>' for item in row['reader_guide']) + '</ol></section>'
+        setting = row.get("setting", m["setting"])
+        body += '<section><h2>Source setting and conventions</h2>' + formula_html(setting["formula"]) + ul(setting["notes"]) + '</section>'
+        body += theorem_html(m, row, row['theorems'][0])
+        if row.get("bookkeeping"):
+            body += bookkeeping_html(row["bookkeeping"])
+        body += ''.join(theorem_html(m, row, t) for t in row['theorems'][1:])
         body += f'<p><a href="proof-technology.html">Expand reusable prerequisites and next packets →</a></p>'
         write(output, BASE + row['slug'] + '.html', row['title'], body)
     cards = ''.join(f'<li><h2><a href="{r["slug"]}.html">{escape(r["title"])}</a></h2><p>{escape(r["role"])}</p></li>' for r in rows)
     sources = ''.join(f'<li><a href="{escape(s["url"])}">{escape(s["title"])}</a> — {escape(", ".join(s["authors"]))}. {escape(s["version"])}. {escape(s["pin_kind"])}.</li>' for s in m['sources'].values())
     body = f'<header><h1>{escape(m["title"])}</h1><p>{escape(m["scope"])}</p><p class="companion-status">{escape(m["review"])}</p></header><ol>{cards}</ol>'
     body += '<section><h2>How the proposed proof graph changes</h2><p>' + escape(m['topology']['change']) + '</p>'
-    body += '<figure><a href="../../../assets/samplewiki-companions.svg"><img src="../../../assets/samplewiki-companions.svg" alt="Two red source-case lanes meet through a TV-stable proxy handoff; all formalization remains open."></a><figcaption>Open the SVG to zoom. This is a planned source-interface graph, not the Lean import graph.</figcaption></figure>'
+    body += '<figure><a href="../../../assets/samplewiki-companions.svg"><img src="../../../assets/samplewiki-companions.svg" alt="Three red source cases form a proxy-stable composition route and a separate Gaussian-cloud recursive-accounting route; all formalization remains open."></a><figcaption>Open the SVG to zoom. This is a planned source-interface graph, not the Lean import graph.</figcaption></figure>'
     body += '<p>' + escape(m['topology']['interpretation']) + '</p>' + ul(m['topology']['chewi_windows'] + m['topology']['other_routes'])
     body += '<p>' + escape(m['topology']['failure_boundary']) + '</p><p><a href="../../../lean-foundations.html?view=frontier&amp;focus=case%3AASTIS-SW-SPHMC-PBPS-COMPOSITION">Expand this frontier in the interactive proof graph →</a> · <a href="../../../lean-foundations.html?view=functor&amp;focus=transport%3Aproxy-warm-handoff">Inspect the candidate certificate bridge →</a></p></section>'
-    body += '<section><h2>Reading and formalization order</h2><p>Read the two source contracts, then the composition proof. Formalize dependency-ready common technology before algorithm assemblies; the existing active Chewi 8.4.1 route stays unchanged.</p><p><a href="proof-technology.html">Nine reusable technology contracts and four next-packet candidates →</a></p></section>'
-    body += '<section><h2>Attribution and source status</h2><ul>' + sources + '</ul><p>These are ASTIS mathematical restatements and proof-route explanations, not reproduced paper prose. Both arXiv pages list the perpetual non-exclusive distribution license; ASTIS assumes no blanket right to republish them. No author endorsement or new Lean certificate is implied.</p></section>'
+    body += f'<section><h2>Reading and formalization order</h2><p>Use the source-case cards as researcher-facing maps. For Picard HMC Part I, read the Section 6 call/error ledger before the detailed lemmas. Formalize dependency-ready common technology before algorithm assemblies; preserved textbook and companion frontiers are not reset.</p><p><a href="proof-technology.html">{len(m["technologies"])} reusable technology contracts and {len(m["next_packets"])} next-packet candidates →</a></p></section>'
+    body += '<section><h2>Attribution and source status</h2><ul>' + sources + '</ul><p>These are ASTIS mathematical restatements and proof-route explanations, not reproduced paper prose. The pinned arXiv pages list the perpetual non-exclusive distribution license; ASTIS assumes no blanket right to republish them. No author endorsement or new Lean certificate is implied.</p></section>'
     write(output, HOME, m['title'], body)
     techs = {t['id']: t for t in m['technologies']}
     items = []
@@ -218,7 +312,7 @@ def enrich_site(output):
         if not path.exists():
             raise ValueError(f'Missing companion entry surface: {rel}')
         text = path.read_text(encoding='utf-8')
-        banner = f'<section data-companion-frontiers="true"><h2>New companion frontiers</h2><p>Smoothed Picard HMC, Proximal BPS, and their proxy-stable composition: two source cases, one shared proof route; local formalization remains open.</p><p><a href="{href_from(rel, HOME)}">Read the frontier theorems and proof graph →</a> · <a href="{href_from(rel, TECH)}">Reusable proof technology →</a></p></section>'
+        banner = f'<section data-companion-frontiers="true"><h2>Companion-paper frontiers</h2><p>Smoothed Picard HMC, Proximal BPS, and Picard HMC Part I: source statements, readable proof routes, recursive-call/error ledgers, and explicit Lean status.</p><p><a href="{href_from(rel, HOME)}">Read the frontier theorems and proof graph →</a> · <a href="{href_from(rel, TECH)}">Reusable proof technology →</a></p></section>'
         text, count = re.subn(r'(<main\b[^>]*>)', lambda match: match.group(1) + banner, text, count=1)
         if count != 1:
             raise ValueError(f'Missing main for companion entry: {rel}')
@@ -238,7 +332,12 @@ def add_to_graph(builder):
             builder.edge(parent, t['id'], 'planned technology prerequisite; not a proof dependency')
         for module in t['search_modules']:
             builder.edge('module:'+module, t['id'], 'reuse search candidate; not a proof dependency')
-    for a,b in [('tech:proxy-warm',m['cases'][0]['id']),('tech:implemented-kernel',m['cases'][1]['id']),('tech:tv-handoff',m['composition']['id'])]:
+    for a,b in [
+        ('tech:proxy-warm', 'ASTIS-SW-SPHMC-2026'),
+        ('tech:implemented-kernel', 'ASTIS-SW-PBPS-2026'),
+        ('tech:gaussian-cloud-assembly', 'ASTIS-SW-GAUSSIAN-CLOUD-2026'),
+        ('tech:tv-handoff', m['composition']['id']),
+    ]:
         builder.edge(a,'case:'+b,'planned source assembly; not a proof dependency')
     delta_model = json.loads(DELTAS.read_text(encoding='utf-8'))
     for row in delta_model['lineage']:
@@ -298,12 +397,20 @@ def validate_site(output):
     for row in [*m['cases'], m['composition']]:
         path = output / (BASE + row['slug'] + '.html')
         text = path.read_text(encoding='utf-8') if path.exists() else ''
+        expected_step_folds = 0
         for t in row['theorems']:
+            expected_step_folds += len(t['steps'])
             for marker in (f'id="{t["id"]}"', formula_html(t['formula']), 'Lean statement — not formalized yet', 'Lean proof — not formalized yet'):
                 if marker not in text:
                     errors.append(f'{path.name}: missing {marker[:90]}')
+        if text.count('Lean step — not formalized yet') < expected_step_folds:
+            errors.append(f'{path.name}: every mathematical proof step needs an adjacent folded Lean status')
+        if row.get('bookkeeping') and 'id="section-6-ledger"' not in text:
+            errors.append(f'{path.name}: missing recursive-call/error bookkeeping ledger')
         if '<details open' in text or 'data-proof-status="compiled"' in text:
             errors.append('Companion reader must not assert compilation or open Lean by default')
+    if not (output / 'assets/gaussian-cloud-section-6-ledger.svg').is_file():
+        errors.append('Missing Gaussian-cloud Section 6 ledger SVG')
     for rel in ENTRY_PAGES:
         if 'data-companion-frontiers="true"' not in (output/rel).read_text(encoding='utf-8'):
             errors.append(f'Missing companion navigation: {rel}')

@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Picard HMC Part I route and researcher ledger — 2026-10-03
+
+The active companion route now includes Chen–Chewi–Lu–Zhang,
+*High-accuracy simulation of Picard HMC, part I: Gaussian cloud correction*,
+arXiv:2609.38710v1. This extends the current Goal; it does not replace or mark
+complete the PBPS/SPHMC routes. The source case is
+`ASTIS-SW-GAUSSIAN-CLOUD-2026` and remains red.
+
+The generated reader has a paper-level main-theorem route plus separate cards
+for Section 6 Lemma 6.1 and Lemma 6.3. Its maintained call/error ledger keeps
+the breadth-first request queue, local query caps, deterministic global cap,
+ideal-history replacement errors and final cap failure in distinct columns.
+Every proof step has an adjacent closed Lean-status disclosure. The two
+maintained SVGs were inspected at narrow/mobile width; formulas, labels, arrows
+and red/open status are readable.
+
+The first claimed packet is
+`ASTIS-SW-GC-adaptive-kernel-tv-telescope`: formalize Lemma 6.3's finite
+dummy-history adjacent-hybrid telescope, reusing the compiled factor-one common
+kernel TV contraction. Adaptive-tree MGF/tails, concrete cloud/FORS/RGO kernel
+measurability, conditional replacement bounds, Theorem 6.4 and the main query
+complexity remain independent red boundaries.
+
+Separately, the explicit exponential-tilt KL integral packet was committed at
+`fdb8e6853f730528e43f3895a5eb528220fb0f8d` and passed independent exact-commit
+verification under Lean 4.33. It proves KL finiteness and the exact integral
+identity only; restricted-fiber integrability, score/Fisher transport, LSI, T2
+and W2 contraction remain open.
+
 ## Published checkpoint and next actual-cost edge — 2026-09-29
 
 The previous integration was fast-forwarded and pushed to main at

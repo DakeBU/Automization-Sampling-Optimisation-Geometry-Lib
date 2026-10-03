@@ -2702,6 +2702,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
 
 def stochasticProcessMemory : List LemmaMemoryEntry := [
   {
+    key := "bakry-emery.interpolation-derivative-lower-bound",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.interpolationDerivative_lower_bound_of_bakryEmery",
+    upstreamDecl := "CD(alpha, infinity) and the defining Gamma-two identity",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChamp",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "carre-du-champ", "Gamma2", "semigroup", "gradient-contraction"],
+    saldUse := "derive the exact lower bound for the backward interpolation derivative expression from CD(alpha, infinity)",
+    note := "Algebraic generator leaf only. A concrete semigroup must still prove the interpolation derivative identity, positivity/order preservation, and domain regularity."
+  },
+  {
     key := "localization.chewi-proposition-1-1-13",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem.chewi_proposition_1_1_13",
     upstreamDecl := "Chewi Proposition 1.1.13",

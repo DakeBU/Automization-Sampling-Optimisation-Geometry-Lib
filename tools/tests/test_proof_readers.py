@@ -36,6 +36,12 @@ class ProofReaderTests(unittest.TestCase):
         self.assertEqual(statement, 'theorem f (x : Nat := 0) /- := ignored -/ : x = x')
         self.assertEqual(proof, ':= by rfl')
 
+    def test_display_source_drops_only_following_top_level_docstring(self):
+        source = 'def f : Nat := 1\n\n/-- Documentation for the next declaration. -/'
+        self.assertEqual(inline_lean.display_source(source), 'def f : Nat := 1')
+        nested = 'structure R where\n  /-- Documentation for a field. -/\n  n : Nat'
+        self.assertEqual(inline_lean.display_source(nested), nested)
+
     def test_structure_defaults_do_not_truncate_its_specification(self):
         source = 'structure R where\n  n : Nat := 0\n  title : String\n'
         self.assertEqual(inline_lean.split_statement(source), (source, ''))

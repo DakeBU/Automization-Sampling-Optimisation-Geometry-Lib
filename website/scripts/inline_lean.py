@@ -49,6 +49,21 @@ discarding part of its proposition.
     return source, ''
 
 
+def display_source(source: str) -> str:
+    """Drop a following declaration's top-level docstring from display code.
+
+    The source inventory is deliberately conservative and ends one declaration
+    at the next declaration token.  Consequently, the next declaration's
+    column-zero docstring can be part of the stored slice.  It is useful while
+    scanning, but it does not belong in the current declaration's Lean fold.
+    Nested/indented docstrings remain untouched.
+    """
+    marker = source.rfind('\n/--')
+    if marker >= 0 and re.fullmatch(r'/--[\s\S]*?-/', source[marker + 1:].strip()):
+        return source[:marker].rstrip()
+    return source
+
+
 @lru_cache(maxsize=1)
 def declarations() -> dict:
     if base._SOURCE_BY_NAME:
@@ -57,15 +72,20 @@ def declarations() -> dict:
 
 
 def disclosure(name: str, *, role: str, explanation: str,
-               page: str, helpers: tuple[str, ...] = ()) -> str:
+               page: str, helpers: tuple[str, ...] = (),
+               trim_following_docstring: bool = False) -> str:
     declaration = declarations()[name]
-    signature, body = split_statement(declaration.source_text)
-    code = signature if role == 'statement' else declaration.source_text
+    exact_source = (display_source(declaration.source_text)
+                    if trim_following_docstring else declaration.source_text)
+    signature, body = split_statement(exact_source)
+    code = signature if role == 'statement' else exact_source
     label = 'Lean statement' if role == 'statement' else 'Lean proof / instance' if declaration.kind == 'instance' else 'Lean proof' if declaration.kind in {'theorem', 'lemma'} else 'Lean construction'
     if role == 'statement' and not body and declaration.kind in {'theorem', 'lemma'}:
         label = 'Complete Lean declaration (unsplit)'
     href, _ = base.source_href(declaration, from_path=page)
-    helper_html = ''.join(disclosure(n, role='proof', explanation='Supporting proof called by the result above.', page=page) for n in helpers)
+    helper_html = ''.join(disclosure(
+        n, role='proof', explanation='Supporting proof called by the result above.',
+        page=page, trim_following_docstring=trim_following_docstring) for n in helpers)
     return (
         f'<details class="inline-lean inline-lean-{role}" data-inline-lean="{base.esc(name)}">'
         f'<summary>{label} · {base.esc(declaration.short_name)}</summary>'

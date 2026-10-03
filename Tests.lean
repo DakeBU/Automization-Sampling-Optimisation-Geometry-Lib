@@ -217,6 +217,8 @@ import Tests.TiltedKL
 import Tests.QuadraticTiltFisher
 import Tests.CanonicalLogSobolev
 import Tests.GradientAECongruence
+import Tests.FinitePowerSeries
+import Tests.UnitSphere
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

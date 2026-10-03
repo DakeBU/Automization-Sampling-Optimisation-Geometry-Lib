@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-1400b52c16ee54a7",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root",
+    "blind_decoder": "general_prereq_blind_decoder",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "finite-power-series-derivative-budgets:finitePowerSeries",
+    "anchor": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Calculus/IteratedDeriv/Lemmas.lean — iteratedDeriv_pow and the finite-sum iterated-derivative interface",
+    "original_text": "A finite set of natural exponents and arbitrary real coefficients define a polynomial by summing the supported monomials. Formula: P(u)=\\sum_{j\\in S}a_j u^j Assumptions: S is finite. Coefficients may have any signs. u is real. Boundary: No canonical support or infinite-series statement is asserted.",
+    "text_sha256": "09f5c37bcaa781b33c884c43cc7c2ffb004982d44f1b3dfac337b36bbd72df2f"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeries",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+    "statement": "def finitePowerSeries (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) : ℝ :=\n  ∑ j ∈ support, a j * u ^ j",
+    "statement_sha256": "49f421bc0ff4b34a784cad9345f5053409800ed0f377e3db4c7b9c3c8824a88a",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every finite set S ⊆ ℕ and coefficient function a : ℕ → ℝ, define the finite power series P_{S,a} : ℝ → ℝ by P_{S,a}(u) = ∑_{j ∈ S} a(j)u^j.",
+    "text_sha256": "f76495163b298671427db1408750253976ee8676a488b353e8b50726bc19d9ac",
+    "decoder": "general_prereq_blind_decoder",
+    "decoder_packet_sha256": "8eedc7ee56264726e60738f7115ac9a0c162b9ec088d5a002a8923a821f55399",
+    "decoder_run_sha256": "0e7fbf97fb49c0de2325ff51ecc61b7e6dff55a50facf7efe7d3c96d02f08504",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "f2f819189834d86295638580318beaeeac40760399fdcc2ea2a7408e62872453",
+  "candidate_publication_context": {
+    "file": "bbb157cfd85c4c0135180880fd480755a6d9291fb787fdf069fd04c4955ecd52",
+    "current_lean_module": "import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas\nimport Mathlib.Tactic\n\n/-!\n# Finite power series: exact derivatives and coefficient budgets\n\nThis file packages a small analytic tool used throughout statistics and\nnumerical analysis.  A finitely supported real power series has an exact\n`iteratedDeriv` formula at every order.  On the interval `[-1, 1]`, the\nabsolute value of that derivative is bounded by the corresponding weighted\nabsolute coefficient mass.\n\nThe formulation uses `Nat.descFactorial`, so one theorem handles every order,\nincluding exponents below the requested order: their descending factorial is\nzero.  The final lemma records the scalar fourth-order chain-rule estimate\nwith the exact one-dimensional Faà di Bruno coefficients.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries\n\nopen scoped BigOperators\n\n/-- A real polynomial written as a sum over an arbitrary finite set of\nexponents.  Repeated exponents are impossible because the support is a\n`Finset`; coefficients outside the support play no role. -/\ndef finitePowerSeries (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) : ℝ :=\n  ∑ j ∈ support, a j * u ^ j\n\n/-- The closed form for the `order`-th derivative of a finite power series. -/\ndef finitePowerSeriesDerivative\n    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) : ℝ :=\n  ∑ j ∈ support,\n    (j.descFactorial order : ℝ) * a j * u ^ (j - order)\n\n/-- Absolute coefficient mass controlling the `order`-th derivative on\n`[-1, 1]`. -/\ndef finitePowerSeriesDerivativeMass\n    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) : ℝ :=\n  ∑ j ∈ support, (j.descFactorial order : ℝ) * |a j|\n\n/-- A finite real power series is smooth to every finite order. -/\ntheorem finitePowerSeries_contDiff\n    (support : Finset ℕ) (a : ℕ → ℝ) :\n    ContDiff ℝ ⊤ (finitePowerSeries support a) := by\n  unfold finitePowerSeries\n  fun_prop\n\n/-- Mathlib's iterated derivative of a finite power series equals the usual\ndescending-factorial formula. -/\ntheorem iteratedDeriv_finitePowerSeries\n    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) :\n    iteratedDeriv order (finitePowerSeries support a) u =\n      finitePowerSeriesDerivative order support a u := by\n  unfold finitePowerSeries finitePowerSeriesDerivative\n  rw [iteratedDeriv_fun_sum]\n  · apply Finset.sum_congr rfl\n    intro j hj\n    simp [iteratedDeriv_pow]\n    ring\n  · intro j hj\n    fun_prop\n\n/-- On the full correlation interval, every iterated derivative is controlled\nby its weighted absolute coefficient mass.  No sign condition on the\ncoefficients is required. -/\ntheorem abs_iteratedDeriv_finitePowerSeries_le_mass\n    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) {u : ℝ}\n    (hu : |u| ≤ 1) :\n    |iteratedDeriv order (finitePowerSeries support a) u| ≤\n      finitePowerSeriesDerivativeMass order support a := by\n  rw [iteratedDeriv_finitePowerSeries]\n  unfold finitePowerSeriesDerivative finitePowerSeriesDerivativeMass\n  calc\n    |∑ j ∈ support,\n        (j.descFactorial order : ℝ) * a j * u ^ (j - order)| ≤\n        ∑ j ∈ support,\n          |(j.descFactorial order : ℝ) * a j * u ^ (j - order)| :=\n      Finset.abs_sum_le_sum_abs _ _\n    _ = ∑ j ∈ support,\n        (j.descFactorial order : ℝ) * |a j| * |u| ^ (j - order) := by\n      apply Finset.sum_congr rfl\n      intro j hj\n      rw [abs_mul, abs_mul, abs_pow,\n        abs_of_nonneg (show 0 ≤ (j.descFactorial order : ℝ) by positivity)]\n    _ ≤ ∑ j ∈ support, (j.descFactorial order : ℝ) * |a j| := by\n      apply Finset.sum_le_sum\n      intro j hj\n      exact mul_le_of_le_one_right\n        (mul_nonneg (by positivity) (abs_nonneg (a j)))\n        (pow_le_one₀ (abs_nonneg u) hu)\n\n/-- Termwise control of the scalar fourth-order chain-rule expression.\n\nFor smooth scalar functions `k` and `u`, the left side is the absolute value\nof the formal expression for `(k ∘ u)⁽⁴⁾`.  The numerical coefficients\n`1, 6, 3, 4, 1` are the exact one-dimensional Faà di Bruno coefficients. -/\ntheorem fourthOrderCompositionExpression_abs_le\n    {k1 k2 k3 k4 u1 u2 u3 u4 A1 A2 A3 A4 : ℝ}\n    (hk1 : |k1| ≤ A1) (hk2 : |k2| ≤ A2)\n    (hk3 : |k3| ≤ A3) (hk4 : |k4| ≤ A4) :\n    |k4 * u1 ^ (4 : ℕ) +\n        6 * k3 * u1 ^ (2 : ℕ) * u2 +\n        3 * k2 * u2 ^ (2 : ℕ) +\n        4 * k2 * u1 * u3 + k1 * u4| ≤\n      A4 * |u1| ^ (4 : ℕ) +\n        6 * A3 * |u1| ^ (2 : ℕ) * |u2| +\n        3 * A2 * |u2| ^ (2 : ℕ) +\n        4 * A2 * |u1| * |u3| + A1 * |u4| := by\n  let t1 := k4 * u1 ^ (4 : ℕ)\n  let t2 := 6 * k3 * u1 ^ (2 : ℕ) * u2\n  let t3 := 3 * k2 * u2 ^ (2 : ℕ)\n  let t4 := 4 * k2 * u1 * u3\n  let t5 := k1 * u4\n  have htri : |t1 + t2 + t3 + t4 + t5| ≤\n      |t1| + |t2| + |t3| + |t4| + |t5| := by\n    calc\n      |t1 + t2 + t3 + t4 + t5| ≤ |t1 + t2 + t3 + t4| + |t5| :=\n        abs_add_le _ _\n      _ ≤ (|t1 + t2 + t3| + |t4|) + |t5| := by\n        gcongr\n        exact abs_add_le _ _\n      _ ≤ ((|t1 + t2| + |t3|) + |t4|) + |t5| := by\n        gcongr\n        exact abs_add_le _ _\n      _ ≤ (((|t1| + |t2|) + |t3|) + |t4|) + |t5| := by\n        gcongr\n        exact abs_add_le _ _\n  have ht1 : |t1| ≤ A4 * |u1| ^ (4 : ℕ) := by\n    dsimp [t1]\n    rw [abs_mul, abs_pow]\n    exact mul_le_mul_of_nonneg_right hk4 (by positivity)\n  have ht2 : |t2| ≤ 6 * A3 * |u1| ^ (2 : ℕ) * |u2| := by\n    dsimp [t2]\n    rw [abs_mul, abs_mul, abs_mul, abs_pow]\n    norm_num\n    gcongr\n  have ht3 : |t3| ≤ 3 * A2 * |u2| ^ (2 : ℕ) := by\n    dsimp [t3]\n    rw [abs_mul, abs_mul, abs_pow]\n    norm_num\n    gcongr\n  have ht4 : |t4| ≤ 4 * A2 * |u1| * |u3| := by\n    dsimp [t4]\n    rw [abs_mul, abs_mul, abs_mul]\n    norm_num\n    gcongr\n  have ht5 : |t5| ≤ A1 * |u4| := by\n    dsimp [t5]\n    rw [abs_mul]\n    exact mul_le_mul_of_nonneg_right hk1 (abs_nonneg _)\n  dsimp [t1, t2, t3, t4, t5] at htri\n  linarith\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Calculus/IteratedDeriv/Lemmas.lean",
+      "edition": "mathlib commit db584cd6d46c92f209a44c0f1c829460d327499d",
+      "anchor": "iteratedDeriv_pow and the finite-sum iterated-derivative interface",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Mathlib supplies the monomial derivative identity; Samplinglib packages finite supports, signed coefficient budgets, and the fourth-order scalar estimate."
+    },
+    "statement": "A finite real power series is smooth, has the expected descending-factorial derivative formula at every order, and admits an absolute coefficient bound on the unit interval; the same elementary estimates control the scalar fourth-order composition expression.",
+    "formulae": [
+      {
+        "label": "exact derivative",
+        "tex": "P^{(r)}(u)=\\sum_{j\\in S}j^{\\underline r}a_j u^{j-r}"
+      },
+      {
+        "label": "unit-interval budget",
+        "tex": "|P^{(r)}(u)|\\le\\sum_{j\\in S}j^{\\underline r}|a_j|\\quad(|u|\\le1)"
+      }
+    ],
+    "assumptions": [
+      "The exponent support is finite and coefficients are arbitrary real numbers.",
+      "The derivative budget is evaluated at a point with absolute value at most one.",
+      "The fourth-order estimate assumes separate absolute bounds for the first four outer derivatives."
+    ],
+    "obligations": [
+      {
+        "id": "finite-series-construction",
+        "label": "Define the finite series and its closed derivative expressions"
+      },
+      {
+        "id": "finite-series-smoothness",
+        "label": "Prove smoothness and the exact arbitrary-order derivative formula"
+      },
+      {
+        "id": "finite-series-budget",
+        "label": "Bound every iterated derivative on the unit interval"
+      },
+      {
+        "id": "fourth-order-composition-budget",
+        "label": "Control the scalar fourth-order composition expression term by term"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeries",
+      "kind": "definition",
+      "title": "A finite real power series",
+      "statement": "A finite set of natural exponents and arbitrary real coefficients define a polynomial by summing the supported monomials.",
+      "formula": "P(u)=\\sum_{j\\in S}a_j u^j",
+      "assumptions": [
+        "S is finite.",
+        "Coefficients may have any signs.",
+        "u is real."
+      ],
+      "steps": [
+        {
+          "title": "Build the finite sum",
+          "text": "Evaluate a_j u^j for every supported exponent and add the results. No convergence hypothesis is needed because the support is finite.",
+          "formula": "P(u)=\\sum_{j\\in S}a_j u^j",
+          "lean": "The definition is a `Finset.sum`."
+        }
+      ],
+      "lean_statement": "Lean records the support, coefficient family, and evaluation point explicitly.",
+      "lean_proof": "This is the complete construction, rather than a proof of another claim.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeries",
+      "role": "prerequisite",
+      "supports": [
+        "finite-series-construction"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The textbook route states the standard finite-dimensional formula in ordinary mathematical notation.",
+        "lean": "The declaration exposes exactly the algebraic, differentiability, unit-norm, orthogonality, or bounded-input hypotheses used by its proof."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "cb20aa6b61d18b141fd79fedafaf980f3c50da6bc0cf4c1bc19a8d89a6e97fe6"
+}

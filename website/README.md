@@ -86,9 +86,15 @@ Each step needs `title`, natural-language `text`, a display-TeX `formula`, and
 a declaration-specific beginner `lean` explanation. The `lean_statement` and
 `lean_proof` fields are **explanations**, not duplicated code: exact signatures
 and complete proof source are extracted from the current Lean declaration.
-Include notation, ASTIS parents, Mathlib calls, exact sources, tests and their
+Include notation, Samplinglib parents, Mathlib calls, exact sources, tests and their
 actual scope. Definitions require their construction and meaning, not invented
 proofs of the propositions their metadata describes.
+
+The generated lesson starts with a human reading pass: the mathematical claim,
+main formula, and a short proof roadmap are visible together. Full assumptions,
+scope ledgers, provenance, and exact Lean source remain one click away. This
+keeps the mathematical argument readable while preserving every premise and
+the complete kernel-checked declaration for audit.
 
 Source entries use either an HTTPS `url` or a repository-relative `path` with
 an optional one-based `line`. Mathlib paths resolve using `lake-manifest.json`;

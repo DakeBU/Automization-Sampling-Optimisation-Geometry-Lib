@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeries",
+      "kind": "definition",
+      "title": "A finite real power series",
+      "statement": "A finite set of natural exponents and arbitrary real coefficients define a polynomial by summing the supported monomials.",
+      "formula": "P(u)=\\sum_{j\\in S}a_j u^j",
+      "assumptions": [
+        "S is finite.",
+        "Coefficients may have any signs.",
+        "u is real."
+      ],
+      "steps": [
+        {
+          "title": "Build the finite sum",
+          "text": "Evaluate a_j u^j for every supported exponent and add the results. No convergence hypothesis is needed because the support is finite.",
+          "formula": "P(u)=\\sum_{j\\in S}a_j u^j",
+          "lean": "The definition is a `Finset.sum`."
+        }
+      ],
+      "lean_statement": "Lean records the support, coefficient family, and evaluation point explicitly.",
+      "lean_proof": "This is the complete construction, rather than a proof of another claim.",
+      "boundary": "No canonical support or infinite-series statement is asserted.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeriesDerivative",
+      "kind": "definition",
+      "title": "The closed formula for every derivative order",
+      "statement": "The order-r derivative expression weights u^(j-r) by the descending factorial j^(r) and the original coefficient.",
+      "formula": "P_r(u)=\\sum_{j\\in S}j^{\\underline r}a_j u^{j-r}",
+      "assumptions": [
+        "r and j are natural numbers.",
+        "Natural subtraction is truncated.",
+        "When j<r, the descending factorial is zero."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate each monomial formally",
+          "text": "The r-th derivative of u^j is j falling r times u^(j-r), including the zero case j<r.",
+          "formula": "D^r(u^j)=j^{\\underline r}u^{j-r}",
+          "lean": "`Nat.descFactorial` handles all orders uniformly."
+        }
+      ],
+      "lean_statement": "The order is explicit and the result is real-valued.",
+      "lean_proof": "The later theorem identifies this expression with Mathlib's actual iterated derivative.",
+      "boundary": "This definition alone does not assert differentiability.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeriesDerivativeMass",
+      "kind": "definition",
+      "title": "An absolute coefficient budget",
+      "statement": "Replace each coefficient by its absolute value and retain the derivative's descending-factorial weight.",
+      "formula": "M_r=\\sum_{j\\in S}j^{\\underline r}|a_j|",
+      "assumptions": [
+        "The support is finite.",
+        "No coefficient sign condition is used.",
+        "Every summand is nonnegative."
+      ],
+      "steps": [
+        {
+          "title": "Discard cancellation",
+          "text": "Summing absolute coefficient contributions produces a point-independent majorant.",
+          "formula": "M_r=\\sum_{j\\in S}j^{\\underline r}|a_j|",
+          "lean": "The definition is a finite sum of nonnegative real terms."
+        }
+      ],
+      "lean_statement": "The mass depends on order, support, and coefficients, but not u.",
+      "lean_proof": "It is designed to pair with the hypothesis |u|≤1.",
+      "boundary": "The budget need not be sharp.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.finitePowerSeries_contDiff",
+      "kind": "theorem",
+      "title": "Finite power series are smooth",
+      "statement": "Every finite real power series is continuously differentiable to all finite orders.",
+      "formula": "P\\in C^\\infty(\\mathbb R;\\mathbb R)",
+      "assumptions": [
+        "The exponent support is finite.",
+        "Coefficients are arbitrary reals."
+      ],
+      "steps": [
+        {
+          "title": "Use closure of smooth functions",
+          "text": "Each monomial is smooth; constant multiples and finite sums preserve smoothness.",
+          "formula": "P=\\sum_{j\\in S}(u\\mapsto a_j u^j)\\in C^\\infty",
+          "lean": "After unfolding the definition, `fun_prop` applies Mathlib's closure rules."
+        }
+      ],
+      "lean_statement": "The conclusion is Mathlib's `ContDiff ℝ ⊤`.",
+      "lean_proof": "The proof uses only standard smoothness rules.",
+      "boundary": "No infinite-series analyticity claim is made.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.iteratedDeriv_finitePowerSeries",
+      "kind": "theorem",
+      "title": "The iterated derivative is the descending-factorial sum",
+      "statement": "For every order and point, Mathlib's iterated derivative of the finite series equals the closed polynomial derivative formula.",
+      "formula": "\\operatorname{iteratedDeriv}_rP(u)=\\sum_{j\\in S}j^{\\underline r}a_j u^{j-r}",
+      "assumptions": [
+        "r is any natural order.",
+        "u is any real point.",
+        "The support is finite."
+      ],
+      "steps": [
+        {
+          "title": "Commute derivative and finite sum",
+          "text": "Smoothness lets the iterated derivative distribute over all supported monomials.",
+          "formula": "D^r\\!\\left(\\sum_j a_j u^j\\right)=\\sum_j D^r(a_j u^j)",
+          "lean": "`iteratedDeriv_fun_sum` supplies the finite-sum rule."
+        },
+        {
+          "title": "Use Mathlib's monomial formula",
+          "text": "Each term contributes the descending factorial and lowered exponent.",
+          "formula": "D^r(a_j u^j)=a_jj^{\\underline r}u^{j-r}",
+          "lean": "`iteratedDeriv_pow` gives the exact monomial derivative; ring normalization matches the public definition."
+        }
+      ],
+      "lean_statement": "This identifies an actual Mathlib derivative, not a merely formal polynomial.",
+      "lean_proof": "The proof reuses Mathlib's finite-sum and power derivative APIs.",
+      "boundary": "Only scalar real polynomials are covered.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.abs_iteratedDeriv_finitePowerSeries_le_mass",
+      "kind": "theorem",
+      "title": "Signed derivative budgets on the unit interval",
+      "statement": "On |u|≤1, every iterated derivative is bounded by its weighted absolute coefficient mass.",
+      "formula": "|u|\\le1\\Longrightarrow |P^{(r)}(u)|\\le M_r",
+      "assumptions": [
+        "u lies in [-1,1].",
+        "The derivative order is arbitrary.",
+        "Coefficients may have arbitrary signs."
+      ],
+      "steps": [
+        {
+          "title": "Insert the exact derivative",
+          "text": "Rewrite the actual derivative as the descending-factorial finite sum.",
+          "formula": "P^{(r)}(u)=\\sum_j j^{\\underline r}a_j u^{j-r}",
+          "lean": "Use `iteratedDeriv_finitePowerSeries`."
+        },
+        {
+          "title": "Apply the triangle inequality",
+          "text": "Discard cancellation and split absolute values across products.",
+          "formula": "|P^{(r)}(u)|\\le\\sum_j j^{\\underline r}|a_j||u|^{j-r}",
+          "lean": "`Finset.abs_sum_le_sum_abs` proves the finite-sum bound."
+        },
+        {
+          "title": "Use |u|≤1",
+          "text": "Every remaining power is at most one.",
+          "formula": "|u|^{j-r}\\le1\\Longrightarrow |P^{(r)}(u)|\\le M_r",
+          "lean": "`pow_le_one₀` completes the comparison."
+        }
+      ],
+      "lean_statement": "Low degrees and coefficient signs remain inside the theorem.",
+      "lean_proof": "The proof combines the exact derivative identity with elementary absolute-value estimates.",
+      "boundary": "Outside [-1,1], a radius-dependent budget is needed.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.FinitePowerSeries"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.fourthOrderCompositionExpression_abs_le",
+      "kind": "theorem",
+      "title": "A fourth-order composition budget",
+      "statement": "Bounds on the first four outer derivatives control the exact five-term scalar fourth-order chain-rule expression.",
+      "formula": "|k_4u_1^4+6k_3u_1^2u_2+3k_2u_2^2+4k_2u_1u_3+k_1u_4|\\le A_4|u_1|^4+6A_3|u_1|^2|u_2|+3A_2|u_2|^2+4A_2|u_1||u_3|+A_1|u_4|",
+      "assumptions": [
+        "|k_i|≤A_i for i=1,2,3,4.",
+        "The inner derivative values are arbitrary reals.",
+        "No sign assumption is used."
+      ],
+      "steps": [
+        {
+          "title": "Split the five terms",
+          "text": "The coefficients 1,6,3,4,1 are the exact one-dimensional fourth-order chain-rule coefficients.",
+          "formula": "t_1=k_4u_1^4,\\ldots,t_5=k_1u_4",
+          "lean": "The proof names the five summands."
+        },
+        {
+          "title": "Bound each term",
+          "text": "Apply the triangle inequality and then substitute |k_i|≤A_i.",
+          "formula": "|\\sum_i t_i|\\le\\sum_i|t_i|\\le\\text{displayed majorant}",
+          "lean": "`abs_add_le`, `abs_mul`, and monotone multiplication give the result."
+        }
+      ],
+      "lean_statement": "The numerical coefficients are explicit rather than hidden in a generic constant.",
+      "lean_proof": "This is a scalar inequality; Mathlib's chain rule can identify the derivative values separately.",
+      "boundary": "It does not itself prove differentiability of a particular composition.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/FinitePowerSeries.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.FinitePowerSeries"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp",
+      "kind": "definition",
+      "title": "The ambient exponential map of the unit sphere",
+      "statement": "The sphere exponential formula combines the base direction with a sinc-scaled increment.",
+      "formula": "\\operatorname{Exp}_w(z)=\\cos(\\|z\\|)w+\\operatorname{sinc}(\\|z\\|)z",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "w and z are ambient vectors.",
+        "sinc supplies the continuous value at z=0."
+      ],
+      "steps": [
+        {
+          "title": "Rotate in the span of w and z",
+          "text": "Cosine weights the base direction and sine-over-radius weights the increment.",
+          "formula": "\\cos r\\,w+\\frac{\\sin r}{r}z,\\quad r=\\|z\\|",
+          "lean": "`Real.sinc` makes this a total formula."
+        }
+      ],
+      "lean_statement": "Lean defines a total ambient-space map.",
+      "lean_proof": "The later norm theorem states the exact tangency conditions for sphere membership.",
+      "boundary": "Without unit length and tangency, unit norm is not asserted.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereGeodesic",
+      "kind": "definition",
+      "title": "A signed great-circle parameterization",
+      "statement": "The curve uses cos(t‖z‖) and sin(t‖z‖)/‖z‖, with a constant zero-velocity branch.",
+      "formula": "\\gamma_{w,z}(t)=\\begin{cases}w,&z=0,\\\\\\cos(t\\|z\\|)w+\\frac{\\sin(t\\|z\\|)}{\\|z\\|}z,&z\\ne0.\\end{cases}",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "t may be negative, zero, or positive.",
+        "The zero-velocity branch is explicit."
+      ],
+      "steps": [
+        {
+          "title": "Choose the removable branch",
+          "text": "Zero velocity gives the constant curve; nonzero velocity gives the signed trigonometric formula.",
+          "formula": "z=0\\Rightarrow\\gamma(t)=w",
+          "lean": "Lean uses an `if ‖z‖ = 0` branch."
+        }
+      ],
+      "lean_statement": "The signed parameterization avoids the absolute value introduced by ‖t • z‖.",
+      "lean_proof": "Subsequent theorems prove its smoothness and relation to the exponential formula.",
+      "boundary": "w need not be unit and z need not be tangent for the definition.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereGeodesic_contDiff",
+      "kind": "theorem",
+      "title": "Signed sphere geodesics are smooth",
+      "statement": "For fixed base point and velocity, the signed great-circle curve is continuously differentiable to every requested finite order.",
+      "formula": "\\gamma_{w,z}\\in C^n(\\mathbb R;E)",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "No unit-length or tangency assumption is needed.",
+        "n is any Mathlib differentiability order."
+      ],
+      "steps": [
+        {
+          "title": "Split on zero velocity",
+          "text": "The zero branch is constant; in the nonzero branch all scalar trigonometric operations are smooth.",
+          "formula": "z=0\\Rightarrow\\gamma(t)=w;\\quad z\\ne0\\Rightarrow\\gamma(t)=\\cos(tr)w+\\frac{\\sin(tr)}r z",
+          "lean": "`fun_prop` proves both branches after the case split."
+        }
+      ],
+      "lean_statement": "The theorem returns `ContDiff ℝ n`.",
+      "lean_proof": "The only case split handles the removable zero-velocity denominator.",
+      "boundary": "Smoothness alone does not imply the curve lies on a sphere.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_continuous",
+      "kind": "theorem",
+      "title": "The exponential formula is continuous in its increment",
+      "statement": "For a fixed base point, the ambient sphere exponential formula depends continuously on z.",
+      "formula": "z_n\\to z\\Longrightarrow\\operatorname{Exp}_w(z_n)\\to\\operatorname{Exp}_w(z)",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "w is fixed.",
+        "No tangency premise is needed."
+      ],
+      "steps": [
+        {
+          "title": "Compose continuous operations",
+          "text": "The norm, cosine, sinc, scalar multiplication, and addition are continuous.",
+          "formula": "z\\mapsto\\cos(\\|z\\|)w+\\operatorname{sinc}(\\|z\\|)z",
+          "lean": "After unfolding, `fun_prop` applies Mathlib's continuity rules."
+        }
+      ],
+      "lean_statement": "The conclusion is ordinary topological continuity.",
+      "lean_proof": "The proof is a direct closure argument.",
+      "boundary": "Joint differentiability in both arguments is not claimed.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_smul_eq_unitSphereGeodesic",
+      "kind": "theorem",
+      "title": "Forward exponential steps equal the signed geodesic",
+      "statement": "For nonnegative time, exponentiating the scaled increment tz equals the signed geodesic at t.",
+      "formula": "t\\ge0\\Longrightarrow\\operatorname{Exp}_w(tz)=\\gamma_{w,z}(t)",
+      "assumptions": [
+        "t is nonnegative.",
+        "Zero time and zero velocity are allowed.",
+        "w and z are arbitrary ambient vectors."
+      ],
+      "steps": [
+        {
+          "title": "Handle degenerate cases",
+          "text": "When t=0 or z=0, both sides reduce to w.",
+          "formula": "t=0\\text{ or }z=0\\Rightarrow\\operatorname{Exp}_w(tz)=w",
+          "lean": "Lean discharges both branches by simplification."
+        },
+        {
+          "title": "Rewrite the scaled norm",
+          "text": "Nonnegative t gives ‖tz‖=t‖z‖.",
+          "formula": "\\|tz\\|=t\\|z\\|",
+          "lean": "`norm_smul` and `abs_of_nonneg` prove the equality."
+        },
+        {
+          "title": "Expand sinc and cancel t",
+          "text": "For nonzero t‖z‖, sinc becomes sine divided by its argument.",
+          "formula": "\\operatorname{sinc}(t\\|z\\|)(tz)=\\frac{\\sin(t\\|z\\|)}{\\|z\\|}z",
+          "lean": "`Real.sinc_of_ne_zero` and field simplification finish."
+        }
+      ],
+      "lean_statement": "The nonnegative-time hypothesis is visible.",
+      "lean_proof": "All denominator and zero cases are handled explicitly.",
+      "boundary": "The same equality is not claimed for negative t because the exponential formula uses ‖tz‖.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereGeodesic_derivatives_and_bounds",
+      "kind": "theorem",
+      "title": "A fourth-order certificate for sphere geodesics",
+      "statement": "At a unit base point and nonzero velocity, the first four derivatives have explicit formulas and satisfy ‖γ^(q)(t)‖≤2‖z‖^q for q=1,2,3,4.",
+      "formula": "\\|\\gamma_{w,z}^{(q)}(t)\\|\\le2\\|z\\|^q\\quad(q=1,2,3,4)",
+      "assumptions": [
+        "E is any real inner-product space.",
+        "‖w‖=1.",
+        "z≠0 selects the displayed closed form.",
+        "No finite-dimensional or probabilistic hypothesis is used."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate four times",
+          "text": "Sine and cosine alternate and each differentiation contributes one power of ‖z‖.",
+          "formula": "\\gamma'(t)=-r\\sin(tr)w+\\cos(tr)z,\\quad\\gamma''(t)=-r^2\\cos(tr)w-r\\sin(tr)z,\\ldots",
+          "lean": "Private `HasDerivAt` lemmas prove every displayed derivative."
+        },
+        {
+          "title": "Bound the two components",
+          "text": "Use the triangle inequality, ‖w‖=1, and |sin|,|cos|≤1.",
+          "formula": "\\|a(t)w+b(t)z\\|\\le2\\|z\\|^q",
+          "lean": "Private norm lemmas prove all four uniform envelopes."
+        },
+        {
+          "title": "Return one reusable certificate",
+          "text": "The public theorem packages four exact derivative witnesses and four bounds.",
+          "formula": "(\\gamma',\\gamma'',\\gamma^{(3)},\\gamma^{(4)})\\text{ and }(2r,2r^2,2r^3,2r^4)",
+          "lean": "Conjunction introduction assembles the reviewed helpers."
+        }
+      ],
+      "lean_statement": "Consumers receive exact `HasDerivAt` witnesses as well as estimates.",
+      "lean_proof": "All analytic helpers live in the same module and compile with the public theorem.",
+      "boundary": "The constant 2 is a simple uniform envelope, not an optimality claim.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.UnitSphere"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_norm_eq_one",
+      "kind": "theorem",
+      "title": "Tangent exponential steps remain on the unit sphere",
+      "statement": "A unit base point and an orthogonal increment produce an exponential-map value with exactly unit norm.",
+      "formula": "\\|w\\|=1,\\ \\langle w,z\\rangle=0\\Longrightarrow\\|\\operatorname{Exp}_w(z)\\|=1",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "‖w‖=1.",
+        "⟪w,z⟫=0.",
+        "z=0 is allowed."
+      ],
+      "steps": [
+        {
+          "title": "Handle zero increment",
+          "text": "At z=0, the exponential formula is w.",
+          "formula": "z=0\\Rightarrow\\operatorname{Exp}_w(z)=w",
+          "lean": "Simplification uses the unit-norm premise."
+        },
+        {
+          "title": "Use orthogonality",
+          "text": "The cosine and sinc components have zero cross inner product.",
+          "formula": "\\langle\\cos(r)w,\\operatorname{sinc}(r)z\\rangle=0",
+          "lean": "Inner-product scalar rules reduce this to ⟪w,z⟫=0."
+        },
+        {
+          "title": "Apply Pythagoras and trigonometry",
+          "text": "The two squared norms are cos²r and sin²r.",
+          "formula": "\\|\\operatorname{Exp}_w(z)\\|^2=\\cos^2r+\\sin^2r=1",
+          "lean": "`norm_add_sq_real`, `Real.sinc_of_ne_zero`, and `Real.sin_sq_add_cos_sq` prove the identity."
+        },
+        {
+          "title": "Use nonnegativity of norm",
+          "text": "A nonnegative real with square one equals one.",
+          "formula": "x\\ge0,\\ x^2=1\\Rightarrow x=1",
+          "lean": "Nonlinear arithmetic closes the final scalar step."
+        }
+      ],
+      "lean_statement": "The theorem gives exact feasibility, not an asymptotic estimate.",
+      "lean_proof": "The proof is the orthogonal norm identity plus sin²+cos²=1.",
+      "boundary": "No algorithmic convergence theorem is included.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphere.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.UnitSphere"
+      ]
+    }
+  ]
+}

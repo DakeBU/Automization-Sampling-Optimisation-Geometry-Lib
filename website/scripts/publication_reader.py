@@ -60,9 +60,19 @@ def source_card(item: dict, page: str) -> str:
                        f'\\[{escape(f["tex"])}\\]</div>' for f in item['formulae'])
     obligations = []
     for o in item['obligations']:
-        supporters = [b for b in item['bindings'] if o['id'] in b.get('supports', []) and b['role'] == 'proof-edge' and publication.verified_binding(b, data)]
-        label = 'Local proof component; source adapter/review separate' if supporters else 'TODO — not closed by these contributions'
-        obligations.append(f'<li><span class="status status-{"orange" if supporters else "red"}">{label}</span> {escape(o["label"])}</li>')
+        verified = [b for b in item['bindings']
+                    if o['id'] in b.get('supports', [])
+                    and publication.verified_binding(b, data)]
+        proof_supporters = [b for b in verified if b['role'] == 'proof-edge']
+        prerequisite_supporters = [b for b in verified if b['role'] == 'prerequisite']
+        if proof_supporters:
+            label, color = 'Formalized proof edge; source adapter/review separate', 'orange'
+        elif prerequisite_supporters:
+            label, color = 'Independently verified prerequisite', 'green'
+        else:
+            label, color = 'TODO — not closed by these contributions', 'red'
+        obligations.append(f'<li><span class="status status-{color}">{label}</span> '
+                           f'{escape(o["label"])}</li>')
     lessons = []
     for b in item['bindings']:
         name = b['declaration']
@@ -93,12 +103,13 @@ def source_card(item: dict, page: str) -> str:
     return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
             f'<p><a href="{escape(source["url"])}">{escape(source["edition"])} · {escape(source["anchor"])}</a>'
-            f' · {escape(source["wording_status"])}</p><h3>Complete source statement (ASTIS restatement)</h3>'
+            f' · {escape(source["wording_status"])}</p><h3>Complete source statement (Samplinglib restatement)</h3>'
             f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
-            'ASTIS parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
+            'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
             + ''.join(lessons)
-            + '<h3>Which proof edges are actually covered?</h3><ul>' + ''.join(obligations) + '</ul></section>')
+            + '<h3>Which proof obligations and prerequisites are covered?</h3><ul>'
+            + ''.join(obligations) + '</ul></section>')
 
 
 def enrich_site(output: Path) -> None:

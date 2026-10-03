@@ -80,6 +80,11 @@ class UnderlyingLeanGraphInteractionTests(unittest.TestCase):
         self.assertIn("source hidden from decoder", semantic)
         self.assertIn("proposal remains separate", semantic)
 
+    def test_publication_declarations_exist_before_semantic_edges_are_added(self) -> None:
+        builder = GRAPH_BUILDER.read_text(encoding="utf-8")
+        self.assertLess(builder.index("publication_reader.project_graph(builder)"),
+                        builder.index("semantic = add_semantic(builder, semantic_registry)"))
+
 
 if __name__ == "__main__":
     unittest.main()

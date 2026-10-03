@@ -748,6 +748,26 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Gibbs", "withDensity", "Laplace-tail", "absolute-linear-lower-bound", "probability-measure"],
     saldUse := "Chewi DENS/CONV/SDE root: construct normalized one-dimensional Gibbs targets with Laplace-type tails",
     note := "Source-facing probability bridge for Chewi's log-concave but non-strongly-log-concave Laplace examples."
+  },
+  {
+    key := "analysis.finite-power-series.iterated-derivative-budget",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.abs_iteratedDeriv_finitePowerSeries_le_mass",
+    upstreamDecl := "iteratedDeriv_pow / iteratedDeriv_fun_sum",
+    upstreamFile := "Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "polynomial", "iterated-derivative", "coefficient-budget", "C4"],
+    saldUse := "Reusable signed finite-polynomial derivative budget for smooth kernels, moment features, and local truncation estimates.",
+    note := "All derivative orders are covered through Nat.descFactorial; coefficients may have arbitrary signs and the bound holds on the closed unit interval."
+  },
+  {
+    key := "analysis.fourth-order-composition-expression",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.fourthOrderCompositionExpression_abs_le",
+    upstreamDecl := "one-dimensional fourth-order chain rule coefficients",
+    upstreamFile := "Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "C4", "chain-rule", "Faa-di-Bruno", "remainder"],
+    saldUse := "Termwise fourth-order composition control after derivative bounds for the outer and inner functions are available.",
+    note := "This is the scalar algebraic estimate with coefficients 1,6,3,4,1; identifying actual iterated derivatives of a composition is a separate Mathlib theorem."
   }
 ]
 
@@ -4563,6 +4583,26 @@ def geometryMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Gibbs", "Gaussian-kernel", "proximal", "pair-difference", "normalizer", "log-concavity"],
     saldUse := "Chewi GAUSS/DISC root: log-concavity of finite-dimensional Gaussian-kernel shapes with the usual conditional normalizing constant",
     note := "This is not a probability-density theorem on product volume; it is the reusable convex-geometric kernel-shape leaf."
+  },
+  {
+    key := "geometry.unit-sphere.geodesic-derivatives",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereGeodesic_derivatives_and_bounds",
+    upstreamDecl := "explicit great-circle geodesic and elementary trigonometric derivatives",
+    upstreamFile := "Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc; Mathlib.Analysis.InnerProductSpace.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Riemannian-geometry", "sphere", "geodesic", "C4", "retraction"],
+    saldUse := "Fourth-order local analysis for sphere-valued optimization and geometric integrators.",
+    note := "Exact derivatives through order four and uniform norm bounds for a unit base point; no finite-dimensional or probabilistic hypothesis."
+  },
+  {
+    key := "geometry.unit-sphere.exponential-map-norm",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_norm_eq_one",
+    upstreamDecl := "sin_sq_add_cos_sq / orthogonal norm identity",
+    upstreamFile := "Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic; Mathlib.Analysis.InnerProductSpace.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Riemannian-geometry", "sphere", "exponential-map", "constraint-preservation"],
+    saldUse := "Exact feasibility certificate for tangent exponential-map updates on the unit sphere.",
+    note := "The tangent hypothesis is the ambient inner-product equation; the result works in arbitrary real inner-product spaces."
   }
 ]
 

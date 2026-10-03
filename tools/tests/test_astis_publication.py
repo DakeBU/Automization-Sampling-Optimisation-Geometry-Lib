@@ -254,6 +254,16 @@ class PublicationTest(unittest.TestCase):
         self.assertIn('TODO — not closed by these contributions', text)
         self.assertIn('A deliberately unbound proof obligation', text)
 
+    def test_reader_labels_verified_prerequisites_without_claiming_a_proof_edge(self):
+        import publication_reader
+        item = copy.deepcopy(self.item)
+        for binding in item['bindings']:
+            binding['role'] = 'prerequisite'
+        text = publication_reader.source_card(item, item['chapter_path'])
+        self.assertIn('Independently verified prerequisite', text)
+        self.assertNotIn('Formalized proof edge;', text)
+        self.assertNotIn('TODO — not closed by these contributions', text)
+
     def test_each_proof_keeps_its_own_assumptions_and_provenance_adjacent(self):
         import publication_reader
         text = publication_reader.source_card(self.item, self.item['chapter_path'])

@@ -3,6 +3,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.MetricCurve
 import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
+import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere
 
 /-!
 # Geometry technical lemmas

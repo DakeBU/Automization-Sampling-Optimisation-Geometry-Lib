@@ -1,4 +1,5 @@
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariation
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GaussianFourthMoment
 import Mathlib.Probability.Moments.Variance
 import Mathlib.Tactic
@@ -23,10 +24,11 @@ namespace TechnicalLemmas
 namespace StochasticProcesses
 namespace BrownianQuadraticVariationL2
 
-open MeasureTheory ProbabilityTheory Set
+open Filter MeasureTheory ProbabilityTheory Set
 open scoped BigOperators NNReal
 
-open BrownianMotion BrownianQuadraticVariation GaussianFourthMoment
+open BrownianMotion BrownianQuadraticVariation FiniteTimeGrid GaussianFourthMoment
+  SampledElementaryApproximation
 
 variable {Omega : Type*} {m : MeasurableSpace Omega}
   {mu : Measure Omega} {B : ℝ≥0 → Omega → ℝ}
@@ -289,6 +291,70 @@ theorem integral_quadraticVariationError_sq
   rw [variance_of_integral_eq_zero (hYmem i).aemeasurable hYiMean]
   simpa [Y, centeredSquaredIncrement] using
     integral_centered_increment_sq_sq hB (grid_cell_le hmono i)
+
+private theorem regularGridTimes_monotone (delta : ℝ≥0) (n : ℕ) :
+    Monotone (regularGridTimes delta n) := by
+  intro i j hij
+  unfold regularGridTimes
+  gcongr
+  exact_mod_cast hij
+
+private theorem regularGridTimes_cellLength
+    (delta : ℝ≥0) (n : ℕ) (i : Fin n) :
+    regularGridTimes delta n i.succ - regularGridTimes delta n i.castSucc = delta := by
+  rw [tsub_eq_iff_eq_add_of_le
+    (regularGridTimes_monotone delta n Fin.castSucc_lt_succ.le)]
+  simp only [regularGridTimes, Fin.val_succ, Fin.val_castSucc, Nat.cast_add, Nat.cast_one]
+  ring
+
+private theorem sum_dyadic_cellLengths_sq
+    (T : ℝ≥0) (level : ℕ) :
+    ∑ i : Fin (2 ^ level),
+        (((regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ -
+          regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc : ℝ≥0) : ℝ) ^ 2) =
+      (T : ℝ) * ((dyadicMesh T level : ℝ≥0) : ℝ) := by
+  simp_rw [regularGridTimes_cellLength]
+  rw [Finset.sum_const, Finset.card_fin, nsmul_eq_mul]
+  simp only [dyadicMesh, NNReal.coe_div, Nat.cast_pow, Nat.cast_ofNat]
+  have hpow : (2 : ℝ) ^ level ≠ 0 := by positivity
+  field_simp
+  norm_cast
+  ac_rfl
+
+/-- Along the canonical dyadic partitions of `[0,T]`, the mean-square error
+of scalar Brownian quadratic variation tends to zero.  This includes `T = 0`
+and uses only the pre-Brownian finite-dimensional laws and independent
+increments; no filtration or usual-conditions hypothesis is required. -/
+theorem tendsto_integral_dyadic_quadraticVariationError_sq
+    (hB : IsPreBrownianReal B mu) (T : ℝ≥0) :
+    Tendsto
+      (fun level =>
+        ∫ omega,
+          (quadraticVariationError B
+            (regularGridTimes (dyadicMesh T level) (2 ^ level)) omega) ^ 2 ∂mu)
+      atTop (nhds 0) := by
+  have hexact : ∀ level : ℕ,
+      (∫ omega,
+          (quadraticVariationError B
+            (regularGridTimes (dyadicMesh T level) (2 ^ level)) omega) ^ 2 ∂mu) =
+        2 * (T : ℝ) * ((dyadicMesh T level : ℝ≥0) : ℝ) := by
+    intro level
+    rw [integral_quadraticVariationError_sq hB
+      (regularGridTimes_monotone
+        (dyadicMesh T level) (2 ^ level))]
+    rw [sum_dyadic_cellLengths_sq]
+    ring
+  have hlimit := (FiniteTimeGrid.dyadicMesh_tendsto_zero T).const_mul (2 * (T : ℝ))
+  have hfun :
+      (fun level =>
+        ∫ omega,
+          (quadraticVariationError B
+            (regularGridTimes (dyadicMesh T level) (2 ^ level)) omega) ^ 2 ∂mu) =
+        fun level => 2 * (T : ℝ) * ((dyadicMesh T level : ℝ≥0) : ℝ) := by
+    funext level
+    exact hexact level
+  rw [hfun]
+  simpa using hlimit
 
 end BrownianQuadraticVariationL2
 end StochasticProcesses

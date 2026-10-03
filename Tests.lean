@@ -43,6 +43,7 @@ import Tests.ProximalBPSGaussianAugmentation
 import Tests.ProximalBPSGaussianReflection
 import Tests.BrownianMotion
 import Tests.BrownianQuadraticVariation
+import Tests.BrownianQuadraticVariationL2
 import Tests.EmpiricalCovariance
 import Tests.GaussianFourthMoment
 import Tests.VectorBrownianFiltration

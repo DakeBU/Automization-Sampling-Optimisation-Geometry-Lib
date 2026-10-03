@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariationL2.integral_quadraticVariationError_sq",
+      "kind": "theorem",
+      "title": "The compensated finite-grid quadratic-variation error has an exact L² norm",
+      "statement": "Let B be a real pre-Brownian process and t₀≤⋯≤tₙ a deterministic grid. If Q is the sum over cells of the squared Brownian increment minus the cell length, then E[Q²] is exactly twice the sum of the squared cell lengths.",
+      "formula": "\\mathbb E\\left[\\left(\\sum_{i=0}^{n-1}((B_{t_{i+1}}-B_{t_i})^2-(t_{i+1}-t_i))\\right)^2\\right]=2\\sum_{i=0}^{n-1}(t_{i+1}-t_i)^2",
+      "assumptions": [
+        "B satisfies Samplinglib's real pre-Brownian contract under the measure μ.",
+        "The deterministic grid has n cells and is monotone in nonnegative real time.",
+        "No strict time inequalities, positive horizon, filtration usual conditions, or pathwise boundedness are required."
+      ],
+      "steps": [
+        {
+          "title": "Center one squared increment",
+          "text": "The Gaussian second and fourth moments give mean zero and second moment 2Δt² for each squared increment after subtracting its time length.",
+          "formula": "\\mathbb E[((\\Delta B_i)^2-\\Delta t_i)^2]=2(\\Delta t_i)^2",
+          "lean": "Reuse integral_centered_increment_sq_eq_zero, centered_increment_sq_memLp_two, and integral_centered_increment_sq_sq."
+        },
+        {
+          "title": "Use independence across grid cells",
+          "text": "Independent Brownian increments remain independent after applying the measurable centered-square map, so distinct centered summands are orthogonal in L².",
+          "formula": "i\\ne j\\Longrightarrow \\mathbb E[Y_iY_j]=0",
+          "lean": "Use iIndepFun_centeredSquaredIncrement and the finite-sum variance theorem."
+        },
+        {
+          "title": "Add the cell variances",
+          "text": "Because every summand is square-integrable and centered, the variance of their finite sum is the sum of their variances. Substituting the one-cell identity produces the exact factor 2.",
+          "formula": "\\operatorname{Var}(\\sum_iY_i)=\\sum_i\\operatorname{Var}(Y_i)=2\\sum_i(\\Delta t_i)^2",
+          "lean": "Apply ProbabilityTheory.IndepFun.variance_sum, rewrite variance by the zero mean, and simplify the finite sum."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariation.centeredSquaredIncrement",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariation.quadraticVariationError",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GaussianFourthMoment.integral_pow_four_gaussianReal_zero"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IndepFun.variance_sum",
+        "variance_of_integral_eq_zero",
+        "integral_finsetSum",
+        "memLp_finsetSum'"
+      ],
+      "lean_statement": "The theorem quantifies over every finite monotone NNReal-time grid and keeps the IsPreBrownianReal process assumption explicit.",
+      "lean_proof": "The proof packages the Gaussian fourth-moment calculation into a one-cell variance, transports independence through the centered-square map, and invokes finite-sum variance additivity.",
+      "boundary": "This is the finite-grid identity only. A dyadic Tendsto theorem, bounded predictable weights, vector cross-variation, Taylor localization, stochastic integration, and a complete Itô formula remain separate obligations.",
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Sinho Chewi, Log-Concave Sampling, 2026-08-09, Section 3.1",
+          "scope": "Quadratic variation and the finite-grid compensated squared-increment calculation."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianQuadraticVariationL2.lean",
+          "label": "Samplinglib compiled finite-grid L² theorem",
+          "scope": "Exact assumptions, finite-grid identity, and reusable helper chain."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 LEAN_NUM_THREADS=1 lake env lean AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianQuadraticVariationL2.lean",
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.BrownianQuadraticVariationL2"
+      ]
+    }
+  ]
+}

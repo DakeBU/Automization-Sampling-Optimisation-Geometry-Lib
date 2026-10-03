@@ -1,0 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
+
+#check AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev.finite_klDiv_and_toReal_le_half_mul_information
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev.finite_klDiv_and_toReal_le_half_mul_information

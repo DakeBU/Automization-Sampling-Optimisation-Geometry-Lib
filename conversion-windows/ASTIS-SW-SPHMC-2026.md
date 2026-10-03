@@ -108,6 +108,18 @@ W_2(R_{\eta,y},R_{\eta,y'})
 
 At the pinned toolchain, neither Mathlib nor Samplinglib contains the required
 strong-convex Gibbs log-Sobolev instance and Otto--Villani `LSI -> T2` backend.
+Samplinglib now does compile the intervening canonical interface theorem: once
+an actual generator LSI with multiplier (C), canonical-density admissibility,
+and the genuine Dirichlet--Fisher domains are supplied, it proves both finite
+Mathlib KL and
+
+\[
+\mathrm{KL}(\mu\|\pi)\le \frac C2\,\mathrm{FI}(\mu\|\pi).
+\]
+
+For the source curvature rate this requires the explicit adapter
+(C=\lambda^{-1}). It does not construct the Gibbs LSI and does not include
+the independent Talagrand inequality.
 The route is therefore recorded as the typed blocker
 `ASTIS-SW-SPHMC-rgo-fiber-w2-contraction`, with the strictly smaller shared child
 `ASTIS-SHARED-strong-convex-gibbs-lsi-t2`. A theorem assuming the desired T2
@@ -361,7 +373,8 @@ measurable llr: equality almost everywhere does not preserve a classical
 gradient after arbitrary changes on a null set.
 
 This closes the exact algebra/calculus content of equation (11), not SPHMC
-Lemma 4.17. A representative-to-canonical-Fisher adapter and the
-strong-convex Gibbs LSI/Talagrand T2 backend are still red; only after those
-independent analytic edges can the exact
+Lemma 4.17. The conditional canonical LSI-to-finite-KL/Fisher bridge is now
+compiled, but a representative-to-canonical-Fisher adapter, a concrete
+strong-convex Gibbs LSI instance, and Talagrand T2 are still red; only after
+those independent analytic edges can the exact
 \(\kappa/(\kappa+\eta)\) Wasserstein contraction be claimed.

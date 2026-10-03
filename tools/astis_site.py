@@ -492,7 +492,11 @@ def source_index() -> tuple[dict[str, dict[str, object]], dict[str, str]]:
                 starts.append((i, match.group(1), list(namespace_stack)))
         for pos, (start, name, namespaces) in enumerate(starts):
             end = starts[pos + 1][0] if pos + 1 < len(starts) else len(lines)
-            full = name if "." in name else ".".join([*namespaces, name])
+            # A dotted declaration name is still relative to the surrounding
+            # namespace in Lean (`theorem LogConcaveOn.mul` inside `Foo`
+            # declares `Foo.LogConcaveOn.mul`).  Treating every dotted name as
+            # absolute made valid Registry entries appear unresolved.
+            full = ".".join([*namespaces, name])
             doc_lines: list[str] = []
             cursor = start - 1
             while cursor >= 0 and not lines[cursor].strip():

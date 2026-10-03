@@ -7,6 +7,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolev
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
@@ -2531,6 +2532,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "log-Sobolev", "generator", "Dirichlet-form", "density", "definition"],
     saldUse := "Chewi Definition 1.2.25 root: state KL(rho mu || mu) <= (C/2) E(rho,log rho) for every admissible normalized density",
     note := "Exact density-generator formulation with positivity, normalization, and finite entropy/energy conditions explicit. KL decay is a separate theorem route."
+  },
+  {
+    key := "functional-inequality.canonical-lsi-kl-fisher",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev.finite_klDiv_and_toReal_le_half_mul_information",
+    upstreamDecl := "Chewi Definition 1.2.25 applied to the canonical RN density; canonical Dirichlet--Fisher bridge",
+    upstreamFile := "Log-Concave Sampling, Definition 1.2.25; AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Chewi", "SALD", "SPHMC", "log-Sobolev", "KL", "Fisher", "Radon-Nikodym", "finite-entropy"],
+    saldUse := "turn an established generator LSI plus explicit canonical density/IBP/score domains into finite canonical KL and KL <= (C/2) FI",
+    note := "Conditional interface bridge only. Finiteness comes from density admissibility. Strong-convex Gibbs LSI, the reciprocal-rate adapter, Talagrand T2 and Wasserstein contraction remain separate red nodes."
   },
   {
     key := "gronwall.chewi-lemma-1-2-20",

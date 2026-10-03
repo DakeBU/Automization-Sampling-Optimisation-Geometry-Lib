@@ -1,0 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChampAlgebra
+
+#check AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChampAlgebra.generator_mul_eq
+#check AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChampAlgebra.generator_mul_apply_eq

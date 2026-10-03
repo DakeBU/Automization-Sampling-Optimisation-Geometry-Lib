@@ -24,9 +24,9 @@ variable {X : Type*}
 /-- The fully expanded diagonal `CD(alpha, infinity)` inequality gives the
 generator expression used in backward interpolation.
 
-Unlike the convenience wrapper below, this statement exposes positivity of
-`alpha`, every curvature quantifier, and the exact one-half normalization of
-the iterated carré du champ directly in its signature. -/
+To keep the public interface directly inspectable, the statement exposes
+positivity of `alpha`, every curvature quantifier, and the exact one-half
+normalization of the iterated carré du champ in its signature. -/
 theorem interpolationDerivative_lower_bound_of_expandedBakryEmery
     (generator : (X → ℝ) →ₗ[ℝ] (X → ℝ))
     {alpha : ℝ} (_halpha : 0 < alpha)

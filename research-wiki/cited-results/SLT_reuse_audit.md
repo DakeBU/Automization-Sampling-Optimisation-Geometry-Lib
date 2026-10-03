@@ -6,15 +6,14 @@ Reference repository:
 Reference paper:
 `https://arxiv.org/abs/2602.02285`
 
-Local clone:
-`/home/nitanda_sub/mark/repos/outer_repos/sampling_theory_sde/lean-stat-learning-theory`
+Reference checkout: external provenance clone; it is not a Lake dependency.
 
 ## Version Status
 
 | Project | Toolchain | Status |
 |---|---|---|
 | upstream SLT | `leanprover/lean4:v4.27.0-rc1` | cloned reference |
-| ASTIS | `leanprover/lean4:v4.29.1` | active project |
+| Samplinglib | `leanprover/lean4:v4.33.0` | active project |
 
 ASTIS does not import SLT as a Lake dependency in the first version.  Borrowed
 results must be ported into this project or recorded as obligations.
@@ -40,8 +39,8 @@ ASTIS has used `lean-stat-learning-theory` mostly as a proof-engineering
 reference and cited-result ledger.  It has not imported SLT as a Lake
 dependency, and it has not yet ported the major SLT theorem statements as
 compiled ASTIS declarations.  This is intentional because the upstream SLT
-project is on `leanprover/lean4:v4.27.0-rc1`, while ASTIS is on
-`leanprover/lean4:v4.29.1`.
+project is on `leanprover/lean4:v4.27.0-rc1`, while Samplinglib is on
+`leanprover/lean4:v4.33.0`.
 
 The current SALD proof state has nevertheless benefited from SLT-style
 patterns: conditional expectation/product-measure orientation, `Measure.map`
@@ -1200,7 +1199,7 @@ Immediate SALD relevance after cycle 180:
 
 For each imported idea, record the upstream file, exact theorem statement,
 changed Mathlib APIs, local Lean declaration, and build status.  Do not mark a
-result formalized until it builds under Lean 4.29.1 in this repository.
+result formalized until it builds under Lean 4.33.0 in this repository.
 
 ## SALD Cycle 179 Status
 

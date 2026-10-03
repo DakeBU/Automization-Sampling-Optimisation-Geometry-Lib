@@ -43,20 +43,6 @@ theorem interpolationDerivative_lower_bound_of_expandedBakryEmery
   have h := hcurvature f x
   nlinarith
 
-/-- The Bakry--Émery curvature condition gives the exact lower bound for the
-generator expression appearing in backward gradient interpolation. -/
-theorem interpolationDerivative_lower_bound_of_bakryEmery
-    (generator : (X → ℝ) →ₗ[ℝ] (X → ℝ))
-    {alpha : ℝ} (hBE : SatisfiesBakryEmery generator alpha)
-    (f : X → ℝ) (x : X) :
-    2 * alpha * carreDuChamp generator f f x ≤
-      generator (carreDuChamp generator f f) x -
-        2 * carreDuChamp generator f (generator f) x := by
-  apply interpolationDerivative_lower_bound_of_expandedBakryEmery
-    generator hBE.1 ?_ f x
-  intro g y
-  simpa only [iteratedCarreDuChamp] using hBE.2 g y
-
 end StochasticProcesses
 end TechnicalLemmas
 end AutoSamplingTheory

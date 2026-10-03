@@ -21,8 +21,10 @@ example {alpha : ℝ} (halpha : 0 < alpha) (f : X → ℝ) (x : X) :
           (carreDuChamp (zeroGenerator (X := X)) f f) x -
         2 * carreDuChamp (zeroGenerator (X := X)) f
           (zeroGenerator (X := X) f) x :=
-  interpolationDerivative_lower_bound_of_bakryEmery
-    (zeroGenerator (X := X))
-    (zeroGenerator_satisfiesBakryEmery halpha) f x
+  interpolationDerivative_lower_bound_of_expandedBakryEmery
+    (zeroGenerator (X := X)) halpha (by
+      intro g y
+      simpa only [iteratedCarreDuChamp] using
+        (zeroGenerator_satisfiesBakryEmery halpha).2 g y) f x
 
 end AutoSamplingTheory.Tests.BakryEmeryCalculus

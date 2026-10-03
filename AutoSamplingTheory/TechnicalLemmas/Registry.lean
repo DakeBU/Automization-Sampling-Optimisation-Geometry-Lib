@@ -2703,7 +2703,7 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
 def stochasticProcessMemory : List LemmaMemoryEntry := [
   {
     key := "bakry-emery.abstract-gradient-contraction",
-    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_bakryEmery",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_expandedBakryEmery",
     upstreamDecl := "Bakry-Emery backward interpolation argument",
     upstreamFile := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BakryEmeryGradientContraction",
     status := LemmaMemoryStatus.formalizedLocal,
@@ -2713,7 +2713,7 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
   },
   {
     key := "bakry-emery.interpolation-derivative-lower-bound",
-    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.interpolationDerivative_lower_bound_of_bakryEmery",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.interpolationDerivative_lower_bound_of_expandedBakryEmery",
     upstreamDecl := "CD(alpha, infinity) and the defining Gamma-two identity",
     upstreamFile := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChamp",
     status := LemmaMemoryStatus.formalizedLocal,

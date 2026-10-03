@@ -71,34 +71,6 @@ theorem backwardInterpolation_contraction_of_expandedBakryEmery
   have hmapped := hpositive u hpointwise x
   simpa [gamma, mixed] using hmapped
 
-/-- Convenience form of the abstract contraction theorem using the packaged
-`SatisfiesBakryEmery` predicate. -/
-theorem backwardInterpolation_contraction_of_bakryEmery
-    (generator : (X → ℝ) →ₗ[ℝ] (X → ℝ))
-    {alpha : ℝ} (hBE : SatisfiesBakryEmery generator alpha)
-    (evolution : ℝ → (X → ℝ) →ₗ[ℝ] (X → ℝ))
-    (orbit : ℝ → X → ℝ) (x : X)
-    (hpositive : ∀ u : ℝ, ∀ {f g : X → ℝ},
-      (∀ y, f y ≤ g y) → ∀ z, evolution u f z ≤ evolution u g z)
-    (hcontinuous : Continuous (fun u =>
-      evolution u (carreDuChamp generator (orbit u) (orbit u)) x))
-    (hderiv : ∀ u : ℝ,
-      HasDerivWithinAt
-        (fun v => evolution v
-          (carreDuChamp generator (orbit v) (orbit v)) x)
-        (evolution u
-          (generator (carreDuChamp generator (orbit u) (orbit u)) -
-            (2 : ℝ) • carreDuChamp generator (orbit u) (generator (orbit u))) x)
-        (Ici u) u)
-    {s t : ℝ} (hst : s ≤ t) :
-    evolution s (carreDuChamp generator (orbit s) (orbit s)) x ≤
-      evolution t (carreDuChamp generator (orbit t) (orbit t)) x *
-        Real.exp (-(2 * alpha) * (t - s)) := by
-  apply backwardInterpolation_contraction_of_expandedBakryEmery
-    generator hBE.1 ?_ evolution orbit x hpositive hcontinuous hderiv hst
-  intro g y
-  simpa only [iteratedCarreDuChamp] using hBE.2 g y
-
 end
 
 end StochasticProcesses

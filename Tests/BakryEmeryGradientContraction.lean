@@ -23,8 +23,11 @@ example {alpha : ℝ} (halpha : 0 < alpha) (orbit : ℝ → X → ℝ)
     refine ⟨halpha, ?_⟩
     intro f y
     simp [zeroGenerator, carreDuChamp, iteratedCarreDuChamp]
-  apply backwardInterpolation_contraction_of_bakryEmery
-    (zeroGenerator (X := X)) hBE (identityEvolution (X := X)) orbit x
+  refine backwardInterpolation_contraction_of_expandedBakryEmery
+    (generator := zeroGenerator (X := X)) (alpha := alpha)
+    halpha ?_ (identityEvolution (X := X)) orbit x ?_ ?_ ?_ hst
+  · intro f y
+    simpa only [iteratedCarreDuChamp] using hBE.2 f y
   · intro u f g hfg z
     exact hfg z
   · simpa [identityEvolution, zeroGenerator, carreDuChamp] using
@@ -32,6 +35,5 @@ example {alpha : ℝ} (halpha : 0 < alpha) (orbit : ℝ → X → ℝ)
   · intro u
     simpa [identityEvolution, zeroGenerator, carreDuChamp] using
       (hasDerivWithinAt_const (x := u) (c := (0 : ℝ)) (s := Set.Ici u))
-  · exact hst
 
 end AutoSamplingTheory.Tests.BakryEmeryGradientContraction

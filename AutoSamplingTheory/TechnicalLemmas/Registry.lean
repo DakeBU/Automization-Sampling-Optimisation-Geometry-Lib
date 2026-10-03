@@ -12,6 +12,7 @@ import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSob
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolev
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ForcedSemigroupDecay
 import AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates
 import AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity
@@ -2675,6 +2676,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "log-Sobolev", "KL", "Fisher-information", "semigroup", "exponential-decay", "forward"],
     saldUse := "derive KL-style decay at rate 2/C from LSI coercivity and the entropy-dissipation identity KL'=-FI",
     note := "Source-faithful forward direction only; density regularity, concrete entropy dissipation, and the converse remain explicit."
+  },
+  {
+    key := "semigroup-decay.forced-dissipation-from-arbitrary-time",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.forced_exponential_decay_of_scaled_dissipation_from",
+    upstreamDecl := "le_gronwallBound_of_liminf_deriv_right_le / gronwallBound with nonzero forcing",
+    upstreamFile := "Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["functional-inequality", "semigroup", "dissipation", "Gronwall", "forcing", "steady-state-floor"],
+    saldUse := "turn a forced coercive energy-dissipation inequality into the exact exponential interpolation between the initial energy and forcing floor",
+    note := "Scalar reusable leaf. Concrete carré-du-champ differentiation, Bakry–Émery curvature, and generator-domain closure remain separate prerequisites."
   }
 ]
 

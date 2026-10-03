@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.forced_exponential_decay_of_scaled_dissipation_from",
+      "kind": "theorem",
+      "title": "Dissipation with forcing converges to a floor",
+      "statement": "Let an energy curve have the exact right derivative E'(u)=-qD(u). If r>0 and rE(u)≤qD(u)+b at every time, then between any s≤t the energy is bounded by the exponential interpolation between E(s) and the forcing floor b/r.",
+      "formula": "E(t)\\le E(s)e^{-r(t-s)}+\\frac{b}{r}\\bigl(1-e^{-r(t-s)}\\bigr)",
+      "assumptions": [
+        "The energy curve is continuous on the real line.",
+        "At each time u, its right derivative within [u,∞) is exactly -qD(u).",
+        "The decay rate r is strictly positive.",
+        "The forced coercivity inequality rE(u)≤qD(u)+b holds for every real u.",
+        "The terminal time satisfies s≤t."
+      ],
+      "steps": [
+        {
+          "title": "Convert coercivity into a differential inequality",
+          "text": "Negating the forced coercivity inequality and using the derivative identity gives E'(u)≤-rE(u)+b.",
+          "formula": "E'(u)=-qD(u)\\le-rE(u)+b",
+          "lean": "The proof combines `neg_le_neg (hcoercive u)` with linear arithmetic."
+        },
+        {
+          "title": "Apply one-sided Grönwall",
+          "text": "Mathlib's right-slope Grönwall theorem applies directly because the curve is continuous and the exact right derivative controls every right slope.",
+          "formula": "E(t)\\le\\operatorname{gronwallBound}(E(s),-r,b,t-s)",
+          "lean": "Use `le_gronwallBound_of_liminf_deriv_right_le` with K=-r and ε=b."
+        },
+        {
+          "title": "Expose the forcing floor",
+          "text": "Since r is nonzero, unfold the closed Grönwall expression and rewrite b/(-r)(e^{-rΔ}-1) as (b/r)(1-e^{-rΔ}).",
+          "formula": "\\frac{b}{-r}(e^{-r\\Delta}-1)=\\frac{b}{r}(1-e^{-r\\Delta})",
+          "lean": "Unfold `gronwallBound`; `field_simp` and `ring` verify the scalar identity."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.DissipationCurve"
+      ],
+      "mathlib_dependencies": [
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "gronwallBound"
+      ],
+      "lean_statement": "Lean keeps the dissipation scale q, decay rate r, forcing b, curve, and both endpoint times explicit.",
+      "lean_proof": "The proof is a direct specialization of Mathlib's one-sided Grönwall theorem, followed by exact field algebra.",
+      "boundary": "The theorem does not construct a semigroup or prove a Bakry–Émery gradient identity. It consumes an exact right-derivative dissipation law and a forced coercivity inequality.",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/ODE/Gronwall.lean",
+          "label": "Mathlib one-sided Grönwall theorem",
+          "scope": "The right-slope comparison theorem and the closed `gronwallBound` formula."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/ForcedSemigroupDecay.lean",
+          "label": "Samplinglib compiled specialization",
+          "scope": "Exact forced dissipation statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ForcedSemigroupDecay",
+        "lake env lean Tests/SemigroupDecay.lean"
+      ]
+    }
+  ]
+}
+
+
+

@@ -21,6 +21,28 @@ open CarreDuChamp
 
 variable {X : Type*}
 
+/-- The fully expanded diagonal `CD(alpha, infinity)` inequality gives the
+generator expression used in backward interpolation.
+
+Unlike the convenience wrapper below, this statement exposes positivity of
+`alpha`, every curvature quantifier, and the exact one-half normalization of
+the iterated carré du champ directly in its signature. -/
+theorem interpolationDerivative_lower_bound_of_expandedBakryEmery
+    (generator : (X → ℝ) →ₗ[ℝ] (X → ℝ))
+    {alpha : ℝ} (_halpha : 0 < alpha)
+    (hcurvature : ∀ (g : X → ℝ) (y : X),
+      alpha * carreDuChamp generator g g y ≤
+        (2 : ℝ)⁻¹ *
+          (generator (carreDuChamp generator g g) y -
+            carreDuChamp generator g (generator g) y -
+            carreDuChamp generator g (generator g) y))
+    (f : X → ℝ) (x : X) :
+    2 * alpha * carreDuChamp generator f f x ≤
+      generator (carreDuChamp generator f f) x -
+        2 * carreDuChamp generator f (generator f) x := by
+  have h := hcurvature f x
+  nlinarith
+
 /-- The Bakry--Émery curvature condition gives the exact lower bound for the
 generator expression appearing in backward gradient interpolation. -/
 theorem interpolationDerivative_lower_bound_of_bakryEmery
@@ -30,9 +52,10 @@ theorem interpolationDerivative_lower_bound_of_bakryEmery
     2 * alpha * carreDuChamp generator f f x ≤
       generator (carreDuChamp generator f f) x -
         2 * carreDuChamp generator f (generator f) x := by
-  have hcurvature := hBE.2 f x
-  rw [iteratedCarreDuChamp] at hcurvature
-  nlinarith
+  apply interpolationDerivative_lower_bound_of_expandedBakryEmery
+    generator hBE.1 ?_ f x
+  intro g y
+  simpa only [iteratedCarreDuChamp] using hBE.2 g y
 
 end StochasticProcesses
 end TechnicalLemmas

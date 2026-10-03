@@ -2702,6 +2702,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
 
 def stochasticProcessMemory : List LemmaMemoryEntry := [
   {
+    key := "bakry-emery.abstract-gradient-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_bakryEmery",
+    upstreamDecl := "Bakry-Emery backward interpolation argument",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BakryEmeryGradientContraction",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "semigroup", "positive-operator", "gradient-contraction"],
+    saldUse := "combine curvature, positivity, the interpolation derivative identity, and scalar Gronwall into endpoint contraction",
+    note := "Abstract adapter only. Concrete semigroups must discharge positivity, the exact interpolation derivative identity, continuity, and domain closure."
+  },
+  {
     key := "bakry-emery.interpolation-derivative-lower-bound",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.interpolationDerivative_lower_bound_of_bakryEmery",
     upstreamDecl := "CD(alpha, infinity) and the defining Gamma-two identity",

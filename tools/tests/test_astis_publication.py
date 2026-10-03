@@ -359,6 +359,24 @@ class PublicationTest(unittest.TestCase):
         next(n for n in graph['nodes'] if n['id'] == 'chapter:fixture')['status'] = 'compiled'
         self.assertTrue(any('progress drift' in e for e in reader.validate_graph(graph, site)))
 
+    def test_chapter_path_progress_aggregates_all_source_sections(self):
+        reader, _, _ = self.graph_fixture()
+        with patch.object(reader.publication, 'load', return_value=[
+            {'library': 'fixture', 'chapter': 'one', 'chapter_path': 'fixture.html'},
+            {'library': 'fixture', 'chapter': 'two', 'chapter_path': 'fixture.html'},
+        ]), patch.object(reader.publication, 'chapter_progress', side_effect=[
+            {'status': 'partial', 'label': 'Partially formalized',
+             'proof_declarations': ['Fixture.proof'], 'prerequisites': [],
+             'source_complete': False},
+            {'status': 'prerequisite-ready', 'label': 'Prerequisites available',
+             'proof_declarations': [], 'prerequisites': ['Fixture.floor'],
+             'source_complete': False},
+        ]):
+            progress = reader.chapter_path_progress('fixture.html')
+        self.assertEqual(progress['status'], 'partial')
+        self.assertEqual(progress['proof_declarations'], ['Fixture.proof'])
+        self.assertEqual(progress['prerequisites'], ['Fixture.floor'])
+
     def test_actual_owner_module_not_namespace(self):
         from underlying_lean_graph_model import GraphBuilder
         from underlying_lean_graph_textbook import add_textbook

@@ -20,6 +20,26 @@ def status(library: str, chapter: str | None = None) -> str:
             f'data-publication-status="{p["status"]}">{escape(p["label"])}</span>')
 
 
+def chapter_path_progress(chapter_path: str) -> dict:
+    """Aggregate publication progress for every source item rendered on one page.
+
+    A companion page may cover several source sections.  Its graph badge must not
+    depend on which JSON item happened to be loaded last.
+    """
+    progress = [publication.chapter_progress(item['library'], item['chapter'])
+                for item in publication.load() if item['chapter_path'] == chapter_path]
+    proved = sorted({name for item in progress for name in item['proof_declarations']})
+    prerequisites = sorted({name for item in progress for name in item['prerequisites']})
+    return {
+        'status': 'partial' if proved else 'prerequisite-ready' if prerequisites else 'scaffold',
+        'label': ('Partially formalized' if proved else
+                  'Prerequisites available' if prerequisites else 'scaffold'),
+        'proof_declarations': proved,
+        'prerequisites': prerequisites,
+        'source_complete': False,
+    }
+
+
 def semantic_details(audit: dict) -> str:
     gaps = ''.join(f'<li><strong>{escape(str(d.get("slot", "")))}</strong>: '
                    f'{escape(str(d.get("description", "")))} — {escape(str(d.get("evidence", "")))}</li>'
@@ -128,7 +148,7 @@ def project_graph(builder) -> None:
                             subtitle='Source-present publication; compiled badge not inferred',
                             url=astis_site.declaration_path(decl))
             builder.edge('module:' + decl.module, ident, 'declares')
-    by_path = {i['chapter_path']: publication.chapter_progress(i['library'], i['chapter']) for i in publication.load()}
+    by_path = {i['chapter_path']: chapter_path_progress(i['chapter_path']) for i in publication.load()}
     by_path.update({str(Path(i['chapter_path']).parent / 'index.html').replace('\\', '/'):
                    publication.chapter_progress(i['library']) for i in publication.load()})
     for node in builder.nodes.values():
@@ -217,7 +237,7 @@ def validate_graph(graph: dict, site: dict, items: list[dict] | None = None) -> 
         if len(chapters) != 1:
             errors.append(f'Graph contribution needs one source chapter: {item["id"]}')
             continue
-        expected = publication.chapter_progress(item['library'], item['chapter'])
+        expected = chapter_path_progress(item['chapter_path'])
         if chapters[0].get('status') != ('partial' if expected['status'] == 'partial' else 'planned'):
             errors.append(f'Graph chapter progress drift: {item["id"]}')
         for binding in item['bindings']:

@@ -1,5 +1,6 @@
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
@@ -76,6 +77,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.gradient.ae-congruence-obstruction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence.not_gradient_ae_congr_for_arbitrary_measure",
+    upstreamDecl := "representative-choice obstruction for classical gradients",
+    upstreamFile := "Mathlib.Analysis.Calculus.Gradient.Basic; Mathlib.MeasureTheory.Measure.Dirac",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "FI", "gradient", "almost-everywhere", "representative", "typed-blocker", "SPHMC"],
+    saldUse := "prevent unsound transfer of a classical score from an explicit smooth log-ratio representative to an arbitrary a.e.-equal canonical llr representative",
+    note := "Dirac counterexample: the zero and identity functions agree delta_0-a.e. but their classical gradients disagree delta_0-a.e. A valid adapter needs local equality, a selected differentiable representative, or weak-gradient semantics."
+  },
   {
     key := "analysis.optimisation.uniform-regularization",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",

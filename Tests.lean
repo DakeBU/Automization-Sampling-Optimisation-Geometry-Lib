@@ -214,6 +214,7 @@ import Tests.SmoothedPicardHMCClippedGradientProgram
 import Tests.TiltedLogRatio
 import Tests.QuadraticTiltFisher
 import Tests.CanonicalLogSobolev
+import Tests.GradientAECongruence
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

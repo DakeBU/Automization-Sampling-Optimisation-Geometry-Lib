@@ -21,6 +21,7 @@ import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DonskerVaradhan
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.Renyi
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher
 import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
 import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
@@ -3939,6 +3940,16 @@ def klDensityMemory : List LemmaMemoryEntry := [
     tags := ["SPHMC", "RGO", "quadratic-tilt", "score", "gradient", "representative"],
     saldUse := "SPHMC Lemma 4.17: compute the constant relative score (y-y')/eta for restricted-Gaussian fibers",
     note := "Differentiates only the explicit smooth representative, not Mathlib's canonical measurable llr. The eta != 0 reusable statement is consumed with source eta > 0."
+  },
+  {
+    key := "information-theory.tilted-kl-explicit-integral",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL.finite_klDiv_and_toReal_eq_integral_normalizedLogRatio",
+    upstreamDecl := "InformationTheory.klDiv_ne_top / toReal_klDiv_of_measure_eq / TiltedLogRatio.llr_tilted_tilted_ae",
+    upstreamFile := "Mathlib.InformationTheory.KullbackLeibler.Basic; AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio; Lee--Shen--Tian arXiv:2010.03106v4 Lemma 2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "KL", "tilted-measure", "log-density-ratio", "representative", "integrability"],
+    saldUse := "SPHMC Lemma 4.17 route: evaluate canonical KL through the explicit normalized tilt representative without differentiating the canonical llr",
+    note := "Assumes integrability of the displayed representative under the left tilt, proves finite canonical KL and its exact real integral formula. LSI, Fisher, T2 and W2 contraction remain separate."
   },
   {
     key := "information-theory.quadratic-tilt-relative-fisher",

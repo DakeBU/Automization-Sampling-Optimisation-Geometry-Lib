@@ -212,6 +212,7 @@ import Tests.SmoothedPicardHMCGibbsPositionMoment
 import Tests.SmoothedPicardHMCProximalEstimatorLipschitz
 import Tests.SmoothedPicardHMCClippedGradientProgram
 import Tests.TiltedLogRatio
+import Tests.TiltedKL
 import Tests.QuadraticTiltFisher
 import Tests.CanonicalLogSobolev
 import Tests.GradientAECongruence

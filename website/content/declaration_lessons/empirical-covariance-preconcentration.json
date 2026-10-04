@@ -159,6 +159,74 @@
       "tests": [
         "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
       ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.unitRankOneCovariance_momentPackage",
+      "kind": "theorem",
+      "title": "A unit-vector covariance has an exact centered operator second moment",
+      "statement": "Let X be a unit-vector-valued map such that X⊗X is Bochner integrable, and let C be the Bochner expectation of X⊗X. Then C is self-adjoint, ‖C‖≤1, E[(X⊗X-C)²]=C-C², and ‖C-C²‖≤2‖C‖.",
+      "formula": "C=\\mathbb E[X\\otimes X],\\quad C^*=C,\\quad \\|C\\|\\le1,\\quad \\mathbb E[(X\\otimes X-C)^2]=C-C^2,\\quad \\|C-C^2\\|\\le2\\|C\\|",
+      "assumptions": [
+        "E is a complete real inner-product space and μ is a probability measure.",
+        "X has norm exactly one at every point; no almost-everywhere weakening is hidden.",
+        "The rank-one operator X⊗X is Bochner integrable and its integral is the supplied population operator C.",
+        "No independent sample family, dimension, matrix exponential, or concentration theorem is assumed."
+      ],
+      "steps": [
+        {
+          "title": "Integrate rank-one symmetry",
+          "text": "Every self outer product is symmetric. Evaluation and the real inner product commute with the Bochner integral, so the expectation C is self-adjoint.",
+          "formula": "(X\\otimes X)^*=X\\otimes X\\Longrightarrow C^*=C",
+          "lean": "Use isSymmetric_rankOne_self, ContinuousLinearMap.integral_apply, integral_inner, and isSelfAdjoint_iff_isSymmetric."
+        },
+        {
+          "title": "Bound the population operator",
+          "text": "The Bochner integral norm is at most the integral of the pointwise operator norm. Unit norm makes ‖X⊗X‖=1, and a probability measure gives total mass one.",
+          "formula": "\\|C\\|\\le\\mathbb E\\|X\\otimes X\\|=1",
+          "lean": "Apply norm_integral_le_of_norm_le_const and norm_rankOne_self_eq_sq."
+        },
+        {
+          "title": "Expand the centered square",
+          "text": "A unit-vector outer product is an idempotent projection. Expanding the noncommutative square and commuting left and right multiplication with integration turns both cross terms into C².",
+          "formula": "(X\\otimes X-C)^2=X\\otimes X-(X\\otimes X)C-C(X\\otimes X)+C^2",
+          "lean": "Use isStarProjection_rankOne_self, noncomm_ring, integral_sub/add, and ContinuousLinearMap.integral_comp_comm."
+        },
+        {
+          "title": "Control the variance operator",
+          "text": "Submultiplicativity gives ‖C²‖≤‖C‖². Since ‖C‖≤1, the triangle inequality yields ‖C-C²‖≤2‖C‖.",
+          "formula": "\\|C-C^2\\|\\le\\|C\\|+\\|C\\|^2\\le2\\|C\\|",
+          "lean": "Use norm_sub_le, norm_pow_le', hNorm, and real arithmetic."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq"
+      ],
+      "mathlib_dependencies": [
+        "InnerProductSpace.isStarProjection_rankOne_self",
+        "InnerProductSpace.isSymmetric_rankOne_self",
+        "ContinuousLinearMap.integral_apply",
+        "ContinuousLinearMap.integral_comp_comm",
+        "integral_inner",
+        "norm_integral_le_of_norm_le_const"
+      ],
+      "lean_statement": "The conclusion is a four-part conjunction and all probability, integrability, unit-norm, and population-identification assumptions occur explicitly in the signature.",
+      "lean_proof": "The proof integrates pointwise rank-one symmetry, applies the Bochner norm bound, expands the noncommutative centered square using rank-one idempotence, commutes multiplication through the integral, and finishes with the operator-norm triangle inequality.",
+      "boundary": "This is the expectation-level moment calculation immediately before matrix Bernstein. It does not establish independence, an operator MGF bound, a trace inequality, a tail estimate, or sample complexity.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "label": "Tropp, An Introduction to Matrix Concentration Inequalities",
+          "scope": "Self-adjoint matrix Bernstein setup and sample-covariance variance calculation."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+          "label": "Samplinglib compiled moment package",
+          "scope": "Self-adjointness, contraction, exact centered second moment, and variance-operator norm bound."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+      ]
     }
   ]
 }

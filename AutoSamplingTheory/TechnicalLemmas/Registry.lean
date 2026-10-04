@@ -3995,6 +3995,16 @@ def probabilityMemory : List LemmaMemoryEntry := [
     note := "Proves the exact normalized decomposition, symmetry, and the 2 B^2 summand bound. It does not assume or prove a matrix concentration tail inequality."
   },
   {
+    key := "probability.empirical-covariance.unit-rank-one-moments",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.unitRankOneCovariance_momentPackage",
+    upstreamDecl := "unit-vector rank-one covariance first and centered second operator moments",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["empirical-covariance", "rank-one", "matrix-concentration", "operator-moment", "Bochner-integral"],
+    saldUse := "derive self-adjointness, contraction, the exact C-C^2 centered second moment, and its norm bound before invoking self-adjoint matrix Bernstein",
+    note := "Compiles the model-independent expectation calculation for unit-vector samples. Independence, noncommutative MGF estimates, trace bounds, probability tails, and sample complexity remain outside the theorem."
+  },
+  {
     key := "probability.kernel-hybrid.mean-event-error",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
     upstreamDecl := "Chen--Chewi--Lu--Zhang arXiv:2609.38710v1, Lemma 6.3 mean one-call replacement step",

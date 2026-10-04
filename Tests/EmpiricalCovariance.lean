@@ -2,12 +2,14 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance
 
 namespace AutoSamplingTheory.Tests.EmpiricalCovariance
 
+open MeasureTheory
 open scoped BigOperators RealInnerProductSpace
 open TechnicalLemmas.Probability.EmpiricalCovariance
 
 #check empiricalSecondMoment
 #check norm_rankOne_self_eq_sq
 #check empiricalSecondMoment_preconcentration
+#check unitRankOneCovariance_momentPackage
 
 example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     {κ : Type*} [Fintype κ] [Nonempty κ]
@@ -27,5 +29,26 @@ example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
         2 * B ^ 2) :=
   empiricalSecondMoment_preconcentration population sample B hB
     hpopulationSymmetric hpopulationNorm hsampleNorm
+
+example {E Omega : Type*}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [MeasurableSpace Omega] {mu : Measure Omega} [IsProbabilityMeasure mu]
+    (sample : Omega → E) (population : E →L[ℝ] E)
+    (hsampleUnit : ∀ omega, ‖sample omega‖ = 1)
+    (hRankOneIntegrable :
+      Integrable (fun omega =>
+        InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) mu)
+    (hPopulation :
+      ∫ omega, InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu =
+        population) :
+    IsSelfAdjoint population ∧
+      ‖population‖ ≤ 1 ∧
+      (∫ omega,
+          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -
+            population) ^ (2 : ℕ) ∂mu =
+        population - population ^ (2 : ℕ)) ∧
+      ‖population - population ^ (2 : ℕ)‖ ≤ 2 * ‖population‖ :=
+  unitRankOneCovariance_momentPackage sample population hsampleUnit
+    hRankOneIntegrable hPopulation
 
 end AutoSamplingTheory.Tests.EmpiricalCovariance

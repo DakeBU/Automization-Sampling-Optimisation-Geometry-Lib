@@ -2697,6 +2697,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
     tags := ["Bakry-Emery", "semigroup", "gradient-contraction", "interpolation", "Gronwall"],
     saldUse := "convert a lower differential bound for a backward interpolation quantity into the endpoint exponential contraction estimate",
     note := "Scalar interpolation leaf only. Concrete carré-du-champ derivative identities, semigroup order preservation, and generator-domain closure remain explicit inputs."
+  },
+  {
+    key := "semigroup-interpolation.exponential-kernel-endpoint",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.endpoint_le_of_deriv_le_exponential_kernel",
+    upstreamDecl := "fundamental theorem / monotonicity from a nonnegative derivative",
+    upstreamFile := "Mathlib.Analysis.Calculus.Deriv.MeanValue",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["functional-inequality", "semigroup", "entropy", "interpolation", "exponential-kernel"],
+    saldUse := "integrate a backward exponential derivative bound into its exact endpoint convolution factor",
+    note := "Reusable scalar analytic leaf. A concrete semigroup must still provide the entropy derivative identity and gradient-contraction estimate."
   }
 ]
 

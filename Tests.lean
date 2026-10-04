@@ -225,6 +225,7 @@ import Tests.GradientAECongruence
 import Tests.FinitePowerSeries
 import Tests.UnitSphere
 import Tests.SphereSecondOrder
+import Tests.ExponentialKernelInterpolation
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

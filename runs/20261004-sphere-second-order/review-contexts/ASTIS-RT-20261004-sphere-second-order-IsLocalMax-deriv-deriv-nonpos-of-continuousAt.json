@@ -1,0 +1,117 @@
+{
+  "publication_binding_sha256": "438bfe38913646f4c1437cb2e2a1660b00e8cb31d29824c97fc9d99b32c0bf41",
+  "publication_context": {
+    "file": "bf44a6a241bce617e439cbf8200a1a32789c6346e39837b7381b93e51dbe25b0",
+    "current_lean_module": "import Mathlib.Analysis.Calculus.DerivativeTest\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere\n\n/-!\n# Second-order necessary conditions on the unit sphere\n\nThis module proves the non-strict second-order condition at a local extremum\nand applies it to exponential-map curves on the unit sphere.  The results are\nmodel-independent prerequisites for Riemannian optimization and parabolic\nmaximum-principle arguments.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder\n\nopen Filter Set\nopen scoped InnerProductSpace Topology\n\nnoncomputable section\n\n/-- At a local minimum of a continuous real function, the second derivative,\nwhen represented by `deriv (deriv f)`, cannot be negative.  This complements\nMathlib's sufficient strict second-derivative test with the necessary\nnon-strict direction. -/\ntheorem IsLocalMin.deriv_deriv_nonneg_of_continuousAt\n    {f : ℝ → ℝ} {x : ℝ} (hmin : IsLocalMin f x)\n    (hc : ContinuousAt f x) :\n    0 ≤ deriv (deriv f) x := by\n  by_contra hnonneg\n  have hneg : deriv (deriv f) x < 0 := lt_of_not_ge hnonneg\n  have hmax : IsLocalMax f x :=\n    isLocalMax_of_deriv_deriv_neg hneg hmin.deriv_eq_zero hc\n  have hconst : f =ᶠ[𝓝 x] fun _ : ℝ => f x := by\n    filter_upwards [hmin, hmax] with y hymin hymax\n    exact le_antisymm hymax hymin\n  have hderiv : deriv f =ᶠ[𝓝 x] fun _ : ℝ => 0 := by\n    simpa using hconst.deriv\n  have hzero : deriv (deriv f) x = 0 := by\n    calc\n      deriv (deriv f) x = deriv (fun _ : ℝ => 0) x := hderiv.deriv_eq\n      _ = 0 := by simp\n  linarith\n\n/-- At a local maximum of a continuous real function, the second derivative,\nwhen represented by `deriv (deriv f)`, is nonpositive. -/\ntheorem IsLocalMax.deriv_deriv_nonpos_of_continuousAt\n    {f : ℝ → ℝ} {x : ℝ} (hmax : IsLocalMax f x)\n    (hc : ContinuousAt f x) :\n    deriv (deriv f) x ≤ 0 := by\n  by_contra hnonpos\n  have hpos : 0 < deriv (deriv f) x := lt_of_not_ge hnonpos\n  have hmin : IsLocalMin f x :=\n    isLocalMin_of_deriv_deriv_pos hpos hmax.deriv_eq_zero hc\n  have hconst : f =ᶠ[𝓝 x] fun _ : ℝ => f x := by\n    filter_upwards [hmin, hmax] with y hymin hymax\n    exact le_antisymm hymax hymin\n  have hderiv : deriv f =ᶠ[𝓝 x] fun _ : ℝ => 0 := by\n    simpa using hconst.deriv\n  have hzero : deriv (deriv f) x = 0 := by\n    calc\n      deriv (deriv f) x = deriv (fun _ : ℝ => 0) x := hderiv.deriv_eq\n      _ = 0 := by simp\n  linarith\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere\n\n/-- Restricting a function with a global minimum on the unit sphere to any\ntangent exponential-map curve gives a local minimum at time zero. -/\nprivate theorem unitSphere_isMinOn_expCurve_isLocalMin\n    {f : E → ℝ} {w z : E}\n    (hw : ‖w‖ = 1) (hz : ⟪w, z⟫_ℝ = 0)\n    (hmin : IsMinOn f (Metric.sphere (0 : E) 1) w) :\n    IsLocalMin (fun t : ℝ => f (unitSphereExp w (t • z))) 0 := by\n  filter_upwards [] with t\n  have htan : ⟪w, t • z⟫_ℝ = 0 := by\n    simp [real_inner_smul_right, hz]\n  have hmem : unitSphereExp w (t • z) ∈ Metric.sphere (0 : E) 1 := by\n    rw [Metric.mem_sphere]\n    simpa [dist_eq_norm] using unitSphereExp_norm_eq_one hw htan\n  simpa [unitSphereExp] using hmin hmem\n\n/-- Restricting a function with a global maximum on the unit sphere to any\ntangent exponential-map curve gives a local maximum at time zero. -/\nprivate theorem unitSphere_isMaxOn_expCurve_isLocalMax\n    {f : E → ℝ} {w z : E}\n    (hw : ‖w‖ = 1) (hz : ⟪w, z⟫_ℝ = 0)\n    (hmax : IsMaxOn f (Metric.sphere (0 : E) 1) w) :\n    IsLocalMax (fun t : ℝ => f (unitSphereExp w (t • z))) 0 := by\n  filter_upwards [] with t\n  have htan : ⟪w, t • z⟫_ℝ = 0 := by\n    simp [real_inner_smul_right, hz]\n  have hmem : unitSphereExp w (t • z) ∈ Metric.sphere (0 : E) 1 := by\n    rw [Metric.mem_sphere]\n    simpa [dist_eq_norm] using unitSphereExp_norm_eq_one hw htan\n  simpa [unitSphereExp] using hmax hmem\n\n/-- The directional second derivative along every tangent exponential-map\ncurve is nonnegative at a global minimum on the unit sphere. -/\nprivate theorem unitSphere_isMinOn_expCurve_deriv_deriv_nonneg\n    {f : E → ℝ} {w z : E}\n    (hw : ‖w‖ = 1) (hz : ⟪w, z⟫_ℝ = 0)\n    (hmin : IsMinOn f (Metric.sphere (0 : E) 1) w)\n    (hc : ContinuousAt (fun t : ℝ => f (unitSphereExp w (t • z))) 0) :\n    0 ≤ deriv (deriv (fun t : ℝ => f (unitSphereExp w (t • z)))) 0 := by\n  exact IsLocalMin.deriv_deriv_nonneg_of_continuousAt\n    (unitSphere_isMinOn_expCurve_isLocalMin hw hz hmin) hc\n\n/-- The directional second derivative along every tangent exponential-map\ncurve is nonpositive at a global maximum on the unit sphere. -/\nprivate theorem unitSphere_isMaxOn_expCurve_deriv_deriv_nonpos\n    {f : E → ℝ} {w z : E}\n    (hw : ‖w‖ = 1) (hz : ⟪w, z⟫_ℝ = 0)\n    (hmax : IsMaxOn f (Metric.sphere (0 : E) 1) w)\n    (hc : ContinuousAt (fun t : ℝ => f (unitSphereExp w (t • z))) 0) :\n    deriv (deriv (fun t : ℝ => f (unitSphereExp w (t • z)))) 0 ≤ 0 := by\n  exact IsLocalMax.deriv_deriv_nonpos_of_continuousAt\n    (unitSphere_isMaxOn_expCurve_isLocalMax hw hz hmax) hc\n\n/-- A trace written as a finite sum of exponential-curve second derivatives is\nnonnegative at a global minimum on the unit sphere. -/\ntheorem unitSphere_isMinOn_laplacian_nonneg\n    {ι : Type*} [Fintype ι] {f : E → ℝ} {w : E}\n    (directions : ι → E) (diagonal : ι → ℝ) (laplacian : ℝ)\n    (hw : ‖w‖ = 1)\n    (htangent : ∀ i, ⟪w, directions i⟫_ℝ = 0)\n    (hmin : IsMinOn f (Metric.sphere (0 : E) 1) w)\n    (hcontinuous : ∀ i, ContinuousAt\n      (fun t : ℝ => f (unitSphereExp w (t • directions i))) 0)\n    (hdiagonal : ∀ i, diagonal i =\n      deriv (deriv (fun t : ℝ =>\n        f (unitSphereExp w (t • directions i)))) 0)\n    (htrace : laplacian = ∑ i, diagonal i) :\n    0 ≤ laplacian := by\n  rw [htrace]\n  exact Finset.sum_nonneg fun i _ => by\n    rw [hdiagonal i]\n    exact unitSphere_isMinOn_expCurve_deriv_deriv_nonneg\n      hw (htangent i) hmin (hcontinuous i)\n\n/-- A trace written as a finite sum of exponential-curve second derivatives is\nnonpositive at a global maximum on the unit sphere. -/\ntheorem unitSphere_isMaxOn_laplacian_nonpos\n    {ι : Type*} [Fintype ι] {f : E → ℝ} {w : E}\n    (directions : ι → E) (diagonal : ι → ℝ) (laplacian : ℝ)\n    (hw : ‖w‖ = 1)\n    (htangent : ∀ i, ⟪w, directions i⟫_ℝ = 0)\n    (hmax : IsMaxOn f (Metric.sphere (0 : E) 1) w)\n    (hcontinuous : ∀ i, ContinuousAt\n      (fun t : ℝ => f (unitSphereExp w (t • directions i))) 0)\n    (hdiagonal : ∀ i, diagonal i =\n      deriv (deriv (fun t : ℝ =>\n        f (unitSphereExp w (t • directions i)))) 0)\n    (htrace : laplacian = ∑ i, diagonal i) :\n    laplacian ≤ 0 := by\n  rw [htrace]\n  exact Finset.sum_nonpos fun i _ => by\n    rw [hdiagonal i]\n    exact unitSphere_isMaxOn_expCurve_deriv_deriv_nonpos\n      hw (htangent i) hmax (hcontinuous i)\n\nend\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://www.nicolasboumal.net/book/",
+      "edition": "An Introduction to Optimization on Smooth Manifolds, 2023; Mathlib v4.33.0",
+      "anchor": "second-order necessary optimality conditions and unit-sphere exponential curves",
+      "wording_status": "faithful paraphrase",
+      "attribution": "The standard second-order necessary condition and sphere restriction are textbook calculus/Riemannian optimization; Samplinglib supplies the Lean bridge to Mathlib total derivatives and explicit trace hypotheses."
+    },
+    "statement": "A continuous real function has nonnegative double derivative at a local minimum and nonpositive double derivative at a local maximum. On the unit sphere, restricting a global extremum to tangent exponential curves yields the corresponding sign for every supplied Hessian diagonal, hence for its finite trace.",
+    "formulae": [
+      {
+        "label": "scalar necessary condition",
+        "tex": "x\\text{ local min}\\Rightarrow f^{\\prime\\prime}(x)\\ge0,\\qquad x\\text{ local max}\\Rightarrow f^{\\prime\\prime}(x)\\le0"
+      },
+      {
+        "label": "sphere trace sign",
+        "tex": "\\Delta f(w)=\\sum_i (f\\circ\\operatorname{Exp}_w(tz_i))^{\\prime\\prime}(0)\\gtreqless0"
+      }
+    ],
+    "assumptions": [
+      "Scalar extrema use continuity at the extremum and Mathlib’s total deriv (deriv f).",
+      "Sphere extrema use a unit base point, tangent directions, continuity along each exponential curve, exact diagonal identities, and a finite trace identity.",
+      "No PDE or model-specific coefficient occurs."
+    ],
+    "obligations": [
+      {
+        "id": "real-minimum-second-order",
+        "label": "Second derivative at a local minimum"
+      },
+      {
+        "id": "real-maximum-second-order",
+        "label": "Second derivative at a local maximum"
+      },
+      {
+        "id": "sphere-minimum-laplacian-sign",
+        "label": "Nonnegative Laplacian at a unit-sphere minimum"
+      },
+      {
+        "id": "sphere-maximum-laplacian-sign",
+        "label": "Nonpositive Laplacian at a unit-sphere maximum"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.IsLocalMax.deriv_deriv_nonpos_of_continuousAt",
+      "kind": "theorem",
+      "title": "Second derivative at a local maximum",
+      "statement": "For a real function continuous at a local maximum, the second derivative represented by deriv (deriv f) is nonpositive.",
+      "formula": "x\\text{ local max of }f,\\ f\\text{ continuous at }x\\Longrightarrow (\\operatorname{deriv}\\operatorname{deriv}f)(x)\\le0",
+      "assumptions": [
+        "f is a real-valued function on the real line.",
+        "x is a local maximum of f.",
+        "f is continuous at x; Mathlib deriv is total and equals zero at nondifferentiable points."
+      ],
+      "steps": [
+        {
+          "title": "Rule out a positive second derivative",
+          "text": "A positive second derivative and Fermat’s identity would make x a local minimum.",
+          "formula": "f^{\\prime\\prime}(x)>0\\Longrightarrow x\\text{ is a local minimum}",
+          "lean": "Use isLocalMin_of_deriv_deriv_pos."
+        },
+        {
+          "title": "Force local constancy",
+          "text": "The local minimum and maximum inequalities agree, so f equals f(x) near x.",
+          "formula": "f(y)=f(x)\\text{ near }x",
+          "lean": "Intersect the two filters and apply order antisymmetry."
+        },
+        {
+          "title": "Contradict strict positivity",
+          "text": "Differentiating the local constant germ twice gives second derivative zero.",
+          "formula": "f^{\\prime\\prime}(x)=0",
+          "lean": "Use the congruence theorem for deriv twice."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "isLocalMax_of_deriv_deriv_neg",
+        "isLocalMin_of_deriv_deriv_pos",
+        "Filter.EventuallyEq.deriv"
+      ],
+      "lean_statement": "The Lean theorem states the displayed necessary sign with every continuity, tangency, diagonal, and trace premise explicit.",
+      "lean_proof": "The proof reduces a forbidden strict sign to simultaneous local minimum and maximum, or restricts the sphere extremum to feasible exponential curves and sums the scalar signs.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereSecondOrder.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.SphereSecondOrder"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.IsLocalMax.deriv_deriv_nonpos_of_continuousAt",
+      "role": "prerequisite",
+      "supports": [
+        "real-maximum-second-order"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The classical textbook statement assumes an ordinary second derivative at the extremum.",
+        "lean": "The scalar result is stated for Mathlib’s total expression deriv (deriv f), with continuity at the extremum. If either derivative is unavailable, Mathlib supplies zero."
+      },
+      {
+        "source": "Textbook sphere statements are usually finite-dimensional.",
+        "lean": "The geometric trace theorem works in any real inner-product space for an explicitly finite family of tangent directions."
+      }
+    ]
+  }
+}

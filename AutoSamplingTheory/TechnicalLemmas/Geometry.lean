@@ -4,6 +4,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.MetricCurve
 import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder
 
 /-!
 # Geometry technical lemmas

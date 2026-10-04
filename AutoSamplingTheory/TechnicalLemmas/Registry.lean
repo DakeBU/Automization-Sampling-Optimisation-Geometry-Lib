@@ -4655,6 +4655,26 @@ def geometryMemory : List LemmaMemoryEntry := [
     tags := ["Riemannian-geometry", "sphere", "exponential-map", "constraint-preservation"],
     saldUse := "Exact feasibility certificate for tangent exponential-map updates on the unit sphere.",
     note := "The tangent hypothesis is the ambient inner-product equation; the result works in arbitrary real inner-product spaces."
+  },
+  {
+    key := "analysis.second-order-extremum.necessary-sign",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.IsLocalMin.deriv_deriv_nonneg_of_continuousAt",
+    upstreamDecl := "isLocalMax_of_deriv_deriv_neg / isLocalMin_of_deriv_deriv_pos",
+    upstreamFile := "Mathlib.Analysis.Calculus.DerivativeTest",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["calculus", "second-derivative", "local-extremum", "necessary-condition"],
+    saldUse := "Reusable second-order sign condition for optimization and maximum-principle arguments.",
+    note := "Complements Mathlib's strict sufficient tests with the non-strict necessary direction for the total double derivative."
+  },
+  {
+    key := "geometry.unit-sphere.laplacian-extremum-sign",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.unitSphere_isMinOn_laplacian_nonneg",
+    upstreamDecl := "unitSphereExp_norm_eq_one / second-order necessary condition / Finset.sum_nonneg",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere; Mathlib.Analysis.Calculus.DerivativeTest",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Riemannian-geometry", "sphere", "Hessian", "Laplacian", "maximum-principle"],
+    saldUse := "Sign of a supplied finite Hessian trace at a unit-sphere extremum.",
+    note := "Exposes tangent directions, curve continuity, diagonal identities, and the finite trace identity; no PDE or model coefficient is included."
   }
 ]
 

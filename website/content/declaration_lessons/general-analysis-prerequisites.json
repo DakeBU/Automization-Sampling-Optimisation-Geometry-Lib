@@ -499,6 +499,216 @@
       "tests": [
         "lake -Kjobs=1 build Tests.UnitSphere"
       ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.IsLocalMin.deriv_deriv_nonneg_of_continuousAt",
+      "kind": "theorem",
+      "title": "Second derivative at a local minimum",
+      "statement": "For a real function continuous at a local minimum, the second derivative represented by deriv (deriv f) is nonnegative.",
+      "formula": "x\\text{ local min of }f,\\ f\\text{ continuous at }x\\Longrightarrow (\\operatorname{deriv}\\operatorname{deriv}f)(x)\\ge0",
+      "assumptions": [
+        "f is a real-valued function on the real line.",
+        "x is a local minimum of f.",
+        "f is continuous at x; Mathlib deriv is total and equals zero at nondifferentiable points."
+      ],
+      "steps": [
+        {
+          "title": "Rule out a negative second derivative",
+          "text": "If the second derivative were negative, Mathlib’s strict second-derivative test would also make x a local maximum.",
+          "formula": "f^{\\prime\\prime}(x)<0\\Longrightarrow x\\text{ is a local maximum}",
+          "lean": "Use isLocalMax_of_deriv_deriv_neg, with Fermat’s identity at the local minimum."
+        },
+        {
+          "title": "Combine the two local inequalities",
+          "text": "A point that is both a local minimum and a local maximum has a neighborhood on which f is constant.",
+          "formula": "f(x)\\le f(y)\\le f(x)\\Longrightarrow f(y)=f(x)",
+          "lean": "Intersect the two neighborhood filters and apply antisymmetry."
+        },
+        {
+          "title": "Differentiate the local equality twice",
+          "text": "The derivative is locally zero, hence its derivative at x is zero, contradicting strict negativity.",
+          "formula": "f\\equiv f(x)\\text{ locally}\\Longrightarrow f^\\prime\\equiv0\\text{ locally}\\Longrightarrow f^{\\prime\\prime}(x)=0",
+          "lean": "Filter.EventuallyEq.deriv and deriv_eq transport the local equality."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "isLocalMax_of_deriv_deriv_neg",
+        "isLocalMin_of_deriv_deriv_pos",
+        "Filter.EventuallyEq.deriv"
+      ],
+      "lean_statement": "The Lean theorem states the displayed necessary sign with every continuity, tangency, diagonal, and trace premise explicit.",
+      "lean_proof": "The proof reduces a forbidden strict sign to simultaneous local minimum and maximum, or restricts the sphere extremum to feasible exponential curves and sums the scalar signs.",
+      "boundary": "This uses Mathlib’s total deriv; it does not assert existence of a classical second derivative beyond that representation.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereSecondOrder.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.SphereSecondOrder"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.IsLocalMax.deriv_deriv_nonpos_of_continuousAt",
+      "kind": "theorem",
+      "title": "Second derivative at a local maximum",
+      "statement": "For a real function continuous at a local maximum, the second derivative represented by deriv (deriv f) is nonpositive.",
+      "formula": "x\\text{ local max of }f,\\ f\\text{ continuous at }x\\Longrightarrow (\\operatorname{deriv}\\operatorname{deriv}f)(x)\\le0",
+      "assumptions": [
+        "f is a real-valued function on the real line.",
+        "x is a local maximum of f.",
+        "f is continuous at x; Mathlib deriv is total and equals zero at nondifferentiable points."
+      ],
+      "steps": [
+        {
+          "title": "Rule out a positive second derivative",
+          "text": "A positive second derivative and Fermat’s identity would make x a local minimum.",
+          "formula": "f^{\\prime\\prime}(x)>0\\Longrightarrow x\\text{ is a local minimum}",
+          "lean": "Use isLocalMin_of_deriv_deriv_pos."
+        },
+        {
+          "title": "Force local constancy",
+          "text": "The local minimum and maximum inequalities agree, so f equals f(x) near x.",
+          "formula": "f(y)=f(x)\\text{ near }x",
+          "lean": "Intersect the two filters and apply order antisymmetry."
+        },
+        {
+          "title": "Contradict strict positivity",
+          "text": "Differentiating the local constant germ twice gives second derivative zero.",
+          "formula": "f^{\\prime\\prime}(x)=0",
+          "lean": "Use the congruence theorem for deriv twice."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "isLocalMax_of_deriv_deriv_neg",
+        "isLocalMin_of_deriv_deriv_pos",
+        "Filter.EventuallyEq.deriv"
+      ],
+      "lean_statement": "The Lean theorem states the displayed necessary sign with every continuity, tangency, diagonal, and trace premise explicit.",
+      "lean_proof": "The proof reduces a forbidden strict sign to simultaneous local minimum and maximum, or restricts the sphere extremum to feasible exponential curves and sums the scalar signs.",
+      "boundary": "This is a necessary non-strict sign condition, not a sufficient test for an extremum.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereSecondOrder.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.SphereSecondOrder"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.unitSphere_isMinOn_laplacian_nonneg",
+      "kind": "theorem",
+      "title": "Nonnegative Laplacian at a unit-sphere minimum",
+      "statement": "At a global minimum on the unit sphere, a finite trace of tangent exponential-curve second derivatives is nonnegative.",
+      "formula": "\\Delta f(w)=\\sum_i \\frac{d^2}{dt^2}f(\\operatorname{Exp}_w(tz_i))\\big|_{t=0}\\ge0",
+      "assumptions": [
+        "E is a real inner-product space and the index type is finite.",
+        "w has unit norm and every direction z_i is tangent at w.",
+        "f has a global minimum on the unit sphere at w.",
+        "Each exponential-curve restriction is continuous at zero; diagonal entries equal its Mathlib double derivative and the Laplacian equals their finite sum."
+      ],
+      "steps": [
+        {
+          "title": "Keep every curve on the sphere",
+          "text": "Unit norm and tangency make Exp_w(t z_i) a sphere point for every real t.",
+          "formula": "\\|\\operatorname{Exp}_w(tz_i)\\|=1",
+          "lean": "Apply unitSphereExp_norm_eq_one after scaling the tangent direction."
+        },
+        {
+          "title": "Restrict the minimum to each curve",
+          "text": "The global sphere minimum becomes a local minimum of every scalar curve at t=0.",
+          "formula": "f(w)\\le f(\\operatorname{Exp}_w(tz_i))",
+          "lean": "Build an IsLocalMin from the global IsMinOn inequality."
+        },
+        {
+          "title": "Sum the directional signs",
+          "text": "The real second-order necessary condition makes every diagonal entry nonnegative; a finite sum preserves the sign.",
+          "formula": "0\\le h_i\\ \\forall i\\Longrightarrow0\\le\\sum_i h_i=\\Delta f(w)",
+          "lean": "Rewrite each diagonal identity and use Finset.sum_nonneg."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_norm_eq_one"
+      ],
+      "mathlib_dependencies": [
+        "isLocalMax_of_deriv_deriv_neg",
+        "isLocalMin_of_deriv_deriv_pos",
+        "Filter.EventuallyEq.deriv"
+      ],
+      "lean_statement": "The Lean theorem states the displayed necessary sign with every continuity, tangency, diagonal, and trace premise explicit.",
+      "lean_proof": "The proof reduces a forbidden strict sign to simultaneous local minimum and maximum, or restricts the sphere extremum to feasible exponential curves and sums the scalar signs.",
+      "boundary": "The theorem requires the supplied diagonal/trace identities; it does not construct a tangent orthonormal frame or identify a differential operator with the Laplace–Beltrami operator.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereSecondOrder.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.SphereSecondOrder"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.unitSphere_isMaxOn_laplacian_nonpos",
+      "kind": "theorem",
+      "title": "Nonpositive Laplacian at a unit-sphere maximum",
+      "statement": "At a global maximum on the unit sphere, a finite trace of tangent exponential-curve second derivatives is nonpositive.",
+      "formula": "\\Delta f(w)=\\sum_i \\frac{d^2}{dt^2}f(\\operatorname{Exp}_w(tz_i))\\big|_{t=0}\\le0",
+      "assumptions": [
+        "E is a real inner-product space and the index type is finite.",
+        "w has unit norm and every direction z_i is tangent at w.",
+        "f has a global maximum on the unit sphere at w.",
+        "Each exponential-curve restriction is continuous at zero; diagonal entries equal its Mathlib double derivative and the Laplacian equals their finite sum."
+      ],
+      "steps": [
+        {
+          "title": "Preserve feasibility along tangent curves",
+          "text": "Every scaled tangent direction remains orthogonal to the unit base point, so the exponential curve stays on the sphere.",
+          "formula": "\\|\\operatorname{Exp}_w(tz_i)\\|=1",
+          "lean": "Use the public unit-sphere norm theorem."
+        },
+        {
+          "title": "Restrict the maximum to one dimension",
+          "text": "The sphere maximum is a local maximum at zero along each exponential curve.",
+          "formula": "f(\\operatorname{Exp}_w(tz_i))\\le f(w)",
+          "lean": "Specialize IsMaxOn to the feasible curve."
+        },
+        {
+          "title": "Take the finite trace",
+          "text": "Every directional double derivative is nonpositive, and their finite sum is the supplied Laplacian.",
+          "formula": "h_i\\le0\\ \\forall i\\Longrightarrow\\sum_i h_i=\\Delta f(w)\\le0",
+          "lean": "Rewrite and use Finset.sum_nonpos."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_norm_eq_one"
+      ],
+      "mathlib_dependencies": [
+        "isLocalMax_of_deriv_deriv_neg",
+        "isLocalMin_of_deriv_deriv_pos",
+        "Filter.EventuallyEq.deriv"
+      ],
+      "lean_statement": "The Lean theorem states the displayed necessary sign with every continuity, tangency, diagonal, and trace premise explicit.",
+      "lean_proof": "The proof reduces a forbidden strict sign to simultaneous local minimum and maximum, or restricts the sphere extremum to feasible exponential curves and sums the scalar signs.",
+      "boundary": "No parabolic PDE, density evolution, or maximum-principle time argument is included.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereSecondOrder.lean",
+          "label": "Samplinglib compiled source",
+          "scope": "Exact statement and proof."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build Tests.SphereSecondOrder"
+      ]
     }
   ]
 }

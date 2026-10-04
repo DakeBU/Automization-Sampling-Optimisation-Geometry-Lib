@@ -3082,6 +3082,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
     note := "A summable Doob-Borel-Cantelli argument gives a uniform path limit; usual-condition completeness makes the null-set patch adapted."
   },
   {
+    key := "ito-integral.bounded-stopping-mean-zero",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BoundedStoppedItoMean.integral_itoIntegralProcess_at_boundedStopping_eq_zero",
+    upstreamDecl := "RandomStoppingGeneralIto.itoIntegralTerminal_stop_ae; ItoIntegralProcess.itoIntegralProcess_martingale",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/RandomStoppingGeneralIto.lean; AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralProcess.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Ito", "random-stopping", "martingale", "integrability", "mean-zero"],
+    saldUse := "replace an abstract optional-stopping or centered-martingale premise by the constructed completed Ito process at a bounded stopping time",
+    note := "The companion theorem proves integrability of the randomly evaluated process. The stopping time must be pointwise bounded by the positive construction horizon; no claim is made for unbounded stopping times or local-L2 integrands before localization."
+  },
+  {
     key := "ito-integral.chewi-theorem-1-1-8",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.chewi_theorem_1_1_8",
     upstreamDecl := "Chewi Theorem 1.1.8",

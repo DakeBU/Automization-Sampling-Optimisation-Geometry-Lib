@@ -127,6 +127,7 @@ import Tests.GlobalItoProcessGluing
 import Tests.ChewiProposition1_1_16
 import Tests.RandomStoppingDyadicApprox
 import Tests.RandomStoppingBoundary
+import Tests.BoundedStoppedItoMean
 import Tests.RandomStoppingProcessApprox
 import Tests.RandomStoppingIntegrandLimit
 import Tests.RandomStoppingProgressiveL2

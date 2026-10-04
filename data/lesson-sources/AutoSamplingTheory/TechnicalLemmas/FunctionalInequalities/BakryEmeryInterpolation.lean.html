@@ -93,94 +93,144 @@
     <div class="site-stage">
       <div class="verification-strip unverified">
         <span><strong>Lean gate not recorded for this source state</strong></span>
-        <span>codex/generalized-prerequisites · f4319026d92b</span>
+        <span>codex/generalized-prerequisites · 692cd628a31f</span>
       </div>
       <main id="content"><h1>Exact source context</h1><pre><span id="L1">import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay</span>
-<span id="L2"></span>
-<span id="L3">/-!</span>
-<span id="L4"># Scalar Bakry--Émery interpolation</span>
-<span id="L5"></span>
-<span id="L6">The Bakry--Émery gradient argument studies a backward interpolation quantity</span>
-<span id="L7">whose derivative is bounded below by a constant multiple of itself.  This file</span>
-<span id="L8">isolates the scalar comparison step: exponential growth along the interpolation</span>
-<span id="L9">is equivalent to exponential contraction when its endpoints are read in the</span>
-<span id="L10">opposite direction.</span>
-<span id="L11"></span>
-<span id="L12">The theorem does not construct a Markov semigroup, identify a carré du champ,</span>
-<span id="L13">or prove the interpolation derivative formula.  Those remain model-facing</span>
-<span id="L14">analytic inputs.</span>
-<span id="L15">-/</span>
-<span id="L16"></span>
-<span id="L17">namespace AutoSamplingTheory</span>
-<span id="L18">namespace TechnicalLemmas</span>
-<span id="L19">namespace FunctionalInequalities</span>
-<span id="L20">namespace SemigroupDecay</span>
-<span id="L21"></span>
-<span id="L22">open Filter Set</span>
-<span id="L23">open scoped Topology</span>
-<span id="L24"></span>
-<span id="L25">noncomputable section</span>
-<span id="L26"></span>
-<span id="L27">/-- A lower differential bound along a backward interpolation gives the</span>
-<span id="L28">endpoint contraction estimate used in the Bakry--Émery method.</span>
-<span id="L29"></span>
-<span id="L30">No sign condition on `interpolation` or `rate` is needed for this scalar</span>
-<span id="L31">comparison. -/</span>
-<span id="L32">theorem backward_interpolation_contraction_of_growth</span>
-<span id="L33">    {interpolation interpolation&#x27; : ℝ → ℝ} {rate s t : ℝ}</span>
-<span id="L34">    (hcontinuous : Continuous interpolation)</span>
-<span id="L35">    (hderiv : ∀ u : ℝ,</span>
-<span id="L36">      HasDerivWithinAt interpolation (interpolation&#x27; u) (Ici u) u)</span>
-<span id="L37">    (hgrowth : ∀ u : ℝ,</span>
-<span id="L38">      rate * interpolation u ≤ interpolation&#x27; u)</span>
-<span id="L39">    (hst : s ≤ t) :</span>
-<span id="L40">    interpolation s ≤</span>
-<span id="L41">      interpolation t * Real.exp (-rate * (t - s)) := by</span>
-<span id="L42">  have hbound : ∀ x ∈ Ico s t,</span>
-<span id="L43">      -interpolation&#x27; x ≤ rate * (-interpolation x) + 0 := by</span>
-<span id="L44">    intro x _hx</span>
-<span id="L45">    have hneg := neg_le_neg (hgrowth x)</span>
-<span id="L46">    simpa [neg_mul] using hneg</span>
-<span id="L47">  have hgronwall :=</span>
-<span id="L48">    le_gronwallBound_of_liminf_deriv_right_le</span>
-<span id="L49">      (f := fun x =&gt; -interpolation x)</span>
-<span id="L50">      (f&#x27; := fun x =&gt; -interpolation&#x27; x)</span>
-<span id="L51">      (δ := -interpolation s)</span>
-<span id="L52">      (K := rate)</span>
-<span id="L53">      (ε := 0)</span>
-<span id="L54">      (a := s)</span>
-<span id="L55">      (b := t)</span>
-<span id="L56">      hcontinuous.neg.continuousOn</span>
-<span id="L57">      (fun x _hx r hr =&gt; by</span>
-<span id="L58">        simpa [slope] using ((hderiv x).neg.liminf_right_slope_le hr))</span>
-<span id="L59">      le_rfl</span>
-<span id="L60">      hbound</span>
-<span id="L61">      t</span>
-<span id="L62">      ⟨hst, le_rfl⟩</span>
-<span id="L63">  rw [gronwallBound_ε0] at hgronwall</span>
-<span id="L64">  have hexponential_growth :</span>
-<span id="L65">      interpolation s * Real.exp (rate * (t - s)) ≤ interpolation t := by</span>
-<span id="L66">    linarith</span>
-<span id="L67">  have hscaled := mul_le_mul_of_nonneg_right hexponential_growth</span>
-<span id="L68">    (Real.exp_nonneg (-rate * (t - s)))</span>
-<span id="L69">  have hinverse :</span>
-<span id="L70">      Real.exp (rate * (t - s)) * Real.exp (-rate * (t - s)) = 1 := by</span>
-<span id="L71">    rw [← Real.exp_add]</span>
-<span id="L72">    have hzero : rate * (t - s) + -rate * (t - s) = 0 := by ring</span>
-<span id="L73">    rw [hzero, Real.exp_zero]</span>
-<span id="L74">  calc</span>
-<span id="L75">    interpolation s =</span>
-<span id="L76">        (interpolation s * Real.exp (rate * (t - s))) *</span>
-<span id="L77">          Real.exp (-rate * (t - s)) := by</span>
-<span id="L78">      rw [mul_assoc, hinverse, mul_one]</span>
-<span id="L79">    _ ≤ interpolation t * Real.exp (-rate * (t - s)) := hscaled</span>
-<span id="L80"></span>
-<span id="L81">end</span>
-<span id="L82"></span>
-<span id="L83">end SemigroupDecay</span>
-<span id="L84">end FunctionalInequalities</span>
-<span id="L85">end TechnicalLemmas</span>
-<span id="L86">end AutoSamplingTheory</span>
+<span id="L2">import Mathlib.Analysis.Calculus.Deriv.MeanValue</span>
+<span id="L3"></span>
+<span id="L4">/-!</span>
+<span id="L5"># Scalar Bakry--Émery interpolation</span>
+<span id="L6"></span>
+<span id="L7">The Bakry--Émery gradient argument studies a backward interpolation quantity</span>
+<span id="L8">whose derivative is bounded below by a constant multiple of itself.  This file</span>
+<span id="L9">isolates the scalar comparison step: exponential growth along the interpolation</span>
+<span id="L10">is equivalent to exponential contraction when its endpoints are read in the</span>
+<span id="L11">opposite direction.</span>
+<span id="L12"></span>
+<span id="L13">The theorem does not construct a Markov semigroup, identify a carré du champ,</span>
+<span id="L14">or prove the interpolation derivative formula.  Those remain model-facing</span>
+<span id="L15">analytic inputs.</span>
+<span id="L16">-/</span>
+<span id="L17"></span>
+<span id="L18">namespace AutoSamplingTheory</span>
+<span id="L19">namespace TechnicalLemmas</span>
+<span id="L20">namespace FunctionalInequalities</span>
+<span id="L21">namespace SemigroupDecay</span>
+<span id="L22"></span>
+<span id="L23">open Filter Set</span>
+<span id="L24">open scoped Topology</span>
+<span id="L25"></span>
+<span id="L26">noncomputable section</span>
+<span id="L27"></span>
+<span id="L28">/-- A lower differential bound along a backward interpolation gives the</span>
+<span id="L29">endpoint contraction estimate used in the Bakry--Émery method.</span>
+<span id="L30"></span>
+<span id="L31">No sign condition on `interpolation` or `rate` is needed for this scalar</span>
+<span id="L32">comparison. -/</span>
+<span id="L33">theorem backward_interpolation_contraction_of_growth</span>
+<span id="L34">    {interpolation interpolation&#x27; : ℝ → ℝ} {rate s t : ℝ}</span>
+<span id="L35">    (hcontinuous : Continuous interpolation)</span>
+<span id="L36">    (hderiv : ∀ u : ℝ,</span>
+<span id="L37">      HasDerivWithinAt interpolation (interpolation&#x27; u) (Ici u) u)</span>
+<span id="L38">    (hgrowth : ∀ u : ℝ,</span>
+<span id="L39">      rate * interpolation u ≤ interpolation&#x27; u)</span>
+<span id="L40">    (hst : s ≤ t) :</span>
+<span id="L41">    interpolation s ≤</span>
+<span id="L42">      interpolation t * Real.exp (-rate * (t - s)) := by</span>
+<span id="L43">  have hbound : ∀ x ∈ Ico s t,</span>
+<span id="L44">      -interpolation&#x27; x ≤ rate * (-interpolation x) + 0 := by</span>
+<span id="L45">    intro x _hx</span>
+<span id="L46">    have hneg := neg_le_neg (hgrowth x)</span>
+<span id="L47">    simpa [neg_mul] using hneg</span>
+<span id="L48">  have hgronwall :=</span>
+<span id="L49">    le_gronwallBound_of_liminf_deriv_right_le</span>
+<span id="L50">      (f := fun x =&gt; -interpolation x)</span>
+<span id="L51">      (f&#x27; := fun x =&gt; -interpolation&#x27; x)</span>
+<span id="L52">      (δ := -interpolation s)</span>
+<span id="L53">      (K := rate)</span>
+<span id="L54">      (ε := 0)</span>
+<span id="L55">      (a := s)</span>
+<span id="L56">      (b := t)</span>
+<span id="L57">      hcontinuous.neg.continuousOn</span>
+<span id="L58">      (fun x _hx r hr =&gt; by</span>
+<span id="L59">        simpa [slope] using ((hderiv x).neg.liminf_right_slope_le hr))</span>
+<span id="L60">      le_rfl</span>
+<span id="L61">      hbound</span>
+<span id="L62">      t</span>
+<span id="L63">      ⟨hst, le_rfl⟩</span>
+<span id="L64">  rw [gronwallBound_ε0] at hgronwall</span>
+<span id="L65">  have hexponential_growth :</span>
+<span id="L66">      interpolation s * Real.exp (rate * (t - s)) ≤ interpolation t := by</span>
+<span id="L67">    linarith</span>
+<span id="L68">  have hscaled := mul_le_mul_of_nonneg_right hexponential_growth</span>
+<span id="L69">    (Real.exp_nonneg (-rate * (t - s)))</span>
+<span id="L70">  have hinverse :</span>
+<span id="L71">      Real.exp (rate * (t - s)) * Real.exp (-rate * (t - s)) = 1 := by</span>
+<span id="L72">    rw [← Real.exp_add]</span>
+<span id="L73">    have hzero : rate * (t - s) + -rate * (t - s) = 0 := by ring</span>
+<span id="L74">    rw [hzero, Real.exp_zero]</span>
+<span id="L75">  calc</span>
+<span id="L76">    interpolation s =</span>
+<span id="L77">        (interpolation s * Real.exp (rate * (t - s))) *</span>
+<span id="L78">          Real.exp (-rate * (t - s)) := by</span>
+<span id="L79">      rw [mul_assoc, hinverse, mul_one]</span>
+<span id="L80">    _ ≤ interpolation t * Real.exp (-rate * (t - s)) := hscaled</span>
+<span id="L81"></span>
+<span id="L82">/-- Interval-scoped Bakry--Émery comparison.</span>
+<span id="L83"></span>
+<span id="L84">If an interpolation has derivative at every point of `[s, t]` and its</span>
+<span id="L85">derivative dominates `rate` times the interpolation on `(s, t)`, then reading</span>
+<span id="L86">the endpoints in the backward direction gives exponential contraction.  The</span>
+<span id="L87">statement asks for no sign condition on the interpolation or on `rate` and</span>
+<span id="L88">allows the degenerate interval `s = t`. -/</span>
+<span id="L89">theorem backward_endpoint_contraction_of_growth_on_Icc</span>
+<span id="L90">    {interpolation interpolation&#x27; : ℝ → ℝ} {rate s t : ℝ}</span>
+<span id="L91">    (hst : s ≤ t)</span>
+<span id="L92">    (hinterpolation : ∀ u ∈ Icc s t,</span>
+<span id="L93">      HasDerivAt interpolation (interpolation&#x27; u) u)</span>
+<span id="L94">    (hgrowth : ∀ u ∈ Ioo s t,</span>
+<span id="L95">      rate * interpolation u ≤ interpolation&#x27; u) :</span>
+<span id="L96">    interpolation s ≤</span>
+<span id="L97">      interpolation t * Real.exp (-rate * (t - s)) := by</span>
+<span id="L98">  let weighted : ℝ → ℝ := fun u =&gt;</span>
+<span id="L99">    interpolation u * Real.exp (-rate * (u - s))</span>
+<span id="L100">  have hweighted : ∀ u ∈ Icc s t,</span>
+<span id="L101">      HasDerivAt weighted</span>
+<span id="L102">        ((interpolation&#x27; u - rate * interpolation u) *</span>
+<span id="L103">          Real.exp (-rate * (u - s))) u := by</span>
+<span id="L104">    intro u hu</span>
+<span id="L105">    have hinner :</span>
+<span id="L106">        HasDerivAt (fun v : ℝ =&gt; -rate * (v - s)) (-rate) u := by</span>
+<span id="L107">      simpa using ((hasDerivAt_id u).sub_const s).const_mul (-rate)</span>
+<span id="L108">    have hexp := (Real.hasDerivAt_exp (-rate * (u - s))).comp u hinner</span>
+<span id="L109">    have hmul := (hinterpolation u hu).mul hexp</span>
+<span id="L110">    change HasDerivAt</span>
+<span id="L111">      (fun v =&gt; interpolation v * Real.exp (-rate * (v - s)))</span>
+<span id="L112">      ((interpolation&#x27; u - rate * interpolation u) *</span>
+<span id="L113">        Real.exp (-rate * (u - s))) u</span>
+<span id="L114">    exact hmul.congr_deriv (by</span>
+<span id="L115">      simp only [Function.comp_apply]</span>
+<span id="L116">      ring)</span>
+<span id="L117">  have hmono : MonotoneOn weighted (Icc s t) := by</span>
+<span id="L118">    apply monotoneOn_of_deriv_nonneg (convex_Icc s t)</span>
+<span id="L119">    · exact continuousOn_of_forall_continuousAt fun u hu =&gt;</span>
+<span id="L120">        (hweighted u hu).continuousAt</span>
+<span id="L121">    · intro u hu</span>
+<span id="L122">      exact (hweighted u (interior_subset hu)).differentiableAt.differentiableWithinAt</span>
+<span id="L123">    · intro u hu</span>
+<span id="L124">      rw [(hweighted u (interior_subset hu)).deriv]</span>
+<span id="L125">      exact mul_nonneg (sub_nonneg.mpr</span>
+<span id="L126">        (hgrowth u (by simpa only [interior_Icc] using hu)))</span>
+<span id="L127">        (Real.exp_nonneg _)</span>
+<span id="L128">  have hend := hmono ⟨le_rfl, hst⟩ ⟨hst, le_rfl⟩ hst</span>
+<span id="L129">  simpa only [weighted, sub_self, mul_zero, Real.exp_zero, mul_one] using hend</span>
+<span id="L130"></span>
+<span id="L131">end</span>
+<span id="L132"></span>
+<span id="L133">end SemigroupDecay</span>
+<span id="L134">end FunctionalInequalities</span>
+<span id="L135">end TechnicalLemmas</span>
+<span id="L136">end AutoSamplingTheory</span>
 </pre></main>
       <footer>
         <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>

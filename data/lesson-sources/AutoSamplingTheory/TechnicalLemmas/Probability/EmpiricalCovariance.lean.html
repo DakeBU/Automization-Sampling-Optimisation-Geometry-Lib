@@ -93,104 +93,328 @@
     <div class="site-stage">
       <div class="verification-strip unverified">
         <span><strong>Lean gate not recorded for this source state</strong></span>
-        <span>codex/generalized-prerequisites · f4319026d92b</span>
+        <span>codex/generalized-prerequisites · 692cd628a31f</span>
       </div>
       <main id="content"><h1>Exact source context</h1><pre><span id="L1">import Mathlib.Analysis.InnerProductSpace.LinearMap</span>
 <span id="L2">import Mathlib.Analysis.InnerProductSpace.Symmetric</span>
-<span id="L3">import Mathlib.Algebra.BigOperators.Field</span>
-<span id="L4"></span>
-<span id="L5">/-!</span>
-<span id="L6"># Finite-sample empirical covariance algebra</span>
-<span id="L7"></span>
-<span id="L8">This file exposes only the small public interface needed immediately before a</span>
-<span id="L9">matrix concentration theorem: the empirical second-moment operator, the exact</span>
-<span id="L10">norm of a rank-one summand, and one theorem packaging the centered finite-sum</span>
-<span id="L11">decomposition with symmetry and a uniform summand bound. No concentration or</span>
-<span id="L12">target tail bound is assumed.</span>
-<span id="L13">-/</span>
-<span id="L14"></span>
-<span id="L15">noncomputable section</span>
-<span id="L16"></span>
-<span id="L17">namespace AutoSamplingTheory</span>
-<span id="L18">namespace TechnicalLemmas</span>
-<span id="L19">namespace Probability</span>
-<span id="L20">namespace EmpiricalCovariance</span>
+<span id="L3">import Mathlib.Analysis.InnerProductSpace.Adjoint</span>
+<span id="L4">import Mathlib.Algebra.BigOperators.Field</span>
+<span id="L5">import Mathlib.MeasureTheory.Integral.Bochner.Basic</span>
+<span id="L6">import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap</span>
+<span id="L7">import Mathlib.MeasureTheory.Measure.Typeclasses.Probability</span>
+<span id="L8">import Mathlib.MeasureTheory.Function.L2Space</span>
+<span id="L9"></span>
+<span id="L10">/-!</span>
+<span id="L11"># Finite-sample empirical covariance algebra</span>
+<span id="L12"></span>
+<span id="L13">This file exposes the deterministic and expectation-level interface needed</span>
+<span id="L14">immediately before a matrix concentration theorem: the empirical second-moment</span>
+<span id="L15">operator, the exact norm of a rank-one summand, the centered finite-sum</span>
+<span id="L16">decomposition, and the first two operator moments of unit-vector rank-one</span>
+<span id="L17">covariances. No concentration or target tail bound is assumed.</span>
+<span id="L18">-/</span>
+<span id="L19"></span>
+<span id="L20">noncomputable section</span>
 <span id="L21"></span>
-<span id="L22">open scoped BigOperators RealInnerProductSpace</span>
-<span id="L23"></span>
-<span id="L24">variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]</span>
-<span id="L25">variable {κ : Type*} [Fintype κ]</span>
+<span id="L22">namespace AutoSamplingTheory</span>
+<span id="L23">namespace TechnicalLemmas</span>
+<span id="L24">namespace Probability</span>
+<span id="L25">namespace EmpiricalCovariance</span>
 <span id="L26"></span>
-<span id="L27">/-- The normalized finite-sample second-moment operator. For an empty sample</span>
-<span id="L28">the inverse-cardinality convention makes this zero; concentration consumers</span>
-<span id="L29">normally assume `[Nonempty κ]`. -/</span>
-<span id="L30">def empiricalSecondMoment (sample : κ → E) : E →L[ℝ] E :=</span>
-<span id="L31">  (Fintype.card κ : ℝ)⁻¹ •</span>
-<span id="L32">    ∑ i, InnerProductSpace.rankOne ℝ (sample i) (sample i)</span>
-<span id="L33"></span>
-<span id="L34">/-- The operator norm of the rank-one second-moment operator `x xᵀ` is exactly</span>
-<span id="L35">`‖x‖²`. -/</span>
-<span id="L36">theorem norm_rankOne_self_eq_sq (x : E) :</span>
-<span id="L37">    ‖InnerProductSpace.rankOne ℝ x x‖ = ‖x‖ ^ 2 := by</span>
-<span id="L38">  simp [pow_two]</span>
+<span id="L27">open MeasureTheory</span>
+<span id="L28">open scoped BigOperators RealInnerProductSpace</span>
+<span id="L29"></span>
+<span id="L30">variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]</span>
+<span id="L31">variable {κ : Type*} [Fintype κ]</span>
+<span id="L32"></span>
+<span id="L33">/-- The normalized finite-sample second-moment operator. For an empty sample</span>
+<span id="L34">the inverse-cardinality convention makes this zero; concentration consumers</span>
+<span id="L35">normally assume `[Nonempty κ]`. -/</span>
+<span id="L36">def empiricalSecondMoment (sample : κ → E) : E →L[ℝ] E :=</span>
+<span id="L37">  (Fintype.card κ : ℝ)⁻¹ •</span>
+<span id="L38">    ∑ i, InnerProductSpace.rankOne ℝ (sample i) (sample i)</span>
 <span id="L39"></span>
-<span id="L40">/-- Deterministic preconcentration package for an empirical second moment.</span>
-<span id="L41"></span>
-<span id="L42">For a nonempty finite sample whose vectors have norm at most `B`, and a</span>
-<span id="L43">symmetric population operator with norm at most `B²`, this proves together:</span>
-<span id="L44"></span>
-<span id="L45">1. the exact normalized decomposition of the empirical error into centered</span>
-<span id="L46">   rank-one summands;</span>
-<span id="L47">2. symmetry of every centered summand;</span>
-<span id="L48">3. the operator-norm bound `2 B²` for every centered summand.</span>
-<span id="L49"></span>
-<span id="L50">These are the elementary obligations used to instantiate a standard matrix</span>
-<span id="L51">concentration theorem later; no probabilistic tail conclusion occurs here. -/</span>
-<span id="L52">theorem empiricalSecondMoment_preconcentration</span>
-<span id="L53">    [Nonempty κ]</span>
-<span id="L54">    (population : E →L[ℝ] E) (sample : κ → E) (B : ℝ)</span>
-<span id="L55">    (hB : 0 ≤ B)</span>
-<span id="L56">    (hpopulationSymmetric : LinearMap.IsSymmetric (population : E →ₗ[ℝ] E))</span>
-<span id="L57">    (hpopulationNorm : ‖population‖ ≤ B ^ 2)</span>
-<span id="L58">    (hsampleNorm : ∀ i, ‖sample i‖ ≤ B) :</span>
-<span id="L59">    (empiricalSecondMoment sample - population =</span>
-<span id="L60">      (Fintype.card κ : ℝ)⁻¹ •</span>
-<span id="L61">        ∑ i, (InnerProductSpace.rankOne ℝ (sample i) (sample i) - population)) ∧</span>
-<span id="L62">    (∀ i, LinearMap.IsSymmetric</span>
-<span id="L63">      ((InnerProductSpace.rankOne ℝ (sample i) (sample i) - population : E →L[ℝ] E) :</span>
-<span id="L64">        E →ₗ[ℝ] E)) ∧</span>
-<span id="L65">    (∀ i,</span>
-<span id="L66">      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖ ≤</span>
-<span id="L67">        2 * B ^ 2) := by</span>
-<span id="L68">  have hcard : (Fintype.card κ : ℝ) ≠ 0 := by</span>
-<span id="L69">    exact_mod_cast Fintype.card_ne_zero</span>
-<span id="L70">  constructor</span>
-<span id="L71">  · rw [Finset.sum_sub_distrib]</span>
-<span id="L72">    unfold empiricalSecondMoment</span>
-<span id="L73">    rw [smul_sub]</span>
-<span id="L74">    congr 1</span>
-<span id="L75">    rw [Finset.sum_const, ← Nat.cast_smul_eq_nsmul ℝ]</span>
-<span id="L76">    exact (inv_smul_smul₀ hcard population).symm</span>
-<span id="L77">  constructor</span>
-<span id="L78">  · intro i</span>
-<span id="L79">    exact (InnerProductSpace.isSymmetric_rankOne_self (sample i)).sub</span>
-<span id="L80">      hpopulationSymmetric</span>
-<span id="L81">  · intro i</span>
-<span id="L82">    have hsample_sq : ‖sample i‖ ^ 2 ≤ B ^ 2 :=</span>
-<span id="L83">      (sq_le_sq₀ (norm_nonneg (sample i)) hB).2 (hsampleNorm i)</span>
-<span id="L84">    calc</span>
-<span id="L85">      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖</span>
-<span id="L86">          ≤ ‖InnerProductSpace.rankOne ℝ (sample i) (sample i)‖ + ‖population‖ :=</span>
-<span id="L87">        norm_sub_le _ _</span>
-<span id="L88">      _ = ‖sample i‖ ^ 2 + ‖population‖ := by</span>
-<span id="L89">        rw [norm_rankOne_self_eq_sq]</span>
-<span id="L90">      _ ≤ B ^ 2 + B ^ 2 := add_le_add hsample_sq hpopulationNorm</span>
-<span id="L91">      _ = 2 * B ^ 2 := by ring</span>
-<span id="L92"></span>
-<span id="L93">end EmpiricalCovariance</span>
-<span id="L94">end Probability</span>
-<span id="L95">end TechnicalLemmas</span>
-<span id="L96">end AutoSamplingTheory</span>
+<span id="L40">/-- The operator norm of the rank-one second-moment operator `x xᵀ` is exactly</span>
+<span id="L41">`‖x‖²`. -/</span>
+<span id="L42">theorem norm_rankOne_self_eq_sq (x : E) :</span>
+<span id="L43">    ‖InnerProductSpace.rankOne ℝ x x‖ = ‖x‖ ^ 2 := by</span>
+<span id="L44">  simp [pow_two]</span>
+<span id="L45"></span>
+<span id="L46">/-- Deterministic preconcentration package for an empirical second moment.</span>
+<span id="L47"></span>
+<span id="L48">For a nonempty finite sample whose vectors have norm at most `B`, and a</span>
+<span id="L49">symmetric population operator with norm at most `B²`, this proves together:</span>
+<span id="L50"></span>
+<span id="L51">1. the exact normalized decomposition of the empirical error into centered</span>
+<span id="L52">   rank-one summands;</span>
+<span id="L53">2. symmetry of every centered summand;</span>
+<span id="L54">3. the operator-norm bound `2 B²` for every centered summand.</span>
+<span id="L55"></span>
+<span id="L56">These are the elementary obligations used to instantiate a standard matrix</span>
+<span id="L57">concentration theorem later; no probabilistic tail conclusion occurs here. -/</span>
+<span id="L58">theorem empiricalSecondMoment_preconcentration</span>
+<span id="L59">    [Nonempty κ]</span>
+<span id="L60">    (population : E →L[ℝ] E) (sample : κ → E) (B : ℝ)</span>
+<span id="L61">    (hB : 0 ≤ B)</span>
+<span id="L62">    (hpopulationSymmetric : LinearMap.IsSymmetric (population : E →ₗ[ℝ] E))</span>
+<span id="L63">    (hpopulationNorm : ‖population‖ ≤ B ^ 2)</span>
+<span id="L64">    (hsampleNorm : ∀ i, ‖sample i‖ ≤ B) :</span>
+<span id="L65">    (empiricalSecondMoment sample - population =</span>
+<span id="L66">      (Fintype.card κ : ℝ)⁻¹ •</span>
+<span id="L67">        ∑ i, (InnerProductSpace.rankOne ℝ (sample i) (sample i) - population)) ∧</span>
+<span id="L68">    (∀ i, LinearMap.IsSymmetric</span>
+<span id="L69">      ((InnerProductSpace.rankOne ℝ (sample i) (sample i) - population : E →L[ℝ] E) :</span>
+<span id="L70">        E →ₗ[ℝ] E)) ∧</span>
+<span id="L71">    (∀ i,</span>
+<span id="L72">      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖ ≤</span>
+<span id="L73">        2 * B ^ 2) := by</span>
+<span id="L74">  have hcard : (Fintype.card κ : ℝ) ≠ 0 := by</span>
+<span id="L75">    exact_mod_cast Fintype.card_ne_zero</span>
+<span id="L76">  constructor</span>
+<span id="L77">  · rw [Finset.sum_sub_distrib]</span>
+<span id="L78">    unfold empiricalSecondMoment</span>
+<span id="L79">    rw [smul_sub]</span>
+<span id="L80">    congr 1</span>
+<span id="L81">    rw [Finset.sum_const, ← Nat.cast_smul_eq_nsmul ℝ]</span>
+<span id="L82">    exact (inv_smul_smul₀ hcard population).symm</span>
+<span id="L83">  constructor</span>
+<span id="L84">  · intro i</span>
+<span id="L85">    exact (InnerProductSpace.isSymmetric_rankOne_self (sample i)).sub</span>
+<span id="L86">      hpopulationSymmetric</span>
+<span id="L87">  · intro i</span>
+<span id="L88">    have hsample_sq : ‖sample i‖ ^ 2 ≤ B ^ 2 :=</span>
+<span id="L89">      (sq_le_sq₀ (norm_nonneg (sample i)) hB).2 (hsampleNorm i)</span>
+<span id="L90">    calc</span>
+<span id="L91">      ‖InnerProductSpace.rankOne ℝ (sample i) (sample i) - population‖</span>
+<span id="L92">          ≤ ‖InnerProductSpace.rankOne ℝ (sample i) (sample i)‖ + ‖population‖ :=</span>
+<span id="L93">        norm_sub_le _ _</span>
+<span id="L94">      _ = ‖sample i‖ ^ 2 + ‖population‖ := by</span>
+<span id="L95">        rw [norm_rankOne_self_eq_sq]</span>
+<span id="L96">      _ ≤ B ^ 2 + B ^ 2 := add_le_add hsample_sq hpopulationNorm</span>
+<span id="L97">      _ = 2 * B ^ 2 := by ring</span>
+<span id="L98"></span>
+<span id="L99">private theorem rankOne_self_sq_of_norm_one</span>
+<span id="L100">    [CompleteSpace E] (x : E) (hx : ‖x‖ = 1) :</span>
+<span id="L101">    (InnerProductSpace.rankOne ℝ x x) ^ (2 : ℕ) =</span>
+<span id="L102">      InnerProductSpace.rankOne ℝ x x := by</span>
+<span id="L103">  have hidem : IsIdempotentElem (InnerProductSpace.rankOne ℝ x x) :=</span>
+<span id="L104">    (InnerProductSpace.isStarProjection_rankOne_self hx).isIdempotentElem</span>
+<span id="L105">  simpa [IsIdempotentElem, pow_two] using hidem</span>
+<span id="L106"></span>
+<span id="L107">/-- Expectation-level covariance identities for a unit-vector random variable.</span>
+<span id="L108"></span>
+<span id="L109">If `X` takes values on the unit sphere and</span>
+<span id="L110">`C = ∫ ω, X(ω) X(ω)ᵀ ∂μ`, then this theorem proves together that</span>
+<span id="L111"></span>
+<span id="L112">1. `C` is self-adjoint;</span>
+<span id="L113">2. `‖C‖ ≤ 1`;</span>
+<span id="L114">3. `∫ (X Xᵀ - C)² = C - C²`;</span>
+<span id="L115">4. `‖C - C²‖ ≤ 2‖C‖`.</span>
+<span id="L116"></span>
+<span id="L117">This is the complete model-independent moment calculation used before a</span>
+<span id="L118">self-adjoint matrix Bernstein theorem. Independence, a matrix moment-generating</span>
+<span id="L119">function estimate, and every probability tail bound remain outside this result. -/</span>
+<span id="L120">theorem unitRankOneCovariance_momentPackage</span>
+<span id="L121">    [CompleteSpace E]</span>
+<span id="L122">    {Omega : Type*} [MeasurableSpace Omega]</span>
+<span id="L123">    {mu : Measure Omega} [IsProbabilityMeasure mu]</span>
+<span id="L124">    (sample : Omega → E) (population : E →L[ℝ] E)</span>
+<span id="L125">    (hsampleUnit : ∀ omega, ‖sample omega‖ = 1)</span>
+<span id="L126">    (hRankOneIntegrable :</span>
+<span id="L127">      Integrable (fun omega =&gt;</span>
+<span id="L128">        InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) mu)</span>
+<span id="L129">    (hPopulation :</span>
+<span id="L130">      ∫ omega, InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu =</span>
+<span id="L131">        population) :</span>
+<span id="L132">    IsSelfAdjoint population ∧</span>
+<span id="L133">      ‖population‖ ≤ 1 ∧</span>
+<span id="L134">      (∫ omega,</span>
+<span id="L135">          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L136">            population) ^ (2 : ℕ) ∂mu =</span>
+<span id="L137">        population - population ^ (2 : ℕ)) ∧</span>
+<span id="L138">      ‖population - population ^ (2 : ℕ)‖ ≤ 2 * ‖population‖ := by</span>
+<span id="L139">  let A := E →L[ℝ] E</span>
+<span id="L140">  have hSelfAdjoint : IsSelfAdjoint population := by</span>
+<span id="L141">    rw [ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric]</span>
+<span id="L142">    intro x y</span>
+<span id="L143">    have hx : Integrable</span>
+<span id="L144">        (fun omega =&gt;</span>
+<span id="L145">          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) x) mu :=</span>
+<span id="L146">      (ContinuousLinearMap.apply ℝ E x).integrable_comp hRankOneIntegrable</span>
+<span id="L147">    have hy : Integrable</span>
+<span id="L148">        (fun omega =&gt;</span>
+<span id="L149">          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) y) mu :=</span>
+<span id="L150">      (ContinuousLinearMap.apply ℝ E y).integrable_comp hRankOneIntegrable</span>
+<span id="L151">    rw [← hPopulation]</span>
+<span id="L152">    calc</span>
+<span id="L153">      inner ℝ ((∫ omega,</span>
+<span id="L154">          InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) x) y =</span>
+<span id="L155">          inner ℝ (∫ omega,</span>
+<span id="L156">            (InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) x ∂mu) y := by</span>
+<span id="L157">        rw [ContinuousLinearMap.integral_apply hRankOneIntegrable]</span>
+<span id="L158">      _ = inner ℝ y (∫ omega,</span>
+<span id="L159">            (InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) x ∂mu) :=</span>
+<span id="L160">        real_inner_comm _ _</span>
+<span id="L161">      _ = ∫ omega,</span>
+<span id="L162">            inner ℝ y</span>
+<span id="L163">              ((InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) x) ∂mu :=</span>
+<span id="L164">        (integral_inner hx y).symm</span>
+<span id="L165">      _ = ∫ omega,</span>
+<span id="L166">            inner ℝ x</span>
+<span id="L167">              ((InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) y) ∂mu := by</span>
+<span id="L168">        apply integral_congr_ae</span>
+<span id="L169">        filter_upwards with omega</span>
+<span id="L170">        calc</span>
+<span id="L171">          inner ℝ y</span>
+<span id="L172">              ((InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) x) =</span>
+<span id="L173">              inner ℝ</span>
+<span id="L174">                ((InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) x) y :=</span>
+<span id="L175">            real_inner_comm _ _</span>
+<span id="L176">          _ = inner ℝ x</span>
+<span id="L177">                ((InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) y) :=</span>
+<span id="L178">            (InnerProductSpace.isSymmetric_rankOne_self</span>
+<span id="L179">              (𝕜 := ℝ) (sample omega)) x y</span>
+<span id="L180">      _ = inner ℝ x (∫ omega,</span>
+<span id="L181">            (InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) y ∂mu) :=</span>
+<span id="L182">        integral_inner hy x</span>
+<span id="L183">      _ = inner ℝ x ((∫ omega,</span>
+<span id="L184">          InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) y) := by</span>
+<span id="L185">        rw [ContinuousLinearMap.integral_apply hRankOneIntegrable]</span>
+<span id="L186">  have hNorm : ‖population‖ ≤ 1 := by</span>
+<span id="L187">    rw [← hPopulation]</span>
+<span id="L188">    calc</span>
+<span id="L189">      ‖∫ omega,</span>
+<span id="L190">          InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu‖ ≤</span>
+<span id="L191">          1 * mu.real Set.univ := by</span>
+<span id="L192">        apply norm_integral_le_of_norm_le_const</span>
+<span id="L193">        filter_upwards with omega</span>
+<span id="L194">        rw [norm_rankOne_self_eq_sq, hsampleUnit omega]</span>
+<span id="L195">        norm_num</span>
+<span id="L196">      _ = 1 := by simp</span>
+<span id="L197">  have hright : Integrable</span>
+<span id="L198">      (fun omega =&gt;</span>
+<span id="L199">        InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population) mu :=</span>
+<span id="L200">    ((ContinuousLinearMap.mul ℝ A).flip population).integrable_comp</span>
+<span id="L201">      hRankOneIntegrable</span>
+<span id="L202">  have hleft : Integrable</span>
+<span id="L203">      (fun omega =&gt;</span>
+<span id="L204">        population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) mu :=</span>
+<span id="L205">    (ContinuousLinearMap.mul ℝ A population).integrable_comp</span>
+<span id="L206">      hRankOneIntegrable</span>
+<span id="L207">  have hconst : Integrable (fun _ : Omega =&gt; population ^ (2 : ℕ)) mu :=</span>
+<span id="L208">    integrable_const _</span>
+<span id="L209">  have hSecondMoment :</span>
+<span id="L210">      ∫ omega,</span>
+<span id="L211">          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L212">            population) ^ (2 : ℕ) ∂mu =</span>
+<span id="L213">        population - population ^ (2 : ℕ) := by</span>
+<span id="L214">    calc</span>
+<span id="L215">      (∫ omega,</span>
+<span id="L216">          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L217">            population) ^ (2 : ℕ) ∂mu) =</span>
+<span id="L218">          ∫ omega,</span>
+<span id="L219">            InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L220">              InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population -</span>
+<span id="L221">              population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) +</span>
+<span id="L222">              population ^ (2 : ℕ) ∂mu := by</span>
+<span id="L223">        apply integral_congr_ae</span>
+<span id="L224">        filter_upwards with omega</span>
+<span id="L225">        have hp := rankOne_self_sq_of_norm_one (sample omega) (hsampleUnit omega)</span>
+<span id="L226">        calc</span>
+<span id="L227">          (InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L228">              population) ^ (2 : ℕ) =</span>
+<span id="L229">              (InnerProductSpace.rankOne ℝ (sample omega) (sample omega)) ^ (2 : ℕ) -</span>
+<span id="L230">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population -</span>
+<span id="L231">                population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) +</span>
+<span id="L232">                population ^ (2 : ℕ) := by</span>
+<span id="L233">            noncomm_ring</span>
+<span id="L234">          _ = _ := by rw [hp]</span>
+<span id="L235">      _ = (∫ omega,</span>
+<span id="L236">            InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) -</span>
+<span id="L237">            (∫ omega,</span>
+<span id="L238">              InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population ∂mu) -</span>
+<span id="L239">            (∫ omega,</span>
+<span id="L240">              population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) +</span>
+<span id="L241">            (∫ _ : Omega, population ^ (2 : ℕ) ∂mu) := by</span>
+<span id="L242">        have hthree :</span>
+<span id="L243">            (∫ omega,</span>
+<span id="L244">              InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L245">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population -</span>
+<span id="L246">                population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) =</span>
+<span id="L247">              (∫ omega,</span>
+<span id="L248">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) -</span>
+<span id="L249">              (∫ omega,</span>
+<span id="L250">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population ∂mu) -</span>
+<span id="L251">              (∫ omega,</span>
+<span id="L252">                population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) := by</span>
+<span id="L253">          have houter := integral_sub (hRankOneIntegrable.sub hright) hleft</span>
+<span id="L254">          have hinner := integral_sub hRankOneIntegrable hright</span>
+<span id="L255">          calc</span>
+<span id="L256">            (∫ omega,</span>
+<span id="L257">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L258">                  InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population -</span>
+<span id="L259">                  population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) =</span>
+<span id="L260">                (∫ omega,</span>
+<span id="L261">                  InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L262">                    InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population ∂mu) -</span>
+<span id="L263">                (∫ omega,</span>
+<span id="L264">                  population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) := by</span>
+<span id="L265">              simpa only [Pi.sub_apply] using houter</span>
+<span id="L266">            _ = _ := by rw [hinner]</span>
+<span id="L267">        have hadd := integral_add</span>
+<span id="L268">          (hRankOneIntegrable.sub hright |&gt;.sub hleft) hconst</span>
+<span id="L269">        calc</span>
+<span id="L270">          (∫ omega,</span>
+<span id="L271">              InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L272">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population -</span>
+<span id="L273">                population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) +</span>
+<span id="L274">                population ^ (2 : ℕ) ∂mu) =</span>
+<span id="L275">              (∫ omega,</span>
+<span id="L276">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) -</span>
+<span id="L277">                  InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population -</span>
+<span id="L278">                  population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) +</span>
+<span id="L279">              (∫ _ : Omega, population ^ (2 : ℕ) ∂mu) := by</span>
+<span id="L280">            simpa only [Pi.add_apply, Pi.sub_apply] using hadd</span>
+<span id="L281">          _ = _ := by rw [hthree]</span>
+<span id="L282">      _ = population - population ^ (2 : ℕ) := by</span>
+<span id="L283">        have hrightInt :</span>
+<span id="L284">            (∫ omega,</span>
+<span id="L285">              InnerProductSpace.rankOne ℝ (sample omega) (sample omega) * population ∂mu) =</span>
+<span id="L286">              (∫ omega,</span>
+<span id="L287">                InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) *</span>
+<span id="L288">                population := by</span>
+<span id="L289">          simpa [A, mul_apply_eq_comp] using</span>
+<span id="L290">            ContinuousLinearMap.integral_comp_comm</span>
+<span id="L291">              ((ContinuousLinearMap.mul ℝ A).flip population)</span>
+<span id="L292">              hRankOneIntegrable</span>
+<span id="L293">        have hleftInt :</span>
+<span id="L294">            (∫ omega,</span>
+<span id="L295">              population * InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) =</span>
+<span id="L296">              population *</span>
+<span id="L297">                (∫ omega,</span>
+<span id="L298">                  InnerProductSpace.rankOne ℝ (sample omega) (sample omega) ∂mu) := by</span>
+<span id="L299">          simpa [A, mul_apply_eq_comp] using</span>
+<span id="L300">            ContinuousLinearMap.integral_comp_comm</span>
+<span id="L301">              (ContinuousLinearMap.mul ℝ A population) hRankOneIntegrable</span>
+<span id="L302">        rw [hPopulation, hrightInt, hleftInt]</span>
+<span id="L303">        simp [hPopulation]</span>
+<span id="L304">        noncomm_ring</span>
+<span id="L305">  have hVariance :</span>
+<span id="L306">      ‖population - population ^ (2 : ℕ)‖ ≤ 2 * ‖population‖ := by</span>
+<span id="L307">    calc</span>
+<span id="L308">      ‖population - population ^ (2 : ℕ)‖ ≤</span>
+<span id="L309">          ‖population‖ + ‖population ^ (2 : ℕ)‖ := norm_sub_le _ _</span>
+<span id="L310">      _ ≤ ‖population‖ + ‖population‖ ^ (2 : ℕ) := by</span>
+<span id="L311">        gcongr</span>
+<span id="L312">        exact norm_pow_le&#x27; _ (by norm_num)</span>
+<span id="L313">      _ ≤ 2 * ‖population‖ := by</span>
+<span id="L314">        nlinarith [norm_nonneg population]</span>
+<span id="L315">  exact ⟨hSelfAdjoint, hNorm, hSecondMoment, hVariance⟩</span>
+<span id="L316"></span>
+<span id="L317">end EmpiricalCovariance</span>
+<span id="L318">end Probability</span>
+<span id="L319">end TechnicalLemmas</span>
+<span id="L320">end AutoSamplingTheory</span>
 </pre></main>
       <footer>
         <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>

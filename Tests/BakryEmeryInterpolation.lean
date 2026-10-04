@@ -19,4 +19,15 @@ example {rate s t : ℝ} (hst : s ≤ t) :
     simp
   · exact hst
 
+example {interpolation interpolation' : ℝ → ℝ} {rate s t : ℝ}
+    (hst : s ≤ t)
+    (hinterpolation : ∀ u ∈ Icc s t,
+      HasDerivAt interpolation (interpolation' u) u)
+    (hgrowth : ∀ u ∈ Ioo s t,
+      rate * interpolation u ≤ interpolation' u) :
+    interpolation s ≤
+      interpolation t * Real.exp (-rate * (t - s)) :=
+  backward_endpoint_contraction_of_growth_on_Icc
+    hst hinterpolation hgrowth
+
 end AutoSamplingTheory.Tests.BakryEmeryInterpolation

@@ -1,4 +1,5 @@
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
+import Mathlib.Analysis.Calculus.Deriv.MeanValue
 
 /-!
 # Scalar Bakry--Émery interpolation
@@ -77,6 +78,55 @@ theorem backward_interpolation_contraction_of_growth
           Real.exp (-rate * (t - s)) := by
       rw [mul_assoc, hinverse, mul_one]
     _ ≤ interpolation t * Real.exp (-rate * (t - s)) := hscaled
+
+/-- Interval-scoped Bakry--Émery comparison.
+
+If an interpolation has derivative at every point of `[s, t]` and its
+derivative dominates `rate` times the interpolation on `(s, t)`, then reading
+the endpoints in the backward direction gives exponential contraction.  The
+statement asks for no sign condition on the interpolation or on `rate` and
+allows the degenerate interval `s = t`. -/
+theorem backward_endpoint_contraction_of_growth_on_Icc
+    {interpolation interpolation' : ℝ → ℝ} {rate s t : ℝ}
+    (hst : s ≤ t)
+    (hinterpolation : ∀ u ∈ Icc s t,
+      HasDerivAt interpolation (interpolation' u) u)
+    (hgrowth : ∀ u ∈ Ioo s t,
+      rate * interpolation u ≤ interpolation' u) :
+    interpolation s ≤
+      interpolation t * Real.exp (-rate * (t - s)) := by
+  let weighted : ℝ → ℝ := fun u =>
+    interpolation u * Real.exp (-rate * (u - s))
+  have hweighted : ∀ u ∈ Icc s t,
+      HasDerivAt weighted
+        ((interpolation' u - rate * interpolation u) *
+          Real.exp (-rate * (u - s))) u := by
+    intro u hu
+    have hinner :
+        HasDerivAt (fun v : ℝ => -rate * (v - s)) (-rate) u := by
+      simpa using ((hasDerivAt_id u).sub_const s).const_mul (-rate)
+    have hexp := (Real.hasDerivAt_exp (-rate * (u - s))).comp u hinner
+    have hmul := (hinterpolation u hu).mul hexp
+    change HasDerivAt
+      (fun v => interpolation v * Real.exp (-rate * (v - s)))
+      ((interpolation' u - rate * interpolation u) *
+        Real.exp (-rate * (u - s))) u
+    exact hmul.congr_deriv (by
+      simp only [Function.comp_apply]
+      ring)
+  have hmono : MonotoneOn weighted (Icc s t) := by
+    apply monotoneOn_of_deriv_nonneg (convex_Icc s t)
+    · exact continuousOn_of_forall_continuousAt fun u hu =>
+        (hweighted u hu).continuousAt
+    · intro u hu
+      exact (hweighted u (interior_subset hu)).differentiableAt.differentiableWithinAt
+    · intro u hu
+      rw [(hweighted u (interior_subset hu)).deriv]
+      exact mul_nonneg (sub_nonneg.mpr
+        (hgrowth u (by simpa only [interior_Icc] using hu)))
+        (Real.exp_nonneg _)
+  have hend := hmono ⟨le_rfl, hst⟩ ⟨hst, le_rfl⟩ hst
+  simpa only [weighted, sub_self, mul_zero, Real.exp_zero, mul_one] using hend
 
 end
 

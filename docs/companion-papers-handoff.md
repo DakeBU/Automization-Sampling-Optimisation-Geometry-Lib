@@ -1,5 +1,43 @@
 # Companion-paper formalization handoff
 
+## Actual posterior score and covariance identities — 2026-10-06
+
+`ASTIS-SA-20261006-GaussianConvolutionDerivatives` extends the same canonical
+Gaussian convolution calculus to the actual selected posterior R_y. Probability
+and identity L2 are derived from Gaussian damping for arbitrary probability
+input, without prior moments. Actual first derivative of U=-log(C Z) is
+eta^-1 inner(y-E_R X,v); actual second derivative is eta^-1 inner(v,w)
+minus eta^-2 covarianceBilin(R_y)(v,w). Any constant C>0 cancels in derivatives;
+only the true Gaussian prefactor is claimed to give the probability density.
+Finite-dimensional Borel real Hilbert spaces include dimension zero.
+
+The genuine source Test derives original Gibbs probability from C2/positive
+lower Hessian, applies these formulas to the source unnormalized V_eta via
+the exact U_eta=V_eta+log Z_V, and joins the same Gaussian augmentation's
+actual backward Markov/disintegration kernel. Old public C2 statement and
+anonymous reconstruction are unchanged; fresh whole-module old/new source
+reviews and separately reviewed header-only exposition correction retained.
+
+Focused3707, full independent mathematics, zero-dimensional/singular-input
+checks, anonymous decoder and two fresh anti-anchored source reviews PASS;
+standard3 axioms only. Exact independently VERIFIED proof `dcc54d0f5054384a4db273aaf157685e867be124`:
+`runs/20261006-companion-priority/gaussian-convolution-derivatives/verified.json`. Original sole root stabilization/PR313 lane;
+Tests import only, no new Measure/ExampleCases aggregate change.
+Shared aggregate/reader/graph checks pending. Goal remains active.
+
+Next dependency: genuine directional covariance lower bound from upper
+Hessian and actual full-space integration by parts, separately from the
+missing Brascamp-Lieb upper-bound producer. Exact source/API audit:
+`research-wiki/cited-results/SPHMC_4_1_covariance_dependency_audit.md`.
+Quantitative smoothed Hessian bounds, higher regularity, invariance/global
+errors, stochastic Khat/Kbar/history/actual expected work, Wp/proxy-warmness,
+PBPS process/nonexplosion/hypocoercivity/implementation and both full main
+results/composition remain open. TV does not transfer unbounded cost.
+Rendered/copy/download acceptance remains open. The preceding source Gibbs
+head23a6918c5f2a25abf7a7fddf83fcb0a4095ae2d0 passed all four remote workflows;
+its exact remote receipt does not certify any later head.
+
+
 ## Actual source smoothed Gibbs potential and preserved partition — 2026-10-06
 
 `ASTIS-SA-20261006-SPHMCSmoothedGibbsPotential` joins the genuine positive

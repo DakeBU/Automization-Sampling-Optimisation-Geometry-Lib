@@ -1,0 +1,42 @@
+smoothed_gibbs_potential
+  (Mathlib.Meta.NormNum.isNat_lt_true (Mathlib.Meta.NormNum.isNat_ofNat ℝ Nat.cast_zero)
+    (Mathlib.Meta.NormNum.isNat_ofNat ℝ Nat.cast_one) (Eq.refl false))
+  contDiff_const
+  (fun x v =>
+    have hv := Subsingleton.elim v 0;
+    of_eq_true
+      (Eq.trans
+        (congr
+          (congrArg LE.le
+            (Eq.trans
+              (congrArg (HMul.hMul 1)
+                (Eq.trans (congrFun' (congrArg HPow.hPow (Eq.trans (congrArg norm hv) norm_zero)) 2)
+                  (zero_pow (of_eq_true (Eq.trans (congrArg Not (OfNat.ofNat_ne_zero._simp_1 2)) not_false_eq_true)))))
+              (mul_zero 1)))
+          (Eq.trans
+            (congr
+              (congrArg DFunLike.coe
+                (Eq.trans
+                  (congr
+                    (congrArg DFunLike.coe
+                      (Eq.trans (congrFun' (congrArg (fderiv ℝ) (fderiv_fun_const c)) x) (congrFun fderiv_zero x)))
+                    hv)
+                  (zero_apply 0)))
+              hv)
+            (zero_apply 0)))
+        (Std.le_refl._simp_1 0)))
+  hη : have ZV := ∫ (x : E0), Real.exp (-c);
+have μ := ℙ.tilted fun x => -c;
+have C := (√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E0;
+have A := fun y => C * ∫ (x : E0), Real.exp (-c - ‖y - x‖ ^ 2 / (2 * η));
+0 < ZV ∧
+  IsProbabilityMeasure μ ∧
+    (Measure.map (fun p => p.1 + √η • p.2) (μ.prod (stdGaussian E0)) =
+        ℙ.withDensity fun y => ENNReal.ofReal (Real.exp (- -Real.log (A y)) / ZV)) ∧
+      Integrable A ℙ ∧
+        ∫ (y : E0), A y = ZV ∧
+          (Measure.map (fun p => p.1 + √η • p.2) (μ.prod (stdGaussian E0)) = ℙ.tilted fun y => - -Real.log (A y)) ∧
+            (∀ (y : E0), 0 < A y) ∧
+              (ContDiff ℝ 2 fun y => -Real.log (A y)) ∧
+                ∀ (y : E0),
+                  -Real.log (C * ∫ (x : E0), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂μ) = -Real.log (A y) + Real.log ZV

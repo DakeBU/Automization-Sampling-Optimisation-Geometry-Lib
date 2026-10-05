@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-da4ad7d53e7667d0",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261006",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:smoothed-gibbs-potential",
+    "anchor": "arXiv:2609.06906v1 equation1.1 (HTML135-137), Section3.1 unnormalized smoothing definition (HTML237), Section4.1 setup (HTML403-412)",
+    "original_text": "Attributed source prerequisite restatement:\nE is a finite-dimensional real inner-product space equipped with its Borel measurable space, including dimension zero. V:E->R is globally C2. alpha>0, eta>0, and for every x,v, alpha norm(v)^2<=D2V(x)[v,v]. The source upper Hessian bound and eta upper cap are not required for this normalization/regularity adapter.\nZ_V=integral exp(-V(x))dx, mu=volume.tilted(-V), C_eta=(sqrt(2*pi*eta))^(-dim E), A_eta(y)=C_eta integral exp(-V(x)-norm(y-x)^2/(2eta))dx, and the SOURCE potential is V_eta(y)=-log A_eta(y). These are actual functions and measures, not supplied normalized Gibbs certificates.\nOriginal Gibbs integrability, positive Z_V, mu probability, actual Gaussian add-noise density, integrable A_eta and preserved partition are derived. The normalized probability-density potential is U_eta=-log(C_eta integral exp(-norm(y-x)^2/(2eta))dmu(x)); the exact identity U_eta=V_eta+log Z_V is a conclusion. No moments, minimizer, input law, conditional representative, smoothed regularity or smoothed Hessian certificate is passed.\nThe original Gibbs mass Z_V is strictly positive and mu is a probability measure. The actual Gaussian add-noise law equals volume.withDensity(ofReal(exp(-V_eta)/Z_V)). The source unnormalized weight A_eta is integrable with integral exactly Z_V, so this same law is volume.tilted(-V_eta). A_eta is positive everywhere, V_eta is globally C2, and at every y the normalized negative-log density U_eta(y)=V_eta(y)+log Z_V.\nActual source unnormalized smoothed potential V_eta, positive finite partition Z_V preserved by smoothing, genuine original and smoothed Gibbs probability laws, normalized U_eta=V_eta+log Z_V and source V_eta C2. No posterior score/covariance, curvature/higher derivative inequalities, exact-flow stationarity, numerical accuracy/stochastic errors/history/work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost.",
+    "text_sha256": "3eb21694486fa11bdff238b834d3e396119c90c9069ebbb6722f397921decd0a"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedGibbsPotential.lean",
+    "statement": "{V : E → ℝ} {α η : ℝ} (hα : 0 < α) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, α*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v) (hη : 0 < η) :\n    let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    0 < ZV ∧ IsProbabilityMeasure μ ∧\n      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n        (volume : Measure E).withDensity\n          (fun y => ENNReal.ofReal (Real.exp (-(-Real.log (A y)))/ZV)) ∧\n      Integrable A (volume : Measure E) ∧\n      (∫ y, A y ∂(volume : Measure E)) = ZV ∧\n      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n        (volume : Measure E).tilted (fun y => -(-Real.log (A y))) ∧\n      (∀ y, 0 < A y) ∧\n      ContDiff ℝ 2 (fun y => -Real.log (A y)) ∧\n      ∀ y, -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ) =\n        -Real.log (A y)+Real.log ZV",
+    "statement_sha256": "f68b8ddbf6cc5c1dcb0cbbaabab76586c3aaf6f5206b4392a10ce541c0aac562",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space with its Borel measurable structure,including dimension zero. Let V:E->R be globally twice continuously Frechet differentiable,and let alpha,eta be strictly positive real numbers. Assume the genuine Hessian lower bound\n  alpha||v||^2 <= D^2 V(x)[v,v]\nfor every x,v in E. No upper Hessian bound is assumed.\nWrite volume for canonical Lebesgue measure on E,d=dim_R E,and define the actual real integral,measure,normalizer and unnormalized convolution by\n  ZV=integral_E exp(-V(x)) dvolume(x),\n  mu=volume.tilted(x -> -V(x)),\n  C=((sqrt(2 pi eta))^(-1))^d,\n  A(y)=C integral_E exp(-V(x)-||y-x||^2/(2 eta)) dvolume(x).\nThe tilt mu means the measure volume.withDensity(x -> ENNReal.ofReal(exp(-V(x))/ZV)). All real integrals are Bochner integrals. Let G be the standard centered identity-covariance Gaussian probability measure on E. Then the following nine conclusions hold simultaneously:\n  1. ZV>0.\n  2. mu is a probability measure.\n  3. The independent-noise pushforward satisfies\n       (mu x G)_*((x,g) -> x+sqrt(eta)g)\n         =volume.withDensity(y -> ENNReal.ofReal(exp(-(-log(A(y))))/ZV)).\n  4. A:E->R is Bochner integrable with respect to volume.\n  5. integral_E A(y) dvolume(y)=ZV.\n  6. The same pushforward measure also satisfies\n       (mu x G)_*((x,g) -> x+sqrt(eta)g)\n         =volume.tilted(y -> -(-log(A(y)))).\n  7. A(y)>0 for every y in E.\n  8. The actual function F(y)=-log(A(y)) is globally twice continuously Frechet differentiable.\n  9. For every y in E,\n       -log(C integral_E exp(-||y-x||^2/(2 eta)) dmu(x))\n         =-log(A(y))+log(ZV).\nThus the exact negative-log unnormalized convolution is F=-log A. The output density in conclusion 3 is exp(-F)/ZV;pointwise positivity makes exp(-F)=A. Conclusion 6 is tilt by -F,not by F;its tilt normalizer is the integral of exp(-F),which conclusion 5 identifies with ZV. The normalized negative-log convolution in conclusion 9 differs from F by the additive constant +log ZV.\nThe input mu is fixed by the defined Lebesgue tilt of -V,not an arbitrary pre-supplied probability measure. The Gaussian vector is independent under the displayed product law,with noise scale sqrt(eta). All quantities are the actual displayed functions and measures,not certificates or chosen density representatives. Positive ZV,probability normalization,convolution normalization,pointwise positivity and global C2 regularity are conclusions rather than extra hypotheses.\nNo finite-moment,integrability or normalization premise is added for exp(-V),no separate coercivity/minimizer assumption is supplied,and no positive-dimension or eta upper-bound restriction appears. The statement does not assert an upper or lower Hessian bound for F,a convexity-transfer estimate,a gradient bound,analyticity,higher smoothness,an invariant law or a numerical sampling algorithm.",
+    "text_sha256": "89c6183b3a06a51b1258214417451347e41ce995191cafe9f1c1ddc41b872018",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_packet_sha256": "5e624ef80871411b38cdc05cb37f19a431644b6301017352048d4f3e905827b9",
+    "decoder_run_sha256": "a02991675c8ab67944681a4628e47f84f031077a50df73217012969a1dd3ed36",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "68fe0260fae7cd5509b7a6fd75de3a1775d801610c82e09ee9caaa8b27b0b458",
+  "candidate_publication_context": {
+    "file": "bba8bc9656b2df2c6653478b0b47b7573137b4a3712a0c5a631bed3fee1570ce",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.Tactic\n\n/-!\n# The actual source smoothed Gibbs potential\n\nChen, Chewi, Lu and Zhang, arXiv:2609.06906v1, equation1.1 and Section3.1:\n<https://arxiv.org/html/2609.06906v1#S3.SS1>.\nThe source defines the UNNORMALIZED convolution exp(-V_eta). Its partition is\nderived to equal the original positive Z_V, and the actual Gaussian add-noise\nlaw is the Gibbs law of this source potential. The normalized negative-log\ndensity differs by log Z_V; no literal equality of the two potentials is used.\nOnly the genuine positive lower Hessian and source C2 are required. The source\nupper Hessian and eta cap are not needed, including the zero-dimensional case.\nScore/covariance, curvature/higher estimates, stationarity, accuracy, query work\nand both main/composition results remain separate.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential\n\nopen MeasureTheory ProbabilityTheory\nnoncomputable section\nset_option backward.isDefEq.respectTransparency false\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- The actual source unnormalized smoothed Gibbs potential has preserved\npartition and genuine smoothed Gibbs law. Regularity and normalization are\nderived from the original Hessian hypotheses, not supplied certificates. -/\ntheorem smoothed_gibbs_potential {V : E → ℝ} {α η : ℝ} (hα : 0 < α) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, α*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v) (hη : 0 < η) :\n    let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    0 < ZV ∧ IsProbabilityMeasure μ ∧\n      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n        (volume : Measure E).withDensity\n          (fun y => ENNReal.ofReal (Real.exp (-(-Real.log (A y)))/ZV)) ∧\n      Integrable A (volume : Measure E) ∧\n      (∫ y, A y ∂(volume : Measure E)) = ZV ∧\n      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n        (volume : Measure E).tilted (fun y => -(-Real.log (A y))) ∧\n      (∀ y, 0 < A y) ∧\n      ContDiff ℝ 2 (fun y => -Real.log (A y)) ∧\n      ∀ y, -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ) =\n        -Real.log (A y)+Real.log ZV := by\n  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n    hα (hV.differentiable (by norm_num))\n    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV hH)\n  have hZ : 0 < ZV := integral_exp_pos hi\n  have : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hi\n  have hc := AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_potential_c2 μ hη\n  have he (y : E) : C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ = A y/ZV := by\n    rw [show μ = (volume : Measure E).tilted (fun x => -V x) from rfl,integral_tilted]\n    dsimp only [A,ZV]\n    rw [show (C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E))/\n        (∫ x, Real.exp (-V x) ∂(volume : Measure E)) =\n      C*((∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E))/\n        (∫ x, Real.exp (-V x) ∂(volume : Measure E))) by ring]\n    congr 1\n    rw [← integral_div]\n    apply integral_congr_ae\n    filter_upwards with x\n    rw [smul_eq_mul,show Real.exp (-V x-‖y-x‖^2/(2*η)) =\n      Real.exp (-V x)*Real.exp (-‖y-x‖^2/(2*η)) by\n        rw [show -V x-‖y-x‖^2/(2*η) = -V x+(-‖y-x‖^2/(2*η)) by ring,Real.exp_add]]\n    ring\n  have hA (y : E) : 0 < A y :=\n    (div_pos_iff_of_pos_right hZ).mp (he y ▸ hc.2.1 y)\n  have hv (y : E) : -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ) =\n      -Real.log (A y)+Real.log ZV := by\n    rw [he,Real.log_div (hA y).ne' hZ.ne']; ring\n  have hlaw : (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n      (volume : Measure E).withDensity (fun y => ENNReal.ofReal (A y/ZV)) := by\n    convert hc.1 using 1\n    congr 1\n    funext y\n    exact congrArg ENNReal.ofReal (he y).symm\n  have hDcont : Continuous (fun y => A y/ZV) := by\n    have hefun : (fun y => A y/ZV) =\n        (fun y => C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ) :=\n      funext (fun y => (he y).symm)\n    rw [hefun]\n    exact continuous_const.mul hc.2.2.1.continuous\n  have hnonneg : ∀ y, 0 ≤ A y/ZV := fun y => (div_pos (hA y) hZ).le\n  have : IsProbabilityMeasure ((μ.prod (stdGaussian E)).map\n      (fun p => p.1+Real.sqrt η • p.2)) := Measure.isProbabilityMeasure_map (by fun_prop)\n  have hm : ∫⁻ y, ENNReal.ofReal (A y/ZV) ∂(volume : Measure E) = 1 := by\n    have hm := (congrArg (fun m : Measure E => m Set.univ) hlaw).symm\n    simpa only [withDensity_apply _ MeasurableSet.univ,setLIntegral_univ,\n      measure_univ] using hm\n  have hiD : Integrable (fun y => A y/ZV) (volume : Measure E) :=\n    (lintegral_ofReal_ne_top_iff_integrable hDcont.aestronglyMeasurable\n      (Filter.Eventually.of_forall hnonneg)).mp (by rw [hm]; exact ENNReal.one_ne_top)\n  have hIntD : (∫ y, A y/ZV ∂(volume : Measure E)) = 1 := by\n    have hp := ofReal_integral_eq_lintegral_ofReal hiD (Filter.Eventually.of_forall hnonneg)\n    rw [hm] at hp\n    have ht := congrArg ENNReal.toReal hp\n    simpa only [ENNReal.toReal_ofReal (integral_nonneg hnonneg),ENNReal.toReal_one] using ht\n  have hiA : Integrable A (volume : Measure E) := by\n    convert hiD.mul_const ZV using 1\n    funext y\n    exact (div_mul_cancel₀ (A y) hZ.ne').symm\n  have hIntA : (∫ y, A y ∂(volume : Measure E)) = ZV := by\n    rw [integral_div] at hIntD\n    simpa only [one_mul] using (div_eq_iff hZ.ne').mp hIntD\n  have hTilt : (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n      (volume : Measure E).tilted (fun y => -(-Real.log (A y))) := by\n    rw [Measure.tilted]\n    simp_rw [neg_neg,Real.exp_log (hA _)]\n    rw [hIntA]\n    exact hlaw\n  refine ⟨hZ,inferInstance,?_,hiA,hIntA,hTilt,hA,?_,hv⟩\n  · change (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n      (volume : Measure E).withDensity (fun y => ENNReal.ofReal (Real.exp (-(-Real.log (A y)))/ZV))\n    convert hlaw using 1\n    congr 1\n    funext y\n    rw [neg_neg,Real.exp_log (hA y)]\n  have hg : (fun y => -Real.log (A y)) =\n      (fun y => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)-Real.log ZV) := by\n    funext y; rw [hv]; ring\n  rw [hg]\n  exact hc.2.2.2.sub contDiff_const\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S3.SS1",
+      "version": "2609.06906v1",
+      "anchor": "arXiv:2609.06906v1 equation1.1 (HTML135-137), Section3.1 unnormalized smoothing definition (HTML237), Section4.1 setup (HTML403-412)",
+      "attribution": "ASTIS original mathematical restatement of the source smoothing-definition/normalization prerequisite, not a reproduced numbered theorem or full Lemma4.1.",
+      "edition": "arXiv:2609.06906v1",
+      "wording_status": "faithful paraphrase"
+    },
+    "statement": "The original Gibbs mass Z_V is strictly positive and mu is a probability measure. The actual Gaussian add-noise law equals volume.withDensity(ofReal(exp(-V_eta)/Z_V)). The source unnormalized weight A_eta is integrable with integral exactly Z_V, so this same law is volume.tilted(-V_eta). A_eta is positive everywhere, V_eta is globally C2, and at every y the normalized negative-log density U_eta(y)=V_eta(y)+log Z_V.",
+    "formulae": [
+      {
+        "label": "Actual source potential, target law and normalization",
+        "tex": "A_\\eta(y)=C_\\eta\\!\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx,\\quad V_\\eta=-\\log A_\\eta,\\quad \\int A_\\eta\\,dy=Z_V>0,\\quad \\pi_\\eta=\\frac{e^{-V_\\eta}}{Z_V}dy,\\quad V_\\eta\\in C^2,\\quad U_\\eta=V_\\eta+\\log Z_V."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space equipped with its Borel measurable space, including dimension zero. V:E->R is globally C2. alpha>0, eta>0, and for every x,v, alpha norm(v)^2<=D2V(x)[v,v]. The source upper Hessian bound and eta upper cap are not required for this normalization/regularity adapter.",
+      "Z_V=integral exp(-V(x))dx, mu=volume.tilted(-V), C_eta=(sqrt(2*pi*eta))^(-dim E), A_eta(y)=C_eta integral exp(-V(x)-norm(y-x)^2/(2eta))dx, and the SOURCE potential is V_eta(y)=-log A_eta(y). These are actual functions and measures, not supplied normalized Gibbs certificates.",
+      "Original Gibbs integrability, positive Z_V, mu probability, actual Gaussian add-noise density, integrable A_eta and preserved partition are derived. The normalized probability-density potential is U_eta=-log(C_eta integral exp(-norm(y-x)^2/(2eta))dmu(x)); the exact identity U_eta=V_eta+log Z_V is a conclusion. No moments, minimizer, input law, conditional representative, smoothed regularity or smoothed Hessian certificate is passed."
+    ],
+    "obligations": [
+      {
+        "id": "source-potential",
+        "label": "Actual unnormalized source potential, preserved partition, Gibbs target law and C2"
+      },
+      {
+        "id": "posterior-curvature",
+        "label": "Equation4.1 score/covariance and Lemma4.1 Hessian estimates (remaining)"
+      },
+      {
+        "id": "remaining-main",
+        "label": "Dynamics, errors/work, both main/composition and acceptance (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+      "title": "Actual source smoothed Gibbs potential and preserved partition",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S3.SS1",
+          "label": "SPHMC source smoothing definition and Gibbs normalization",
+          "scope": "Actual source unnormalized smoothed potential V_eta, positive finite partition Z_V preserved by smoothing, genuine original and smoothed Gibbs probability laws, normalized U_eta=V_eta+log Z_V and source V_eta C2. No posterior score/covariance, curvature/higher derivative inequalities, exact-flow stationarity, numerical accuracy/stochastic errors/history/work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCSmoothedGibbsPotential"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space equipped with its Borel measurable space, including dimension zero. V:E->R is globally C2. alpha>0, eta>0, and for every x,v, alpha norm(v)^2<=D2V(x)[v,v]. The source upper Hessian bound and eta upper cap are not required for this normalization/regularity adapter.",
+        "Z_V=integral exp(-V(x))dx, mu=volume.tilted(-V), C_eta=(sqrt(2*pi*eta))^(-dim E), A_eta(y)=C_eta integral exp(-V(x)-norm(y-x)^2/(2eta))dx, and the SOURCE potential is V_eta(y)=-log A_eta(y). These are actual functions and measures, not supplied normalized Gibbs certificates.",
+        "Original Gibbs integrability, positive Z_V, mu probability, actual Gaussian add-noise density, integrable A_eta and preserved partition are derived. The normalized probability-density potential is U_eta=-log(C_eta integral exp(-norm(y-x)^2/(2eta))dmu(x)); the exact identity U_eta=V_eta+log Z_V is a conclusion. No moments, minimizer, input law, conditional representative, smoothed regularity or smoothed Hessian certificate is passed."
+      ],
+      "statement": "The original Gibbs mass Z_V is strictly positive and mu is a probability measure. The actual Gaussian add-noise law equals volume.withDensity(ofReal(exp(-V_eta)/Z_V)). The source unnormalized weight A_eta is integrable with integral exactly Z_V, so this same law is volume.tilted(-V_eta). A_eta is positive everywhere, V_eta is globally C2, and at every y the normalized negative-log density U_eta(y)=V_eta(y)+log Z_V.",
+      "formula": "A_\\eta(y)=C_\\eta\\!\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx,\\quad V_\\eta=-\\log A_\\eta,\\quad \\int A_\\eta\\,dy=Z_V>0,\\quad \\pi_\\eta=\\frac{e^{-V_\\eta}}{Z_V}dy,\\quad V_\\eta\\in C^2,\\quad U_\\eta=V_\\eta+\\log Z_V.",
+      "steps": [
+        {
+          "title": "Derive the original Gibbs probability",
+          "text": "The genuine lower Hessian produces strong convexity of V; the existing Gibbs-integrability producer yields integrable exp(-V) without a minimizer premise. The positive exponential integral gives Z_V>0, and the exact exponential tilt is therefore a probability measure.",
+          "formula": "D^2V\\succeq\\alpha I,\\ \\alpha>0\\ \\Longrightarrow\\ e^{-V}\\in L^1(dx),\\quad Z_V>0,\\quad \\mu(dx)=Z_V^{-1}e^{-V(x)}dx.",
+          "lean": "HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower; StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn; integral_exp_pos; isProbabilityMeasure_tilted"
+        },
+        {
+          "title": "Use the actual Gaussian density and regularity producer",
+          "text": "Apply the independently admitted shared arbitrary-probability Gaussian result to this derived mu. It identifies the true pushforward law, gives positive density and C2 of the normalizer and normalized negative-log density. These facts concern the actual two independent variables x and standard Gaussian g.",
+          "formula": "\\pi_\\eta=(x+\\sqrt\\eta\\,g)_\\#(\\mu\\otimes\\gamma)=C_\\eta Z_\\mu\\,dy,\\quad Z_\\mu(y)=\\int e^{-\\|y-x\\|^2/(2\\eta)}\\mu(dx).",
+          "lean": "GaussianConvolutionRegularity.gaussian_convolution_potential_c2; hc"
+        },
+        {
+          "title": "Connect the source unnormalized convolution exactly",
+          "text": "The tilted Bochner-integral identity inserts the actual original Gibbs density. Exponential additivity and moving the fixed Z_V outside the integral yield C_eta Z_mu=A_eta/Z_V at every observation, with the exact Gaussian prefactor retained. Positivity of this density and Z_V gives A_eta>0 everywhere.",
+          "formula": "C_\\eta Z_\\mu(y)=\\frac{C_\\eta}{Z_V}\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx=\\frac{A_\\eta(y)}{Z_V}>0.",
+          "lean": "integral_tilted; Real.exp_add; integral_div; he; hA; hlaw"
+        },
+        {
+          "title": "Derive integrability and partition preservation from probability",
+          "text": "The true smoothed pushforward is a probability measure. Evaluating its withDensity identification on the whole space gives lintegral ofReal(A_eta/Z_V)=1. Its continuous nonnegative density and this finite mass imply actual Bochner integrability, then ordinary integral(A_eta/Z_V)=1. Multiplication by positive Z_V gives integrability of A_eta and integral A_eta=Z_V.",
+          "formula": "\\int^{\\!-}\\!\\operatorname{ofReal}(A_\\eta/Z_V)\\,dy=1\\ \\Longrightarrow\\ A_\\eta\\in L^1(dy),\\quad\\int A_\\eta\\,dy=Z_V.",
+          "lean": "Measure.isProbabilityMeasure_map; withDensity_apply; lintegral_ofReal_ne_top_iff_integrable; ofReal_integral_eq_lintegral_ofReal; hiD; hIntD; hiA; hIntA"
+        },
+        {
+          "title": "Identify the actual source Gibbs law",
+          "text": "Everywhere positivity gives exp(-V_eta)=A_eta exactly. Insert the derived integral A_eta=Z_V into the definition of exponential tilt: the actual Gaussian-smoothed law is precisely volume.tilted(-V_eta), with no supplied Gibbs or normalizer witness.",
+          "formula": "e^{-V_\\eta(y)}=A_\\eta(y),\\quad \\pi_\\eta(dy)=\\frac{e^{-V_\\eta(y)}}{\\int e^{-V_\\eta}}dy=\\operatorname{tilt}_{dy}(-V_\\eta).",
+          "lean": "Measure.tilted; Real.exp_log; hIntA; hTilt"
+        },
+        {
+          "title": "Preserve the source potential convention and derive C2",
+          "text": "Real log_div at positive A_eta and Z_V gives the exact additive constant U_eta=V_eta+log Z_V. The shared theorem already proved C2 of U_eta; subtraction of the fixed log Z_V therefore proves C2 of the actual source V_eta. The potentials are not asserted literally equal. Neither this constant identity nor C2 proves the source score/covariance or Hessian inequalities.",
+          "formula": "U_\\eta=-\\log(A_\\eta/Z_V)=V_\\eta+\\log Z_V,\\quad V_\\eta=U_\\eta-\\log Z_V\\in C^2.",
+          "lean": "Real.log_div; hv; ContDiff.sub; contDiff_const"
+        }
+      ],
+      "lean_statement": "Actual source unnormalized Gaussian convolution positive/integrable, preserved original Gibbs partition, actual smoothed Gibbs law, C2 potential and exact normalized constant shift.",
+      "lean_proof": "Genuine Hessian-to-Gibbs normalization, shared actual Gaussian law, exact tilted integral, true probability total mass, derived integrability/partition, source tilt and positive logarithm.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_potential_c2",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower"
+      ],
+      "mathlib_dependencies": [
+        "integral_exp_pos",
+        "isProbabilityMeasure_tilted",
+        "integral_tilted",
+        "Real.exp_add",
+        "Measure.isProbabilityMeasure_map",
+        "withDensity_apply",
+        "lintegral_ofReal_ne_top_iff_integrable",
+        "ofReal_integral_eq_lintegral_ofReal",
+        "integral_div",
+        "Real.exp_log",
+        "Measure.tilted",
+        "Real.log_div",
+        "ContDiff.sub"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+      "role": "prerequisite",
+      "supports": [
+        "source-potential"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Equation1.1 explicitly V in C2 with positive lower and upper Hessian bounds; Section3.1 eta>0 and unnormalized exp(-V_eta)=exp(-V)*Gaussian.",
+        "lean": "E is a finite-dimensional real inner-product space equipped with its Borel measurable space, including dimension zero. V:E->R is globally C2. alpha>0, eta>0, and for every x,v, alpha norm(v)^2<=D2V(x)[v,v]. The source upper Hessian bound and eta upper cap are not required for this normalization/regularity adapter."
+      },
+      {
+        "source": "Source smoothed potential is unnormalized; target probability law is normalized separately.",
+        "lean": "The original Gibbs mass Z_V is strictly positive and mu is a probability measure. The actual Gaussian add-noise law equals volume.withDensity(ofReal(exp(-V_eta)/Z_V)). The source unnormalized weight A_eta is integrable with integral exactly Z_V, so this same law is volume.tilted(-V_eta). A_eta is positive everywhere, V_eta is globally C2, and at every y the normalized negative-log density U_eta(y)=V_eta(y)+log Z_V."
+      },
+      {
+        "source": "Equation4.1 and Lemma4.1 use posterior derivative identities and quantitative Hessian bounds.",
+        "lean": "Only source potential C2, normalization and actual law are proved."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "7e6fe5a776f135da937ecd14685688ce52cecc13d05234d7f36e5fc0818ea2d9"
+}

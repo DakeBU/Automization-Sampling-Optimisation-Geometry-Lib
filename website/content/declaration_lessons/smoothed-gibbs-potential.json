@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+      "title": "Actual source smoothed Gibbs potential and preserved partition",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S3.SS1",
+          "label": "SPHMC source smoothing definition and Gibbs normalization",
+          "scope": "Actual source unnormalized smoothed potential V_eta, positive finite partition Z_V preserved by smoothing, genuine original and smoothed Gibbs probability laws, normalized U_eta=V_eta+log Z_V and source V_eta C2. No posterior score/covariance, curvature/higher derivative inequalities, exact-flow stationarity, numerical accuracy/stochastic errors/history/work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCSmoothedGibbsPotential"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space equipped with its Borel measurable space, including dimension zero. V:E->R is globally C2. alpha>0, eta>0, and for every x,v, alpha norm(v)^2<=D2V(x)[v,v]. The source upper Hessian bound and eta upper cap are not required for this normalization/regularity adapter.",
+        "Z_V=integral exp(-V(x))dx, mu=volume.tilted(-V), C_eta=(sqrt(2*pi*eta))^(-dim E), A_eta(y)=C_eta integral exp(-V(x)-norm(y-x)^2/(2eta))dx, and the SOURCE potential is V_eta(y)=-log A_eta(y). These are actual functions and measures, not supplied normalized Gibbs certificates.",
+        "Original Gibbs integrability, positive Z_V, mu probability, actual Gaussian add-noise density, integrable A_eta and preserved partition are derived. The normalized probability-density potential is U_eta=-log(C_eta integral exp(-norm(y-x)^2/(2eta))dmu(x)); the exact identity U_eta=V_eta+log Z_V is a conclusion. No moments, minimizer, input law, conditional representative, smoothed regularity or smoothed Hessian certificate is passed."
+      ],
+      "statement": "The original Gibbs mass Z_V is strictly positive and mu is a probability measure. The actual Gaussian add-noise law equals volume.withDensity(ofReal(exp(-V_eta)/Z_V)). The source unnormalized weight A_eta is integrable with integral exactly Z_V, so this same law is volume.tilted(-V_eta). A_eta is positive everywhere, V_eta is globally C2, and at every y the normalized negative-log density U_eta(y)=V_eta(y)+log Z_V.",
+      "formula": "A_\\eta(y)=C_\\eta\\!\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx,\\quad V_\\eta=-\\log A_\\eta,\\quad \\int A_\\eta\\,dy=Z_V>0,\\quad \\pi_\\eta=\\frac{e^{-V_\\eta}}{Z_V}dy,\\quad V_\\eta\\in C^2,\\quad U_\\eta=V_\\eta+\\log Z_V.",
+      "boundary": "Actual source unnormalized smoothed potential V_eta, positive finite partition Z_V preserved by smoothing, genuine original and smoothed Gibbs probability laws, normalized U_eta=V_eta+log Z_V and source V_eta C2. No posterior score/covariance, curvature/higher derivative inequalities, exact-flow stationarity, numerical accuracy/stochastic errors/history/work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost.",
+      "steps": [
+        {
+          "title": "Derive the original Gibbs probability",
+          "text": "The genuine lower Hessian produces strong convexity of V; the existing Gibbs-integrability producer yields integrable exp(-V) without a minimizer premise. The positive exponential integral gives Z_V>0, and the exact exponential tilt is therefore a probability measure.",
+          "formula": "D^2V\\succeq\\alpha I,\\ \\alpha>0\\ \\Longrightarrow\\ e^{-V}\\in L^1(dx),\\quad Z_V>0,\\quad \\mu(dx)=Z_V^{-1}e^{-V(x)}dx.",
+          "lean": "HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower; StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn; integral_exp_pos; isProbabilityMeasure_tilted"
+        },
+        {
+          "title": "Use the actual Gaussian density and regularity producer",
+          "text": "Apply the independently admitted shared arbitrary-probability Gaussian result to this derived mu. It identifies the true pushforward law, gives positive density and C2 of the normalizer and normalized negative-log density. These facts concern the actual two independent variables x and standard Gaussian g.",
+          "formula": "\\pi_\\eta=(x+\\sqrt\\eta\\,g)_\\#(\\mu\\otimes\\gamma)=C_\\eta Z_\\mu\\,dy,\\quad Z_\\mu(y)=\\int e^{-\\|y-x\\|^2/(2\\eta)}\\mu(dx).",
+          "lean": "GaussianConvolutionRegularity.gaussian_convolution_potential_c2; hc"
+        },
+        {
+          "title": "Connect the source unnormalized convolution exactly",
+          "text": "The tilted Bochner-integral identity inserts the actual original Gibbs density. Exponential additivity and moving the fixed Z_V outside the integral yield C_eta Z_mu=A_eta/Z_V at every observation, with the exact Gaussian prefactor retained. Positivity of this density and Z_V gives A_eta>0 everywhere.",
+          "formula": "C_\\eta Z_\\mu(y)=\\frac{C_\\eta}{Z_V}\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx=\\frac{A_\\eta(y)}{Z_V}>0.",
+          "lean": "integral_tilted; Real.exp_add; integral_div; he; hA; hlaw"
+        },
+        {
+          "title": "Derive integrability and partition preservation from probability",
+          "text": "The true smoothed pushforward is a probability measure. Evaluating its withDensity identification on the whole space gives lintegral ofReal(A_eta/Z_V)=1. Its continuous nonnegative density and this finite mass imply actual Bochner integrability, then ordinary integral(A_eta/Z_V)=1. Multiplication by positive Z_V gives integrability of A_eta and integral A_eta=Z_V.",
+          "formula": "\\int^{\\!-}\\!\\operatorname{ofReal}(A_\\eta/Z_V)\\,dy=1\\ \\Longrightarrow\\ A_\\eta\\in L^1(dy),\\quad\\int A_\\eta\\,dy=Z_V.",
+          "lean": "Measure.isProbabilityMeasure_map; withDensity_apply; lintegral_ofReal_ne_top_iff_integrable; ofReal_integral_eq_lintegral_ofReal; hiD; hIntD; hiA; hIntA"
+        },
+        {
+          "title": "Identify the actual source Gibbs law",
+          "text": "Everywhere positivity gives exp(-V_eta)=A_eta exactly. Insert the derived integral A_eta=Z_V into the definition of exponential tilt: the actual Gaussian-smoothed law is precisely volume.tilted(-V_eta), with no supplied Gibbs or normalizer witness.",
+          "formula": "e^{-V_\\eta(y)}=A_\\eta(y),\\quad \\pi_\\eta(dy)=\\frac{e^{-V_\\eta(y)}}{\\int e^{-V_\\eta}}dy=\\operatorname{tilt}_{dy}(-V_\\eta).",
+          "lean": "Measure.tilted; Real.exp_log; hIntA; hTilt"
+        },
+        {
+          "title": "Preserve the source potential convention and derive C2",
+          "text": "Real log_div at positive A_eta and Z_V gives the exact additive constant U_eta=V_eta+log Z_V. The shared theorem already proved C2 of U_eta; subtraction of the fixed log Z_V therefore proves C2 of the actual source V_eta. The potentials are not asserted literally equal. Neither this constant identity nor C2 proves the source score/covariance or Hessian inequalities.",
+          "formula": "U_\\eta=-\\log(A_\\eta/Z_V)=V_\\eta+\\log Z_V,\\quad V_\\eta=U_\\eta-\\log Z_V\\in C^2.",
+          "lean": "Real.log_div; hv; ContDiff.sub; contDiff_const"
+        }
+      ],
+      "lean_statement": "Actual source unnormalized Gaussian convolution positive/integrable, preserved original Gibbs partition, actual smoothed Gibbs law, C2 potential and exact normalized constant shift.",
+      "lean_proof": "Genuine Hessian-to-Gibbs normalization, shared actual Gaussian law, exact tilted integral, true probability total mass, derived integrability/partition, source tilt and positive logarithm.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_potential_c2",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower"
+      ],
+      "mathlib_dependencies": [
+        "integral_exp_pos",
+        "isProbabilityMeasure_tilted",
+        "integral_tilted",
+        "Real.exp_add",
+        "Measure.isProbabilityMeasure_map",
+        "withDensity_apply",
+        "lintegral_ofReal_ne_top_iff_integrable",
+        "ofReal_integral_eq_lintegral_ofReal",
+        "integral_div",
+        "Real.exp_log",
+        "Measure.tilted",
+        "Real.log_div",
+        "ContDiff.sub"
+      ]
+    }
+  ]
+}

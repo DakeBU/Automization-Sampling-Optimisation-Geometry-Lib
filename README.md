@@ -37,7 +37,6 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 - **2026-09-07:** Added Discrete Sampling and MCMC as peer libraries.
 - **2026-09-05:** Added Statistical Optimal Transport and the Functor Hypergraph.
 - **2026-08-29:** Added source-fidelity checks and theorem denoising.
-- **2026-07-27:** Added the Blueprint-style textbook and formalization website.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.
 
 ## Research aim

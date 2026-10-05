@@ -30,6 +30,7 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 
 ## News
 
+- **2026-10-05:** Adopted a Statement-Seal and Proof-Digestion protocol: source proof topology is now separated from Lean implementation topology, source coverage must be exhaustive, and merged proofs still require purification into a compressed researcher-facing spine.
 - **2026-10-03:** Added source-grounded research workspaces, proof ledgers, and a downloadable ChatGPT/MCP App.
 - **2026-09-29:** [Our system paper](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the NeurIPS 2026 Workshop MATH-AI.
 - **2026-09-10:** Compiled and source-reviewed the first [SPHMC](conversion-windows/ASTIS-SW-SPHMC-2026.md) and [Proximal BPS](conversion-windows/ASTIS-SW-PBPS-2026.md) proof packets.

@@ -17,6 +17,7 @@ import Tests.SmoothedPicardHMCKineticDissipation
 import Tests.SmoothedPicardHMCFirstOrderDifference
 import Tests.SmoothedPicardHMCActualContraction
 import Tests.SmoothedPicardHMCActualIncrement
+import Tests.SmoothedPicardHMCActualKernelTransport
 import Tests.WassersteinLipschitzMoment
 import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric

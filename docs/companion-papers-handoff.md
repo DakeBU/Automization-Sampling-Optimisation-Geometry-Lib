@@ -1,5 +1,45 @@
 # Companion-paper formalization handoff
 
+## Actual Gaussian numerical kernel transport — 2026-10-06
+
+`ASTIS-SA-20261006-SPHMCActualKernelTransport` joins the actual all-input
+source norm contraction to genuine randomized-law transport. Shared
+`RandomizedMapTransport.transportCost_randomized_map_le` constructs
+S#(gamma×Gamma), reuses exact public joint-noise marginals, integrates the
+measurable cost and commutes the finite nonzero factor with the raw infimum.
+No optimal coupling or finite-cost/moment assumption is added. The actual
+consumer builds the full two-Gaussian/two-Picard Markov K, proves its pointwise
+law Gamma.map(Phi_z), and Kmu=Phi#(mu×Gamma), for every probability input.
+Then source squared transport contracts by (1-h/(65536kappa))² under actual
+hLambda<=1/(65536kappa), at the exposed normalized global C2 curvature
+interface. This is true source Q, not an ordinary product-max replacement.
+Zero displacement, zero dimension and infinite transport costs are included.
+
+Focused3717, independent full shared/actual/Test mathematics, two anonymous
+reconstructions and fresh anti-anchored source reviews PASS; standard3 only.
+Exact committed independently VERIFIED proof `8e843e01d3f4cf91528a379632c5e0f186a57cae`:
+`runs/20261006-companion-priority/actual-kernel-transport/verified.json`.
+Original sole root STABILIZING/PR313 lane serializes the three imports;
+shared aggregate/reader/graph checks pending. Goal remains active.
+
+Next bounded dependency candidate: genuine Gaussian convolution-normalizer
+C2 / negative-log potential regularity at every observation, starting from
+the existing GaussianConditionalKernel backward law and exact density.
+Inspect actual parametric integral APIs and derive Gaussian derivative
+domination from probability normalization, rather than assuming regularity
+of V_eta. The subsequent actual smoothed Hessian curvature, score identity
+and higher regularity remain separate. Do not replace V_eta by Gaussian
+averaging of V or assume arbitrary conditional representatives pointwise.
+
+Actual f=V_eta smoothing/C2/curvature, logLambda/B2, exact-flow stationarity,
+numerical target bias, Khat/Kbar errors/history/actual expected query cost,
+Wp/proxy-warmness/initialization, PBPS reflection/invariance/nonexplosion/
+hypocoercivity/implementation/cost, both complete main results and actual-input
+precision/expected-cost composition remain open. TV never transfers unbounded
+cost. Old Chewi/SampleWiki/source inventories/cycles retained; rendered visual
+acceptance and metadata copy/download controls remain open. Draft/open PR;
+current-head remote CI, merge and deployment are separate.
+
 ## Actual numerical synchronous increment — 2026-10-06
 
 `ASTIS-SA-20261006-SPHMCActualIncrement` proves actual source Lemma4.8 at

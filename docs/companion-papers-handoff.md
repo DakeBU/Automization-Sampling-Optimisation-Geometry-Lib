@@ -31,10 +31,13 @@ count and all-rho precision. Independent math freezes28 raw/LF hashes with26
 old parents unchanged; blind reconstruction and fresh primary-source review
 pass with no blocker/repair. Only the standard three Lean foundations.
 
-Shared ExampleCases and Tests-root integration is prepared in the original
-single STABILIZING/PR313 lane. Aggregate/site/bounded graph admission is a
-separate pending checkpoint. Previous957e6d4e remote Lean/contributor/site CI
-all pass, deploy skipped; main merge/live deployment remain separate. Parent
+Shared ExampleCases and Tests-root integration `c99be40f` passes canonical ASTIS
+(root9089/Tests9326),139 regression tests,publication139,semantic194/8,frontier202
+and contributor17/17. Full static site and bounded graph coverage pass; three
+actual formal parent imports and folded reader were inspected. Receipt:
+`runs/20261005-companion-priority/phase-accuracy-work.integration.json`.
+Previous957e6d4e remote Lean/contributor/site CI all pass,deploy skipped; new-head
+remote CI, main merge/live deployment remain separate. Parent
 results and test-only copied two-node calculation receive no new proof credit.
 
 **Next bounded mathematical dependency:** source equation(D.3) uses(5.2),

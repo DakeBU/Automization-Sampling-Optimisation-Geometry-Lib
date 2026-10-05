@@ -24,7 +24,9 @@ independently confirms only5lifecycle/search-label changes, and adds no math
 credit. The bounded immutable-footprints process discovery is raw, not a
 formal graph edge or validated conceptual transport. Root serializes only
 shared ExampleCases/Tests imports in the original sole STABILIZING/PR313 lane.
-Registry472 unchanged. Aggregate/reader/graph checks pending.
+Registry472 unchanged.
+Exact proof 63b9549ffbfee8ae81c6642bde55f299d8d7f697 independently VERIFIED; shared integration 4cd6f0fe8bec5b2fba5acf77b1c283ebde9c10a3. Full ASTIS gate PASS (9095 root / 9338 Tests), publication148, semantic207/8, frontier211 and contributor30/26 PASS. 95 earlier relevant Python regression tests reused after exact unchanged tool/fixture checks; not rerun for this pure Lean/metadata increment. Full reader generation, static source/formula/folded-Lean inspection, five-edge bounded import/ownership branch and official bounded freshness/full site/contributor checks PASS. Registry472 unchanged. Rendered visual acceptance and metadata copy/download controls remain open.
+`runs/20261006-companion-priority/actual-increment/integration.json`.
 
 Prior pushedbea5269c actual contraction required remote Lean/site/contributor
 CI all terminalPASS: `runs/20261006-companion-priority/actual-contraction/remote-ci.json`.

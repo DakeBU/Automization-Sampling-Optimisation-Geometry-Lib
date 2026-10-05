@@ -1,5 +1,52 @@
 # Companion-paper formalization handoff
 
+## Actual Gibbs covariance lower and smoothed Hessian upper — 2026-10-06
+
+`ASTIS-SA-20261006-GibbsCovarianceLower` extends the canonical Gibbs calculus:
+genuine C2 alpha I<=Hess U<=beta I with 0<alpha<=beta derives actual Gibbs
+probability, position L2 and every-direction covariance lower norm(v)^2/beta.
+Position L2 follows from strong gradient monotonicity and the existing true
+score L2 producer, without a minimizer or supplied moment. Centered-linear
+and score full-space IBP inputs are all proved; integrating the nonnegative
+square (score-beta*centered-position)^2 gives the bound. This is only the
+linear-observable Cramer-Rao corollary, not the arbitrary-observable theorem.
+Finite-dimensional Borel real Hilbert spaces include dimension zero.
+
+The actual production SPHMC consumer constructs W_y=V+quadratic precision,
+identifies volume.tilted(-W_y) with the selected original-Gibbs RGO posterior,
+and derives Cov_Ry(v,v)>=norm(v)^2/(beta+eta^-1). The actual unnormalized
+V_eta Hessian is at most beta/(1+beta eta)*norm(v)^2 using the true Eq4.1
+producer and exact U_eta=V_eta+log Z_V. Source beta=1 gives (1+eta)^-1;
+all eta>0 and generic alpha/beta are explicit source generalizations.
+No production Tests import, supplied covariance/normalizer/score or moment.
+
+Focused3672, complete independent mathematics, nonquadratic actual source
+Test, zero-dimensional and real signed-direction checks, two anonymous
+reconstructions and three fresh distinct source reviews PASS, standard3 only.
+Old gradient theorem statement/proof unchanged; fresh whole-module admission
+rebinds publication to a new audit while preserving the historical registry.
+Independent bounded lifecycle reconciliation retained, no repeated compile
+credit. Exact independent proof VERIFIED `396f024b8c3f5a885530ecbf918b5c8465793293`:
+`runs/20261006-companion-priority/gibbs-covariance-lower/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+BL covariance upper/Hessian lower, full Lemma4.1, gradient Lipschitz, higher
+regularity, source V_eta algorithm contraction/accuracy, stationarity/global
+bias, Khat/Kbar/history/work, Wp/proxy-warmness/initialization, PBPS process/
+nonexplosion/invariance/hypocoercivity/implementation/cost and both complete
+main/composition remain open. TV never transfers unbounded expected cost.
+Next bounded source/API route:
+`research-wiki/cited-results/SPHMC_4_1_BL_resolvent_route_audit.md`, raw
+Discovery ASTIS-DISC-20261006-BLActualResolventDomainGap. Actual weak resolvent
+and compact Bochner do not yet give the global operator-domain estimate,
+constant kernel, centered residual limit or linear-observable domain.
+Retired trace/projected-monotonicity/Poincare-certificate shortcuts retained.
+Source keyword/signature exposure in that read-only search is disclosed in
+current source receipts; no mathematical/decoder/previous-verdict anchoring.
+Preceding exact80f head passed all four remote workflows; later head requires
+separate CI. Draft/unmerged; rendered/copy/download/live acceptance remains open.
+
+
 ## Actual posterior score and covariance identities — 2026-10-06
 
 `ASTIS-SA-20261006-GaussianConvolutionDerivatives` extends the same canonical

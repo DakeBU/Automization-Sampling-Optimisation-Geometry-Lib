@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseAccuracyWork.source_phase_accuracy_and_work",
+      "title": "Actual phase accuracy and expected work with identical witnesses",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "SPHMC actual proximal implementation precision and expected work",
+          "scope": "One successful exact-real source two-layer phase with actual integral coefficients and all four Gaussian factors, joining real accuracy and expected returned query cost. The exact comparison phase uses exact proximal stochastic gradients, not deterministic gradient V_eta. N(y)+1 is a sufficient execution certificate, not a free runtime computation of N. Counts include terminal residual tests and 2J shifted noisy-gradient calls; arithmetic, random draws and failed-run cost are separate. No TV-to-unbounded-cost transfer. Run-wideD3 contraction/history/D7/D8, B2/depth-K/logarithmic Lambda/weight positivity/source parameter choices/smoothing/Wp/proxy-warmness/initialization/PBPS/main results and actual-input composition remain open."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCPhaseAccuracyWork"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. V:E→R is C2; kappa>=1 and kappa^-1||v||²<=D²V(x)[v,v]<=||v||² for every x,v (normalized beta=1).",
+        "J>=2; h>0; actual t_i=h/2(1-cos(i*pi/(J-1))), i=0,...,J-1; ell_j=Lagrange.basis(univ,t,j); Lambda=sup_{s∈[0,h]}sum_j|ell_j(s)|; omega_ij=integral_0^{t_i}(t_i-s)ell_j(s) ds; pw is the final omega row and b_j=integral_0^h ell_j(s) ds. Assume only h²Lambda<=1; h<=1 is derived.",
+        "0<eta<=c<1 and eps>0. c is a contraction upper-bound parameter in the cost certificate, not an algorithm parameter or additional gradient query.",
+        "nu is the actual incoming phase-state probability measure. xstar∈E satisfies gradient V(xstar)=0; M>=0. The real function ||X-xstar||²+||P||² is nu-integrable and its nu-expectation is <=M. These actual-state moment hypotheses are explicit; no TV approximation or independently sampled proxy law is substituted.",
+        "gamma=((stdGaussian(E) prod stdGaussian(E)) prod (gi prod gi)), where gi=Measure.pi_{Fin J}(stdGaussian(E)); all four factors and each array coordinate are independent. mu=nu prod gamma. Write w=((X,P),((zeta0,zeta1),(G0,G1))), a=exp(-h/2), sigma=sqrt(1-exp(-h)) and P0=aP+sigma*zeta0.",
+        "For any f:E→E define Y0_i=X+t_iP0, Z0_f,j=gradient V(f(Y0_j)+sqrt(eta)G0_j), Y1_f,i=Y0_i-sum_j omega_ij Z0_f,j, Z1_f,j=gradient V(f(Y1_f,j)+sqrt(eta)G1_j) and Phi_f(w)=(X+hP0-sum_j pw_j Z1_f,j, a(P0-sum_j b_j Z1_f,j)+sigma*zeta1). The exact and approximate branches have their own Y1_f. For the constructed q,N set T(w)=2J+sum_i[(N(Y0_i(w))+1)+(N(Y1_q,i(w))+1)].",
+        "Set d=finrank_R E, S=h²Lambda/2, MR=M+(1-exp(-h))*d, B=6MR+3eps²+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C*(1+log(1+sqrt(2MR)/eps)) and L1=C*(1+log(1+sqrt(4MR+2S²B)/eps)). W_rho(mu1,mu2) is [inf_{pi coupling(mu1,mu2)} integral (sqrt(||DX||²+||DP||²))^rho dpi]^(1/rho), expressed in extended nonnegative reals, for every finite real rho>=1."
+      ],
+      "statement": "There exist one measurable exact optimality map p, one measurable stopped output map q and one measurable N:E→Nat such that p(y)+eta*gradient V(p(y))=y, ||q(y)-p(y)||<=eps, p is nonexpansive and the actual residual-stopped interpreter from y returns some(q(y),N(y)+1) with sufficient fuel N(y)+1. The identical p,q,N define actual full-phase Markov Kp,Kq, the actual output Phi_q and the actual total returned gradient count T. For every state s and finite real rho>=1, true Euclidean W_rho(Kq(s),Kp(s))<=3hLambda eps. Under the same actual driving law mu=nu prod gamma, T is measurable, real-integrable and E_mu[T]<=J(2+L0+L1). For every driving input w the counted phase interpreter with fuel(y)=N(y)+1 returns exactly some(Phi_q(w),T(w)). All output/count/kernel/cost conjuncts share these witnesses.",
+      "formula": "W_\\rho(K_q(s),K_p(s))\\le3h\\Lambda_J\\varepsilon\\quad(\\rho\\ge1),\\qquad\\mathbb E_{\\nu\\otimes\\gamma}T\\le J(2+L_0+L_1).",
+      "boundary": "One successful exact-real source two-layer phase with actual integral coefficients and all four Gaussian factors, joining real accuracy and expected returned query cost. The exact comparison phase uses exact proximal stochastic gradients, not deterministic gradient V_eta. N(y)+1 is a sufficient execution certificate, not a free runtime computation of N. Counts include terminal residual tests and 2J shifted noisy-gradient calls; arithmetic, random draws and failed-run cost are separate. No TV-to-unbounded-cost transfer. Run-wideD3 contraction/history/D7/D8, B2/depth-K/logarithmic Lambda/weight positivity/source parameter choices/smoothing/Wp/proxy-warmness/initialization/PBPS/main results and actual-input composition remain open.",
+      "steps": [
+        {
+          "title": "Discharge the genuine step adapter",
+          "text": "The compiled actual source coefficient certificate proves Lambda>=1. Combined with h>0 and h²Lambda<=1 it yields h²<=1 and h<=1. Thus the actual-work producer is callable with no new small-step premise.",
+          "formula": "1\\le\\Lambda_J,\\quad h^2\\Lambda_J\\le1,\\quad h>0\\Longrightarrow h\\le1.",
+          "lean": "chebyshev_lobatto_coefficients; hLambda; hh1"
+        },
+        {
+          "title": "Obtain both genuine producers",
+          "text": "Use the actual source quadrature expected-work theorem for p_c,q_c,N_c and the precision theorem for p_a,q_a,N_a,Kp,Kq. Their gradient, eta, eps, starting state and all source arrays are identical; c may affect the certificate but never the interpreter. Both exact maps satisfy the genuine optimality equation.",
+          "formula": "p_c(y)+\\eta g(p_c(y))=y=p_a(y)+\\eta g(p_a(y)),\\qquad g=\\nabla V.",
+          "lean": "SourceQuadratureWork.source_quadrature_phase_work; ProximalPhaseStability.source_phase_proximal_stability"
+        },
+        {
+          "title": "Identify the exact optimality map",
+          "text": "Derive 1-Lipschitz gradient from the actual C2 Hessian via the shared zero-quadratic specialization. Subtract the exact equations: the displacement equals eta times the reversed gradient displacement. Its norm is <=eta times itself; eta<1 forces zero. This proves p_c=p_a without assuming witness identity.",
+          "formula": "\\|p_c(y)-p_a(y)\\|\\le\\eta\\|p_c(y)-p_a(y)\\|,\\quad\\eta<1\\Longrightarrow p_c=p_a.",
+          "lean": "QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic; hg; hpEq; norm_smul; norm_sub_le"
+        },
+        {
+          "title": "Identify stopped points and returned counts",
+          "text": "Both successful calls use exactly the same residual branch norm(y-eta*g(x)-x)<=(1-eta)*eps, anchor y and starting x=y. Deterministic successful_query_unique identifies their returned point/count pairs independently of the supplied sufficient fuel. Take each projection and cancel +1 on natural counts; obtain q_c=q_a and N_c=N_a.",
+          "formula": "(q_c(y),N_c(y)+1)=(q_a(y),N_a(y)+1)\\Longrightarrow q_c=q_a,\\ N_c=N_a.",
+          "lean": "ProximalExecutionIdentity.successful_query_unique; hpair; hqEq; hNEq; Prod.fst; Prod.snd; Nat.add_right_cancel"
+        },
+        {
+          "title": "Retain the real phase and driving measure",
+          "text": "For a=exp(-h/2), sigma=sqrt(1-exp(-h)), P0=aP+sigma*zeta0, let Y0_i=X+t_iP0, Z0_f,j=g(f(Y0_j)+sqrt(eta)G0_j), Y1_f,i=Y0_i-sum_j omega_ij Z0_f,j and Z1_f,j=g(f(Y1_f,j)+sqrt(eta)G1_j). Phi_f=(X+hP0-sum pw_j Z1_f,j, a(P0-sum b_j Z1_f,j)+sigma*zeta1). gamma is the independent product law of zeta0,zeta1,G0,G1; K_f(s)=gamma.map(z↦Phi_f(s,z)). Substituting the proven function identities makes the actual interpreter output, count and precision kernel exactly the same phase.",
+          "formula": "T(w)=2J+\\sum_i[(N(Y_i^0(w))+1)+(N(Y_{q,i}^1(w))+1)],\\qquad K_q(s)=(\\Phi_q(s,\\cdot))_\\#\\gamma.",
+          "lean": "subst p2; subst q2; subst N2; hKppush; hKqpush; hrun1"
+        },
+        {
+          "title": "Join the two guarantees with explicit constants",
+          "text": "Let d=finrank_R E, MR=M+(1-exp(-h))*d, S=h²Lambda/2, B=6MR+3eps²+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)] and L1=C[1+log(1+sqrt(4MR+2S²B)/eps)]. Carry integrability and the actual mu-expectation from the cost producer, and all-state/all-finite-rho Euclidean precision from the now-identical accuracy kernel. The cost is evaluated on the actual incoming law nu prod gamma; no discrepancy bound is used to transfer an unbounded expectation.",
+          "formula": "M_R=M+(1-e^{-h})d,\\ S=\\tfrac12h^2\\Lambda_J,\\ B=6M_R+3\\varepsilon^2+3\\eta d,\\quad \\mathbb E_{\\nu\\otimes\\gamma}T\\le J(2+L_0+L_1).",
+          "lean": "hPhi1; hT1; hTI1; hcost1; hW; final same-witness tuple"
+        }
+      ],
+      "lean_statement": "Exact statement includes genuine source arrays, all four Gaussian factors, actual nu prod gamma input law, full phase maps, precise returned count and Euclidean transport.",
+      "lean_proof": "The whole current module has one public theorem. Both existential producer witnesses are identified by genuine optimality contraction and actual successful-run identity before returning the combined guarantees.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalPhaseStability.source_phase_proximal_stability",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SourceQuadratureWork.source_quadrature_phase_work",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity.successful_query_unique",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.phaseQuery",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.proximalQuery",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost"
+      ],
+      "mathlib_dependencies": [
+        "LipschitzWith.norm_sub_le",
+        "norm_smul",
+        "Real.norm_eq_abs",
+        "norm_sub_rev",
+        "norm_eq_zero",
+        "Nat.add_right_cancel",
+        "funext",
+        "Prod.fst",
+        "Prod.snd"
+      ]
+    }
+  ]
+}

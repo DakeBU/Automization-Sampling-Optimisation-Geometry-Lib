@@ -1,0 +1,588 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual base Gibbs law, RGO posterior, Gaussian-prefactored unnormalized convolution and V_eta=-log A.",
+      "reconstructed": "All displayed lets reconstructed, including true covariance and nested actual Hessian.",
+      "relation": "equivalent",
+      "evidence": "tilted_tilted uses derived original integrability; normalized U_eta differs by exactly log Z_V."
+    },
+    "domains": {
+      "original": "Scoped generalization from real Euclidean source to complete finite-dimensional real Hilbert Borel E, including zero dimension.",
+      "reconstructed": "Same E; eta is any strictly positive real and alpha,beta NNReal.",
+      "relation": "explicit-elaboration",
+      "evidence": "The statement is not an eta=0 limit assertion; actual zero-dimensional eta=2 instance elaborated."
+    },
+    "quantifiers": {
+      "original": "For every potential and positive eta satisfying global curvature, both inequalities hold at every y,v.",
+      "reconstructed": "No a.e.-only version, unit-vector restriction, arbitrary conditional law or supplied posterior.",
+      "relation": "equivalent",
+      "evidence": "Actual posterior is explicitly defined pointwise and produced by quadratic regularization."
+    },
+    "assumptions": {
+      "original": "C2 V, 0<alpha<=beta, all-x,v alpha/beta Hessian bounds and eta>0; source beta=1, alpha=kappa^-1, eta<=1 is included.",
+      "reconstructed": "Exactly those premises, with beta generalization and removed eta cap explicitly disclosed.",
+      "relation": "explicit-elaboration",
+      "evidence": "The positive-shift producer proves alpha+eta^-1/beta+eta^-1 bounds; no added moment, normalizer or Hessian certificate."
+    },
+    "conclusion": {
+      "original": "Cov(R_y)(v,v)>=norm(v)^2/(beta+eta^-1) and Hess(V_eta)[v,v]<=beta/(1+beta eta)*norm(v)^2.",
+      "reconstructed": "Both exact conclusion groups and true convolution convention recovered.",
+      "relation": "equivalent",
+      "evidence": "Equation 4.1 subtraction and positive-denominator algebra yield the exact quotient."
+    },
+    "scopes": {
+      "original": "Source Lemma 4.1 CR half giving upper smoothed Hessian; neither BL half nor full source lemma.",
+      "reconstructed": "No lower Hessian/covariance upper, Lipschitz corollary, Markov/work/history or main completion.",
+      "relation": "equivalent",
+      "evidence": "Reader proof, assumption ledger and open obligations consistently retain these boundaries."
+    },
+    "constant_dependencies": {
+      "original": "Source 1/(1+eta) arises at beta=1; generalized beta/(1+beta eta), exact Gaussian prefactor and posterior divisor.",
+      "reconstructed": "Same constants, all eta>0; no hidden dimension factor or arbitrary normalization C.",
+      "relation": "explicit-elaboration",
+      "evidence": "Prefactor power is actual finrank and fixed additive log Z_V cancels twice."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "phase_source_reviewer_20261005",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent source/readable-proof/current-code comparison, all seven slots and all private helpers completed. Exact current metadata binding and context recomputed without registry or earlier verdict access; packet/source/statement/decoded text hashes checked. Fresh direct production and Tests passed, standard three axioms only. Actual RGO, original exp(-V) integrability, unnormalized Gaussian convolution, positive partition and fixed additive normalization constant, genuine posterior Hessian identity and exact quotient were independently checked. Only the CR upper-smoothed-Hessian half is accepted; BL/lower Hessian/full Lemma 4.1 and main/work remain open. The prior keyword/signature exposure is explicitly recorded, not presented as complete candidate blindness or proof evidence.",
+  "reviewer_packet_sha256": "a700e6dcb72626da0c55d9185d9cf71740a34a7e781d9f75cfa3f085cbe5c5cf",
+  "schema_version": 1,
+  "task": "independent-anti-anchored-source-review",
+  "formalizer": "root-samplinglib-writer",
+  "decoder": "anonymous_decoder_20261006",
+  "packet_id": "ASTIS-REVIEW-856c47d9434ce409",
+  "publication_binding_sha256": "bf4ec0032608eaa737ece5b31d9a1acedea674a11e8b8cb4b0e95f9f3a2c5ede",
+  "review_context": {
+    "file": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment\nimport AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential\n\n/-!\n# Actual smoothed Hessian upper bound\n\nSPHMC arXiv:2609.06906v1 Section4.1 Lemma4.1, Cramer-Rao half.\nThe genuine quadratic posterior has Hessian between alpha+eta^-1 and\nbeta+eta^-1. Its derived covariance lower bound and the true Gaussian\nposterior Hessian identity imply the source UNNORMALIZED V_eta has Hessian\nat most beta/(1+beta eta). This gives exactly (1+eta)^-1 for source beta=1.\nGeneric alpha/beta and every eta>0 are explicit extensions of the source.\nNo moment, normalizer, derivative or covariance estimate is an input.\nBrascamp-Lieb/Hessian lower, full Lemma4.1, higher regularity, numerical\naccuracy/history/expected work and both complete main/composition remain open.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper\n\nopen Set MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped NNReal\nnoncomputable section\nset_option backward.isDefEq.respectTransparency false\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]\n\n/-- Cramer-Rao half of SPHMC Lemma4.1 for the actual RGO posterior and\nsource unnormalized smoothed potential. Generic alpha/beta and all eta>0\nare explicit generalizations; covariance upper/Hessian lower is separate. -/\ntheorem smoothed_hessian_upper {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0<α) (hαβ : α≤β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (β:ℝ)*‖v‖^2) (hη : 0<η) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    (∀ y v, ‖v‖^2/((β:ℝ)+η⁻¹) ≤ covarianceBilin (R y) v v) ∧\n      ∀ y v, fderiv ℝ (fderiv ℝ Vη) y v v ≤ ((β:ℝ)/(1+(β:ℝ)*η))*‖v‖^2 := by\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n  let r : ℝ≥0 := ⟨η⁻¹,(inv_pos.mpr hη).le⟩\n  have hr : (r:ℝ)=η⁻¹ := rfl\n  have ha : (0:ℝ)<α := hα\n  have h0 := AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n    (r:=0) hV hH (0:E)\n  simp only [NNReal.coe_zero,zero_div,zero_mul,add_zero] at h0\n  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n    ha (hV.differentiable (by norm_num)) h0.1\n  have hR (y : E) : ∀ v : E, ‖v‖^2/((β:ℝ)+η⁻¹) ≤ covarianceBilin (R y) v v := by\n    let W := fun x => V x+(r:ℝ)/2*‖x-y‖^2\n    have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)\n    have hVdd : Differentiable ℝ (fderiv ℝ V) := (hV.fderiv_right (m:=1) (by norm_num)).differentiable_one\n    have hW : ContDiff ℝ 2 W := hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))\n    have hq (x : E) : HasFDerivAt (fun z => (r:ℝ)/2*‖z-y‖^2)\n        ((r:ℝ) • innerSL ℝ (x-y)) x := by\n      convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul ((r:ℝ)/2)\n        using 1 <;> first | rfl | (ext v; simp;ring)\n    have hWfd (x : E) : fderiv ℝ W x = fderiv ℝ V x+(r:ℝ) • innerSL ℝ (x-y) :=\n      ((hVd x).hasFDerivAt.add (hq x)).fderiv\n    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=\n      {toFun := fun v => innerSL ℝ v\n       map_add' := by intros;ext;simp\n       map_smul' := by intros;ext;simp\n       cont := (innerSL ℝ (E:=E)).continuous}\n    have hWdd (x : E) : HasFDerivAt (fderiv ℝ W)\n        (fderiv ℝ (fderiv ℝ V) x+(r:ℝ) • J) x := by\n      rw [show fderiv ℝ W=(fun z => fderiv ℝ V z+(r:ℝ) • innerSL ℝ (z-y)) from funext hWfd]\n      convert (hVdd x).hasFDerivAt.add ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const y)).const_smul (r:ℝ)) using 1 <;> rfl\n    have hb (x v : E) : ((α+r:ℝ≥0):ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ W) x v v ∧\n        fderiv ℝ (fderiv ℝ W) x v v ≤ ((β+r:ℝ≥0):ℝ)*‖v‖^2 := by\n      rw [(hWdd x).fderiv]\n      change ((α:ℝ)+r)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v+(r:ℝ)*inner ℝ v v ∧\n        fderiv ℝ (fderiv ℝ V) x v v+(r:ℝ)*inner ℝ v v ≤ ((β:ℝ)+r)*‖v‖^2\n      rw [real_inner_self_eq_norm_sq]\n      constructor <;> nlinarith [(hH x v).1,(hH x v).2]\n    have hc := AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower\n      (show 0<α+r from by positivity) (show α+r≤β+r from by simpa only [add_comm] using (add_le_add_right hαβ r)) hW hb\n    have hRW : R y=(volume : Measure E).tilted (fun x => -W x) := by\n      dsimp only [R,μ]\n      rw [tilted_tilted hi]\n      congr 1\n      funext x\n      simp only [Pi.add_apply,W]\n      rw [hr]\n      field_simp [hη.ne']\n      ring\n    rw [hRW]\n    simpa only [NNReal.coe_add,hr] using hc.2.2\n  refine ⟨hR,?_⟩\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n  let Vη := fun y => -Real.log (A y)\n  let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)\n  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n  obtain ⟨_hZ,hμ,_hlaw,_hI,_hInt,_hTilt,_hA,_hC2,hshift⟩ :=\n    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential\n      ha hV (fun x v => (hH x v).1) hη\n  have : IsProbabilityMeasure μ := hμ\n  have hC : 0<C := by dsimp only [C]; positivity\n  obtain ⟨_hRm,_hD,hDD⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC\n  have he : U=(fun y => Vη y+Real.log ZV) := funext hshift\n  have hd : fderiv ℝ U=fderiv ℝ Vη := by\n    rw [he]\n    funext y\n    exact fderiv_add_const _\n  change ∀ y v w, fderiv ℝ (fderiv ℝ U) y v w = _ at hDD\n  rw [hd] at hDD\n  intro y v\n  rw [hDD y v v,real_inner_self_eq_norm_sq]\n  have hden : 0<(β:ℝ)+η⁻¹ := add_pos_of_nonneg_of_pos β.coe_nonneg (inv_pos.mpr hη)\n  have hbden : 0<1+(β:ℝ)*η := by positivity\n  calc\n    ‖v‖^2/η-covarianceBilin (R y) v v/η^2 ≤\n        ‖v‖^2/η-(‖v‖^2/((β:ℝ)+η⁻¹))/η^2 :=\n      sub_le_sub_left (div_le_div_of_nonneg_right (hR y v) (sq_nonneg η)) _\n    _ = ((β:ℝ)/(1+(β:ℝ)*η))*‖v‖^2 := by\n      field_simp [hη.ne',hden.ne',hbden.ne']\n      ring\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "arxiv-2609.06906v1",
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "version": "2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "wording_status": "faithful paraphrase",
+      "anchor": "SPHMC arXiv:2609.06906v1 Section4.1 Lemma4.1 Cramer-Rao half; equation4.1; Chewi auxiliary 20261006 main.pdf Theorem3.5.8/Corollary3.5.9 zero-based pages124-125",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; ASTIS original restatement of the Cramer-Rao half, with explicit alpha/beta and eta generalizations. Auxiliary author book Theorem3.5.8/Cor3.5.9, pinned 20261006 SHA2568818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae."
+    },
+    "statement": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.",
+    "formulae": [
+      {
+        "label": "Actual source smoothed Hessian upper",
+        "tex": "R_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad \\operatorname{Cov}_{R_y}(v,v)\\ge\\frac{\\|v\\|^2}{\\beta+\\eta^{-1}},\\quad D^2V_\\eta(y)[v,v]\\le\\frac{\\beta}{1+\\beta\\eta}\\|v\\|^2."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.",
+      "Every Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.",
+      "eta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law."
+    ],
+    "obligations": [
+      {
+        "id": "cr-covariance-lower",
+        "label": "Cramer-Rao actual covariance lower and source Hessian upper"
+      },
+      {
+        "id": "bl-covariance-upper",
+        "label": "Brascamp-Lieb covariance upper/Hessian lower (remaining)"
+      },
+      {
+        "id": "remaining-main",
+        "label": "Higher regularity, stationarity/errors/work and both complete main/composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+      "title": "Actual source smoothed Hessian upper",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+          "label": "SPHMC Lemma4.1 Cramer-Rao half",
+          "scope": "Actual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Auxiliary pinned author book Theorem3.5.8 / Corollary3.5.9",
+          "scope": "Linear-observable corollary only; genuine hidden regularity proved; not a Lean dependency."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GibbsCovarianceLower"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.",
+        "Every Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.",
+        "eta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law."
+      ],
+      "statement": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.",
+      "formula": "R_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad \\operatorname{Cov}_{R_y}(v,v)\\ge\\frac{\\|v\\|^2}{\\beta+\\eta^{-1}},\\quad D^2V_\\eta(y)[v,v]\\le\\frac{\\beta}{1+\\beta\\eta}\\|v\\|^2.",
+      "steps": [
+        {
+          "title": "Use the actual quadratic posterior potential",
+          "text": "For each y define W_y(x)=V(x)+norm(x-y)^2/(2eta). Differentiate the genuine squared norm twice. C2 and actual Hessian bounds become alpha+eta^-1 through beta+eta^-1. eta>0 ensures positive precision and the lower bound.",
+          "formula": "D^2W_y=D^2V+\\eta^{-1}I,\\quad(\\alpha+\\eta^{-1})I\\preceq D^2W_y\\preceq(\\beta+\\eta^{-1})I.",
+          "lean": "smoothed_hessian_upper: hq,hWfd,hWdd,hb; HasFDerivAt.norm_sq"
+        },
+        {
+          "title": "Identify the actual selected posterior measure",
+          "text": "Strong convexity derives integrability of exp(-V). The true tilted_tilted identity identifies R_y=mu.tilted(-quadratic) with volume.tilted(-W_y), without assuming any posterior density or normalizer. Apply the new canonical covariance lower producer.",
+          "formula": "R_y=\\operatorname{tilt}_{-W_y}(dx),\\quad \\operatorname{Cov}_{R_y}(v,v)\\ge\\frac{\\|v\\|^2}{\\beta+\\eta^{-1}}.",
+          "lean": "StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn; tilted_tilted; gibbs_covariance_lower"
+        },
+        {
+          "title": "Keep the true source unnormalized potential",
+          "text": "The source defines exp(-V_eta)=C_eta integral exp(-V(x)-norm(y-x)^2/(2eta))dx. Its true normalized negative-log density is U_eta=V_eta+log Z_V, by the existing actual smoothed Gibbs producer. The fixed constant cancels in first and second derivatives.",
+          "formula": "e^{-V_\\eta(y)}=C_\\eta\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx,\\quad U_\\eta=V_\\eta+\\log Z_V,\\quad D^2U_\\eta=D^2V_\\eta.",
+          "lean": "SmoothedGibbsPotential.smoothed_gibbs_potential; fderiv_add_const"
+        },
+        {
+          "title": "Apply the actual posterior covariance identity",
+          "text": "Original Gibbs probability is derived, and the canonical Gaussian derivative producer gives the actual selected-posterior covariance identity, with posterior L2 proved there. No Hessian identity or moment is supplied to this consumer.",
+          "formula": "D^2V_\\eta(y)[v,v]=\\frac{\\|v\\|^2}{\\eta}-\\frac{\\operatorname{Cov}_{R_y}(v,v)}{\\eta^2}.",
+          "lean": "GaussianConvolutionRegularity.gaussian_convolution_derivatives; hDD"
+        },
+        {
+          "title": "Subtract the covariance lower and simplify the exact constant",
+          "text": "eta squared is positive. Subtract the genuine covariance lower bound and simplify the reciprocal expression using eta>0 and beta>=0. The exact Hessian upper is beta/(1+beta eta), including the source beta=1 constant.",
+          "formula": "D^2V_\\eta(y)[v,v]\\le\\left(\\eta^{-1}-\\eta^{-2}(\\beta+\\eta^{-1})^{-1}\\right)\\|v\\|^2=\\frac{\\beta}{1+\\beta\\eta}\\|v\\|^2.",
+          "lean": "div_le_div_of_nonneg_right; field_simp; ring"
+        },
+        {
+          "title": "Retain the separate lower-Hessian boundary",
+          "text": "The source two-sided Lemma4.1 also needs Brascamp-Lieb covariance upper. This packet supplies its Cramer-Rao half only. Generic alpha/beta and all eta>0 extend the source normalized beta=1 and eta<=1 assumptions explicitly. The actual nonquadratic source test checks the full posterior and literal convolution without covariance or curvature certificates.",
+          "formula": "\\text{source }\\beta=1:\\quad D^2V_\\eta\\preceq(1+\\eta)^{-1}I;\\quad\\text{BL lower-Hessian half remains open}.",
+          "lean": "Tests.GibbsCovarianceLower.actual_nonconstant_source"
+        }
+      ],
+      "lean_statement": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.",
+      "lean_proof": "Actual Gibbs integrability and score L2, position L2 via gradient monotonicity, centered-linear and score IBP, nonnegative scalar square, bilinear scaling; actual quadratic posterior and exact source potential Hessian adapter.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives"
+      ],
+      "mathlib_dependencies": [
+        "tilted_tilted",
+        "fderiv_add_const",
+        "HasFDerivAt.norm_sq",
+        "HasFDerivAt.const_mul",
+        "HasFDerivAt.add",
+        "HasFDerivAt.comp",
+        "div_le_div_of_nonneg_right"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+      "role": "proof-edge",
+      "supports": [
+        "cr-covariance-lower"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source V has kappa^-1 I<=Hess V<=I, 0<eta<=1; Euclidean space.",
+        "lean": "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.\nEvery Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.\neta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law."
+      },
+      {
+        "source": "Cramer-Rao covariance lower is invoked in the upper-Hessian half of Lemma4.1. Author book Theorem3.5.8 proves an arbitrary smooth-observable inequality under well-behaved regularity.",
+        "lean": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed."
+      },
+      {
+        "source": "Lemma4.1 has two-sided curvature.",
+        "lean": "Actual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+      }
+    ]
+  },
+  "review_context_sha256": "64c349a2affbac904df6252d40583384e09c6f7cd69e074f1b8eb85aa7a0e1b3",
+  "lean_statement_sha256": "8f4695e0162742e1939bb0e768a4503de4d62bfa53c2e77b99d9db53e0080b76",
+  "source_text_sha256": "a783d922049d22624a4da21eb492c57d7dcd56a33912d922876de5e38020641f",
+  "reconstruction_text_sha256": "3b7f3e6bdbc0334a6c4fef312ec0e86357ca45531140f01339b12aa9ba4b9118",
+  "decoder_packet_sha256": "76e605ae33d7facdab45fba08ccd4b047883746dce2efa8e2ff4166f2bc1e6d7",
+  "decoder_run_sha256": "60ebf127acdf0c7ab63fee3238fc4381d61a326307e9d9e4cf49033e3b8fb1fe",
+  "decoder_input_components": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+  "whole_module_file_sha256": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+  "whole_module_raw_sha256": "5f0a15bc02f820ed84335cd67d10fc16d3abfb5828aaddcca7d661ffbb71b0e2",
+  "whole_module_lf_sha256": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMoment.lean",
+      "raw_sha256": "b04ba946e2051b2e1fc6eb5cb14cb67e82fa3ebd2e049dd8b469e3d1540c01a7",
+      "sha256": "b04ba946e2051b2e1fc6eb5cb14cb67e82fa3ebd2e049dd8b469e3d1540c01a7",
+      "byte_length": 29341,
+      "exact_case_checked": true,
+      "lf_sha256": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+      "sha256_lf": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "raw_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "byte_length": 5800,
+      "exact_case_checked": true,
+      "lf_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "sha256_lf": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "raw_sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "byte_length": 4880,
+      "exact_case_checked": true,
+      "lf_sha256": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "sha256_lf": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexGibbsIntegrability.lean",
+      "raw_sha256": "d1f328e72bc871acc27d936e985b75f4ffc45ef6126d364b60e01c45cf835ee5",
+      "sha256": "d1f328e72bc871acc27d936e985b75f4ffc45ef6126d364b60e01c45cf835ee5",
+      "byte_length": 2802,
+      "exact_case_checked": true,
+      "lf_sha256": "6497a5901e6fa898524821007f053d8c7396cd4d72d12ee647379d8bfa3dacf1",
+      "sha256_lf": "6497a5901e6fa898524821007f053d8c7396cd4d72d12ee647379d8bfa3dacf1",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Integrability.lean",
+      "raw_sha256": "21218e636e5c0a1474b3809f246ab168d4cf0d3ff888a3b90496f9d512c5cc6f",
+      "sha256": "21218e636e5c0a1474b3809f246ab168d4cf0d3ff888a3b90496f9d512c5cc6f",
+      "byte_length": 24468,
+      "exact_case_checked": true,
+      "lf_sha256": "4919829eaae678c687cb23c6deb82e61cf6446d807e7c23e9381441194fa8e8e",
+      "sha256_lf": "4919829eaae678c687cb23c6deb82e61cf6446d807e7c23e9381441194fa8e8e",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/Gradient.lean",
+      "raw_sha256": "b0e6a1c0c60c273621d9d612bf7874ac90fb5d90dee0c202d56b75a149e16db5",
+      "sha256": "b0e6a1c0c60c273621d9d612bf7874ac90fb5d90dee0c202d56b75a149e16db5",
+      "byte_length": 9433,
+      "exact_case_checked": true,
+      "lf_sha256": "9482edb1349892d5a8104f25080e5ce2a0b6135862a3ece6ec283a614e42920a",
+      "sha256_lf": "9482edb1349892d5a8104f25080e5ce2a0b6135862a3ece6ec283a614e42920a",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "Tests/GibbsCovarianceLower.lean",
+      "raw_sha256": "8d0eb6c66f249a43c1ca0d0ec200d60b148ba72d8141f5b6f15d45f2551d8400",
+      "sha256": "8d0eb6c66f249a43c1ca0d0ec200d60b148ba72d8141f5b6f15d45f2551d8400",
+      "byte_length": 3273,
+      "exact_case_checked": true,
+      "lf_sha256": "077318e8d327ddecf6d0fe1e8bd868048e69e16c405df228216603f379c6f2c2",
+      "sha256_lf": "077318e8d327ddecf6d0fe1e8bd868048e69e16c405df228216603f379c6f2c2",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "Tests/GibbsGradientMoment.lean",
+      "raw_sha256": "205e3797030f3c41acfbe3e865fc344e7adf91bfa7ea090bab8e12ec9597b18d",
+      "sha256": "205e3797030f3c41acfbe3e865fc344e7adf91bfa7ea090bab8e12ec9597b18d",
+      "byte_length": 269,
+      "exact_case_checked": true,
+      "lf_sha256": "42816c4411de991e5b277f6b8c3d09affbcf39e2708e2b253e7be95fbe6d4e84",
+      "sha256_lf": "42816c4411de991e5b277f6b8c3d09affbcf39e2708e2b253e7be95fbe6d4e84",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/LineDeriv/IntegrationByParts.lean",
+      "raw_sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "byte_length": 13259,
+      "exact_case_checked": true,
+      "lf_sha256": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962",
+      "sha256_lf": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Tilted.lean",
+      "raw_sha256": "53cc37610d1b21725a178c7d8064c59bb28629625d844b02430a30714ecd0c3e",
+      "sha256": "53cc37610d1b21725a178c7d8064c59bb28629625d844b02430a30714ecd0c3e",
+      "byte_length": 17366,
+      "exact_case_checked": true,
+      "lf_sha256": "355cce542b03dd9130d9511f80ae803cc11a12ba9e6a947e68402b124be2165f",
+      "sha256_lf": "355cce542b03dd9130d9511f80ae803cc11a12ba9e6a947e68402b124be2165f",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Moments/CovarianceBilin.lean",
+      "raw_sha256": "c94b26cad39e2da03f089dc1a889ff227d57e2774283cd2ce9300ceedf04becf",
+      "sha256": "c94b26cad39e2da03f089dc1a889ff227d57e2774283cd2ce9300ceedf04becf",
+      "byte_length": 10901,
+      "exact_case_checked": true,
+      "lf_sha256": "1005d48eb36c1dfe48d6ff8315c513cb10c682f91d9c66b6172ae9d3a0d29df6",
+      "sha256_lf": "1005d48eb36c1dfe48d6ff8315c513cb10c682f91d9c66b6172ae9d3a0d29df6",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Function/L2Space.lean",
+      "raw_sha256": "b27eb9c9823a58a229a17f69860c5bcf3defb433c23ff3bab335f864676df3b5",
+      "sha256": "b27eb9c9823a58a229a17f69860c5bcf3defb433c23ff3bab335f864676df3b5",
+      "byte_length": 14200,
+      "exact_case_checked": true,
+      "lf_sha256": "7dd0542490f2841e8a91d2258a903d328383d7305915375d99d589fae40de399",
+      "sha256_lf": "7dd0542490f2841e8a91d2258a903d328383d7305915375d99d589fae40de399",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".astis/chewi-20261006-covariance.pdf",
+      "raw_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+      "sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+      "byte_length": 2315687,
+      "exact_case_checked": true,
+      "kind": "binary"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "byte_length": 26,
+      "exact_case_checked": true,
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "sha256_lf": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "byte_length": 3234,
+      "exact_case_checked": true,
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "sha256_lf": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "tools/astis_publication.py",
+      "raw_sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+      "sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+      "byte_length": 25431,
+      "exact_case_checked": true,
+      "lf_sha256": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5",
+      "sha256_lf": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "tools/astis_semantic_roundtrip_core.py",
+      "raw_sha256": "a3e92a6e161944031fdee813838d6a4729e0e76a4c6abdd84c300cb5b2f0b229",
+      "sha256": "a3e92a6e161944031fdee813838d6a4729e0e76a4c6abdd84c300cb5b2f0b229",
+      "byte_length": 43547,
+      "exact_case_checked": true,
+      "lf_sha256": "90049b13ea83ccc41876f9267fd2e1a8052acac42e89a1063f97ac5619d39058",
+      "sha256_lf": "90049b13ea83ccc41876f9267fd2e1a8052acac42e89a1063f97ac5619d39058",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedHessianUpper.lean",
+      "raw_sha256": "5f0a15bc02f820ed84335cd67d10fc16d3abfb5828aaddcca7d661ffbb71b0e2",
+      "sha256": "5f0a15bc02f820ed84335cd67d10fc16d3abfb5828aaddcca7d661ffbb71b0e2",
+      "byte_length": 7106,
+      "exact_case_checked": true,
+      "lf_sha256": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+      "sha256_lf": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedGibbsPotential.lean",
+      "raw_sha256": "7e7c826f599cc14d817e1f0693c272a9b94439ce3cbaab468b806b7e15ef457b",
+      "sha256": "7e7c826f599cc14d817e1f0693c272a9b94439ce3cbaab468b806b7e15ef457b",
+      "byte_length": 7451,
+      "exact_case_checked": true,
+      "lf_sha256": "bba8bc9656b2df2c6653478b0b47b7573137b4a3712a0c5a631bed3fee1570ce",
+      "sha256_lf": "bba8bc9656b2df2c6653478b0b47b7573137b4a3712a0c5a631bed3fee1570ce",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianConvolutionRegularity.lean",
+      "raw_sha256": "25394020514aba3d497bd91b498c06155e2e84675dc077c96466677c4860feb5",
+      "sha256": "25394020514aba3d497bd91b498c06155e2e84675dc077c96466677c4860feb5",
+      "byte_length": 26260,
+      "exact_case_checked": true,
+      "lf_sha256": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+      "sha256_lf": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "website/content/publications/sphmc-smoothed-hessian-upper.json",
+      "raw_sha256": "425b278e5d3fab48b01532fb7a6ada7f1890659e1927d389bdc09b080a69c082",
+      "sha256": "425b278e5d3fab48b01532fb7a6ada7f1890659e1927d389bdc09b080a69c082",
+      "byte_length": 7066,
+      "exact_case_checked": true,
+      "lf_sha256": "954a0b35a6f21585a5f37cf6c4d85b4b99dce40ba2eb1aa465e137a8d2957772",
+      "sha256_lf": "954a0b35a6f21585a5f37cf6c4d85b4b99dce40ba2eb1aa465e137a8d2957772",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "website/content/declaration_lessons/sphmc-smoothed-hessian-upper.json",
+      "raw_sha256": "2a98aeab475bf99d0f381da65a704caac4dc49c28a2d05ecd6a8a4431b58b1fb",
+      "sha256": "2a98aeab475bf99d0f381da65a704caac4dc49c28a2d05ecd6a8a4431b58b1fb",
+      "byte_length": 8279,
+      "exact_case_checked": true,
+      "lf_sha256": "7e94c0b0d4debfffd1b0bd457e7563a2ad0fc65f44923a132183f9f469a80599",
+      "sha256_lf": "7e94c0b0d4debfffd1b0bd457e7563a2ad0fc65f44923a132183f9f469a80599",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-SPHMC-smoothed-hessian-upper.json",
+      "raw_sha256": "b49565871304259d428b103a46a5707386fe98b4bd00d8c7c88109172664d863",
+      "sha256": "b49565871304259d428b103a46a5707386fe98b4bd00d8c7c88109172664d863",
+      "byte_length": 8339,
+      "exact_case_checked": true,
+      "lf_sha256": "2e5b07f0881ba1aa9d4a1c51d4c8ee0e9da1c012b3059232454161a7613ab42f",
+      "sha256_lf": "2e5b07f0881ba1aa9d4a1c51d4c8ee0e9da1c012b3059232454161a7613ab42f",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-review.source.json",
+      "raw_sha256": "967dc8ba153f9571d70348cd842ecba45caea23491d40c067fd422f867cc557c",
+      "sha256": "967dc8ba153f9571d70348cd842ecba45caea23491d40c067fd422f867cc557c",
+      "byte_length": 29990,
+      "exact_case_checked": true,
+      "lf_sha256": "8ed23e912a04b750c5e73591030ea98580727cb0fda93ee13f169a96da1a99cb",
+      "sha256_lf": "8ed23e912a04b750c5e73591030ea98580727cb0fda93ee13f169a96da1a99cb",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/anonymous.source.decoder.json",
+      "raw_sha256": "4fb8f82dc10d825d0b8a3e0b9730c6d77f45c217eb9e521d8405fcb81df313e7",
+      "sha256": "4fb8f82dc10d825d0b8a3e0b9730c6d77f45c217eb9e521d8405fcb81df313e7",
+      "byte_length": 3221,
+      "exact_case_checked": true,
+      "lf_sha256": "9582cea8842b74438cf78a332d05ff5ce245d6097b25c4fa4240e0fc1286016b",
+      "sha256_lf": "9582cea8842b74438cf78a332d05ff5ce245d6097b25c4fa4240e0fc1286016b",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/anonymous.source.reconstruction.json",
+      "raw_sha256": "5d63ff1bdbc811edb95f783d05956988e744ae1913987f27e96a77f87522ad19",
+      "sha256": "5d63ff1bdbc811edb95f783d05956988e744ae1913987f27e96a77f87522ad19",
+      "byte_length": 8029,
+      "exact_case_checked": true,
+      "lf_sha256": "5d63ff1bdbc811edb95f783d05956988e744ae1913987f27e96a77f87522ad19",
+      "sha256_lf": "5d63ff1bdbc811edb95f783d05956988e744ae1913987f27e96a77f87522ad19",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    }
+  ],
+  "anti_anchoring": {
+    "primary_contract_pre_read_before_fresh_candidate_packet": true,
+    "prior_candidate_exposure": "During the bounded next BL dependency search, rg exposed GibbsGradientMoment declaration signatures, keywords and matching lines including covariance helper names. That exposure is disclosed, not used as correctness evidence. Before these fresh packets I had not read the new complete candidate proofs or their anonymous reconstructions, independent math review or earlier verdicts.",
+    "candidate_completely_unseen": false,
+    "forbidden_history_or_math_verdict_used": false,
+    "current_full_module_and_proof_independently_inspected": true
+  },
+  "source_read_evidence": [
+    {
+      "url": "https://arxiv.org/html/2609.06906v1",
+      "anchors": [
+        "equation 1.1",
+        "Section 3.1 HTML 229-237",
+        "Section 3.4 HTML 353-355",
+        "Section 4.1 equation 4.1/Lemma 4.1 HTML 403-430",
+        "Section 6.3 HTML 1383-1403"
+      ],
+      "read_in_current_review": true,
+      "contract": "Source beta=1 uses actual unnormalized V_eta and normalized RGO. Reverse covariance yields the upper Hessian bound; the separate BL inequality yields its lower bound. Section 6.3 uses an ideal Gibbs gradient moment as background to a larger reference-point/cost argument."
+    },
+    {
+      "path": ".astis/chewi-20261006-covariance.pdf",
+      "raw_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+      "pages_zero_based": [
+        124,
+        125
+      ],
+      "page_count": 333,
+      "anchors": [
+        "Theorem 3.5.8",
+        "Corollary 3.5.9"
+      ],
+      "read_in_current_review": true,
+      "contract": "Well-behaved observables in the general CR theorem require valid IBP and integrability. This reviewed component derives those requirements for centered linear observables, giving beta^-1 I without asserting general nonlinear CR or the BL half."
+    }
+  ],
+  "blocking": false,
+  "proof_review": [
+    "Old four private helpers absorb_quadratic, weighted_square, weighted_gradient, directional_ibp and both public proofs were read in the 546-line current module, together with new gibbs_position_l2, coordinate_position_ibp and gibbs_covariance_unit. No private implementation is outside this review.",
+    "C2 Hessian hypotheses feed actual strong convexity and gradient Lipschitz bounds. Gaussian domination derives exp(-U) integrability, positive partition function and weighted score products. Haar integration by parts requires three integrable products; the proof establishes each rather than assuming an unexplained boundary condition.",
+    "The old score identity is derived direction by direction then summed over the genuine finite orthonormal basis using Parseval. Probability, gradient-square integrability, Hessian-trace integrability, equality and the beta*d bound are all genuine conclusions.",
+    "Actual strong monotonicity gives alpha*norm(x) <= norm(gradient U x)+norm(gradient U 0) away from x=0; the zero case is separate. Squaring and the old score second-moment conclusion give position L2. The vector mean and centered linear coordinates therefore exist.",
+    "For unit v and arbitrary center p, q=<x-p,v> has directional derivative 1. L2 domination proves q*score integrable and weighted q integrable before the second Haar IBP, yielding E(q*score)=1. Directional score IBP and Hessian upper bound give E(score^2)<=beta.",
+    "Expanding the genuine nonnegative square E(score-beta*q)^2 gives beta^2 E(q^2)>=beta. beta>0 follows from alpha>0 and alpha<=beta. Center p is the actual Bochner mean and covarianceBilin_apply is used with proven id L2, excluding its non-L2 zero fallback. Bilinear scaling extends the unit inequality to every vector; v=0 and dimension zero are handled without a positive-dimension premise.",
+    "The complete 125-line source module and complete Tests were read. There are no private declarations in SmoothedHessianUpper; its local W/J, derivative, integrability, normalization and quotient computations are all covered.",
+    "W_y=V+norm(x-y)^2/(2*eta) has actual C2 second derivative Hess(V)+eta^-1*inner. Its alpha+eta^-1 and beta+eta^-1 bounds are proved, and generic covariance lower is applied to its actual volume Gibbs law.",
+    "Original exp(-V) integrability is derived from actual strong convexity before Measure.tilted_tilted. This identifies the volume Gibbs law of W_y with the actual RGO tilt of the original Gibbs probability; no supplied posterior or probability certificate is accepted.",
+    "The exact Gaussian prefactor is ((sqrt(2*pi*eta))^-1)^finrank. A is the unnormalized Lebesgue convolution, not the normalized probability density. The existing SmoothedGibbsPotential adapter derives positive Z_V and U_eta=V_eta+log Z_V; differentiation cancels the constant twice.",
+    "The genuine Gaussian posterior derivative producer gives Hess(U_eta)[v,v]=norm(v)^2/eta-covariance(R_y)(v,v)/eta^2, in the true position-L2 regime. Substituting lower covariance and positive denominators gives beta/(1+beta*eta) exactly. No covariance upper or BL certificate is consumed."
+  ],
+  "focused_elaboration": {
+    "independent_of_math_reviewer": true,
+    "command_environment": {
+      "LEAN_NUM_THREADS": "2"
+    },
+    "direct_commands": [
+      {
+        "command": "lake env lean AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMoment.lean",
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "lake env lean AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedHessianUpper.lean",
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "lake env lean Tests/GibbsCovarianceLower.lean",
+        "exit_code": 0,
+        "stdout_sha256": "9f70cfe44b172961f25e3d73b85c34563fce8a3387118edf59a5a726a005425b",
+        "warnings": "Two unused simp arguments potential/Pi.add_apply in the curvature example; no production warnings."
+      },
+      {
+        "command": "lake env lean Tests/GibbsGradientMoment.lean",
+        "exit_code": 0,
+        "stdout_sha256": "2c6673fcd8f674fe4e049d242344f0fb2742363db7a6881305c3fa0ae13c8f73"
+      }
+    ],
+    "stdin_auxiliary": {
+      "command": "lake env lean --stdin",
+      "exit_code": 0,
+      "scope": "Two explicit Fin 0 Euclidean instances for constant potential 7: generic actual Gibbs covariance and actual smoothed source bound at eta=2; no saved Lean file."
+    },
+    "printed_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "fake_closure_scan": "Neither current candidate production module has sorry, admit, an axiom declaration, Prop := True, or := trivial closure."
+  },
+  "publication_provenance": {
+    "authored_statement_and_all_six_formula_steps_checked": true,
+    "actual_ASTIS_and_Mathlib_dependency_lists_checked_against_calls": true,
+    "formula_encoding": "Parsed formula characters contain no actual double-backslash sequences; formulas are mathematically consistent with the checked proof.",
+    "binding_and_review_context_recomputed_from_current_selected_metadata": true,
+    "scope_credit": "One scoped consumer/prerequisite only; prior-gradient refresh grants no new mathematics."
+  },
+  "review_timing": {
+    "first_focused_compiler_checkpoint_utc": "2026-10-05 22:48:40 UTC",
+    "receipt_generated_utc": "2026-10-05 22:58:04 UTC",
+    "timing_scope": "Compiler checkpoint follows the initial complete module/proof read; not claimed to timestamp the earlier independent primary preread."
+  },
+  "matching_parent_freeze_reuse": {
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianConvolutionRegularity.lean",
+    "raw_sha256": "25394020514aba3d497bd91b498c06155e2e84675dc077c96466677c4860feb5",
+    "lf_sha256": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+    "basis": "Reuse of my earlier complete mathematical inspection of this exact 513-line parent and all its private helpers/three local canonical instances, after fresh byte/hash match and current actual producer-interface check; no earlier fidelity verdict or other reviewer conclusion used."
+  },
+  "review_run_sha256": "19421b94b06bdeab85721f3fbdbfd930a1cc6ccf6989af52adc561efb836cae9"
+}

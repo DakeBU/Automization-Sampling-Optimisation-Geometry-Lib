@@ -1,0 +1,46 @@
+import Tests.GibbsCovarianceLower
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal
+noncomputable section
+set_option backward.isDefEq.respectTransparency false
+abbrev Z := EuclideanSpace ℝ (Fin 0)
+def U0 : Z → ℝ := fun _ => 0
+theorem zero_curvature : ∀ x v : Z,
+    ((1:ℝ≥0):ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U0) x v v ∧
+    fderiv ℝ (fderiv ℝ U0) x v v ≤ ((2:ℝ≥0):ℝ)*‖v‖^2 := by
+  intro x v
+  have hv : v=0 := Subsingleton.elim _ _
+  subst v
+  simp
+theorem zero_gibbs_full :
+    let μ := (volume : Measure Z).tilted (fun x => -U0 x)
+    IsProbabilityMeasure μ ∧ MemLp id 2 μ ∧
+      ∀ v : Z, ‖v‖^2/(2:ℝ) ≤ covarianceBilin μ v v := by
+  exact AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower
+    (by norm_num : (0:ℝ≥0)<1) (by norm_num : (1:ℝ≥0)≤2)
+    (contDiff_const) zero_curvature
+theorem zero_smoothed_full {η : ℝ} (hη : 0<η) :
+    let μ := (volume : Measure Z).tilted (fun x => -U0 x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ Z
+    let A := fun y : Z => C*∫ x, Real.exp (-U0 x-‖y-x‖^2/(2*η)) ∂(volume : Measure Z)
+    let R := fun y : Z => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    (∀ y v, ‖v‖^2/(2+η⁻¹) ≤ covarianceBilin (R y) v v) ∧
+      ∀ y v, fderiv ℝ (fderiv ℝ (fun y => -Real.log (A y))) y v v ≤
+        (2/(1+2*η))*‖v‖^2 := by
+  exact AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper
+    (by norm_num : (0:ℝ≥0)<1) (by norm_num : (1:ℝ≥0)≤2)
+    (contDiff_const) zero_curvature hη
+theorem real_full_scalar {U : ℝ → ℝ} {α β : ℝ≥0}
+    (hα : 0<α) (hab : α≤β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : ℝ, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β:ℝ)*‖v‖^2) :
+    let μ := (volume : Measure ℝ).tilted (fun x => -U x)
+    IsProbabilityMeasure μ ∧ MemLp id 2 μ ∧
+      ∀ s : ℝ, s^2/(β:ℝ) ≤ covarianceBilin μ s s := by
+  have h := AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower hα hab hU hH
+  refine ⟨h.1,h.2.1,?_⟩
+  intro s
+  simpa only [Real.norm_eq_abs,sq_abs] using h.2.2 s
+#print axioms zero_gibbs_full
+#print axioms zero_smoothed_full
+#print axioms real_full_scalar

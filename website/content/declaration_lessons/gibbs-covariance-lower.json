@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower",
+      "title": "Actual Gibbs covariance lower",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+          "label": "SPHMC Lemma4.1 Cramer-Rao half",
+          "scope": "Actual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Auxiliary pinned author book Theorem3.5.8 / Corollary3.5.9",
+          "scope": "Linear-observable corollary only; genuine hidden regularity proved; not a Lean dependency."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GibbsCovarianceLower"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.",
+        "Every Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied."
+      ],
+      "statement": "The actual Gibbs mu=volume.tilted(-U) is probability and id belongs to L2(mu). For every direction v, covarianceBilin(mu)(v,v)>=norm(v)^2/beta. This is the linear-observable covariance corollary of Cramer-Rao, not the full nonlinear-observable theorem or a matrix-inverse result.",
+      "formula": "\\mu(dx)=Z_U^{-1}e^{-U(x)}dx,\\quad X\\in L^2(\\mu),\\quad \\forall v,\\ \\operatorname{Cov}_{\\mu}(\\langle v,X\\rangle,\\langle v,X\\rangle)\\ge\\beta^{-1}\\|v\\|^2.",
+      "boundary": "Actual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost.",
+      "steps": [
+        {
+          "title": "Derive actual Gibbs probability and score second moment",
+          "text": "The existing canonical Gibbs gradient theorem derives the positive integrable exponential weight and actual score-square integrability from C2 Hessian bounds, using genuine weighted domination and full-space score integration by parts. Reuse that producer, without supplying a probability or moment certificate.",
+          "formula": "0<Z_U<\\infty,\\quad \\mu\\text{ probability},\\quad\\mathbb E_\\mu\\|\\nabla U\\|^2\\le\\beta d.",
+          "lean": "gibbs_gradient_moment; weighted_gradient; directional_ibp"
+        },
+        {
+          "title": "Derive position L2 without a minimizer",
+          "text": "Strong gradient monotonicity between zero and x gives alpha norm(x)<=norm(gradient U(x))+norm(gradient U(0)). Square this and dominate by the integrable score square plus a constant under the actual probability law. Thus id is genuinely L2 and its Bochner mean exists. Zero norm is handled separately.",
+          "formula": "\\|x\\|^2\\le\\frac{2}{\\alpha^2}(\\|\\nabla U(x)\\|^2+\\|\\nabla U(0)\\|^2),\\quad X\\in L^2(\\mu).",
+          "lean": "gibbs_position_l2; StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn; memLp_two_iff_integrable_sq_norm"
+        },
+        {
+          "title": "Prove centered linear-score pairing with all IBP products integrable",
+          "text": "For a unit direction v put p=E_mu X, q(x)=inner(x-p,v), a(x)=DU(x)[v]. Actual position and score L2 imply q, a, qa are integrable as required. The full-space integration-by-parts API is applied only after deriving the weighted q, weight times derivative q, and derivative weight times q integrability. Since Dq[v]=1 and D(exp(-U))[v]=-exp(-U)a, normalize by the true positive Z_U to obtain E_mu qa=1. No mean-score-zero hypothesis is needed.",
+          "formula": "\\mathbb E_\\mu[q a]=1,\\quad q=\\langle X-\\mathbb EX,v\\rangle,\\quad a=DU(X)[v],\\quad\\|v\\|=1.",
+          "lean": "coordinate_position_ibp; integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable; integrable_tilted_iff; integral_tilted"
+        },
+        {
+          "title": "Bound the actual directional score second moment",
+          "text": "The existing genuine score IBP identifies the weighted score square with the actual Hessian directional integral. The upper Hessian beta bound and probability normalization give E_mu a^2<=beta. All score-square, Hessian and product integrability are proved before integral algebra.",
+          "formula": "\\mathbb E_\\mu a^2=\\mathbb E_\\mu D^2U(X)[v,v]\\le\\beta.",
+          "lean": "directional_ibp; integral_mono; integral_tilted; gibbs_covariance_unit"
+        },
+        {
+          "title": "Integrate an actual nonnegative square",
+          "text": "Expand the integrable nonnegative square (a-beta q)^2. Combining E qa=1 with E a^2<=beta yields beta^2 E q^2>=beta. Positivity of beta follows from 0<alpha<=beta, so divide to get variance>=1/beta. Actual covarianceBilin is identified with the centered q square using proved id L2.",
+          "formula": "0\\le\\mathbb E(a-\\beta q)^2=\\mathbb Ea^2-2\\beta+\\beta^2\\mathbb Eq^2\\le-\\beta+\\beta^2\\mathbb Eq^2\\ \\Longrightarrow\\ \\operatorname{Cov}_\\mu(v,v)\\ge\\beta^{-1}.",
+          "lean": "gibbs_covariance_unit; integral_add; integral_sub; covarianceBilin_apply"
+        },
+        {
+          "title": "Scale every direction and include dimension zero",
+          "text": "Handle v=0 directly. For v nonzero use u=v/norm(v), apply the unit-direction result and use the true covariance bilinear map scaling. This quantifies all v without assuming a unit vector exists, so dimension zero is included. This does not establish general nonlinear Cramer-Rao or any Brascamp-Lieb upper covariance.",
+          "formula": "\\operatorname{Cov}_\\mu(v,v)=\\|v\\|^2\\operatorname{Cov}_\\mu(v/\\|v\\|,v/\\|v\\|)\\ge\\|v\\|^2/\\beta.",
+          "lean": "gibbs_covariance_lower; map_smul; smul_apply"
+        }
+      ],
+      "lean_statement": "The actual Gibbs mu=volume.tilted(-U) is probability and id belongs to L2(mu). For every direction v, covarianceBilin(mu)(v,v)>=norm(v)^2/beta. This is the linear-observable covariance corollary of Cramer-Rao, not the full nonlinear-observable theorem or a matrix-inverse result.",
+      "lean_proof": "Actual Gibbs integrability and score L2, position L2 via gradient monotonicity, centered-linear and score IBP, nonnegative scalar square, bilinear scaling; actual quadratic posterior and exact source potential Hessian adapter.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+        "integrable_tilted_iff",
+        "integral_tilted",
+        "memLp_two_iff_integrable_sq_norm",
+        "memLp_two_iff_integrable_sq",
+        "covarianceBilin_apply",
+        "integral_add",
+        "integral_sub",
+        "integral_const_mul",
+        "map_smul",
+        "smul_apply"
+      ]
+    }
+  ]
+}

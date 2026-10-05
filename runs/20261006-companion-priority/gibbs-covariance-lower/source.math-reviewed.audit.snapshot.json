@@ -1,0 +1,176 @@
+{
+  "id": "ASTIS-RT-20261006-SPHMCSmoothedHessianUpper",
+  "state": "draft",
+  "source": {
+    "source_id": "companion:sphmc-smoothed-hessian-upper",
+    "anchor": "SPHMC arXiv:2609.06906v1 Section4.1 Lemma4.1 Cramer-Rao half; equation4.1; Chewi auxiliary 20261006 main.pdf Theorem3.5.8/Corollary3.5.9 zero-based pages124-125",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+    "original_text": "Attributed Cramer-Rao half restatement:\nE is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.\nEvery Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.\neta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law.\nFor every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.\nActual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost.",
+    "text_sha256": "a783d922049d22624a4da21eb492c57d7dcd56a33912d922876de5e38020641f"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedHessianUpper.lean",
+    "statement": "{V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0<α) (hαβ : α≤β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (β:ℝ)*‖v‖^2) (hη : 0<η) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    (∀ y v, ‖v‖^2/((β:ℝ)+η⁻¹) ≤ covarianceBilin (R y) v v) ∧\n      ∀ y v, fderiv ℝ (fderiv ℝ Vη) y v v ≤ ((β:ℝ)/(1+(β:ℝ)*η))*‖v‖^2",
+    "statement_sha256": "8f4695e0162742e1939bb0e768a4503de4d62bfa53c2e77b99d9db53e0080b76",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a complete finite-dimensional real inner-product space, with Borel measurable structure and canonical Lebesgue volume, including dimension zero. alpha,beta are nonnegative reals (NNReal). Every binder/let is part of the exact theorem contract.",
+      "ContDiff R 2 means twice continuously differentiable. fderiv R is the actual Frechet derivative; nested fderiv applied twice gives the true Hessian bilinear evaluation. inner R and norm are the real Hilbert inner product and norm.",
+      "mu.tilted f is the measure with density exp(f)/integral exp(f) relative to mu. The exponential normalization is a real Bochner integral; in degenerate cases the operation is still defined. No probability or nonzero normalization certificate is built into this definition.",
+      "MemLp id 2 mu means identity is measurable modulo mu and has finite second moment. covarianceBilin mu v w is the true covariance of scalar projections inner(v,X),inner(w,X) under mu when id is L2. IsProbabilityMeasure is probability. All integrals displayed are genuine Bochner integrals; volume is canonical Lebesgue volume."
+    ],
+    "compiler_evidence": "Focused production and nonquadratic actual posterior/convolution Test PASS, standard three axioms only. Independent mathematics/blind/source/exactcommit separate."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "bf4ec0032608eaa737ece5b31d9a1acedea674a11e8b8cb4b0e95f9f3a2c5ede",
+  "publication_context": {
+    "file": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment\nimport AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential\n\n/-!\n# Actual smoothed Hessian upper bound\n\nSPHMC arXiv:2609.06906v1 Section4.1 Lemma4.1, Cramer-Rao half.\nThe genuine quadratic posterior has Hessian between alpha+eta^-1 and\nbeta+eta^-1. Its derived covariance lower bound and the true Gaussian\nposterior Hessian identity imply the source UNNORMALIZED V_eta has Hessian\nat most beta/(1+beta eta). This gives exactly (1+eta)^-1 for source beta=1.\nGeneric alpha/beta and every eta>0 are explicit extensions of the source.\nNo moment, normalizer, derivative or covariance estimate is an input.\nBrascamp-Lieb/Hessian lower, full Lemma4.1, higher regularity, numerical\naccuracy/history/expected work and both complete main/composition remain open.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper\n\nopen Set MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped NNReal\nnoncomputable section\nset_option backward.isDefEq.respectTransparency false\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]\n\n/-- Cramer-Rao half of SPHMC Lemma4.1 for the actual RGO posterior and\nsource unnormalized smoothed potential. Generic alpha/beta and all eta>0\nare explicit generalizations; covariance upper/Hessian lower is separate. -/\ntheorem smoothed_hessian_upper {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0<α) (hαβ : α≤β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (β:ℝ)*‖v‖^2) (hη : 0<η) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    (∀ y v, ‖v‖^2/((β:ℝ)+η⁻¹) ≤ covarianceBilin (R y) v v) ∧\n      ∀ y v, fderiv ℝ (fderiv ℝ Vη) y v v ≤ ((β:ℝ)/(1+(β:ℝ)*η))*‖v‖^2 := by\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n  let r : ℝ≥0 := ⟨η⁻¹,(inv_pos.mpr hη).le⟩\n  have hr : (r:ℝ)=η⁻¹ := rfl\n  have ha : (0:ℝ)<α := hα\n  have h0 := AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n    (r:=0) hV hH (0:E)\n  simp only [NNReal.coe_zero,zero_div,zero_mul,add_zero] at h0\n  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n    ha (hV.differentiable (by norm_num)) h0.1\n  have hR (y : E) : ∀ v : E, ‖v‖^2/((β:ℝ)+η⁻¹) ≤ covarianceBilin (R y) v v := by\n    let W := fun x => V x+(r:ℝ)/2*‖x-y‖^2\n    have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)\n    have hVdd : Differentiable ℝ (fderiv ℝ V) := (hV.fderiv_right (m:=1) (by norm_num)).differentiable_one\n    have hW : ContDiff ℝ 2 W := hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))\n    have hq (x : E) : HasFDerivAt (fun z => (r:ℝ)/2*‖z-y‖^2)\n        ((r:ℝ) • innerSL ℝ (x-y)) x := by\n      convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul ((r:ℝ)/2)\n        using 1 <;> first | rfl | (ext v; simp;ring)\n    have hWfd (x : E) : fderiv ℝ W x = fderiv ℝ V x+(r:ℝ) • innerSL ℝ (x-y) :=\n      ((hVd x).hasFDerivAt.add (hq x)).fderiv\n    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=\n      {toFun := fun v => innerSL ℝ v\n       map_add' := by intros;ext;simp\n       map_smul' := by intros;ext;simp\n       cont := (innerSL ℝ (E:=E)).continuous}\n    have hWdd (x : E) : HasFDerivAt (fderiv ℝ W)\n        (fderiv ℝ (fderiv ℝ V) x+(r:ℝ) • J) x := by\n      rw [show fderiv ℝ W=(fun z => fderiv ℝ V z+(r:ℝ) • innerSL ℝ (z-y)) from funext hWfd]\n      convert (hVdd x).hasFDerivAt.add ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const y)).const_smul (r:ℝ)) using 1 <;> rfl\n    have hb (x v : E) : ((α+r:ℝ≥0):ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ W) x v v ∧\n        fderiv ℝ (fderiv ℝ W) x v v ≤ ((β+r:ℝ≥0):ℝ)*‖v‖^2 := by\n      rw [(hWdd x).fderiv]\n      change ((α:ℝ)+r)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v+(r:ℝ)*inner ℝ v v ∧\n        fderiv ℝ (fderiv ℝ V) x v v+(r:ℝ)*inner ℝ v v ≤ ((β:ℝ)+r)*‖v‖^2\n      rw [real_inner_self_eq_norm_sq]\n      constructor <;> nlinarith [(hH x v).1,(hH x v).2]\n    have hc := AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower\n      (show 0<α+r from by positivity) (show α+r≤β+r from by simpa only [add_comm] using (add_le_add_right hαβ r)) hW hb\n    have hRW : R y=(volume : Measure E).tilted (fun x => -W x) := by\n      dsimp only [R,μ]\n      rw [tilted_tilted hi]\n      congr 1\n      funext x\n      simp only [Pi.add_apply,W]\n      rw [hr]\n      field_simp [hη.ne']\n      ring\n    rw [hRW]\n    simpa only [NNReal.coe_add,hr] using hc.2.2\n  refine ⟨hR,?_⟩\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n  let Vη := fun y => -Real.log (A y)\n  let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)\n  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n  obtain ⟨_hZ,hμ,_hlaw,_hI,_hInt,_hTilt,_hA,_hC2,hshift⟩ :=\n    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential\n      ha hV (fun x v => (hH x v).1) hη\n  have : IsProbabilityMeasure μ := hμ\n  have hC : 0<C := by dsimp only [C]; positivity\n  obtain ⟨_hRm,_hD,hDD⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC\n  have he : U=(fun y => Vη y+Real.log ZV) := funext hshift\n  have hd : fderiv ℝ U=fderiv ℝ Vη := by\n    rw [he]\n    funext y\n    exact fderiv_add_const _\n  change ∀ y v w, fderiv ℝ (fderiv ℝ U) y v w = _ at hDD\n  rw [hd] at hDD\n  intro y v\n  rw [hDD y v v,real_inner_self_eq_norm_sq]\n  have hden : 0<(β:ℝ)+η⁻¹ := add_pos_of_nonneg_of_pos β.coe_nonneg (inv_pos.mpr hη)\n  have hbden : 0<1+(β:ℝ)*η := by positivity\n  calc\n    ‖v‖^2/η-covarianceBilin (R y) v v/η^2 ≤\n        ‖v‖^2/η-(‖v‖^2/((β:ℝ)+η⁻¹))/η^2 :=\n      sub_le_sub_left (div_le_div_of_nonneg_right (hR y v) (sq_nonneg η)) _\n    _ = ((β:ℝ)/(1+(β:ℝ)*η))*‖v‖^2 := by\n      field_simp [hη.ne',hden.ne',hbden.ne']\n      ring\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "arxiv-2609.06906v1",
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "version": "2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "wording_status": "faithful paraphrase",
+      "anchor": "SPHMC arXiv:2609.06906v1 Section4.1 Lemma4.1 Cramer-Rao half; equation4.1; Chewi auxiliary 20261006 main.pdf Theorem3.5.8/Corollary3.5.9 zero-based pages124-125",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; ASTIS original restatement of the Cramer-Rao half, with explicit alpha/beta and eta generalizations. Auxiliary author book Theorem3.5.8/Cor3.5.9, pinned 20261006 SHA2568818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae."
+    },
+    "statement": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.",
+    "formulae": [
+      {
+        "label": "Actual source smoothed Hessian upper",
+        "tex": "R_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad \\operatorname{Cov}_{R_y}(v,v)\\ge\\frac{\\|v\\|^2}{\\beta+\\eta^{-1}},\\quad D^2V_\\eta(y)[v,v]\\le\\frac{\\beta}{1+\\beta\\eta}\\|v\\|^2."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.",
+      "Every Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.",
+      "eta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law."
+    ],
+    "obligations": [
+      {
+        "id": "cr-covariance-lower",
+        "label": "Cramer-Rao actual covariance lower and source Hessian upper"
+      },
+      {
+        "id": "bl-covariance-upper",
+        "label": "Brascamp-Lieb covariance upper/Hessian lower (remaining)"
+      },
+      {
+        "id": "remaining-main",
+        "label": "Higher regularity, stationarity/errors/work and both complete main/composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+      "title": "Actual source smoothed Hessian upper",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+          "label": "SPHMC Lemma4.1 Cramer-Rao half",
+          "scope": "Actual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Auxiliary pinned author book Theorem3.5.8 / Corollary3.5.9",
+          "scope": "Linear-observable corollary only; genuine hidden regularity proved; not a Lean dependency."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GibbsCovarianceLower"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.",
+        "Every Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.",
+        "eta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law."
+      ],
+      "statement": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.",
+      "formula": "R_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad \\operatorname{Cov}_{R_y}(v,v)\\ge\\frac{\\|v\\|^2}{\\beta+\\eta^{-1}},\\quad D^2V_\\eta(y)[v,v]\\le\\frac{\\beta}{1+\\beta\\eta}\\|v\\|^2.",
+      "steps": [
+        {
+          "title": "Use the actual quadratic posterior potential",
+          "text": "For each y define W_y(x)=V(x)+norm(x-y)^2/(2eta). Differentiate the genuine squared norm twice. C2 and actual Hessian bounds become alpha+eta^-1 through beta+eta^-1. eta>0 ensures positive precision and the lower bound.",
+          "formula": "D^2W_y=D^2V+\\eta^{-1}I,\\quad(\\alpha+\\eta^{-1})I\\preceq D^2W_y\\preceq(\\beta+\\eta^{-1})I.",
+          "lean": "smoothed_hessian_upper: hq,hWfd,hWdd,hb; HasFDerivAt.norm_sq"
+        },
+        {
+          "title": "Identify the actual selected posterior measure",
+          "text": "Strong convexity derives integrability of exp(-V). The true tilted_tilted identity identifies R_y=mu.tilted(-quadratic) with volume.tilted(-W_y), without assuming any posterior density or normalizer. Apply the new canonical covariance lower producer.",
+          "formula": "R_y=\\operatorname{tilt}_{-W_y}(dx),\\quad \\operatorname{Cov}_{R_y}(v,v)\\ge\\frac{\\|v\\|^2}{\\beta+\\eta^{-1}}.",
+          "lean": "StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn; tilted_tilted; gibbs_covariance_lower"
+        },
+        {
+          "title": "Keep the true source unnormalized potential",
+          "text": "The source defines exp(-V_eta)=C_eta integral exp(-V(x)-norm(y-x)^2/(2eta))dx. Its true normalized negative-log density is U_eta=V_eta+log Z_V, by the existing actual smoothed Gibbs producer. The fixed constant cancels in first and second derivatives.",
+          "formula": "e^{-V_\\eta(y)}=C_\\eta\\int e^{-V(x)-\\|y-x\\|^2/(2\\eta)}dx,\\quad U_\\eta=V_\\eta+\\log Z_V,\\quad D^2U_\\eta=D^2V_\\eta.",
+          "lean": "SmoothedGibbsPotential.smoothed_gibbs_potential; fderiv_add_const"
+        },
+        {
+          "title": "Apply the actual posterior covariance identity",
+          "text": "Original Gibbs probability is derived, and the canonical Gaussian derivative producer gives the actual selected-posterior covariance identity, with posterior L2 proved there. No Hessian identity or moment is supplied to this consumer.",
+          "formula": "D^2V_\\eta(y)[v,v]=\\frac{\\|v\\|^2}{\\eta}-\\frac{\\operatorname{Cov}_{R_y}(v,v)}{\\eta^2}.",
+          "lean": "GaussianConvolutionRegularity.gaussian_convolution_derivatives; hDD"
+        },
+        {
+          "title": "Subtract the covariance lower and simplify the exact constant",
+          "text": "eta squared is positive. Subtract the genuine covariance lower bound and simplify the reciprocal expression using eta>0 and beta>=0. The exact Hessian upper is beta/(1+beta eta), including the source beta=1 constant.",
+          "formula": "D^2V_\\eta(y)[v,v]\\le\\left(\\eta^{-1}-\\eta^{-2}(\\beta+\\eta^{-1})^{-1}\\right)\\|v\\|^2=\\frac{\\beta}{1+\\beta\\eta}\\|v\\|^2.",
+          "lean": "div_le_div_of_nonneg_right; field_simp; ring"
+        },
+        {
+          "title": "Retain the separate lower-Hessian boundary",
+          "text": "The source two-sided Lemma4.1 also needs Brascamp-Lieb covariance upper. This packet supplies its Cramer-Rao half only. Generic alpha/beta and all eta>0 extend the source normalized beta=1 and eta<=1 assumptions explicitly. The actual nonquadratic source test checks the full posterior and literal convolution without covariance or curvature certificates.",
+          "formula": "\\text{source }\\beta=1:\\quad D^2V_\\eta\\preceq(1+\\eta)^{-1}I;\\quad\\text{BL lower-Hessian half remains open}.",
+          "lean": "Tests.GibbsCovarianceLower.actual_nonconstant_source"
+        }
+      ],
+      "lean_statement": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed.",
+      "lean_proof": "Actual Gibbs integrability and score L2, position L2 via gradient monotonicity, centered-linear and score IBP, nonnegative scalar square, bilinear scaling; actual quadratic posterior and exact source potential Hessian adapter.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_covariance_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives"
+      ],
+      "mathlib_dependencies": [
+        "tilted_tilted",
+        "fderiv_add_const",
+        "HasFDerivAt.norm_sq",
+        "HasFDerivAt.const_mul",
+        "HasFDerivAt.add",
+        "HasFDerivAt.comp",
+        "div_le_div_of_nonneg_right"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+      "role": "proof-edge",
+      "supports": [
+        "cr-covariance-lower"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source V has kappa^-1 I<=Hess V<=I, 0<eta<=1; Euclidean space.",
+        "lean": "E is a complete finite-dimensional real inner-product space with its Borel measurable space and canonical volume, including dimension zero. alpha,beta are NNReal, 0<alpha<=beta. U or V is genuinely C2; actual Hessian at every point and direction lies between alpha*norm(v)^2 and beta*norm(v)^2.\nEvery Gibbs law is the actual volume.tilted(-potential). Probability, finite second moments, score integrability, centered score pairing and covariance bounds are derived. No minimizer, finite input moments, partition constant, derivative/score/covariance or well-behaved certificate is supplied.\neta>0 is arbitrary; source eta<=1 is unnecessary for this half. C_eta=(sqrt(2 pi eta)^-1)^d is the actual Gaussian prefactor. V_eta is the literal unnormalized source convolution; U_eta=V_eta+log Z_V, and R_y is the actual selected quadratic tilt of the original Gibbs law."
+      },
+      {
+        "source": "Cramer-Rao covariance lower is invoked in the upper-Hessian half of Lemma4.1. Author book Theorem3.5.8 proves an arbitrary smooth-observable inequality under well-behaved regularity.",
+        "lean": "For every observation y and direction v, the actual selected RGO posterior R_y has covarianceBilin(R_y)(v,v)>=norm(v)^2/(beta+eta^-1). The actual source unnormalized Gaussian convolution V_eta has genuine Hessian D2V_eta(y)[v,v]<=beta/(1+beta eta)*norm(v)^2. Source beta=1 gives exactly (1+eta)^-1. Brascamp-Lieb/Hessian lower and the full two-sided Lemma4.1 are not claimed."
+      },
+      {
+        "source": "Lemma4.1 has two-sided curvature.",
+        "lean": "Actual Gibbs all-direction covariance lower bound and its actual RGO/source V_eta Hessian upper consumer only. No Brascamp-Lieb covariance upper/Hessian lower, full Lemma4.1, general nonlinear Cramer-Rao, higher regularity, exact stationarity, approximate/stochastic/history work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+      }
+    ]
+  }
+}

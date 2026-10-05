@@ -3,10 +3,12 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrabilit
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
 import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
 import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.Probability.Moments.CovarianceBilin
 import Mathlib.Tactic
 
 /-!
-# Actual Gibbs gradient second moment
+# Actual Gibbs gradient moment and covariance lower bound
 
 The ideal Gibbs gradient moment consumed by Section 6.3 of Chen, Chewi, Lu
 and Zhang, arXiv:2609.06906v1. Genuine C2 Hessian bounds imply all noncompact
@@ -19,6 +21,11 @@ The finite-dimensional real inner-product formulation includes dimension zero.
 The explicit alpha<=beta assumption is retained even though its binder is
 unused. H denotes the actual standard-orthonormal-basis Hessian diagonal sum;
 no separate abstract trace/Laplacian or basis-independence theorem is claimed.
+The covariance extension derives position L2 by strong gradient monotonicity,
+then proves centered linear-score IBP and the covariance lower bound beta^-1
+in every direction. It is the linear-observable Cramer-Rao corollary, with
+full-space integrability proved rather than a well-behaved premise.
+No general nonlinear Cramer-Rao or Brascamp-Lieb inequality is claimed.
 This ideal-law component does not establish approximate/smoothed output
 moments, random-history conditioning or summed reference-query cost.
 -/
@@ -276,5 +283,264 @@ theorem gibbs_gradient_moment [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0
       _ = (β : ℝ)*Module.finrank ℝ E := by simp [mul_comm]
   simpa only [integral_const,probReal_univ,one_smul] using
     integral_mono hHμ (integrable_const ((β : ℝ)*Module.finrank ℝ E)) hbound
+
+private theorem gibbs_position_l2 [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :
+    let μ := (volume : Measure E).tilted (fun x => -U x)
+    IsProbabilityMeasure μ ∧ MemLp (fun x : E => x) 2 μ := by
+  let μ := (volume : Measure E).tilted (fun x => -U x)
+  have hg := gibbs_gradient_moment hα hαβ hU hH
+  have : IsProbabilityMeasure μ := hg.1
+  have hgrad : Integrable (fun x => ‖gradient U x‖^2) μ := hg.2.1
+  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)
+  have hdata := QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+    (r := 0) hU hH (0 : E)
+  simp only [NNReal.coe_zero,zero_div,zero_mul,add_zero] at hdata
+  have ha : (0:ℝ) < α := hα
+  have hbound (x : E) : ‖x‖ ≤ (‖gradient U x‖+‖gradient U (0:E)‖)/(α:ℝ) := by
+    have hi := StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn
+      hdata.1 (fun z _ => (hd z).hasGradientAt) (x := 0) (y := x)
+      (Set.mem_univ _) (Set.mem_univ _)
+    simp only [sub_zero,real_inner_comm] at hi
+    have hb := norm_sub_le (gradient U x) (gradient U (0:E))
+    have hc := (hi.trans (real_inner_le_norm x (gradient U x-gradient U (0:E)))).trans
+      (mul_le_mul_of_nonneg_left hb (norm_nonneg _))
+    by_cases hz : ‖x‖=0
+    · rw [hz]; positivity
+    · have hn : 0<‖x‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hz)
+      apply (le_div_iff₀ ha).2
+      have hh : ‖x‖*((α:ℝ)*‖x‖) ≤ ‖x‖*(‖gradient U x‖+‖gradient U (0:E)‖) := by nlinarith [hc]
+      have ht := le_of_mul_le_mul_left hh hn
+      nlinarith [ht]
+  have hpos : Integrable (fun x : E => ‖x‖^2) μ := by
+    apply ((hgrad.add (integrable_const (‖gradient U (0:E)‖^2))).const_mul (2/(α:ℝ)^2)).mono'
+      (continuous_id.norm.pow 2).aestronglyMeasurable
+    filter_upwards with x
+    change ‖‖x‖^2‖ ≤ 2/(α:ℝ)^2*(‖gradient U x‖^2+‖gradient U (0:E)‖^2)
+    rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _)]
+    have hs := (sq_le_sq₀ (norm_nonneg _) (by positivity)).2 (hbound x)
+    have ht : (‖gradient U x‖+‖gradient U (0:E)‖)^2 ≤ 2*(‖gradient U x‖^2+‖gradient U (0:E)‖^2) := by
+      nlinarith [sq_nonneg (‖gradient U x‖-‖gradient U (0:E)‖)]
+    rw [div_pow] at hs
+    have hh := (div_le_div_iff_of_pos_right (sq_pos_of_pos ha)).2 ht
+    calc
+      ‖x‖^2 ≤ (‖gradient U x‖+‖gradient U (0:E)‖)^2/(α:ℝ)^2 := hs
+      _ ≤ 2*(‖gradient U x‖^2+‖gradient U (0:E)‖^2)/(α:ℝ)^2 := hh
+      _ = _ := by ring
+  exact ⟨inferInstance, (memLp_two_iff_integrable_sq_norm continuous_id.aestronglyMeasurable).2 hpos⟩
+
+private theorem coordinate_position_ibp {U : E → ℝ} (hU : ContDiff ℝ 2 U)
+    (p v : E) (hv : ‖v‖ = 1)
+    (hw : Integrable (fun x => Real.exp (-U x)) (volume : Measure E))
+    (hpos : Integrable (fun x => ‖x-p‖^2) ((volume : Measure E).tilted (fun x => -U x)))
+    (hlin : Integrable (fun x => ‖x-p‖) ((volume : Measure E).tilted (fun x => -U x)))
+    (hgrad : Integrable (fun x => ‖gradient U x‖^2) ((volume : Measure E).tilted (fun x => -U x))) :
+    Integrable (fun x => Real.exp (-U x)*inner ℝ (x-p) v*fderiv ℝ U x v)
+      (volume : Measure E) ∧
+    (∫ x, Real.exp (-U x)*inner ℝ (x-p) v*fderiv ℝ U x v) =
+      ∫ x, Real.exp (-U x) := by
+  let f := fun x => Real.exp (-U x)
+  let q := fun x => inner ℝ (x-p) v
+  let a := fun x => fderiv ℝ U x v
+  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)
+  have hf : ContDiff ℝ 1 f := (hU.of_le (by norm_num)).neg.exp
+  have hq : ContDiff ℝ 1 q := (contDiff_id.sub contDiff_const).inner ℝ contDiff_const
+  have hac : Continuous a :=
+    (hU.fderiv_right (m := 1) (by norm_num)).continuous.clm_apply continuous_const
+  have hqder (x : E) : fderiv ℝ q x v = 1 := by
+    have he := ((hasFDerivAt_id x).sub_const p).inner ℝ (hasFDerivAt_const v x)
+    rw [show fderiv ℝ q x = _ from he.fderiv]
+    simp [hv]
+  have hfder (x : E) : fderiv ℝ f x v = -f x*a x := by
+    rw [show fderiv ℝ f x = _ from (hd x).hasFDerivAt.neg.exp.fderiv]
+    simp only [smul_apply,neg_apply,smul_eq_mul,Pi.neg_apply]
+    dsimp only [f,a]
+    ring
+  have hqbound (x : E) : ‖q x‖ ≤ ‖x-p‖ := by
+    dsimp only [q]
+    simpa only [hv,mul_one] using norm_inner_le_norm (x-p) v
+  have habound (x : E) : ‖a x‖ ≤ ‖gradient U x‖ := by
+    dsimp only [a]
+    rw [← inner_gradient_left]
+    simpa only [hv,mul_one] using norm_inner_le_norm (gradient U x) v
+  have hqμ : Integrable q ((volume : Measure E).tilted (fun x => -U x)) := by
+    apply hlin.mono' hq.continuous.aestronglyMeasurable
+    filter_upwards with x
+    exact hqbound x
+  have hqaμ : Integrable (fun x => q x*a x)
+      ((volume : Measure E).tilted (fun x => -U x)) := by
+    apply (hpos.add hgrad).mono' (hq.continuous.mul hac).aestronglyMeasurable
+    filter_upwards with x
+    change ‖q x*a x‖ ≤ ‖x-p‖^2+‖gradient U x‖^2
+    rw [norm_mul]
+    have hi := mul_le_mul (hqbound x) (habound x) (norm_nonneg _) (norm_nonneg _)
+    nlinarith [hi,sq_nonneg (‖x-p‖-‖gradient U x‖)]
+  have hfq : Integrable (fun x => f x*q x) (volume : Measure E) := by
+    simpa only [smul_eq_mul] using (integrable_tilted_iff hw q).1 hqμ
+  have hfqa : Integrable (fun x => f x*q x*a x) (volume : Measure E) := by
+    simpa only [smul_eq_mul,mul_assoc] using
+      (integrable_tilted_iff hw (fun x => q x*a x)).1 hqaμ
+  have hf'q : Integrable (fun x => fderiv ℝ f x v*q x) (volume : Measure E) := by
+    convert hfqa.neg using 1
+    ext x
+    change fderiv ℝ f x v*q x = -(f x*q x*a x)
+    rw [hfder]
+    ring
+  have hfq' : Integrable (fun x => f x*fderiv ℝ q x v) (volume : Measure E) := by
+    simpa only [hqder,mul_one] using hw
+  have hid := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hf'q hfq' hfq
+    (fun x _ => hf.differentiable_one x) (fun x _ => hq.differentiable_one x)
+  refine ⟨hfqa,?_⟩
+  change (∫ x, f x*q x*a x) = ∫ x, f x
+  calc
+    (∫ x, f x*q x*a x) = -(∫ x, fderiv ℝ f x v*q x) := by
+      rw [← integral_neg]
+      apply integral_congr_ae
+      filter_upwards with x
+      rw [hfder]
+      ring
+    _ = ∫ x, f x*fderiv ℝ q x v := hid.symm
+    _ = ∫ x, f x := by simp only [hqder,mul_one]
+
+
+
+set_option maxHeartbeats 800000 in
+private theorem gibbs_covariance_unit [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2)
+    (v : E) (hv : ‖v‖=1) :
+    let μ := (volume : Measure E).tilted (fun x => -U x)
+    (β:ℝ)⁻¹ ≤ ProbabilityTheory.covarianceBilin μ v v := by
+  let μ := (volume : Measure E).tilted (fun x => -U x)
+  change (β:ℝ)⁻¹ ≤ ProbabilityTheory.covarianceBilin μ v v
+  have hpos := gibbs_position_l2 hα hαβ hU hH
+  have : IsProbabilityMeasure μ := hpos.1
+  have hLp : MemLp id 2 μ := hpos.2
+  let p := ∫ x, x ∂μ
+  let q := fun x => inner ℝ (x-p) v
+  let a := fun x => fderiv ℝ U x v
+  have hw := weighted_gradient hα hU hH
+  have hg := gibbs_gradient_moment hα hαβ hU hH
+  have hgrad : Integrable (fun x => ‖gradient U x‖^2) μ := hg.2.1
+  have hLpc : MemLp (fun x : E => x-p) 2 μ := hLp.sub (memLp_const p)
+  have hsq : Integrable (fun x : E => ‖x-p‖^2) μ :=
+    (memLp_two_iff_integrable_sq_norm hLpc.aestronglyMeasurable).1 hLpc
+  have hlin : Integrable (fun x : E => ‖x-p‖) μ := (hLpc.integrable (by norm_num)).norm
+  have hpair := coordinate_position_ibp hU p v hv hw.1 hsq hlin hgrad
+  have hdiag (x : E) : 0 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ β := by
+    have hh := hH x v
+    rw [hv,one_pow,mul_one,mul_one] at hh
+    exact ⟨(NNReal.coe_nonneg α).trans hh.1,hh.2⟩
+  have hs := directional_ibp hU v hv hdiag hw.1 hw.2.1 hw.2.2
+  have htilt (f : E → ℝ) : (∫ x, f x ∂μ) =
+      (∫ x, Real.exp (-U x)*f x)/(∫ x, Real.exp (-U x)) := by
+    rw [integral_tilted]
+    simp only [smul_eq_mul]
+    rw [← integral_div]
+    apply integral_congr_ae
+    filter_upwards with x
+    ring
+  have hZ := integral_exp_pos hw.1
+  have ha2 : Integrable (fun x => (a x)^2) μ := by
+    apply (integrable_tilted_iff hw.1 _).2
+    simpa only [smul_eq_mul,a] using hs.1
+  have hqa : Integrable (fun x => q x*a x) μ := by
+    apply (integrable_tilted_iff hw.1 _).2
+    simpa only [smul_eq_mul,mul_assoc,q,a] using hpair.1
+  have hpairmean : (∫ x, q x*a x ∂μ)=1 := by
+    rw [htilt]
+    simp only [q,a,← mul_assoc]
+    change (∫ x, Real.exp (-U x)*inner ℝ (x-p) v*fderiv ℝ U x v)/_ = 1
+    rw [hpair.2,div_self hZ.ne']
+  have hscore : (∫ x, (a x)^2 ∂μ) ≤ (β:ℝ) := by
+    rw [htilt]
+    change (∫ x, Real.exp (-U x)*(fderiv ℝ U x v)^2)/_ ≤ (β:ℝ)
+    rw [hs.2.2]
+    apply (div_le_iff₀ hZ).2
+    have hm := integral_mono hs.2.1 (hw.1.mul_const (β:ℝ))
+      (fun x => mul_le_mul_of_nonneg_left (hdiag x).2 (Real.exp_nonneg _))
+    calc
+      (∫ x, Real.exp (-U x)*fderiv ℝ (fderiv ℝ U) x v v) ≤
+          ∫ x, Real.exp (-U x)*(β:ℝ) := hm
+      _ = (β:ℝ)*(∫ x, Real.exp (-U x)) := by rw [integral_mul_const];ring
+  have hqLp : MemLp q 2 μ := hLpc.inner_const (𝕜:=ℝ) v
+  have hq2 := (memLp_two_iff_integrable_sq hqLp.aestronglyMeasurable).1 hqLp
+  have hb : (0:ℝ)<β := lt_of_lt_of_le hα hαβ
+  have hnonneg : 0 ≤ ∫ x, (a x-(β:ℝ)*q x)^2 ∂μ := integral_nonneg (fun x => sq_nonneg _)
+  have hexp : (∫ x, (a x-(β:ℝ)*q x)^2 ∂μ) =
+      (∫ x, (a x)^2 ∂μ)-2*(β:ℝ)*(∫ x, q x*a x ∂μ)+(β:ℝ)^2*(∫ x, (q x)^2 ∂μ) := by
+    have hid : (fun x => (a x-(β:ℝ)*q x)^2) =
+        (fun x => (a x)^2-2*(β:ℝ)*(q x*a x)+(β:ℝ)^2*(q x)^2) := by funext x;ring
+    have hiqa : Integrable (fun x => (2*(β:ℝ))*(q x*a x)) μ :=
+      hqa.const_mul (2*(β:ℝ))
+    have hiq2 : Integrable (fun x => (β:ℝ)^2*(q x)^2) μ :=
+      hq2.const_mul ((β:ℝ)^2)
+    have hsum := integral_add (ha2.sub hiqa) hiq2
+    have hsub := integral_sub ha2 hiqa
+    rw [hid]
+    calc
+      (∫ x, (a x)^2-2*(β:ℝ)*(q x*a x)+(β:ℝ)^2*(q x)^2 ∂μ) =
+          (∫ x, (a x)^2-2*(β:ℝ)*(q x*a x) ∂μ)+
+          (∫ x, (β:ℝ)^2*(q x)^2 ∂μ) := by
+        simpa only [Pi.sub_apply] using hsum
+      _ = _ := by
+        rw [hsub]
+        rw [integral_const_mul (2*(β:ℝ)),integral_const_mul ((β:ℝ)^2)]
+  rw [hexp,hpairmean] at hnonneg
+  have hcov : ProbabilityTheory.covarianceBilin μ v v = ∫ x, (q x)^2 ∂μ := by
+    rw [ProbabilityTheory.covarianceBilin_apply hLp]
+    apply integral_congr_ae
+    filter_upwards with x
+    simp only [q,p,real_inner_comm,Function.id_def,pow_two]
+  rw [hcov]
+  rw [← one_div]
+  apply (div_le_iff₀ hb).2
+  have hprod : (β:ℝ)^2*(∫ x, (q x)^2 ∂μ) ≥ (β:ℝ) := by nlinarith [hscore,hnonneg]
+  have hh : (β:ℝ)*1 ≤ (β:ℝ)*((β:ℝ)*(∫ x, (q x)^2 ∂μ)) := by nlinarith [hprod]
+  have ht := le_of_mul_le_mul_left hh hb
+  nlinarith [ht]
+
+
+/-- Actual Gibbs covariance lower bound in every direction, with probability
+and position L2 derived from genuine Hessian bounds. No Fisher-information,
+score-pairing, moment or covariance certificate is supplied. -/
+theorem gibbs_covariance_lower [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :
+    let μ := (volume : Measure E).tilted (fun x => -U x)
+    IsProbabilityMeasure μ ∧ MemLp id 2 μ ∧
+      ∀ v : E, ‖v‖^2/(β:ℝ) ≤ ProbabilityTheory.covarianceBilin μ v v := by
+  let μ := (volume : Measure E).tilted (fun x => -U x)
+  have hp := gibbs_position_l2 hα hαβ hU hH
+  refine ⟨hp.1,hp.2,?_⟩
+  intro v
+  by_cases hvzero : v=0
+  · subst v
+    simp
+  · have hn : ‖v‖≠0 := norm_ne_zero_iff.mpr hvzero
+    let u := ‖v‖⁻¹ • v
+    have hu : ‖u‖=1 := by
+      dsimp only [u]
+      rw [norm_smul,Real.norm_eq_abs,abs_inv,abs_of_nonneg (norm_nonneg v),inv_mul_cancel₀ hn]
+    have hv : ‖v‖ • u = v := by
+      dsimp only [u]
+      rw [smul_smul,mul_inv_cancel₀ hn,one_smul]
+    have hc := gibbs_covariance_unit hα hαβ hU hH u hu
+    have hscale : ProbabilityTheory.covarianceBilin μ v v =
+        ‖v‖^2*ProbabilityTheory.covarianceBilin μ u u := by
+      calc
+        ProbabilityTheory.covarianceBilin μ v v =
+            ProbabilityTheory.covarianceBilin μ (‖v‖ • u) (‖v‖ • u) := by rw [hv]
+        _ = _ := by
+          simp only [map_smul,smul_apply,smul_eq_mul]
+          ring
+    rw [hscale,div_eq_mul_inv]
+    exact mul_le_mul_of_nonneg_left hc (sq_nonneg _)
+
 
 end AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment

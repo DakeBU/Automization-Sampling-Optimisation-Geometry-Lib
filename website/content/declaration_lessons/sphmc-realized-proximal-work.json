@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work",
+      "title": "Expected work of the same implemented query at its realized center",
+      "boundary": "Same successful stopped query under a measurable actual input with square-integrable gradient. No realized repeated-history D.7 bound, finite-array/run aggregation D.8, quadrature adapter, parameter substitution or main theorem; no TV-to-unbounded-cost transfer.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, Algorithm D.2 and D.4 after D.7",
+          "scope": "Same successful stopped query under a measurable actual input with square-integrable gradient. No realized repeated-history D.7 bound, finite-array/run aggregation D.8, quadrature adapter, parameter substitution or main theorem; no TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCRealizedProximalWork"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the input space alpha has an arbitrary measurable structure and mu is a probability measure.",
+        "V is C2 and kappa>=1, with kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+        "0<eta<=c<1 and eps>0. q and N are arbitrary supplied functions with the successful actual interpreter equation at every y; no count integrability/measurability premise.",
+        "Y is measurable and ||grad V(Y)||^2 is mu-integrable. This is an explicit conditional moment input; the paper run-wide D.7 is not asserted."
+      ],
+      "statement": "Attributed implementation/Jensen component of Algorithm D.2 and Lemma D.4, not full D.4. Retain the normalized C2 Hessian bounds, kappa>=1, 0<eta<=c<1 and eps>0. Suppose q:E->E and N:E->Nat satisfy the actual stopped gradient interpreter equation run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. For any probability measure mu on an arbitrary measurable space and measurable realized center Y with integrable ||grad V(Y)||^2, the same count N(Y)+1 is integrable and its expectation is at most C_c[1+log(1+sqrt(E_mu||grad V(Y)||^2)/eps)], where C_c=2+(1+log((1-c)^(-1)))/(-log c). Successful interpreter outputs and counts are independent of sufficient fuel; this identifies the supplied implementation with the already compiled expected-work witness before pulling its bound back along Y. No count measurability or integrability is assumed. The actual run-wide moment D.7 and aggregation D.8 are separate.",
+      "formula": "\\mathbb E_\\mu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\mu\\|\\nabla V(Y)\\|^2}}{\\varepsilon_{\\rm prox}}\\right)\\right],\\quad C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}.",
+      "steps": [
+        {
+          "title": "Successful executions have identical outputs and query counts",
+          "text": "Induct on the first supplied fuel and inspect the other fuel. Zero fuel cannot succeed. At a positive-fuel successful residual test both runs return the same current point with count one. If that test fails, both recurse at the same next iterate, and the induction hypothesis equates the recursive outputs and counts. Both add the same final one.",
+          "formula": "\\operatorname{run}(g,\\eta,\\varepsilon,y,n,x)=(r,k),\\quad\\operatorname{run}(g,\\eta,\\varepsilon,y,m,x)=(s,l)\\quad\\Longrightarrow\\quad(r,k)=(s,l).",
+          "lean": "private successful_query_unique; induction on fuel and Option.map_eq_some_iff."
+        },
+        {
+          "title": "Use the actual input law",
+          "text": "Let nu be the pushforward of mu under Y. Measurability makes nu a probability measure. The C2 potential has continuous gradient; its squared norm is measurable. The pushforward integrability equivalence transfers the supplied actual-center gradient moment to nu.",
+          "formula": "\\nu=Y_\\#\\mu,\\qquad\\int\\|\\nabla V(y)\\|^2\\,d\\nu(y)=\\int\\|\\nabla V(Y(\\omega))\\|^2\\,d\\mu(\\omega).",
+          "lean": "Measure.isProbabilityMeasure_map, integrable_map_measure and integral_map."
+        },
+        {
+          "title": "Identify the implementation with the expected-work witness",
+          "text": "The existing expected-work theorem gives a measurable successful count M and its integrable Jensen bound under nu. Compare that successful run at fuel M(y)+1 with the supplied run at N(y)+1, starting at the same y. Equality of the returned pairs implies N(y)+1=M(y)+1, hence N=M pointwise. This derives the needed measurability and integrability for the supplied N, without choosing a new implementation.",
+          "formula": "N(y)+1=M(y)+1\\quad\\Longrightarrow\\quad N=M.",
+          "lean": "successful_query_unique, congrArg Prod.snd, Nat.add_right_cancel and funext."
+        },
+        {
+          "title": "Pull the same count back to the realized center",
+          "text": "Apply the measurable pushforward identities to the identified count and gradient moment. Integrability of the count under nu pulls back to mu. Both Bochner integrals in the existing exact-constant bound become the corresponding actual-input expectations. No comparison of different probability laws or TV transfer is involved.",
+          "formula": "\\mathbb E_\\mu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\mu\\|\\nabla V(Y)\\|^2}}{\\varepsilon_{\\rm prox}}\\right)\\right],\\quad C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}.",
+          "lean": "integrable_map_measure and integral_map transport the parent bound after pointwise count equality."
+        }
+      ],
+      "lean_statement": "The exact theorem includes all normalized source assumptions, the successful actual interpreter equation, and the measurable actual-center gradient moment. Count integrability is a conclusion.",
+      "lean_proof": "Prove successful-run uniqueness, apply the existing expected-work theorem to the actual pushforward input law, identify the counts pointwise, and pull back the bound.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork.approximate_proximal_expected_work"
+      ],
+      "mathlib_dependencies": [
+        "Option.map_eq_some_iff",
+        "MeasureTheory.Measure.isProbabilityMeasure_map",
+        "MeasureTheory.integrable_map_measure",
+        "MeasureTheory.integral_map"
+      ]
+    }
+  ]
+}

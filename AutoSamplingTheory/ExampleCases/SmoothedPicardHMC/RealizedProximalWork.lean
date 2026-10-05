@@ -1,0 +1,77 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork
+
+/-!
+# Work of the same stopped proximal implementation under its realized input
+
+arXiv:2609.06906v1 Algorithm D.2 and the Jensen step in Lemma D.4.
+The center's squared-gradient moment remains explicit; this is not D.7 or D.8.
+-/
+
+noncomputable section
+open MeasureTheory InnerProductSpace
+open scoped Topology NNReal
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork
+
+private theorem successful_query_unique {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] (g : E → E) (eta eps : ℝ) (y : E)
+    {n m : ℕ} {x : E} {r s : E × ℕ}
+    (hr : ApproximateProximalExecution.proximalQuery g eta eps y n x = some r)
+    (hs : ApproximateProximalExecution.proximalQuery g eta eps y m x = some s) : r = s := by
+  classical
+  induction n generalizing m x r s with
+  | zero => simp [ApproximateProximalExecution.proximalQuery] at hr
+  | succ n ih =>
+    cases m with
+    | zero => simp [ApproximateProximalExecution.proximalQuery] at hs
+    | succ m =>
+      rw [ApproximateProximalExecution.proximalQuery] at hr hs
+      split_ifs at hr hs with hstop
+      · exact Option.some.inj (hr.symm.trans hs)
+      · obtain ⟨r', hr', hrr⟩ := Option.map_eq_some_iff.mp hr
+        obtain ⟨s', hs', hss⟩ := Option.map_eq_some_iff.mp hs
+        have heq := ih hr' hs'
+        simpa [← hrr, ← hss] using congrArg (fun z : E × ℕ => (z.1, z.2 + 1)) heq
+
+/-- Expected work belongs to the actual successful stopped-query witness,
+pulled back along the measurable realized center. No bound on an independent
+existential count is substituted for the implementation's count. -/
+theorem realized_proximal_expected_work
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {α : Type*} [MeasurableSpace α] (μ : Measure α) [IsProbabilityMeasure μ]
+    {V : E → ℝ} {κ : ℝ≥0} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)
+    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)
+    (q : E → E) (N : E → ℕ)
+    (hrun : ∀ y, ApproximateProximalExecution.proximalQuery (gradient V) eta eps y
+      (N y + 1) y = some (q y, N y + 1))
+    (Y : α → E) (hY : Measurable Y)
+    (hmoment : Integrable (fun ω => ‖gradient V (Y ω)‖^2) μ) :
+    Integrable (fun ω => (N (Y ω) : ℝ) + 1) μ ∧
+      (∫ ω, (N (Y ω) : ℝ) + 1 ∂μ) ≤
+        (2 + (1 + Real.log ((1-c)⁻¹)) / (-Real.log c)) *
+          (1 + Real.log (1 + Real.sqrt (∫ ω, ‖gradient V (Y ω)‖^2 ∂μ) / eps)) := by
+  have hg : Continuous (gradient V) := by
+    unfold gradient
+    exact (InnerProductSpace.toDual ℝ E).symm.continuous.comp
+      (hV.continuous_fderiv (by norm_num))
+  have hgs : Measurable (fun y => ‖gradient V y‖^2) := hg.measurable.norm.pow_const 2
+  have hm : Integrable (fun y => ‖gradient V y‖^2) (μ.map Y) :=
+    (integrable_map_measure hgs.aestronglyMeasurable hY.aemeasurable).mpr hmoment
+  letI : IsProbabilityMeasure (μ.map Y) := Measure.isProbabilityMeasure_map hY.aemeasurable
+  obtain ⟨p, M, hp, hM, hout, hall, hcount, hbound⟩ :=
+    ProximalExpectedWork.approximate_proximal_expected_work
+      hκ hV hH heta hec hc heps (μ.map Y) hm
+  have hNM : N = M := by
+    funext y
+    have h := successful_query_unique (gradient V) eta eps y (hrun y) (hall y).2.2
+    exact Nat.add_right_cancel (congrArg Prod.snd h)
+  subst N
+  have hcnt : Measurable (fun y => (M y : ℝ) + 1) := by fun_prop
+  refine ⟨(integrable_map_measure hcnt.aestronglyMeasurable hY.aemeasurable).mp hcount, ?_⟩
+  simpa only [integral_map hY.aemeasurable hcnt.aestronglyMeasurable,
+    integral_map hY.aemeasurable hgs.aestronglyMeasurable] using hbound
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork

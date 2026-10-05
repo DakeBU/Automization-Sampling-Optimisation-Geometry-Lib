@@ -4,6 +4,7 @@ import Tests.SmoothedPicardHMCApproximateProximalExecution
 import Tests.SmoothedPicardHMCProximalExpectedWork
 import Tests.SmoothedPicardHMCPicardCenterMoment
 import Tests.SmoothedPicardHMCPartialMomentumRefresh
+import Tests.SmoothedPicardHMCImplementedPhaseKernel
 import Tests.WassersteinLipschitzMoment
 import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric

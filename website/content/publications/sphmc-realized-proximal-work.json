@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "sphmc-realized-proximal-work",
+      "library": "samplewiki-route",
+      "chapter": "sphmc-01",
+      "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+      "title": "Expected work of the same implemented query at its realized center",
+      "source": {
+        "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+        "edition": "arXiv:2609.06906v1",
+        "anchor": "Algorithm D.2, Lemma D.3 (D.6), and Lemma D.4 Jensen step after (D.7), HTML lines 2138-2186",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib makes same-witness deterministic execution and the actual-law pushforward explicit; run-wide moment and total-cost claims remain separate."
+      },
+      "statement": "Attributed implementation/Jensen component of Algorithm D.2 and Lemma D.4, not full D.4. Retain the normalized C2 Hessian bounds, kappa>=1, 0<eta<=c<1 and eps>0. Suppose q:E->E and N:E->Nat satisfy the actual stopped gradient interpreter equation run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. For any probability measure mu on an arbitrary measurable space and measurable realized center Y with integrable ||grad V(Y)||^2, the same count N(Y)+1 is integrable and its expectation is at most C_c[1+log(1+sqrt(E_mu||grad V(Y)||^2)/eps)], where C_c=2+(1+log((1-c)^(-1)))/(-log c). Successful interpreter outputs and counts are independent of sufficient fuel; this identifies the supplied implementation with the already compiled expected-work witness before pulling its bound back along Y. No count measurability or integrability is assumed. The actual run-wide moment D.7 and aggregation D.8 are separate.",
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the input space alpha has an arbitrary measurable structure and mu is a probability measure.",
+        "V is C2 and kappa>=1, with kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+        "0<eta<=c<1 and eps>0. q and N are arbitrary supplied functions with the successful actual interpreter equation at every y; no count integrability/measurability premise.",
+        "Y is measurable and ||grad V(Y)||^2 is mu-integrable. This is an explicit conditional moment input; the paper run-wide D.7 is not asserted."
+      ],
+      "formulae": [
+        {
+          "label": "Same actual query work",
+          "tex": "\\mathbb E_\\mu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\mu\\|\\nabla V(Y)\\|^2}}{\\varepsilon_{\\rm prox}}\\right)\\right],\\quad C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "actual-input-work",
+          "label": "Same successful interpreter count under the actual center law"
+        },
+        {
+          "id": "run-moment",
+          "label": "Derive run-wide D.7 moment bound (remaining)"
+        },
+        {
+          "id": "run-total",
+          "label": "Aggregate 2J proximal and 2J direct gradient queries per phase, substitute source parameters and prove D.8 (remaining)"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work",
+          "cell": "ASTIS-SW-SPHMC-realized-proximal-work",
+          "role": "proof-edge",
+          "audit_id": "ASTIS-RT-20261005-SPHMCRealizedProximalWork",
+          "supports": [
+            "actual-input-work"
+          ],
+          "boundary": "Same successful stopped query under a measurable actual input with square-integrable gradient. No realized repeated-history D.7 bound, finite-array/run aggregation D.8, quadrature adapter, parameter substitution or main theorem; no TV-to-unbounded-cost transfer.",
+          "assumption_deltas": [
+            {
+              "source": "The same gradient-only routine at every realized center, followed by D.3/Jensen.",
+              "lean": "0<eta<=c<1 and eps>0. q and N are arbitrary supplied functions with the successful actual interpreter equation at every y; no count integrability/measurability premise.",
+              "classification": "source-implicit",
+              "reason": "The successful equation fixes the actual output and count without assuming any cost bound. Deterministic success uniqueness equates separately constructed witnesses."
+            },
+            {
+              "source": "D.4 derives the run-wide center bound D.7 before Jensen.",
+              "lean": "Y is measurable and ||grad V(Y)||^2 is mu-integrable. This is an explicit conditional moment input; the paper run-wide D.7 is not asserted.",
+              "classification": "generalization",
+              "reason": "This closes the same-witness conditional Jensen component. It neither replaces nor proves D.7; the center is the actual measurable map and its moment is explicitly required."
+            },
+            {
+              "source": "Euclidean state and random centers of the sampling routine.",
+              "lean": "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the input space alpha has an arbitrary measurable structure and mu is a probability measure.",
+              "classification": "generalization",
+              "reason": "Finite-dimensional real Hilbert representation and arbitrary measurable input space preserve the same execution/integration argument."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

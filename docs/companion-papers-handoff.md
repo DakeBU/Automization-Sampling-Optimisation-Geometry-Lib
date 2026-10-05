@@ -1,5 +1,59 @@
 # Companion-paper formalization handoff
 
+## Safe synchronization and implemented phase — 2026-10-05
+
+This thread resumed the existing **two-paper** PBPS/SPHMC Goal. Safely fetched
+collaborator main `29168992899a9de07b8779cacdf8749863749dbc` and merged it at
+`e58816021b876944b2f72b81c3b4f08eea9303e3`, preserving the local PR301 admission
+commit. The only conflict was the append-only substantive-advance ledger;
+the exact set union preserves all 750 incoming records. No collaborator proof
+was overwritten, no reset/clean was used, and no detached ASTIS run was started.
+The third-paper route below is preserved; it does not supersede this thread's
+current two-paper scheduling instruction.
+
+The fixed toolchain remains Lean 4.33.0 and Mathlib
+`db584cd6d46c92f209a44c0f1c829460d327499d`. Use the bundled Python 3.12+
+runtime, `PYTHONUTF8=1`, and `LEAN_NUM_THREADS=2`; the system Python 3.8 lacks
+`Path.is_relative_to`. An unrestricted aggregate build hit transient `.olean`
+read failures; focused compilation succeeds and the two-thread aggregate retry
+is separately recorded. Never infer an aggregate pass from the focused pass.
+
+Four unchanged collaborator packets were independently admitted at the exact
+merge commit: `StdGaussianMoment`, `PartialMomentumRefresh`, `PicardInputLaw`
+and `PicardCenterMoment`. Fresh focused build passes3662, all four declarations
+use only the three standard Lean axioms, and current source-review bindings
+pass. Their root imports and focused root Tests were already present; there is
+no new proof credit for importing them. Exact receipt:
+`runs/20261005-companion-priority/collaborator-picard.verified.json`.
+The Gaussian-coordinate test is positive-dimensional; the older end-to-end
+input-law-to-center tests are zero-dimensional. Run-wide D.7 remains open.
+
+New mathematical proof commit:
+`eac95b96ed95ec926c27900020710e994076e7cb`.
+Cell: `ASTIS-SW-SPHMC-implemented-phase-kernel`.
+Declaration: `ImplementedPhaseKernel.implemented_phase_kernel`.
+It constructs the complete measurable two-layer phase with **two independent
+Gaussian arrays, two half-refreshes, and the actual residual-stopped proximal
+interpreter**. The transition is the exact Gaussian pushforward Markov kernel.
+The focused3658 test keeps both arrays in a positive-dimensional two-node law,
+uses eta=3/4, proves mass one, and retains the successful interpreter equation.
+The independent blind/source review accepts the attributed implementation
+component as `equivalent-after-elaboration`; all raw packets are preserved.
+Independent commit verification passed at eac95b96: `runs/20261005-companion-priority/phase.verified.json`. The verifier independently published VERIFIED. Shared ExampleCases and Tests imports now include the new module; canonical `tools/astis.py check` passes with Tests9310. The exact integration log and later site/graph acceptance remain separately recorded. Browser visual QA is pending because the configured plugin runtime service file is missing, not because of a theorem blocker.
+
+The theorem takes deterministic finite nodes and weights as inputs. It does
+**not** identify them with the source Chebyshev--Lobatto definitions. That
+adapter, actual repeated histories, local and accumulated Wp error, run-wide
+state moments, D.7/D.8, terminal FORS, proxy warmness, PBPS process/mixing and
+actual-input composition costs all remain independent. Neither paper is complete.
+
+Next bounded cost edge: identify successful stopped-interpreter outputs/counts
+independently of supplied fuel, then connect the **same** q/N used by the phase
+kernel to the center-moment and expected-work witnesses. Do not equate separate
+existential choices by name, transfer unbounded cost through TV, or create a
+wrapper that assumes the final phase cost. Source Algorithm3.1 coefficient
+construction remains a separate consumer adapter.
+
 ## Picard HMC Part I route and researcher ledger — 2026-10-03
 
 The active companion route now includes Chen–Chewi–Lu–Zhang,

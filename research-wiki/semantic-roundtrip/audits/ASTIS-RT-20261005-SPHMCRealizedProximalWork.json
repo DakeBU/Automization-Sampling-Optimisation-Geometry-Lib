@@ -1,0 +1,235 @@
+{
+  "id": "ASTIS-RT-20261005-SPHMCRealizedProximalWork",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "companion:sphmc-realized-proximal-work-component",
+    "anchor": "Algorithm D.2, Lemma D.3 (D.6), and Lemma D.4 Jensen step after (D.7), HTML lines 2138-2186",
+    "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+    "original_text": "Attributed implementation/Jensen component of Algorithm D.2 and Lemma D.4, not full D.4. Retain the normalized C2 Hessian bounds, kappa>=1, 0<eta<=c<1 and eps>0. Suppose q:E->E and N:E->Nat satisfy the actual stopped gradient interpreter equation run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. For any probability measure mu on an arbitrary measurable space and measurable realized center Y with integrable ||grad V(Y)||^2, the same count N(Y)+1 is integrable and its expectation is at most C_c[1+log(1+sqrt(E_mu||grad V(Y)||^2)/eps)], where C_c=2+(1+log((1-c)^(-1)))/(-log c). Successful interpreter outputs and counts are independent of sufficient fuel; this identifies the supplied implementation with the already compiled expected-work witness before pulling its bound back along Y. No count measurability or integrability is assumed. The actual run-wide moment D.7 and aggregation D.8 are separate.",
+    "text_sha256": "bb22bb45aabd5f7532e959fef7189b9d16110654085bc60e1b4e72850fea5b8d"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/RealizedProximalWork.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {α : Type*} [MeasurableSpace α] (μ : Measure α) [IsProbabilityMeasure μ]\n    {V : E → ℝ} {κ : ℝ≥0} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (q : E → E) (N : E → ℕ)\n    (hrun : ∀ y, run (gradient V) eta eps y\n      (N y + 1) y = some (q y, N y + 1))\n    (Y : α → E) (hY : Measurable Y)\n    (hmoment : Integrable (fun ω => ‖gradient V (Y ω)‖^2) μ) :\n    Integrable (fun ω => (N (Y ω) : ℝ) + 1) μ ∧\n      (∫ ω, (N (Y ω) : ℝ) + 1 ∂μ) ≤\n        (2 + (1 + Real.log ((1-c)⁻¹)) / (-Real.log c)) *\n          (1 + Real.log (1 + Real.sqrt (∫ ω, ‖gradient V (Y ω)‖^2 ∂μ) / eps))",
+    "statement_sha256": "0bbdd735512c022206260f1181bc3fe3361ccadca453f84805af5b435f19e622",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "The finite interpreter run(g,eta,eps,y,fuel,x) returns none at zero fuel; at positive fuel it evaluates g(x), sets next=y-eta*g(x), and returns some(x,1) if ||next-x||<=(1-eta)*eps. Otherwise it recurses at next with one less fuel and adds one to a successful returned query count. All arithmetic is exact real arithmetic.",
+      "Integrable is Bochner integrability with respect to the specified measure. A probability measure has total mass one. gradient is the real inner-product gradient, and fderiv is the real Frechet derivative. N takes values in natural numbers; (N y : real)+1 counts all gradient tests including the final successful test."
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space equipped with its Borel measurable structure. Let (A,mu) be any measurable probability space. Let V:E->R be C^2 and kappa be a nonnegative real with 1<=kappa, and assume that for every x,v in E,\n  kappa^(-1)||v||^2 <= D^2 V(x)[v,v] <= ||v||^2.\nLet eta,c,epsilon be real numbers with 0<eta<=c<1 and epsilon>0. Fix arbitrary functions q:E->E and N:E->N such that for every y in E,\n  run(grad V,eta,epsilon,y,N(y)+1,y)=some(q(y),N(y)+1).\nHere the finite interpreter run(g,eta,epsilon,y,fuel,x) returns none at zero fuel. With positive fuel it evaluates g(x) and sets next=y-eta g(x). It returns (x,1) when ||next-x||<=(1-eta)epsilon; otherwise it recurses from next with fuel decreased by one and adds one to a successful returned query count. Arithmetic is exact real arithmetic. Consequently N(y)+1 is the reported number of gradient tests, including the final successful test, for this successful run initialized at y.\nFor every measurable Y:A->E such that omega -> ||grad V(Y(omega))||^2 is integrable with respect to mu, the real-valued test count omega -> N(Y(omega))+1 is integrable with respect to mu, and\n  integral_A (N(Y(omega))+1) dmu(omega)\n    <= [2+(1+log((1-c)^(-1)))/(-log c)]\n       [1+log(1+sqrt(integral_A ||grad V(Y(omega))||^2 dmu(omega))/epsilon)].\nNatural counts in this formula are cast to the reals. Integrability is Bochner integrability. The logarithm is the real logarithm and the square root is the real square root. The conclusions concern the integrability and expected count of the stipulated successful exact-arithmetic interpreter; no existence of q or N, explicit pointwise complexity bound, output-error guarantee, sampling-kernel property, or convergence statement is asserted by this theorem.",
+    "text_sha256": "89df144815055d76475649ebacff242b57032440ebb2c6cb613be862668165e2",
+    "decoder": "anonymous_decoder_20261005",
+    "decoder_run_sha256": "d59e9133f36aa9fff20084ff141539fb55ef4264af318d0fa9e89da604de268b",
+    "decoder_packet_sha256": "c0e81559f50c4ea5ba808096b02d1c1b668246457416d139a252ab8fb1faa247",
+    "source_text_visible": false,
+    "lean_statement_sha256": "0bbdd735512c022206260f1181bc3fe3361ccadca453f84805af5b435f19e622",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261005-companion-priority/anonymous-work.reconstruction.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "The supplied successful stopped-query output q and test index N, the same query count N(Y)+1, actual measurable center Y, its probability law, gradient-square moment and explicit Jensen bound.",
+      "reconstructed": "The same arbitrary q,N satisfying the finite interpreter equation at all centers; real-cast successful gradient-test count at measurable Y and its expected-work bound.",
+      "relation": "equivalent",
+      "evidence": "The live proximalQuery residual branch returns its current iterate and count one; failed branches recurse and increment successful counts. Private successful_query_unique compares the full returned pairs, so the final successful gradient test is counted. The main proof uses this equality to identify N=M, rather than bounding a distinct existential count."
+    },
+    "domains": {
+      "original": "The scoped component permits complete finite-dimensional real inner-product Borel E and any measurable probability space for a measurable input Y. The paper uses Euclidean space and centers produced by its sampler.",
+      "reconstructed": "The same E typeclasses, an arbitrary measurable alpha with probability measure mu, measurable Y:alpha->E, and natural-valued N.",
+      "relation": "explicit-elaboration",
+      "evidence": "No topology or standard-Borel assumption is imposed on alpha. The pushforward mu.map Y lives on Borel E and remains a probability measure. The coordinate-free finite-dimensional extension and arbitrary input probability space are explicit in the candidate assumptions. They are not a construction of the paper repeated-run centers."
+    },
+    "quantifiers": {
+      "original": "For any fixed admissible potential and parameters, every supplied pair q,N with the successful interpreter identity at every y obeys the expected bound for every measurable Y with integrable squared gradient.",
+      "reconstructed": "q,N are universally supplied parameters; hrun is forall y, with fuel and returned count N(y)+1. Y and its square-gradient integrability are supplied; count integrability and inequality follow.",
+      "relation": "same",
+      "evidence": "The target exports no existential replacement count. Successful_query_unique is valid for arbitrary g,eta,eps and any two sufficient fuels from the same initial point; zero fuel cannot succeed. Applied at each y, equality of pairs gives N(y)+1=M(y)+1 and natural cancellation gives equality of functions. Thus all subsequently transported expressions refer to the supplied N."
+    },
+    "assumptions": {
+      "original": "Normalized C2 Hessian bounds and kappa>=1; 0<eta<=c<1 and eps>0; exact successful execution for every y; probability mu, measurable Y, and integrable ||grad V(Y)||^2. Count measurability, count integrability and a cost bound are not premises.",
+      "reconstructed": "Exactly those hypotheses, with the actual run written as proximalQuery and all natural counts cast to real in the integrals.",
+      "relation": "same",
+      "evidence": "The source D.3 supplies a logarithmic pointwise bound for its stopped routine. Source D.4 first derives D.7; the candidate explicitly extracts only the conditional Jensen step and leaves D.7 open. Its moment assumption therefore marks the remaining interface dependency rather than silently strengthening a claimed full D.4. The hrun premise encodes the exact implementation, not a cost inequality. Measurability and integrability of N follow through equality with the canonical successful witness."
+    },
+    "conclusion": {
+      "original": "The actual successful count under Y is integrable and E[N(Y)+1] is bounded by C_c times 1+log(1+sqrt(E||grad V(Y)||^2)/eps), with the displayed exact C_c.",
+      "reconstructed": "Integrable real count N composed with Y plus one, and precisely the same expectation inequality, logarithm, square root and constant.",
+      "relation": "equivalent",
+      "evidence": "The parent Jensen proof derives L1 gradient norm from its L2 moment, dominates log(1+g/eps) by g/eps, applies concavity of log on [1,infinity), and uses variance nonnegativity to replace E g by sqrt(E g^2). The parent count is dominated by an integrable logarithmic envelope. The child identifies N and transports both Bochner integrals via integral_map; no proxy-law or total-variation transfer occurs. The pinned source prose describes uniqueness as proof mechanism; it is implemented in the private lemma, not incorrectly claimed as an extra exported conjunct."
+    },
+    "scopes": {
+      "original": "A conditional same-implementation/Jensen component of Algorithm D.2, D.3 and the first inequality of the D.4 Jensen step. D.7 and D.8 remain separate.",
+      "reconstructed": "Integrability and expectation of the stipulated successful query under a measurable center with integrable squared gradient. No existence of q,N, error guarantee, sampling kernel, convergence or run-total theorem is exported.",
+      "relation": "equivalent",
+      "evidence": "The live introduction and all authored lesson statements explicitly retain the center moment dependency. The lesson obligations keep run-wide D.7, aggregation of 2J proximal plus 2J direct gradient calls per phase, parameter substitution and D.8 open. The focused test consumes witnesses from an implemented phase for a positive-dimensional two-node center while retaining its hmoment premise; it does not fabricate that missing run-wide estimate."
+    },
+    "constant_dependencies": {
+      "original": "C_c=2+(1+log((1-c)^(-1)))/(-log c), depending only on the fixed contraction upper bound c; RHS also depends on eps and the actual squared-gradient moment.",
+      "reconstructed": "Exactly the displayed C_c and the same actual-input moment and eps. No additional universal, dimension, condition-number or law-comparison constant is introduced.",
+      "relation": "explicit-elaboration",
+      "evidence": "0<eta<=c<1 implies 0<c<1, hence -log c>0 and log((1-c)^(-1))>=0. The execution parent proves this explicit loose coefficient in its pointwise count bound; the Jensen parent carries it unchanged and the child preserves it under pushforward. The paper states an unspecified C_c0; this is a valid explicit coefficient supplied by the local proof, not an asserted source-optimal constant. N+1, rather than N, accounts for the final successful evaluation."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "The scoped implementation component extends Euclidean paper centers to finite-dimensional inner-product Borel E and arbitrary measurable probability input spaces. This domain elaboration is disclosed and valid for the same proof.",
+      "evidence": "Candidate assumptions and the live typeclasses state the extension; the proof uses no topology on alpha and transports through its actual measurable Y."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "This is only the conditional D.3/Jensen component. The integrable actual-center squared-gradient moment is an input; D.7, phase/run aggregation, parameter substitution and D.8 remain unproved here.",
+      "evidence": "Source lines 2169-2186 separate the moment and total-work arguments; publication obligations and lesson scope explicitly preserve them."
+    },
+    {
+      "slot": "constant_dependencies",
+      "severity": "informational",
+      "description": "The local proof supplies the explicit coefficient C_c=2+(1+log((1-c)^(-1)))/(-log c) in place of the paper unspecified C_c0. It includes the final successful gradient evaluation.",
+      "evidence": "Execution parent count_bound proves the pointwise coefficient; the Jensen parent and child use the identical coefficient without inflating it or substituting a different count."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "afe4cb4756140e775ee0a8c79b9106f6d2ca7e91a877bcd907cda7e8b5fd3da2",
+    "review_run_sha256": "266ce50470010c0145fd084b4e4dc2aeb3acbdabf016f605fd8a0a2f29299f46",
+    "evidence": "This new independent anti-anchored review started with work.source-review.json; the audit registry, prior verdicts/review outputs and proposed repair overlays were not consulted. Packet ASTIS-REVIEW-dd2442595c96cfe7 sha256 afe4cb4756140e775ee0a8c79b9106f6d2ca7e91a877bcd907cda7e8b5fd3da2 recomputed from canonical JSON excluding packet_sha256; raw packet sha256 ceb6e31b65e08d39277f53a76bb99c6333b50c54a3fe9025df9db7235f6730fc. Pinned source text, Lean statement and blind reconstruction text hashes all recomputed exactly. Checked base HEAD eac95b96ed95ec926c27900020710e994076e7cb with candidate working-tree RealizedProximalWork.lean sha256 bd3bb1f2b76a351db79d8ced42d1fc2e9feed53aaa70ebcd4434b019ee1b8127; its full current module text equals the packet and includes the private successful_query_unique. The complete ProximalExpectedWork.lean parent was independently read, sha256 67d735f1adae0cd37b7f061d49aa8e7be6efd9faf28f733c860b706c6154cb99; exact interpreter/execution parent sha256 b94b440f87338465b48a80879f400389944e3dfbeeb7426672aeafa07fe2ed11. Live primary source https://arxiv.org/html/2609.06906v1, Algorithm D.2/D.3 lines 2138-2164 and D.4/Jensen lines 2169-2186, was checked. Independent mathematical audit: successful executions from the same initial state follow identical deterministic residual branches. Zero fuel is unsuccessful. A stopping branch returns the identical current point and count one. A nonstopping branch recursively compares two successful runs from the same next iterate and increments both counts by one. Induction therefore gives exact pair equality regardless of sufficient fuel. Comparing the supplied run with the parent witness establishes N=M pointwise by count cancellation, and even gives equality of the output points; no supplied count measurability, count integrability or work inequality is assumed. The C2 gradient has continuous squared norm. Measurable Y yields the actual probability pushforward nu=mu.map Y, and integrable_map_measure transfers exactly the supplied gradient-square moment. The parent constructs a measurable successful count, proves the logarithmic envelope integrable, and proves the expectation bound by log concavity plus the L2-to-L1 moment bound. Equality N=M transfers the witness properties, and integral_map pulls both the count integral and moment integral back under mu. This preserves the explicit coefficient and uses no independence, proxy-input measure, TV bound, or cost transfer between different laws. The complete candidate authored formula proof, including the private lemma exposition and all source/assumption/remaining-boundary wording, agrees with the module. Fresh focused test elaboration with LEAN_NUM_THREADS=2, lake env lean Tests/SmoothedPicardHMCRealizedProximalWork.lean, exited 0 and printed only propext, Classical.choice and Quot.sound. The test exercises the same stopped witnesses supplied by an implemented two-node phase under a nonconstant measurable Gaussian center while retaining the moment boundary. Focused fake-closure scan on the child, Jensen parent and execution parent found no sorry, admit, axiom, Prop:=True or :=trivial. No mathematical or source-fidelity blocker is found for the explicitly scoped implementation/Jensen component. Compiler success was used only as Lean evidence. This review does not certify D.7, D.8, a repeated-run moment, a quadrature adapter, or either paper main theorem.",
+    "run_artifact": "runs/20261005-companion-priority/work.review-result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "f5dc3792b12a440b2a20cb66ea5f7bde0f0ef87a6a20d8966acb999e17e795e5",
+  "publication_context": {
+    "file": "bd3bb1f2b76a351db79d8ced42d1fc2e9feed53aaa70ebcd4434b019ee1b8127",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork\n\n/-!\n# Work of the same stopped proximal implementation under its realized input\n\narXiv:2609.06906v1 Algorithm D.2 and the Jensen step in Lemma D.4.\nThe center's squared-gradient moment remains explicit; this is not D.7 or D.8.\n-/\n\nnoncomputable section\nopen MeasureTheory InnerProductSpace\nopen scoped Topology NNReal\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork\n\nprivate theorem successful_query_unique {E : Type*} [NormedAddCommGroup E]\n    [NormedSpace ℝ E] (g : E → E) (eta eps : ℝ) (y : E)\n    {n m : ℕ} {x : E} {r s : E × ℕ}\n    (hr : ApproximateProximalExecution.proximalQuery g eta eps y n x = some r)\n    (hs : ApproximateProximalExecution.proximalQuery g eta eps y m x = some s) : r = s := by\n  classical\n  induction n generalizing m x r s with\n  | zero => simp [ApproximateProximalExecution.proximalQuery] at hr\n  | succ n ih =>\n    cases m with\n    | zero => simp [ApproximateProximalExecution.proximalQuery] at hs\n    | succ m =>\n      rw [ApproximateProximalExecution.proximalQuery] at hr hs\n      split_ifs at hr hs with hstop\n      · exact Option.some.inj (hr.symm.trans hs)\n      · obtain ⟨r', hr', hrr⟩ := Option.map_eq_some_iff.mp hr\n        obtain ⟨s', hs', hss⟩ := Option.map_eq_some_iff.mp hs\n        have heq := ih hr' hs'\n        simpa [← hrr, ← hss] using congrArg (fun z : E × ℕ => (z.1, z.2 + 1)) heq\n\n/-- Expected work belongs to the actual successful stopped-query witness,\npulled back along the measurable realized center. No bound on an independent\nexistential count is substituted for the implementation's count. -/\ntheorem realized_proximal_expected_work\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {α : Type*} [MeasurableSpace α] (μ : Measure α) [IsProbabilityMeasure μ]\n    {V : E → ℝ} {κ : ℝ≥0} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (q : E → E) (N : E → ℕ)\n    (hrun : ∀ y, ApproximateProximalExecution.proximalQuery (gradient V) eta eps y\n      (N y + 1) y = some (q y, N y + 1))\n    (Y : α → E) (hY : Measurable Y)\n    (hmoment : Integrable (fun ω => ‖gradient V (Y ω)‖^2) μ) :\n    Integrable (fun ω => (N (Y ω) : ℝ) + 1) μ ∧\n      (∫ ω, (N (Y ω) : ℝ) + 1 ∂μ) ≤\n        (2 + (1 + Real.log ((1-c)⁻¹)) / (-Real.log c)) *\n          (1 + Real.log (1 + Real.sqrt (∫ ω, ‖gradient V (Y ω)‖^2 ∂μ) / eps)) := by\n  have hg : Continuous (gradient V) := by\n    unfold gradient\n    exact (InnerProductSpace.toDual ℝ E).symm.continuous.comp\n      (hV.continuous_fderiv (by norm_num))\n  have hgs : Measurable (fun y => ‖gradient V y‖^2) := hg.measurable.norm.pow_const 2\n  have hm : Integrable (fun y => ‖gradient V y‖^2) (μ.map Y) :=\n    (integrable_map_measure hgs.aestronglyMeasurable hY.aemeasurable).mpr hmoment\n  letI : IsProbabilityMeasure (μ.map Y) := Measure.isProbabilityMeasure_map hY.aemeasurable\n  obtain ⟨p, M, hp, hM, hout, hall, hcount, hbound⟩ :=\n    ProximalExpectedWork.approximate_proximal_expected_work\n      hκ hV hH heta hec hc heps (μ.map Y) hm\n  have hNM : N = M := by\n    funext y\n    have h := successful_query_unique (gradient V) eta eps y (hrun y) (hall y).2.2\n    exact Nat.add_right_cancel (congrArg Prod.snd h)\n  subst N\n  have hcnt : Measurable (fun y => (M y : ℝ) + 1) := by fun_prop\n  refine ⟨(integrable_map_measure hcnt.aestronglyMeasurable hY.aemeasurable).mp hcount, ?_⟩\n  simpa only [integral_map hY.aemeasurable hcnt.aestronglyMeasurable,\n    integral_map hY.aemeasurable hgs.aestronglyMeasurable] using hbound\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Algorithm D.2, Lemma D.3 (D.6), and Lemma D.4 Jensen step after (D.7), HTML lines 2138-2186",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib makes same-witness deterministic execution and the actual-law pushforward explicit; run-wide moment and total-cost claims remain separate."
+    },
+    "statement": "Attributed implementation/Jensen component of Algorithm D.2 and Lemma D.4, not full D.4. Retain the normalized C2 Hessian bounds, kappa>=1, 0<eta<=c<1 and eps>0. Suppose q:E->E and N:E->Nat satisfy the actual stopped gradient interpreter equation run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. For any probability measure mu on an arbitrary measurable space and measurable realized center Y with integrable ||grad V(Y)||^2, the same count N(Y)+1 is integrable and its expectation is at most C_c[1+log(1+sqrt(E_mu||grad V(Y)||^2)/eps)], where C_c=2+(1+log((1-c)^(-1)))/(-log c). Successful interpreter outputs and counts are independent of sufficient fuel; this identifies the supplied implementation with the already compiled expected-work witness before pulling its bound back along Y. No count measurability or integrability is assumed. The actual run-wide moment D.7 and aggregation D.8 are separate.",
+    "formulae": [
+      {
+        "label": "Same actual query work",
+        "tex": "\\mathbb E_\\mu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\mu\\|\\nabla V(Y)\\|^2}}{\\varepsilon_{\\rm prox}}\\right)\\right],\\quad C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the input space alpha has an arbitrary measurable structure and mu is a probability measure.",
+      "V is C2 and kappa>=1, with kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+      "0<eta<=c<1 and eps>0. q and N are arbitrary supplied functions with the successful actual interpreter equation at every y; no count integrability/measurability premise.",
+      "Y is measurable and ||grad V(Y)||^2 is mu-integrable. This is an explicit conditional moment input; the paper run-wide D.7 is not asserted."
+    ],
+    "obligations": [
+      {
+        "id": "actual-input-work",
+        "label": "Same successful interpreter count under the actual center law"
+      },
+      {
+        "id": "run-moment",
+        "label": "Derive run-wide D.7 moment bound (remaining)"
+      },
+      {
+        "id": "run-total",
+        "label": "Aggregate 2J proximal and 2J direct gradient queries per phase, substitute source parameters and prove D.8 (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work",
+      "title": "Expected work of the same implemented query at its realized center",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, Algorithm D.2 and D.4 after D.7",
+          "scope": "Same successful stopped query under a measurable actual input with square-integrable gradient. No realized repeated-history D.7 bound, finite-array/run aggregation D.8, quadrature adapter, parameter substitution or main theorem; no TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCRealizedProximalWork"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the input space alpha has an arbitrary measurable structure and mu is a probability measure.",
+        "V is C2 and kappa>=1, with kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+        "0<eta<=c<1 and eps>0. q and N are arbitrary supplied functions with the successful actual interpreter equation at every y; no count integrability/measurability premise.",
+        "Y is measurable and ||grad V(Y)||^2 is mu-integrable. This is an explicit conditional moment input; the paper run-wide D.7 is not asserted."
+      ],
+      "statement": "Attributed implementation/Jensen component of Algorithm D.2 and Lemma D.4, not full D.4. Retain the normalized C2 Hessian bounds, kappa>=1, 0<eta<=c<1 and eps>0. Suppose q:E->E and N:E->Nat satisfy the actual stopped gradient interpreter equation run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. For any probability measure mu on an arbitrary measurable space and measurable realized center Y with integrable ||grad V(Y)||^2, the same count N(Y)+1 is integrable and its expectation is at most C_c[1+log(1+sqrt(E_mu||grad V(Y)||^2)/eps)], where C_c=2+(1+log((1-c)^(-1)))/(-log c). Successful interpreter outputs and counts are independent of sufficient fuel; this identifies the supplied implementation with the already compiled expected-work witness before pulling its bound back along Y. No count measurability or integrability is assumed. The actual run-wide moment D.7 and aggregation D.8 are separate.",
+      "formula": "\\mathbb E_\\mu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\mu\\|\\nabla V(Y)\\|^2}}{\\varepsilon_{\\rm prox}}\\right)\\right],\\quad C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}.",
+      "steps": [
+        {
+          "title": "Successful executions have identical outputs and query counts",
+          "text": "Induct on the first supplied fuel and inspect the other fuel. Zero fuel cannot succeed. At a positive-fuel successful residual test both runs return the same current point with count one. If that test fails, both recurse at the same next iterate, and the induction hypothesis equates the recursive outputs and counts. Both add the same final one.",
+          "formula": "\\operatorname{run}(g,\\eta,\\varepsilon,y,n,x)=(r,k),\\quad\\operatorname{run}(g,\\eta,\\varepsilon,y,m,x)=(s,l)\\quad\\Longrightarrow\\quad(r,k)=(s,l).",
+          "lean": "private successful_query_unique; induction on fuel and Option.map_eq_some_iff."
+        },
+        {
+          "title": "Use the actual input law",
+          "text": "Let nu be the pushforward of mu under Y. Measurability makes nu a probability measure. The C2 potential has continuous gradient; its squared norm is measurable. The pushforward integrability equivalence transfers the supplied actual-center gradient moment to nu.",
+          "formula": "\\nu=Y_\\#\\mu,\\qquad\\int\\|\\nabla V(y)\\|^2\\,d\\nu(y)=\\int\\|\\nabla V(Y(\\omega))\\|^2\\,d\\mu(\\omega).",
+          "lean": "Measure.isProbabilityMeasure_map, integrable_map_measure and integral_map."
+        },
+        {
+          "title": "Identify the implementation with the expected-work witness",
+          "text": "The existing expected-work theorem gives a measurable successful count M and its integrable Jensen bound under nu. Compare that successful run at fuel M(y)+1 with the supplied run at N(y)+1, starting at the same y. Equality of the returned pairs implies N(y)+1=M(y)+1, hence N=M pointwise. This derives the needed measurability and integrability for the supplied N, without choosing a new implementation.",
+          "formula": "N(y)+1=M(y)+1\\quad\\Longrightarrow\\quad N=M.",
+          "lean": "successful_query_unique, congrArg Prod.snd, Nat.add_right_cancel and funext."
+        },
+        {
+          "title": "Pull the same count back to the realized center",
+          "text": "Apply the measurable pushforward identities to the identified count and gradient moment. Integrability of the count under nu pulls back to mu. Both Bochner integrals in the existing exact-constant bound become the corresponding actual-input expectations. No comparison of different probability laws or TV transfer is involved.",
+          "formula": "\\mathbb E_\\mu[N(Y)+1]\\le C_c\\left[1+\\log\\left(1+\\frac{\\sqrt{\\mathbb E_\\mu\\|\\nabla V(Y)\\|^2}}{\\varepsilon_{\\rm prox}}\\right)\\right],\\quad C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}.",
+          "lean": "integrable_map_measure and integral_map transport the parent bound after pointwise count equality."
+        }
+      ],
+      "lean_statement": "The exact theorem includes all normalized source assumptions, the successful actual interpreter equation, and the measurable actual-center gradient moment. Count integrability is a conclusion.",
+      "lean_proof": "Prove successful-run uniqueness, apply the existing expected-work theorem to the actual pushforward input law, identify the counts pointwise, and pull back the bound.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork.approximate_proximal_expected_work"
+      ],
+      "mathlib_dependencies": [
+        "Option.map_eq_some_iff",
+        "MeasureTheory.Measure.isProbabilityMeasure_map",
+        "MeasureTheory.integrable_map_measure",
+        "MeasureTheory.integral_map"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work",
+      "role": "proof-edge",
+      "supports": [
+        "actual-input-work"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The same gradient-only routine at every realized center, followed by D.3/Jensen.",
+        "lean": "0<eta<=c<1 and eps>0. q and N are arbitrary supplied functions with the successful actual interpreter equation at every y; no count integrability/measurability premise."
+      },
+      {
+        "source": "D.4 derives the run-wide center bound D.7 before Jensen.",
+        "lean": "Y is measurable and ||grad V(Y)||^2 is mu-integrable. This is an explicit conditional moment input; the paper run-wide D.7 is not asserted."
+      },
+      {
+        "source": "Euclidean state and random centers of the sampling routine.",
+        "lean": "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the input space alpha has an arbitrary measurable structure and mu is a probability measure."
+      }
+    ]
+  }
+}

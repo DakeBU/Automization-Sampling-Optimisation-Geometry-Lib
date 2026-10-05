@@ -15,4 +15,4 @@ The exact comparison phase uses the exact proximal stochastic-gradient oracle, n
 
 Conceptual-mirror audit: none-found. This joins deterministic execution identities with existing producer laws; no new conceptual transport certificate.
 
-Status: PROVED_LOCAL. First production elaboration and focused PASS3676, independent math review with28 raw/LF hashes, actual-law combined test and complete blind reconstruction pass. Publication139 validates the reader/binding. Fresh source review, exact-commit VERIFIED and aggregate admission remain separate and pending.
+Status: PROVED_LOCAL. First production elaboration and focused PASS3676, independent math review with28 raw/LF hashes, actual-law combined test and complete blind reconstruction pass. Publication139 validates the reader/binding. Fresh source review and independent exact-commit VERIFIED pass at d03b690298c08eeee6f18322961365e7832a7d43. Shared integration and aggregate/site/bounded graph admission are a separate pending checkpoint.

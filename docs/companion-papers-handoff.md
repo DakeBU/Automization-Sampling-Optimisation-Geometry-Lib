@@ -1,5 +1,59 @@
 # Companion-paper formalization handoff
 
+## Actual phase accuracy and expected work with identical witnesses — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCPhaseAccuracyWork` joins actual source phase precision
+and expected returned gradient counts with the SAME p,q,N, full phase and Kq.
+Under the genuine normalized C2 Hessian contract, actual J>=2 coefficients,
+h>0 and h²Lambda<=1, derive h<=1. The actual incoming probability law nu has
+an explicit integrable squared distance-plus-momentum budget M around an exact
+zero-gradient xstar. Positive 0<eta<=c<1 and eps>0 remain visible.
+
+Two previously independent producers have exact optimality maps identified by
+1-Lipschitz gradient and eta<1. Their actual stopped calls use identical
+eta/eps/anchor/start; successful_query_unique identifies the returned point
+and terminal-inclusive count despite different contraction bounds and fuel.
+After substituting these genuine identities, the true Euclidean all-state,
+all-finite-rho>=1 bound W_rho(Kq(s),Kp(s))<=3hLambda eps and actual driving-law
+expectation E_(nu prod gamma)T<=J(2+L0+L1) belong to one implementation. T is the
+actual returned total count 2J+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)], and Kq is the
+same full Gaussian pushforward of its actual program output. All four Gaussian
+factors and separate exact/approximate second centers remain explicit. Exact
+comparison is proximal stochastic gradient, not deterministic smoothed force.
+N+1 is a successful finite execution certificate, not free fuel precomputation.
+Arithmetic/random draws/failed-path work remain separate; no TV cost transfer.
+
+Independently verified source commit: `d03b690298c08eeee6f18322961365e7832a7d43`; receipt
+`runs/20261005-companion-priority/phase-accuracy-work.verified.json`. Focused
+PASS3676 exercises real dimension1, actual J2/h1/2/Lambda1, eta3/4,c7/8,eps1/10,
+nu=dirac(0,0),M0: the SAME N supports program output, Kq law, integrable mean
+count and all-rho precision. Independent math freezes28 raw/LF hashes with26
+old parents unchanged; blind reconstruction and fresh primary-source review
+pass with no blocker/repair. Only the standard three Lean foundations.
+
+Shared ExampleCases and Tests-root integration is prepared in the original
+single STABILIZING/PR313 lane. Aggregate/site/bounded graph admission is a
+separate pending checkpoint. Previous957e6d4e remote Lean/contributor/site CI
+all pass, deploy skipped; main merge/live deployment remain separate. Parent
+results and test-only copied two-node calculation receive no new proof credit.
+
+**Next bounded mathematical dependency:** source equation(D.3) uses(5.2),
+which separates the exact smoothed-gradient numerical kernel K, the stochastic
+exact-proximal kernel Khat and its conditional-mean Kbar. The just-verified Kp
+is Khat, not K. Inspect existing formal/shared nodes before claiming the next
+edge. Section4.3's actual M_kappa/A_H matrix dissipation(4.14)-(4.15) is a
+bounded candidate parent of the genuine contraction proof; exact integral
+momentum-weight positivity and logarithmic Lambda remain separate B1 parents.
+Do not replace these kernels by each other or assume the analytic recurrence.
+Global history/D7/D8, B2/depth-K/logarithmic Lambda/weight positivity, smoothing/
+Wp/proxy-warmness/init, PBPS reflection/nonexplosion/invariance/hypocoercivity/
+error/cost and true actual-input composition remain open. Neither full main
+result is complete. Existing companion formula proofs/folded Lean/source/Test
+links stay metadata-backed; copy/download controls and rendered visual
+acceptance remain open. The unbudgeted two-paper Goal stays active; original
+frontiers/cycles and all three source inventory cases are preserved.
+
+
 ## Actual proximal phase stability — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCProximalPhaseStability` proves the Appendix D1/D2

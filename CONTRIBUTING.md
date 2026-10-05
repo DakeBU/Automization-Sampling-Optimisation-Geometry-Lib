@@ -17,8 +17,9 @@ After pulling the latest `main`, read:
 3. `.agents/prompts/collaborator-contribution.md`
 4. `docs/contributor-codex-contract.md`
 5. `docs/theorem-publication-protocol.md`
-6. `.agents/skills/astis-substantive-advance/SKILL.md`
-7. the relevant route prompt under `.agents/prompts/`
+6. `docs/proof-digestion-protocol.md`
+7. `.agents/skills/astis-substantive-advance/SKILL.md`
+8. the relevant route prompt under `.agents/prompts/`
 
 The common bootstrap is intentionally thin. The authoritative collaboration,
 reader, reuse, encoder-denoiser, graph, and stabilization rules live in
@@ -90,8 +91,12 @@ Cell must satisfy the current contributor contract, including `reuse_plan`,
 ## 3. Publish source-facing mathematics, not only Lean code
 
 Compilation certifies the Lean proposition, not its fidelity to a cited source.
-Every source-facing declaration must follow `docs/theorem-publication-protocol.md`
-and `docs/contributor-codex-contract.md`.
+Every source-facing declaration must follow `docs/theorem-publication-protocol.md`,
+`docs/proof-digestion-protocol.md`, and `docs/contributor-codex-contract.md`.
+The proof-digestion protocol freezes the exact source-facing statement before
+proof search, distinguishes source hypotheses from proof dependencies, requires
+source-proof coverage independently of Lean implementation topology, and makes
+post-merge purification a separate human-facing completion gate.
 
 Use `textbook/chapter-01/section-1-3.html` as the reader-quality reference. Keep
 source statement, notation and hidden assumptions, a readable natural-language

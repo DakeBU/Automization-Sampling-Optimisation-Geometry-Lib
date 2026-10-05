@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-8cf24bcdd5f6794e",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h ^ 2 * Λ ≤ 1 →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let Γ := (stdGaussian E).prod (stdGaussian E)\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    Measurable Φ ∧\n      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ z, K z = Γ.map (fun ζ => Φ (z, ζ))) ∧\n      ∀ z z' ζ : E × E,\n        let H := h⁻¹ • ∑ j, b j •\n          (∫ u in (0 : ℝ)..1, InnerProductSpace.continuousLinearMapOfBilin\n            (fderiv ℝ (fderiv ℝ f)\n              (Y1 z' ζ j + u • (Y1 z ζ j - Y1 z' ζ j))))\n        let d := WithLp.toLp 2 (z.1 - z'.1, z.2 - z'.2)\n        H.toLinearMap.IsSymmetric ∧\n          (∀ v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ inner ℝ (H v) v ∧\n            inner ℝ (H v) v ≤ ‖v‖ ^ 2) ∧ ‖H‖ ≤ 1 ∧\n          ∃ R : WithLp 2 (E × E) →L[ℝ] WithLp 2 (E × E),\n            ‖R‖ ≤ 8 * Λ * h ^ 2 ∧\n            WithLp.toLp 2 ((Φ (z,ζ)).1 - (Φ (z',ζ)).1,\n              (Φ (z,ζ)).2 - (Φ (z',ζ)).2) =\n                d + h • WithLp.toLp 2 (z.2-z'.2, -H (z.1-z'.1)-(z.2-z'.2)) + R d",
+    "statement_sha256": "8cf24bcdd5f6794e0055b983ccca5b97d0ab1b7d525426c82e90ff76e1d22b8e",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a complete finite-dimensional real inner-product space, endowed with its Borel measurable space. f is a real-valued map. ContDiff R 2 f means global twice continuously Frechet differentiable; fderiv R (fderiv R f) is the genuine nested second derivative. gradient f is its first derivative Riesz representative, not an independently supplied map.",
+      "Lagrange.basis gives the actual cardinal polynomial at the defined nodes; polynomial.eval is evaluation. sSup of the displayed real set is its real supremum. Integral s in a..b is ordinary Lebesgue Bochner interval integration. Fin J indexes0 through J-1.",
+      "stdGaussian E is the standard isotropic Gaussian law associated to the real Euclidean inner product. Measure.prod means independent product, Measure.map means pushforward. Kernel(E x E)(E x E) is a measurable family of measures on phase space; IsMarkovKernel means each is a probability measure. Measurable Phi is joint measurability in phase input and both noise coordinates.",
+      "continuousLinearMapOfBilin is the Riesz-represented operator of the genuine continuous bilinear form: inner(A v,w)=B(v,w). H.IsSymmetric means all-vector inner(Hv,w)=inner(v,Hw). ||H|| is the induced operator norm, not a supplied certificate.",
+      "WithLp2(E x E) is the Euclidean product vector space with norm sqrt(||x||^2+||p||^2), coordinatewise addition/scalar action. toLp2 embeds the pair into that normed copy; it does not change coordinates. R is a continuous real linear operator on that L2 phase space. R is existential inside all compared-input/noise quantifiers."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "adca5fec8fd8242c0760516f695befe34fbea997da5c824be724842972b5a845"
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference.source_first_order_difference",
+      "title": "The actual exact-gradient Picard phase and its first-order difference",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+          "label": "SPHMC Lemma4.6 actual numerical phase",
+          "scope": "This is the actual deterministic numerical kernel/first-order difference interface in Lemma4.6, conditional on the explicitly exposed normalized C2 curvature producer. The identity f=V_eta and source Lemma4.1 smoothing/curvature production remain open. It does not prove Proposition4.7 contraction/step absorption, Lemma4.8 M_kappa increment, logarithmic Lambda/B2, Khat/Kbar accuracy, invariance, repeated-history/cost, PBPS, either complete main theorem or their actual-input expected-cost composition. Khat and Kbar cannot be replaced by this K; TV closeness cannot transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCFirstOrderDifference"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space, including dimension zero, with its Borel measurable space. f:E->R is globally C2. kappa>=1 and every genuine nested second derivative satisfies (2kappa)^-1||v||^2 <= D2f(z)[v,v] <= ||v||^2 for every z,v. These are the normalized smoothed-potential curvature interface; f=V_eta and Lemma4.1 are independent prerequisites.",
+        "J>=2,h>0. The nodes are t_j=h/2(1-cos(j*pi/(J-1))), ell_j their actual Lagrange cardinal polynomials, Lambda=sup_{s in[0,h]} sum_j|ell_j(s)|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds and c_j=integral_0^h(h-s)ell_j(s)ds. Assume only h^2 Lambda<=1. In particular h<=1 is derived, never added as a premise.",
+        "a=exp(-h/2),sigma=sqrt(1-exp(-h)),Gamma=stdGaussian(E) product stdGaussian(E). Both Gaussian vectors are independent under Gamma and shared synchronously between compared inputs. P0=a p+sigma zeta0; Y0_j=x+t_j P0; Y1_i=Y0_i-sum_j omega_ij gradient f(Y0_j); Phi=(x+hP0-sum_j c_j gradient f(Y1_j),a(P0-sum_j b_j gradient f(Y1_j))+sigma zeta1). No stochastic gradient/proximal array appears.",
+        "For every pair z,zprime and every Gaussian vector zeta (not just almost surely), H_j is the ordinary Bochner integral of the Riesz-represented genuine D2f along the Y1prime_j-to-Y1_j segment; H=h^-1 sum_j b_j H_j. The source phase norm is the Euclidean L2 product WithLp2, not the default product max norm."
+      ],
+      "statement": "At this explicit normalized C2 curvature interface, the actual exact-gradient two-Picard map Phi is measurable and defines a Markov kernel K(z)=Gamma.map(Phi_z). For every synchronously coupled input pair and every two-vector noise value, the actual integral average H is symmetric, (2kappa)^-1 I<=H<=I and ||H||op<=1. There exists a genuine continuous real linear R on the L2 phase space such that Delta1=Delta0+h*(Delta p,-H Delta x-Delta p)+R Delta0 and ||R||op<=8 Lambda h^2. R may depend on z,zprime,zeta; no measurable choice or global derivative of Phi is asserted. H, Phi, K and the remainder are constructed, not supplied as conclusion certificates.",
+      "formula": "\\Delta_1=\\Delta_0+h(\\Delta p,-H\\Delta x-\\Delta p)+\\mathcal R_h\\Delta_0,\\quad\\|\\mathcal R_h\\|_{\\rm op}\\le8\\Lambda_Jh^2,\\quad\\frac1{2\\kappa}I\\preceq H\\preceq I.",
+      "boundary": "This is the actual deterministic numerical kernel/first-order difference interface in Lemma4.6, conditional on the explicitly exposed normalized C2 curvature producer. The identity f=V_eta and source Lemma4.1 smoothing/curvature production remain open. It does not prove Proposition4.7 contraction/step absorption, Lemma4.8 M_kappa increment, logarithmic Lambda/B2, Khat/Kbar accuracy, invariance, repeated-history/cost, PBPS, either complete main theorem or their actual-input expected-cost composition. Khat and Kbar cannot be replaced by this K; TV closeness cannot transfer unbounded cost.",
+      "steps": [
+        {
+          "title": "Use the genuine cardinal-integral parents",
+          "text": "The compiled coefficient constructor supplies t_j in[0,h], the endpoint t_last=h, Lambda>=1, row absolute-integral bounds and sum b_j=h. The independent positive-weight theorem gives every b_j>=0. The endpoint c_j is exactly the last omega row. From h^2 Lambda<=1 and Lambda>=1 derive h<=1. No convenient coefficient or regularity certificates are assumed.",
+          "formula": "\\sum_j|\\omega_{i,j}|\\le\\tfrac12h^2\\Lambda_J,\\quad b_j\\ge0,\\quad\\sum_jb_j=h,\\quad c_j=\\omega_{\\mathrm{last},j}.",
+          "lean": "chebyshev_lobatto_coefficients; nonnegative_momentum_weights; hcoeff; hc; hh1"
+        },
+        {
+          "title": "Construct the real numerical phase and Gaussian kernel",
+          "text": "Continuity of the genuine gradient follows from C2 and the continuous Riesz identification. Finite actual Picard sums and both OU half-refreshes therefore make Phi jointly measurable. Push forward Kernel.id product Kernel.const Gamma; the two independent Gaussian coordinates are actual inputs of this same map. The law is exactly Gamma.map Phi_z. This is K with deterministic gradient f, not stochastic Khat or the conditional-mean Kbar.",
+          "formula": "P_0=ap+\\sigma\\zeta_0,\\quad Y^0_j=x+t_jP_0,\\quad Y^1_i=Y^0_i-\\sum_j\\omega_{i,j}\\nabla f(Y^0_j),\\quad K(z)= (\\Phi_z)_\\#\\Gamma.",
+          "lean": "hg; hPhi; K; Kernel.IsMarkovKernel.map; Measure.dirac_prod; Measure.map_map"
+        },
+        {
+          "title": "Bound the actual first Picard error",
+          "text": "Use the canonical Hessian-secant constructor at each Y0 pair, deriving the global gradient Lipschitz bound. Common Gaussian noise cancels, giving DeltaY0_j=Delta x+a t_j Delta p. Writing D=||Delta x||+||Delta p||, the actual E_i=-sum omega_ij Delta gradient_j has norm<=h^2 Lambda D/2. Since h^2 Lambda<=1, the loose bound ||DeltaY1_i||<=2D holds. All helpers are private algebra of this same source algorithm, with no separate proof credit.",
+          "formula": "E_i=\\Delta Y^1_i-\\Delta x-at_i\\Delta p,\\qquad\\|E_i\\|\\le\\tfrac12h^2\\Lambda_JD,\\qquad\\|\\Delta Y^1_i\\|\\le2D.",
+          "lean": "secant_data; first_picard_error; hd0; herr; hpic"
+        },
+        {
+          "title": "Produce the source integral average H",
+          "text": "At each actual Y1 pair call the compiled genuine Hessian-secant theorem. It produces symmetry, all-vector inherited curvature and norm<=1. Form H=h^-1 sum b_j H_j using the real ordinary-cardinal integrals. Positive b_j and sum b_j=h preserve both diagonal bounds and symmetry; the operator triangle bound gives norm<=1. The source H is this exact integral average, not an arbitrary matrix satisfying the desired result.",
+          "formula": "H_j=\\int_0^1[D^2f(Y^{1\\prime}_j+u(Y^1_j-Y^{1\\prime}_j))]^\\sharp du,\\quad H=h^{-1}\\sum_jb_jH_j.",
+          "lean": "S; actual_averaged_hessian; hessian_secant_operator; hb; hbs; hHd"
+        },
+        {
+          "title": "Expand both real endpoint residuals with explicit constants",
+          "text": "The exact endpoint differences are Delta x+ah Delta p-sum c_j H_j DeltaY1_j and a^2 Delta p-a sum b_j H_j DeltaY1_j. The scalar exponential inequalities give |1-a|<=h/2 and |a^2-1+h|<=h^2. Let e=h^2 Lambda/2. The position residual has norm<=h^2||Delta p||/2+h^2 Lambda D. The momentum residual has norm<=h^2||Delta p||+h^2||Delta x||/2+h(h||Delta p||+eD). With h<=1 and Lambda>=1 their sum is <=4h^2 Lambda D (in particular bounds 3/2 and 5/2 times h^2 Lambda D). These are actual residuals, not hypotheses.",
+          "formula": "\\|r_x\\|\\le\\tfrac32h^2\\Lambda_JD,\\quad\\|r_p\\|\\le\\tfrac52h^2\\Lambda_JD,\\quad\\|r_x\\|+\\|r_p\\|\\le4h^2\\Lambda_JD.",
+          "lean": "refresh_scalar_bounds; Real.abs_exp_sub_one_sub_id_le; endpoint_error; hG; hGn; hvector; hsum"
+        },
+        {
+          "title": "Use the source Euclidean phase norm",
+          "text": "The L2 product norm satisfies ||(rx,rp)||2<=||rx||+||rp|| and each coordinate norm is <=||(Delta x,Delta p)||2. Hence D<=2||Delta0||2, giving actual residual norm<=8 Lambda h^2||Delta0||2. This avoids using the default max norm as if it were the Euclidean norm.",
+          "formula": "\\|r\\|_2\\le4h^2\\Lambda_JD\\le8h^2\\Lambda_J\\|\\Delta_0\\|_2.",
+          "lean": "norm_add_le; WithLp.norm_toLp_fst; WithLp.norm_toLp_snd; WithLp.norm_fst_le; WithLp.norm_snd_le; hr"
+        },
+        {
+          "title": "Construct the pointwise linear remainder",
+          "text": "If Delta0=0, the derived residual bound forces r=0 and R=0 works. Otherwise define Rw=inner(Delta0,w) r/||Delta0||^2 using Mathlib rankOne. It satisfies R Delta0=r; its operator norm is <=||r||/||Delta0||<=8 Lambda h^2. This explicitly elaborates the source existential remainder and omitted universal constant. It is not a differentiability/Jacobian claim or a measurable operator-choice claim.",
+          "formula": "\\mathcal R_h=\\|\\Delta_0\\|^{-2}\\operatorname{rankOne}(r,\\Delta_0),\\quad\\mathcal R_h\\Delta_0=r.",
+          "lean": "rankOne_apply; norm_rankOne; ContinuousLinearMap.opNorm_smul_le; hRd; zero difference branch"
+        }
+      ],
+      "lean_statement": "Actual Chebyshev cardinal integrals, two Gaussian refreshes and genuine gradient f; exact source segment-averaged H; all-input pointwise L2 difference and norm-bounded linear remainder.",
+      "lean_proof": "Genuine coefficient/positive-weight/Bochner-Hessian parents, finite actual gradient/Picard expansion, exponential remainder, Euclidean residual estimate, rankOne remainder and genuine Gaussian Markov pushforward.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator.hessian_secant_operator"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.continuous_fderiv",
+        "Kernel.IsMarkovKernel.map",
+        "Measure.dirac_prod",
+        "Measure.map_map",
+        "Real.add_one_le_exp",
+        "Real.abs_exp_sub_one_sub_id_le",
+        "norm_add_le",
+        "WithLp.norm_toLp_fst",
+        "WithLp.norm_toLp_snd",
+        "WithLp.norm_fst_le",
+        "WithLp.norm_snd_le",
+        "InnerProductSpace.rankOne_apply",
+        "InnerProductSpace.norm_rankOne",
+        "ContinuousLinearMap.opNorm_smul_le"
+      ]
+    }
+  ]
+}

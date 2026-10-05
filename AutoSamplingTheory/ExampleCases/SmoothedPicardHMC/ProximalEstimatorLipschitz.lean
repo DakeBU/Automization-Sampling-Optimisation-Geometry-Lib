@@ -1,4 +1,5 @@
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator
+import AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap
 
 /-!
 # Input stability of the actual proximal Gaussian estimator
@@ -18,32 +19,6 @@ namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLip
 
 open InnerProductSpace
 open scoped NNReal RealInnerProductSpace
-
-private theorem nonexpansive_of_monotone_optimality
-    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    {g p : E → E} {eta : ℝ} (heta : 0 ≤ eta)
-    (hmono : ∀ x y, 0 ≤ inner ℝ (g x - g y) (x - y))
-    (heq : ∀ y, p y + eta • g (p y) = y) : LipschitzWith 1 p := by
-  apply LipschitzWith.of_dist_le_mul
-  intro x y
-  simp only [NNReal.coe_one, one_mul, dist_eq_norm]
-  have hsub : x - y = (p x - p y) + eta • (g (p x) - g (p y)) := by
-    calc
-      x - y = (p x + eta • g (p x)) - (p y + eta • g (p y)) :=
-        congrArg₂ (fun a b : E => a - b) (heq x).symm (heq y).symm
-      _ = _ := by module
-  have hpair : ‖p x - p y‖ ^ 2 ≤ inner ℝ (x - y) (p x - p y) := by
-    calc
-      _ ≤ ‖p x - p y‖ ^ 2 + eta * inner ℝ (g (p x) - g (p y)) (p x - p y) :=
-        le_add_of_nonneg_right (mul_nonneg heta (hmono (p x) (p y)))
-      _ = inner ℝ (x - y) (p x - p y) := by
-        conv_rhs => rw [hsub]
-        rw [inner_add_left, real_inner_smul_left, real_inner_self_eq_norm_sq]
-  have hbound := hpair.trans (real_inner_le_norm (x - y) (p x - p y))
-  by_cases hzero : ‖p x - p y‖ = 0
-  · simpa only [hzero] using norm_nonneg (x - y)
-  · have hpos : 0 < ‖p x - p y‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hzero)
-    nlinarith
 
 /-- The actual exact proximal estimator is nonexpansive in its center and
 `sqrt eta`-Lipschitz in its noise input, on the existing construction range.
@@ -85,7 +60,7 @@ theorem proximal_estimator_lipschitz
           (fun z _ => (hV.differentiable (by norm_num) z).hasGradientAt)
           (x := y) (y := x) (Set.mem_univ _) (Set.mem_univ _)
     exact (mul_nonneg (inv_nonneg.mpr (NNReal.coe_nonneg κ)) (sq_nonneg _)).trans hb
-  have hpLip := nonexpansive_of_monotone_optimality hpos.le hmono heq
+  have hpLip := TechnicalLemmas.Analysis.MonotoneProximalMap.nonexpansive_of_monotone_optimality hpos.le hmono heq
   refine ⟨p, hp, heq, hmin, hpLip, ?_, ?_⟩
   · intro y y' G
     have hg := hLip.dist_le_mul (p y + Real.sqrt eta • G) (p y' + Real.sqrt eta • G)

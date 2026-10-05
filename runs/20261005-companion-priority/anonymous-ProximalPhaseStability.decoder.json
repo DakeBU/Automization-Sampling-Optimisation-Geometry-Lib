@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-7eb14fcf4207248f",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n{V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖ ^ 2)\n    {eta eps : ℝ} (heta : 0 < eta) (heta1 : eta < 1) (heps : 0 < eps)\n    {J : ℕ} (hJ : 2 ≤ J) {h : ℝ} (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Lambda := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Set.Icc 0 h)\n    let omega := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let pw := omega ⟨J-1,by omega⟩\n    let bw := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    h^2*Lambda ≤ 1 →\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧ LipschitzWith 1 p ∧\n      let γ := ((stdGaussian E).prod (stdGaussian E)).prod\n        ((Measure.pi (fun _ : Fin J => stdGaussian E)).prod\n          (Measure.pi (fun _ : Fin J => stdGaussian E)))\n      let Φ := fun (f : E → E)\n          (w : (E × E) × ((E × E) × ((Fin J → E) × (Fin J → E)))) =>\n        let a := Real.exp (-h/2)\n        let sigma := Real.sqrt (1-Real.exp (-h))\n        let P0 := a • w.1.2 + sigma • w.2.1.1\n        let Y0 := fun i => w.1.1+t i • P0\n        let Z0 := fun j => gradient V (f (Y0 j)+Real.sqrt eta • w.2.2.1 j)\n        let Y1 := fun i => Y0 i-∑ j, omega i j • Z0 j\n        let Z1 := fun j => gradient V (f (Y1 j)+Real.sqrt eta • w.2.2.2 j)\n        (w.1.1+h • P0-∑ j, pw j • Z1 j,\n          a • (P0-∑ j, bw j • Z1 j)+sigma • w.2.1.2)\n      let W := fun (rho : ℝ) (μ ν : Measure (E × E)) =>\n        (TechnicalLemmas.Measure.Transport.transportCost\n          (fun z : (E × E) × (E × E) =>\n            (ENNReal.ofReal (Real.sqrt (‖z.1.1-z.2.1‖^2+‖z.1.2-z.2.2‖^2)))^rho)\n          μ ν)^(rho⁻¹)\n      ∃ Kp Kq : Kernel (E × E) (E × E),\n        IsMarkovKernel Kp ∧ IsMarkovKernel Kq ∧\n        (∀ s, Kp s = γ.map (fun z => Φ p (s,z))) ∧\n        (∀ s, Kq s = γ.map (fun z => Φ q (s,z))) ∧\n        (∀ s rho, 1 ≤ rho → W rho (Kq s) (Kp s) ≤ ENNReal.ofReal (3*h*Lambda*eps)) ∧\n        (∀ (r : E → E), Measurable r → ∀ delta : ℝ, 0 ≤ delta →\n          (∀ y, ‖r y-p y‖ ≤ delta) →\n          ∃ Kr : Kernel (E × E) (E × E), IsMarkovKernel Kr ∧\n            (∀ s, Kr s = γ.map (fun z => Φ r (s,z))) ∧\n            ∀ s rho, 1 ≤ rho → W rho (Kr s) (Kp s) ≤\n              ENNReal.ofReal (3*h*Lambda*delta))",
+    "statement_sha256": "7eb14fcf4207248f769f61ae74fa465d2e7fe38c415f5499d008605933a7b14f",
+    "compiled": true,
+    "approved_definition_context": [
+      "Real inner-product spaces carry the stated norm, real scalar multiplication and canonical Borel sigma algebra when those typeclasses are present. NNReal denotes nonnegative reals; coercions to real are written with an up-arrow. ContDiff R 2 means genuine twice continuously Frechet differentiability; gradient and iterated fderiv are the genuine first and second derivatives under that hypothesis. LipschitzWith1 means nonexpansive.",
+      "Fin J is the finite index0,...,J-1. Lagrange.basis(univ,t,j) is the real polynomial product over k!=j of C((t_j-t_k)^(-1))*(X-C(t_k)); ell.eval s is real polynomial evaluation. sSup is the real supremum of the indicated image on the closed interval. The displayed interval integrals use real Lebesgue measure, with oriented endpoints.",
+      "stdGaussian E is the centered standard Gaussian with identity covariance in this finite-dimensional real inner-product space. Measure.pi indexes independent coordinates over the finite set; Measure.prod denotes independent product measures; Measure.map is pushforward. A Kernel is a measurable measure-valued map; IsMarkovKernel means every output is a probability measure. The four factors in the displayed gamma are two independent vectors and two independent Fin J vector arrays.",
+      "TechnicalLemmas.Measure.Transport.transportCost(c,mu,nu) is the infimum over all measures pi on the pair space satisfying pi.fst=mu and pi.snd=nu of the lower integral of c against pi. ENNReal is the extended nonnegative reals; ofReal is max(real,0); real powers and inverse have their usual extended-nonnegative meanings. The displayed square-root cost is exactly sqrt(norm(DX)^2+norm(DP)^2) and is not the default norm on E times E.",
+      "ApproximateProximalExecution.proximalQuery(g,eta,eps,y,fuel,x) returns none if fuel=0. With fuel=n+1 it evaluates g(x), sets z=y-eta*g(x), and tests norm(z-x)<=(1-eta)*eps. If that test passes it returns some(x,1); otherwise it recursively calls this same procedure at z with fuel n, propagates none on failure, and increments a successful returned count by one. The terminal successful gradient/residual test is included. Equivalently the residual norm norm(x+eta*g(x)-y) is compared to (1-eta)*eps, not eps alone. N(y)+1 is a successful finite execution certificate; the proposition does not say N is computed before execution for free."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "60fa2897c1cfc74fcfae69c118d9ec35b2b5c96171244342c98d71c9425af778"
+}

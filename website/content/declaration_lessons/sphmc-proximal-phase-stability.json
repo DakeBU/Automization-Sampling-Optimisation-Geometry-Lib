@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalPhaseStability.source_phase_proximal_stability",
+      "title": "ProximalPhaseStability actual source component",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS1",
+          "label": "SPHMC proximal phase and coefficient prerequisites",
+          "scope": "Appendix D1/D2 one-phase proximal implementation stability only, explicit universal constant3. Both compared phases use the exact same two stochastic-gradient Gaussian arrays and two half-refresh Gaussian vectors; the exact phase uses exact proximal p, not a deterministic smoothed force. N(y)+1 is a noncomputable successful execution certificate, not free runtime fuel determination or expected-work evidence. Repeated-phase D3, weighted contraction, numerical D7/D8, invariant law, bias/concentration, Wp/proxy-warmness/init/PBPS/composition and both main results remain separate. No TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCProximalPhaseStability"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra; dimension zero is allowed. V:E→R is genuinely C2, kappa>=1 and kappa^-1||v||²<=D²V(x)[v,v]<=||v||² for every x,v (normalized beta=1).",
+        "0<eta<1, eps>0 for the actual stopped approximate program. J>=2, h>0; the actual nodes, cardinal polynomials, Lambda, omega and b are defined as in the coefficient prerequisite. Position weights are the last omega row, whose node equals h. The sole step condition is h² Lambda<=1.",
+        "The abstract comparison oracle r is Borel measurable and uniformly satisfies ||r(y)-p(y)||<=delta for every y, with delta>=0 including0. No Lipschitz assumption on r, no state moment or integrability budget, no b positivity, no target-law approximation premise."
+      ],
+      "statement": "Construct measurable exact p, actual stopped q and natural N for full0<eta<1, with p+eta gradientV(p)=id, ||q-p||<=eps and proximalQuery(g,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1). The exact p is nonexpansive. Construct Markov Kp and Kq as the full two-layer source Gaussian pushforwards. For every deterministic phase state s and finite real rho>=1, the Euclidean Wasserstein cost W_rho(Kq(s),Kp(s))<=3h Lambda eps. Moreover every measurable delta-accurate r has its true pushforward Markov Kr with W_rho(Kr(s),Kp(s))<=3h Lambda delta for all s and rho>=1, includingdelta0. Here W_rho is the 1/rho power of the infimum coupling integral of [sqrt(||DX||²+||DP||²)]^rho. It is not the default max-norm product metric.",
+      "formula": "W_\\rho(\\delta_sK_r,\\delta_sK_p)\\le3h\\Lambda_J\\delta,\\qquad \\rho\\ge1,\\quad\\delta\\ge0,\\quad h^2\\Lambda_J\\le1.",
+      "boundary": "Appendix D1/D2 one-phase proximal implementation stability only, explicit universal constant3. Both compared phases use the exact same two stochastic-gradient Gaussian arrays and two half-refresh Gaussian vectors; the exact phase uses exact proximal p, not a deterministic smoothed force. N(y)+1 is a noncomputable successful execution certificate, not free runtime fuel determination or expected-work evidence. Repeated-phase D3, weighted contraction, numerical D7/D8, invariant law, bias/concentration, Wp/proxy-warmness/init/PBPS/composition and both main results remain separate. No TV-to-unbounded-cost transfer.",
+      "steps": [
+        {
+          "title": "Construct and identify the actual proximal maps",
+          "text": "Use the compiled full-range stopped execution kernel with contraction c=eta. It constructs one exact optimality solution p and its actual finite residual-stopped q,N. Derive gradient monotonicity and 1-Lipschitz gradient from the genuine C2 Hessian through the shared quadratic/first-order APIs, then apply the shared monotone-optimality implication. Strong convexity identifies this unique optimality solution with the source proximal minimizer; no p-nonexpansiveness premise or hidden eta<=1/2 restriction.",
+          "formula": "p(y)+\\eta\\nabla V(p(y))=y,\\quad\\|q(y)-p(y)\\|\\le\\varepsilon,\\quad\\operatorname{Lip}(p),\\operatorname{Lip}(\\nabla V)\\le1.",
+          "lean": "ImplementedPhaseKernel.implemented_phase_kernel; QuadraticRegularization; StrongConvexFirstOrder; MonotoneProximalMap"
+        },
+        {
+          "title": "Use the actual coefficients and preserve the same noise",
+          "text": "Use the independent coefficient construction for Lambda>=1 and every omega row sum<=S=h²Lambda/2. Position weights are the final row. The new absolute momentum-integral prerequisite yields sum|b|<=hLambda. Set a=exp(-h/2), sigma=sqrt(1-exp(-h)); P0=aP+sigma*zeta0; both phases use the same P0 and independent G0,G1 arrays, and the same terminal zeta1.",
+          "formula": "S=\\tfrac12h^2\\Lambda_J,\\quad B=h\\Lambda_J,\\quad\\sum_j|\\omega_{ij}|\\le S,\\quad\\sum_j|b_j|\\le B.",
+          "lean": "ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients; ChebyshevLobattoMomentum.momentum_absolute_sum_le; phaseMap"
+        },
+        {
+          "title": "Propagate the two actual Picard layers",
+          "text": "At Y0_i=X+t_iP0, common G0 cancels; gradient Lipschitz and ||r-p||<=delta give first gradient difference<=delta. Therefore ||Y1_r-Y1_p||<=S delta. In the second layer add and subtract p(Y1_r), use r accuracy and exact p nonexpansiveness, then cancel common G1 and use gradient Lipschitz. This works for delta=0 and does not assume r Lipschitz.",
+          "formula": "\\|Z^0_{r,j}-Z^0_{p,j}\\|\\le\\delta,\\quad\\|Y^1_{r,i}-Y^1_{p,i}\\|\\le S\\delta,\\quad\\|Z^1_{r,j}-Z^1_{p,j}\\|\\le(1+S)\\delta.",
+          "lean": "weighted_difference_le; phase_displacement_le hz0,hy1,hz1"
+        },
+        {
+          "title": "Bound true Euclidean phase displacement",
+          "text": "The full actual position difference is<=S(1+S)delta and momentum difference<=aB(1+S)delta. From Lambda>=1 and h²Lambda<=1 obtain h<=1, S<=1/2 and S<=B/2; also a<=1. The sum of these norms is<=9Bdelta/4<=3Bdelta. The Euclidean square-root norm is at most that sum by nonnegative cross product. Source prose uses momentum-weight positivity to give a sharper intermediate bound; this proof uses the independently derived absolute sum and keeps the same universal D2 scaling with explicit3, without adding an assumption.",
+          "formula": "\\sqrt{\\|\\Delta X\\|^2+\\|\\Delta P\\|^2}\\le(S+aB)(1+S)\\delta\\le\\tfrac94B\\delta\\le3h\\Lambda_J\\delta.",
+          "lean": "phase_displacement_le hx,hm,hShalf,hSB,htotal; Real.sqrt_le_iff"
+        },
+        {
+          "title": "Construct actual kernels and a coupling for every finite rho",
+          "text": "The product Gaussian law gamma contains both refreshes and both Fin J Gaussian arrays. Each full phase map is measurable by finite sums and composition. Map the product id/kernel-constant to construct each Markov kernel, retaining the existing actual Kq. For fixed s, gamma.map(z↦(Phi_r(s,z),Phi_p(s,z))) has exactly Kr(s) and Kp(s) marginals. The pointwise Euclidean displacement bounds its rho-cost integral by A^rho with A=3hLambda delta; probability normalization supplies the constant integral, so no incoming-state moment assumption is needed. Taking the monotone1/rho root gives the bound, for delta=0 as well.",
+          "formula": "\\pi_s=(\\Phi_r(s,\\cdot),\\Phi_p(s,\\cdot))_\\#\\gamma,\\quad\\int d_{\\rm Eucl}^{\\rho}\\,d\\pi_s\\le A^\\rho\\Longrightarrow W_\\rho\\le A.",
+          "lean": "measurable_phase; kernel_from_phase; euclidean_transport_bound; Measure.fst_map_prodMk; Measure.snd_map_prodMk; Transport.transportCost_le_lintegral_of_isCoupling; lintegral_map; ENNReal.rpow_mul"
+        }
+      ],
+      "lean_statement": "Complete exact statement with all constructed source arrays, probability laws, terminal-query identities and Euclidean cost as applicable.",
+      "lean_proof": "Entire current module is covered, including private phase, finite weighted difference, measurability, actual kernel and transport helpers. Extraction carries no new mathematical credit.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap.nonexpansive_of_monotone_optimality",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum.momentum_absolute_sum_le",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "Measure.fst_map_prodMk",
+        "Measure.snd_map_prodMk",
+        "Kernel.IsMarkovKernel.map",
+        "Measure.map_map",
+        "lintegral_map",
+        "ENNReal.rpow_le_rpow",
+        "ENNReal.rpow_mul",
+        "Real.sqrt_le_iff"
+      ]
+    }
+  ]
+}

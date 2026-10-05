@@ -811,7 +811,7 @@
         "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]\n  [FiniteDimensional ℝ E] [inst_4 : MeasurableSpace E] [BorelSpace E] {V : E → ℝ} {κ : NNReal},\n  1 ≤ κ →\n    ContDiff ℝ 2 V →\n      (∀ (x v : E), (↑κ)⁻¹ * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ‖v‖ ^ 2) →\n        ∀ {eta : ℝ},\n          0 < eta →\n            eta ≤ 1 / 2 →\n              have F := fun y x => V x + eta⁻¹ / 2 * ‖x - y‖ ^ 2;\n              ∃ p,\n                Measurable p ∧\n                  (∀ (y : E), p y + eta • gradient V (p y) = y) ∧\n                    (∀ (y z : E),\n                        F y (p y) + ((↑κ)⁻¹ + eta⁻¹) / 2 * ‖z - p y‖ ^ 2 ≤ F y z ∧ (F y z ≤ F y (p y) ↔ z = p y)) ∧\n                      LipschitzWith 1 p ∧\n                        (∀ (y y' G : E), ‖gradient V (p y + √eta • G) - gradient V (p y' + √eta • G)‖ ≤ ‖y - y'‖) ∧\n                          ∀ (y G G' : E), ‖gradient V (p y + √eta • G) - gradient V (p y + √eta • G')‖ ≤ √eta * ‖G - G'‖",
         "compiled": true,
         "formalizer": "root",
-        "compiler_evidence": "lake build Tests.SmoothedPicardHMCProximalEstimatorLipschitz PASS3708, exit0; standard propext/Classical.choice/Quot.sound only, no new-module lint. Exact type exported by getConstInfo/ppExpr with exit0 using Lean4.33.0.",
+        "compiler_evidence": "Current extraction focused PASS3717 plus unchanged old boundary Test; public statement unchanged, only proof now calls shared extracted argument. Fresh whole-module/source review pending.",
         "decoder_context": [
           "NNReal is the type of nonnegative real numbers; the upward arrow coerces it to a real. ContDiff R 2 means twice continuously Frechet differentiable. The iterated fderiv is the second Frechet derivative, applied twice to the displayed vector. The C2 premise makes the gradient and derivatives genuine.",
           "E has the displayed real inner-product, complete metric and finite-dimensional structure, with its Borel sigma algebra. Measurable refers to those sigma algebras. LipschitzWith 1 p means distance(p x,p y)<=distance(x,y) for all inputs. The displayed scalar action is real scalar multiplication and sqrt is the nonnegative real square root.",
@@ -821,89 +821,80 @@
       },
       "semantic_slots": {
         "objects": {
-          "original": "The genuine proximal minimizer p and the estimator obtained by evaluating the genuine gradient of V at p(y)+sqrt(eta)G.",
-          "reconstructed": "One measurable p satisfying exact proximal optimality and a unique-global-minimum certificate; the same gradient expression is used in both final bounds.",
+          "original": "Actual exact proximal minimizer p(y) and estimator gradV(p(y)+sqrteta G).",
+          "reconstructed": "Same single measurable map p, actual optimality and unique-minimum certificate, and two estimator-input bounds.",
           "relation": "explicit-elaboration",
-          "evidence": "Packet source.original_text, lean.statement, and blind_reconstruction.text agree on the estimator expression. The F-minimum equivalence binds p to the proximal minimizer, rather than merely assigning that name to an arbitrary Lipschitz function."
+          "evidence": "Identity-center constant-eta specialization of constructed ProximalGaussianEstimator retains genuine minimum equation/certificate; no arbitrary assumed Lipschitz map."
         },
         "domains": {
           "original": "Normalized Euclidean C2 setting.",
-          "reconstructed": "Finite-dimensional complete real inner-product E with its Borel measurable structure, including dimension zero.",
+          "reconstructed": "Complete finite-dimensional real inner-product space with Borel structure, including dimension0.",
           "relation": "explicit-elaboration",
-          "evidence": "The public theorem exposes these typeclasses. Finite-dimensional real inner-product spaces admit Euclidean orthonormal coordinates; the proof also handles the zero space without division by a potentially zero displacement. The lesson explicitly labels this coordinate-free extension."
+          "evidence": "Intrinsic Euclidean extension is documented. Shared MonotoneProximalMap needs neither finite dimension nor completeness; public construction retains both. Zero-displacement branch covers dimension0."
         },
         "quantifiers": {
-          "original": "Fix the potential and positive eta; the two bounds hold for every center and noise input, sharing the fixed noise or center respectively.",
-          "reconstructed": "For each admissible E,V,kappa,eta, there exists one p before all center and noise quantifiers; both bounds hold for arbitrary deterministic vectors.",
+          "original": "Every y,yprime,G,Gprime, deterministic vectors; positive eta.",
+          "reconstructed": "Existence of one global measurable p preceding every vector input, at fixed admissible eta,V,kappa.",
           "relation": "explicit-elaboration",
-          "evidence": "In lean.statement, the existential p precedes both universally quantified gradient bounds. The first branch uses one G, and the second one y. The decoder preserves this ordering and does not introduce a distribution or input-dependent choice of p. The eta restriction is recorded separately under assumptions."
+          "evidence": "Same p serves all pointwise inequalities; no probability distribution or almost-everywhere replacement. The eta range difference is isolated in assumptions."
         },
         "assumptions": {
-          "original": "C2 potential, kappa>=1, Hessian quadratic-form bounds kappa^-1 and 1, and positive eta.",
-          "reconstructed": "The corresponding genuine Frechet differentiability and Hessian hypotheses, plus 0<eta<=1/2.",
+          "original": "C2 and kappa>=1 with genuine Hessian bounded between kappa^-1 and1; positive eta without1/2 threshold for the pointwise argument.",
+          "reconstructed": "Identical curvature/regularity but additionally eta<=1/2.",
           "relation": "stronger-in-lean",
-          "evidence": "The public declaration requires hsmall : eta <= 1/2; source.original_text only requires positivity. The private nonexpansiveness theorem requires merely nonnegative eta, and hsmall enters the public proof through the imported proximal constructor."
+          "evidence": "Explicit hsmall is inherited from the parent uniform1/2 contraction construction. Shared nonexpansiveness only uses eta>=0; this public restriction is a formal construction limitation, not mathematically necessary or a source correction. Candidate assumption differences and lesson honestly disclose it."
         },
         "conclusion": {
-          "original": "The two pointwise estimates have constants 1 and sqrt(eta), justified using proximal nonexpansiveness and gradient Lipschitz continuity.",
-          "reconstructed": "Those exact estimates together with measurable proximal existence, the proximal equation, quantitative unique minimality, and nonexpansiveness.",
+          "original": "Two deterministic input bounds with constants1 and sqrteta for the actual exact proximal estimator.",
+          "reconstructed": "Those same bounds in restricted eta range, plus measurability/optimality/unique-minimum quadratic growth and nonexpansiveness of p.",
           "relation": "explicit-elaboration",
-          "evidence": "The final two conjuncts match the packet's source formulas. Additional conjuncts identify and expose properties of the actual oracle. They are not substituted assumptions for the desired input bounds."
+          "evidence": "QuadraticRegularization r=0 derives genuine gradient1-Lipschitz and strong convexity; StrongConvexFirstOrder yields monotonicity. Subtracted optimality paired with displacement and Cauchy-Schwarz give nonexpansiveness. Fixed-noise translation cancels; fixed-center translation cancels and norm_smul gives sqrteta factor. Additional certificate identifies the source proximal minimizer, not a new sampler claim."
         },
         "scopes": {
-          "original": "The pinned paraphrase selects two deterministic estimates rather than the complete stochastic-gradient lemma.",
-          "reconstructed": "A restricted exact-oracle proof component; no bias, centered exponential moments, Gaussian concentration, smoothed-score identity, Picard accuracy, initialization, or query-cost theorem.",
-          "relation": "same",
-          "evidence": "The module header, lesson.sources[0].scope, and final lesson step all expressly exclude broader results. Complete Lemma 4.2 additionally has bias and exponential-moment conclusions. [Primary source, Lemma 4.2](https://arxiv.org/html/2609.06906v1#S4.SS1)."
+          "original": "Only Lemma4.2(4.4)-(4.5) component, not its bias and centered exponential-moment clauses.",
+          "reconstructed": "Explicitly restricted exact-oracle input stability; no query implementation, bias, Gaussian concentration, Picard accuracy or full-paper completion.",
+          "relation": "explicit-elaboration",
+          "evidence": "Current lesson and module preserve all residual obligations and expressly explain the extraction carries no new completion credit. Parent Gaussian moments are discarded rather than relabeled as this result; no smoothed-score identity or cost transfer is used."
         },
         "constant_dependencies": {
-          "original": "Input constants 1 and sqrt(eta), under normalized Hessian constants kappa^-1 and 1.",
-          "reconstructed": "Exactly those input constants; additional quadratic-growth coefficient (kappa^-1+eta^-1)/2.",
+          "original": "Gradient1-Lipschitz; estimator center constant1 and noise constantsqrteta.",
+          "reconstructed": "Exactly1 and sqrteta, and quantitative proximal growth coefficient(kappa^-1+eta^-1)/2.",
           "relation": "explicit-elaboration",
-          "evidence": "No hidden dimension or kappa factor appears in either final input bound. The growth coefficient occurs only in the retained minimum certificate. The same p is chosen for fixed structural data, V and eta; unique minimality prevents a genuinely different p from arising solely through a different valid kappa bound."
+          "evidence": "No hidden kappa or dimension factor; eta>0 allows inversion and sqrteta nonnegative handles norm_smul. Shared proof divides/cancels only after norm displacement>0; its zero case is explicit."
         }
       },
       "deltas": [
         {
           "slot": "assumptions",
-          "severity": "review",
-          "description": "The formal theorem only establishes the selected estimates for 0<eta<=1/2. The upper bound is a constructor restriction, not a necessary threshold for the displayed deterministic argument and not a correction to the source.",
-          "evidence": "Public hsmall is supplied to ProximalGaussianEstimator.proximal_gaussian_estimator. The private monotone-optimality argument accepts eta>=0. The module header and lesson already disclose the restriction."
+          "severity": "informational",
+          "blocking": false,
+          "description": "Public theorem covers0<eta<=1/2, narrower than the source pointwise input estimates; this unchanged statement restriction is honestly documented as inherited from the measurable proximal constructor. It must not be counted as unrestricted source coverage.",
+          "evidence": "Public hsmall, parent parameterized_contraction_point uniform1/2 iteration, lesson sources.scope and candidate_assumptions explicitly retain this limitation."
         },
         {
           "slot": "domains",
           "severity": "informational",
-          "description": "Euclidean coordinates are replaced by finite-dimensional real inner-product spaces, explicitly allowing dimension zero.",
-          "evidence": "Public typeclasses and lesson assumptions disclose this extension; the private proof's hzero branch covers the degenerate displacement case."
-        },
-        {
-          "slot": "conclusion",
-          "severity": "informational",
-          "description": "The formal conclusion retains measurable existence and a quantitative unique-minimum certificate in addition to the selected source bounds.",
-          "evidence": "The existential tuple returns hp, heq, hmin and hpLip before the two estimator bounds. The lesson explains their role in identifying the exact proximal oracle."
-        },
-        {
-          "slot": "scopes",
-          "severity": "review",
-          "description": "Acceptance must not be recorded as complete Lemma 4.2 coverage or as coverage of unrestricted positive eta.",
-          "evidence": "The publication binding is a proof-edge supporting position-input and noise-input only, and the lesson explicitly identifies partial coverage."
+          "blocking": false,
+          "description": "Finite-dimensional real inner-product formulation, including dimension0, is an explicitly disclosed coordinate-free extension of the source Euclidean setting.",
+          "evidence": "The typeclasses and zero-displacement branch preserve the mathematical argument; boundary test exercises Fin0 and eta=1/2."
         }
       ],
       "verdict": "lean-strengthened-assumptions",
       "source_review": {
         "state": "accepted",
-        "reviewer": "input_stability_source_review",
+        "reviewer": "phase_source_reviewer_20261005",
         "independent_from_formalizer": true,
         "independent_from_decoder": true,
-        "evidence": "Independently reviewed the anti-anchored packet, its complete embedded Lean module, blind reconstruction, scoped publication context and authored explanation, and the linked primary source. No earlier verdicts, repair records or planning decisions were inspected. Accepted solely as the disclosed restricted proof component, with fidelity verdict lean-strengthened-assumptions. Severity normalization to review was explicitly confirmed by reviewer; original result retained verbatim.",
-        "review_run_sha256": "176c34a4e86d469a2c2b4ee65999996a4767ef679d75d0e402fc119ed6a8fa94",
-        "reviewer_packet_sha256": "5387d36784d76565174fe73329c35d43de860449b3cb3009508ab7d3e5716ef3"
+        "evidence": "Fresh anti-anchored review started only from this packet, never prior accepted audit/predecessor/planner/verifier/old verdict. Primary source actually read https://arxiv.org/html/2609.06906v1 definition(3.2) and normalized4.1 setting/Lemma4.2 atHTML387-455, especially4.4/4.5 and proof ending455. Full embedded/current module checked, including all current direct/shared proof dependencies: entire MonotoneProximalMap, ProximalGaussianEstimator (private contraction and actual-minimum helpers plus Gaussian helpers), QuadraticRegularization, HessianStrongConvexity, StrongConvexFirstOrder and its scalar GeodesicConvexity.firstOrder_geodesicConvexity parent. Genuine C2 derivatives, Hessian symmetry/Rayleigh gradient norm, line convexity, actual regularized minimum, measurable contraction limit and zero-safe resolvent pairing are mathematically valid. Extracted MonotoneProximalMap normalized textSHA256=6357c556fa964ad7f827fb25f287a557e7be85e4d63ee13c61e5f4aa6504ccc9. Reviewed public full moduleSHA256=9039454797d540e22a049df28b507787b5c6a98329617177a58623ca61686f46. Packet/source/statement/reconstruction hashes and current fullmodule equality verified. Fresh LEAN_NUM_THREADS=2 lake env lean public module and Tests/SmoothedPicardHMCProximalEstimatorLipschitz.lean both exit0 on Lean4.33.0; theorem only uses propext,Classical.choice,Quot.sound. Identical anonymous reconstruction is evidence for unchanged statement only, not proof of changed-module fidelity. No mathematical blocker; accepted only as explicitly restricted source component, with the real eta assumption delta retained. No Lean/metadata/audit edits.",
+        "review_run_sha256": "b27c0e9924414ca74742b3270097875050f1b96eb6320777318a421faf39da0d",
+        "reviewer_packet_sha256": "7c925d7047e309fe3ccbaf9e1b29587b21f5515fd5db8555527599edf6c29379",
+        "run_artifact": "runs/20261005-companion-priority/ProximalEstimatorLipschitz.extraction.source-review.result.json"
       },
       "repairs": [],
-      "publication_binding_sha256": "da1e19f2b21c555ab86f94fa1222f1492d1bb16ee15ff05c0d19f96328f314fe",
+      "publication_binding_sha256": "c3966c5008b2a82b8606085772c4b6d339bd3858ed571543bd27df2934878905",
       "publication_context": {
-        "file": "8d80017c3c21cff5058f35a1cc723883e5e2d28bf206566b9df8229789cf8eea",
-        "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator\n\n/-!\n# Input stability of the actual proximal Gaussian estimator\n\nChen, Chewi, Lu and Zhang, arXiv:2609.06906v1, Lemma 4.2 (4.4)-(4.5).\nThe genuine proximal equation and gradient monotonicity imply nonexpansiveness;\nthe already derived gradient Lipschitz bound then controls both inputs.\n\nThe range `0 < eta ≤ 1/2` comes from the existing measurable proximal\nconstruction, not a necessary restriction for nonexpansiveness or a correction\nto the source. The theorem retains unique-minimum identification. It concerns\nthe exact proximal oracle, not its finite-query implementation. Neither bias,\nGaussian concentration, Picard accuracy, nor either full paper is proved here.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLipschitz\n\nopen InnerProductSpace\nopen scoped NNReal RealInnerProductSpace\n\nprivate theorem nonexpansive_of_monotone_optimality\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    {g p : E → E} {eta : ℝ} (heta : 0 ≤ eta)\n    (hmono : ∀ x y, 0 ≤ inner ℝ (g x - g y) (x - y))\n    (heq : ∀ y, p y + eta • g (p y) = y) : LipschitzWith 1 p := by\n  apply LipschitzWith.of_dist_le_mul\n  intro x y\n  simp only [NNReal.coe_one, one_mul, dist_eq_norm]\n  have hsub : x - y = (p x - p y) + eta • (g (p x) - g (p y)) := by\n    calc\n      x - y = (p x + eta • g (p x)) - (p y + eta • g (p y)) :=\n        congrArg₂ (fun a b : E => a - b) (heq x).symm (heq y).symm\n      _ = _ := by module\n  have hpair : ‖p x - p y‖ ^ 2 ≤ inner ℝ (x - y) (p x - p y) := by\n    calc\n      _ ≤ ‖p x - p y‖ ^ 2 + eta * inner ℝ (g (p x) - g (p y)) (p x - p y) :=\n        le_add_of_nonneg_right (mul_nonneg heta (hmono (p x) (p y)))\n      _ = inner ℝ (x - y) (p x - p y) := by\n        conv_rhs => rw [hsub]\n        rw [inner_add_left, real_inner_smul_left, real_inner_self_eq_norm_sq]\n  have hbound := hpair.trans (real_inner_le_norm (x - y) (p x - p y))\n  by_cases hzero : ‖p x - p y‖ = 0\n  · simpa only [hzero] using norm_nonneg (x - y)\n  · have hpos : 0 < ‖p x - p y‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hzero)\n    nlinarith\n\n/-- The actual exact proximal estimator is nonexpansive in its center and\n`sqrt eta`-Lipschitz in its noise input, on the existing construction range.\nThe proximal map is constructed, not assumed Lipschitz; its equation and unique\nglobal minimum bind the bounds to the source's actual oracle. -/\ntheorem proximal_estimator_lipschitz\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {κ : ℝ≥0} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖ ^ 2)\n    {eta : ℝ} (hpos : 0 < eta) (hsmall : eta ≤ 1 / 2) :\n    let F := fun y x => V x + eta⁻¹ / 2 * ‖x - y‖ ^ 2\n    ∃ p : E → E, Measurable p ∧\n      (∀ y, p y + eta • gradient V (p y) = y) ∧\n      (∀ y z, F y (p y) + ((κ : ℝ)⁻¹ + eta⁻¹) / 2 * ‖z - p y‖ ^ 2 ≤ F y z ∧\n        (F y z ≤ F y (p y) ↔ z = p y)) ∧\n      LipschitzWith 1 p ∧\n      (∀ y y' G, ‖gradient V (p y + Real.sqrt eta • G) -\n        gradient V (p y' + Real.sqrt eta • G)‖ ≤ ‖y - y'‖) ∧\n      (∀ y G G', ‖gradient V (p y + Real.sqrt eta • G) -\n        gradient V (p y + Real.sqrt eta • G')‖ ≤ Real.sqrt eta * ‖G - G'‖) := by\n  obtain ⟨p, hp, heq, hmin, _⟩ :=\n    ProximalGaussianEstimator.proximal_gaussian_estimator hκ hV hH\n      (eta := fun _ : E => eta) (y := id) measurable_const measurable_id\n      (fun _ => hpos) (fun _ => hsmall)\n  have hH' : ∀ x v : E, ((κ⁻¹ : ℝ≥0) : ℝ) * ‖v‖ ^ 2 ≤\n      (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (1 : ℝ≥0) * ‖v‖ ^ 2 := by\n    simpa only [NNReal.coe_inv, NNReal.coe_one, one_mul] using hH\n  have hreg :=\n    AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := 0) hV hH' (0 : E)\n  have hLip : LipschitzWith 1 (gradient V) := by simpa using hreg.2\n  have hsc : StrongConvexOn Set.univ ((κ : ℝ)⁻¹) V := by simpa using hreg.1\n  have hmono (x y : E) : 0 ≤ inner ℝ (gradient V x - gradient V y) (x - y) := by\n    have hb :=\n      AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn hsc\n          (fun z _ => (hV.differentiable (by norm_num) z).hasGradientAt)\n          (x := y) (y := x) (Set.mem_univ _) (Set.mem_univ _)\n    exact (mul_nonneg (inv_nonneg.mpr (NNReal.coe_nonneg κ)) (sq_nonneg _)).trans hb\n  have hpLip := nonexpansive_of_monotone_optimality hpos.le hmono heq\n  refine ⟨p, hp, heq, hmin, hpLip, ?_, ?_⟩\n  · intro y y' G\n    have hg := hLip.dist_le_mul (p y + Real.sqrt eta • G) (p y' + Real.sqrt eta • G)\n    have hy := hpLip.dist_le_mul y y'\n    simp only [NNReal.coe_one, one_mul, dist_eq_norm, add_sub_add_right_eq_sub] at hg hy\n    exact hg.trans hy\n  · intro y G G'\n    have hg := hLip.dist_le_mul (p y + Real.sqrt eta • G) (p y + Real.sqrt eta • G')\n    simpa only [NNReal.coe_one, one_mul, dist_eq_norm, add_sub_add_left_eq_sub,\n      ← smul_sub, norm_smul, Real.norm_eq_abs, abs_of_nonneg (Real.sqrt_nonneg eta)] using hg\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLipschitz\n",
+        "file": "9039454797d540e22a049df28b507787b5c6a98329617177a58623ca61686f46",
+        "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap\n\n/-!\n# Input stability of the actual proximal Gaussian estimator\n\nChen, Chewi, Lu and Zhang, arXiv:2609.06906v1, Lemma 4.2 (4.4)-(4.5).\nThe genuine proximal equation and gradient monotonicity imply nonexpansiveness;\nthe already derived gradient Lipschitz bound then controls both inputs.\n\nThe range `0 < eta ≤ 1/2` comes from the existing measurable proximal\nconstruction, not a necessary restriction for nonexpansiveness or a correction\nto the source. The theorem retains unique-minimum identification. It concerns\nthe exact proximal oracle, not its finite-query implementation. Neither bias,\nGaussian concentration, Picard accuracy, nor either full paper is proved here.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLipschitz\n\nopen InnerProductSpace\nopen scoped NNReal RealInnerProductSpace\n\n/-- The actual exact proximal estimator is nonexpansive in its center and\n`sqrt eta`-Lipschitz in its noise input, on the existing construction range.\nThe proximal map is constructed, not assumed Lipschitz; its equation and unique\nglobal minimum bind the bounds to the source's actual oracle. -/\ntheorem proximal_estimator_lipschitz\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {κ : ℝ≥0} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖ ^ 2)\n    {eta : ℝ} (hpos : 0 < eta) (hsmall : eta ≤ 1 / 2) :\n    let F := fun y x => V x + eta⁻¹ / 2 * ‖x - y‖ ^ 2\n    ∃ p : E → E, Measurable p ∧\n      (∀ y, p y + eta • gradient V (p y) = y) ∧\n      (∀ y z, F y (p y) + ((κ : ℝ)⁻¹ + eta⁻¹) / 2 * ‖z - p y‖ ^ 2 ≤ F y z ∧\n        (F y z ≤ F y (p y) ↔ z = p y)) ∧\n      LipschitzWith 1 p ∧\n      (∀ y y' G, ‖gradient V (p y + Real.sqrt eta • G) -\n        gradient V (p y' + Real.sqrt eta • G)‖ ≤ ‖y - y'‖) ∧\n      (∀ y G G', ‖gradient V (p y + Real.sqrt eta • G) -\n        gradient V (p y + Real.sqrt eta • G')‖ ≤ Real.sqrt eta * ‖G - G'‖) := by\n  obtain ⟨p, hp, heq, hmin, _⟩ :=\n    ProximalGaussianEstimator.proximal_gaussian_estimator hκ hV hH\n      (eta := fun _ : E => eta) (y := id) measurable_const measurable_id\n      (fun _ => hpos) (fun _ => hsmall)\n  have hH' : ∀ x v : E, ((κ⁻¹ : ℝ≥0) : ℝ) * ‖v‖ ^ 2 ≤\n      (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (1 : ℝ≥0) * ‖v‖ ^ 2 := by\n    simpa only [NNReal.coe_inv, NNReal.coe_one, one_mul] using hH\n  have hreg :=\n    AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := 0) hV hH' (0 : E)\n  have hLip : LipschitzWith 1 (gradient V) := by simpa using hreg.2\n  have hsc : StrongConvexOn Set.univ ((κ : ℝ)⁻¹) V := by simpa using hreg.1\n  have hmono (x y : E) : 0 ≤ inner ℝ (gradient V x - gradient V y) (x - y) := by\n    have hb :=\n      AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn hsc\n          (fun z _ => (hV.differentiable (by norm_num) z).hasGradientAt)\n          (x := y) (y := x) (Set.mem_univ _) (Set.mem_univ _)\n    exact (mul_nonneg (inv_nonneg.mpr (NNReal.coe_nonneg κ)) (sq_nonneg _)).trans hb\n  have hpLip := TechnicalLemmas.Analysis.MonotoneProximalMap.nonexpansive_of_monotone_optimality hpos.le hmono heq\n  refine ⟨p, hp, heq, hmin, hpLip, ?_, ?_⟩\n  · intro y y' G\n    have hg := hLip.dist_le_mul (p y + Real.sqrt eta • G) (p y' + Real.sqrt eta • G)\n    have hy := hpLip.dist_le_mul y y'\n    simp only [NNReal.coe_one, one_mul, dist_eq_norm, add_sub_add_right_eq_sub] at hg hy\n    exact hg.trans hy\n  · intro y G G'\n    have hg := hLip.dist_le_mul (p y + Real.sqrt eta • G) (p y + Real.sqrt eta • G')\n    simpa only [NNReal.coe_one, one_mul, dist_eq_norm, add_sub_add_left_eq_sub,\n      ← smul_sub, norm_smul, Real.norm_eq_abs, abs_of_nonneg (Real.sqrt_nonneg eta)] using hg\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLipschitz\n",
         "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
         "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
         "source": {
@@ -971,15 +962,15 @@
             },
             {
               "title": "Subtract optimality and pair with the displacement",
-              "text": "Let d=p(y)-p(y') and e=∇V(p(y))-∇V(p(y')). Subtract the actual equations. Pair with d. Nonnegative eta and gradient monotonicity make the added term nonnegative. This is the substantive new resolvent step, not a supplied nonexpansiveness assumption.",
+              "text": "Let d=p(y)-p(y') and e=∇V(p(y))-∇V(p(y')). Subtract the actual equations. Pair with d. Nonnegative eta and gradient monotonicity make the added term nonnegative. This is the shared resolvent step extracted from this existing proof, with no new mathematical-completion credit, not a supplied nonexpansiveness assumption.",
               "formula": "y-y'=d+\\eta e,\\qquad\\langle y-y',d\\rangle=\\|d\\|^2+\\eta\\langle e,d\\rangle\\ge\\|d\\|^2.",
-              "lean": "private nonexpansive_of_monotone_optimality: hsub,hpair"
+              "lean": "MonotoneProximalMap.nonexpansive_of_monotone_optimality: hsub,hpair"
             },
             {
               "title": "Apply Cauchy-Schwarz and cancel only when permitted",
-              "text": "Cauchy-Schwarz bounds the pairing by ||y-y'|| ||d||. If d=0 the required inequality is immediate. Otherwise ||d||>0 and cancellation gives the result. This step covers zero-dimensional spaces too. The private argument only needs eta>=0; the public construction has a narrower range.",
+              "text": "Cauchy-Schwarz bounds the pairing by ||y-y'|| ||d||. If d=0 the required inequality is immediate. Otherwise ||d||>0 and cancellation gives the result. This step covers zero-dimensional spaces too. The extracted shared argument only needs eta>=0; the public construction has a narrower range.",
               "formula": "\\|d\\|^2\\le\\|y-y'\\|\\|d\\|\\quad\\Longrightarrow\\quad\\|p(y)-p(y')\\|\\le\\|y-y'\\|.",
-              "lean": "hbound,hzero,hpos; LipschitzWith.of_dist_le_mul; hpLip"
+              "lean": "MonotoneProximalMap.nonexpansive_of_monotone_optimality; hpLip"
             },
             {
               "title": "Hold the noise fixed and compare centers",
@@ -999,7 +990,8 @@
           "astis_dependencies": [
             "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator.proximal_gaussian_estimator",
             "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
-            "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+            "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+            "AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap.nonexpansive_of_monotone_optimality"
           ],
           "mathlib_dependencies": [
             "LipschitzWith.of_dist_le_mul",

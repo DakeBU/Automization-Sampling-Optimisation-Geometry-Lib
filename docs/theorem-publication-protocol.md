@@ -5,6 +5,36 @@ including reusable shared foundations. An unchanged historical proof is not
 retroactively certified; its missing exposition or semantic audit remains debt.
 The current mathematical Goal and frontier are not changed by this protocol.
 
+## Pre-proof constitutional gate: Statement Seal and Source Proof Graph
+
+Every new or materially changed **source-facing** theorem/definition also follows
+[`proof-digestion-protocol.md`](proof-digestion-protocol.md) *before* proof search.
+The exact source-facing Lean signature is sealed first; project-owned bundled
+assumptions are recursively classified as `SOURCE`, `STANDING`, `TYPING`,
+`RULED`, or `EXCESS`, and any `EXCESS` binder rejects the source Anchor.
+A proof ingredient is represented as a dependency edge and discharged inside the
+proof; the existence of a producer theorem never licenses moving its conclusion
+into the public theorem hypotheses.
+
+Definitions are audited as `literal`, `characterized`, or
+`quotient/representative`. A characterized object may be chosen only after the
+real source-level existence/uniqueness theorem has been proved and audited; an
+`if`/default/fallback body that invents off-source semantics is not acceptable.
+
+In parallel, build a **Source Proof Graph** from the source independently of the
+Lean implementation. Every in-scope theorem, definition, reused display,
+citation, and substantive proof paragraph is `NODE` or `EXCLUDED(reason)`;
+omitted bridges remain visible `SOURCE_GAP` nodes and alternative sufficient
+proofs are explicit OR-routes/hyperedges. This graph answers “how did the author
+prove it?”, while the Lean graph answers “what does the checked implementation
+depend on?”. They must not be conflated.
+
+After proof sealing and publication, the result enters the purification gate:
+remove dead/duplicate/wrapper-only proof debris, canonicalize shared leaves,
+compress bookkeeping into reviewed conceptual moves, preserve drill-down audit
+evidence, and update the Compressed Shared Spine. `MERGED` therefore does not
+imply `PURIFIED` or “done for readers.”
+
 Explicitly private implementation declarations may share the review of a public
 theorem in the same file. The diff gate inventories every such declaration,
 including anonymous private instances by file/line/column, and prints its public

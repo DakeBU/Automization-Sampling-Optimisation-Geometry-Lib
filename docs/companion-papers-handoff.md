@@ -1,5 +1,51 @@
 # Companion-paper formalization handoff
 
+## Actual numerical synchronous increment — 2026-10-06
+
+`ASTIS-SA-20261006-SPHMCActualIncrement` proves actual source Lemma4.8 at
+the explicit normalized global C2 curvature interface. For the real two-refresh
+two-Picard exact-gradient Phi, every input pair/common noise obeys
+norm_M((Phi_z-z)-(Phi_zprime-zprime))<=12 h norm_M(z-zprime), under actual
+h Lambda_J<=1/(65536 kappa). The actual FirstOrderDifference producer supplies
+the genuine averaged H and R; no supplied phase/increment certificate.
+Derive norm(Rd)<=h norm(d), norm(A_Hd)<=3 norm(d), then actual Euclidean
+increment<=4h norm(d). The unchanged source Q comparisons give
+Q(increment)<=144h²Q(d); sqrt without division includes zero displacement
+and dimension zero. Original public Q APIs are reused, no private background
+copies or separate wrapper credit. Source M_kappa and true L2 intermediate
+norms remain distinct from the ordinary product-max transport comparison.
+
+Focused3666 and independent complete142-line production/Test mathematics,
+fresh anonymous reconstruction and anti-anchored primary source review PASS,
+standard3 only. Independently VERIFIED exact proof `63b9549ffbfee8ae81c6642bde55f299d8d7f697`:
+`runs/20261006-companion-priority/actual-increment/verified.json`.
+Whole-cell footprint reconciliation preserves the original reviewed snapshot,
+independently confirms only5lifecycle/search-label changes, and adds no math
+credit. The bounded immutable-footprints process discovery is raw, not a
+formal graph edge or validated conceptual transport. Root serializes only
+shared ExampleCases/Tests imports in the original sole STABILIZING/PR313 lane.
+Registry472 unchanged. Aggregate/reader/graph checks pending.
+
+Prior pushedbea5269c actual contraction required remote Lean/site/contributor
+CI all terminalPASS: `runs/20261006-companion-priority/actual-contraction/remote-ci.json`.
+This excludes the new increment packet. Current-head CI, merge and deployment
+remain separate; draft/open/unmerged and no live verification claim.
+
+Next bounded consumer candidate: actual Gaussian numerical K contraction in
+the source quadratic transport quantity. Reuse the public common-noise marginal
+and canonical raw transport infimum APIs; construct the real joint synchronous
+coupling, with actual Phi/Gaussian product input laws and an actual kernel-law
+link. Do not introduce an abstract supplied-kernel contraction consumer. Inspect
+the existing shared transport declarations/cells before claiming; a reusable
+cost-lifting core with multiple real consumers belongs at the shared layer.
+Actual f=V_eta smoothing/C2/curvature remains independently open, as do
+logLambda/B2, Khat/Kbar local errors/invariance/history/actual expected query
+cost, Wp/proxy-warmness/initialization, PBPS reflection/invariance/nonexplosion/
+hypocoercivity/implementation/cost, both complete main results and actual-input
+precision/expected-cost composition. TV proximity never transfers unbounded
+cost. Goal active; old sources/frontiers/cycles preserved. Rendered visual
+acceptance and metadata copy/download controls remain open.
+
 ## Actual numerical M_kappa contraction — 2026-10-06
 
 `ASTIS-SA-20261006-SPHMCActualContraction` proves the actual source numerical

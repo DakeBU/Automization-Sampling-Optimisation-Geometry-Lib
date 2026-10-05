@@ -21,7 +21,8 @@ Original raw/LF mathematics/source footprints, historical snapshots and the
 independently reviewed two-field publication-schema reconciliation remain
 immutable. Root alone integrates ExampleCases and Tests imports in the old
 sole STABILIZING/PR313 lane; old frontiers/cycles and Measure.lean remain.
-Shared aggregate/reader/graph checks pending. Goal remains active.
+Exact proof 86017daa07c550906952136c6bd3f9f46ffa7d15 independently VERIFIED; shared integration acc2afe25751f52ef47bce0e890942234ed48993. Full ASTIS gate PASS (9099 root / 9345 Tests), publication152, semantic211/8, frontier215, contributor34/30. 95 relevant Python regressions reused after exact unchanged tool/fixture checks; not rerun for this pure Lean/metadata packet. Original reader generation, static source/formula/proof/folded-Lean/Test/residual and two affected actual import/ownership graph branches checked; full site and official graph freshness/contributor checks PASS. Graph813 modules/598 public declarations; Registry472 unchanged. Rendered visual and metadata copy/download acceptance remain open.
+`runs/20261006-companion-priority/smoothed-gibbs-potential/integration.json`. Goal remains active.
 
 Next bounded mathematical dependency is actual equation4.1 posterior
 score/covariance, with genuine posterior moments and derivative domination.

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator.hessian_secant_operator",
+      "title": "The genuine Hessian integral represents the full gradient difference",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+          "label": "SPHMC Lemma4.6 actual Hessian constructor",
+          "scope": "Only the actual Hessian-segment constructor in Lemma4.6. The source smoothed-potential C2/curvature producer, actual Picard-node weighted average H, first-order endpoint expansion/operator remainder, deterministic K contraction, stochastic Khat/Kbar, repeated history, PBPS and both full main results/composition remain independent. The signed Hilbert generalization is background, not an extra assumption on the finite-dimensional source theorem. No probability/cost guarantee or implemented kernel is asserted here."
+        }
+      ],
+      "tests": [
+        "lake build Tests.HessianSecantOperator"
+      ],
+      "assumptions": [
+        "E is a complete real inner-product space (a real Hilbert space), including dimension zero. f:E->R is globally C2 in the Frechet sense. x,y and every test vector range over all E.",
+        "alpha,beta are real and may be signed. For every z,v, alpha||v||^2 <= D2f(z)[v,v] <= beta||v||^2. These are bounds on the genuine nested Frechet derivative, not on an independently supplied operator.",
+        "H(x,y) is the ordinary Lebesgue Bochner integral on[0,1] of the Riesz-represented D2f(y+t(x-y)). Its symmetry, continuity/measurability/integrability and secant identity are conclusions derived from C2, not hypotheses. Completeness permits the Riesz identification and Bochner operator integral."
+      ],
+      "statement": "For every complete real inner-product space E, every globally C2 real f with signed global genuine-Hessian diagonal bounds alpha,beta, and all x,y, let phi(t) be the Riesz operator of D2f(y+t(x-y)) and H=integral_0^1 phi(t) dt in ordinary Lebesgue measure. Then phi is interval integrable, gradient f x-gradient f y=H(x-y), H is symmetric, all v satisfy alpha||v||^2<=inner(Hv,v)<=beta||v||^2, and ||H||op<=max(|alpha|,|beta|). In finite Euclidean space this specializes to the source actual H with alpha=1/(2kappa),beta=1; V_eta smoothness/curvature must still be proved separately.",
+      "formula": "H(x,y)=\\int_0^1[D^2f(y+t(x-y))]^{\\sharp}\\,dt,\\quad\\nabla f(x)-\\nabla f(y)=H(x,y)(x-y),\\quad\\alpha I\\preceq H\\preceq\\beta I,\\quad\\|H\\|_{\\rm op}\\le\\max(|\\alpha|,|\\beta|).",
+      "boundary": "Only the actual Hessian-segment constructor in Lemma4.6. The source smoothed-potential C2/curvature producer, actual Picard-node weighted average H, first-order endpoint expansion/operator remainder, deterministic K contraction, stochastic Khat/Kbar, repeated history, PBPS and both full main results/composition remain independent. The signed Hilbert generalization is background, not an extra assumption on the finite-dimensional source theorem. No probability/cost guarantee or implemented kernel is asserted here.",
+      "steps": [
+        {
+          "title": "Construct the actual operator and derive regularity",
+          "text": "Represent each genuine second derivative by the continuous Riesz map, using Mathlib continuousLinearMapOfBilin. C2 makes Df C1 and D2f continuous. Composing with the affine segment and fixed continuous Riesz map gives a continuous operator-valued phi; hence its ordinary unit-interval Bochner integral exists. No matrix or integrability certificate is supplied.",
+          "formula": "\\phi(t)=[D^2f(y+t(x-y))]^\\sharp,\\qquad\\langle\\phi(t)v,w\\rangle=D^2f(y+t(x-y))[v,w].",
+          "lean": "hf.fderiv_right; hfd.continuous_fderiv; continuousLinearMapOfBilin; hc; hi"
+        },
+        {
+          "title": "Commute genuine integral evaluation and arbitrary pairing",
+          "text": "Continuous evaluation and the fixed continuous linear functional inner(w,.) commute with the actual Bochner integral. Real symmetry of the inner product turns this into the displayed all-vector identity. Both integral commutations use the derived interval integrability.",
+          "formula": "\\langle Hv,w\\rangle=\\int_0^1D^2f(y+t(x-y))[v,w]\\,dt.",
+          "lean": "hinner; ContinuousLinearMap.intervalIntegral_apply; innerSL; intervalIntegral_comp_comm"
+        },
+        {
+          "title": "Derive the full gradient secant identity by FTC",
+          "text": "Put v=x-y. For any w, differentiating t -> Df(y+t v)[w] gives D2f(y+t v)[v,w]. Its continuity supplies scalar integrability. The ordinary FTC gives the difference Df(x)[w]-Df(y)[w]; Riesz identifies it with inner(gradient f x-gradient f y,w). Equality against every w yields the full vector equality, not merely its diagonal pairing.",
+          "formula": "\\int_0^1D^2f(y+t v)[v,w]dt=Df(x)[w]-Df(y)[w]=\\langle\\nabla f(x)-\\nabla f(y),w\\rangle.",
+          "lean": "hgrad; hd; hdcont; integral_eq_sub_of_hasDerivAt; gradient; ext_inner_right"
+        },
+        {
+          "title": "Inherit genuine symmetry",
+          "text": "C2 supplies symmetry of the actual second derivative. The all-vector pairing identity shows inner(Hv,w)=inner(Hw,v)=inner(v,Hw). This does not assume self-adjointness of an unrelated matrix.",
+          "formula": "D^2f(z)[v,w]=D^2f(z)[w,v]\\quad\\Longrightarrow\\quad\\langle Hv,w\\rangle=\\langle v,Hw\\rangle.",
+          "lean": "hsym; hf.contDiffAt.isSymmSndFDerivAt; integral_congr; real_inner_comm"
+        },
+        {
+          "title": "Integrate the actual two diagonal bounds",
+          "text": "For each v, integrate the constant bounds alpha||v||^2 and beta||v||^2 against ordinary Lebesgue measure on the unit interval. Integral monotonicity and hinner give the inherited inequalities. Signed moduli and dimension zero require no extra positivity or order hypothesis.",
+          "formula": "\\alpha\\|v\\|^2=\\int_0^1\\alpha\\|v\\|^2dt\\le\\langle Hv,v\\rangle\\le\\int_0^1\\beta\\|v\\|^2dt=\\beta\\|v\\|^2.",
+          "lean": "hbound; intervalIntegral.integral_mono_on; intervalIntegrable_const; hvcont"
+        },
+        {
+          "title": "Control the actual operator norm",
+          "text": "For the symmetric H, Mathlib identifies its norm with the supremum of absolute Rayleigh quotients. For nonzero v, the previous signed inequalities bound their absolute value by max(|alpha|,|beta|); v=0 gives zero. This proves the stated norm bound even on the zero space. In the paper alpha=1/(2kappa),beta=1,kappa>=1 gives norm<=1 once its curvature premises are produced.",
+          "formula": "\\|H\\|_{\\rm op}=\\sup_v\\left|\\frac{\\langle Hv,v\\rangle}{\\|v\\|^2}\\right|\\le\\max(|\\alpha|,|\\beta|).",
+          "lean": "H.norm_eq_iSup_rayleighQuotient; hbound; norm_pos_iff; abs_le; ciSup_le"
+        }
+      ],
+      "lean_statement": "Exact nested genuine Frechet derivative, Riesz operator and ordinary unit-interval Bochner integral; all-vector identity and signed bounds.",
+      "lean_proof": "Continuous Riesz composition, operator/inner integral commutation, arbitrary-pairing FTC, genuine C2 symmetry, integral order and symmetric Rayleigh norm.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductSpace.continuousLinearMapOfBilin",
+        "InnerProductSpace.continuousLinearMapOfBilin_apply",
+        "ContDiff.fderiv_right",
+        "ContDiff.continuous_fderiv",
+        "ContinuousLinearMap.intervalIntegral_apply",
+        "ContinuousLinearMap.intervalIntegral_comp_comm",
+        "intervalIntegral.integral_eq_sub_of_hasDerivAt",
+        "ContDiffAt.isSymmSndFDerivAt",
+        "intervalIntegral.integral_mono_on",
+        "ContinuousLinearMap.norm_eq_iSup_rayleighQuotient",
+        "ext_inner_right"
+      ]
+    }
+  ]
+}

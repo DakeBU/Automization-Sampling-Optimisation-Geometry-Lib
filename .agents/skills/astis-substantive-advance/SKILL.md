@@ -5,10 +5,11 @@ description: Own one source-backed ASTIS theorem-DAG advance, with independent v
 
 # ASTIS Substantive Advance Worker Packet
 
-Before new/changed Lean work, read **all three**:
+Before new/changed Lean work, read **all four**:
 
 - `docs/contributor-codex-contract.md`;
 - `docs/theorem-publication-protocol.md`;
+- `docs/proof-digestion-protocol.md`;
 - this packet.
 
 Then run `python3 tools/astis_publication.py packet --cell CELL_ID`. Reuse the bounded source/lesson/audit packet. For any changed production declaration, also run `python3 tools/astis_contributor_contract.py check --base BASE_COMMIT` before asking for stabilization.
@@ -22,6 +23,12 @@ Use this packet for one Universal Worker and one source-backed theorem-DAG advan
 A Worker is not a narrow proof-script executor. It may cross source reading, mathematical derivation, library retrieval, counterexample search, Lean editing, focused verification, refactoring, and exposition whenever those actions help close the assigned mathematical delta.
 
 For collaborative route work, every substantive advance must also have a persistent Frontier Cell record under `research-wiki/frontier-cells/` and pass `python3 tools/astis_frontier_cells.py check`.
+
+## Source-Anchor / proof-digestion addendum
+
+For a new or materially changed source-facing Anchor, **do not begin proof search until the Statement Seal is fixed**. Recursively expand project-owned assumption bundles and reject any `EXCESS` binder. A needed estimate, regularity fact, witness, event, moment bound or other proof ingredient is a dependency edge to be produced and consumed inside the proof, never a convenience hypothesis on the sealed theorem.
+
+Reconstruct the Source Proof Graph from the pinned source without using implementation Lean to decide its topology. Every substantive source proof region is a reviewed `NODE` or `EXCLUDED(reason)`; missing bridges remain `SOURCE_GAP`, and alternative sufficient proofs are OR-routes. Keep this source graph distinct from the compiler-backed Lean Dependency Graph. During stabilization/publication also record the candidate Compressed Shared Spine; after merge the route remains `purification: pending` until dead/duplicate/wrapper-only residue, canonicalization, proof-route compression and reader compression have been reviewed. `MERGED` is not `PURIFIED`.
 
 ## Input contract
 

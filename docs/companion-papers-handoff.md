@@ -25,9 +25,14 @@ Fuel is a noncomputable proof/execution certificate; no runtime precomputation
 of N, failed-path cost, Gaussian-draw cost, or arithmetic complexity is claimed.
 No TV law transfer is used. Root integrates this verified connected packet in
 the original single PR313 stabilization lane. Shared root/Tests imports have
-been added; canonical aggregate/site/graph admission is pending at this checkpoint.
+been added at0b642e75. Canonical aggregate/root9083/Tests9317, static site and two
+bounded graph checks pass at that fixed commit; exact receipt:
+`runs/20261005-companion-priority/counted-phase.integration.json`.
 Prior49b437ba remote Lean, reader and contributor checks all pass. Main merge,
-rendered reader acceptance and live deployment remain separate.
+rendered reader acceptance and live deployment remain separate. The current
+companion HTML has no copy/download controls; metadata-backed copy plus
+paper/book/chapter download delivery stays open for whole-Goal acceptance and
+must not delay reachable mathematics.
 
 **Next dependency-ready mathematical delta:** instantiate actual source
 Chebyshev–Lobatto nodes and integral Lagrange coefficients from3.6/B.1, rather

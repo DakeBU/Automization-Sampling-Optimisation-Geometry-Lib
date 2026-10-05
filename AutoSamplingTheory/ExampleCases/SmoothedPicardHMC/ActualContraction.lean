@@ -1,0 +1,289 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.KineticDissipation
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric
+
+/-!
+# Actual synchronous contraction of the exact-gradient numerical phase
+
+SPHMC arXiv:2609.06906v1 Proposition 4.7. The explicit normalized C2
+curvature interface is retained; construction of the actual V_eta is separate.
+The kernel is the real two-refresh two-Picard map from FirstOrderDifference.
+No stochastic Khat/Kbar, history or main theorem is certified here.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction
+
+open Set MeasureTheory ProbabilityTheory
+open scoped BigOperators InnerProductSpace
+open PhaseMetric
+noncomputable section
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+set_option backward.isDefEq.respectTransparency false
+
+/-- The polarized source M_kappa quadratic form, on the true L2 phase space. -/
+private def B (κ : ℝ) (u v : WithLp 2 (E × E)) : ℝ :=
+  (1/(2*κ)+1/2)*inner ℝ u.fst v.fst + (1/2:ℝ)*inner ℝ u.fst v.snd +
+    (1/2:ℝ)*inner ℝ u.snd v.fst + inner ℝ u.snd v.snd
+
+private theorem B_self (κ : ℝ) (u : WithLp 2 (E × E)) :
+    B κ u u = phaseQuadraticForm κ (WithLp.ofLp u) := by
+  simp only [B, phaseQuadraticForm, WithLp.fst, WithLp.snd,
+    real_inner_self_eq_norm_sq, real_inner_comm (WithLp.ofLp u).2 (WithLp.ofLp u).1]
+  ring
+
+private theorem B_bound {κ : ℝ} (hκ : 1 ≤ κ) (u v : WithLp 2 (E × E)) :
+    B κ u v ≤ 3*‖u‖*‖v‖ := by
+  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ
+  have hc0 : 0 ≤ 1/(2*κ)+1/2 := by positivity
+  have hc : 1/(2*κ)+1/2 ≤ (1:ℝ) := by
+    have hi : 1/(2*κ) ≤ (1/2:ℝ) := (div_le_iff₀ (by positivity)).mpr (by linarith)
+    linarith
+  have hx := WithLp.norm_fst_le (p := 2) E u
+  have hp := WithLp.norm_snd_le (p := 2) E u
+  have hy := WithLp.norm_fst_le (p := 2) E v
+  have hq := WithLp.norm_snd_le (p := 2) E v
+  have hxx : inner ℝ u.fst v.fst ≤ ‖u‖*‖v‖ :=
+    (real_inner_le_norm _ _).trans (mul_le_mul hx hy (norm_nonneg _) (norm_nonneg _))
+  have hxp : inner ℝ u.fst v.snd ≤ ‖u‖*‖v‖ :=
+    (real_inner_le_norm _ _).trans (mul_le_mul hx hq (norm_nonneg _) (norm_nonneg _))
+  have hpx : inner ℝ u.snd v.fst ≤ ‖u‖*‖v‖ :=
+    (real_inner_le_norm _ _).trans (mul_le_mul hp hy (norm_nonneg _) (norm_nonneg _))
+  have hpp : inner ℝ u.snd v.snd ≤ ‖u‖*‖v‖ :=
+    (real_inner_le_norm _ _).trans (mul_le_mul hp hq (norm_nonneg _) (norm_nonneg _))
+  have hcxx := mul_le_mul_of_nonneg_left hxx hc0
+  have hcuv := mul_le_mul_of_nonneg_right hc (mul_nonneg (norm_nonneg u) (norm_nonneg v))
+  dsimp only [B]
+  nlinarith
+
+private theorem quadratic_expansion (κ h : ℝ) (d A r : WithLp 2 (E × E)) :
+    phaseQuadraticForm κ (WithLp.ofLp (d+h • A+r)) =
+      phaseQuadraticForm κ (WithLp.ofLp d) + 2*h*B κ d A +
+        h^2*phaseQuadraticForm κ (WithLp.ofLp A) +
+        2*B κ (d+h • A) r + phaseQuadraticForm κ (WithLp.ofLp r) := by
+  rw [← B_self κ (d+h • A+r), ← B_self κ d, ← B_self κ A, ← B_self κ r]
+  simp only [B, WithLp.add_fst,
+    WithLp.add_snd, WithLp.smul_fst, WithLp.smul_snd, inner_add_left,
+    inner_add_right, real_inner_smul_left, real_inner_smul_right, real_inner_comm]
+  ring
+
+variable [FiniteDimensional ℝ E]
+
+set_option maxHeartbeats 800000 in
+private theorem endpoint_quadratic_contraction {κ h Λ : ℝ}
+    (hκ : 1 ≤ κ) (hh : 0 < h) (hΛ : 1 ≤ Λ)
+    (hstep : h*Λ ≤ 1/(65536*κ))
+    (H : E →L[ℝ] E) (hsym : H.toLinearMap.IsSymmetric)
+    (hcurv : ∀ v, 1/(2*κ)*‖v‖^2 ≤ inner ℝ (H v) v ∧ inner ℝ (H v) v ≤ ‖v‖^2)
+    (hH : ‖H‖ ≤ 1) (d r : WithLp 2 (E × E))
+    (hr : ‖r‖ ≤ 8*Λ*h^2*‖d‖) :
+    let A := WithLp.toLp 2 (d.snd,-H d.fst-d.snd)
+    phaseQuadraticForm κ (WithLp.ofLp (d+h • A+r)) ≤
+      (1-h/(16*κ))*phaseQuadraticForm κ (WithLp.ofLp d) := by
+  let A := WithLp.toLp 2 (d.snd,-H d.fst-d.snd)
+  let L := Λ*h^2
+  let Q := fun v : WithLp 2 (E × E) => phaseQuadraticForm κ (WithLp.ofLp v)
+  change Q (d+h • A+r) ≤ (1-h/(16*κ))*Q d
+  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ
+  have hi : 1/(65536*κ) ≤ (1:ℝ) := (div_le_one (by positivity)).mpr (by linarith)
+  have hh1 : h ≤ 1 := by nlinarith
+  have hL0 : 0 ≤ L := by dsimp [L]; positivity
+  have hL1 : L ≤ 1 := by
+    have hs : h*Λ ≤ 1 := hstep.trans hi
+    have hm := mul_le_mul_of_nonneg_left hs (le_of_lt hh)
+    dsimp only [L]
+    nlinarith
+  have hLsq : L^2 ≤ L := by nlinarith
+  have lower (v : WithLp 2 (E × E)) : ‖v‖^2 ≤ 6*Q v := by
+    rw [WithLp.prod_norm_sq_eq_of_L2]
+    exact ordinary_energy_le_phaseQuadraticForm hκ (WithLp.ofLp v)
+  have upper (v : WithLp 2 (E × E)) : Q v ≤ 3*‖v‖^2 := by
+    have hu := phaseQuadraticForm_le_ordinary_energy hκ (WithLp.ofLp v)
+    change Q v ≤ (3/2:ℝ)*(‖v.fst‖^2+‖v.snd‖^2) at hu
+    rw [← WithLp.prod_norm_sq_eq_of_L2 v] at hu
+    nlinarith [sq_nonneg ‖v‖]
+  have hQ0 : 0 ≤ Q d := by nlinarith [lower d, sq_nonneg ‖d‖]
+  have hx := WithLp.norm_fst_le (p := 2) E d
+  have hp := WithLp.norm_snd_le (p := 2) E d
+  have hHx : ‖H d.fst‖ ≤ ‖d.fst‖ := by
+    exact (H.le_opNorm _).trans (by simpa using mul_le_mul_of_nonneg_right hH (norm_nonneg d.fst))
+  have hAp : ‖-H d.fst-d.snd‖ ≤ ‖d.fst‖+‖d.snd‖ := by
+    exact (norm_sub_le _ _).trans (by simpa using add_le_add_right hHx ‖d.snd‖)
+  have hA : ‖A‖ ≤ 3*‖d‖ := by
+    have ht := norm_add_le (WithLp.toLp 2 (d.snd,(0:E)))
+      (WithLp.toLp 2 ((0:E),-H d.fst-d.snd))
+    have hpairs : ‖A‖ ≤ ‖d.snd‖+‖-H d.fst-d.snd‖ := by
+      simpa only [A, ← WithLp.toLp_add, Prod.mk_add_mk, add_zero, zero_add,
+        WithLp.norm_toLp_fst, WithLp.norm_toLp_snd] using ht
+    linarith
+  have hu : ‖d+h • A‖ ≤ 4*‖d‖ := by
+    have ht := norm_add_le d (h • A)
+    rw [norm_smul, Real.norm_eq_abs, abs_of_pos hh] at ht
+    nlinarith [mul_le_mul_of_nonneg_left hA (le_of_lt hh),
+      mul_nonneg (sub_nonneg.mpr hh1) (norm_nonneg d)]
+  have hQA : Q A ≤ 162*Q d := by
+    have hsq : ‖A‖^2 ≤ (3*‖d‖)^2 := (sq_le_sq₀ (norm_nonneg A) (by positivity)).mpr hA
+    nlinarith [upper A, lower d]
+  have hD := KineticDissipation.source_kinetic_dissipation hκ H.toLinearMap hsym
+    (fun v => by change 1/(2*κ)*‖v‖^2 ≤ inner ℝ v (H v); rw [real_inner_comm]; exact (hcurv v).1)
+    (fun v => by change inner ℝ v (H v) ≤ ‖v‖^2; rw [real_inner_comm]; exact (hcurv v).2) d.fst d.snd
+  have hidentity : 2*B κ d A = -(inner ℝ d.fst (H d.fst) +
+      2*inner ℝ d.snd (H d.fst)-1/κ*inner ℝ d.fst d.snd+‖d.snd‖^2) := by
+    simp only [B,A,WithLp.toLp_fst,WithLp.toLp_snd,inner_sub_right,inner_neg_right,
+      real_inner_self_eq_norm_sq,real_inner_comm d.snd d.fst]
+    field_simp
+    ring
+  have hlin : 2*B κ d A ≤ -1/(8*κ)*Q d := by
+    rw [hidentity]
+    change 1/(8*κ)*Q d ≤ inner ℝ d.fst (H d.fst)+2*inner ℝ d.snd (H d.fst)-1/κ*inner ℝ d.fst d.snd+‖d.snd‖^2 at hD
+    calc
+      _ ≤ -(1/(8*κ)*Q d) := neg_le_neg hD
+      _ = -1/(8*κ)*Q d := by ring
+  have hr' : ‖r‖ ≤ 8*L*‖d‖ := by simpa only [L, mul_assoc] using hr
+  have hcross : 2*B κ (d+h • A) r ≤ 1152*L*Q d := by
+    calc
+      _ ≤ 6*‖d+h • A‖*‖r‖ := by linarith [B_bound hκ (d+h • A) r]
+      _ ≤ 6*(4*‖d‖)*(8*L*‖d‖) := by gcongr
+      _ = 192*L*‖d‖^2 := by ring
+      _ ≤ 1152*L*Q d := by nlinarith [mul_le_mul_of_nonneg_left (lower d) hL0]
+  have hqr : Q r ≤ 1152*L*Q d := by
+    have hrsq : ‖r‖^2 ≤ (8*L*‖d‖)^2 := (sq_le_sq₀ (norm_nonneg r) (by positivity)).mpr hr'
+    calc
+      Q r ≤ 3*‖r‖^2 := upper r
+      _ ≤ 192*L^2*‖d‖^2 := by nlinarith
+      _ ≤ 192*L*‖d‖^2 := by gcongr
+      _ ≤ 1152*L*Q d := by nlinarith [mul_le_mul_of_nonneg_left (lower d) hL0]
+  have hAterm : h^2*Q A ≤ 162*L*Q d := by
+    have hl : h^2 ≤ L := by dsimp only [L]; nlinarith [sq_nonneg h]
+    calc
+      _ ≤ h^2*(162*Q d) := mul_le_mul_of_nonneg_left hQA (sq_nonneg h)
+      _ ≤ 162*L*Q d := by nlinarith [mul_le_mul_of_nonneg_right hl hQ0]
+  have hsum : Q (d+h • A+r) ≤ (1-h/(8*κ)+2466*L)*Q d := by
+    have hid := quadratic_expansion κ h d A r
+    change Q (d+h • A+r) = Q d + 2*h*B κ d A+h^2*Q A+2*B κ (d+h • A) r+Q r at hid
+    have ht := mul_le_mul_of_nonneg_left hlin (le_of_lt hh)
+    have ht' : 2*h*B κ d A ≤ -(h/(8*κ))*Q d := by
+      simpa only [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm,
+        neg_mul, mul_neg, one_mul] using ht
+    clear ht
+    nlinarith
+  have habsorb : 2466*L ≤ h/(16*κ) := by
+    have hm := mul_le_mul_of_nonneg_left hstep (by positivity : 0 ≤ 2466*h)
+    have hc : 2466/(65536*κ) ≤ 1/(16*κ) := by
+      apply (div_le_div_iff₀ (by positivity) (by positivity)).mpr
+      nlinarith
+    have hc' := mul_le_mul_of_nonneg_left hc (le_of_lt hh)
+    calc
+      2466*L = (2466*h)*(h*Λ) := by dsimp [L];ring
+      _ ≤ (2466*h)*(1/(65536*κ)) := hm
+      _ = h*(2466/(65536*κ)) := by ring
+      _ ≤ h*(1/(16*κ)) := hc'
+      _ = h/(16*κ) := by ring
+  have hcoef : 1-h/(8*κ)+2466*L ≤ 1-h/(16*κ) := by
+    have hid : h/(8*κ) = 2*(h/(16*κ)) := by field_simp;ring
+    linarith
+  exact hsum.trans (mul_le_mul_of_nonneg_right hcoef hQ0)
+
+
+variable [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]
+
+set_option maxHeartbeats 1000000 in
+/-- Proposition4.7 for the actual exact-gradient numerical phase at the explicit
+normalized C2 interface. The same universal constant c=1/65536 controls the
+actual cardinal-integral step condition and the true M_kappa norm contraction.
+No supplied contraction, abstract phase map or remainder certificate. -/
+theorem source_synchronous_contraction {f : E → ℝ} {κ h : ℝ} {J : ℕ}
+    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)
+    (hJ : 2 ≤ J) (hh : 0 < h) :
+    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)
+    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s
+    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s
+    h * Λ ≤ 1/(65536*κ) →
+    let a := Real.exp (-h / 2)
+    let sigma := Real.sqrt (1 - Real.exp (-h))
+    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1
+    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ
+    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)
+    let Φ := fun w : (E × E) × (E × E) =>
+      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)
+    ∀ z z' ζ : E × E,
+      Real.sqrt (phaseQuadraticForm κ ((Φ (z,ζ)).1-(Φ (z',ζ)).1,
+        (Φ (z,ζ)).2-(Φ (z',ζ)).2)) ≤
+      (1-h/(65536*κ))*Real.sqrt (phaseQuadraticForm κ (z.1-z'.1,z.2-z'.2)) := by
+  classical
+  dsimp only
+  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+  let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)
+  let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s
+  let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+  let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s
+  intro hstep
+  change h*Λ ≤ 1/(65536*κ) at hstep
+  have hcoeff := TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh
+  rcases hcoeff with ⟨_,_,_,_,_,hΛ,_,_⟩
+  change 1 ≤ Λ at hΛ
+  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ
+  have hi : 1/(65536*κ) ≤ (1:ℝ) := (div_le_one (by positivity)).mpr (by linarith)
+  have hh1 : h ≤ 1 := by nlinarith
+  have hs : h^2*Λ ≤ 1 := by
+    have hm := mul_le_mul_of_nonneg_left (hstep.trans hi) (le_of_lt hh)
+    nlinarith
+  let a := Real.exp (-h / 2)
+  let sigma := Real.sqrt (1 - Real.exp (-h))
+  let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1
+  let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ
+  let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)
+  let Φ := fun w : (E × E) × (E × E) =>
+    (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+      a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)
+  have hfirst := FirstOrderDifference.source_first_order_difference hκ hf hH hJ hh hs
+  intro z z' ζ
+  let H := h⁻¹ • ∑ j, b j •
+    (∫ u in (0:ℝ)..1, InnerProductSpace.continuousLinearMapOfBilin
+      (fderiv ℝ (fderiv ℝ f) (Y1 z' ζ j+u • (Y1 z ζ j-Y1 z' ζ j))))
+  let d := WithLp.toLp 2 (z.1-z'.1,z.2-z'.2)
+  let q := WithLp.toLp 2 ((Φ (z,ζ)).1-(Φ (z',ζ)).1,(Φ (z,ζ)).2-(Φ (z',ζ)).2)
+  have hp := hfirst.2.2 z z' ζ
+  change H.toLinearMap.IsSymmetric ∧ (∀ v, 1/(2*κ)*‖v‖^2 ≤ inner ℝ (H v) v ∧
+    inner ℝ (H v) v ≤ ‖v‖^2) ∧ ‖H‖ ≤ 1 ∧
+    ∃ R : WithLp 2 (E × E) →L[ℝ] WithLp 2 (E × E), ‖R‖ ≤ 8*Λ*h^2 ∧
+      q = d+h • WithLp.toLp 2 (d.snd,-H d.fst-d.snd)+R d at hp
+  rcases hp with ⟨hsym,hcurv,hHnorm,R,hR,heq⟩
+  have hr : ‖R d‖ ≤ 8*Λ*h^2*‖d‖ :=
+    (R.le_opNorm d).trans (mul_le_mul_of_nonneg_right hR (norm_nonneg d))
+  have hquad := endpoint_quadratic_contraction hκ hh hΛ hstep H hsym hcurv hHnorm d (R d) hr
+  dsimp only at hquad
+  rw [← heq] at hquad
+  let Qd := phaseQuadraticForm κ (WithLp.ofLp d)
+  let Qq := phaseQuadraticForm κ (WithLp.ofLp q)
+  let t := h/(65536*κ)
+  change Qq ≤ (1-h/(16*κ))*Qd at hquad
+  change Real.sqrt Qq ≤ (1-t)*Real.sqrt Qd
+  have hQd0 : 0 ≤ Qd := by
+    have hl := ordinary_energy_le_phaseQuadraticForm hκ (WithLp.ofLp d)
+    change _ ≤ 6*Qd at hl
+    nlinarith [sq_nonneg ‖d.fst‖,sq_nonneg ‖d.snd‖]
+  have hQq0 : 0 ≤ Qq := by
+    have hl := ordinary_energy_le_phaseQuadraticForm hκ (WithLp.ofLp q)
+    change _ ≤ 6*Qq at hl
+    nlinarith [sq_nonneg ‖q.fst‖,sq_nonneg ‖q.snd‖]
+  have ht0 : 0 ≤ t := by dsimp [t]; positivity
+  have ht1 : t ≤ 1 := by
+    have hc : h/(65536*κ) ≤ 1 := (div_le_one (by positivity)).mpr (by linarith)
+    exact hc
+  have hratio : h/(16*κ) = 4096*t := by dsimp only [t];field_simp;ring
+  have hquad' : Qq ≤ (1-t)^2*Qd := by
+    rw [hratio] at hquad
+    nlinarith [mul_nonneg (sq_nonneg t) hQd0, mul_nonneg ht0 hQd0]
+  have hsq : (Real.sqrt Qq)^2 ≤ ((1-t)*Real.sqrt Qd)^2 := by
+    simpa only [mul_pow,Real.sq_sqrt hQd0,Real.sq_sqrt hQq0] using hquad'
+  exact (sq_le_sq₀ (Real.sqrt_nonneg _) (mul_nonneg (sub_nonneg.mpr ht1) (Real.sqrt_nonneg _))).mp hsq
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction

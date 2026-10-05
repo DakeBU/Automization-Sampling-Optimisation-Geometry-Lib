@@ -25,7 +25,7 @@ noncomputable section
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- The real quadratic form induced by the paper's `M_kappa` block matrix. -/
-private def phaseQuadraticForm (kappa : ℝ) (z : E × E) : ℝ :=
+def phaseQuadraticForm (kappa : ℝ) (z : E × E) : ℝ :=
   (1 / (2 * kappa) + 1 / 2) * ‖z.1‖ ^ 2 + inner ℝ z.1 z.2 + ‖z.2‖ ^ 2
 
 /-- The `M_kappa` transport cost on two phase-space points. -/
@@ -40,7 +40,7 @@ def phaseWassersteinSq [MeasurableSpace E] (kappa : ℝ)
 
 /-- For `kappa >= 1`, the twisted quadratic form controls the ordinary sum of
 the squared position and momentum norms. -/
-private theorem ordinary_energy_le_phaseQuadraticForm {kappa : ℝ} (hkappa : 1 ≤ kappa)
+theorem ordinary_energy_le_phaseQuadraticForm {kappa : ℝ} (hkappa : 1 ≤ kappa)
     (z : E × E) :
     ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 ≤ 6 * phaseQuadraticForm kappa z := by
   have hkappa0 : 0 < kappa := lt_of_lt_of_le zero_lt_one hkappa
@@ -53,7 +53,7 @@ private theorem ordinary_energy_le_phaseQuadraticForm {kappa : ℝ} (hkappa : 1 
 
 /-- The twisted quadratic form is bounded above by `3/2` times the ordinary
 sum of squares, uniformly over `kappa >= 1`. -/
-private theorem phaseQuadraticForm_le_ordinary_energy {kappa : ℝ} (hkappa : 1 ≤ kappa)
+theorem phaseQuadraticForm_le_ordinary_energy {kappa : ℝ} (hkappa : 1 ≤ kappa)
     (z : E × E) :
     phaseQuadraticForm kappa z ≤ (3 / 2 : ℝ) * (‖z.1‖ ^ 2 + ‖z.2‖ ^ 2) := by
   have hkappa0 : 0 < kappa := lt_of_lt_of_le zero_lt_one hkappa

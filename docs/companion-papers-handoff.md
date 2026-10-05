@@ -1,5 +1,24 @@
 # Companion-paper formalization handoff
 
+## Integral momentum weight exploration — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCPositiveIntegralWeights` is root-owned EXPLORING,
+not PROVED_LOCAL. Exact all-n Chebyshev cardinal polynomial/Lagrange identity
+and ordinary Lebesgue antiderivative/FTC/moments plus A_n<1 compile in scratch
+modules, standard3 only. Frozen sources/logs and exact residual:
+`runs/20261005-companion-priority/positive-integral-weights/development-checkpoint.json`.
+Next: actual cardinal integral positive bracket, source h/2 affine Lagrange
+scaling/all J>=2, production Test/publication, then independent reviews.
+No supplied positive-weight/closed-form premise. No actual H or K contraction
+completion. Current main theorem status unchanged. Sole original stabilization
+lane, all older frontiers/cycles/source inventory preserved.
+
+Prior independently verified kinetic integration at `470d9a0f` now has all
+required remote Lean/site/contributor CI PASS, deploy skipped. Receipt:
+`runs/20261005-companion-priority/kinetic-dissipation.remote-ci.json`.
+That CI excludes the unfinished integral-weight exploration and this local
+checkpoint. PR313 remains draft/unmerged; no live deployment or main completion.
+
 ## Actual full-dimensional kinetic drift dissipation — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCKineticDissipation` closes the actual full-E source

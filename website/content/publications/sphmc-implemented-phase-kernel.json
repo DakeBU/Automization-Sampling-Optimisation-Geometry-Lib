@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "sphmc-implemented-phase-kernel",
+      "library": "samplewiki-route",
+      "chapter": "sphmc-01",
+      "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+      "title": "The actual implemented two-layer Picard phase kernel",
+      "source": {
+        "url": "https://arxiv.org/html/2609.06906v1#S3.SS2",
+        "edition": "arXiv:2609.06906v1",
+        "anchor": "Algorithm 3.1 steps 1–4, HTML lines 282–306; Appendix D.1 (D.1), Algorithm D.2 and Lemma D.3, lines 2138–2164",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib supplies the explicit measurable kernel construction; deterministic quadrature data remain a separate adapter."
+      },
+      "statement": "Attributed implementation component of Algorithm 3.1 with Appendix D.1/D.2 approximate proximal queries, not a convergence theorem. Under the normalized C2 Hessian bounds and 0<eta<=c<1, eps>0, construct one measurable stopped proximal map q, its exact proximal comparison p, and its successful gradient-test count N+1. For h>=0 and supplied finite deterministic node and quadrature arrays, draw independent zeta0,zeta1,G0,G1 from the product of two standard Gaussian laws and two finite products of standard Gaussian laws. Set a=exp(-h/2), sigma=sqrt(1-exp(-h)), P0=a P+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Xnext=X+h P0-sum_j positionWeight_j Z1_j and Pnext=a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1. The joint update Phi is measurable and defines a Markov kernel K(s,.)=map(Phi(s,.),gamma); at every queried y the actual finite interpreter with fuel N(y)+1 returns (q(y),N(y)+1) and ||q(y)-p(y)||<=eps. Source node/weight construction and the repeated-run accuracy/cost theorems remain separate.",
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the index type is finite.",
+        "V is C2, kappa >= 1 and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+        "0 < eta <= c < 1, eps > 0 and h >= 0.",
+        "t, omega, positionWeight and momentumWeight are supplied finite real arrays. Their source quadrature definitions and bounds are not conclusions of this interface."
+      ],
+      "formulae": [
+        {
+          "label": "Independent driving law",
+          "tex": "\\gamma=(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^{\\otimes\\iota}\\otimes\\gamma_E^{\\otimes\\iota})."
+        },
+        {
+          "label": "First refresh and layer",
+          "tex": "P_0=aP+\\sigma\\zeta_0,\\quad Y_i^0=X+t_iP_0,\\quad Z_j^0=\\nabla V(q(Y_j^0)+\\sqrt\\eta G_j^0),\\quad Y_i^1=Y_i^0-\\sum_j\\omega_{ij}Z_j^0."
+        },
+        {
+          "label": "Second layer and refresh",
+          "tex": "Z_j^1=\\nabla V(q(Y_j^1)+\\sqrt\\eta G_j^1),\\quad X^+=X+hP_0-\\sum_j b_jZ_j^1,\\quad P^+=a(P_0-\\sum_j m_jZ_j^1)+\\sigma\\zeta_1."
+        },
+        {
+          "label": "Transition law",
+          "tex": "K(s,\\cdot)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad a=e^{-h/2},\\quad\\sigma=\\sqrt{1-e^{-h}}."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "phase-law",
+          "label": "Actual jointly measurable two-layer implemented phase and exact probability law"
+        },
+        {
+          "id": "quadrature",
+          "label": "Source Chebyshev–Lobatto coefficient construction and instantiation (remaining)"
+        },
+        {
+          "id": "run",
+          "label": "Repeated-run error, moment and actual-input work estimates (remaining)"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+          "cell": "ASTIS-SW-SPHMC-implemented-phase-kernel",
+          "role": "proof-edge",
+          "audit_id": "ASTIS-RT-20261005-SPHMCImplementedPhaseKernel",
+          "supports": [
+            "phase-law"
+          ],
+          "boundary": "One actual gradient-only two-layer phase with supplied finite deterministic coefficients. The Chebyshev-Lobatto coefficient construction and instantiation, repeated phase law, state/moment bounds, local and accumulated error, expected work, terminal FORS, proxy warmness and both main theorems remain separate.",
+          "assumption_deltas": [
+            {
+              "source": "The normalized C2 Hessian bounds and Algorithm D.2 parameter range.",
+              "lean": "V is C2, kappa >= 1 and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v. 0 < eta <= c < 1, eps > 0 and h >= 0.",
+              "classification": "same",
+              "reason": "The parent supplies the actual finite stopping certificate. h=0 includes a degenerate limiting phase without enlarging the sampling schedule."
+            },
+            {
+              "source": "Algorithm 3.1 uses source Chebyshev–Lobatto nodes and integral weights.",
+              "lean": "t, omega, positionWeight and momentumWeight are supplied finite real arrays. Their source quadrature definitions and bounds are not conclusions of this interface.",
+              "classification": "generalization",
+              "reason": "This constructs the finite coefficient-parametric implementation interface. Identifying these arrays with the source definitions is explicitly unproved; no source convergence credit follows."
+            },
+            {
+              "source": "Independent standard Gaussian variables in Algorithm 3.1.",
+              "lean": "Two standard Gaussian factors and two finite independent Gaussian-array factors, followed by an explicit joint measurable update.",
+              "classification": "source-implicit",
+              "reason": "Canonical product probability laws and Borel measurability supply omitted stochastic semantics; no moment or integrability premise is needed just to define a Markov kernel."
+            },
+            {
+              "source": "A Euclidean state space with J>=2 nodes and positive phase length.",
+              "lean": "An arbitrary complete finite-dimensional real inner-product Borel space, finite index type and nonnegative h.",
+              "classification": "generalization",
+              "reason": "The purely measurable phase construction also includes degenerate dimensions, empty arrays and h=0. Source schedules remain obligations of consumers."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

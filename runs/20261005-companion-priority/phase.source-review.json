@@ -1,0 +1,288 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-46f6a39d944ac49b",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261005",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-implemented-phase-component",
+    "anchor": "Algorithm 3.1 steps 1–4, HTML lines 282–306; Appendix D.1 (D.1), Algorithm D.2 and Lemma D.3, lines 2138–2164",
+    "original_text": "Attributed implementation component of Algorithm 3.1 with Appendix D.1/D.2 approximate proximal queries, not a convergence theorem. Under the normalized C2 Hessian bounds and 0<eta<=c<1, eps>0, construct one measurable stopped proximal map q, its exact proximal comparison p, and its successful gradient-test count N+1. For h>=0 and supplied finite deterministic node and quadrature arrays, draw independent zeta0,zeta1,G0,G1 from the product of two standard Gaussian laws and two finite products of standard Gaussian laws. Set a=exp(-h/2), sigma=sqrt(1-exp(-h)), P0=a P+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Xnext=X+h P0-sum_j positionWeight_j Z1_j and Pnext=a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1. The joint update Phi is measurable and defines a Markov kernel K(s,.)=map(Phi(s,.),gamma); at every queried y the actual finite interpreter with fuel N(y)+1 returns (q(y),N(y)+1) and ||q(y)-p(y)||<=eps. Source node/weight construction and the repeated-run accuracy/cost theorems remain separate.",
+    "text_sha256": "f7e2c249056319171e6c5645fa626d20c8270a4ee8c42877131b03dc6731e301"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ImplementedPhaseKernel.lean",
+    "statement": "For every E,iota with [NormedAddCommGroup E] [InnerProductSpace R E] [CompleteSpace E] [FiniteDimensional R E] [MeasurableSpace E] [BorelSpace E] [Fintype iota],\n{V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖ ^ 2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (h : ℝ) (hh : 0 ≤ h) (t : ι → ℝ) (omega : ι → ι → ℝ)\n    (positionWeight momentumWeight : ι → ℝ) :\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y - p y‖ ≤ eps ∧\n        run (gradient V) eta eps y (N y + 1) y =\n          some (q y, N y + 1)) ∧\n      let a := Real.exp (-h / 2)\n      let sigma := Real.sqrt (1 - Real.exp (-h))\n      let γ := ((stdGaussian E).prod (stdGaussian E)).prod\n        ((Measure.pi (fun _ : ι => stdGaussian E)).prod\n          (Measure.pi (fun _ : ι => stdGaussian E)))\n      let Φ := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n        let P0 := a • w.1.2 + sigma • w.2.1.1\n        let Y0 := fun i => w.1.1 + t i • P0\n        let Z0 := fun j => gradient V (q (Y0 j) + Real.sqrt eta • w.2.2.1 j)\n        let Y1 := fun i => Y0 i - ∑ j, omega i j • Z0 j\n        let Z1 := fun j => gradient V (q (Y1 j) + Real.sqrt eta • w.2.2.2 j)\n        (w.1.1 + h • P0 - ∑ j, positionWeight j • Z1 j,\n          a • (P0 - ∑ j, momentumWeight j • Z1 j) + sigma • w.2.1.2)\n      0 ≤ 1 - Real.exp (-h) ∧\n      Measurable Φ ∧ ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s, z))",
+    "statement_sha256": "f4f8565de8144582ccef5afa5fbbe26c4f97a6d48d0bc7d832a4f383945aec08",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space, equipped with its Borel measurable structure, and let I be any finite index type. Let V:E->R be C^2 and let kappa be a nonnegative real with 1<=kappa. Suppose that, for every x,v in E,\n  kappa^(-1)||v||^2 <= D^2 V(x)[v,v] <= ||v||^2.\nFix real eta,c,epsilon such that 0<eta<=c<1 and epsilon>0, a real h>=0, and arbitrary deterministic arrays t:I->R, omega:I x I->R, b:I->R, and d:I->R. Here b and d denote positionWeight and momentumWeight.\nThen there exist measurable maps p,q:E->E and N:E->N such that for every y in E,\n  p(y)+eta grad V(p(y))=y,\n  ||q(y)-p(y)||<=epsilon,\n  run(grad V,eta,epsilon,y,N(y)+1,y)=some(q(y),N(y)+1).\nThe finite exact-real interpreter run(g,eta,epsilon,y,fuel,x) fails with none when fuel is zero. With positive fuel it sets next=y-eta g(x). If ||next-x||<=(1-eta)epsilon it returns (x,1); otherwise it recurses from next with one less unit of fuel and adds one to the successful query count. Thus the displayed equality supplies a finite successful run starting at y, using fuel N(y)+1, with output q(y) and reported count exactly N(y)+1.\nFor these witnesses put a=exp(-h/2), sigma=sqrt(1-exp(-h)), and let gamma be the product law of mutually independent standard Gaussian E-valued variables u,v,(xi_j)_{j in I},(xi'_j)_{j in I}; explicitly gamma=(G x G) x ((product_I G) x (product_I G)), where G is the centered Gaussian probability measure with identity covariance. For an incoming state s=(x,r) in E x E and a noise sample z=((u,v),(xi,xi')), define\n  P0=a r+sigma u,\n  Y0_i=x+t_i P0,\n  Z0_j=grad V(q(Y0_j)+sqrt(eta) xi_j),\n  Y1_i=Y0_i-sum_{j in I} omega_{ij} Z0_j,\n  Z1_j=grad V(q(Y1_j)+sqrt(eta) xi'_j),\n  Phi(s,z)=(x+h P0-sum_{j in I} b_j Z1_j,\n            a(P0-sum_{j in I} d_j Z1_j)+sigma v).\nThen 1-exp(-h)>=0, Phi is jointly measurable on (E x E) x ((E x E) x ((I->E) x (I->E))), and there exists a Markov kernel K from E x E to E x E satisfying, for every s,\n  K(s)=(z -> Phi(s,z))_* gamma.\nEquivalently, for every Borel output event A, K(s,A)=gamma({z:Phi(s,z) in A}); each K(s) is a probability measure and its value on each measurable event depends measurably on s. All sums use the entire finite index type. This statement asserts the existence and measurability of these witnesses and transition kernel; it gives no invariant-distribution, convergence, bias, or uniform query-complexity conclusion.",
+    "text_sha256": "ca22e52e2ecfa17a3b70757ce75cb6c7c523c2c147c8eb03c4ec75c1ade01860",
+    "decoder": "anonymous_decoder_20261005",
+    "decoder_packet_sha256": "daf7182d91b7456520be6920dd0d58bc42ee3c83805558c8873347dedd650a11",
+    "decoder_run_sha256": "34edc6014eba39d3d081cf8cdbc3efca29317df29234ead3da67b8941ce39299",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "ff757690207077e114abd5ea1f122ac93b8836f30ea9abc2676c498ce0138363",
+  "candidate_publication_context": {
+    "file": "9a8e15b91b5bddc3cbda165c97b86c6d1603b1a06c262dd1d588211ce31804b0",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution\nimport Mathlib.Probability.Distributions.Gaussian.Multivariate\nimport Mathlib.Probability.Kernel.Composition.Prod\nimport Mathlib.MeasureTheory.Constructions.Pi\n\n/-!\n# The implemented two-layer Picard phase\n\nChen--Chewi--Lu--Zhang, arXiv:2609.06906v1, Algorithm 3.1 steps 1--4,\nwith the gradient-only proximal implementation of Appendix D.1/D.2.\nThe kernel below uses both independent Gaussian arrays and both half-refreshes.\nEvery proximal evaluation is the actual finite residual-stopped program.\n\nFinite deterministic nodes and quadrature weights are inputs of this bounded\ninterface. Their Chebyshev--Lobatto construction, repeated-history estimates,\nsampling error, invariant law, and expected run cost remain separate.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped BigOperators NNReal\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel\n\nvariable {E ι : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n  [Fintype ι]\n\n/-- The full two-layer phase is a measurable Markov kernel, with its law given\nby the explicit independent Gaussian pushforward and every proximal draw bound\nto the actual stopped interpreter. No quadrature or convergence premise is\nassumed to manufacture a kernel. -/\ntheorem implemented_phase_kernel {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖ ^ 2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (h : ℝ) (hh : 0 ≤ h) (t : ι → ℝ) (omega : ι → ι → ℝ)\n    (positionWeight momentumWeight : ι → ℝ) :\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y - p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y + 1) y =\n          some (q y, N y + 1)) ∧\n      let a := Real.exp (-h / 2)\n      let sigma := Real.sqrt (1 - Real.exp (-h))\n      let γ := ((stdGaussian E).prod (stdGaussian E)).prod\n        ((Measure.pi (fun _ : ι => stdGaussian E)).prod\n          (Measure.pi (fun _ : ι => stdGaussian E)))\n      let Φ := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n        let P0 := a • w.1.2 + sigma • w.2.1.1\n        let Y0 := fun i => w.1.1 + t i • P0\n        let Z0 := fun j => gradient V (q (Y0 j) + Real.sqrt eta • w.2.2.1 j)\n        let Y1 := fun i => Y0 i - ∑ j, omega i j • Z0 j\n        let Z1 := fun j => gradient V (q (Y1 j) + Real.sqrt eta • w.2.2.2 j)\n        (w.1.1 + h • P0 - ∑ j, positionWeight j • Z1 j,\n          a • (P0 - ∑ j, momentumWeight j • Z1 j) + sigma • w.2.1.2)\n      0 ≤ 1 - Real.exp (-h) ∧\n      Measurable Φ ∧ ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s, z)) := by\n  classical\n  obtain ⟨p, N, hp, hN, hq, hall⟩ :=\n    ApproximateProximalExecution.approximate_proximal_execution\n      hκ hV hH heta hec hc heps\n  let q := fun y => (fun x : E => y - eta • gradient V x)^[N y] y\n  have hqm : Measurable q := hq\n  refine ⟨p, q, N, hp, hqm, hN, fun y =>\n    ⟨(hall y).1, (hall y).2.2.2.2.1, (hall y).2.2.2.2.2.2⟩, ?_⟩\n  dsimp only\n  have hg : Measurable (gradient V) := by\n    unfold gradient\n    exact ((InnerProductSpace.toDual ℝ E).symm.continuous.comp\n      (hV.continuous_fderiv (by norm_num))).measurable\n  let γ := ((stdGaussian E).prod (stdGaussian E)).prod\n    ((Measure.pi (fun _ : ι => stdGaussian E)).prod\n      (Measure.pi (fun _ : ι => stdGaussian E)))\n  let Φ := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n    let P0 := Real.exp (-h / 2) • w.1.2 + Real.sqrt (1 - Real.exp (-h)) • w.2.1.1\n    let Y0 := fun i => w.1.1 + t i • P0\n    let Z0 := fun j => gradient V (q (Y0 j) + Real.sqrt eta • w.2.2.1 j)\n    let Y1 := fun i => Y0 i - ∑ j, omega i j • Z0 j\n    let Z1 := fun j => gradient V (q (Y1 j) + Real.sqrt eta • w.2.2.2 j)\n    (w.1.1 + h • P0 - ∑ j, positionWeight j • Z1 j,\n      Real.exp (-h / 2) • (P0 - ∑ j, momentumWeight j • Z1 j) +\n        Real.sqrt (1 - Real.exp (-h)) • w.2.1.2)\n  have hΦ : Measurable Φ := by\n    dsimp only [Φ]\n    fun_prop\n  let K := (Kernel.id ×ₖ Kernel.const (E × E) γ).map Φ\n  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hΦ\n  refine ⟨sub_nonneg.mpr (Real.exp_le_one_iff.mpr (by linarith)),\n    hΦ, K, hK, fun s => ?_⟩\n  dsimp only [K]\n  rw [Kernel.map_apply _ hΦ, Kernel.prod_apply, Kernel.id_apply, Kernel.const_apply,\n    Measure.dirac_prod, Measure.map_map hΦ (by fun_prop)]\n  rfl\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S3.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Algorithm 3.1 steps 1–4, HTML lines 282–306; Appendix D.1 (D.1), Algorithm D.2 and Lemma D.3, lines 2138–2164",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib supplies the explicit measurable kernel construction; deterministic quadrature data remain a separate adapter."
+    },
+    "statement": "Attributed implementation component of Algorithm 3.1 with Appendix D.1/D.2 approximate proximal queries, not a convergence theorem. Under the normalized C2 Hessian bounds and 0<eta<=c<1, eps>0, construct one measurable stopped proximal map q, its exact proximal comparison p, and its successful gradient-test count N+1. For h>=0 and supplied finite deterministic node and quadrature arrays, draw independent zeta0,zeta1,G0,G1 from the product of two standard Gaussian laws and two finite products of standard Gaussian laws. Set a=exp(-h/2), sigma=sqrt(1-exp(-h)), P0=a P+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Xnext=X+h P0-sum_j positionWeight_j Z1_j and Pnext=a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1. The joint update Phi is measurable and defines a Markov kernel K(s,.)=map(Phi(s,.),gamma); at every queried y the actual finite interpreter with fuel N(y)+1 returns (q(y),N(y)+1) and ||q(y)-p(y)||<=eps. Source node/weight construction and the repeated-run accuracy/cost theorems remain separate.",
+    "formulae": [
+      {
+        "label": "Independent driving law",
+        "tex": "\\gamma=(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^{\\otimes\\iota}\\otimes\\gamma_E^{\\otimes\\iota})."
+      },
+      {
+        "label": "First refresh and layer",
+        "tex": "P_0=aP+\\sigma\\zeta_0,\\quad Y_i^0=X+t_iP_0,\\quad Z_j^0=\\nabla V(q(Y_j^0)+\\sqrt\\eta G_j^0),\\quad Y_i^1=Y_i^0-\\sum_j\\omega_{ij}Z_j^0."
+      },
+      {
+        "label": "Second layer and refresh",
+        "tex": "Z_j^1=\\nabla V(q(Y_j^1)+\\sqrt\\eta G_j^1),\\quad X^+=X+hP_0-\\sum_j b_jZ_j^1,\\quad P^+=a(P_0-\\sum_j m_jZ_j^1)+\\sigma\\zeta_1."
+      },
+      {
+        "label": "Transition law",
+        "tex": "K(s,\\cdot)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad a=e^{-h/2},\\quad\\sigma=\\sqrt{1-e^{-h}}."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the index type is finite.",
+      "V is C2, kappa >= 1 and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+      "0 < eta <= c < 1, eps > 0 and h >= 0.",
+      "t, omega, positionWeight and momentumWeight are supplied finite real arrays. Their source quadrature definitions and bounds are not conclusions of this interface."
+    ],
+    "obligations": [
+      {
+        "id": "phase-law",
+        "label": "Actual jointly measurable two-layer implemented phase and exact probability law"
+      },
+      {
+        "id": "quadrature",
+        "label": "Source Chebyshev–Lobatto coefficient construction and instantiation (remaining)"
+      },
+      {
+        "id": "run",
+        "label": "Repeated-run error, moment and actual-input work estimates (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+      "title": "The actual implemented two-layer Picard phase kernel",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S3.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, Algorithm 3.1 and Appendix D.1/D.2",
+          "scope": "One implemented phase; all quadrature and convergence estimates remain separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCImplementedPhaseKernel"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the index type is finite.",
+        "V is C2, kappa >= 1 and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+        "0 < eta <= c < 1, eps > 0 and h >= 0.",
+        "t, omega, positionWeight and momentumWeight are supplied finite real arrays. Their source quadrature definitions and bounds are not conclusions of this interface."
+      ],
+      "statement": "Attributed implementation component of Algorithm 3.1 with Appendix D.1/D.2 approximate proximal queries, not a convergence theorem. Under the normalized C2 Hessian bounds and 0<eta<=c<1, eps>0, construct one measurable stopped proximal map q, its exact proximal comparison p, and its successful gradient-test count N+1. For h>=0 and supplied finite deterministic node and quadrature arrays, draw independent zeta0,zeta1,G0,G1 from the product of two standard Gaussian laws and two finite products of standard Gaussian laws. Set a=exp(-h/2), sigma=sqrt(1-exp(-h)), P0=a P+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Xnext=X+h P0-sum_j positionWeight_j Z1_j and Pnext=a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1. The joint update Phi is measurable and defines a Markov kernel K(s,.)=map(Phi(s,.),gamma); at every queried y the actual finite interpreter with fuel N(y)+1 returns (q(y),N(y)+1) and ||q(y)-p(y)||<=eps. Source node/weight construction and the repeated-run accuracy/cost theorems remain separate.",
+      "formula": "K(s,\\cdot)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad a=e^{-h/2},\\quad\\sigma=\\sqrt{1-e^{-h}}.",
+      "steps": [
+        {
+          "title": "Obtain one actual stopped proximal program",
+          "text": "The existing execution theorem constructs measurable p,N,q for the fixed potential and tolerance. It proves the optimality equation, eps accuracy, and the successful finite interpreter equation at every input. Both layers use this same q; no ideal or assumed oracle replaces it.",
+          "formula": "p(y)+\\eta\\nabla V(p(y))=y,\\quad\\|q(y)-p(y)\\|\\le\\varepsilon_{\\rm prox},\\quad\\operatorname{run}(y,N(y)+1)=(q(y),N(y)+1).",
+          "lean": "approximate_proximal_execution supplies p,N and the measurable stopped iterate; hall supplies its certificate."
+        },
+        {
+          "title": "Keep all Gaussian draws independent",
+          "text": "The two refresh coordinates have independent standard Gaussian laws. Two additional finite product factors supply independently fresh arrays G0 and G1, independent also of the incoming state in the kernel product. Product mass one follows from Mathlib probability instances.",
+          "formula": "\\gamma=(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^{\\otimes\\iota}\\otimes\\gamma_E^{\\otimes\\iota}).",
+          "lean": "stdGaussian, Measure.prod and Measure.pi construct the explicit law gamma."
+        },
+        {
+          "title": "Construct the first refreshed trajectory and layer",
+          "text": "h>=0 makes the refresh variance nonnegative. Coordinate projections, finite sums, scalar multiplication and addition are measurable. C2 regularity makes grad V continuous, so the stopped q and each stochastic-gradient evaluation preserve measurability.",
+          "formula": "P_0=aP+\\sigma\\zeta_0,\\quad Y_i^0=X+t_iP_0,\\quad Z_j^0=\\nabla V(q(Y_j^0)+\\sqrt\\eta G_j^0),\\quad Y_i^1=Y_i^0-\\sum_j\\omega_{ij}Z_j^0.",
+          "lean": "The gradient is the continuous dual isometry applied to fderiv; hqm, hg and fun_prop certify the entire joint update."
+        },
+        {
+          "title": "Use the second fresh array and complete the phase",
+          "text": "The second gradient array evaluates q at the first updated centers, using G1 rather than reusing G0. Separate terminal position and momentum weights produce the second Picard outputs. The final refresh uses zeta1. No node or weight error estimate is assumed in this construction.",
+          "formula": "Z_j^1=\\nabla V(q(Y_j^1)+\\sqrt\\eta G_j^1),\\quad X^+=X+hP_0-\\sum_j b_jZ_j^1,\\quad P^+=a(P_0-\\sum_j m_jZ_j^1)+\\sigma\\zeta_1.",
+          "lean": "The explicit lets Z1 and the output pair retain both final sums and the second refresh in Phi."
+        },
+        {
+          "title": "Construct the canonical Markov kernel",
+          "text": "Combine the identity kernel at the incoming state with the constant probability kernel gamma, and map it by the jointly measurable Phi. At s this product is delta_s tensor gamma. The Dirac-product and composition-of-map identities give the stated pushforward exactly.",
+          "formula": "K(s,\\cdot)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad a=e^{-h/2},\\quad\\sigma=\\sqrt{1-e^{-h}}.",
+          "lean": "Kernel.IsMarkovKernel.map proves mass one; Kernel.map_apply, Kernel.prod_apply, Measure.dirac_prod and Measure.map_map prove the exact output law."
+        }
+      ],
+      "lean_statement": "The exact statement displays the independent Gaussian law and complete update map under lets; every proximal call shares the actual certified stopped map.",
+      "lean_proof": "Construct the stopped map once, prove the explicit update jointly measurable, and map the canonical product Markov kernel.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.stdGaussian",
+        "MeasureTheory.Measure.pi",
+        "ProbabilityTheory.Kernel.IsMarkovKernel.map",
+        "ProbabilityTheory.Kernel.prod_apply",
+        "MeasureTheory.Measure.dirac_prod",
+        "MeasureTheory.Measure.map_map"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+      "role": "proof-edge",
+      "supports": [
+        "phase-law"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The normalized C2 Hessian bounds and Algorithm D.2 parameter range.",
+        "lean": "V is C2, kappa >= 1 and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v. 0 < eta <= c < 1, eps > 0 and h >= 0."
+      },
+      {
+        "source": "Algorithm 3.1 uses source Chebyshev–Lobatto nodes and integral weights.",
+        "lean": "t, omega, positionWeight and momentumWeight are supplied finite real arrays. Their source quadrature definitions and bounds are not conclusions of this interface."
+      },
+      {
+        "source": "Independent standard Gaussian variables in Algorithm 3.1.",
+        "lean": "Two standard Gaussian factors and two finite independent Gaussian-array factors, followed by an explicit joint measurable update."
+      },
+      {
+        "source": "A Euclidean state space with J>=2 nodes and positive phase length.",
+        "lean": "An arbitrary complete finite-dimensional real inner-product Borel space, finite index type and nonnegative h."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "f091c08c7d4e4fa45d24d91d5173f5356ae640a806a8b5c2b023d00f67bef005"
+}

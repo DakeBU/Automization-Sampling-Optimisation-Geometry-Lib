@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+      "title": "The actual implemented two-layer Picard phase kernel",
+      "boundary": "One actual gradient-only two-layer phase with supplied finite deterministic coefficients. The Chebyshev-Lobatto coefficient construction and instantiation, repeated phase law, state/moment bounds, local and accumulated error, expected work, terminal FORS, proxy warmness and both main theorems remain separate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S3.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, Algorithm 3.1 and Appendix D.1/D.2",
+          "scope": "One implemented phase; all quadrature and convergence estimates remain separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCImplementedPhaseKernel"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; the index type is finite.",
+        "V is C2, kappa >= 1 and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for every x,v.",
+        "0 < eta <= c < 1, eps > 0 and h >= 0.",
+        "t, omega, positionWeight and momentumWeight are supplied finite real arrays. Their source quadrature definitions and bounds are not conclusions of this interface."
+      ],
+      "statement": "Attributed implementation component of Algorithm 3.1 with Appendix D.1/D.2 approximate proximal queries, not a convergence theorem. Under the normalized C2 Hessian bounds and 0<eta<=c<1, eps>0, construct one measurable stopped proximal map q, its exact proximal comparison p, and its successful gradient-test count N+1. For h>=0 and supplied finite deterministic node and quadrature arrays, draw independent zeta0,zeta1,G0,G1 from the product of two standard Gaussian laws and two finite products of standard Gaussian laws. Set a=exp(-h/2), sigma=sqrt(1-exp(-h)), P0=a P+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Xnext=X+h P0-sum_j positionWeight_j Z1_j and Pnext=a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1. The joint update Phi is measurable and defines a Markov kernel K(s,.)=map(Phi(s,.),gamma); at every queried y the actual finite interpreter with fuel N(y)+1 returns (q(y),N(y)+1) and ||q(y)-p(y)||<=eps. Source node/weight construction and the repeated-run accuracy/cost theorems remain separate.",
+      "formula": "K(s,\\cdot)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad a=e^{-h/2},\\quad\\sigma=\\sqrt{1-e^{-h}}.",
+      "steps": [
+        {
+          "title": "Obtain one actual stopped proximal program",
+          "text": "The existing execution theorem constructs measurable p,N,q for the fixed potential and tolerance. It proves the optimality equation, eps accuracy, and the successful finite interpreter equation at every input. Both layers use this same q; no ideal or assumed oracle replaces it.",
+          "formula": "p(y)+\\eta\\nabla V(p(y))=y,\\quad\\|q(y)-p(y)\\|\\le\\varepsilon_{\\rm prox},\\quad\\operatorname{run}(y,N(y)+1)=(q(y),N(y)+1).",
+          "lean": "approximate_proximal_execution supplies p,N and the measurable stopped iterate; hall supplies its certificate."
+        },
+        {
+          "title": "Keep all Gaussian draws independent",
+          "text": "The two refresh coordinates have independent standard Gaussian laws. Two additional finite product factors supply independently fresh arrays G0 and G1, independent also of the incoming state in the kernel product. Product mass one follows from Mathlib probability instances.",
+          "formula": "\\gamma=(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^{\\otimes\\iota}\\otimes\\gamma_E^{\\otimes\\iota}).",
+          "lean": "stdGaussian, Measure.prod and Measure.pi construct the explicit law gamma."
+        },
+        {
+          "title": "Construct the first refreshed trajectory and layer",
+          "text": "h>=0 makes the refresh variance nonnegative. Coordinate projections, finite sums, scalar multiplication and addition are measurable. C2 regularity makes grad V continuous, so the stopped q and each stochastic-gradient evaluation preserve measurability.",
+          "formula": "P_0=aP+\\sigma\\zeta_0,\\quad Y_i^0=X+t_iP_0,\\quad Z_j^0=\\nabla V(q(Y_j^0)+\\sqrt\\eta G_j^0),\\quad Y_i^1=Y_i^0-\\sum_j\\omega_{ij}Z_j^0.",
+          "lean": "The gradient is the continuous dual isometry applied to fderiv; hqm, hg and fun_prop certify the entire joint update."
+        },
+        {
+          "title": "Use the second fresh array and complete the phase",
+          "text": "The second gradient array evaluates q at the first updated centers, using G1 rather than reusing G0. Separate terminal position and momentum weights produce the second Picard outputs. The final refresh uses zeta1. No node or weight error estimate is assumed in this construction.",
+          "formula": "Z_j^1=\\nabla V(q(Y_j^1)+\\sqrt\\eta G_j^1),\\quad X^+=X+hP_0-\\sum_j b_jZ_j^1,\\quad P^+=a(P_0-\\sum_j m_jZ_j^1)+\\sigma\\zeta_1.",
+          "lean": "The explicit lets Z1 and the output pair retain both final sums and the second refresh in Phi."
+        },
+        {
+          "title": "Construct the canonical Markov kernel",
+          "text": "Combine the identity kernel at the incoming state with the constant probability kernel gamma, and map it by the jointly measurable Phi. At s this product is delta_s tensor gamma. The Dirac-product and composition-of-map identities give the stated pushforward exactly.",
+          "formula": "K(s,\\cdot)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad a=e^{-h/2},\\quad\\sigma=\\sqrt{1-e^{-h}}.",
+          "lean": "Kernel.IsMarkovKernel.map proves mass one; Kernel.map_apply, Kernel.prod_apply, Measure.dirac_prod and Measure.map_map prove the exact output law."
+        }
+      ],
+      "lean_statement": "The exact statement displays the independent Gaussian law and complete update map under lets; every proximal call shares the actual certified stopped map.",
+      "lean_proof": "Construct the stopped map once, prove the explicit update jointly measurable, and map the canonical product Markov kernel.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.stdGaussian",
+        "MeasureTheory.Measure.pi",
+        "ProbabilityTheory.Kernel.IsMarkovKernel.map",
+        "ProbabilityTheory.Kernel.prod_apply",
+        "MeasureTheory.Measure.dirac_prod",
+        "MeasureTheory.Measure.map_map"
+      ]
+    }
+  ]
+}

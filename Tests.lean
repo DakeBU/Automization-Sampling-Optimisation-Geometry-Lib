@@ -19,6 +19,7 @@ import Tests.SmoothedPicardHMCActualContraction
 import Tests.SmoothedPicardHMCActualIncrement
 import Tests.SmoothedPicardHMCActualKernelTransport
 import Tests.GaussianConvolutionRegularity
+import Tests.SmoothedPicardHMCSmoothedGibbsPotential
 import Tests.WassersteinLipschitzMoment
 import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric

@@ -1,5 +1,38 @@
 # Companion-paper formalization handoff
 
+## Actual source smoothed Gibbs potential and preserved partition — 2026-10-06
+
+`ASTIS-SA-20261006-SPHMCSmoothedGibbsPotential` joins the genuine positive
+lower Hessian/C2 source input, original Gibbs integrability and the actual
+arbitrary-probability Gaussian convolution producer. It derives positive Z_V,
+original Gibbs probability, the positive unnormalized source A_eta, its
+integrability and preserved partition integral A_eta=Z_V. The actual Gaussian
+add-noise law equals volume.tilted(-V_eta), where V_eta=-log A_eta is globally
+C2. The exact normalized density potential U_eta=V_eta+log Z_V is proved,
+including dimension zero. No normalizer/minimizer/regularity certificate is
+supplied; an upper Hessian bound and eta upper cap are unnecessary here.
+
+Focused3707, complete independent production/Test/zero-dimensional checks,
+anonymous reconstruction and distinct fresh anti-anchored source review PASS;
+standard3 axioms only. Exact independently VERIFIED proof
+`86017daa07c550906952136c6bd3f9f46ffa7d15`:
+`runs/20261006-companion-priority/smoothed-gibbs-potential/verified.json`.
+Original raw/LF mathematics/source footprints, historical snapshots and the
+independently reviewed two-field publication-schema reconciliation remain
+immutable. Root alone integrates ExampleCases and Tests imports in the old
+sole STABILIZING/PR313 lane; old frontiers/cycles and Measure.lean remain.
+Shared aggregate/reader/graph checks pending. Goal remains active.
+
+Next bounded mathematical dependency is actual equation4.1 posterior
+score/covariance, with genuine posterior moments and derivative domination.
+Brascamp-Lieb/Cramer-Rao curvature, higher regularity and actual f=V_eta
+curvature inputs remain open. Exact-flow invariance/bias, stochastic
+Khat/Kbar errors/history/query costs, Wp/proxy-warmness/initialization,
+PBPS reflection/nonexplosion/invariance/discrete hypocoercivity/implementation
+and both complete main results/composition remain unfinished. TV never
+transfers unbounded expected cost. Rendered/copy/download acceptance is open.
+
+
 ## Actual Gaussian smoothing density and C2 regularity — 2026-10-06
 
 `ASTIS-SA-20261006-GaussianConvolutionRegularity` derives the actual Gaussian

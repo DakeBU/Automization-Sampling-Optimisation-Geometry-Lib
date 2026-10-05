@@ -1,5 +1,52 @@
 # Companion-paper formalization handoff
 
+## Counted full phase program and expected work — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCCountedPhaseWork` adds the actual finite two-layer
+interpreter and an output/count theorem. It executes the first proximal/noisy
+gradient array, constructs second centers from its returned gradients, executes
+the second array, and returns the full phase update. The returned count is
+`T=2*m+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)]`: all terminal proximal tests and exactly
+2*m direct queries. Under the same full Gaussian law and a supplied incoming
+state L2 budget, T is measurable, integrable and has expectation at most
+`m*(2+L0+L1)`, with the exact earlier MR/B/C coefficients.
+
+Proof commit: `59479640`. Independently verified source-admitted commit:
+`a5579e03460cb638f12a8e44838787c779b8bd93`. Fresh independent mathematics,
+source-blind reconstruction and current whole-module source reviews all pass;
+the source reviews are equivalent-after-elaboration with no repair. Focused
+PASS3668 includes a positive-dimensional two-node execution/numerical-bound
+consumer and a zero-fuel failure check.84 reader/publication/companion regression
+tests pass. Receipt: `runs/20261005-companion-priority/counted-phase.verified.json`.
+The verifier, not the proving Worker, wrote VERIFIED. The definition is a
+prerequisite and receives no separate source-theorem completion credit.
+
+Fuel is a noncomputable proof/execution certificate; no runtime precomputation
+of N, failed-path cost, Gaussian-draw cost, or arithmetic complexity is claimed.
+No TV law transfer is used. Root integrates this verified connected packet in
+the original single PR313 stabilization lane. Shared root/Tests imports have
+been added; canonical aggregate/site/graph admission is pending at this checkpoint.
+Prior49b437ba remote Lean, reader and contributor checks all pass. Main merge,
+rendered reader acceptance and live deployment remain separate.
+
+**Next dependency-ready mathematical delta:** instantiate actual source
+Chebyshev–Lobatto nodes and integral Lagrange coefficients from3.6/B.1, rather
+than silently identifying the supplied Fin-m arrays with the paper's J. Search
+Mathlib `Lagrange.basis`, `eval_basis_self`, `eval_basis_of_ne`, `sum_basis`,
+`Real.injOn_cos`, `intervalIntegral.norm_integral_le_integral_norm` and
+`intervalIntegral.integral_mono_on` before proving. Preserve the row coefficient
+`sum_j|omega_ij| <= t_i^2*Lambda_J/2 <= h^2*Lambda_J/2`; the logarithmic Lebesgue
+constant and nonnegative momentum-weight facts remain independent obligations
+until proved. This retrieval note is a plan, not a new compiled packet.
+
+Remaining boundaries include source quadrature/J/step choices, run-wide state
+moment D.7 and numerical repeated-phase D.8, Wp/proxy-warmness/initialization,
+PBPS event process/nonexplosion/invariance/hypocoercivity/costs, actual-input
+composition and both papers' full results. Neither paper is complete. This
+unbudgeted two-paper Goal remains active; third-source and all prior frontiers,
+cycles and collaborator work remain preserved.
+
+
 ## Same full phase query moments and work — 2026-10-05
 
 The single SAU `ASTIS-SA-20261005-SPHMCImplementedPhaseQueryWork` now joins

@@ -34,4 +34,4 @@ Use integral_add and integral_finsetSum only after establishing their integrabil
 
 $$T=2m+\sum_{i=0}^{m-1}\bigl[N(Y_i^0)+1+N(Y_i^1)+1\bigr],\quad \mathbb E_\mu T\le m(2+L_0+L_1).$$
 
-Status: focused compile; independent decoding, source and exact-commit review pending.
+Status: independent mathematics, final blind decoding and whole-module source review passed; independently VERIFIED at a5579e03460cb638f12a8e44838787c779b8bd93. Focused PASS3668; standard3 Lean foundations. Shared root integration and canonical aggregate/site/graph gates are separate.

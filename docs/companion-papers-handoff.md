@@ -19,7 +19,8 @@ Immutable mathematics/source footprints and independent bounded display/path
 reconciliations remain separate from later lifecycle/integration metadata.
 Root alone adds the Test aggregator import; original sole STABILIZING/PR313
 lane, Measure.lean, old frontiers, source inventories and cycles remain.
-Shared aggregate/reader/graph checks pending. Goal remains active.
+Exact proof 6e84711c8f472be61bf3791bb0f73f201d4167d8 independently VERIFIED; shared integration a4602990cc7c26103bc6a7a568942be3cae7a5ae. Full ASTIS gate PASS (9097 root / 9343 Tests), publication151, semantic210/8, frontier214, contributor33/29. 95 relevant Python regressions reused after exact unchanged tool/fixture checks; not rerun for this pure Lean/metadata packet. Full original reader generation, static formula/proof/folded-Lean/source/Test/residual and bounded actual import/ownership graph checks PASS, followed by official graph freshness/full site/contributor checks. Graph811 modules/597 public declarations; Registry472 unchanged. Rendered visual acceptance and metadata copy/download controls remain open.
+`runs/20261006-companion-priority/gaussian-convolution-regularity/integration.json`. Goal remains active.
 
 Normalization is explicit: Section3.1 defines unnormalized exp(-V_eta).
 For source Gibbs input exp(-V)/Z_V, this theorem's normalized U_eta equals

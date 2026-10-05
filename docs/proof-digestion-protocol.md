@@ -206,6 +206,22 @@ This prevents a section from being reported “100% formalized” merely because
 all numbered lemmas were covered while unnamed bookkeeping paragraphs were
 lost.
 
+
+### Independent topology review
+
+The source-topology extractor may not approve its own coverage. A distinct
+reviewer re-reads the raw source and the proposed node/edge records **without
+implementation Lean or the extractor's private rationale**, and tries to find
+missing proof regions, wrong edge directions, hidden external inputs, false
+ANDs, quantifier/constant-scope drift, and conditional premises whose discharge
+is missing.
+
+For a large paper/book slice, a fresh global root-closure reviewer additionally
+traces each sealed Source Anchor backward through the complete Source Proof
+Graph and checks that every substantive proof region is represented or
+explicitly excluded. Structural lint can validate the database shape; it never
+substitutes for this mathematical coverage review.
+
 ## 6. Alternative proofs are OR-routes, not one false AND
 
 If a target (T) has two sufficient routes,

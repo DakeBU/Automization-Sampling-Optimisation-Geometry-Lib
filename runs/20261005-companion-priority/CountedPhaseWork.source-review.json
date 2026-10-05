@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-3aefb7d2a390b514",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261005",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-counted-phase-work",
+    "anchor": "Algorithm3.1, AlgorithmD.2 and D.4 final paragraph: two query arrays,2J proximal and2J direct gradient calls; component restatement with explicit finite-array/incoming-state boundary",
+    "original_text": "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the actual array index is Fin m for supplied natural m, not silently the source J.\nV is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.\n0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.\nThe supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated.\nUnder mu=nu product ((Gaussian product Gaussian) product (Gaussian Fin-m array product Gaussian Fin-m array)), set d=finrank(E), a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)], L1=C[1+log(1+sqrt(4MR+2S^2B)/eps)]. There exist measurable p,q,N with exact proximal equation, ||q(y)-p(y)||<=eps and successful proximalQuery from y with fuel N(y)+1 returning (q(y),N(y)+1) for every y. P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Phi=(X+hP0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). The same Phi is measurable and defines the Gaussian pushforward Markov kernel. The count T=2*m+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)] is measurable. For every driving input w, phaseQuery with fuel(y)=N(y)+1 returns exactly some(Phi(w),T(w)); the real cast of T is integrable under mu and E_mu T<=m*(2+L0+L1).",
+    "text_sha256": "bf257e4e7573b4f0facb28711487eabe90b2e4ac0e2dac5205adb55393ec05ad"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.implemented_phase_expected_query_work",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/CountedPhaseProgram.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n{m : ℕ} {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M S : ℝ} (hh : 0 ≤ h) (hM : 0 ≤ M) (hS : 0 ≤ S)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n    (t : Fin m → ℝ) (ht : ∀ i, |t i| ≤ 1) (omega : Fin m → Fin m → ℝ)\n    (hrow : ∀ i, (∑ j, |omega i j|) ≤ S)\n    (positionWeight momentumWeight : Fin m → ℝ) :\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : Fin m => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    let L0 := C*(1+Real.log (1+Real.sqrt (2*MR)/eps))\n    let L1 := C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        run (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      let T := fun w => 2*m+∑ i, ((N (Y0 i w)+1)+(N (Y1 i w)+1))\n      Measurable Φ ∧ Measurable T ∧\n      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ w, phaseQuery (gradient V) eta eps h t omega positionWeight momentumWeight\n        (fun y => N y+1) w = some (Φ w,T w)) ∧\n      Integrable (fun w => (T w : ℝ)) μ ∧\n      (∫ w, (T w : ℝ) ∂μ) ≤ (m : ℝ)*(2+L0+L1)",
+    "statement_sha256": "a3d2c8cf844b61f21a279d7c63c13eb3d8b7839ae13f8cd07d460e49e0767d63",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space with its Borel measurable structure, and let m be any natural number, with nodes Fin(m). Let V:E->R be C^2 and let kappa be a nonnegative real with 1<=kappa. Assume, for every x,v in E,\n  kappa^(-1)||v||^2 <= D^2 V(x)[v,v] <= ||v||^2.\nFix eta,c,epsilon in R satisfying 0<eta<=c<1 and epsilon>0. Let nu be a probability measure on E x E and let xstar in E satisfy grad V(xstar)=0. Fix h,M,S>=0. Assume (X,P)->||X-xstar||^2+||P||^2 is integrable under nu with integral <=M. Let t:Fin(m)->R satisfy |t_i|<=1, and omega:Fin(m) x Fin(m)->R satisfy sum_j |omega_ij|<=S, for every i. Let b,d:Fin(m)->R be arbitrary, denoting positionWeight,momentumWeight.\nWrite D=dim_R E, a=exp(-h/2), sigma=sqrt(1-exp(-h)), G for the centered identity-covariance Gaussian probability law on E, gi=product_{Fin(m)} G, gamma=(G x G) x (gi x gi), and mu=nu x gamma. Under mu the incoming state is independent of all noises, while the two single-vector noises and the two independent finite Gaussian arrays are mutually independent. Set exactly\n  MR=M+(1-exp(-h))D,\n  B=6 MR+3 epsilon^2+3 eta D,\n  C=2+(1+log((1-c)^(-1)))/(-log c),\n  L0=C[1+log(1+sqrt(2 MR)/epsilon)],\n  L1=C[1+log(1+sqrt(4 MR+2 S^2 B)/epsilon)].\nThen there exist global measurable functions p,q:E->E and N:E->N such that for every y,\n  p(y)+eta grad V(p(y))=y,\n  ||q(y)-p(y)||<=epsilon,\n  run(grad V,eta,epsilon,y,N(y)+1,y)=some(q(y),N(y)+1).\nThe exact-real interpreter fails with none at zero fuel. At positive fuel it evaluates g(x), sets next=y-eta g(x), returns (x,1) if ||next-x||<=(1-eta)epsilon, and otherwise recurses from next with one less fuel, adding one to a successful count. Counts include the terminal successful test.\nFor those witnesses and w=((X,P),((zeta0,zeta1),(G0,G1))), define\n  P0(w)=a P+sigma zeta0,\n  Y0_i(w)=X+t_i P0(w),\n  Z0_j(w)=grad V(q(Y0_j(w))+sqrt(eta)G0_j),\n  Y1_i(w)=Y0_i(w)-sum_j omega_ij Z0_j(w),\n  Z1_j(w)=grad V(q(Y1_j(w))+sqrt(eta)G1_j),\n  Phi(w)=(X+h P0(w)-sum_j b_j Z1_j(w),\n          a(P0(w)-sum_j d_j Z1_j(w))+sigma zeta1),\n  T(w)=2m+sum_i[(N(Y0_i(w))+1)+(N(Y1_i(w))+1)] in N.\nThen Phi and T are measurable, and there exists a Markov kernel K from E x E to E x E with, for every incoming state s,\n  K(s)=(z -> Phi(s,z))_* gamma.\nFor every w, one has the exact successful execution identity\n  phaseQuery(grad V,eta,epsilon,h,t,omega,b,d,(y -> N(y)+1),w)\n    =some(Phi(w),T(w)).\nBy its approved definition, phaseQuery computes P0,Y0, sequentially collects m calls to run at the first-stage inputs, and maps each successful pair (r,k) to (g(r+sqrt(eta)G0_i),k+1). It constructs Y1 using the first collected gradient array, then sequentially collects the corresponding m second-stage calls, mapping each success to (g(r+sqrt(eta)G1_i),k+1). It returns the displayed final update and sum of collected counts; a failed call propagates none. collectQueries returns empty array/count zero at m=0, otherwise collects the first node and recursive tail and adds counts. Thus the asserted success counts all interpreter tests plus one extra shifted-gradient evaluation per node in each stage, with total overhead exactly 2m. This definition is explicitly linked in the approved context, without any additional theorem premise.\nFinally w->(T(w):R) is Bochner integrable under mu and\n  integral (T(w):R) dmu(w) <= (m:R)(2+L0+L1).\nAll sums range over all m actual nodes. The theorem establishes global successful exact-real execution, witness/error/measurability conditions, a probability transition kernel and this total expected abstract gradient-evaluation bound. It asserts no sampler invariant law, convergence, bias, final-state moment bound, finite-precision result, source-specific quadrature contract or wall-clock complexity.",
+    "text_sha256": "6d6015c09bddb9bc2077acb6d5353495a9572121c2f8b874d3478743f2e081ad",
+    "decoder": "anonymous_decoder_20261005",
+    "decoder_packet_sha256": "6475a8ef5340d1aa4d6747394cff6dd79cc527ffab895148b1bbc88fbb6728f9",
+    "decoder_run_sha256": "7f9ec94777553969caa41a269151d17256f06d5beaffc2e6f8be7ce332dc4540",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "13ee4921ffb90c44eece7c45a714a3ed562af4bdc8baa03f7fa5133bb34d537c",
+  "candidate_publication_context": {
+    "file": "6a65034723b373b5e7f73a2ac06baf1b57b3b77394f117dbff4f95bbcc79fbb5",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork\n\n/-! Algorithm 3.1 / D.2 / D.4: finite exact-real gradient-query execution.\nSuccessful runs charge the actual interpreter tests and each noisy gradient.\nFinite fuel is an execution certificate, not a source algorithm cost premise.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped NNReal BigOperators\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram\n\nprivate def collectQueries {E : Type*} :\n    (m : ℕ) → (Fin m → Option (E × ℕ)) → Option ((Fin m → E) × ℕ)\n  | 0, _ => some (Fin.elim0, 0)\n  | m+1, f => do\n    let r ← f 0\n    let s ← collectQueries m (fun i => f i.succ)\n    pure (Fin.cons r.1 s.1, r.2+s.2)\n\nprivate theorem collectQueries_some {E : Type*} (m : ℕ)\n    (f : Fin m → Option (E × ℕ)) (x : Fin m → E) (c : Fin m → ℕ)\n    (hf : ∀ i, f i = some (x i,c i)) :\n    collectQueries m f = some (x,∑ i, c i) := by\n  have heq : f = fun i => some (x i,c i) := funext hf\n  rw [heq]\n  clear hf heq f\n  induction m with\n  | zero =>\n    have hx : x = Fin.elim0 := funext fun i => Fin.elim0 i\n    simp [collectQueries, hx]\n  | succ m ih =>\n    have hx : Fin.cons (x 0) (fun i : Fin m => x i.succ) = x := by\n      funext i\n      cases i using Fin.cases <;> simp\n    simp [collectQueries, ih, Fin.sum_univ_succ, hx]\n\nsection Execution\nvariable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n\n/-- Execute both finite query arrays in index order. Each successful proximal\ncall returns its own charged tests; evaluating the shifted gradient charges one\nadditional query. The second layer uses the first layer's returned gradients.\nFailure at any insufficient-fuel call returns none; no cost is claimed for a\nfailed execution by this successful-return representation. -/\ndef phaseQuery {m : ℕ} (g : E → E) (eta eps h : ℝ)\n    (t : Fin m → ℝ) (omega : Fin m → Fin m → ℝ)\n    (positionWeight momentumWeight : Fin m → ℝ) (fuel : E → ℕ)\n    (w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E)))) :\n    Option ((E × E) × ℕ) := do\n  let P0 := Real.exp (-h/2) • w.1.2 + Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n  let Y0 := fun i => w.1.1 + t i • P0\n  let r0 ← collectQueries m (fun i =>\n    (ApproximateProximalExecution.proximalQuery g eta eps (Y0 i) (fuel (Y0 i)) (Y0 i)).map\n      (fun r => (g (r.1+Real.sqrt eta • w.2.2.1 i),r.2+1)))\n  let Y1 := fun i => Y0 i - ∑ j, omega i j • r0.1 j\n  let r1 ← collectQueries m (fun i =>\n    (ApproximateProximalExecution.proximalQuery g eta eps (Y1 i) (fuel (Y1 i)) (Y1 i)).map\n      (fun r => (g (r.1+Real.sqrt eta • w.2.2.2 i),r.2+1)))\n  pure ((w.1.1+h • P0-∑ j, positionWeight j • r1.1 j,\n    Real.exp (-h/2) • (P0-∑ j, momentumWeight j • r1.1 j) +\n      Real.sqrt (1-Real.exp (-h)) • w.2.1.2),r0.2+r1.2)\n\nprivate theorem phaseQuery_success {m : ℕ} (g q : E → E) (N fuel : E → ℕ)\n    (eta eps h : ℝ) (t : Fin m → ℝ) (omega : Fin m → Fin m → ℝ)\n    (positionWeight momentumWeight : Fin m → ℝ)\n    (hrun : ∀ y, ApproximateProximalExecution.proximalQuery g eta eps y (fuel y) y =\n      some (q y,N y+1))\n    (w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E)))) :\n    let P0 := Real.exp (-h/2) • w.1.2 + Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n    let Y0 := fun i => w.1.1+t i • P0\n    let Z0 := fun j => g (q (Y0 j)+Real.sqrt eta • w.2.2.1 j)\n    let Y1 := fun i => Y0 i-∑ j, omega i j • Z0 j\n    let Z1 := fun j => g (q (Y1 j)+Real.sqrt eta • w.2.2.2 j)\n    phaseQuery g eta eps h t omega positionWeight momentumWeight fuel w =\n      some ((w.1.1+h • P0-∑ j, positionWeight j • Z1 j,\n        Real.exp (-h/2) • (P0-∑ j, momentumWeight j • Z1 j)+\n          Real.sqrt (1-Real.exp (-h)) • w.2.1.2),\n        2*m+∑ i, ((N (Y0 i)+1)+(N (Y1 i)+1))) := by\n  classical\n  dsimp only\n  let P0 := Real.exp (-h/2) • w.1.2 + Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n  let Y0 := fun i => w.1.1+t i • P0\n  let Z0 := fun j => g (q (Y0 j)+Real.sqrt eta • w.2.2.1 j)\n  let Y1 := fun i => Y0 i-∑ j, omega i j • Z0 j\n  let Z1 := fun j => g (q (Y1 j)+Real.sqrt eta • w.2.2.2 j)\n  have h0 : collectQueries m (fun i =>\n      (ApproximateProximalExecution.proximalQuery g eta eps (Y0 i) (fuel (Y0 i)) (Y0 i)).map\n        (fun r => (g (r.1+Real.sqrt eta • w.2.2.1 i),r.2+1))) =\n      some (Z0,∑ i, ((N (Y0 i)+1)+1)) := by\n    apply collectQueries_some m _ Z0 (fun i => (N (Y0 i)+1)+1)\n    intro i\n    rw [hrun]\n    rfl\n  have h1 : collectQueries m (fun i =>\n      (ApproximateProximalExecution.proximalQuery g eta eps (Y1 i) (fuel (Y1 i)) (Y1 i)).map\n        (fun r => (g (r.1+Real.sqrt eta • w.2.2.2 i),r.2+1))) =\n      some (Z1,∑ i, ((N (Y1 i)+1)+1)) := by\n    apply collectQueries_some m _ Z1 (fun i => (N (Y1 i)+1)+1)\n    intro i\n    rw [hrun]\n    rfl\n  have hc : (∑ i, ((N (Y0 i)+1)+1))+(∑ i, ((N (Y1 i)+1)+1)) =\n      2*m+∑ i, ((N (Y0 i)+1)+(N (Y1 i)+1)) := by\n    simp only [Finset.sum_add_distrib, Finset.sum_const, Finset.card_univ,\n      Fintype.card_fin, smul_eq_mul, mul_one]\n    omega\n  unfold phaseQuery\n  try dsimp only\n  rw [h0]\n  dsimp [Bind.bind, Option.bind]\n  rw [h1]\n  dsimp [Bind.bind, Option.bind, Pure.pure]\n  rw [hc]\n\nend Execution\n\n\nsection ExpectedWork\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- A successful finite two-layer phase executes the full Gaussian update and\nreturns its actual gradient-query count. From the incoming state L2 budget,\nthat count is measurable and integrable under the same full phase law, with\nall proximal terminal tests and all direct noisy gradients charged. -/\ntheorem implemented_phase_expected_query_work {m : ℕ} {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M S : ℝ} (hh : 0 ≤ h) (hM : 0 ≤ M) (hS : 0 ≤ S)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n    (t : Fin m → ℝ) (ht : ∀ i, |t i| ≤ 1) (omega : Fin m → Fin m → ℝ)\n    (hrow : ∀ i, (∑ j, |omega i j|) ≤ S)\n    (positionWeight momentumWeight : Fin m → ℝ) :\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : Fin m => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    let L0 := C*(1+Real.log (1+Real.sqrt (2*MR)/eps))\n    let L1 := C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      let T := fun w => 2*m+∑ i, ((N (Y0 i w)+1)+(N (Y1 i w)+1))\n      Measurable Φ ∧ Measurable T ∧\n      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ w, phaseQuery (gradient V) eta eps h t omega positionWeight momentumWeight\n        (fun y => N y+1) w = some (Φ w,T w)) ∧\n      Integrable (fun w => (T w : ℝ)) μ ∧\n      (∫ w, (T w : ℝ) ∂μ) ≤ (m : ℝ)*(2+L0+L1) := by\n  classical\n  dsimp only\n  let gi := Measure.pi (fun _ : Fin m => stdGaussian E)\n  let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n  let μ := ν.prod γ\n  let MR := M+(1-Real.exp (-h))*(Module.finrank ℝ E : ℝ)\n  let B := 6*MR+3*eps^2+3*eta*(Module.finrank ℝ E : ℝ)\n  let C := 2+(1+Real.log ((1-c)⁻¹))/(-Real.log c)\n  let L0 := C*(1+Real.log (1+Real.sqrt (2*MR)/eps))\n  let L1 := C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))\n  obtain ⟨p,q,N,hp,hq,hN,hall,hΦ,K,hK,hKlaw,hw0,hw1⟩ :=\n    ImplementedPhaseWork.implemented_phase_query_moments_and_work hκ hV hH heta hec hc heps\n      ν xstar hstar hh hM hS hstateI hstate t ht omega hrow positionWeight momentumWeight\n  let P0 := fun w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E))) =>\n    Real.exp (-h/2) • w.1.2+Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n  let Y0 := fun i w => w.1.1+t i • P0 w\n  let Z0 := fun j w => gradient V (q (Y0 j w)+Real.sqrt eta • w.2.2.1 j)\n  let Y1 := fun i w => Y0 i w-∑ j, omega i j • Z0 j w\n  let T := fun w => 2*m+∑ i, ((N (Y0 i w)+1)+(N (Y1 i w)+1))\n  have hg : Measurable (gradient V) := by\n    unfold gradient\n    exact ((InnerProductSpace.toDual ℝ E).symm.continuous.comp\n      (hV.continuous_fderiv (by norm_num))).measurable\n  have hTm : Measurable T := by fun_prop\n  have hi0 (i : Fin m) : Integrable (fun w => (N (Y0 i w) : ℝ)+1) μ :=\n    (hw0 i).2.2.1\n  have hi1 (i : Fin m) : Integrable (fun w => (N (Y1 i w) : ℝ)+1) μ :=\n    (hw1 i).2.2.1\n  have hsum : Integrable (fun w => ∑ i, (((N (Y0 i w) : ℝ)+1)+\n      ((N (Y1 i w) : ℝ)+1))) μ :=\n    integrable_finsetSum Finset.univ (fun i _ => (hi0 i).add (hi1 i))\n  have hTex : (fun w => (T w : ℝ)) = fun w => 2*(m : ℝ)+\n      ∑ i, (((N (Y0 i w) : ℝ)+1)+((N (Y1 i w) : ℝ)+1)) := by\n    funext w\n    simp only [T, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat, Nat.cast_sum, Nat.cast_one]\n  have hTi : Integrable (fun w => (T w : ℝ)) μ := by\n    rw [hTex]\n    exact (integrable_const (2*(m : ℝ))).add hsum\n  refine ⟨p,q,N,hp,hq,hN,hall,hΦ,hTm,⟨K,hK,hKlaw⟩,?_,hTi,?_⟩\n  · intro w\n    exact phaseQuery_success (gradient V) q N (fun y => N y+1) eta eps h t omega\n      positionWeight momentumWeight (fun y => (hall y).2.2) w\n  · change (∫ w, (T w : ℝ) ∂μ) ≤ (m : ℝ)*(2+L0+L1)\n    rw [hTex, integral_add (integrable_const _) hsum]\n    rw [integral_finsetSum (f := fun i w => ((N (Y0 i w) : ℝ)+1)+\n      ((N (Y1 i w) : ℝ)+1)) Finset.univ (fun i _ => (hi0 i).add (hi1 i))]\n    have hb : (∑ i : Fin m, ∫ w, (((N (Y0 i w) : ℝ)+1)+\n        ((N (Y1 i w) : ℝ)+1)) ∂μ) ≤ ∑ _i : Fin m, (L0+L1) := by\n      apply Finset.sum_le_sum\n      intro i _\n      rw [integral_add (hi0 i) (hi1 i)]\n      exact add_le_add (hw0 i).2.2.2 (hw1 i).2.2.2\n    calc\n      _ ≤ (∫ _w, 2*(m : ℝ) ∂μ)+∑ _i : Fin m, (L0+L1) := add_le_add_right hb _\n      _ = (m : ℝ)*(2+L0+L1) := by\n        simp [integral_const, Finset.sum_const, nsmul_eq_mul]\n        ring\n\nend ExpectedWork\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Algorithm3.1, AlgorithmD.2 and D.4 final paragraph: two query arrays,2J proximal and2J direct gradient calls; component restatement with explicit finite-array/incoming-state boundary",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; bounded ASTIS exact-real implementation component."
+    },
+    "statement": "Under mu=nu product ((Gaussian product Gaussian) product (Gaussian Fin-m array product Gaussian Fin-m array)), set d=finrank(E), a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)], L1=C[1+log(1+sqrt(4MR+2S^2B)/eps)]. There exist measurable p,q,N with exact proximal equation, ||q(y)-p(y)||<=eps and successful proximalQuery from y with fuel N(y)+1 returning (q(y),N(y)+1) for every y. P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Phi=(X+hP0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). The same Phi is measurable and defines the Gaussian pushforward Markov kernel. The count T=2*m+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)] is measurable. For every driving input w, phaseQuery with fuel(y)=N(y)+1 returns exactly some(Phi(w),T(w)); the real cast of T is integrable under mu and E_mu T<=m*(2+L0+L1).",
+    "formulae": [
+      {
+        "label": "Actual successful phase work",
+        "tex": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1)."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the actual array index is Fin m for supplied natural m, not silently the source J.",
+      "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+      "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.",
+      "The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+    ],
+    "obligations": [
+      {
+        "id": "actual-total-phase-gradient-work",
+        "label": "Counted phase work"
+      },
+      {
+        "id": "source-global-d7-d8",
+        "label": "Source quadrature/global D7/D8 and main results remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.implemented_phase_expected_query_work",
+      "title": "Counted phase work",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "SPHMC actual two-layer phase queries",
+          "scope": "Single full Gaussian phase with supplied incoming integrable state L2 budget, finite bounded nodes and row l1 bounds; actual successful exact-real interpreter output and total gradient count. Sufficient finite fuel certifies execution and is not a runtime precomputation or a count/cost hypothesis. No cost claim for failed insufficient-fuel executions. Gaussian sampling and arithmetic are not gradient queries. Source quadrature/J adapter, run-wide D7 induction, D8 parameter/iteration substitution, Wp, proxy-warmness, initialization, PBPS and composition/main results remain open. No TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCCountedPhaseProgram"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the actual array index is Fin m for supplied natural m, not silently the source J.",
+        "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+        "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.",
+        "The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+      ],
+      "statement": "Under mu=nu product ((Gaussian product Gaussian) product (Gaussian Fin-m array product Gaussian Fin-m array)), set d=finrank(E), a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)], L1=C[1+log(1+sqrt(4MR+2S^2B)/eps)]. There exist measurable p,q,N with exact proximal equation, ||q(y)-p(y)||<=eps and successful proximalQuery from y with fuel N(y)+1 returning (q(y),N(y)+1) for every y. P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Phi=(X+hP0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). The same Phi is measurable and defines the Gaussian pushforward Markov kernel. The count T=2*m+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)] is measurable. For every driving input w, phaseQuery with fuel(y)=N(y)+1 returns exactly some(Phi(w),T(w)); the real cast of T is integrable under mu and E_mu T<=m*(2+L0+L1).",
+      "formula": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1).",
+      "steps": [
+        {
+          "title": "Execute a finite successful query array",
+          "text": "Induct on the finite array size. The empty array returns count zero. For a nonempty array, execute index zero, then the tail, returning the actual vector of outputs and the sum of their returned counts. Fin.cons reconstruction and Fin.sum_univ_succ identify the complete returned vector and count. This helper has no probabilistic or termination premise beyond the individual successful calls.",
+          "formula": "\\operatorname{collect}(r_i)=(x_i,\\sum_i c_i)\\quad\\text{if }r_i=\\operatorname{some}(x_i,c_i).",
+          "lean": "collectQueries; collectQueries_some"
+        },
+        {
+          "title": "Run the actual two-layer program",
+          "text": "For each first center, run the residual-stopped proximal interpreter and evaluate the Gaussian-shifted gradient of its returned point, adding one direct query. Construct the second centers using these actual first returned gradients; run the second array in the same manner. Form the full updated state including both half-refreshes from the second returned gradients. In both layers each proximal count N(Y)+1 already includes its terminal successful residual test. Thus the returned count is the sum of both arrays plus exactly 2*m direct gradient evaluations. Failed insufficient-fuel calls return none.",
+          "formula": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1).",
+          "lean": "phaseQuery; phaseQuery_success; Finset.sum_add_distrib"
+        },
+        {
+          "title": "Use one actual full-law witness",
+          "text": "The existing full-phase moments/work theorem supplies the same measurable p,q,N, full phase map and kernel, with both count integrabilities and the bounds L0,L1 under mu. No center moment, count-integrability or expected-query bound is introduced as a new premise. The execution identity applies its global successful proximal runs directly, with certified fuel N(y)+1.",
+          "formula": "\\operatorname{phaseQuery}(w)=\\operatorname{some}(\\Phi(w),T(w)).",
+          "lean": "ImplementedPhaseWork.implemented_phase_query_moments_and_work; phaseQuery_success"
+        },
+        {
+          "title": "Prove measurable and integrable total actual cost",
+          "text": "The C2 gradient is measurable, as are the stopped q/N and finite center maps. Therefore the natural count T is measurable. Cast the finite natural sum to the reals. Its constant part is integrable under the full probability law; each first- and second-layer count has L1 integrability supplied by the actual-law parent, so finite addition proves L1 integrability of the actual program count.",
+          "formula": "T\\in L^1(\\mu),\\qquad \\mu(\\Omega)=1.",
+          "lean": "fun_prop; Nat.cast_sum; integrable_finsetSum; Integrable.add"
+        },
+        {
+          "title": "Integrate and sum the actual query bounds",
+          "text": "Use integral_add and integral_finsetSum only after establishing their integrability hypotheses. For each index the two count expectations add to at most L0+L1. Summing over Fin m gives m*(L0+L1); probability normalization makes the constant contribution exactly 2*m. Ring arithmetic yields m*(2+L0+L1). All inputs and costs use the same full Gaussian law.",
+          "formula": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1).",
+          "lean": "integral_add; integral_finsetSum; Finset.sum_le_sum; probReal_univ; ring"
+        }
+      ],
+      "lean_statement": "Exact finite arrays, full input/return types, parameters and counting boundary are retained in Lean.",
+      "lean_proof": "The proof steps cover both private execution helpers and the public actual-law total-cost theorem. The definition itself is an execution prerequisite, not a proof edge.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork.implemented_phase_query_moments_and_work",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.phaseQuery"
+      ],
+      "mathlib_dependencies": [
+        "Fin.sum_univ_succ",
+        "MeasureTheory.integrable_finsetSum",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.probReal_univ"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.implemented_phase_expected_query_work",
+      "role": "proof-edge",
+      "supports": [
+        "actual-total-phase-gradient-work"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source Algorithm3.1 fixes quadrature; D4 uses run-wide D7 and substitutes selected parameters.",
+        "lean": "Single full Gaussian phase with supplied incoming integrable state L2 budget, finite bounded nodes and row l1 bounds; actual successful exact-real interpreter output and total gradient count. Sufficient finite fuel certifies execution and is not a runtime precomputation or a count/cost hypothesis. No cost claim for failed insufficient-fuel executions. Gaussian sampling and arithmetic are not gradient queries. Source quadrature/J adapter, run-wide D7 induction, D8 parameter/iteration substitution, Wp, proxy-warmness, initialization, PBPS and composition/main results remain open. No TV-to-unbounded-cost transfer."
+      },
+      {
+        "source": "Stopped AlgorithmD2 repeats until the residual criterion succeeds.",
+        "lean": "Finite fuel returns Option; success is certified by the proved global proximal execution with N(y)+1. Failure returns none without a successful count."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "e641c8cb28bbf0b9fc5aebdc4306e0b712ce51135a0ccb99c6e3bdd996352908"
+}

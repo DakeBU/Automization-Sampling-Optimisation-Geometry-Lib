@@ -23,8 +23,14 @@ on the source finite-dimensional result. V_eta C2/curvature must still be
 produced; this interface does not claim smoothing itself completed.
 
 Root serializes one shared Registry leaf472 and Analysis/Tests imports in
-the existing sole STABILIZING/PR313 lane. Aggregate/reader/graph checks are
-pending at this integration checkpoint. Previous9eb2f1d required GitHub
+the existing sole STABILIZING/PR313 lane. Integration `b3d4e8cb` passes canonical ASTIS root9092/Tests9332,
+134 relevant regressions,publication142/semantic197/8/frontier205 and
+contributor20/20, full static reader/site and bounded graph coverage. Actual
+Analysis/Registry/Test imports plus public ownership inspected, no fake parents.
+Receipt: `runs/20261005-companion-priority/hessian-secant-operator/integration.json`.
+Official bounded graph refresh after compact cell metadata, fresh target
+graph-check and complete site/contributor checks all PASS. Site800modules/
+4208declarations; current source/lesson unchanged, rendered visual QA open. Previous9eb2f1d required GitHub
 Lean/site/contributor CI all PASS; receipt
 `runs/20261005-companion-priority/positive-integral-weights/remote-ci.json`.
 That CI excludes this new secant interface. Draft/unmerged, no deployment.

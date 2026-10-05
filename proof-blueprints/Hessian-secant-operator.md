@@ -35,4 +35,8 @@ Never replace the real integral by a supplied operator certificate.
 Boundary: genuine C² interface only; V_eta smoothing/curvature production,
 actual positive-weight average at Picard nodes, remainder expansion, kernel
 contraction, stochastic bias/variance/history, PBPS and both main results remain
-independent. Independent proof and encoder–denoiser reviews are pending.
+independent. Independent actual mathematics, source-blind reconstruction and whole-module
+source review pass; exact independent verification 2bb8e47850aab5a519f6c07e6bffc658443a4677.
+Shared integration b3d4e8cb2ee58f42b59f8aa4cacbe4eb55c41a2c passes canonical aggregate,134 regressions,
+reader/graph and metadata gates. Final bounded graph freshness and complete site/contributor checks pass;
+pushed-head CI remains separate. Both full main results/composition stay unfinished; Goal active.

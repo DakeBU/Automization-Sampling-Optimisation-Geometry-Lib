@@ -24,3 +24,7 @@ Refined faithful positivity route: the cardinal integral has bracket2+2*sum_(int
 Current production all-J/h theorem and focused Test PASS3388/3389, standard3. All seven mathematical stages are closed locally, including actual affine source-basis uniqueness via the compiled coefficient producer. Anonymous source-blind reconstruction reports no ambiguity; independent whole-module math/source and exact-commit verification pending. This is not yet PROVED_LOCAL/VERIFIED, root-integrated, remote CI or main completion.
 
 Current admission: independent whole-module mathematics, source-blind reconstruction and anti-anchored primary-source review pass. PROVED_LOCAL and independent VERIFIED at39556a3ee600e2dc314e7e666c68230ee5fbe236; exact receipt runs/20261005-companion-priority/positive-integral-weights/verified.json. Sole original root stabilization prepares Registry471/Analysis/Tests; aggregate reader/graph and pushed-head CI pending. Both complete main results/composition remain unfinished.
+
+Shared integration1f747d13 passes canonical root9091/Tests9330,134 regressions and full static site/graph coverage. Exact integration receipt retained; final graph freshness and pushed-head CI remain separate. Goal active.
+
+Final bounded underlying graph refresh and whole-site/contributor validation pass after compact cell metadata, digest c262e73989303dafe5b71c39216efa2f2c0b2de82f8339a810c19d565764f978. No source/proof/exposition change; pushed-head CI pending.

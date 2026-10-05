@@ -22,7 +22,12 @@ progress credit. Both full main results/composition remain unfinished.
 
 Root serializes one additional technical Registry leaf471 and shared
 Analysis/Tests imports in the existing sole STABILIZING/PR313 lane.
-Aggregate/reader/graph checks pending at this integration checkpoint.
+Integration1f747d13 passes canonical ASTIS(root9091/Tests9330),134 relevant
+regressions,publication141/semantic196/8/frontier204/contributor19/19 and full
+static reader/site + bounded graph checks:798modules/4207decls/940folded.
+Receipt: runs/20261005-companion-priority/positive-integral-weights/integration.json.
+Official bounded graph refresh after compact cell metadata, fresh target
+graph-check and complete site/contributor checks all PASS; no proof/source change.
 Remote470d9a0f CI covers prior kinetic integration only; local weight proof
 is excluded. Main merge/live publication and copy/download/visual delivery
 remain separate. Older frontiers/cycles/source inventories retained.

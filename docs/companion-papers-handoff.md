@@ -37,7 +37,8 @@ Receipt: `runs/20261005-companion-priority/kinetic-dissipation.integration.json`
 Previous1ad9505f remote Lean/contributor/site CI all PASS,deploy skipped; this new
 kinetic edge needs its own final-head CI. Main merge/live deployment remain separate.
 Post-admission scalar-coercivity mirror discovery is raw/unvalidated; no formal
-transport edge. Next weight source boundary: `proof-obligations/SPHMC-clenshaw-curtis-weights.md`.
+transport edge. Metadata candidate alignment caused a stale generated graph rejection;
+official bounded graph refresh and fresh graph/full site checks pass at `1e7967f7`. Next weight source boundary: `proof-obligations/SPHMC-clenshaw-curtis-weights.md`.
 
 **Next genuine paper dependencies:** actual uniform Lebesgue Clenshaw-Curtis
 integral momentum weights must be nonnegative for the true averaged H. Pinned

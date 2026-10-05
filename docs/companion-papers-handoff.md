@@ -1,5 +1,54 @@
 # Companion-paper formalization handoff
 
+## Same full phase query moments and work — 2026-10-05
+
+The single SAU `ASTIS-SA-20261005-SPHMCImplementedPhaseQueryWork` now joins
+**the same** stopped q/N used by the full Gaussian phase kernel to both actual
+Picard query-center moments and actual per-node expected query counts. The only
+moment input is the incoming state L2 budget. It retains
+`MR=M+(1-exp(-h))*d`, including refresh noise, and derives both gradient-square
+integrability/bounds before applying the same-law logarithmic cost theorem.
+The independent positive-dimensional `Fin 2`, h=1 consumer retains all Gaussian
+factors and assumes no query-center moment or cost bound.
+
+Proof commit: `03793239be578a20ac4a99176b5cb0b3a1c43114`.
+Independent verified commit (with exact reuse-plan parents):
+`2ed86a2ec1d11bf8bd36c92ebdbd9e010a5f2611`.
+Shared root integration: `151a82fefc283f4abaa0dbd2b7a952bc5a8ba10b`.
+Focused build passes3667. Three current whole-module source reviews accept
+`equivalent-after-elaboration`, including the private law-projection helper;
+the unchanged RealizedProximalWork statement has a fresh implementation review.
+The identity is extracted once for this real consumer, with no separate proof
+progress credit. The independent verifier wrote the real VERIFIED transition;
+receipt: `runs/20261005-companion-priority/phase-query.verified.json`.
+The sole stabilization owner remains root in the existing PR313 lane.
+
+Canonical `python tools/astis.py check` passes after shared integration, including
+Lake root build, Tests9315, ATLAS and fake-closure scans. Site/graph admission is
+being regenerated at the fixed integrated state; it is not inferred from Lean
+compilation or source review. The immutable historical
+citation fix preserves the exact old source URLs and labels them as historical;
+current implementation links must still match the generated commit. Its72
+regression tests pass. Prior remote Lean CI passed at the previous PR head;
+new-head CI, main merge, browser visual QA and live deployment remain separate.
+
+**Next bounded mathematical delta:** implement actual finite-array query
+execution and certify its output equals the already constructed full phase map,
+with the same successful proximal counts plus one extra gradient evaluation for
+each Z0/Z1. For `m=card(iota)`, charge `2m` direct evaluations and both arrays of
+actual proximal tests, including every final successful test. Derive true count
+integrability and expected total work from this packet. Do not replace the
+program by a nominal sum assumed to be its cost, hide extra evaluations, or
+silently identify m with a source quadrature parameter before its adapter.
+
+Remaining independent boundaries: source quadrature/step choices, incoming-state
+history induction and numerical run-wide D.7, source parameter substitution and
+D.8, Wp/proxy-warmness/initialization; PBPS process/invariance/nonexplosion/mixing,
+implementation costs, actual-input composition and both full main results.
+Neither paper is complete. The two-paper Goal stays active without a budget.
+The third-paper source route and all prior frontiers/cycles remain preserved.
+
+
 ## Safe synchronization and implemented phase — 2026-10-05
 
 This thread resumed the existing **two-paper** PBPS/SPHMC Goal. Safely fetched

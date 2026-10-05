@@ -123,7 +123,7 @@ def analysisMemory : List LemmaMemoryEntry := [
     status := LemmaMemoryStatus.formalizedLocal,
     tags := ["analysis", "interpolation", "quadrature", "Chebyshev-Lobatto", "SPHMC"],
     saldUse := "actual SPHMC counted phase source coefficients; depth-K exact Picard integrator (planned consumer)",
-    note := "J>=2 and h>0. Actual distinct nodes, cardinal/partition/endpoint laws, compact Lambda>=1, sharp row bound h^2*Lambda/2 and sum momentum weights=h. Logarithmic Lambda, individual weight positivity and B2 remainder remain unproved; not complete B1 or a main theorem."
+    note := "J>=2 and h>0. Actual distinct nodes, cardinal/partition/endpoint laws, compact Lambda>=1, sharp row bound h^2*Lambda/2 and sum momentum weights=h. This coefficient theorem omits logarithmic Lambda, individual weight positivity and B2 remainder; the separate admitted positive-weights leaf closes positivity only. Not complete B1 or a main theorem."
   },
   {
     key := "analysis.gradient.ae-congruence-obstruction",

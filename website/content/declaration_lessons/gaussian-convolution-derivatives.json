@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+      "title": "Actual posterior score and covariance identities",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+          "label": "SPHMC equation4.1 actual posterior score/covariance",
+          "scope": "Actual everywhere-selected quadratic Gaussian posterior has probability and finite second moments, without input moments; true first/second derivatives of negative log of the Gaussian normalizer equal posterior mean and covariance, including the positive constant prefactor and dimension zero. No Brascamp-Lieb/Cramer-Rao covariance inequalities, source Hessian bounds/higher cumulants, stationarity/algorithm accuracy/history/expected work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianConvolutionDerivatives"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space with its Borel measurable space, including dimension zero. mu is an arbitrary probability measure; eta>0 and C>0 are real numbers. No input density, finite input moments, input potential, smoothness, curvature, normalizer or conditional-version certificate is assumed.",
+        "Z(y)=integral exp(-norm(y-x)^2/(2eta))dmu(x), R_y=mu.tilted(-norm(x-y)^2/(2eta)), U(y)=-log(C Z(y)). C is an arbitrary positive constant prefactor; choosing the actual Gaussian C_eta gives its negative-log probability density. Other C values are not asserted to normalize a density.",
+        "R_y is the actual everywhere-selected posterior of the Gaussian augmentation, previously identified as a measurable Markov/disintegration kernel. Probability and finite second moments are derived here; mean is the Bochner integral, covarianceBilin is the true centered bilinear covariance. The new theorem concerns this selected version, never an arbitrary conditional representative.",
+        "For the source Gibbs input, the actual source unnormalized potential V_eta differs from the normalized density potential U_eta by the already-proved constant log Z_V. The genuine Test derives original Gibbs probability from C2 and positive lower Hessian, proves source V_eta directional derivative/covariance identities by this exact constant, and joins the same augmentation backward kernel. Source Hessian upper bound and eta upper cap are unnecessary for these identities."
+      ],
+      "statement": "At every observation y, R_y is a probability measure and the identity map belongs to L2(R_y). For every direction v, DU(y)[v]=inner(y-mean(R_y),v)/eta. For every v,w, D2U(y)[v,w]=inner(v,w)/eta-covarianceBilin(R_y)(v,w)/eta^2. These are actual first and second Frechet derivatives and actual finite posterior moments; the constant positive prefactor cancels exactly.",
+      "formula": "R_y(dx)=Z(y)^{-1}e^{-\\|x-y\\|^2/(2\\eta)}\\mu(dx),\\quad X\\in L^2(R_y),\\quad DU(y)[v]=\\eta^{-1}\\langle y-\\mathbb E_{R_y}X,v\\rangle,\\quad D^2U(y)[v,w]=\\eta^{-1}\\langle v,w\\rangle-\\eta^{-2}\\operatorname{Cov}_{R_y}(\\langle v,X\\rangle,\\langle w,X\\rangle).",
+      "boundary": "Actual everywhere-selected quadratic Gaussian posterior has probability and finite second moments, without input moments; true first/second derivatives of negative log of the Gaussian normalizer equal posterior mean and covariance, including the positive constant prefactor and dimension zero. No Brascamp-Lieb/Cramer-Rao covariance inequalities, source Hessian bounds/higher cumulants, stationarity/algorithm accuracy/history/expected work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost.",
+      "steps": [
+        {
+          "title": "Use genuine dominated Gaussian derivatives",
+          "text": "Reuse the same canonical kernel calculus. Its positive weight has uniformly bounded first and second operator derivatives. Probability-integrable constants justify differentiating the actual normalizer twice. The existing private regularity proof now returns these proved derivative interfaces; they are not supplied hypotheses.",
+          "formula": "Dw_y[v]=-\\eta^{-1}w_y\\langle y-x,v\\rangle,\\quad D^2w_y[v,u]=-\\eta^{-1}w_y\\langle v,u\\rangle+\\eta^{-2}w_y\\langle y-x,v\\rangle\\langle y-x,u\\rangle,\\quad\\|Dw_y\\|\\le(1+2\\eta)/\\eta,\\ \\|D^2w_y\\|\\le3/\\eta.",
+          "lean": "gaussianNormalizerRegularity; gaussianDeriv; gaussianFirstDeriv; hasFDerivAt_integral_of_dominated_of_fderiv_le; normalizerDerivatives"
+        },
+        {
+          "title": "Derive posterior probability and second moments",
+          "text": "Gaussian damping gives w<=1 and w norm(x-y)^2<=2eta. The triangle inequality yields w norm(x)^2<=2 norm(y)^2+4eta. Both dominating constants are integrable against the probability input. Positive normalizer and the actual tilted integrability identity derive posterior probability and identity L2, even when the input has no moments.",
+          "formula": "0<w\\le1,\\quad w\\|x-y\\|^2\\le2\\eta,\\quad w\\|x\\|^2\\le2\\|y\\|^2+4\\eta\\ \\Longrightarrow\\ R_y\\text{ probability},\\quad X\\in L^2(R_y).",
+          "lean": "posteriorMoment; Real.mul_exp_neg_le_exp_neg_one; isProbabilityMeasure_tilted; integrable_tilted_iff; memLp_two_iff_integrable_sq_norm"
+        },
+        {
+          "title": "Identify normalized derivative moments",
+          "text": "Insert the exact quadratic tilt into the Bochner integral and divide by the positive Gaussian normalizer. Continuous-linear-map evaluation commutes with integrable derivative integrals. The explicit kernel formulas produce actual posterior first and second uncentered moments; splitting the second derivative uses integrability, rather than undefined total integrals.",
+          "formula": "DZ(y)[v]/Z(y)=-\\eta^{-1}\\mathbb E_{R_y}\\langle y-X,v\\rangle,\\quad D^2Z(y)[v,w]/Z(y)=-\\eta^{-1}\\langle v,w\\rangle+\\eta^{-2}\\mathbb E_{R_y}[\\langle y-X,v\\rangle\\langle y-X,w\\rangle].",
+          "lean": "posteriorIntegral; normalizedFirst; normalizedSecond; integral_tilted; integral_div; ContinuousLinearMap.integral_apply; Integrable.apply_continuousLinearMap; integral_add"
+        },
+        {
+          "title": "Differentiate the negative log exactly",
+          "text": "The positive normalizer justifies log differentiation and differentiating its reciprocal. Apply the product rule to the actual first derivative map. Evaluating the resulting second derivative gives the exact quotient, including its sign and eta powers.",
+          "formula": "D(-\\log Z)[v]=-DZ[v]/Z,\\quad D^2(-\\log Z)[v,w]=DZ[v]DZ[w]/Z^2-D^2Z[v,w]/Z.",
+          "lean": "rawFirst; rawSecond; HasFDerivAt.log; hasDerivAt_inv; HasDerivAt.comp_hasFDerivAt; HasFDerivAt.smul; HasFDerivAt.neg"
+        },
+        {
+          "title": "Center the actual finite moments",
+          "text": "Posterior L2 implies an actual Bochner mean and L2 of every displacement projection. Integral linearity identifies the expected displacement with y minus the mean. The true L2 covariance identity subtracts the product of means; translation and two signs identify displacement covariance with covarianceBilin(R_y). Substitute the normalized moments in the log quotient.",
+          "formula": "\\mathbb E\\langle y-X,v\\rangle=\\langle y-\\mathbb EX,v\\rangle,\\quad\\operatorname{Cov}(y-X)=\\operatorname{Cov}(X),\\quad D^2(-\\log Z)=\\eta^{-1}I-\\eta^{-2}\\operatorname{Cov}(R_y).",
+          "lean": "MemLp.integrable; MemLp.inner_const; integral_inner; integral_sub; covariance_eq_sub; covariance_const_sub_left/right; covarianceBilin_apply_eq_cov"
+        },
+        {
+          "title": "Keep the positive prefactor and source convention",
+          "text": "For C>0 and Z>0, -log(CZ)=-log Z-log C. This fixed constant has zero derivatives. The genuine source Test uses the existing exact U_eta=V_eta+log Z_V, so the first and second directional identities apply to the source unnormalized V_eta and its same backward Gaussian kernel. The identities give no quantitative covariance inequality or Hessian curvature estimate.",
+          "formula": "U=-\\log Z-\\log C,\\quad U_\\eta=V_\\eta+\\log Z_V\\ \\Longrightarrow\\ DU_\\eta=DV_\\eta,\\quad D^2U_\\eta=D^2V_\\eta.",
+          "lean": "Real.log_mul; fderiv_sub_const; Tests.GaussianConvolutionDerivatives.actual_source_score_covariance; SmoothedGibbsPotential.smoothed_gibbs_potential; GaussianConditionalKernel.exists_tilted_isCondKernel"
+        }
+      ],
+      "lean_statement": "Actual selected posterior probability/L2 and all-direction first/second Frechet derivative identities using actual mean and covariance.",
+      "lean_proof": "Canonical dominated Gaussian derivative integrals, true posterior L2, exact tilted normalized moments, log/reciprocal product derivative, actual centered covariance and positive constant cancellation.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "hasFDerivAt_integral_of_dominated_of_fderiv_le",
+        "integral_tilted",
+        "integrable_tilted_iff",
+        "isProbabilityMeasure_tilted",
+        "memLp_two_iff_integrable_sq_norm",
+        "ContinuousLinearMap.integral_apply",
+        "Integrable.apply_continuousLinearMap",
+        "HasFDerivAt.log",
+        "hasDerivAt_inv",
+        "HasDerivAt.comp_hasFDerivAt",
+        "integral_inner",
+        "covariance_eq_sub",
+        "covarianceBilin_apply_eq_cov",
+        "Real.log_mul",
+        "fderiv_sub_const"
+      ]
+    }
+  ]
+}

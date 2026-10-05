@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-fdee02bd6f4f7dd8",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261006",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:gaussian-convolution-derivatives",
+    "anchor": "arXiv:2609.06906v1 Section4.1 equation4.1 HTML403-412; Section3.1 unnormalized convolution convention; PBPS2609.06905v1 Section2.2 actual Gaussian augmentation/selected backward quadratic tilt",
+    "original_text": "Attributed equation4.1 restatement:\nE is a finite-dimensional real inner-product space with its Borel measurable space, including dimension zero. mu is an arbitrary probability measure; eta>0 and C>0 are real numbers. No input density, finite input moments, input potential, smoothness, curvature, normalizer or conditional-version certificate is assumed.\nZ(y)=integral exp(-norm(y-x)^2/(2eta))dmu(x), R_y=mu.tilted(-norm(x-y)^2/(2eta)), U(y)=-log(C Z(y)). C is an arbitrary positive constant prefactor; choosing the actual Gaussian C_eta gives its negative-log probability density. Other C values are not asserted to normalize a density.\nR_y is the actual everywhere-selected posterior of the Gaussian augmentation, previously identified as a measurable Markov/disintegration kernel. Probability and finite second moments are derived here; mean is the Bochner integral, covarianceBilin is the true centered bilinear covariance. The new theorem concerns this selected version, never an arbitrary conditional representative.\nFor the source Gibbs input, the actual source unnormalized potential V_eta differs from the normalized density potential U_eta by the already-proved constant log Z_V. The genuine Test derives original Gibbs probability from C2 and positive lower Hessian, proves source V_eta directional derivative/covariance identities by this exact constant, and joins the same augmentation backward kernel. Source Hessian upper bound and eta upper cap are unnecessary for these identities.\nAt every observation y, R_y is a probability measure and the identity map belongs to L2(R_y). For every direction v, DU(y)[v]=inner(y-mean(R_y),v)/eta. For every v,w, D2U(y)[v,w]=inner(v,w)/eta-covarianceBilin(R_y)(v,w)/eta^2. These are actual first and second Frechet derivatives and actual finite posterior moments; the constant positive prefactor cancels exactly.\nActual everywhere-selected quadratic Gaussian posterior has probability and finite second moments, without input moments; true first/second derivatives of negative log of the Gaussian normalizer equal posterior mean and covariance, including the positive constant prefactor and dimension zero. No Brascamp-Lieb/Cramer-Rao covariance inequalities, source Hessian bounds/higher cumulants, stationarity/algorithm accuracy/history/expected work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost.",
+    "text_sha256": "689efa4bbe95b410350f2534ba8fcd3aa941e7c03c2122b4cc4b88ad87066a00"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianConvolutionRegularity.lean",
+    "statement": "(μ : Measure E) [IsProbabilityMeasure μ] {η C : ℝ} (hη : 0 < η)\n    (hC : 0 < C) :\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)\n    (∀ y, IsProbabilityMeasure (R y) ∧ MemLp (fun x : E => x) 2 (R y)) ∧\n    (∀ y v, fderiv ℝ U y v = inner ℝ (y-∫ x, x ∂(R y)) v/η) ∧\n    ∀ y v w, fderiv ℝ (fderiv ℝ U) y v w =\n      inner ℝ v w/η - covarianceBilin (R y) v w/η^2",
+    "statement_sha256": "0978b7bb4d41f98865c424f00a719086fc0ce67783405c02c08b2f8df628565a",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space with its Borel measurable structure,including dimension zero. Let mu be any probability measure on E,and let eta,C be strictly positive real numbers. C is a scalar constant,independent of y,and is not required to be a Gaussian density prefactor. Define the actual measures and real function\n  R(y)=mu.tilted(x -> -||x-y||^2/(2eta)),\n  U(y)=-log(C integral_E exp(-||y-x||^2/(2eta)) dmu(x)).\nThe exponential tilt is normalized against its base law mu:for fixed y its density relative to mu is\n  exp(-||x-y||^2/(2eta)) /\n    integral_E exp(-||xprime-y||^2/(2eta)) dmu(xprime).\nAll real/vector integrals are Bochner integrals. For each y write m_y=integral_E x dR(y)(x),an E-valued mean. Then the theorem consists of these three grouped conclusions:\n  1. For every y in E,R(y) is a probability measure and the E-valued identity x->x belongs to L2(R(y)) in the MemLp sense:it is measurable in the appropriate almost-everywhere strong sense and has finite second moment under that actual tilted law.\n  2. For every y,v in E,the genuine Frechet-derivative API satisfies\n       D U(y)[v]=<y-m_y,v>/eta.\n  3. For every y,v,w in E,the nested Frechet derivative,first differentiating the continuous-linear-map-valued function y->D U(y),then applying directions v and w,satisfies\n       D(D U)(y)[v][w]=<v,w>/eta-CovBilin(R(y))(v,w)/eta^2.\nHere D U(y) has type E->continuous-linear[R]R,and D(D U)(y) has type E->continuous-linear[R](E->continuous-linear[R]R). The covariance term is a real-valued bilinear covariance of scalar projections <v,X> and <w,X> under R(y),not a covariance matrix or an E-valued operator supplied as a premise. With the mean m_y,it is the real centered covariance\n  integral_E (<v,x>-<v,m_y>)(<w,x>-<w,m_y>) dR(y)(x).\nIts moment meaning is justified by the first grouped conclusion about the E-valued identity under the probability law R(y).\nAll y,v,w are arbitrary vectors and the derivative equalities are pointwise,not only almost everywhere. The input mu need not possess a Lebesgue density or finite moments. eta has no upper-bound restriction. No original-law L2 assumption,pre-supplied tilted moment,derivative identity,potential,Hessian hypothesis or covariance certificate is assumed. The statement does not separately assert a global ContDiff property,a Gaussian pushforward/density identity,convexity,Hessian bounds,higher smoothness or a sampling algorithm;it asserts exactly the probability/L2 and two derivative identities above.",
+    "text_sha256": "762f863b79531d99e717d53b83ce946beacfc9e5785700d4afaeb8bb0bab9b6c",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_packet_sha256": "7e933c3a2f5f1b910ab6e14132812939eddfadbee6575cb68ffbbc7b2bdcc11e",
+    "decoder_run_sha256": "8636fded216caa4adab50d34df4ad228252fb9de83f4bc6f85a6bf79b273fdbb",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "b55df2257db1943ea8e38f3387479905ef84fc7b3a7e2fe3bce7d0c907b98c07",
+  "candidate_publication_context": {
+    "file": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+    "current_lean_module": "import Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.Calculus.ParametricIntegral\nimport Mathlib.Analysis.SpecialFunctions.ExpDeriv\nimport Mathlib.Analysis.SpecialFunctions.Log.Deriv\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.MeasureTheory.Function.L2Space\nimport Mathlib.Probability.Moments.CovarianceBilin\nimport Mathlib.Tactic\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianAugmentation\n\nopen MeasureTheory ProbabilityTheory Filter Set\nopen scoped Topology InnerProductSpace\n/-!\n# Actual Gaussian convolution potential regularity\n\nThe actual independent Gaussian add-noise marginal has a positive density\nC_eta Z_eta. Derive global C2 regularity of its negative logarithm, with no\ninput density or moment assumption, from explicit Gaussian first/second\nderivative domination against the probability input law.\n\nThis is the analytic producer behind SPHMC2609.06906v1 Section4.1 smoothing\nand PBPS2609.06905v1 Section2.2 augmentation normalization. Actual posterior\nscore and covariance derivative identities are proved below. Quantitative\ncovariance inequalities/curvature, higher regularity, invariance, algorithm\nerror and either main theorem remain separate. The exact density prefactor\nincludes dimension zero.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity\n\nnoncomputable section\nset_option backward.isDefEq.respectTransparency false\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\nprivate local instance : NormedSpace ℝ ℝ := NormedField.toNormedSpace\nprivate local instance : NormedAddCommGroup (E →L[ℝ] ℝ) := ContinuousLinearMap.toNormedAddCommGroup\nprivate local instance : NormedSpace ℝ (E →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace\n\nprivate def gaussianWeight (η : ℝ) (y x : E) : ℝ := Real.exp (-‖y-x‖^2/(2*η))\nprivate def gaussianFirst (η : ℝ) (y x : E) : E →L[ℝ] ℝ :=\n  (-gaussianWeight η y x/η) • innerSL ℝ (y-x)\n\nprivate theorem gaussianDeriv (η : ℝ) (y x : E) :\n    HasFDerivAt (fun z => gaussianWeight η z x) (gaussianFirst η y x) y := by\n  have hd := (((hasFDerivAt_id y).sub_const x).norm_sq.const_mul (-1/(2*η))).exp\n  convert hd using 1\n  · funext z\n    dsimp only [gaussianWeight, id]\n    congr 1\n    ring\n  · ext v\n    dsimp only [id]\n    have he : -‖y-x‖^2/(2*η) = (-1/(2*η))*‖y-x‖^2 := by ring\n    simp only [gaussianFirst,gaussianWeight,he,smul_apply,\n      ContinuousLinearMap.comp_apply,ContinuousLinearMap.id_apply,smul_eq_mul,\n      innerSL_apply_apply]\n    ring\n\nprivate theorem gaussianSmooth (η : ℝ) (x : E) : ContDiff ℝ 2 (fun y => gaussianWeight η y x) := by\n  have hn : ContDiff ℝ 2 (fun y : E => ‖y-x‖^2) :=\n    (contDiff_id.sub contDiff_const).norm_sq (𝕜 := ℝ)\n  have hm : ContDiff ℝ 2 (fun y : E => (-1/(2*η))*‖y-x‖^2) := contDiff_const.mul hn\n  convert hm.exp using 1 <;> try rfl\n  funext y\n  dsimp only [gaussianWeight, id]\n  congr 1\n  ring\n\nprivate theorem weight_bounds {η : ℝ} (hη : 0 < η) (y x : E) :\n    0 < gaussianWeight η y x ∧ gaussianWeight η y x ≤ 1 ∧\n      gaussianWeight η y x * ‖y-x‖^2 ≤ 2*η := by\n  have hw := Real.exp_pos (-‖y-x‖^2/(2*η))\n  have h1 : gaussianWeight η y x ≤ 1 := Real.exp_le_one_iff.mpr\n    (div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity))\n  have hb := Real.mul_exp_neg_le_exp_neg_one (‖y-x‖^2/(2*η))\n  have he : Real.exp (-1) ≤ 1 := Real.exp_le_one_iff.mpr (by norm_num)\n  have hb' : gaussianWeight η y x * (‖y-x‖^2/(2*η)) ≤ 1 := by\n    dsimp [gaussianWeight]; simpa [mul_comm, neg_div] using hb.trans he\n  have heq : gaussianWeight η y x * (‖y-x‖^2/(2*η)) =\n      (gaussianWeight η y x * ‖y-x‖^2)/(2*η) := by ring\n  rw [heq, div_le_iff₀ (by positivity)] at hb'\n  exact ⟨hw,h1,by simpa using hb'⟩\n\nprivate theorem first_bound {η : ℝ} (hη : 0 < η) (y x : E) :\n    ‖gaussianFirst η y x‖ ≤ (1+2*η)/η := by\n  obtain ⟨hw,h1,h2⟩ := weight_bounds hη y x\n  have hr : ‖y-x‖ ≤ 1+‖y-x‖^2 := by nlinarith [sq_nonneg (‖y-x‖-1)]\n  have hb : gaussianWeight η y x * ‖y-x‖ ≤ 1+2*η := by\n    calc\n      _ ≤ gaussianWeight η y x * (1+‖y-x‖^2) := mul_le_mul_of_nonneg_left hr hw.le\n      _ ≤ 1+2*η := by nlinarith\n  rw [gaussianFirst, norm_smul, Real.norm_eq_abs, abs_div,\n    abs_neg, abs_of_pos hw, abs_of_pos hη, innerSL_apply_norm]\n  rw [div_mul_eq_mul_div, div_le_div_iff_of_pos_right hη]\n  exact hb\n\nprivate def realDual : E →L[ℝ] (E →L[ℝ] ℝ) := innerSL ℝ\n\nprivate def gaussianSecond (η : ℝ) (y x : E) : E →L[ℝ] (E →L[ℝ] ℝ) :=\n  (-gaussianWeight η y x/η) • realDual +\n    ((-1/η) • gaussianFirst η y x).smulRight (innerSL ℝ (y-x))\n\nprivate theorem gaussianFirstDeriv (η : ℝ) (y x : E) :\n    HasFDerivAt (fun z => gaussianFirst η z x) (gaussianSecond η y x) y := by\n  have hc := (gaussianDeriv η y x).const_mul (-1/η)\n  have hl := (realDual (E := E)).hasFDerivAt.comp y ((hasFDerivAt_id y).sub_const x)\n  convert hc.smul hl using 1 <;> try rfl\n  · funext z; dsimp [gaussianFirst]; congr 1; ring\n  · ext v w\n    change ((gaussianSecond η y x) v) w = _\n    simp [gaussianSecond, realDual, gaussianFirst,\n      innerSL_apply_apply]\n    dsimp [innerSL]\n    ring\n\nprivate theorem second_bound {η : ℝ} (hη : 0 < η) (y x : E) :\n    ‖gaussianSecond η y x‖ ≤ 3/η := by\n  obtain ⟨hw,h1,h2⟩ := weight_bounds hη y x\n  have ha : ‖(-gaussianWeight η y x/η) •\n      (realDual (E := E))‖ ≤ 1/η := by\n    rw [norm_smul, Real.norm_eq_abs, abs_div, abs_neg, abs_of_pos hw, abs_of_pos hη]\n    calc\n      _ ≤ (gaussianWeight η y x/η)*1 :=\n        mul_le_mul_of_nonneg_left (show ‖(realDual (E := E))‖ ≤ 1 from\n          norm_innerSL_le (𝕜 := ℝ)) (by positivity)\n      _ ≤ 1/η := by simpa using (div_le_div_iff_of_pos_right hη).mpr h1\n  have hb : ‖((-1/η) • gaussianFirst η y x).smulRight (innerSL ℝ (y-x))‖ ≤ 2/η := by\n    rw [ContinuousLinearMap.norm_smulRight_apply, norm_smul, Real.norm_eq_abs,\n      abs_div, abs_neg, abs_one, abs_of_pos hη, gaussianFirst, norm_smul,\n      Real.norm_eq_abs, abs_div, abs_neg, abs_of_pos hw, abs_of_pos hη,\n      innerSL_apply_norm]\n    have heq : (1/η*(gaussianWeight η y x/η*‖y-x‖))*‖y-x‖ =\n        (gaussianWeight η y x*‖y-x‖^2)/η^2 := by ring\n    rw [heq, div_le_iff₀ (sq_pos_of_pos hη)]\n    calc\n      _ ≤ 2*η := h2\n      _ = 2/η*η^2 := by field_simp\n  dsimp only [gaussianSecond]\n  calc\n    _ ≤ ‖(-gaussianWeight η y x/η) • (realDual (E := E))‖ +\n      ‖((-1/η) • gaussianFirst η y x).smulRight (innerSL ℝ (y-x))‖ := norm_add_le _ _\n    _ ≤ 1/η+2/η := add_le_add ha hb\n    _ = 3/η := by ring\n\nvariable [MeasurableSpace E] [BorelSpace E] [FiniteDimensional ℝ E]\n\nprivate theorem gaussianNormalizerRegularity (μ : Measure E) [IsProbabilityMeasure μ]\n    {η : ℝ} (hη : 0 < η) :\n    let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ\n    let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ\n    let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ\n    (∀ y, 0 < Z y) ∧ ContDiff ℝ 2 Z ∧\n      (∀ C : ℝ, 0 < C → ContDiff ℝ 2 (fun y => -Real.log (C*Z y))) ∧\n      (∀ y, HasFDerivAt Z (D y) y) ∧ (∀ y, HasFDerivAt D (H y) y) := by\n  let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ\n  let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ\n  let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ\n  have hI (y : E) : Integrable (gaussianWeight η y) μ := by\n    apply (integrable_const (1 : ℝ)).mono' (by unfold gaussianWeight; fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_pos (weight_bounds hη y x).1]\n    exact (weight_bounds hη y x).2.1\n  have hZ (y : E) : 0 < Z y := integral_exp_pos (hI y)\n  have hDmeas (y : E) : AEStronglyMeasurable (gaussianFirst η y) μ := by\n    apply Continuous.aestronglyMeasurable\n    unfold gaussianFirst gaussianWeight\n    fun_prop\n  have hHmeas (y : E) : AEStronglyMeasurable (gaussianSecond η y) μ := by\n    apply Continuous.aestronglyMeasurable\n    unfold gaussianSecond gaussianFirst gaussianWeight\n    fun_prop\n  have hDI (y : E) : Integrable (gaussianFirst η y) μ := by\n    apply (integrable_const ((1+2*η)/η)).mono' (hDmeas y)\n    filter_upwards with x\n    exact first_bound hη y x\n  have hdZ (y : E) : HasFDerivAt Z (D y) y := by\n    apply hasFDerivAt_integral_of_dominated_of_fderiv_le (s := Set.univ)\n      (bound := fun _ => (1+2*η)/η) (Filter.univ_mem)\n    · exact Filter.Eventually.of_forall (fun z => (hI z).aestronglyMeasurable)\n    · exact hI y\n    · exact hDmeas y\n    · exact Filter.Eventually.of_forall (fun x z _ => first_bound hη z x)\n    · exact integrable_const _\n    · exact Filter.Eventually.of_forall (fun x z _ => gaussianDeriv η z x)\n  have hdD (y : E) : HasFDerivAt D (H y) y := by\n    apply hasFDerivAt_integral_of_dominated_of_fderiv_le (s := Set.univ)\n      (bound := fun _ => 3/η) (Filter.univ_mem)\n    · exact Filter.Eventually.of_forall hDmeas\n    · exact hDI y\n    · exact hHmeas y\n    · exact Filter.Eventually.of_forall (fun x z _ => second_bound hη z x)\n    · exact integrable_const _\n    · exact Filter.Eventually.of_forall (fun x z _ => gaussianFirstDeriv η z x)\n  have hHC : Continuous H := by\n    apply continuous_of_dominated hHmeas\n      (bound := fun _ => 3/η) (fun y => Filter.Eventually.of_forall (fun x => second_bound hη y x))\n      (integrable_const _)\n    filter_upwards with x\n    unfold gaussianSecond gaussianFirst gaussianWeight\n    fun_prop\n  have hDC : ContDiff ℝ 1 D := contDiff_one_iff_fderiv.mpr\n    ⟨fun y => (hdD y).differentiableAt, by\n      have he : fderiv ℝ D = H := funext (fun y => (hdD y).fderiv)\n      rw [he]; exact hHC⟩\n  have hZC : ContDiff ℝ 2 Z := by\n    rw [show (2 : WithTop ℕ∞) = 1+1 by norm_num, contDiff_succ_iff_fderiv]\n    refine ⟨fun y => (hdZ y).differentiableAt, by simp, ?_⟩\n    have he : fderiv ℝ Z = D := funext (fun y => (hdZ y).fderiv)\n    rw [he]; exact hDC\n  refine ⟨hZ,hZC,?_,hdZ,hdD⟩\n  intro C hC\n  exact ((contDiff_const.mul hZC).log (fun y => (mul_pos hC (hZ y)).ne')).neg\n\nprivate theorem gaussianDensity (μ : Measure E) [IsProbabilityMeasure μ]\n    {η : ℝ} (hη : 0 < η) :\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ\n    (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n      (volume : Measure E).withDensity (fun y => ENNReal.ofReal (C*Z y)) := by\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ\n  have hC : 0 ≤ C := by dsimp [C]; positivity\n  have hZC : ContDiff ℝ 2 Z := (gaussianNormalizerRegularity μ hη).2.1\n  have hden : Measurable (fun y => ENNReal.ofReal (C*Z y)) :=\n    (measurable_const.mul hZC.continuous.measurable).ennreal_ofReal\n  have hI (y : E) : Integrable (gaussianWeight η y) μ := by\n    apply (integrable_const (1 : ℝ)).mono' (by unfold gaussianWeight; fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_pos (weight_bounds hη y x).1]\n    exact (weight_bounds hη y x).2.1\n  have hJ := AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianAugmentation.augmentation_eq_withDensity μ η hη\n  have hmap : (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n      ((μ.prod (stdGaussian E)).map (fun p => (p.1,p.1+Real.sqrt η • p.2))).map Prod.snd := by\n    rw [Measure.map_map (by fun_prop) (by fun_prop)]\n    rfl\n  rw [hmap,hJ]\n  apply Measure.ext_of_lintegral\n  intro f hf\n  rw [lintegral_map hf (by fun_prop)]\n  rw [lintegral_withDensity_eq_lintegral_mul (μ.prod (volume : Measure E))\n      (by fun_prop) (g := fun p : E × E => f p.2) (hf.comp measurable_snd)]\n  rw [lintegral_prod_symm _ (by fun_prop),\n    lintegral_withDensity_eq_lintegral_mul (volume : Measure E) hden (g := f) hf]\n  refine lintegral_congr (fun y => ?_)\n  change (∫⁻ x, ENNReal.ofReal (C*gaussianWeight η y x)*f y ∂μ) =\n    ENNReal.ofReal (C*Z y)*f y\n  rw [lintegral_mul_const _ (by unfold gaussianWeight; fun_prop)]\n  congr 1\n  simpa only [Z, integral_const_mul] using\n    (ofReal_integral_eq_lintegral_ofReal ((hI y).const_mul C)\n      (Filter.Eventually.of_forall (fun x => mul_nonneg hC (weight_bounds hη y x).1.le))).symm\n\n/-- The actual Gaussian-smoothed probability law has the displayed everywhere\npositive density; its normalizer and exact negative-log density are globally C2.\nNo finite moments, input Lebesgue density or supplied regularity are required. -/\ntheorem gaussian_convolution_potential_c2 (μ : Measure E) [IsProbabilityMeasure μ]\n    {η : ℝ} (hη : 0 < η) :\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let Z := fun y : E => ∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ\n    (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =\n      (volume : Measure E).withDensity (fun y => ENNReal.ofReal (C*Z y)) ∧\n    (∀ y, 0 < C*Z y) ∧ ContDiff ℝ 2 Z ∧\n      ContDiff ℝ 2 (fun y => -Real.log (C*Z y)) := by\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  have hC : 0 < C := by dsimp [C]; positivity\n  obtain ⟨hZ,hZC,hV,_hdZ,_hdD⟩ := gaussianNormalizerRegularity μ hη\n  exact ⟨gaussianDensity μ hη,fun y => mul_pos hC (hZ y),hZC,hV C hC⟩\n\nprivate theorem normalizerDerivatives (μ : Measure E) [IsProbabilityMeasure μ]\n    {η : ℝ} (hη : 0 < η) :\n    let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ\n    let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ\n    let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ\n    (∀ y, 0 < Z y) ∧ (∀ y, HasFDerivAt Z (D y) y) ∧\n      (∀ y, HasFDerivAt D (H y) y) := by\n  obtain ⟨hZ,_hZC,_hVC,hdZ,hdD⟩ := gaussianNormalizerRegularity μ hη\n  exact ⟨hZ,hdZ,hdD⟩\n\nprivate theorem rawFirst (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η)\n    (y v : E) :\n    let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ\n    let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ\n    fderiv ℝ (fun z => -Real.log (Z z)) y v = -(D y v)/(Z y) := by\n  let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ\n  let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ\n  obtain ⟨hZ,hdZ,_hdD⟩ := normalizerDerivatives μ hη\n  have hu := ((hdZ y).log (hZ y).ne').neg\n  change (fderiv ℝ (-fun z => Real.log (∫ x, gaussianWeight η z x ∂μ)) y) v =\n    -(D y v)/(Z y)\n  rw [hu.fderiv]\n  simp only [neg_apply,smul_apply,smul_eq_mul]\n  ring\n\nprivate theorem rawSecond (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η)\n    (y v w : E) :\n    let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ\n    let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ\n    let H := fun z : E => ∫ x, gaussianSecond η z x ∂μ\n    fderiv ℝ (fderiv ℝ (fun z => -Real.log (Z z))) y v w =\n      (D y v * D y w)/(Z y)^2 - (H y v w)/(Z y) := by\n  let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ\n  let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ\n  let H := fun z : E => ∫ x, gaussianSecond η z x ∂μ\n  obtain ⟨hZ,hdZ,hdD⟩ := normalizerDerivatives μ hη\n  have hEq : fderiv ℝ (fun z => -Real.log (Z z)) = fun z => -((Z z)⁻¹ • D z) := by\n    funext z\n    exact (((hdZ z).log (hZ z).ne').neg).fderiv\n  have hi := (hasDerivAt_inv (hZ y).ne').comp_hasFDerivAt y (hdZ y)\n  have hs := (hi.smul (hdD y)).neg\n  have hs' : HasFDerivAt (fun z => -((Z z)⁻¹ • D z))\n      (-((Z y)⁻¹ • H y + (-(Z y ^ 2)⁻¹ • D y).smulRight (D y))) y := by\n    convert hs using 1 <;> rfl\n  change (fderiv ℝ (fderiv ℝ (fun z => -Real.log (Z z))) y) v w = _\n  rw [hEq]\n  rw [hs'.fderiv]\n  simp only [neg_apply, add_apply, smul_apply,\n    ContinuousLinearMap.smulRight_apply, smul_eq_mul]\n  ring\n\nprivate theorem posteriorIntegral (μ : Measure E) (η : ℝ) (y : E) (g : E → ℝ) :\n    (∫ x, g x ∂(μ.tilted (fun x => -‖x-y‖^2/(2*η)))) =\n      (∫ x, gaussianWeight η y x*g x ∂μ)/(∫ x, gaussianWeight η y x ∂μ) := by\n  rw [integral_tilted]\n  have hw (x : E) : Real.exp (-‖x-y‖^2/(2*η)) = gaussianWeight η y x := by\n    unfold gaussianWeight\n    rw [norm_sub_rev x y]\n  simp_rw [hw, smul_eq_mul]\n  rw [← integral_div]\n  apply integral_congr_ae\n  filter_upwards with x\n  ring\n\nprivate theorem normalizedFirst (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η) (y v : E) :\n    ((∫ x, gaussianFirst η y x ∂μ) v)/(∫ x, gaussianWeight η y x ∂μ) =\n      -(∫ x, inner ℝ (y-x) v ∂(μ.tilted (fun x => -‖x-y‖^2/(2*η))))/η := by\n  have hi : Integrable (gaussianFirst η y) μ := by\n    apply (integrable_const ((1+2*η)/η)).mono' (by\n      apply Continuous.aestronglyMeasurable\n      unfold gaussianFirst gaussianWeight\n      fun_prop)\n    filter_upwards with x\n    exact first_bound hη y x\n  rw [ContinuousLinearMap.integral_apply hi v, posteriorIntegral]\n  simp only [gaussianFirst, smul_apply, innerSL_apply_apply, smul_eq_mul]\n  have he : (fun x => (-gaussianWeight η y x/η)*inner ℝ (y-x) v) =\n      (fun x => (-1/η)*(gaussianWeight η y x*inner ℝ (y-x) v)) := by\n    funext x; ring\n  rw [he, integral_const_mul]\n  ring\n\nprivate theorem normalizedSecond (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η) (y v w : E) :\n    (((∫ x, gaussianSecond η y x ∂μ) v) w)/(∫ x, gaussianWeight η y x ∂μ) =\n      -inner ℝ v w/η +\n        (∫ x, inner ℝ (y-x) v * inner ℝ (y-x) w\n          ∂(μ.tilted (fun x => -‖x-y‖^2/(2*η))))/η^2 := by\n  have hi : Integrable (gaussianWeight η y) μ := by\n    apply (integrable_const (1:ℝ)).mono' (by unfold gaussianWeight; fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_pos (weight_bounds hη y x).1]\n    exact (weight_bounds hη y x).2.1\n  have hiH : Integrable (gaussianSecond η y) μ := by\n    apply (integrable_const (3/η)).mono' (by\n      apply Continuous.aestronglyMeasurable\n      unfold gaussianSecond gaussianFirst gaussianWeight\n      fun_prop)\n    filter_upwards with x\n    exact second_bound hη y x\n  let a := fun x : E => (-1/η*inner ℝ v w)*gaussianWeight η y x\n  let b := fun x : E => (1/η^2)*(gaussianWeight η y x*\n    (inner ℝ (y-x) v*inner ℝ (y-x) w))\n  have he : (fun x => gaussianSecond η y x v w) = fun x => a x + b x := by\n    funext x\n    change (-gaussianWeight η y x/η)*inner ℝ v w +\n      ((-1/η)*((-gaussianWeight η y x/η)*inner ℝ (y-x) v))*inner ℝ (y-x) w = _\n    dsimp only [a,b]\n    ring\n  have hiA : Integrable a μ := hi.const_mul _\n  have hiB : Integrable b μ := by\n    have hs := (hiH.apply_continuousLinearMap v).apply_continuousLinearMap w\n    rw [he] at hs\n    convert hs.sub hiA using 1\n    funext x\n    simp only [Pi.sub_apply]\n    ring\n  rw [ContinuousLinearMap.integral_apply hiH v,\n    ContinuousLinearMap.integral_apply (hiH.apply_continuousLinearMap v) w, he,\n    integral_add hiA hiB]\n  rw [show (∫ x, a x ∂μ) = (-1/η*inner ℝ v w)*(∫ x, gaussianWeight η y x ∂μ) by\n    exact integral_const_mul _ _]\n  rw [show (∫ x, b x ∂μ) = (1/η^2)*(∫ x, gaussianWeight η y x*\n    (inner ℝ (y-x) v*inner ℝ (y-x) w) ∂μ) by exact integral_const_mul _ _]\n  rw [posteriorIntegral]\n  have hZ := (normalizerDerivatives μ hη).1 y\n  field_simp [hZ.ne',hη.ne']\n\nprivate theorem posteriorMoment (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η) (y : E) :\n    IsProbabilityMeasure (μ.tilted (fun x => -‖x-y‖^2/(2*η))) ∧\n    MemLp (fun x : E => x) 2 (μ.tilted (fun x => -‖x-y‖^2/(2*η))) := by\n  let w := fun x : E => Real.exp (-‖x-y‖^2/(2*η))\n  have hw (x : E) : 0 < w x ∧ w x ≤ 1 ∧ w x*‖x-y‖^2 ≤ 2*η := by\n    have h0 : 0 ≤ ‖x-y‖^2/(2*η) := by positivity\n    have hq := Real.mul_exp_neg_le_exp_neg_one (‖x-y‖^2/(2*η))\n    have h1 : Real.exp (-1) ≤ 1 := Real.exp_le_one_iff.mpr (by norm_num)\n    have ha : ‖x-y‖^2/(2*η)*w x ≤ 1 := by simpa only [w,neg_div] using hq.trans h1\n    have hb := (div_le_iff₀ (show (0:ℝ) < 2*η by positivity)).mp\n      (show (w x*‖x-y‖^2)/(2*η) ≤ 1 by convert ha using 1 <;> ring)\n    refine ⟨Real.exp_pos _,?_,by nlinarith [hb]⟩\n    dsimp [w]\n    apply Real.exp_le_one_iff.mpr\n    exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity)\n  have hi : Integrable w μ := by\n    apply (integrable_const (1:ℝ)).mono' (by dsimp [w]; fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs,abs_of_pos (hw x).1]\n    exact (hw x).2.1\n  have hn (x : E) : ‖x‖^2 ≤ 2*‖y‖^2+2*‖x-y‖^2 := by\n    have ht : ‖x‖ ≤ ‖x-y‖+‖y‖ := by simpa only [sub_add_cancel] using norm_add_le (x-y) y\n    nlinarith [norm_nonneg x,norm_nonneg y,norm_nonneg (x-y),sq_nonneg (‖y‖-‖x-y‖)]\n  have hb (x : E) : w x*‖x‖^2 ≤ 2*‖y‖^2+4*η := by\n    have h := mul_le_mul_of_nonneg_left (hn x) (hw x).1.le\n    have hy := mul_le_mul_of_nonneg_right (hw x).2.1 (sq_nonneg ‖y‖)\n    nlinarith [(hw x).2.2,h,hy]\n  have hi2 : Integrable (fun x => w x*‖x‖^2) μ := by\n    apply (integrable_const (2*‖y‖^2+4*η)).mono' (by dsimp [w]; fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs,abs_of_nonneg (mul_nonneg (hw x).1.le (sq_nonneg _))]\n    exact hb x\n  refine ⟨isProbabilityMeasure_tilted hi,?_⟩\n  apply (memLp_two_iff_integrable_sq_norm (by fun_prop)).mpr\n  apply (integrable_tilted_iff hi (fun x => ‖x‖^2)).mpr\n  simpa only [smul_eq_mul] using hi2\n\n/-- Actual Gaussian posterior first/second moments and the derivative identities\nof its smoothed negative-log density. Input moments, density and covariance\nidentities are not assumptions. Positive constant prefactors cancel exactly. -/\ntheorem gaussian_convolution_derivatives (μ : Measure E) [IsProbabilityMeasure μ] {η C : ℝ} (hη : 0 < η)\n    (hC : 0 < C) :\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)\n    (∀ y, IsProbabilityMeasure (R y) ∧ MemLp (fun x : E => x) 2 (R y)) ∧\n    (∀ y v, fderiv ℝ U y v = inner ℝ (y-∫ x, x ∂(R y)) v/η) ∧\n    ∀ y v w, fderiv ℝ (fderiv ℝ U) y v w =\n      inner ℝ v w/η - covarianceBilin (R y) v w/η^2 := by\n  let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ\n  let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ\n  let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ\n  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n  let U0 := fun y : E => -Real.log (Z y)\n  have hU : (fun y : E => -Real.log (C*Z y)) = fun y => U0 y-Real.log C := by\n    funext y\n    have hZ := (normalizerDerivatives μ hη).1 y\n    rw [Real.log_mul hC.ne' hZ.ne']\n    dsimp only [U0]\n    ring\n  have hDU : fderiv ℝ (fun y : E => -Real.log (C*Z y)) = fderiv ℝ U0 := by\n    rw [hU]\n    funext y\n    exact fderiv_sub_const _\n  refine ⟨fun y => posteriorMoment μ hη y, ?_, ?_⟩\n  · intro y v\n    change fderiv ℝ (fun y : E => -Real.log (C*Z y)) y v = _\n    rw [hDU]\n    obtain ⟨hR,hLp⟩ := posteriorMoment μ hη y\n    haveI : IsProbabilityMeasure (R y) := hR\n    have hi : Integrable (fun x : E => x) (R y) := hLp.integrable (by norm_num)\n    have hm : (∫ x, inner ℝ (y-x) v ∂(R y)) = inner ℝ (y-∫ x, x ∂(R y)) v := by\n      have he : (fun x : E => inner ℝ (y-x) v) = fun x => inner ℝ v (y-x) := by\n        funext x\n        exact real_inner_comm _ _\n      rw [he]\n      have hmean : (∫ x, inner ℝ v (y-x) ∂(R y)) =\n          inner ℝ v (∫ x, y-x ∂(R y)) := by\n        simpa only [Pi.sub_apply] using\n          (integral_inner (𝕜 := ℝ) ((integrable_const y).sub hi) v)\n      have hdiff : (∫ x, y-x ∂(R y)) = y-∫ x, x ∂(R y) := by\n        simpa only [Pi.sub_apply, integral_const, probReal_univ, one_smul] using\n          integral_sub (integrable_const y) hi\n      rw [hmean,hdiff]\n      exact real_inner_comm _ _\n    calc\n      _ = -(D y v/Z y) := by simpa only [neg_div] using rawFirst μ hη y v\n      _ = (∫ x, inner ℝ (y-x) v ∂(R y))/η := by\n        rw [normalizedFirst μ hη y v]; ring\n      _ = _ := by rw [hm]\n  · intro y v w\n    change fderiv ℝ (fderiv ℝ (fun y : E => -Real.log (C*Z y))) y v w = _\n    rw [hDU]\n    obtain ⟨hR,hLp⟩ := posteriorMoment μ hη y\n    haveI : IsProbabilityMeasure (R y) := hR\n    have hi : Integrable (fun x : E => x) (R y) := hLp.integrable (by norm_num)\n    have hξ : MemLp (fun x : E => y-x) 2 (R y) := (memLp_const y).sub hLp\n    have hv := hξ.inner_const (𝕜 := ℝ) v\n    have hw := hξ.inner_const (𝕜 := ℝ) w\n    have hc : covarianceBilin (R y) v w =\n        (∫ x, inner ℝ (y-x) v*inner ℝ (y-x) w ∂(R y)) -\n          (∫ x, inner ℝ (y-x) v ∂(R y))*(∫ x, inner ℝ (y-x) w ∂(R y)) := by\n      have hcenter : covariance (fun x => inner ℝ (y-x) v)\n          (fun x => inner ℝ (y-x) w) (R y) = covarianceBilin (R y) v w := by\n        simp_rw [inner_sub_left]\n        rw [covariance_const_sub_left (hi.inner_const (𝕜 := ℝ) v),\n          covariance_const_sub_right (hi.inner_const (𝕜 := ℝ) w), neg_neg]\n        rw [covarianceBilin_apply_eq_cov hLp]\n        simp_rw [real_inner_comm v, real_inner_comm w]\n        rfl\n      exact hcenter.symm.trans (by simpa only [Pi.mul_apply] using covariance_eq_sub hv hw)\n    rw [rawSecond μ hη y v w]\n    change D y v*D y w/Z y^2 - H y v w/Z y = _\n    rw [show D y v*D y w/Z y^2 = (D y v/Z y)*(D y w/Z y) by ring]\n    rw [normalizedFirst μ hη y v, normalizedFirst μ hη y w,\n      normalizedSecond μ hη y v w, hc]\n    ring\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "arxiv-2609.06906v1",
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "version": "2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "wording_status": "faithful paraphrase",
+      "anchor": "arXiv:2609.06906v1 Section4.1 equation4.1 HTML403-412; Section3.1 unnormalized convolution convention; PBPS2609.06905v1 Section2.2 actual Gaussian augmentation/selected backward quadratic tilt",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; ASTIS original mathematical restatement of equation4.1, with explicit arbitrary-probability and constant-prefactor generalizations."
+    },
+    "statement": "At every observation y, R_y is a probability measure and the identity map belongs to L2(R_y). For every direction v, DU(y)[v]=inner(y-mean(R_y),v)/eta. For every v,w, D2U(y)[v,w]=inner(v,w)/eta-covarianceBilin(R_y)(v,w)/eta^2. These are actual first and second Frechet derivatives and actual finite posterior moments; the constant positive prefactor cancels exactly.",
+    "formulae": [
+      {
+        "label": "Actual Gaussian posterior derivative identities",
+        "tex": "R_y(dx)=Z(y)^{-1}e^{-\\|x-y\\|^2/(2\\eta)}\\mu(dx),\\quad X\\in L^2(R_y),\\quad DU(y)[v]=\\eta^{-1}\\langle y-\\mathbb E_{R_y}X,v\\rangle,\\quad D^2U(y)[v,w]=\\eta^{-1}\\langle v,w\\rangle-\\eta^{-2}\\operatorname{Cov}_{R_y}(\\langle v,X\\rangle,\\langle w,X\\rangle)."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space with its Borel measurable space, including dimension zero. mu is an arbitrary probability measure; eta>0 and C>0 are real numbers. No input density, finite input moments, input potential, smoothness, curvature, normalizer or conditional-version certificate is assumed.",
+      "Z(y)=integral exp(-norm(y-x)^2/(2eta))dmu(x), R_y=mu.tilted(-norm(x-y)^2/(2eta)), U(y)=-log(C Z(y)). C is an arbitrary positive constant prefactor; choosing the actual Gaussian C_eta gives its negative-log probability density. Other C values are not asserted to normalize a density.",
+      "R_y is the actual everywhere-selected posterior of the Gaussian augmentation, previously identified as a measurable Markov/disintegration kernel. Probability and finite second moments are derived here; mean is the Bochner integral, covarianceBilin is the true centered bilinear covariance. The new theorem concerns this selected version, never an arbitrary conditional representative.",
+      "For the source Gibbs input, the actual source unnormalized potential V_eta differs from the normalized density potential U_eta by the already-proved constant log Z_V. The genuine Test derives original Gibbs probability from C2 and positive lower Hessian, proves source V_eta directional derivative/covariance identities by this exact constant, and joins the same augmentation backward kernel. Source Hessian upper bound and eta upper cap are unnecessary for these identities."
+    ],
+    "obligations": [
+      {
+        "id": "actual-score-covariance",
+        "label": "Equation4.1 actual posterior score/covariance, with finite moments and source normalization"
+      },
+      {
+        "id": "posterior-curvature",
+        "label": "Brascamp-Lieb/Cramer-Rao and source Hessian bounds (remaining)"
+      },
+      {
+        "id": "remaining-main",
+        "label": "Higher regularity, dynamics, errors/work and both complete main/composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+      "title": "Actual posterior score and covariance identities",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+          "label": "SPHMC equation4.1 actual posterior score/covariance",
+          "scope": "Actual everywhere-selected quadratic Gaussian posterior has probability and finite second moments, without input moments; true first/second derivatives of negative log of the Gaussian normalizer equal posterior mean and covariance, including the positive constant prefactor and dimension zero. No Brascamp-Lieb/Cramer-Rao covariance inequalities, source Hessian bounds/higher cumulants, stationarity/algorithm accuracy/history/expected work, PBPS process or either complete main/composition. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianConvolutionDerivatives"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space with its Borel measurable space, including dimension zero. mu is an arbitrary probability measure; eta>0 and C>0 are real numbers. No input density, finite input moments, input potential, smoothness, curvature, normalizer or conditional-version certificate is assumed.",
+        "Z(y)=integral exp(-norm(y-x)^2/(2eta))dmu(x), R_y=mu.tilted(-norm(x-y)^2/(2eta)), U(y)=-log(C Z(y)). C is an arbitrary positive constant prefactor; choosing the actual Gaussian C_eta gives its negative-log probability density. Other C values are not asserted to normalize a density.",
+        "R_y is the actual everywhere-selected posterior of the Gaussian augmentation, previously identified as a measurable Markov/disintegration kernel. Probability and finite second moments are derived here; mean is the Bochner integral, covarianceBilin is the true centered bilinear covariance. The new theorem concerns this selected version, never an arbitrary conditional representative.",
+        "For the source Gibbs input, the actual source unnormalized potential V_eta differs from the normalized density potential U_eta by the already-proved constant log Z_V. The genuine Test derives original Gibbs probability from C2 and positive lower Hessian, proves source V_eta directional derivative/covariance identities by this exact constant, and joins the same augmentation backward kernel. Source Hessian upper bound and eta upper cap are unnecessary for these identities."
+      ],
+      "statement": "At every observation y, R_y is a probability measure and the identity map belongs to L2(R_y). For every direction v, DU(y)[v]=inner(y-mean(R_y),v)/eta. For every v,w, D2U(y)[v,w]=inner(v,w)/eta-covarianceBilin(R_y)(v,w)/eta^2. These are actual first and second Frechet derivatives and actual finite posterior moments; the constant positive prefactor cancels exactly.",
+      "formula": "R_y(dx)=Z(y)^{-1}e^{-\\|x-y\\|^2/(2\\eta)}\\mu(dx),\\quad X\\in L^2(R_y),\\quad DU(y)[v]=\\eta^{-1}\\langle y-\\mathbb E_{R_y}X,v\\rangle,\\quad D^2U(y)[v,w]=\\eta^{-1}\\langle v,w\\rangle-\\eta^{-2}\\operatorname{Cov}_{R_y}(\\langle v,X\\rangle,\\langle w,X\\rangle).",
+      "steps": [
+        {
+          "title": "Use genuine dominated Gaussian derivatives",
+          "text": "Reuse the same canonical kernel calculus. Its positive weight has uniformly bounded first and second operator derivatives. Probability-integrable constants justify differentiating the actual normalizer twice. The existing private regularity proof now returns these proved derivative interfaces; they are not supplied hypotheses.",
+          "formula": "Dw_y[v]=-\\eta^{-1}w_y\\langle y-x,v\\rangle,\\quad D^2w_y[v,u]=-\\eta^{-1}w_y\\langle v,u\\rangle+\\eta^{-2}w_y\\langle y-x,v\\rangle\\langle y-x,u\\rangle,\\quad\\|Dw_y\\|\\le(1+2\\eta)/\\eta,\\ \\|D^2w_y\\|\\le3/\\eta.",
+          "lean": "gaussianNormalizerRegularity; gaussianDeriv; gaussianFirstDeriv; hasFDerivAt_integral_of_dominated_of_fderiv_le; normalizerDerivatives"
+        },
+        {
+          "title": "Derive posterior probability and second moments",
+          "text": "Gaussian damping gives w<=1 and w norm(x-y)^2<=2eta. The triangle inequality yields w norm(x)^2<=2 norm(y)^2+4eta. Both dominating constants are integrable against the probability input. Positive normalizer and the actual tilted integrability identity derive posterior probability and identity L2, even when the input has no moments.",
+          "formula": "0<w\\le1,\\quad w\\|x-y\\|^2\\le2\\eta,\\quad w\\|x\\|^2\\le2\\|y\\|^2+4\\eta\\ \\Longrightarrow\\ R_y\\text{ probability},\\quad X\\in L^2(R_y).",
+          "lean": "posteriorMoment; Real.mul_exp_neg_le_exp_neg_one; isProbabilityMeasure_tilted; integrable_tilted_iff; memLp_two_iff_integrable_sq_norm"
+        },
+        {
+          "title": "Identify normalized derivative moments",
+          "text": "Insert the exact quadratic tilt into the Bochner integral and divide by the positive Gaussian normalizer. Continuous-linear-map evaluation commutes with integrable derivative integrals. The explicit kernel formulas produce actual posterior first and second uncentered moments; splitting the second derivative uses integrability, rather than undefined total integrals.",
+          "formula": "DZ(y)[v]/Z(y)=-\\eta^{-1}\\mathbb E_{R_y}\\langle y-X,v\\rangle,\\quad D^2Z(y)[v,w]/Z(y)=-\\eta^{-1}\\langle v,w\\rangle+\\eta^{-2}\\mathbb E_{R_y}[\\langle y-X,v\\rangle\\langle y-X,w\\rangle].",
+          "lean": "posteriorIntegral; normalizedFirst; normalizedSecond; integral_tilted; integral_div; ContinuousLinearMap.integral_apply; Integrable.apply_continuousLinearMap; integral_add"
+        },
+        {
+          "title": "Differentiate the negative log exactly",
+          "text": "The positive normalizer justifies log differentiation and differentiating its reciprocal. Apply the product rule to the actual first derivative map. Evaluating the resulting second derivative gives the exact quotient, including its sign and eta powers.",
+          "formula": "D(-\\log Z)[v]=-DZ[v]/Z,\\quad D^2(-\\log Z)[v,w]=DZ[v]DZ[w]/Z^2-D^2Z[v,w]/Z.",
+          "lean": "rawFirst; rawSecond; HasFDerivAt.log; hasDerivAt_inv; HasDerivAt.comp_hasFDerivAt; HasFDerivAt.smul; HasFDerivAt.neg"
+        },
+        {
+          "title": "Center the actual finite moments",
+          "text": "Posterior L2 implies an actual Bochner mean and L2 of every displacement projection. Integral linearity identifies the expected displacement with y minus the mean. The true L2 covariance identity subtracts the product of means; translation and two signs identify displacement covariance with covarianceBilin(R_y). Substitute the normalized moments in the log quotient.",
+          "formula": "\\mathbb E\\langle y-X,v\\rangle=\\langle y-\\mathbb EX,v\\rangle,\\quad\\operatorname{Cov}(y-X)=\\operatorname{Cov}(X),\\quad D^2(-\\log Z)=\\eta^{-1}I-\\eta^{-2}\\operatorname{Cov}(R_y).",
+          "lean": "MemLp.integrable; MemLp.inner_const; integral_inner; integral_sub; covariance_eq_sub; covariance_const_sub_left/right; covarianceBilin_apply_eq_cov"
+        },
+        {
+          "title": "Keep the positive prefactor and source convention",
+          "text": "For C>0 and Z>0, -log(CZ)=-log Z-log C. This fixed constant has zero derivatives. The genuine source Test uses the existing exact U_eta=V_eta+log Z_V, so the first and second directional identities apply to the source unnormalized V_eta and its same backward Gaussian kernel. The identities give no quantitative covariance inequality or Hessian curvature estimate.",
+          "formula": "U=-\\log Z-\\log C,\\quad U_\\eta=V_\\eta+\\log Z_V\\ \\Longrightarrow\\ DU_\\eta=DV_\\eta,\\quad D^2U_\\eta=D^2V_\\eta.",
+          "lean": "Real.log_mul; fderiv_sub_const; Tests.GaussianConvolutionDerivatives.actual_source_score_covariance; SmoothedGibbsPotential.smoothed_gibbs_potential; GaussianConditionalKernel.exists_tilted_isCondKernel"
+        }
+      ],
+      "lean_statement": "Actual selected posterior probability/L2 and all-direction first/second Frechet derivative identities using actual mean and covariance.",
+      "lean_proof": "Canonical dominated Gaussian derivative integrals, true posterior L2, exact tilted normalized moments, log/reciprocal product derivative, actual centered covariance and positive constant cancellation.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "hasFDerivAt_integral_of_dominated_of_fderiv_le",
+        "integral_tilted",
+        "integrable_tilted_iff",
+        "isProbabilityMeasure_tilted",
+        "memLp_two_iff_integrable_sq_norm",
+        "ContinuousLinearMap.integral_apply",
+        "Integrable.apply_continuousLinearMap",
+        "HasFDerivAt.log",
+        "hasDerivAt_inv",
+        "HasDerivAt.comp_hasFDerivAt",
+        "integral_inner",
+        "covariance_eq_sub",
+        "covarianceBilin_apply_eq_cov",
+        "Real.log_mul",
+        "fderiv_sub_const"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+      "role": "proof-edge",
+      "supports": [
+        "actual-score-covariance"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Section4.1 equation4.1 uses the actual Gibbs posterior and source unnormalized V_eta.",
+        "lean": "E is a finite-dimensional real inner-product space with its Borel measurable space, including dimension zero. mu is an arbitrary probability measure; eta>0 and C>0 are real numbers. No input density, finite input moments, input potential, smoothness, curvature, normalizer or conditional-version certificate is assumed.\nZ(y)=integral exp(-norm(y-x)^2/(2eta))dmu(x), R_y=mu.tilted(-norm(x-y)^2/(2eta)), U(y)=-log(C Z(y)). C is an arbitrary positive constant prefactor; choosing the actual Gaussian C_eta gives its negative-log probability density. Other C values are not asserted to normalize a density.\nR_y is the actual everywhere-selected posterior of the Gaussian augmentation, previously identified as a measurable Markov/disintegration kernel. Probability and finite second moments are derived here; mean is the Bochner integral, covarianceBilin is the true centered bilinear covariance. The new theorem concerns this selected version, never an arbitrary conditional representative.\nFor the source Gibbs input, the actual source unnormalized potential V_eta differs from the normalized density potential U_eta by the already-proved constant log Z_V. The genuine Test derives original Gibbs probability from C2 and positive lower Hessian, proves source V_eta directional derivative/covariance identities by this exact constant, and joins the same augmentation backward kernel. Source Hessian upper bound and eta upper cap are unnecessary for these identities."
+      },
+      {
+        "source": "Equation4.1 states gradient and Hessian matrix identities.",
+        "lean": "At every observation y, R_y is a probability measure and the identity map belongs to L2(R_y). For every direction v, DU(y)[v]=inner(y-mean(R_y),v)/eta. For every v,w, D2U(y)[v,w]=inner(v,w)/eta-covarianceBilin(R_y)(v,w)/eta^2. These are actual first and second Frechet derivatives and actual finite posterior moments; the constant positive prefactor cancels exactly."
+      },
+      {
+        "source": "Lemma4.1 obtains quantitative curvature using Brascamp-Lieb and Cramer-Rao.",
+        "lean": "No covariance inequalities or quantitative source Hessian bounds are asserted."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "58ea2abef58ce23db17112e0d96a691e702897facc3cfa22af55815af01aedef"
+}

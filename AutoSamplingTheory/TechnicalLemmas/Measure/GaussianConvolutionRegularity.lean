@@ -2,6 +2,9 @@ import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.Probability.Moments.CovarianceBilin
 import Mathlib.Tactic
 import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianAugmentation
 
@@ -16,9 +19,11 @@ input density or moment assumption, from explicit Gaussian first/second
 derivative domination against the probability input law.
 
 This is the analytic producer behind SPHMC2609.06906v1 Section4.1 smoothing
-and PBPS2609.06905v1 Section2.2 augmentation normalization. Covariance/curvature,
-higher regularity, invariance, algorithm error and either main theorem remain
-separate. The exact density prefactor includes dimension zero.
+and PBPS2609.06905v1 Section2.2 augmentation normalization. Actual posterior
+score and covariance derivative identities are proved below. Quantitative
+covariance inequalities/curvature, higher regularity, invariance, algorithm
+error and either main theorem remain separate. The exact density prefactor
+includes dimension zero.
 -/
 
 namespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity
@@ -141,8 +146,11 @@ variable [MeasurableSpace E] [BorelSpace E] [FiniteDimensional ℝ E]
 private theorem gaussianNormalizerRegularity (μ : Measure E) [IsProbabilityMeasure μ]
     {η : ℝ} (hη : 0 < η) :
     let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ
+    let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ
+    let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ
     (∀ y, 0 < Z y) ∧ ContDiff ℝ 2 Z ∧
-      ∀ C : ℝ, 0 < C → ContDiff ℝ 2 (fun y => -Real.log (C*Z y)) := by
+      (∀ C : ℝ, 0 < C → ContDiff ℝ 2 (fun y => -Real.log (C*Z y))) ∧
+      (∀ y, HasFDerivAt Z (D y) y) ∧ (∀ y, HasFDerivAt D (H y) y) := by
   let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ
   let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ
   let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ
@@ -198,7 +206,8 @@ private theorem gaussianNormalizerRegularity (μ : Measure E) [IsProbabilityMeas
     refine ⟨fun y => (hdZ y).differentiableAt, by simp, ?_⟩
     have he : fderiv ℝ Z = D := funext (fun y => (hdZ y).fderiv)
     rw [he]; exact hDC
-  refine ⟨hZ,hZC,fun C hC => ?_⟩
+  refine ⟨hZ,hZC,?_,hdZ,hdD⟩
+  intro C hC
   exact ((contDiff_const.mul hZC).log (fun y => (mul_pos hC (hZ y)).ne')).neg
 
 private theorem gaussianDensity (μ : Measure E) [IsProbabilityMeasure μ]
@@ -253,8 +262,252 @@ theorem gaussian_convolution_potential_c2 (μ : Measure E) [IsProbabilityMeasure
       ContDiff ℝ 2 (fun y => -Real.log (C*Z y)) := by
   let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
   have hC : 0 < C := by dsimp [C]; positivity
-  obtain ⟨hZ,hZC,hV⟩ := gaussianNormalizerRegularity μ hη
+  obtain ⟨hZ,hZC,hV,_hdZ,_hdD⟩ := gaussianNormalizerRegularity μ hη
   exact ⟨gaussianDensity μ hη,fun y => mul_pos hC (hZ y),hZC,hV C hC⟩
+
+private theorem normalizerDerivatives (μ : Measure E) [IsProbabilityMeasure μ]
+    {η : ℝ} (hη : 0 < η) :
+    let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ
+    let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ
+    let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ
+    (∀ y, 0 < Z y) ∧ (∀ y, HasFDerivAt Z (D y) y) ∧
+      (∀ y, HasFDerivAt D (H y) y) := by
+  obtain ⟨hZ,_hZC,_hVC,hdZ,hdD⟩ := gaussianNormalizerRegularity μ hη
+  exact ⟨hZ,hdZ,hdD⟩
+
+private theorem rawFirst (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η)
+    (y v : E) :
+    let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ
+    let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ
+    fderiv ℝ (fun z => -Real.log (Z z)) y v = -(D y v)/(Z y) := by
+  let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ
+  let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ
+  obtain ⟨hZ,hdZ,_hdD⟩ := normalizerDerivatives μ hη
+  have hu := ((hdZ y).log (hZ y).ne').neg
+  change (fderiv ℝ (-fun z => Real.log (∫ x, gaussianWeight η z x ∂μ)) y) v =
+    -(D y v)/(Z y)
+  rw [hu.fderiv]
+  simp only [neg_apply,smul_apply,smul_eq_mul]
+  ring
+
+private theorem rawSecond (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η)
+    (y v w : E) :
+    let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ
+    let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ
+    let H := fun z : E => ∫ x, gaussianSecond η z x ∂μ
+    fderiv ℝ (fderiv ℝ (fun z => -Real.log (Z z))) y v w =
+      (D y v * D y w)/(Z y)^2 - (H y v w)/(Z y) := by
+  let Z := fun z : E => ∫ x, gaussianWeight η z x ∂μ
+  let D := fun z : E => ∫ x, gaussianFirst η z x ∂μ
+  let H := fun z : E => ∫ x, gaussianSecond η z x ∂μ
+  obtain ⟨hZ,hdZ,hdD⟩ := normalizerDerivatives μ hη
+  have hEq : fderiv ℝ (fun z => -Real.log (Z z)) = fun z => -((Z z)⁻¹ • D z) := by
+    funext z
+    exact (((hdZ z).log (hZ z).ne').neg).fderiv
+  have hi := (hasDerivAt_inv (hZ y).ne').comp_hasFDerivAt y (hdZ y)
+  have hs := (hi.smul (hdD y)).neg
+  have hs' : HasFDerivAt (fun z => -((Z z)⁻¹ • D z))
+      (-((Z y)⁻¹ • H y + (-(Z y ^ 2)⁻¹ • D y).smulRight (D y))) y := by
+    convert hs using 1 <;> rfl
+  change (fderiv ℝ (fderiv ℝ (fun z => -Real.log (Z z))) y) v w = _
+  rw [hEq]
+  rw [hs'.fderiv]
+  simp only [neg_apply, add_apply, smul_apply,
+    ContinuousLinearMap.smulRight_apply, smul_eq_mul]
+  ring
+
+private theorem posteriorIntegral (μ : Measure E) (η : ℝ) (y : E) (g : E → ℝ) :
+    (∫ x, g x ∂(μ.tilted (fun x => -‖x-y‖^2/(2*η)))) =
+      (∫ x, gaussianWeight η y x*g x ∂μ)/(∫ x, gaussianWeight η y x ∂μ) := by
+  rw [integral_tilted]
+  have hw (x : E) : Real.exp (-‖x-y‖^2/(2*η)) = gaussianWeight η y x := by
+    unfold gaussianWeight
+    rw [norm_sub_rev x y]
+  simp_rw [hw, smul_eq_mul]
+  rw [← integral_div]
+  apply integral_congr_ae
+  filter_upwards with x
+  ring
+
+private theorem normalizedFirst (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η) (y v : E) :
+    ((∫ x, gaussianFirst η y x ∂μ) v)/(∫ x, gaussianWeight η y x ∂μ) =
+      -(∫ x, inner ℝ (y-x) v ∂(μ.tilted (fun x => -‖x-y‖^2/(2*η))))/η := by
+  have hi : Integrable (gaussianFirst η y) μ := by
+    apply (integrable_const ((1+2*η)/η)).mono' (by
+      apply Continuous.aestronglyMeasurable
+      unfold gaussianFirst gaussianWeight
+      fun_prop)
+    filter_upwards with x
+    exact first_bound hη y x
+  rw [ContinuousLinearMap.integral_apply hi v, posteriorIntegral]
+  simp only [gaussianFirst, smul_apply, innerSL_apply_apply, smul_eq_mul]
+  have he : (fun x => (-gaussianWeight η y x/η)*inner ℝ (y-x) v) =
+      (fun x => (-1/η)*(gaussianWeight η y x*inner ℝ (y-x) v)) := by
+    funext x; ring
+  rw [he, integral_const_mul]
+  ring
+
+private theorem normalizedSecond (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η) (y v w : E) :
+    (((∫ x, gaussianSecond η y x ∂μ) v) w)/(∫ x, gaussianWeight η y x ∂μ) =
+      -inner ℝ v w/η +
+        (∫ x, inner ℝ (y-x) v * inner ℝ (y-x) w
+          ∂(μ.tilted (fun x => -‖x-y‖^2/(2*η))))/η^2 := by
+  have hi : Integrable (gaussianWeight η y) μ := by
+    apply (integrable_const (1:ℝ)).mono' (by unfold gaussianWeight; fun_prop)
+    filter_upwards with x
+    rw [Real.norm_eq_abs, abs_of_pos (weight_bounds hη y x).1]
+    exact (weight_bounds hη y x).2.1
+  have hiH : Integrable (gaussianSecond η y) μ := by
+    apply (integrable_const (3/η)).mono' (by
+      apply Continuous.aestronglyMeasurable
+      unfold gaussianSecond gaussianFirst gaussianWeight
+      fun_prop)
+    filter_upwards with x
+    exact second_bound hη y x
+  let a := fun x : E => (-1/η*inner ℝ v w)*gaussianWeight η y x
+  let b := fun x : E => (1/η^2)*(gaussianWeight η y x*
+    (inner ℝ (y-x) v*inner ℝ (y-x) w))
+  have he : (fun x => gaussianSecond η y x v w) = fun x => a x + b x := by
+    funext x
+    change (-gaussianWeight η y x/η)*inner ℝ v w +
+      ((-1/η)*((-gaussianWeight η y x/η)*inner ℝ (y-x) v))*inner ℝ (y-x) w = _
+    dsimp only [a,b]
+    ring
+  have hiA : Integrable a μ := hi.const_mul _
+  have hiB : Integrable b μ := by
+    have hs := (hiH.apply_continuousLinearMap v).apply_continuousLinearMap w
+    rw [he] at hs
+    convert hs.sub hiA using 1
+    funext x
+    simp only [Pi.sub_apply]
+    ring
+  rw [ContinuousLinearMap.integral_apply hiH v,
+    ContinuousLinearMap.integral_apply (hiH.apply_continuousLinearMap v) w, he,
+    integral_add hiA hiB]
+  rw [show (∫ x, a x ∂μ) = (-1/η*inner ℝ v w)*(∫ x, gaussianWeight η y x ∂μ) by
+    exact integral_const_mul _ _]
+  rw [show (∫ x, b x ∂μ) = (1/η^2)*(∫ x, gaussianWeight η y x*
+    (inner ℝ (y-x) v*inner ℝ (y-x) w) ∂μ) by exact integral_const_mul _ _]
+  rw [posteriorIntegral]
+  have hZ := (normalizerDerivatives μ hη).1 y
+  field_simp [hZ.ne',hη.ne']
+
+private theorem posteriorMoment (μ : Measure E) [IsProbabilityMeasure μ] {η : ℝ} (hη : 0 < η) (y : E) :
+    IsProbabilityMeasure (μ.tilted (fun x => -‖x-y‖^2/(2*η))) ∧
+    MemLp (fun x : E => x) 2 (μ.tilted (fun x => -‖x-y‖^2/(2*η))) := by
+  let w := fun x : E => Real.exp (-‖x-y‖^2/(2*η))
+  have hw (x : E) : 0 < w x ∧ w x ≤ 1 ∧ w x*‖x-y‖^2 ≤ 2*η := by
+    have h0 : 0 ≤ ‖x-y‖^2/(2*η) := by positivity
+    have hq := Real.mul_exp_neg_le_exp_neg_one (‖x-y‖^2/(2*η))
+    have h1 : Real.exp (-1) ≤ 1 := Real.exp_le_one_iff.mpr (by norm_num)
+    have ha : ‖x-y‖^2/(2*η)*w x ≤ 1 := by simpa only [w,neg_div] using hq.trans h1
+    have hb := (div_le_iff₀ (show (0:ℝ) < 2*η by positivity)).mp
+      (show (w x*‖x-y‖^2)/(2*η) ≤ 1 by convert ha using 1 <;> ring)
+    refine ⟨Real.exp_pos _,?_,by nlinarith [hb]⟩
+    dsimp [w]
+    apply Real.exp_le_one_iff.mpr
+    exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity)
+  have hi : Integrable w μ := by
+    apply (integrable_const (1:ℝ)).mono' (by dsimp [w]; fun_prop)
+    filter_upwards with x
+    rw [Real.norm_eq_abs,abs_of_pos (hw x).1]
+    exact (hw x).2.1
+  have hn (x : E) : ‖x‖^2 ≤ 2*‖y‖^2+2*‖x-y‖^2 := by
+    have ht : ‖x‖ ≤ ‖x-y‖+‖y‖ := by simpa only [sub_add_cancel] using norm_add_le (x-y) y
+    nlinarith [norm_nonneg x,norm_nonneg y,norm_nonneg (x-y),sq_nonneg (‖y‖-‖x-y‖)]
+  have hb (x : E) : w x*‖x‖^2 ≤ 2*‖y‖^2+4*η := by
+    have h := mul_le_mul_of_nonneg_left (hn x) (hw x).1.le
+    have hy := mul_le_mul_of_nonneg_right (hw x).2.1 (sq_nonneg ‖y‖)
+    nlinarith [(hw x).2.2,h,hy]
+  have hi2 : Integrable (fun x => w x*‖x‖^2) μ := by
+    apply (integrable_const (2*‖y‖^2+4*η)).mono' (by dsimp [w]; fun_prop)
+    filter_upwards with x
+    rw [Real.norm_eq_abs,abs_of_nonneg (mul_nonneg (hw x).1.le (sq_nonneg _))]
+    exact hb x
+  refine ⟨isProbabilityMeasure_tilted hi,?_⟩
+  apply (memLp_two_iff_integrable_sq_norm (by fun_prop)).mpr
+  apply (integrable_tilted_iff hi (fun x => ‖x‖^2)).mpr
+  simpa only [smul_eq_mul] using hi2
+
+/-- Actual Gaussian posterior first/second moments and the derivative identities
+of its smoothed negative-log density. Input moments, density and covariance
+identities are not assumptions. Positive constant prefactors cancel exactly. -/
+theorem gaussian_convolution_derivatives (μ : Measure E) [IsProbabilityMeasure μ] {η C : ℝ} (hη : 0 < η)
+    (hC : 0 < C) :
+    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)
+    (∀ y, IsProbabilityMeasure (R y) ∧ MemLp (fun x : E => x) 2 (R y)) ∧
+    (∀ y v, fderiv ℝ U y v = inner ℝ (y-∫ x, x ∂(R y)) v/η) ∧
+    ∀ y v w, fderiv ℝ (fderiv ℝ U) y v w =
+      inner ℝ v w/η - covarianceBilin (R y) v w/η^2 := by
+  let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ
+  let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ
+  let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ
+  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+  let U0 := fun y : E => -Real.log (Z y)
+  have hU : (fun y : E => -Real.log (C*Z y)) = fun y => U0 y-Real.log C := by
+    funext y
+    have hZ := (normalizerDerivatives μ hη).1 y
+    rw [Real.log_mul hC.ne' hZ.ne']
+    dsimp only [U0]
+    ring
+  have hDU : fderiv ℝ (fun y : E => -Real.log (C*Z y)) = fderiv ℝ U0 := by
+    rw [hU]
+    funext y
+    exact fderiv_sub_const _
+  refine ⟨fun y => posteriorMoment μ hη y, ?_, ?_⟩
+  · intro y v
+    change fderiv ℝ (fun y : E => -Real.log (C*Z y)) y v = _
+    rw [hDU]
+    obtain ⟨hR,hLp⟩ := posteriorMoment μ hη y
+    haveI : IsProbabilityMeasure (R y) := hR
+    have hi : Integrable (fun x : E => x) (R y) := hLp.integrable (by norm_num)
+    have hm : (∫ x, inner ℝ (y-x) v ∂(R y)) = inner ℝ (y-∫ x, x ∂(R y)) v := by
+      have he : (fun x : E => inner ℝ (y-x) v) = fun x => inner ℝ v (y-x) := by
+        funext x
+        exact real_inner_comm _ _
+      rw [he]
+      have hmean : (∫ x, inner ℝ v (y-x) ∂(R y)) =
+          inner ℝ v (∫ x, y-x ∂(R y)) := by
+        simpa only [Pi.sub_apply] using
+          (integral_inner (𝕜 := ℝ) ((integrable_const y).sub hi) v)
+      have hdiff : (∫ x, y-x ∂(R y)) = y-∫ x, x ∂(R y) := by
+        simpa only [Pi.sub_apply, integral_const, probReal_univ, one_smul] using
+          integral_sub (integrable_const y) hi
+      rw [hmean,hdiff]
+      exact real_inner_comm _ _
+    calc
+      _ = -(D y v/Z y) := by simpa only [neg_div] using rawFirst μ hη y v
+      _ = (∫ x, inner ℝ (y-x) v ∂(R y))/η := by
+        rw [normalizedFirst μ hη y v]; ring
+      _ = _ := by rw [hm]
+  · intro y v w
+    change fderiv ℝ (fderiv ℝ (fun y : E => -Real.log (C*Z y))) y v w = _
+    rw [hDU]
+    obtain ⟨hR,hLp⟩ := posteriorMoment μ hη y
+    haveI : IsProbabilityMeasure (R y) := hR
+    have hi : Integrable (fun x : E => x) (R y) := hLp.integrable (by norm_num)
+    have hξ : MemLp (fun x : E => y-x) 2 (R y) := (memLp_const y).sub hLp
+    have hv := hξ.inner_const (𝕜 := ℝ) v
+    have hw := hξ.inner_const (𝕜 := ℝ) w
+    have hc : covarianceBilin (R y) v w =
+        (∫ x, inner ℝ (y-x) v*inner ℝ (y-x) w ∂(R y)) -
+          (∫ x, inner ℝ (y-x) v ∂(R y))*(∫ x, inner ℝ (y-x) w ∂(R y)) := by
+      have hcenter : covariance (fun x => inner ℝ (y-x) v)
+          (fun x => inner ℝ (y-x) w) (R y) = covarianceBilin (R y) v w := by
+        simp_rw [inner_sub_left]
+        rw [covariance_const_sub_left (hi.inner_const (𝕜 := ℝ) v),
+          covariance_const_sub_right (hi.inner_const (𝕜 := ℝ) w), neg_neg]
+        rw [covarianceBilin_apply_eq_cov hLp]
+        simp_rw [real_inner_comm v, real_inner_comm w]
+        rfl
+      exact hcenter.symm.trans (by simpa only [Pi.mul_apply] using covariance_eq_sub hv hw)
+    rw [rawSecond μ hη y v w]
+    change D y v*D y w/Z y^2 - H y v w/Z y = _
+    rw [show D y v*D y w/Z y^2 = (D y v/Z y)*(D y w/Z y) by ring]
+    rw [normalizedFirst μ hη y v, normalizedFirst μ hη y w,
+      normalizedSecond μ hη y v w, hc]
+    ring
 
 end
 end AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity

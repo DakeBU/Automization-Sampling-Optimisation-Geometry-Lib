@@ -1,0 +1,58 @@
+gaussian_convolution_derivatives (Measure.dirac 0) hη
+  hC : have R := fun y => (Measure.dirac 0).tilted fun x => -‖x - y‖ ^ 2 / (2 * η);
+have U := fun y => -Real.log (C * ∫ (x : E0), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂Measure.dirac 0);
+(∀ (y : E0), IsProbabilityMeasure (R y) ∧ MemLp (fun x => x) 2 (R y)) ∧
+  (∀ (y v : E0), (fderiv ℝ U y) v = inner ℝ (y - ∫ (x : E0), x ∂R y) v / η) ∧
+    ∀ (y v w : E0), ((fderiv ℝ (fderiv ℝ U) y) v) w = inner ℝ v w / η - ((covarianceBilin (R y)) v) w / η ^ 2
+gaussian_convolution_derivatives (Measure.dirac a) hη
+  hC : have R := fun y => (Measure.dirac a).tilted fun x => -‖x - y‖ ^ 2 / (2 * η);
+have U := fun y => -Real.log (C * ∫ (x : ℝ), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂Measure.dirac a);
+(∀ (y : ℝ), IsProbabilityMeasure (R y) ∧ MemLp (fun x => x) 2 (R y)) ∧
+  (∀ (y v : ℝ), (fderiv ℝ U y) v = inner ℝ (y - ∫ (x : ℝ), x ∂R y) v / η) ∧
+    ∀ (y v w : ℝ), ((fderiv ℝ (fderiv ℝ U) y) v) w = inner ℝ v w / η - ((covarianceBilin (R y)) v) w / η ^ 2
+Tests.GaussianConvolutionDerivatives.actual_source_score_covariance
+  (Mathlib.Meta.NormNum.isNat_lt_true (Mathlib.Meta.NormNum.isNat_ofNat ℝ Nat.cast_zero)
+    (Mathlib.Meta.NormNum.isNat_ofNat ℝ Nat.cast_one) (Eq.refl false))
+  contDiff_const
+  (fun x v =>
+    have hv := Subsingleton.elim v 0;
+    of_eq_true
+      (Eq.trans
+        (congr
+          (congrArg LE.le
+            (Eq.trans
+              (congrArg (HMul.hMul 1)
+                (Eq.trans (congrFun' (congrArg HPow.hPow (Eq.trans (congrArg norm hv) norm_zero)) 2)
+                  (zero_pow (of_eq_true (Eq.trans (congrArg Not (OfNat.ofNat_ne_zero._simp_1 2)) not_false_eq_true)))))
+              (mul_zero 1)))
+          (Eq.trans
+            (congr
+              (congrArg DFunLike.coe
+                (Eq.trans
+                  (congr
+                    (congrArg DFunLike.coe
+                      (Eq.trans (congrFun' (congrArg (fderiv ℝ) (fderiv_fun_const a)) x) (congrFun fderiv_zero x)))
+                    hv)
+                  (zero_apply 0)))
+              hv)
+            (zero_apply 0)))
+        (Std.le_refl._simp_1 0)))
+  hη : have μ := ℙ.tilted fun x => -a;
+have C := (√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E0;
+have A := fun y => C * ∫ (x : E0), Real.exp (-a - ‖y - x‖ ^ 2 / (2 * η));
+have Vη := fun y => -Real.log (A y);
+have R := fun y => μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η);
+have J := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E0));
+(∀ (y : E0), MemLp (fun x => x) 2 (R y)) ∧
+  (∀ (y v : E0), (fderiv ℝ Vη y) v = inner ℝ (y - ∫ (x : E0), x ∂R y) v / η) ∧
+    (∀ (y v w : E0), ((fderiv ℝ (fderiv ℝ Vη) y) v) w = inner ℝ v w / η - ((covarianceBilin (R y)) v) w / η ^ 2) ∧
+      ∃ Q, IsMarkovKernel Q ∧ (∀ (y : E0), Q y = R y) ∧ (Measure.map Prod.swap J).IsCondKernel Q
+'AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_potential_c2' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Tests.GaussianConvolutionDerivatives.actual_source_score_covariance' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

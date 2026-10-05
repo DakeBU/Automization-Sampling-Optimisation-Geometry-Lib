@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-6300be385321ce10",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h * Λ ≤ 1/(65536*κ) →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    ∀ z z' ζ : E × E,\n      Real.sqrt (phaseQuadraticForm κ (((Φ (z,ζ)).1-(Φ (z',ζ)).1)-(z.1-z'.1),\n        ((Φ (z,ζ)).2-(Φ (z',ζ)).2)-(z.2-z'.2))) ≤\n      12*h*Real.sqrt (phaseQuadraticForm κ (z.1-z'.1,z.2-z'.2))",
+    "statement_sha256": "6300be385321ce1092675bbf33a023c89f3e693529c20699a5a8a36613d7545e",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a complete finite-dimensional real inner-product Borel space. ContDiff R 2 f means global C2; fderiv R (fderiv R f) is the genuine nested second derivative. gradient f is its Riesz representative, not a supplied map.",
+      "Lagrange.basis is the cardinal polynomial at the displayed nodes, eval is polynomial evaluation. sSup is real supremum. Integral s in a..b is ordinary Lebesgue Bochner interval integration. Fin J indexes0 through J-1.",
+      "The phase is an ordinary pair with displayed coordinates. Both vector noises are shared in the compared displayed Phi expressions; quantification is pointwise for every noise value. Real.sqrt is the real nonnegative square root.",
+      "phaseQuadraticForm kappa (x,p) = ((1/(2*kappa))+(1/2))*norm(x)^2 + inner R x p + norm(p)^2. It is the displayed exact quadratic form, without any supplied positive/metric certificate. Pair subtraction and scalar action are coordinatewise."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "8ec50bbd3672621fd10b7659a120611e7b1e43555825cc1abb11d17581e48a00"
+}

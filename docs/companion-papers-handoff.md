@@ -69,8 +69,7 @@ Focused build PASS3661 and independent mathematical review are recorded in
 `runs/20261005-companion-priority/realized-work.math-review.json`.
 The anonymous decoder and source reviewer independently accepted the exact
 conditional component as equivalent-after-elaboration; review artifact
-`work.review-result.json` has no blocking delta or repair. Commit verification
-and aggregate integration must be read from their later receipts. No D.7 or
+`work.review-result.json` has no blocking delta or repair. Independent commit verification is now PASS in `realized-work.verified.json`. Aggregate integration at `307443a8` passes canonical ASTIS/Tests9312, contributor/publication/semantic/frontier gates, static site build/check and both bounded graph checks. Exact record: `runs/20261005-companion-priority/integration.accepted.json`. Browser visual QA remains unavailable; neither remote CI, main merge nor live deployment is inferred from these local checks. No D.7 or
 D.8 is claimed: the actual center's squared-gradient moment remains explicit.
 
 The first cost-identification edge above is now closed. Next join the phase's

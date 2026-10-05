@@ -32,9 +32,7 @@ included in current admission. Lean/source theorem was never changed to fit it.
 The typed process discovery remains separate from mathematical truth.
 
 Root integrates in the existing sole PR313 stabilization lane. Shared roots,
-Tests and two Registry leaves are prepared; canonical aggregate/site/graph checks
-remain a separate pending checkpoint. Previous39da40a7 remote Lean/site/contributor
-CI all pass; main merge and live deployment remain separate.
+Tests and two Registry leaves integrate at `b8aea9df`. Canonical ASTIS gate, contributor16/16, publication138, semantic193/8, frontier201 and139 relevant regression tests pass. Static companion/site and four bounded graph checks pass; actual formal branches were inspected. Receipt: `runs/20261005-companion-priority/proximal-phase-stability.integration.json`. Current-head remote CI, main merge and live deployment remain separate.
 
 **Next bounded mathematical dependency:** join this actual accuracy kernel with
 the already compiled source-quadrature expected-work producer using the SAME

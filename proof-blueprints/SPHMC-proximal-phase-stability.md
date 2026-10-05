@@ -36,4 +36,4 @@ $$\pi_s=(\Phi_r(s,\cdot),\Phi_p(s,\cdot))_\#\gamma,\quad\int d_{\rm Eucl}^{\rho}
 
 Shared extraction and actual momentum absolute-integral prerequisite are included once; they carry no duplicate wrapper credit.
 
-Status: independently source-admitted at 5e455fb03cf374da058da792a2e276ec5edb54e6; focused PASS3717, independent mathematics and corrected blind/source round trip pass. Shared integration and aggregate/site/graph checks are separate.
+Status: independently source-admitted at 5e455fb03cf374da058da792a2e276ec5edb54e6; focused PASS3717, independent mathematics and corrected blind/source round trip pass. Shared integration b8aea9df passes the canonical ASTIS, static site and four bounded graph gates; receipt `runs/20261005-companion-priority/proximal-phase-stability.integration.json`.

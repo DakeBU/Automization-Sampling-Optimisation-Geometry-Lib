@@ -30,5 +30,3 @@ example {h : ℝ} (hh : 0<h) (j : Fin 2) :
   simpa only [Nat.cast_ofNat,show (2 : ℝ)-1=1 by norm_num,div_one] using nonnegative_momentum_weights (by norm_num : 2 ≤ 2) hh j
 
 #print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights
-
-

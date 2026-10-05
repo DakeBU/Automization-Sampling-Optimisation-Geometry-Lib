@@ -54,6 +54,35 @@ existential choices by name, transfer unbounded cost through TV, or create a
 wrapper that assumes the final phase cost. Source Algorithm3.1 coefficient
 construction remains a separate consumer adapter.
 
+## Same-witness actual-input work — 2026-10-05
+
+Proof commit `c31e25e5932232384154d5ad9a2566fd6437c8fb` closes
+`RealizedProximalWork.realized_proximal_expected_work`.
+It proves deterministic successful-output/count uniqueness internally and uses
+that equality to pull the existing exact Jensen bound back along the **actual**
+measurable center. The supplied implementation count is a conclusion of
+integrability, not an assumed measurable/integrable/cost witness. The positive
+one-dimensional, two-node Gaussian consumer uses the q/N supplied by
+`ImplementedPhaseKernel`, with its actual first refreshed center.
+
+Focused build PASS3661 and independent mathematical review are recorded in
+`runs/20261005-companion-priority/realized-work.math-review.json`.
+The anonymous decoder and source reviewer independently accepted the exact
+conditional component as equivalent-after-elaboration; review artifact
+`work.review-result.json` has no blocking delta or repair. Commit verification
+and aggregate integration must be read from their later receipts. No D.7 or
+D.8 is claimed: the actual center's squared-gradient moment remains explicit.
+
+The first cost-identification edge above is now closed. Next join the phase's
+same stopped output/count to the already verified two-layer moment producer,
+then account for the actual finite 2J proximal plus 2J direct-query phase
+execution. The successful-output uniqueness proof is private implementation,
+not an exported interface or a reason to claim a new wrapper theorem. Any
+needed reusable exposure must be attached to that actual joining consumer and
+independently reviewed. Run-wide state law/moment induction and the source
+quadrature adapter remain separate. Neither main theorem nor composition cost
+is complete; the existing Goal stays active without a token budget.
+
 ## Picard HMC Part I route and researcher ledger — 2026-10-03
 
 The active companion route now includes Chen–Chewi–Lu–Zhang,

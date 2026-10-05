@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "definition",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.phaseQuery",
+      "title": "Counted phase program",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "SPHMC actual two-layer phase queries",
+          "scope": "Actual interpreter definition only. Single full Gaussian phase with supplied incoming integrable state L2 budget, finite bounded nodes and row l1 bounds; actual successful exact-real interpreter output and total gradient count. Sufficient finite fuel certifies execution and is not a runtime precomputation or a count/cost hypothesis. No cost claim for failed insufficient-fuel executions. Gaussian sampling and arithmetic are not gradient queries. Source quadrature/J adapter, run-wide D7 induction, D8 parameter/iteration substitution, Wp, proxy-warmness, initialization, PBPS and composition/main results remain open. No TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCCountedPhaseProgram"
+      ],
+      "assumptions": [
+        "E is an arbitrary real normed vector space; g, parameters, supplied finite nodes/weights and fuel are arbitrary. The input contains one state pair, two refresh noises and two Fin-m noise arrays; no probability or success assumption."
+      ],
+      "statement": "For arbitrary real normed E, gradient oracle g, eta,eps,h, Fin m nodes and weights, input w and fuel:E->Nat, phaseQuery returns Option((E*E)*Nat). It first refreshes P0 and builds Y0. It sequentially executes every proximalQuery at Y0_i from Y0_i using fuel(Y0_i), and if successful evaluates g at returned point plus sqrt(eta)G0_i and adds one query to that returned count. It builds Y1 from these actual returned gradients, sequentially executes every second proximal/noisy-gradient call similarly using G1, then returns the complete phase output and the sum of both arrays actual counts. Any failed call returns none, with no successful cost certificate.",
+      "formula": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1).",
+      "boundary": "Actual interpreter definition only. Single full Gaussian phase with supplied incoming integrable state L2 budget, finite bounded nodes and row l1 bounds; actual successful exact-real interpreter output and total gradient count. Sufficient finite fuel certifies execution and is not a runtime precomputation or a count/cost hypothesis. No cost claim for failed insufficient-fuel executions. Gaussian sampling and arithmetic are not gradient queries. Source quadrature/J adapter, run-wide D7 induction, D8 parameter/iteration substitution, Wp, proxy-warmness, initialization, PBPS and composition/main results remain open. No TV-to-unbounded-cost transfer.",
+      "steps": [
+        {
+          "title": "Execute a finite successful query array",
+          "text": "Induct on the finite array size. The empty array returns count zero. For a nonempty array, execute index zero, then the tail, returning the actual vector of outputs and the sum of their returned counts. Fin.cons reconstruction and Fin.sum_univ_succ identify the complete returned vector and count. This helper has no probabilistic or termination premise beyond the individual successful calls.",
+          "formula": "\\operatorname{collect}(r_i)=(x_i,\\sum_i c_i)\\quad\\text{if }r_i=\\operatorname{some}(x_i,c_i).",
+          "lean": "collectQueries; collectQueries_some"
+        },
+        {
+          "title": "Run the actual two-layer program",
+          "text": "For each first center, run the residual-stopped proximal interpreter and evaluate the Gaussian-shifted gradient of its returned point, adding one direct query. Construct the second centers using these actual first returned gradients; run the second array in the same manner. Form the full updated state including both half-refreshes from the second returned gradients. In both layers each proximal count N(Y)+1 already includes its terminal successful residual test. Thus the returned count is the sum of both arrays plus exactly 2*m direct gradient evaluations. Failed insufficient-fuel calls return none.",
+          "formula": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1).",
+          "lean": "phaseQuery; phaseQuery_success; Finset.sum_add_distrib"
+        }
+      ],
+      "lean_statement": "Exact finite arrays, full input/return types, parameters and counting boundary are retained in Lean.",
+      "lean_proof": "The proof steps cover both private execution helpers and the public actual-law total-cost theorem. The definition itself is an execution prerequisite, not a proof edge.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.proximalQuery"
+      ],
+      "mathlib_dependencies": [
+        "Fin.sum_univ_succ",
+        "MeasureTheory.integrable_finsetSum",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.probReal_univ"
+      ]
+    }
+  ]
+}

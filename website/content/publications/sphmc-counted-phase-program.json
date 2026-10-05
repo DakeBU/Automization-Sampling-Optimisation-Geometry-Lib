@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "sphmc-counted-phase-program",
+      "library": "samplewiki-route",
+      "chapter": "sphmc-01",
+      "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+      "title": "Counted phase program",
+      "source": {
+        "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+        "edition": "arXiv:2609.06906v1",
+        "anchor": "Algorithm3.1, AlgorithmD.2 and D.4 final paragraph: two query arrays,2J proximal and2J direct gradient calls; component restatement with explicit finite-array/incoming-state boundary",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; bounded ASTIS exact-real implementation component."
+      },
+      "statement": "For arbitrary real normed E, gradient oracle g, eta,eps,h, Fin m nodes and weights, input w and fuel:E->Nat, phaseQuery returns Option((E*E)*Nat). It first refreshes P0 and builds Y0. It sequentially executes every proximalQuery at Y0_i from Y0_i using fuel(Y0_i), and if successful evaluates g at returned point plus sqrt(eta)G0_i and adds one query to that returned count. It builds Y1 from these actual returned gradients, sequentially executes every second proximal/noisy-gradient call similarly using G1, then returns the complete phase output and the sum of both arrays actual counts. Any failed call returns none, with no successful cost certificate.",
+      "assumptions": [
+        "E is an arbitrary real normed vector space; g, parameters, supplied finite nodes/weights and fuel are arbitrary. The input contains one state pair, two refresh noises and two Fin-m noise arrays; no probability or success assumption."
+      ],
+      "formulae": [
+        {
+          "label": "Actual successful phase work",
+          "tex": "T=2m+\\sum_{i=0}^{m-1}\\bigl[N(Y_i^0)+1+N(Y_i^1)+1\\bigr],\\quad \\mathbb E_\\mu T\\le m(2+L_0+L_1)."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "finite-counted-phase-interpreter",
+          "label": "Counted phase program"
+        },
+        {
+          "id": "source-global-d7-d8",
+          "label": "Source quadrature/global D7/D8 and main results remain open"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.phaseQuery",
+          "cell": "ASTIS-SW-SPHMC-counted-phase-program",
+          "role": "prerequisite",
+          "supports": [
+            "finite-counted-phase-interpreter"
+          ],
+          "audit_id": "ASTIS-RT-20261005-SPHMCCountedPhaseProgram",
+          "boundary": "Actual interpreter definition only. Single full Gaussian phase with supplied incoming integrable state L2 budget, finite bounded nodes and row l1 bounds; actual successful exact-real interpreter output and total gradient count. Sufficient finite fuel certifies execution and is not a runtime precomputation or a count/cost hypothesis. No cost claim for failed insufficient-fuel executions. Gaussian sampling and arithmetic are not gradient queries. Source quadrature/J adapter, run-wide D7 induction, D8 parameter/iteration substitution, Wp, proxy-warmness, initialization, PBPS and composition/main results remain open. No TV-to-unbounded-cost transfer.",
+          "assumption_deltas": [
+            {
+              "source": "Source Algorithm3.1 fixes quadrature; D4 uses run-wide D7 and substitutes selected parameters.",
+              "lean": "Actual interpreter definition only. Single full Gaussian phase with supplied incoming integrable state L2 budget, finite bounded nodes and row l1 bounds; actual successful exact-real interpreter output and total gradient count. Sufficient finite fuel certifies execution and is not a runtime precomputation or a count/cost hypothesis. No cost claim for failed insufficient-fuel executions. Gaussian sampling and arithmetic are not gradient queries. Source quadrature/J adapter, run-wide D7 induction, D8 parameter/iteration substitution, Wp, proxy-warmness, initialization, PBPS and composition/main results remain open. No TV-to-unbounded-cost transfer.",
+              "classification": "generalization",
+              "reason": "Actual arbitrary finite-array single-phase work component; source adapter and repeated-history theorem remain explicit obligations."
+            },
+            {
+              "source": "Stopped AlgorithmD2 repeats until the residual criterion succeeds.",
+              "lean": "Finite fuel returns Option; success is certified by the proved global proximal execution with N(y)+1. Failure returns none without a successful count.",
+              "classification": "source-implicit",
+              "reason": "Execution certificate avoids introducing unproved termination or nominal counts; no fuel precomputation is charged as source runtime."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

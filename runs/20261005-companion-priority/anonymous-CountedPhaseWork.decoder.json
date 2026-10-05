@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-a3d2c8cf844b61f2",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n{m : ℕ} {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M S : ℝ} (hh : 0 ≤ h) (hM : 0 ≤ M) (hS : 0 ≤ S)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n    (t : Fin m → ℝ) (ht : ∀ i, |t i| ≤ 1) (omega : Fin m → Fin m → ℝ)\n    (hrow : ∀ i, (∑ j, |omega i j|) ≤ S)\n    (positionWeight momentumWeight : Fin m → ℝ) :\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : Fin m => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    let L0 := C*(1+Real.log (1+Real.sqrt (2*MR)/eps))\n    let L1 := C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        run (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      let T := fun w => 2*m+∑ i, ((N (Y0 i w)+1)+(N (Y1 i w)+1))\n      Measurable Φ ∧ Measurable T ∧\n      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ w, phaseQuery (gradient V) eta eps h t omega positionWeight momentumWeight\n        (fun y => N y+1) w = some (Φ w,T w)) ∧\n      Integrable (fun w => (T w : ℝ)) μ ∧\n      (∫ w, (T w : ℝ) ∂μ) ≤ (m : ℝ)*(2+L0+L1)",
+    "statement_sha256": "a3d2c8cf844b61f21a279d7c63c13eb3d8b7839ae13f8cd07d460e49e0767d63",
+    "compiled": true,
+    "approved_definition_context": [
+      "run(g,eta,eps,y,fuel,x) returns none at zero fuel. At positive fuel it evaluates g(x), next=y-eta*g(x), returns some(x,1) if norm(next-x)<=(1-eta)*eps, otherwise recurses at next with one less fuel and adds one to a successful returned count. Each returned count includes the terminal gradient test. Arithmetic is exact real arithmetic.",
+      "collectQueries 0 f=some(empty array,0); collectQueries (m+1) f executes f(0), then recursively the tail f(i.succ), and returns some(Fin.cons(first output,tail outputs),first count+tail count). A failed call propagates none.",
+      "The input is ((X,P),((zeta0,zeta1),(G0,G1))). Fin m enumerates exactly m actual nodes; arrays are not source-specific quadrature by definition.",
+      "stdGaussian is the centered identity-covariance Gaussian probability law; Measure.pi is an independent finite array; prod is the independent product; map is measurable pushforward; IsMarkovKernel requires probability kernels. Integrable means Bochner integrability under its displayed measure. gradient is the real inner-product gradient and finrank real dimension.",
+      "The phaseQuery symbol in this theorem is precisely the following paired finite-phase definition, with the same helper context above; the link is definitional, not an extra theorem premise:\n{E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n{m : ℕ} (g : E → E) (eta eps h : ℝ)\n    (t : Fin m → ℝ) (omega : Fin m → Fin m → ℝ)\n    (positionWeight momentumWeight : Fin m → ℝ) (fuel : E → ℕ)\n    (w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E)))) :\n    Option ((E × E) × ℕ) := do\n  let P0 := Real.exp (-h/2) • w.1.2 + Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n  let Y0 := fun i => w.1.1 + t i • P0\n  let r0 ← collectQueries m (fun i =>\n    (run g eta eps (Y0 i) (fuel (Y0 i)) (Y0 i)).map\n      (fun r => (g (r.1+Real.sqrt eta • w.2.2.1 i),r.2+1)))\n  let Y1 := fun i => Y0 i - ∑ j, omega i j • r0.1 j\n  let r1 ← collectQueries m (fun i =>\n    (run g eta eps (Y1 i) (fuel (Y1 i)) (Y1 i)).map\n      (fun r => (g (r.1+Real.sqrt eta • w.2.2.2 i),r.2+1)))\n  pure ((w.1.1+h • P0-∑ j, positionWeight j • r1.1 j,\n    Real.exp (-h/2) • (P0-∑ j, momentumWeight j • r1.1 j) +\n      Real.sqrt (1-Real.exp (-h)) • w.2.1.2),r0.2+r1.2)"
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "6475a8ef5340d1aa4d6747394cff6dd79cc527ffab895148b1bbc88fbb6728f9"
+}

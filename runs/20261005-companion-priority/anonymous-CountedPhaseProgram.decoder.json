@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-e5fd2046b9272ea1",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n{m : ℕ} (g : E → E) (eta eps h : ℝ)\n    (t : Fin m → ℝ) (omega : Fin m → Fin m → ℝ)\n    (positionWeight momentumWeight : Fin m → ℝ) (fuel : E → ℕ)\n    (w : (E × E) × ((E × E) × ((Fin m → E) × (Fin m → E)))) :\n    Option ((E × E) × ℕ) := do\n  let P0 := Real.exp (-h/2) • w.1.2 + Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n  let Y0 := fun i => w.1.1 + t i • P0\n  let r0 ← collectQueries m (fun i =>\n    (run g eta eps (Y0 i) (fuel (Y0 i)) (Y0 i)).map\n      (fun r => (g (r.1+Real.sqrt eta • w.2.2.1 i),r.2+1)))\n  let Y1 := fun i => Y0 i - ∑ j, omega i j • r0.1 j\n  let r1 ← collectQueries m (fun i =>\n    (run g eta eps (Y1 i) (fuel (Y1 i)) (Y1 i)).map\n      (fun r => (g (r.1+Real.sqrt eta • w.2.2.2 i),r.2+1)))\n  pure ((w.1.1+h • P0-∑ j, positionWeight j • r1.1 j,\n    Real.exp (-h/2) • (P0-∑ j, momentumWeight j • r1.1 j) +\n      Real.sqrt (1-Real.exp (-h)) • w.2.1.2),r0.2+r1.2)",
+    "statement_sha256": "e5fd2046b9272ea14289336a591f9334a6e14af2e2c14592895a0c437cfab3ee",
+    "compiled": true,
+    "approved_definition_context": [
+      "run(g,eta,eps,y,fuel,x) returns none at zero fuel. At positive fuel it evaluates g(x), next=y-eta*g(x), returns some(x,1) if norm(next-x)<=(1-eta)*eps, otherwise recurses at next with one less fuel and adds one to a successful returned count. Each returned count includes the terminal gradient test. Arithmetic is exact real arithmetic.",
+      "collectQueries 0 f=some(empty array,0); collectQueries (m+1) f executes f(0), then recursively the tail f(i.succ), and returns some(Fin.cons(first output,tail outputs),first count+tail count). A failed call propagates none.",
+      "The input is ((X,P),((zeta0,zeta1),(G0,G1))). Fin m enumerates exactly m actual nodes; arrays are not source-specific quadrature by definition.",
+      "stdGaussian is the centered identity-covariance Gaussian probability law; Measure.pi is an independent finite array; prod is the independent product; map is measurable pushforward; IsMarkovKernel requires probability kernels. Integrable means Bochner integrability under its displayed measure. gradient is the real inner-product gradient and finrank real dimension."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "b92ce9225c3a35a9612046af521003963554a89300bed911c4a408d19a19ed01"
+}

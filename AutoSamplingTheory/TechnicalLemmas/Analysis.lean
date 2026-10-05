@@ -43,6 +43,8 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentValue
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
+import AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum
 
 /-!
 # Analysis technical lemma arsenal

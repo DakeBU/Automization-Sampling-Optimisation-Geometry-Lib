@@ -3,6 +3,8 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
+import AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
@@ -82,6 +84,26 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.monotone-proximal.nonexpansive",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap.nonexpansive_of_monotone_optimality",
+    upstreamDecl := "Monotone exact optimality implies nonexpansiveness (existing proof extraction)",
+    upstreamFile := "arXiv:2609.06906v1 Lemma 4.2 / Appendix D.1 proximal prerequisite",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "proximal", "monotone", "nonexpansive", "SPHMC"],
+    saldUse := "actual SPHMC exact-estimator input stability and full-range proximal phase comparison",
+    note := "eta>=0, monotonicity and exact optimality imply LipschitzWith1. Extracted existing private proof once; no new mathematical completion credit. No existence, measurability or sampler claim."
+  },
+  {
+    key := "analysis.chebyshev-lobatto.momentum-absolute-norm",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum.momentum_absolute_sum_le",
+    upstreamDecl := "Absolute integral norm of actual SPHMC momentum coefficients",
+    upstreamFile := "arXiv:2609.06906v1 Appendix B.1 coefficients / D.1 synchronous comparison",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "interpolation", "quadrature", "Chebyshev-Lobatto", "SPHMC"],
+    saldUse := "actual two-layer SPHMC proximal phase comparison; depth-K coefficient perturbation (planned)",
+    note := "Actual J>=2,h>0 source basis and compact Lambda give sum|b_j|<=hLambda. Continuity/interval integrability derived. Does not prove individual b positivity, logarithmic Lambda or B2 remainder."
+  },
   {
     key := "analysis.chebyshev-lobatto.coefficients",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",

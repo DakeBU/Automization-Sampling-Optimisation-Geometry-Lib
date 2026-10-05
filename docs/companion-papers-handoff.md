@@ -1,5 +1,60 @@
 # Companion-paper formalization handoff
 
+## Actual proximal phase stability — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCProximalPhaseStability` proves the Appendix D1/D2
+one-phase comparison for the genuine source quadrature and full two-layer
+Gaussian kernel. Exact proximal p is constructed for full0<eta<1; actual stopped
+q,N retain terminal-inclusive interpreter identity. Every measurable uniformly
+delta-accurate oracle, includingdelta=0, has an actual Markov phase Kr satisfying
+true Euclidean W_rho(Kr(s),Kp(s))<=3hLambda delta for every deterministic s and
+finite realrho>=1, under actual h²Lambda<=1. Both Gaussian arrays and both
+half-refreshes remain explicit. No r-Lipschitz or state-moment premise.
+The exact comparison phase uses the exact proximal stochastic-gradient oracle,
+not a deterministic smoothed force. The default Lean product max norm is avoided.
+
+The actual momentum integral weights satisfy sum|b_j|<=hLambda by polynomial
+continuity and derived interval integrability. This supplies the comparison
+without assuming unproved individual weight positivity. The existing monotone
+proximal proof is extracted verbatim into one shared leaf and consumed twice;
+the old public estimator statement and its explicit eta<=1/2 limit are unchanged.
+The extraction and re-reviewed old consumer receive no new mathematical credit.
+
+Independently source-admitted commit: `5e455fb03cf374da058da792a2e276ec5edb54e6`. Receipt:
+`runs/20261005-companion-priority/proximal-phase-stability.verified.json`.
+Focused PASS3717 proves actual J2,h1/2 Lambda=1, exercises E=real,eta3/4,eps1/10,
+all finite exponents and delta0. Independent mathematics/fresh elaboration,
+blind decoding and fresh whole-module primary-source reviews pass; standard3
+foundations only. An initial anonymous definition context omitted(1-eta) from
+the actual stop threshold. Its independent rejection is retained as context-v1;
+corrected context and entirely fresh reconstruction/review are required by and
+included in current admission. Lean/source theorem was never changed to fit it.
+The typed process discovery remains separate from mathematical truth.
+
+Root integrates in the existing sole PR313 stabilization lane. Shared roots,
+Tests and two Registry leaves are prepared; canonical aggregate/site/graph checks
+remain a separate pending checkpoint. Previous39da40a7 remote Lean/site/contributor
+CI all pass; main merge and live deployment remain separate.
+
+**Next bounded mathematical dependency:** join this actual accuracy kernel with
+the already compiled source-quadrature expected-work producer using the SAME
+p,q,N, full phase and actual incoming driving law. Successful_query_unique
+identifies approximate outputs/counts independently of sufficient fuel; genuine
+optimality/contraction identifies the exact p. Derive h<=1 from actual
+h²Lambda<=1 rather than add a new small-step premise. This is an actual
+accuracy/work integration node, not the full PBPS/SPHMC composition. Then source
+D3 still needs the genuine exact kernel weighted contraction and input-history
+propagation; a recurrence consumer cannot assume that analytic conclusion. B2/depth-K
+integrator approximation, actual logarithmic Lebesgue estimate and individual
+weight positivity remain source dependencies too. GlobalD7/D8, smoothing/Wp/
+proxy-warmness, PBPS event/nonexplosion/invariance/hypocoercivity/cost and actual
+input-precision/expected-cost composition remain open. Neither main paper is
+complete. Companion formula proofs, folded Lean and source/test links are
+metadata-backed; copy/download controls and rendered visual acceptance remain
+open delivery requirements. Original frontiers/cycles and all source inventory
+targets are preserved. This unbudgeted two-paper Goal remains active.
+
+
 ## Actual source quadrature and counted work — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCSourceQuadrature` constructs the paper's actual Fin J

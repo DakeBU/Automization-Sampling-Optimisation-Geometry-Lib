@@ -9,6 +9,7 @@ import Tests.SmoothedPicardHMCRealizedProximalWork
 import Tests.SmoothedPicardHMCImplementedPhaseWork
 import Tests.SmoothedPicardHMCCountedPhaseProgram
 import Tests.SmoothedPicardHMCSourceQuadrature
+import Tests.SmoothedPicardHMCProximalPhaseStability
 import Tests.WassersteinLipschitzMoment
 import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric

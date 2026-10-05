@@ -36,4 +36,4 @@ $$\pi_s=(\Phi_r(s,\cdot),\Phi_p(s,\cdot))_\#\gamma,\quad\int d_{\rm Eucl}^{\rho}
 
 Shared extraction and actual momentum absolute-integral prerequisite are included once; they carry no duplicate wrapper credit.
 
-Status: focused PASS3717; independent mathematics, anonymous decoder and source review pending.
+Status: independently source-admitted at 5e455fb03cf374da058da792a2e276ec5edb54e6; focused PASS3717, independent mathematics and corrected blind/source round trip pass. Shared integration and aggregate/site/graph checks are separate.

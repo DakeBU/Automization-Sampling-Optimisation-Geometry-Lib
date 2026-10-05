@@ -1,5 +1,45 @@
 # Companion-paper formalization handoff
 
+## Actual Picard numerical phase and first-order difference — 2026-10-06
+
+`ASTIS-SA-20261005-SPHMCFirstOrderDifference` joins the actual cardinal-integral,
+positive ordinary momentum-weight and genuine Hessian-secant parents into the
+source exact-gradient numerical K. It constructs the full two independent
+Gaussian OU half-refreshes, actual Y0/Y1 Picard arrays and both endpoint sums.
+The map is jointly measurable and its Markov kernel is exactly the Gaussian
+pushforward. For every pair of inputs and every common noise value, source
+H=h^-1 sum b_j integral_0^1 D2f(Y1prime_j+u(Y1_j-Y1prime_j))^sharp du
+has symmetry, (2kappa)^-1 I<=H<=I and norm<=1. The real endpoint residual
+satisfies norm<=8 Lambda_J h² normDelta0 in the **Euclidean L2** phase space.
+A pointwise rankOne witness then proves Delta1=(I+hA_H)Delta0+R_h Delta0,
+with normR_h<=8 Lambda_J h². It assumes no H/weights/kernel/remainder certificate.
+R_h can depend on compared states/noise; no global or measurable choice is asserted.
+
+This source edge exposes the normalized C2 curvature interface explicitly:
+f=V_eta and the Lemma4.1 smoothing/C2/curvature producer remain independent.
+It is not full Lemma4.6-at-V_eta or either complete main theorem. The genuine
+nonconstant positive-Hessian potential f(x)=3x²/8+sin(x)/8 Test passes for the
+actual coefficient/algorithm definitions. Focused3659 PASS, standard3 only.
+Independent mathematics, blind reconstruction and anti-anchored whole-module
+source review pass. Independently VERIFIED exact proof `866deafe2389150a61f1f802c0ad9a2f3f1eed66`:
+`runs/20261005-companion-priority/first-order-difference/verified.json`.
+Root serializes only ExampleCases/Tests imports in the original sole PR313 lane;
+Registry472 stays at the shared-leaf count. Aggregate/reader/graph checks pending.
+Previous pushed10ebc535 required remote Lean/site/contributor CI all PASS:
+`runs/20261005-companion-priority/hessian-secant-operator/remote-ci.json`.
+Draft/open/unmerged and deployment remain separate.
+
+Next bounded actual consumer: Proposition4.7 join this exact numerical phase
+expansion with the independently compiled genuine kinetic dissipation and
+PhaseMetric norm equivalence, derive explicit h Lambda<=c/kappa absorption
+and the M_kappa same-noise contraction. Lemma4.8 increment is another consumer.
+No abstract supplied contraction certificate. V_eta producer, logLambda/B2,
+Khat/Kbar stochastic errors/history/actual-query cost, PBPS reflection/invariance/
+nonexplosion/hypocoercivity/implementation/cost and both complete main results/
+actual-input expected-cost composition remain independent open boundaries.
+Goal active; older sources/frontiers/cycles preserved. Metadata-backed copy/
+download controls and rendered reader visual acceptance remain open.
+
 ## Genuine Hessian secant operator — 2026-10-05
 
 `ASTIS-SA-20261005-HessianSecantOperator` constructs the actual ordinary

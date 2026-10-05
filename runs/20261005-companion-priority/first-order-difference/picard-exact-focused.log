@@ -1,0 +1,66 @@
+⚠ [3411/3442] Replayed AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
+warning: AutoSamplingTheory/TechnicalLemmas/Analysis/ChebyshevLobattoQuadrature.lean:91:6: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+⚠ [3659/3659] Replayed Tests.SmoothedPicardHMCFirstOrderDifference
+warning: Tests/SmoothedPicardHMCFirstOrderDifference.lean:17:81: This simp argument is unused:
+  potential
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Pi.add_apply, mul_comm]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Tests/SmoothedPicardHMCFirstOrderDifference.lean:17:92: This simp argument is unused:
+  Pi.add_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [potential, mul_comm]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: Tests/SmoothedPicardHMCFirstOrderDifference.lean:80:0: @source_first_order_difference : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]
+  [inst_2 : CompleteSpace E] [inst_3 : FiniteDimensional ℝ E] [inst_4 : MeasurableSpace E] [BorelSpace E] {f : E → ℝ}
+  {κ h : ℝ} {J : ℕ},
+  1 ≤ κ →
+    ContDiff ℝ 2 f →
+      (∀ (z v : E),
+          1 / (2 * κ) * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ f) z) v) v ∧ ((fderiv ℝ (fderiv ℝ f) z) v) v ≤ ‖v‖ ^ 2) →
+        2 ≤ J →
+          0 < h →
+            have t := fun i => h / 2 * (1 - Real.cos (↑↑i / (↑J - 1) * Real.pi));
+            have ell := fun j => Lagrange.basis Finset.univ t j;
+            have Λ := sSup ((fun s => ∑ j, |Polynomial.eval s (ell j)|) '' Icc 0 h);
+            have ω := fun i j => ∫ (s : ℝ) in 0..t i, (t i - s) * Polynomial.eval s (ell j);
+            have b := fun j => ∫ (s : ℝ) in 0..h, Polynomial.eval s (ell j);
+            have c := fun j => ∫ (s : ℝ) in 0..h, (h - s) * Polynomial.eval s (ell j);
+            h ^ 2 * Λ ≤ 1 →
+              have a := Real.exp (-h / 2);
+              have sigma := √(1 - Real.exp (-h));
+              have Γ := (stdGaussian E).prod (stdGaussian E);
+              have P0 := fun z ζ => a • z.2 + sigma • ζ.1;
+              have Y0 := fun z ζ j => z.1 + t j • P0 z ζ;
+              have Y1 := fun z ζ i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j);
+              have Φ := fun w =>
+                (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+                  a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2);
+              Measurable Φ ∧
+                (∃ K, IsMarkovKernel K ∧ ∀ (z : E × E), K z = Measure.map (fun ζ => Φ (z, ζ)) Γ) ∧
+                  ∀ (z z' ζ : E × E),
+                    have H :=
+                      h⁻¹ •
+                        ∑ j,
+                          b j •
+                            ∫ (u : ℝ) in 0..1,
+                              continuousLinearMapOfBilin
+                                (fderiv ℝ (fderiv ℝ f) (Y1 z' ζ j + u • (Y1 z ζ j - Y1 z' ζ j)));
+                    have d := WithLp.toLp 2 (z.1 - z'.1, z.2 - z'.2);
+                    (↑H).IsSymmetric ∧
+                      (∀ (v : E), 1 / (2 * κ) * ‖v‖ ^ 2 ≤ ⟪H v, v⟫ ∧ ⟪H v, v⟫ ≤ ‖v‖ ^ 2) ∧
+                        ‖H‖ ≤ 1 ∧
+                          ∃ R,
+                            ‖R‖ ≤ 8 * Λ * h ^ 2 ∧
+                              WithLp.toLp 2 ((Φ (z, ζ)).1 - (Φ (z', ζ)).1, (Φ (z, ζ)).2 - (Φ (z', ζ)).2) =
+                                d + h • WithLp.toLp 2 (z.2 - z'.2, -H (z.1 - z'.1) - (z.2 - z'.2)) + R d
+info: Tests/SmoothedPicardHMCFirstOrderDifference.lean:81:0: 'AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference.source_first_order_difference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Build completed successfully (3659 jobs).

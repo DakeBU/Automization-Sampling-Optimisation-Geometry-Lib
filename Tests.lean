@@ -14,6 +14,7 @@ import Tests.HessianSecantOperator
 import Tests.SmoothedPicardHMCProximalPhaseStability
 import Tests.SmoothedPicardHMCPhaseAccuracyWork
 import Tests.SmoothedPicardHMCKineticDissipation
+import Tests.SmoothedPicardHMCFirstOrderDifference
 import Tests.WassersteinLipschitzMoment
 import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric

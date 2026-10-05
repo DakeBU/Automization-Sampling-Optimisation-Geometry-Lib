@@ -19,8 +19,9 @@ Focused3717, independent full shared/actual/Test mathematics, two anonymous
 reconstructions and fresh anti-anchored source reviews PASS; standard3 only.
 Exact committed independently VERIFIED proof `8e843e01d3f4cf91528a379632c5e0f186a57cae`:
 `runs/20261006-companion-priority/actual-kernel-transport/verified.json`.
-Original sole root STABILIZING/PR313 lane serializes the three imports;
-shared aggregate/reader/graph checks pending. Goal remains active.
+Original sole root STABILIZING/PR313 lane serializes the two imports;
+Exact proof 8e843e01d3f4cf91528a379632c5e0f186a57cae independently VERIFIED; shared integration 39412b8aa78290b431d62825c0d617bb820b93f0. Full ASTIS gate PASS (9097 root / 9341 Tests), publication150, semantic209/8, frontier213, contributor32/28. 95 earlier relevant Python regressions reused after exact unchanged tool/fixture checks; not rerun for this pure Lean/metadata packet. Full reader generation, static actual/shared formula/folded-Lean/source/Test/residual inspection, two bounded import/ownership graph checks and official graph freshness/full site/contributor checks PASS. Site809 modules/596 declarations. Registry472 unchanged. Rendered visual acceptance and metadata copy/download controls remain open.
+`runs/20261006-companion-priority/actual-kernel-transport/integration.json`. Goal remains active.
 
 Next bounded dependency candidate: genuine Gaussian convolution-normalizer
 C2 / negative-log potential regularity at every observation, starting from

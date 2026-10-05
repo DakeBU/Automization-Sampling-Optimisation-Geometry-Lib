@@ -1,0 +1,17 @@
+# Actual Gaussian convolution potential regularity
+
+One source-backed SAU ASTIS-SA-20261006-GaussianConvolutionRegularity. Shared frontier ASTIS-SHARED-gaussian-convolution-regularity. Root is sole production writer; original PR313/stabilization lane remains the only repository integration lane.
+
+Exact primary: SPHMC2609.06906v1 Section4.1 actual pi_eta/V_eta and (4.1); PBPS2609.06905v1 Section2.2 (2.6)-(2.8) actual augmentation marginal. This packet fills omitted regularity prerequisites, not the Hessian covariance identities/inequalities or either main theorem. Lean4.33.0, Mathlib db584cd6d46c92f209a44c0f1c829460d327499d pinned.
+
+Shared floor: GaussianAugmentation exact joint density reused unchanged; GaussianConditionalKernel normalization and conditional law retained, not duplicated as proof credit. GaussianSmoothing only supplies measure-level law/transport. PBPS ConditionalScore compact-test/local derivative internals are not callable global C2 normalizer facts. Technical-lemma README and existing relevant kernel-transport module card inspected; no dedicated normalizer card found.
+
+Leaf: finite-dimensional real inner-product Borel E, probability mu, eta>0. No input density/moments. Z(y)=integral exp(-norm(y-x)^2/(2eta)) dmu, C_eta=(sqrt(2pi eta))^(-dim E); actual Gaussian add-noise law has density C_eta Z, with positive Z and globally C2 negative-log(C_eta Z), including zero dimension. Uniform bound exp(-r²/(2eta))<=1; q exp(-q)<=1 gives r² exp(-r²/(2eta))<=2eta; explicit first derivative bound (1+2eta)/eta and second 3/eta dominate against probability mu.
+
+Route (seven steps): derive kernel derivatives; prove uniform weighted Gaussian bounds; derive integrability/measurability; differentiate normalizer; differentiate its real derivative again and prove dominated derivative continuity; compose negative log of positive normalizer; project existing exact joint density and use nonnegative Fubini to identify the actual smoothed marginal density.
+
+Failure policy: freeze repeated same-shape failures and diagnose statement/API rather than adding moments. Nested dual NormSMul/PseudoMetrizable failed despite NormedSpace synthesis. Minimal reproducer showed existing local CLM NormedAddCommGroup/NormedSpace choices on the dual restore coherent instances; independent verifier confirmed the original operator norm by rfl and no mathematical assumptions. The remaining innerSL reduction was a definitional coercion issue, resolved by unfolding, not a theorem change. Prototype is observability, not independent mathematical admission.
+
+Conceptual mirror none-found: same Gaussian augmentation analytic prerequisite, no new certified or conceptual transport. Preserve source inventories, old Chewi frontiers/cycles and original reader. Actual Hessian covariance/curvature, higher derivatives, numerical bias/invariance/history/query work and PBPS/main/composition remain open; TV does not transfer unbounded cost.
+
+Normalization convention audit: Source Section3.1 defines the unnormalized convolution exp(-V_eta)=exp(-V)*Gaussian. This theorem constructs the exact normalized density potential U_eta=-log(C_eta Z_mu). For Gibbs mu=exp(-V) volume/Z_V, U_eta=V_eta+log Z_V; formalizing that Gibbs specialization and constant-shift adapter remains separate. This normalization difference does not change derivatives, but the two chosen potentials are not asserted literally identical.

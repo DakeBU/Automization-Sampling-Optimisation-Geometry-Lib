@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-30ccf5ee9a16f379",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h * Λ ≤ 1/(65536*κ) →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    let Γ := (stdGaussian E).prod (stdGaussian E)\n    ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n      (∀ z, K z = Γ.map (fun ζ => Φ (z,ζ))) ∧\n      ∀ (μ ν : Measure (E × E)), IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        K ∘ₘ μ = (μ.prod Γ).map Φ ∧ K ∘ₘ ν = (ν.prod Γ).map Φ ∧\n        phaseWassersteinSq κ (K ∘ₘ μ) (K ∘ₘ ν) ≤\n          ENNReal.ofReal ((1-h/(65536*κ))^2) * phaseWassersteinSq κ μ ν",
+    "statement_sha256": "30ccf5ee9a16f379239ec6ea6844e7f1b034bac1dcd051fe6a60657e97055576",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a complete finite-dimensional real inner-product space with its Borel measurable space. ContDiff R 2 f means globally C2; fderiv R (fderiv R f) is its actual second derivative, and gradient f is the Riesz representative of its derivative.",
+      "Fin J indexes0 through J-1; Lagrange.basis gives cardinal polynomials at the displayed nodes, eval is polynomial evaluation, sSup is the real supremum. Interval integrals are ordinary Lebesgue Bochner integrals.",
+      "stdGaussian E is the standard centered identity-covariance Gaussian measure. Gamma is the independent product of two such laws, used for the two refreshes of the displayed actual Phi. Kernel means a measurable probability-transition measure family; IsMarkovKernel means probability at every state. K composed with mu is measure/kernel composition.",
+      "phaseQuadraticForm kappa (x,p)=((1/(2*kappa))+(1/2))*norm(x)^2+inner R x p+norm(p)^2; phaseCost kappa (z,zprime)=ENNReal.ofReal(phaseQuadraticForm kappa (z-zprime)). phaseWassersteinSq kappa mu nu is the raw infimum of the lintegral of that cost over all measures gamma with gamma.fst=mu and gamma.snd=nu. No optimizer or finite moment convention is imposed. Measure.prod is independent product and Measure.map is pushforward."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "a18750490b6f4875c878ae8d78bbb84299d1d85b5baf5ce31f02a1d7fd226de6"
+}

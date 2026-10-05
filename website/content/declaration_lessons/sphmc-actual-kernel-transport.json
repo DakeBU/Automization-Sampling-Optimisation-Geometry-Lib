@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le",
+      "title": "Genuine nonlinear common-noise coupling and raw transport cost",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+          "label": "SPHMC actual common-noise transport prerequisite",
+          "scope": "Actual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCActualKernelTransport"
+      ],
+      "assumptions": [
+        "E is a normed additive Borel group with second-countable topology. These topological/algebraic conditions are exposed API requirements of the reused shared marginal interface, not hidden moment or optimizer assumptions. State and noise use this same space.",
+        "Phi:E×E->E and the extended nonnegative cost c:E×E->ENNReal are jointly measurable. The noise Gamma and both input laws mu,nu are probability measures. 0<A<infinity in extended reals.",
+        "For every x,y,zeta, c(Phi(x,zeta),Phi(y,zeta))<=A c(x,y). This is the explicit general lifting premise; the actual source algorithm consumer proves it from its genuine normalized potential, not a supplied kernel certificate."
+      ],
+      "statement": "The true randomized output laws map(Phi,mu×Gamma) and map(Phi,nu×Gamma) obey T_c(output_mu,output_nu)<=A T_c(mu,nu). Here T_c is the raw Kantorovich infimum over actual couplings. Input/output costs may be infinite and no optimizer or finite moments are assumed.",
+      "formula": "\\mathcal T_c(\\Phi_\\#(\\mu\\otimes\\Gamma),\\Phi_\\#(\\nu\\otimes\\Gamma))\\le A\\mathcal T_c(\\mu,\\nu),\\qquad0<A<\\infty.",
+      "boundary": "Actual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost.",
+      "steps": [
+        {
+          "title": "Construct the actual common-noise coupling",
+          "text": "Start with any gamma coupling mu and nu. Normalization follows from its prescribed probability left marginal. Put rho=S#(gamma×Gamma), where S((x,y),zeta)=(Phi(x,zeta),Phi(y,zeta)). Joint measurability gives a genuine pushforward. Reuse the existing public left/right joint-noise marginal lemmas: (x,zeta) and (y,zeta) have laws mu×Gamma and nu×Gamma. Map composition therefore proves rho has exactly the two randomized output marginals.",
+          "formula": "\\rho=S_\\#(\\gamma\\otimes\\Gamma),\\quad\\rho_1=\\Phi_\\#(\\mu\\otimes\\Gamma),\\quad\\rho_2=\\Phi_\\#(\\nu\\otimes\\Gamma).",
+          "lean": "candidate; hS; hleft; hright; hρ; map_pairLeft_prod_eq; map_pairRight_prod_eq"
+        },
+        {
+          "title": "Integrate the explicit pointwise cost",
+          "text": "The canonical feasible-coupling bound gives T_c(outputs)<=integral c d rho. The measurable map formula and assumed pointwise bound give at most A integral c(x,y) d(gamma×Gamma). Since Gamma has mass one, mapping the product to its first coordinate reduces this exactly to A integral c d gamma. This uses nonnegative extended integrals, not an unproved finite expectation.",
+          "formula": "\\mathcal T_c(\\mathrm{outputs})\\le\\int c\\,d\\rho\\le A\\int c\\,d\\gamma.",
+          "lean": "transportCost_le_lintegral_of_isCoupling; lintegral_map; lintegral_mono; lintegral_const_mul; Measure.map_fst_prod"
+        },
+        {
+          "title": "Take the raw infimum",
+          "text": "A finite nonzero multiplier commutes with the raw extended-real infimum. Rewrite the input transport infimum as an indexed infimum over each feasible cost, and apply the already constructed candidate bound to every one. No existence of a minimizing coupling or continuity of c is required.",
+          "formula": "\\mathcal T_c(\\mathrm{outputs})\\le\\inf_{\\gamma\\in\\mathrm{Coupl}(\\mu,\\nu)}A\\int c\\,d\\gamma=A\\mathcal T_c(\\mu,\\nu).",
+          "lean": "Transport.transportCost_eq_sInf; sInf_eq_iInf; ENNReal.mul_iInf_of_ne; le_iInf"
+        }
+      ],
+      "lean_statement": "Exact randomized law/actual Phi and Markov semantics, canonical raw source cost.",
+      "lean_proof": "Genuine synchronous coupling / actual kernel-law producer, measurable nonnegative integrals and positive finite scaled raw infimum.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.map_pairLeft_prod_eq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.map_pairRight_prod_eq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left"
+      ],
+      "mathlib_dependencies": [
+        "Measure.map_map",
+        "lintegral_map",
+        "lintegral_mono",
+        "lintegral_const_mul",
+        "Measure.map_fst_prod",
+        "ENNReal.mul_iInf_of_ne",
+        "sInf_eq_iInf",
+        "le_iInf"
+      ]
+    },
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport.source_kernel_transport_contraction",
+      "title": "Actual Gaussian numerical kernel: integrated law and source transport contraction",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+          "label": "SPHMC actual common-noise transport prerequisite",
+          "scope": "Actual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCActualKernelTransport"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product Borel space, including zero dimension. kappa>=1, f:E->R is globally C2 and its actual nested second derivative satisfies (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for every z,v. Producing the actual source f=V_eta remains open.",
+        "J>=2,h>0; t_j=h(1-cos(j*pi/(J-1)))/2, cardinal ell_j, and omega_ij=integral_0^t_i(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds,c_j=integral_0^h(h-s)ell_j(s)ds are the actual coefficients. Lambda=sup_[0,h] sum_j |ell_j| and actual hLambda<=1/(65536kappa).",
+        "a=exp(-h/2),sigma=sqrt(1-exp(-h)); P0=a p+sigma zeta0, Y0_j=x+t_jP0, Y1_i=Y0_i-sum_j omega_ij gradient f(Y0_j), Phi=(x+hP0-sum_j c_j gradient f(Y1_j),a(P0-sum_j b_j gradient f(Y1_j))+sigma zeta1). Gamma=standard Gaussian E product standard Gaussian E, with independent refresh vectors.",
+        "Both input laws mu,nu are arbitrary probability laws on phase space; their source quadratic transport may be infinite. Q_kappa(x,p)=((2kappa)^-1+1/2)||x||²+inner(x,p)+||p||², c_kappa(z,zprime)=ofReal Q_kappa(z-zprime), and W_M²=T_c_kappa. Source Q is retained, not the ordinary product max norm."
+      ],
+      "statement": "Construct a Markov K whose law at every z is Gamma.map(zeta -> Phi(z,zeta)). For all probability mu,nu, K composed with each input equals the actual pushforward Phi#(input×Gamma), and W_M²(Kmu,Knu)<=(1-h/(65536kappa))² W_M²(mu,nu). This is the actual deterministic exact-gradient Gaussian numerical kernel, not an arbitrary supplied contracting kernel and not an invariant-target theorem.",
+      "formula": "K(z)=\\Phi_z{}_{\\#}\\Gamma,\\quad K\\mu=\\Phi_\\#(\\mu\\otimes\\Gamma),\\quad W_{2,M_\\kappa}^2(K\\mu,K\\nu)\\le\\left(1-\\frac{h}{65536\\kappa}\\right)^2W_{2,M_\\kappa}^2(\\mu,\\nu).",
+      "boundary": "Actual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost.",
+      "steps": [
+        {
+          "title": "Recover actual joint measurability",
+          "text": "The genuine source quadrature constructor gives Lambda>=1. The actual step condition gives h<=1 and h²Lambda<=1. Reuse FirstOrderDifference for exactly the same coefficients/potential/Phi; its jointly measurable actual numerical map is the needed random-map producer.",
+          "formula": "\\Lambda_J\\ge1,\\quad h\\le1,\\quad h^2\\Lambda_J\\le1,\\quad\\Phi\\text{ jointly measurable}.",
+          "lean": "hcoeff; hLambda; hs; hfirst.1; hΦ"
+        },
+        {
+          "title": "Build the Markov kernel and prove both laws",
+          "text": "Use (id times const Gamma).map Phi. Markovness follows from actual independent probability refreshes and measurable Phi. At each z, dirac×Gamma followed by map composition gives Gamma.map(Phi_z). For any probability input, the map-composition and constant-kernel product identities yield Kmu=Phi#(mu×Gamma). These identities justify the actual kernel semantics before applying a law-level inequality.",
+          "formula": "K=(\\mathrm{id}\\times\\mathrm{const}\\,\\Gamma).\\mathrm{map}\\,\\Phi,\\qquad K\\mu=\\Phi_\\#(\\mu\\otimes\\Gamma).",
+          "lean": "K; hK; Kernel.map_apply; Kernel.prod_apply; Measure.dirac_prod; hlaw; Measure.map_comp; Measure.compProd_eq_comp_prod; Measure.compProd_const"
+        },
+        {
+          "title": "Square the actual source norm contraction",
+          "text": "The existing ActualContraction theorem proves the source Q norm contraction for every input and common noise, using the actual numerical phase. Delta=1-h/(65536kappa) is strictly positive. The unchanged Q lower comparison gives nonnegative Q for all phase displacements. Square the genuine sqrt inequality and reuse the squared sqrt identity, then apply ofReal multiplication. This proves the measurable extended pointwise cost bound with A=ofReal(delta²); it is not a public supplied premise of this consumer.",
+          "formula": "c_\\kappa(\\Phi_z(\\zeta),\\Phi_{z\\prime}(\\zeta))\\le\\delta^2c_\\kappa(z,z\\prime),\\qquad\\delta>0.",
+          "lean": "hδ; nonnegQ; ActualContraction.source_synchronous_contraction; hcon; hsq; Real.sq_sqrt; ENNReal.ofReal_mul"
+        },
+        {
+          "title": "Consume the shared genuine coupling lift",
+          "text": "The source cost is measurable by its exact Q formula. A is positive and finite. Apply the shared randomized-map transport theorem to the actual Phi, actual Gaussian product law and arbitrary input probabilities, then rewrite both actual kernel laws. No optimizer, finite transport premise, invariant measure or selection of the state-dependent H/R is introduced.",
+          "formula": "W_{2,M_\\kappa}^2(K\\mu,K\\nu)\\le\\delta^2W_{2,M_\\kappa}^2(\\mu,\\nu).",
+          "lean": "hc; transportCost_randomized_map_le; hlaw"
+        }
+      ],
+      "lean_statement": "Exact randomized law/actual Phi and Markov semantics, canonical raw source cost.",
+      "lean_proof": "Genuine synchronous coupling / actual kernel-law producer, measurable nonnegative integrals and positive finite scaled raw infimum.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference.source_first_order_difference",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction.source_synchronous_contraction",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseCost",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseWassersteinSq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le"
+      ],
+      "mathlib_dependencies": [
+        "Kernel.IsMarkovKernel.map",
+        "Kernel.map_apply",
+        "Kernel.prod_apply",
+        "Kernel.id_apply",
+        "Kernel.const_apply",
+        "Measure.dirac_prod",
+        "Measure.map_map",
+        "Measure.map_comp",
+        "Measure.compProd_eq_comp_prod",
+        "Measure.compProd_const",
+        "sq_le_sq₀",
+        "Real.sq_sqrt",
+        "ENNReal.ofReal_mul",
+        "ENNReal.ofReal_le_ofReal",
+        "ENNReal.ofReal_pos",
+        "ENNReal.ofReal_ne_top",
+        "div_lt_one"
+      ]
+    }
+  ]
+}

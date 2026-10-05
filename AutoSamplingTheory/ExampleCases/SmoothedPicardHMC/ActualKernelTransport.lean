@@ -1,0 +1,129 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction
+import AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport
+import Mathlib.Probability.Kernel.Composition.MeasureComp
+
+/-! # Actual Gaussian numerical kernel transport contraction
+
+SPHMC Proposition4.7 / Theorem4.5 common-noise input. Genuine integrated
+Markov laws and raw source quadratic transport; no stationary-target claim.
+The actual V_eta producer and stochastic Khat/Kbar remain separate.
+-/
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport
+open Set MeasureTheory ProbabilityTheory
+open scoped BigOperators InnerProductSpace ENNReal
+open PhaseMetric
+noncomputable section
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]
+set_option backward.isDefEq.respectTransparency false
+
+set_option maxHeartbeats 1000000 in
+/-- Construct the actual Gaussian Markov numerical kernel and prove its
+integrated law identity and source squared transport contraction. -/
+theorem source_kernel_transport_contraction {f : E → ℝ} {κ h : ℝ} {J : ℕ}
+    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)
+    (hJ : 2 ≤ J) (hh : 0 < h) :
+    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)
+    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s
+    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s
+    h * Λ ≤ 1/(65536*κ) →
+    let a := Real.exp (-h / 2)
+    let sigma := Real.sqrt (1 - Real.exp (-h))
+    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1
+    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ
+    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)
+    let Φ := fun w : (E × E) × (E × E) =>
+      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)
+    let Γ := (stdGaussian E).prod (stdGaussian E)
+    ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧
+      (∀ z, K z = Γ.map (fun ζ => Φ (z,ζ))) ∧
+      ∀ (μ ν : Measure (E × E)), IsProbabilityMeasure μ → IsProbabilityMeasure ν →
+        K ∘ₘ μ = (μ.prod Γ).map Φ ∧ K ∘ₘ ν = (ν.prod Γ).map Φ ∧
+        phaseWassersteinSq κ (K ∘ₘ μ) (K ∘ₘ ν) ≤
+          ENNReal.ofReal ((1-h/(65536*κ))^2) * phaseWassersteinSq κ μ ν := by
+  classical
+  dsimp only
+  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+  let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)
+  let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s
+  let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+  let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s
+  intro hstep
+  change h*Λ ≤ 1/(65536*κ) at hstep
+  have hcoeff := TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh
+  rcases hcoeff with ⟨_,_,_,_,_,hΛ,_,_⟩
+  change 1 ≤ Λ at hΛ
+  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ
+  have hi : 1/(65536*κ) ≤ (1:ℝ) := (div_le_one (by positivity)).mpr (by linarith)
+  have hh1 : h ≤ 1 := by nlinarith
+  have hs : h^2*Λ ≤ 1 := by
+    have hm := mul_le_mul_of_nonneg_left (hstep.trans hi) (le_of_lt hh)
+    nlinarith
+  let a := Real.exp (-h / 2)
+  let sigma := Real.sqrt (1 - Real.exp (-h))
+  let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1
+  let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ
+  let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)
+  let Φ := fun w : (E × E) × (E × E) =>
+    (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+      a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)
+  let Γ := (stdGaussian E).prod (stdGaussian E)
+  have hfirst := FirstOrderDifference.source_first_order_difference hκ hf hH hJ hh hs
+  have hΦ : Measurable Φ := hfirst.1
+  let K := (Kernel.id ×ₖ Kernel.const (E × E) Γ).map Φ
+  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hΦ
+  refine ⟨K,hK,?_,?_⟩
+  · intro z
+    dsimp only [K]
+    rw [Kernel.map_apply _ hΦ, Kernel.prod_apply, Kernel.id_apply, Kernel.const_apply,
+      Measure.dirac_prod, Measure.map_map hΦ (by fun_prop)]
+    rfl
+  · intro μ ν hμ hν
+    letI : IsProbabilityMeasure μ := hμ
+    letI : IsProbabilityMeasure ν := hν
+    have hlaw (ρ : Measure (E × E)) [IsProbabilityMeasure ρ] :
+        K ∘ₘ ρ = (ρ.prod Γ).map Φ := by
+      dsimp only [K]
+      rw [← Measure.map_comp ρ _ hΦ, ← Measure.compProd_eq_comp_prod,
+        Measure.compProd_const]
+    refine ⟨hlaw μ,hlaw ν,?_⟩
+    rw [hlaw μ,hlaw ν]
+    let δ := 1-h/(65536*κ)
+    have hδ : 0 < δ := by
+      dsimp only [δ]
+      apply sub_pos.mpr
+      exact (div_lt_one (by positivity)).mpr (by linarith)
+    have nonnegQ (v : E × E) : 0 ≤ phaseQuadraticForm κ v := by
+      have hl := ordinary_energy_le_phaseQuadraticForm hκ v
+      nlinarith [sq_nonneg ‖v.1‖,sq_nonneg ‖v.2‖]
+    have hcost : ∀ z z' ζ : E × E,
+        phaseCost κ (Φ (z,ζ),Φ (z',ζ)) ≤
+          ENNReal.ofReal (δ^2)*phaseCost κ (z,z') := by
+      intro z z' ζ
+      have hcon := ActualContraction.source_synchronous_contraction hκ hf hH hJ hh hstep z z' ζ
+      change Real.sqrt (phaseQuadraticForm κ (Φ (z,ζ)-Φ (z',ζ))) ≤
+        δ*Real.sqrt (phaseQuadraticForm κ (z-z')) at hcon
+      have hsq := (sq_le_sq₀ (Real.sqrt_nonneg _)
+        (mul_nonneg hδ.le (Real.sqrt_nonneg _))).mpr hcon
+      rw [mul_pow, Real.sq_sqrt (nonnegQ _), Real.sq_sqrt (nonnegQ _)] at hsq
+      change ENNReal.ofReal (phaseQuadraticForm κ (Φ (z,ζ)-Φ (z',ζ))) ≤
+        ENNReal.ofReal (δ^2)*ENNReal.ofReal (phaseQuadraticForm κ (z-z'))
+      rw [← ENNReal.ofReal_mul (sq_nonneg δ)]
+      exact ENNReal.ofReal_le_ofReal hsq
+    have hc : Measurable (phaseCost (E := E) κ) := by
+      unfold phaseCost phaseQuadraticForm
+      fun_prop
+    exact TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le
+      Φ hΦ (phaseCost κ) hc (ENNReal.ofReal (δ^2))
+      (ne_of_gt (ENNReal.ofReal_pos.mpr (sq_pos_of_pos hδ)))
+      ENNReal.ofReal_ne_top hcost μ ν Γ
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport

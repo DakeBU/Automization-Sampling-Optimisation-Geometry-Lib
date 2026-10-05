@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-42ba7dac3fdcc397",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261006",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-actual-kernel-transport",
+    "anchor": "Proposition4.7 (4.13) and Theorem4.5 common-noise proof, HTML529-545,590-615",
+    "original_text": "Attributed scoped prerequisite/interface restatement:\nE is a complete finite-dimensional real inner-product Borel space, including zero dimension. kappa>=1, f:E->R is globally C2 and its actual nested second derivative satisfies (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for every z,v. Producing the actual source f=V_eta remains open.\nJ>=2,h>0; t_j=h(1-cos(j*pi/(J-1)))/2, cardinal ell_j, and omega_ij=integral_0^t_i(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds,c_j=integral_0^h(h-s)ell_j(s)ds are the actual coefficients. Lambda=sup_[0,h] sum_j |ell_j| and actual hLambda<=1/(65536kappa).\na=exp(-h/2),sigma=sqrt(1-exp(-h)); P0=a p+sigma zeta0, Y0_j=x+t_jP0, Y1_i=Y0_i-sum_j omega_ij gradient f(Y0_j), Phi=(x+hP0-sum_j c_j gradient f(Y1_j),a(P0-sum_j b_j gradient f(Y1_j))+sigma zeta1). Gamma=standard Gaussian E product standard Gaussian E, with independent refresh vectors.\nBoth input laws mu,nu are arbitrary probability laws on phase space; their source quadratic transport may be infinite. Q_kappa(x,p)=((2kappa)^-1+1/2)||x||²+inner(x,p)+||p||², c_kappa(z,zprime)=ofReal Q_kappa(z-zprime), and W_M²=T_c_kappa. Source Q is retained, not the ordinary product max norm.\nConstruct a Markov K whose law at every z is Gamma.map(zeta -> Phi(z,zeta)). For all probability mu,nu, K composed with each input equals the actual pushforward Phi#(input×Gamma), and W_M²(Kmu,Knu)<=(1-h/(65536kappa))² W_M²(mu,nu). This is the actual deterministic exact-gradient Gaussian numerical kernel, not an arbitrary supplied contracting kernel and not an invariant-target theorem.\nActual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost.",
+    "text_sha256": "df23d392880fc9288a660b5790fb8d41ff314571b84c7aaec93e10646273f43c"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport.source_kernel_transport_contraction",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ActualKernelTransport.lean",
+    "statement": "{f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h * Λ ≤ 1/(65536*κ) →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    let Γ := (stdGaussian E).prod (stdGaussian E)\n    ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n      (∀ z, K z = Γ.map (fun ζ => Φ (z,ζ))) ∧\n      ∀ (μ ν : Measure (E × E)), IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        K ∘ₘ μ = (μ.prod Γ).map Φ ∧ K ∘ₘ ν = (ν.prod Γ).map Φ ∧\n        phaseWassersteinSq κ (K ∘ₘ μ) (K ∘ₘ ν) ≤\n          ENNReal.ofReal ((1-h/(65536*κ))^2) * phaseWassersteinSq κ μ ν",
+    "statement_sha256": "30ccf5ee9a16f379239ec6ea6844e7f1b034bac1dcd051fe6a60657e97055576",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space with its Borel measurable space. Fix globally twice continuously Frechet differentiable f:E->R,real kappa,h and natural J. Assume kappa>=1,J>=2,h>0,and for all base points z and vectors v in E,\n  (1/(2kappa))||v||^2<=D^2 f(z)[v,v]<=||v||^2.\nThe gradient is the genuine first-derivative Riesz representative. On Fin(J)={0,...,J-1},define exactly\n  t_i=(h/2)(1-cos((i/(J-1))pi)),\n  ell_j=the actual real Lagrange cardinal polynomial at these nodes,\n  Lambda=sup{sum_j |ell_j(s)|:s in [0,h]},\n  omega_ij=integral_0^{t_i}(t_i-s)ell_j(s)ds,\n  b_j=integral_0^h ell_j(s)ds,\n  c_j=integral_0^h(h-s)ell_j(s)ds.\nThe quotient uses real coercions,the supremum is real,and integrals are ordinary Lebesgue Bochner interval integrals. If h Lambda<=1/(65536kappa),put a=exp(-h/2),sigma=sqrt(1-exp(-h)). For z=(X,P) and noise zeta=(u,v),define\n  P0(z,zeta)=a P+sigma u,\n  Y0_j(z,zeta)=X+t_j P0(z,zeta),\n  Y1_i(z,zeta)=Y0_i(z,zeta)-sum_j omega_ij grad f(Y0_j(z,zeta)),\n  Phi(z,zeta)=(X+h P0(z,zeta)-sum_j c_j grad f(Y1_j(z,zeta)),\n               a(P0(z,zeta)-sum_j b_j grad f(Y1_j(z,zeta)))+sigma v).\nAll sums use the J actual indices. Let G be the centered identity-covariance standard Gaussian probability measure on E and Gamma=G x G,an independent product of the two Gaussian vectors used for the two refreshes. Define the exact phase quadratic form and raw cost\n  Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2,\n  C_kappa(s,sprime)=ENNReal.ofReal(Q_kappa(s-sprime)),\n  P_kappa(alpha,beta)=inf{integral^- C_kappa dpi : pi measure on S x S,\n                         pi.fst=alpha,pi.snd=beta},\nwhere S=E x E and phase subtraction is coordinatewise. Thus P_kappa is phaseWassersteinSq,an unrooted extended-nonnegative quadratic transport infimum.\nThen there exists a single Markov kernel K from S to S,whose output at every incoming state is a probability measure,such that for every z in S,\n  K(z)=(zeta -> Phi(z,zeta))_*Gamma.\nFor this same K,for every pair of probability measures mu,nu on S,the following three conclusions hold simultaneously:\n  K composed with mu=(mu x Gamma)_*Phi,\n  K composed with nu=(nu x Gamma)_*Phi,\n  P_kappa(K composed with mu,K composed with nu)\n    <=ENNReal.ofReal((1-h/(65536kappa))^2) P_kappa(mu,nu).\nKernel-measure composition is the updated measure obtained by integrating the transition law K(z) against the input measure;the displayed identities equate it to the actual independently-noised numerical-map pushforwards. Both updated laws use exactly the same fixed K and Gamma. The raw transport infimum ranges over all measures with the specified marginals and uses lower integration. No optimal-coupling,finite-moment or finite-cost convention is imposed. The coefficient is the square of the explicitly displayed real factor before applying ENNReal.ofReal;no square root of P_kappa is taken in this theorem.\nThe Hessian hypothesis is the normalized global C2 interface with lower coefficient 1/(2kappa) and upper coefficient 1. No target measure,invariant law or stationarity hypothesis/conclusion is supplied. The theorem concerns one-step contraction of arbitrary probability input laws through the actual direct-gradient two-stage kernel;it does not state a mixing-to-target result,an iteration-history assertion,query complexity,an approximate proximal interpreter or extra Gaussian arrays.",
+    "text_sha256": "3e92223d2af75082c5043f716c84353dc19acdadff2dd96ac2c20a471fd9f2c1",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_packet_sha256": "a18750490b6f4875c878ae8d78bbb84299d1d85b5baf5ce31f02a1d7fd226de6",
+    "decoder_run_sha256": "f32ec1989228235fc41cd53de8d3e34bb9e615797007a67781ed0a9cfb21fc35",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "5545d611b0afa8215d6c11ab3389adce012d01427cd0aa4ba30fd9b2836a73f6",
+  "candidate_publication_context": {
+    "file": "aa4ceafee9d19996db7d069f59e89faed7d5d02ead0b8cac149495ee35796bf9",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction\nimport AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport\nimport Mathlib.Probability.Kernel.Composition.MeasureComp\n\n/-! # Actual Gaussian numerical kernel transport contraction\n\nSPHMC Proposition4.7 / Theorem4.5 common-noise input. Genuine integrated\nMarkov laws and raw source quadratic transport; no stationary-target claim.\nThe actual V_eta producer and stochastic Khat/Kbar remain separate.\n-/\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport\nopen Set MeasureTheory ProbabilityTheory\nopen scoped BigOperators InnerProductSpace ENNReal\nopen PhaseMetric\nnoncomputable section\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]\nset_option backward.isDefEq.respectTransparency false\n\nset_option maxHeartbeats 1000000 in\n/-- Construct the actual Gaussian Markov numerical kernel and prove its\nintegrated law identity and source squared transport contraction. -/\ntheorem source_kernel_transport_contraction {f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h * Λ ≤ 1/(65536*κ) →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    let Γ := (stdGaussian E).prod (stdGaussian E)\n    ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n      (∀ z, K z = Γ.map (fun ζ => Φ (z,ζ))) ∧\n      ∀ (μ ν : Measure (E × E)), IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        K ∘ₘ μ = (μ.prod Γ).map Φ ∧ K ∘ₘ ν = (ν.prod Γ).map Φ ∧\n        phaseWassersteinSq κ (K ∘ₘ μ) (K ∘ₘ ν) ≤\n          ENNReal.ofReal ((1-h/(65536*κ))^2) * phaseWassersteinSq κ μ ν := by\n  classical\n  dsimp only\n  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n  let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n  let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n  let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n  let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n  intro hstep\n  change h*Λ ≤ 1/(65536*κ) at hstep\n  have hcoeff := TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh\n  rcases hcoeff with ⟨_,_,_,_,_,hΛ,_,_⟩\n  change 1 ≤ Λ at hΛ\n  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ\n  have hi : 1/(65536*κ) ≤ (1:ℝ) := (div_le_one (by positivity)).mpr (by linarith)\n  have hh1 : h ≤ 1 := by nlinarith\n  have hs : h^2*Λ ≤ 1 := by\n    have hm := mul_le_mul_of_nonneg_left (hstep.trans hi) (le_of_lt hh)\n    nlinarith\n  let a := Real.exp (-h / 2)\n  let sigma := Real.sqrt (1 - Real.exp (-h))\n  let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n  let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n  let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n  let Φ := fun w : (E × E) × (E × E) =>\n    (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n      a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n  let Γ := (stdGaussian E).prod (stdGaussian E)\n  have hfirst := FirstOrderDifference.source_first_order_difference hκ hf hH hJ hh hs\n  have hΦ : Measurable Φ := hfirst.1\n  let K := (Kernel.id ×ₖ Kernel.const (E × E) Γ).map Φ\n  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hΦ\n  refine ⟨K,hK,?_,?_⟩\n  · intro z\n    dsimp only [K]\n    rw [Kernel.map_apply _ hΦ, Kernel.prod_apply, Kernel.id_apply, Kernel.const_apply,\n      Measure.dirac_prod, Measure.map_map hΦ (by fun_prop)]\n    rfl\n  · intro μ ν hμ hν\n    letI : IsProbabilityMeasure μ := hμ\n    letI : IsProbabilityMeasure ν := hν\n    have hlaw (ρ : Measure (E × E)) [IsProbabilityMeasure ρ] :\n        K ∘ₘ ρ = (ρ.prod Γ).map Φ := by\n      dsimp only [K]\n      rw [← Measure.map_comp ρ _ hΦ, ← Measure.compProd_eq_comp_prod,\n        Measure.compProd_const]\n    refine ⟨hlaw μ,hlaw ν,?_⟩\n    rw [hlaw μ,hlaw ν]\n    let δ := 1-h/(65536*κ)\n    have hδ : 0 < δ := by\n      dsimp only [δ]\n      apply sub_pos.mpr\n      exact (div_lt_one (by positivity)).mpr (by linarith)\n    have nonnegQ (v : E × E) : 0 ≤ phaseQuadraticForm κ v := by\n      have hl := ordinary_energy_le_phaseQuadraticForm hκ v\n      nlinarith [sq_nonneg ‖v.1‖,sq_nonneg ‖v.2‖]\n    have hcost : ∀ z z' ζ : E × E,\n        phaseCost κ (Φ (z,ζ),Φ (z',ζ)) ≤\n          ENNReal.ofReal (δ^2)*phaseCost κ (z,z') := by\n      intro z z' ζ\n      have hcon := ActualContraction.source_synchronous_contraction hκ hf hH hJ hh hstep z z' ζ\n      change Real.sqrt (phaseQuadraticForm κ (Φ (z,ζ)-Φ (z',ζ))) ≤\n        δ*Real.sqrt (phaseQuadraticForm κ (z-z')) at hcon\n      have hsq := (sq_le_sq₀ (Real.sqrt_nonneg _)\n        (mul_nonneg hδ.le (Real.sqrt_nonneg _))).mpr hcon\n      rw [mul_pow, Real.sq_sqrt (nonnegQ _), Real.sq_sqrt (nonnegQ _)] at hsq\n      change ENNReal.ofReal (phaseQuadraticForm κ (Φ (z,ζ)-Φ (z',ζ))) ≤\n        ENNReal.ofReal (δ^2)*ENNReal.ofReal (phaseQuadraticForm κ (z-z'))\n      rw [← ENNReal.ofReal_mul (sq_nonneg δ)]\n      exact ENNReal.ofReal_le_ofReal hsq\n    have hc : Measurable (phaseCost (E := E) κ) := by\n      unfold phaseCost phaseQuadraticForm\n      fun_prop\n    exact TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le\n      Φ hΦ (phaseCost κ) hc (ENNReal.ofReal (δ^2))\n      (ne_of_gt (ENNReal.ofReal_pos.mpr (sq_pos_of_pos hδ)))\n      ENNReal.ofReal_ne_top hcost μ ν Γ\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "arxiv-2609.06906v1",
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+      "anchor": "Proposition4.7 (4.13) and Theorem4.5 common-noise proof, HTML529-545,590-615",
+      "edition": "arXiv:2609.06906v1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; ASTIS explicit transport prerequisite/actual-kernel interface, not the full local-error or main result."
+    },
+    "statement": "Construct a Markov K whose law at every z is Gamma.map(zeta -> Phi(z,zeta)). For all probability mu,nu, K composed with each input equals the actual pushforward Phi#(input×Gamma), and W_M²(Kmu,Knu)<=(1-h/(65536kappa))² W_M²(mu,nu). This is the actual deterministic exact-gradient Gaussian numerical kernel, not an arbitrary supplied contracting kernel and not an invariant-target theorem.",
+    "formulae": [
+      {
+        "label": "Genuine randomized law and raw transport",
+        "tex": "K(z)=\\Phi_z{}_{\\#}\\Gamma,\\quad K\\mu=\\Phi_\\#(\\mu\\otimes\\Gamma),\\quad W_{2,M_\\kappa}^2(K\\mu,K\\nu)\\le\\left(1-\\frac{h}{65536\\kappa}\\right)^2W_{2,M_\\kappa}^2(\\mu,\\nu)."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product Borel space, including zero dimension. kappa>=1, f:E->R is globally C2 and its actual nested second derivative satisfies (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for every z,v. Producing the actual source f=V_eta remains open.",
+      "J>=2,h>0; t_j=h(1-cos(j*pi/(J-1)))/2, cardinal ell_j, and omega_ij=integral_0^t_i(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds,c_j=integral_0^h(h-s)ell_j(s)ds are the actual coefficients. Lambda=sup_[0,h] sum_j |ell_j| and actual hLambda<=1/(65536kappa).",
+      "a=exp(-h/2),sigma=sqrt(1-exp(-h)); P0=a p+sigma zeta0, Y0_j=x+t_jP0, Y1_i=Y0_i-sum_j omega_ij gradient f(Y0_j), Phi=(x+hP0-sum_j c_j gradient f(Y1_j),a(P0-sum_j b_j gradient f(Y1_j))+sigma zeta1). Gamma=standard Gaussian E product standard Gaussian E, with independent refresh vectors.",
+      "Both input laws mu,nu are arbitrary probability laws on phase space; their source quadratic transport may be infinite. Q_kappa(x,p)=((2kappa)^-1+1/2)||x||²+inner(x,p)+||p||², c_kappa(z,zprime)=ofReal Q_kappa(z-zprime), and W_M²=T_c_kappa. Source Q is retained, not the ordinary product max norm."
+    ],
+    "obligations": [
+      {
+        "id": "actual-transport-input",
+        "label": "Actual common-noise law/transport prerequisite"
+      },
+      {
+        "id": "smoothed-producer",
+        "label": "Actual f=V_eta smoothing/C2/curvature (remaining)"
+      },
+      {
+        "id": "remaining-main",
+        "label": "Local errors/invariance/history/cost and full main/composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport.source_kernel_transport_contraction",
+      "title": "Actual Gaussian numerical kernel: integrated law and source transport contraction",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+          "label": "SPHMC actual common-noise transport prerequisite",
+          "scope": "Actual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCActualKernelTransport"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product Borel space, including zero dimension. kappa>=1, f:E->R is globally C2 and its actual nested second derivative satisfies (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for every z,v. Producing the actual source f=V_eta remains open.",
+        "J>=2,h>0; t_j=h(1-cos(j*pi/(J-1)))/2, cardinal ell_j, and omega_ij=integral_0^t_i(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds,c_j=integral_0^h(h-s)ell_j(s)ds are the actual coefficients. Lambda=sup_[0,h] sum_j |ell_j| and actual hLambda<=1/(65536kappa).",
+        "a=exp(-h/2),sigma=sqrt(1-exp(-h)); P0=a p+sigma zeta0, Y0_j=x+t_jP0, Y1_i=Y0_i-sum_j omega_ij gradient f(Y0_j), Phi=(x+hP0-sum_j c_j gradient f(Y1_j),a(P0-sum_j b_j gradient f(Y1_j))+sigma zeta1). Gamma=standard Gaussian E product standard Gaussian E, with independent refresh vectors.",
+        "Both input laws mu,nu are arbitrary probability laws on phase space; their source quadratic transport may be infinite. Q_kappa(x,p)=((2kappa)^-1+1/2)||x||²+inner(x,p)+||p||², c_kappa(z,zprime)=ofReal Q_kappa(z-zprime), and W_M²=T_c_kappa. Source Q is retained, not the ordinary product max norm."
+      ],
+      "statement": "Construct a Markov K whose law at every z is Gamma.map(zeta -> Phi(z,zeta)). For all probability mu,nu, K composed with each input equals the actual pushforward Phi#(input×Gamma), and W_M²(Kmu,Knu)<=(1-h/(65536kappa))² W_M²(mu,nu). This is the actual deterministic exact-gradient Gaussian numerical kernel, not an arbitrary supplied contracting kernel and not an invariant-target theorem.",
+      "formula": "K(z)=\\Phi_z{}_{\\#}\\Gamma,\\quad K\\mu=\\Phi_\\#(\\mu\\otimes\\Gamma),\\quad W_{2,M_\\kappa}^2(K\\mu,K\\nu)\\le\\left(1-\\frac{h}{65536\\kappa}\\right)^2W_{2,M_\\kappa}^2(\\mu,\\nu).",
+      "steps": [
+        {
+          "title": "Recover actual joint measurability",
+          "text": "The genuine source quadrature constructor gives Lambda>=1. The actual step condition gives h<=1 and h²Lambda<=1. Reuse FirstOrderDifference for exactly the same coefficients/potential/Phi; its jointly measurable actual numerical map is the needed random-map producer.",
+          "formula": "\\Lambda_J\\ge1,\\quad h\\le1,\\quad h^2\\Lambda_J\\le1,\\quad\\Phi\\text{ jointly measurable}.",
+          "lean": "hcoeff; hLambda; hs; hfirst.1; hΦ"
+        },
+        {
+          "title": "Build the Markov kernel and prove both laws",
+          "text": "Use (id times const Gamma).map Phi. Markovness follows from actual independent probability refreshes and measurable Phi. At each z, dirac×Gamma followed by map composition gives Gamma.map(Phi_z). For any probability input, the map-composition and constant-kernel product identities yield Kmu=Phi#(mu×Gamma). These identities justify the actual kernel semantics before applying a law-level inequality.",
+          "formula": "K=(\\mathrm{id}\\times\\mathrm{const}\\,\\Gamma).\\mathrm{map}\\,\\Phi,\\qquad K\\mu=\\Phi_\\#(\\mu\\otimes\\Gamma).",
+          "lean": "K; hK; Kernel.map_apply; Kernel.prod_apply; Measure.dirac_prod; hlaw; Measure.map_comp; Measure.compProd_eq_comp_prod; Measure.compProd_const"
+        },
+        {
+          "title": "Square the actual source norm contraction",
+          "text": "The existing ActualContraction theorem proves the source Q norm contraction for every input and common noise, using the actual numerical phase. Delta=1-h/(65536kappa) is strictly positive. The unchanged Q lower comparison gives nonnegative Q for all phase displacements. Square the genuine sqrt inequality and reuse the squared sqrt identity, then apply ofReal multiplication. This proves the measurable extended pointwise cost bound with A=ofReal(delta²); it is not a public supplied premise of this consumer.",
+          "formula": "c_\\kappa(\\Phi_z(\\zeta),\\Phi_{z\\prime}(\\zeta))\\le\\delta^2c_\\kappa(z,z\\prime),\\qquad\\delta>0.",
+          "lean": "hδ; nonnegQ; ActualContraction.source_synchronous_contraction; hcon; hsq; Real.sq_sqrt; ENNReal.ofReal_mul"
+        },
+        {
+          "title": "Consume the shared genuine coupling lift",
+          "text": "The source cost is measurable by its exact Q formula. A is positive and finite. Apply the shared randomized-map transport theorem to the actual Phi, actual Gaussian product law and arbitrary input probabilities, then rewrite both actual kernel laws. No optimizer, finite transport premise, invariant measure or selection of the state-dependent H/R is introduced.",
+          "formula": "W_{2,M_\\kappa}^2(K\\mu,K\\nu)\\le\\delta^2W_{2,M_\\kappa}^2(\\mu,\\nu).",
+          "lean": "hc; transportCost_randomized_map_le; hlaw"
+        }
+      ],
+      "lean_statement": "Exact randomized law/actual Phi and Markov semantics, canonical raw source cost.",
+      "lean_proof": "Genuine synchronous coupling / actual kernel-law producer, measurable nonnegative integrals and positive finite scaled raw infimum.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference.source_first_order_difference",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction.source_synchronous_contraction",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseCost",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseWassersteinSq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le"
+      ],
+      "mathlib_dependencies": [
+        "Kernel.IsMarkovKernel.map",
+        "Kernel.map_apply",
+        "Kernel.prod_apply",
+        "Kernel.id_apply",
+        "Kernel.const_apply",
+        "Measure.dirac_prod",
+        "Measure.map_map",
+        "Measure.map_comp",
+        "Measure.compProd_eq_comp_prod",
+        "Measure.compProd_const",
+        "sq_le_sq₀",
+        "Real.sq_sqrt",
+        "ENNReal.ofReal_mul",
+        "ENNReal.ofReal_le_ofReal",
+        "ENNReal.ofReal_pos",
+        "ENNReal.ofReal_ne_top",
+        "div_lt_one"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualKernelTransport.source_kernel_transport_contraction",
+      "role": "proof-edge",
+      "supports": [
+        "actual-transport-input"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Common-noise coupling of the source phase and its induced law.",
+        "lean": "E is a complete finite-dimensional real inner-product Borel space, including zero dimension. kappa>=1, f:E->R is globally C2 and its actual nested second derivative satisfies (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for every z,v. Producing the actual source f=V_eta remains open.\nJ>=2,h>0; t_j=h(1-cos(j*pi/(J-1)))/2, cardinal ell_j, and omega_ij=integral_0^t_i(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds,c_j=integral_0^h(h-s)ell_j(s)ds are the actual coefficients. Lambda=sup_[0,h] sum_j |ell_j| and actual hLambda<=1/(65536kappa).\na=exp(-h/2),sigma=sqrt(1-exp(-h)); P0=a p+sigma zeta0, Y0_j=x+t_jP0, Y1_i=Y0_i-sum_j omega_ij gradient f(Y0_j), Phi=(x+hP0-sum_j c_j gradient f(Y1_j),a(P0-sum_j b_j gradient f(Y1_j))+sigma zeta1). Gamma=standard Gaussian E product standard Gaussian E, with independent refresh vectors.\nBoth input laws mu,nu are arbitrary probability laws on phase space; their source quadratic transport may be infinite. Q_kappa(x,p)=((2kappa)^-1+1/2)||x||²+inner(x,p)+||p||², c_kappa(z,zprime)=ofReal Q_kappa(z-zprime), and W_M²=T_c_kappa. Source Q is retained, not the ordinary product max norm."
+      },
+      {
+        "source": "Source universal constant c and squared source metric costs.",
+        "lean": "Construct a Markov K whose law at every z is Gamma.map(zeta -> Phi(z,zeta)). For all probability mu,nu, K composed with each input equals the actual pushforward Phi#(input×Gamma), and W_M²(Kmu,Knu)<=(1-h/(65536kappa))² W_M²(mu,nu). This is the actual deterministic exact-gradient Gaussian numerical kernel, not an arbitrary supplied contracting kernel and not an invariant-target theorem."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "10c543945c96d775f0921c6e418ed347131c3920ad9389efc3096c96ccd46b79"
+}

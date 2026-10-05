@@ -1,5 +1,52 @@
 # Companion-paper formalization handoff
 
+## Actual full-dimensional kinetic drift dissipation — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCKineticDissipation` closes the actual full-E source
+quadratic matrix edge (4.14)-(4.15), used by Proposition4.7. For kappa>=1 and
+an actual symmetric real linear H with (2kappa)^-1 I<=H<=I, the pinned finite
+orthonormal spectral theorem derives every eigenvalue bound from all-vector
+quadratic hypotheses. Source scalar determinant/trace coercivity is elaborated
+by an exact residual complete square; the full coordinate sum keeps every
+inner product, including x,Hx and p,Hx, and gives the exact1/(8kappa) constant.
+No basis, H-square/commuting or kinetic-contraction certificate is supplied.
+
+M_kappa(x,p)=((1/(2kappa)+1/2)x+p/2,x/2+p), A_H(x,p)=(p,-Hx-p).
+Q_kappa=(1/(2kappa)+1/2)||x||²+inner(x,p)+||p||².
+D_H=inner(x,Hx)+2inner(p,Hx)-kappa^-1 inner(x,p)+||p||².
+The actual conclusion D_H>=Q_kappa/(8kappa) is precisely the negative of the
+source matrix quadratic form: D_H=-2 inner(M_kappa z,A_H z). The product
+pairing is the sum of E inner products; no product max norm is substituted.
+All finite dimensions, including0, are covered. Two private proof helpers
+receive no separate declaration/leaf/progress credit.
+
+Independently verified proof commit `3dcc65cfe1e6029ca8b0df80d7813ddfe7cc2e2d`; receipt
+`runs/20261005-companion-priority/kinetic-dissipation.verified.json`.
+Focused PASS3183 exercises actual E=R²,H=I/2,kappa2 with genuinely proved H
+bounds for all x,p, and dimension0. Independent math and fresh blind/source
+review pass. The anonymous input was unchanged by local docstring sign
+clarification; prior module/packet lineage is preserved. No theorem/source
+premise or metadata formula was repaired; only standard3 foundations.
+
+Shared ExampleCases/Tests imports are prepared in the existing sole root
+STABILIZING/PR313 lane, Registry470 unchanged. Canonical aggregate and bounded
+reader/graph admission remain a separate pending checkpoint. Previous1ad9505f
+remote Lean/contributor/site CI all PASS,deploy skipped; this new kinetic edge
+is excluded from that prior-head CI. Main merge/live deployment remain separate.
+
+**Next genuine paper dependencies:** actual uniform Lebesgue Clenshaw-Curtis
+integral momentum weights must be nonnegative for the true averaged H. Pinned
+Mathlib's Chebyshev-Gauss rule instead uses zeros and weighted measureT; it
+cannot substitute for the actual source rule. Logarithmic Lambda, source
+smoothed-gradient curvature, actual first-order difference/remainder and step
+adapters remain independent inputs to K contraction. K is deterministic
+smoothed-gradient; Khat is the stochastic exact-proximal phase and Kbar its
+conditional mean. No interchange, assumed recurrence, D3/history/D7/D8 or
+main/PBPS/composition completion. All previous source inventories/frontiers/
+cycles and current priorities are preserved. Formula/folded Lean/source/Test
+reader metadata is prepared; copy/download controls and rendered visual
+acceptance remain open. Both full main results stay unfinished; Goal active.
+
 ## Actual phase accuracy and expected work with identical witnesses — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCPhaseAccuracyWork` joins actual source phase precision

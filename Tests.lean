@@ -11,6 +11,7 @@ import Tests.SmoothedPicardHMCCountedPhaseProgram
 import Tests.SmoothedPicardHMCSourceQuadrature
 import Tests.SmoothedPicardHMCProximalPhaseStability
 import Tests.SmoothedPicardHMCPhaseAccuracyWork
+import Tests.SmoothedPicardHMCKineticDissipation
 import Tests.WassersteinLipschitzMoment
 import Tests.SmoothedPicardHMCPhaseStateMoment
 import Tests.SmoothedPicardHMCPhaseMetric

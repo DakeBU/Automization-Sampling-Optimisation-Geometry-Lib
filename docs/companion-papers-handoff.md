@@ -28,7 +28,8 @@ rebinds publication to a new audit while preserving the historical registry.
 Independent bounded lifecycle reconciliation retained, no repeated compile
 credit. Exact independent proof VERIFIED `396f024b8c3f5a885530ecbf918b5c8465793293`:
 `runs/20261006-companion-priority/gibbs-covariance-lower/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof 396f024b8c3f5a885530ecbf918b5c8465793293 independently VERIFIED; shared integration 8dcb59ea4ba9279ac4348fe3c49e985cc6fb072e. Full ASTIS gate PASS (9100 root / 9348 Tests), publication155, semantic215/8, frontier218, contributor38/34. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original reader static source/formula/proof/folded-Lean/Test/residual and three affected actual graph branches checked; full site and official graph freshness/contributor checks PASS. Graph816 modules/601 public declarations; Registry472 unchanged. Rendered visual and metadata copy/download acceptance remain open.
+`runs/20261006-companion-priority/gibbs-covariance-lower/integration.json`. Goal remains active.
 
 BL covariance upper/Hessian lower, full Lemma4.1, gradient Lipschitz, higher
 regularity, source V_eta algorithm contraction/accuracy, stationarity/global

@@ -82,6 +82,22 @@ independently reviewed. Run-wide state law/moment induction and the source
 quadrature adapter remain separate. Neither main theorem nor composition cost
 is complete; the existing Goal stays active without a token budget.
 
+## Publication branch and remote gate scope — 2026-10-05
+
+Canonical review: draft PR #313. The actual PR contributor gate against current
+main `29168992` passed. The first push comparison against the old feature tip
+`f0fd96f0` also included all 190 incorporated main commits (112 declarations /
+114 cells), and rejected some historical metadata that predates the current
+reader/graph contract. Preserve those older frontiers; this is not a new proof
+failure or authority to weaken the gate. Exact run IDs and scopes are in
+`runs/20261005-companion-priority/remote-ci-bootstrap.json`. Lean and site CI,
+main merge, rendered visual QA and live deployment remain separately observable.
+
+The OS Git Credential Manager selected the anonymous artifact account and got
+403. The repository-authorized CLI account was used for this invocation only:
+`git -c credential.helper= -c 'credential.helper=!gh auth git-credential' -c credential.username=jicheng9617 push origin HEAD:codex/sphmc-standardized-rgo`.
+No global credential/login change, secret output or destructive Git was used.
+
 ## Picard HMC Part I route and researcher ledger — 2026-10-03
 
 The active companion route now includes Chen–Chewi–Lu–Zhang,

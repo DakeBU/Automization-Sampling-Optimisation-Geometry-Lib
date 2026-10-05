@@ -5,7 +5,11 @@ This protocol governs collaborative formalization across the public **SampleWiki
 ## 1. Unit of work: one Frontier Cell
 
 All routes, including shared, Discrete Sampling and MCMC, additionally follow
-[the theorem publication contract](theorem-publication-protocol.md): one authored
+[the theorem publication contract](theorem-publication-protocol.md) and the
+[proof-digestion protocol](proof-digestion-protocol.md): source-facing statements
+are sealed before proof search; source proof topology is reconstructed separately
+from Lean implementation topology; source coverage is exhaustive; and merged
+proofs are not human-facing complete until purified. The publication contract keeps one authored
 formula proof with adjacent folded Lean, explicit source/assumption mapping,
 mandatory encoder–denoiser evidence, and generated chapter/graph status.
 
@@ -61,7 +65,7 @@ The verified change has been clean-ported onto current integration state; root b
 
 ### merged
 
-The stabilized PR is merged. Only this state is treated as repository truth on the public dashboard.
+The stabilized PR is merged. Only this state is treated as repository truth on the public dashboard. **Merged is an integration state, not the final reader-facing state.** A merged source route may still carry `purification: pending` under `docs/proof-digestion-protocol.md`; it must not be advertised as fully digested until the dead/duplicate/wrapper audit, canonical shared-spine extraction, route compression, and reader compression have completed.
 
 ### blocked
 

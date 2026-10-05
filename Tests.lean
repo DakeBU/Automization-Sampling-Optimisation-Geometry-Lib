@@ -10,6 +10,7 @@ import Tests.SmoothedPicardHMCImplementedPhaseWork
 import Tests.SmoothedPicardHMCCountedPhaseProgram
 import Tests.SmoothedPicardHMCSourceQuadrature
 import Tests.SmoothedPicardHMCPositiveIntegralWeights
+import Tests.HessianSecantOperator
 import Tests.SmoothedPicardHMCProximalPhaseStability
 import Tests.SmoothedPicardHMCPhaseAccuracyWork
 import Tests.SmoothedPicardHMCKineticDissipation

@@ -4,6 +4,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights
+import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator
 import AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
@@ -85,6 +86,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.hessian-secant.actual-integral",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator.hessian_secant_operator",
+    upstreamDecl := "Genuine Hessian segment integral represents full gradient difference",
+    upstreamFile := "arXiv:2609.06906v1 Lemma4.6 proof HTML568-572",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "Hessian", "gradient", "Bochner integral", "SPHMC"],
+    saldUse := "SPHMC Lemma4.6 actual Picard-node H_j then averaged H; Chewi Proposition1.6/Exercise3.2 shared gradient-segment mechanism (planned source consumers)",
+    note := "Actual C2 Riesz Hessian, ordinary unit-interval CLM integral, full secant equality, symmetry, signed quadratic bounds/norm on complete real Hilbert space including0. No supplied operator/secant/integrability. Smoothed potential producer, actual averaged H, discrete K expansion/contraction and both main/composition remain separate."
+  },
   {
     key := "analysis.chebyshev-lobatto.momentum-positive",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights",

@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Genuine Hessian secant operator — 2026-10-05
+
+`ASTIS-SA-20261005-HessianSecantOperator` constructs the actual ordinary
+Lebesgue Bochner integral H(x,y)=integral_0^1 [D2f(y+t(x-y))]^sharp dt.
+C2 supplies the continuous genuine Hessian field and hence operator
+integrability. Arbitrary-test-vector FTC proves gradient f x-gradient f y
+=H(x-y). Genuine C2 symmetry, integrated signed diagonal bounds and the
+symmetric Rayleigh formula give alpha I<=H<=beta I and
+||H||op<=max(|alpha|,|beta|). One shared real Hilbert interface covers the
+source finite Euclidean case, including0; no H/secant/integrability premise.
+Planned real consumers are SPHMC Lemma4.6 and Chewi's shared gradient-segment
+mechanism; no current consumer theorem is invented or marked complete.
+
+Focused production2801/Test2819 PASS, with real nonconstant sin Hessian,
+signed moduli, arbitrary endpoints and dimension0; standard3 foundations.
+Independent mathematics, unambiguous blind reconstruction and anti-anchored
+whole-module source review pass. Independent exact proof commit `2bb8e47850aab5a519f6c07e6bffc658443a4677`:
+`runs/20261005-companion-priority/hessian-secant-operator/verified.json`.
+The signed complete-Hilbert generalization is explicit, not a new assumption
+on the source finite-dimensional result. V_eta C2/curvature must still be
+produced; this interface does not claim smoothing itself completed.
+
+Root serializes one shared Registry leaf472 and Analysis/Tests imports in
+the existing sole STABILIZING/PR313 lane. Aggregate/reader/graph checks are
+pending at this integration checkpoint. Previous9eb2f1d required GitHub
+Lean/site/contributor CI all PASS; receipt
+`runs/20261005-companion-priority/positive-integral-weights/remote-ci.json`.
+That CI excludes this new secant interface. Draft/unmerged, no deployment.
+
+Next bounded genuine paper edge: instantiate these real secant operators
+at both first-Picard point arrays and construct the actual integral-weight
+average H using already compiled positivity and sum omega=h. Preserve the
+source alpha=1/(2kappa),beta=1 bounds; do not accept a supplied matrix or
+abstract coefficient certificate. Smoothed curvature, full K difference/
+remainder/step/contraction, logLambda/B2, stochastic Khat/Kbar and actual
+history, PBPS and both full main results/composition remain independent.
+Both-paper Goal active; older sources/frontiers/cycles preserved. Metadata
+copy/download controls and rendered visual acceptance remain open.
+
 ## Actual integral momentum positivity — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCPositiveIntegralWeights` proves actual source

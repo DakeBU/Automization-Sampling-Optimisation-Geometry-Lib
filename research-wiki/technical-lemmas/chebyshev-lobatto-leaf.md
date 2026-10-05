@@ -1,6 +1,6 @@
 # Chebyshev-Lobatto integrated coefficients
 
-Status: in-progress. Canonical leaf: AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients. Proposed minimal imports: Mathlib.LinearAlgebra.Lagrange, Topology.Algebra.Polynomial, Topology.Order.Compact, Trigonometric.Basic and Integrals.Basic. Source: SPHMC2609.06906v1,3.6/B1/B2,1684-1713.
+Status: independently verified at a43877dc022a238e2e9846d3761a4299cae3fb1a; focused PASS3671. Registry/shared imports prepared; aggregate admission remains separate. Canonical leaf: AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients. Proposed minimal imports: Mathlib.LinearAlgebra.Lagrange, Topology.Algebra.Polynomial, Topology.Order.Compact, Trigonometric.Basic and Integrals.Basic. Source: SPHMC2609.06906v1,3.6/B1/B2,1684-1713.
 
 Exact assumptions: natural J>=2 and real h>0. Fin J zero-based actual nodes t_i=h/2(1-cos(i*pi/(J-1))). Lagrange.basis over Finset.univ. Lambda is the actual compact supremum sum_j|ell_j(s)| on[0,h], not an assumed external envelope. Continuous polynomials and compactness discharge measurability, integrability and boundedness. Lebesgue interval integral; no decay or conditional representative.
 

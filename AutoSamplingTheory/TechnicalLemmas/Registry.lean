@@ -2,6 +2,7 @@ import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
@@ -81,6 +82,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.chebyshev-lobatto.coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+    upstreamDecl := "SPHMC 3.6 / Proposition B.1 node, row and constant-integral components",
+    upstreamFile := "arXiv:2609.06906v1 Appendix B.1; Mathlib.LinearAlgebra.Lagrange",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "interpolation", "quadrature", "Chebyshev-Lobatto", "SPHMC"],
+    saldUse := "actual SPHMC counted phase source coefficients; depth-K exact Picard integrator (planned consumer)",
+    note := "J>=2 and h>0. Actual distinct nodes, cardinal/partition/endpoint laws, compact Lambda>=1, sharp row bound h^2*Lambda/2 and sum momentum weights=h. Logarithmic Lambda, individual weight positivity and B2 remainder remain unproved; not complete B1 or a main theorem."
+  },
   {
     key := "analysis.gradient.ae-congruence-obstruction",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence.not_gradient_ae_congr_for_arbitrary_measure",

@@ -1,5 +1,39 @@
 # Companion-paper formalization handoff
 
+## Actual source quadrature and counted work — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCSourceQuadrature` constructs the paper's actual Fin J
+Chebyshev-Lobatto nodes, Lagrange basis, compact Lebesgue supremum and integral
+weights. It proves node range/injectivity/last=h, cardinal and constant-partition
+identities, Lambda>=1, sum_j|omega_ij|<=t_i^2*Lambda/2<=h^2*Lambda/2 and sum_j b_j=h.
+The source arrays instantiate the actual full Gaussian counted program, deriving
+its row/time inputs and expectation<=J*(2+L0+L1) from incoming state L2 budget.
+The explicit0<h<=1 API specialization, terminal-inclusive count and exact-real
+successful finite-fuel certificate remain visible. No supplied row/Lambda bound.
+
+Independently source-admitted commit: `a43877dc022a238e2e9846d3761a4299cae3fb1a`. Independent
+mathematics, final blind decoding and whole-module source review pass; fresh
+Lean tests use actual distinct J2,h1/2 nodes in positive dimension and only the
+standard3 foundations. Verifier receipt:
+`runs/20261005-companion-priority/source-quadrature.verified.json`.
+Root integrates the bounded packet in the existing sole PR313 stabilization lane.
+Shared root/Tests/Registry integration prepared; aggregate/site/graph admission
+is a separate pending checkpoint. Prior5603aa22 remote Lean/reader/contributor
+checks all passed. Main merge, rendered acceptance and live deployment separate.
+
+**Next source dependency:** logarithmic Lebesgue bound and nonnegative
+Clenshaw-Curtis momentum weights are still independent B1 obligations. Also
+search exact polynomial quadrature and Banach interpolation remainder APIs
+before the source B2 / depth-K integrator lane. Do not assume the source bounds.
+Actual Lambda is retained in the current work bound; there is no claimed
+source asymptotic node/step parameter substitution or complete B1 theorem.
+Run-wideD7/D8/Wq/proxy-warmness/init, PBPS and actual-input composition remain
+open; neither paper is complete. Existing companion metadata renders readable
+proofs, folded Lean and source/test links. Copy/download controls and rendered
+visual acceptance remain open delivery requirements, with no completion claim.
+This two-paper unbudgeted Goal remains active; older frontiers/cycles are retained.
+
+
 ## Counted full phase program and expected work — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCCountedPhaseWork` adds the actual finite two-layer

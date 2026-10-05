@@ -417,3 +417,19 @@ A future checker may make these fields mechanically mandatory. Until then they
 are a **normative protocol requirement** for new Source Anchors and major paper
 routes and should be included in their Frontier/publication records without
 weakening any existing gate.
+
+
+## Design provenance
+
+The source-first statement-sealing, independent source dependency/coverage
+graph, binder audit, definition audit, explicit alternative-route, and
+post-proof cleanup ideas were informed by Scott N. Armstrong's October 2026
+autoformalization workflow and the public LeanAutoformalizationSkills project:
+https://www.scottnarmstrong.com/2026/10/autoformalization-is-now-very-easy/ and
+https://github.com/scottnarmstrong/LeanAutoformalizationSkills.
+
+This library adapts those ideas to its own trust model rather than copying the
+workflow verbatim: production Lean remains zero-sorry, the existing
+encoder-denoiser/source review remains mandatory, and the four-view
+source/Lean/compressed/Functor proof-digestion stack plus PURIFIED reader state
+are project-specific requirements.

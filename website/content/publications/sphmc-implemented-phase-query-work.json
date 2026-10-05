@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "sphmc-implemented-phase-query-work",
+      "library": "samplewiki-route",
+      "chapter": "sphmc-01",
+      "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+      "title": "Both actual Picard query layers under the full phase law",
+      "source": {
+        "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+        "edition": "arXiv:2609.06906v1",
+        "anchor": "Algorithm 3.1 and Lemma D.4, actual query centers before Jensen; D.7 and D.8 remain separate",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; ASTIS explicitly scoped implementation restatement, not a full D.4 or main theorem."
+      },
+      "statement": "For the full independent driving law gamma=(Gaussian zeta0 product Gaussian zeta1) product (Gaussian array G0 product Gaussian array G1), and mu=nu product gamma, set a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d and C=2+(1+log((1-c)^(-1)))/(-log c), d=finrank(E). There exist the same measurable exact proximal map p, actual stopped output q and natural index N, with p(y)+eta grad V(p(y))=y, ||q(y)-p(y)||<=eps and run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. Define P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta) G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta) G1_j), and Phi=(X+h P0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). Phi is measurable and gives a Markov kernel K(s)=gamma.map(z -> Phi(s,z)). For every i both gradient squares are integrable, with E_mu||grad V(Y0_i)||^2<=2MR and E_mu||grad V(Y1_i)||^2<=4MR+2S^2 B. Both actual counts N(Y0_i)+1 and N(Y1_i)+1 are integrable; their respective expectations are at most C[1+log(1+sqrt(2MR)/eps)] and C[1+log(1+sqrt(4MR+2S^2 B)/eps)].",
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J.",
+        "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+        "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.",
+        "The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+      ],
+      "formulae": [
+        {
+          "label": "Actual implementation component",
+          "tex": "M_R=M+(1-e^{-h})d,\\quad B=6M_R+3\\varepsilon^2+3\\eta d,\\quad A_0=2M_R,\\quad A_1=4M_R+2S^2B,\\quad \\mathbb E_\\mu[N(Y_i^k)+1]\\le C_c[1+\\log(1+\\sqrt{A_k}/\\varepsilon)],\\quad k=0,1."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "full-phase-actual-query-moments-work",
+          "label": "Both actual Picard query layers under the full phase law"
+        },
+        {
+          "id": "run-wide-d7-d8",
+          "label": "Run-wide moment, executable aggregation and source parameter complexity (remaining)"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork.implemented_phase_query_moments_and_work",
+          "cell": "ASTIS-SW-SPHMC-implemented-phase-query-work",
+          "role": "proof-edge",
+          "supports": [
+            "full-phase-actual-query-moments-work"
+          ],
+          "audit_id": "ASTIS-RT-20261005-SPHMCImplementedPhaseQueryWork",
+          "boundary": "Single actual phase with arbitrary incoming L2 state budget and supplied bounded finite nodes/rows. Same q/N in the full Gaussian phase kernel, both center moments and both actual per-node query costs. No query-center gradient moment or count integrability/cost hypothesis. The run-wide D.7 induction, source quadrature/step selection, full-array direct/proximal execution aggregation D.8, Wp/proxy-warmness, initialization and main results remain separate; no TV-to-unbounded-cost transfer.",
+          "assumption_deltas": [
+            {
+              "source": "Euclidean source algorithm and its normalized C2 potential.",
+              "lean": "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J.",
+              "classification": "generalization",
+              "reason": "The scope and typeclasses are explicit; no full source theorem is asserted."
+            },
+            {
+              "source": "D.4 uses run-wide D.7 before Jensen and phase/run query aggregation.",
+              "lean": "Single actual phase with arbitrary incoming L2 state budget and supplied bounded finite nodes/rows. Same q/N in the full Gaussian phase kernel, both center moments and both actual per-node query costs. No query-center gradient moment or count integrability/cost hypothesis. The run-wide D.7 induction, source quadrature/step selection, full-array direct/proximal execution aggregation D.8, Wp/proxy-warmness, initialization and main results remain separate; no TV-to-unbounded-cost transfer.",
+              "classification": "source-implicit",
+              "reason": "This isolates the actual implementation component and states all remaining boundaries."
+            },
+            {
+              "source": "Algorithm 3.1 fixes source quadrature and D.4 obtains a run-wide moment.",
+              "lean": "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M. The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated.",
+              "classification": "generalization",
+              "reason": "Only one phase is proved, with a supplied incoming state budget and bounded finite arrays. MR retains the refresh noise dimension contribution. No source node/step or run induction conclusion."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

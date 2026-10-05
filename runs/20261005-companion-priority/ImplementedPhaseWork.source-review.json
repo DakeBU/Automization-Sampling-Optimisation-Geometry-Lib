@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-c0ce9552df9c028e",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261005",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-implemented-phase-query-work",
+    "anchor": "Algorithm 3.1 and Lemma D.4, actual query centers before Jensen; D.7 and D.8 remain separate",
+    "original_text": "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J.\nV is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.\n0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.\nThe supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated.\nFor the full independent driving law gamma=(Gaussian zeta0 product Gaussian zeta1) product (Gaussian array G0 product Gaussian array G1), and mu=nu product gamma, set a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d and C=2+(1+log((1-c)^(-1)))/(-log c), d=finrank(E). There exist the same measurable exact proximal map p, actual stopped output q and natural index N, with p(y)+eta grad V(p(y))=y, ||q(y)-p(y)||<=eps and run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. Define P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta) G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta) G1_j), and Phi=(X+h P0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). Phi is measurable and gives a Markov kernel K(s)=gamma.map(z -> Phi(s,z)). For every i both gradient squares are integrable, with E_mu||grad V(Y0_i)||^2<=2MR and E_mu||grad V(Y1_i)||^2<=4MR+2S^2 B. Both actual counts N(Y0_i)+1 and N(Y1_i)+1 are integrable; their respective expectations are at most C[1+log(1+sqrt(2MR)/eps)] and C[1+log(1+sqrt(4MR+2S^2 B)/eps)].",
+    "text_sha256": "29d82e039d1110f38dffbe5fd3e085fe0f38098d6ca2ea88d868729eedd81c51"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork.implemented_phase_query_moments_and_work",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ImplementedPhaseWork.lean",
+    "statement": "{E ι : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [Fintype ι]\n{V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M S : ℝ} (hh : 0 ≤ h) (hM : 0 ≤ M) (hS : 0 ≤ S)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n    (t : ι → ℝ) (ht : ∀ i, |t i| ≤ 1) (omega : ι → ι → ℝ)\n    (hrow : ∀ i, (∑ j, |omega i j|) ≤ S)\n    (positionWeight momentumWeight : ι → ℝ) :\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : ι => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        run (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      Measurable Φ ∧ ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n      (∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ i, Integrable (fun w => ‖gradient V (Y0 i w)‖^2) μ ∧\n        (∫ w, ‖gradient V (Y0 i w)‖^2 ∂μ) ≤ 2*MR ∧\n        Integrable (fun w => (N (Y0 i w) : ℝ)+1) μ ∧\n        (∫ w, (N (Y0 i w) : ℝ)+1 ∂μ) ≤\n          C*(1+Real.log (1+Real.sqrt (2*MR)/eps))) ∧\n      (∀ i, Integrable (fun w => ‖gradient V (Y1 i w)‖^2) μ ∧\n        (∫ w, ‖gradient V (Y1 i w)‖^2 ∂μ) ≤ 4*MR+2*S^2*B ∧\n        Integrable (fun w => (N (Y1 i w) : ℝ)+1) μ ∧\n        (∫ w, (N (Y1 i w) : ℝ)+1 ∂μ) ≤\n          C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps)))",
+    "statement_sha256": "3a89ed37db282e55cc8c54ca12e6350fb3700df173935d73f7db7cf3ec361cfe",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space equipped with its Borel measurable structure, and let I be any finite index type. Let V:E->R be C^2 and kappa be a nonnegative real with 1<=kappa. Assume for every x,v in E that\n  kappa^(-1)||v||^2 <= D^2 V(x)[v,v] <= ||v||^2.\nFix real eta,c,epsilon with 0<eta<=c<1 and epsilon>0. Let nu be a probability measure on E x E, and fix xstar in E with grad V(xstar)=0. Fix h,M,S>=0, and assume that the function (x,r) -> ||x-xstar||^2+||r||^2 is integrable under nu with integral at most M. Let t:I->R satisfy |t_i|<=1 for every i, and omega:I x I->R satisfy sum_j |omega_ij|<=S for every i. Let b,d:I->R be arbitrary deterministic real arrays, denoting positionWeight and momentumWeight.\nWrite D=dim_R E, a=exp(-h/2), sigma=sqrt(1-exp(-h)), G for the centered identity-covariance Gaussian probability measure on E, gi=product_I G, gamma=(G x G) x (gi x gi), and mu=nu x gamma. Thus, under mu, an incoming state (x,r) of law nu is independent of mutually independent standard Gaussian vectors u,v and independent standard Gaussian arrays xi,xi-prime. Define the exact constants\n  MR=M+(1-exp(-h))D,\n  B=6 MR+3 epsilon^2+3 eta D,\n  C=2+(1+log((1-c)^(-1)))/(-log c).\nThen there exist measurable p,q:E->E and N:E->N such that for every y in E,\n  p(y)+eta grad V(p(y))=y,\n  ||q(y)-p(y)||<=epsilon,\n  run(grad V,eta,epsilon,y,N(y)+1,y)=some(q(y),N(y)+1).\nThe exact-real interpreter returns none at zero fuel. With positive fuel it evaluates g(x), sets next=y-eta g(x), and returns (x,1) if ||next-x||<=(1-eta)epsilon. Otherwise it recurses from next with one less fuel and adds one to a successful returned count. Thus the displayed run equality records a successful run initialized at y, with fuel and reported gradient-test count both N(y)+1, including the final successful test.\nFor these same witnesses, for w=((x,r),((u,v),(xi,xi-prime))) define\n  P0(w)=a r+sigma u,\n  Y0_i(w)=x+t_i P0(w),\n  Z0_j(w)=grad V(q(Y0_j(w))+sqrt(eta)xi_j),\n  Y1_i(w)=Y0_i(w)-sum_j omega_ij Z0_j(w),\n  Z1_j(w)=grad V(q(Y1_j(w))+sqrt(eta)xi-prime_j),\n  Phi(w)=(x+h P0(w)-sum_j b_j Z1_j(w),\n          a(P0(w)-sum_j d_j Z1_j(w))+sigma v).\nThen Phi is jointly measurable, and there exists a Markov kernel K from E x E to E x E such that for every incoming state s,\n  K(s)=(z -> Phi(s,z))_* gamma.\nIn addition, for every i in I, all of the following hold with integration over w under mu:\n  ||grad V(Y0_i)||^2 is integrable,\n  integral ||grad V(Y0_i)||^2 dmu <= 2 MR,\n  N(Y0_i)+1 is integrable,\n  integral (N(Y0_i)+1) dmu <= C[1+log(1+sqrt(2 MR)/epsilon)],\n  ||grad V(Y1_i)||^2 is integrable,\n  integral ||grad V(Y1_i)||^2 dmu <= 4 MR+2 S^2 B,\n  N(Y1_i)+1 is integrable,\n  integral (N(Y1_i)+1) dmu <= C[1+log(1+sqrt(4 MR+2 S^2 B)/epsilon)].\nCounts are cast to the reals in integrability and integral statements. Integrability is Bochner integrability, and all sums range over the entire finite index type. Each K(s) is a probability measure, with measurable dependence on s for every measurable output event. The theorem supplies these witnesses, the transition kernel, and these per-index input-gradient moment and interpreter-count bounds. It does not assert an invariant law, sampler convergence, final-state moment or bias bound, or an overall algorithmic gradient-call bound including the Z0 and Z1 evaluations.",
+    "text_sha256": "7f437dc8a4b668da7c6dce02f0518724a55ea8e4a5a2966e18e4ed18ded890ad",
+    "decoder": "anonymous_decoder_20261005",
+    "decoder_packet_sha256": "ffcefcc8bff8c7ef8cd380d4346c9c94bfbfb1f2f36c72c5aaf8516373140781",
+    "decoder_run_sha256": "dc518c4425d52aa8647fbdb32812bd3bb0d0adb3f1e41d5d32da62d85b907687",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "e40842e0549d6a7783d6e499c7f104c1dacbba050f8aa9d2f7f5b3173bbea2b3",
+  "candidate_publication_context": {
+    "file": "e7a78dcc021dc489bfd56728286ca2c8705a54b29d6aa3c2717da5db0580f94a",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardCenterMoment\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork\n\n/-! Algorithm 3.1 / D.4: both actual query layers under the full phase law.\nThe incoming state L2 budget is explicit. Neither run-wide D.7, the source\nquadrature adapter, whole-phase direct-query execution count nor D.8 is closed.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped NNReal BigOperators\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork\n\nprivate theorem first_input_projection_preserving\n    {E ι : Type*} [MeasurableSpace E] [Fintype ι]\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (g : Measure E) [IsProbabilityMeasure g] :\n    let gi := Measure.pi (fun _ : ι => g)\n    MeasurePreserving\n      (fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n        ((w.1, w.2.1.1), w.2.2.1))\n      (ν.prod ((g.prod g).prod (gi.prod gi))) ((ν.prod g).prod gi) := by\n  dsimp only\n  let gi := Measure.pi (fun _ : ι => g)\n  have hf : MeasurePreserving Prod.fst (g.prod g) g := measurePreserving_fst\n  have ha : MeasurePreserving Prod.fst (gi.prod gi) gi := measurePreserving_fst\n  have hn := hf.prod ha\n  have hs := (MeasurePreserving.id ν).prod hn\n  have hback := MeasurePreserving.symm MeasurableEquiv.prodAssoc\n    (measurePreserving_prodAssoc ν g gi)\n  exact hback.comp hs\n\nvariable {E ι : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n  [Fintype ι]\n\n/-- The same q/N supplies the full Gaussian phase kernel, both actual queried\ngradient moments and both actual proximal query-count expectations. The only\nmoment hypothesis is on the incoming state, before the first half-refresh. -/\ntheorem implemented_phase_query_moments_and_work {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M S : ℝ} (hh : 0 ≤ h) (hM : 0 ≤ M) (hS : 0 ≤ S)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n    (t : ι → ℝ) (ht : ∀ i, |t i| ≤ 1) (omega : ι → ι → ℝ)\n    (hrow : ∀ i, (∑ j, |omega i j|) ≤ S)\n    (positionWeight momentumWeight : ι → ℝ) :\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : ι => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      Measurable Φ ∧ ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n      (∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ i, Integrable (fun w => ‖gradient V (Y0 i w)‖^2) μ ∧\n        (∫ w, ‖gradient V (Y0 i w)‖^2 ∂μ) ≤ 2*MR ∧\n        Integrable (fun w => (N (Y0 i w) : ℝ)+1) μ ∧\n        (∫ w, (N (Y0 i w) : ℝ)+1 ∂μ) ≤\n          C*(1+Real.log (1+Real.sqrt (2*MR)/eps))) ∧\n      (∀ i, Integrable (fun w => ‖gradient V (Y1 i w)‖^2) μ ∧\n        (∫ w, ‖gradient V (Y1 i w)‖^2 ∂μ) ≤ 4*MR+2*S^2*B ∧\n        Integrable (fun w => (N (Y1 i w) : ℝ)+1) μ ∧\n        (∫ w, (N (Y1 i w) : ℝ)+1 ∂μ) ≤\n          C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))) := by\n  classical\n  dsimp only\n  let gi := Measure.pi (fun _ : ι => stdGaussian E)\n  let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n  let μ := ν.prod γ\n  let μ0 := (ν.prod (stdGaussian E)).prod gi\n  let proj := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n    ((w.1,w.2.1.1),w.2.2.1)\n  have hproj : MeasurePreserving proj μ μ0 :=\n    first_input_projection_preserving ν (stdGaussian E)\n  obtain ⟨hMR,hX0,hP0,hsI0,hs0,hG0,hGI0,hGint0⟩ :=\n    PicardInputLaw.partial_refresh_with_picard_innovations (ι := ι) ν xstar hh hM hstateI hstate\n  let X := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) => w.1.1\n  let P := fun w : (E × E) × ((E × E) × ((ι → E) × (ι → E))) =>\n    Real.exp (-h/2) • w.1.2 + Real.sqrt (1-Real.exp (-h)) • w.2.1.1\n  let G := fun (j : ι) (w : (E × E) × ((E × E) × ((ι → E) × (ι → E)))) =>\n    w.2.2.1 j\n  have hsI : Integrable (fun w => ‖X w-xstar‖^2 + ‖P w‖^2) μ :=\n    hproj.integrable_comp_of_integrable hsI0\n  have hs : (∫ w, ‖X w-xstar‖^2 + ‖P w‖^2 ∂μ) ≤\n      M + (1-Real.exp (-h))*(Module.finrank ℝ E : ℝ) := by\n    calc\n      _ = ∫ u : ((E × E) × E) × (ι → E), ‖u.1.1.1-xstar‖^2 +\n          ‖Real.exp (-h/2) • u.1.1.2 + Real.sqrt (1-Real.exp (-h)) • u.1.2‖^2 ∂μ0 := by\n        rw [← hproj.map_eq, integral_map hproj.measurable.aemeasurable (by fun_prop)]\n      _ ≤ _ := hs0\n  have hGI (j) : Integrable (fun w => ‖G j w‖^2) μ :=\n    hproj.integrable_comp_of_integrable (hGI0 j)\n  have hGint (j) : (∫ w, ‖G j w‖^2 ∂μ) ≤ (Module.finrank ℝ E : ℝ) := by\n    calc\n      _ = ∫ u : ((E × E) × E) × (ι → E), ‖u.2 j‖^2 ∂μ0 := by\n        rw [← hproj.map_eq, integral_map hproj.measurable.aemeasurable (by fun_prop)]\n      _ ≤ _ := le_of_eq (hGint0 j)\n  obtain ⟨p,q,N,hp,hq,hN,hall,hphase⟩ :=\n    ImplementedPhaseKernel.implemented_phase_kernel hκ hV hH heta hec hc heps h hh\n      t omega positionWeight momentumWeight\n  obtain ⟨p',N',q',hp',hN',hq',hfix',hrun',hm0,hz0,hm1⟩ :=\n    PicardCenterMoment.picard_center_gradient_moment hκ hV hH heta hec hc heps μ\n      X P (by fun_prop) (by fun_prop) xstar hstar t ht G (fun _ => by fun_prop)\n      omega hMR hS hsI hs hGI hGint hrow\n  have hid (y) := ProximalExecutionIdentity.successful_query_unique\n    (gradient V) eta eps y (hall y).2.2 (hrun' y).2\n  have hqeq : q = q' := funext fun y => congrArg Prod.fst (hid y)\n  have hNeq : N = N' := funext fun y => Nat.add_right_cancel (congrArg Prod.snd (hid y))\n  subst q'\n  subst N'\n  obtain ⟨hvar,hΦ,K,hK,hKlaw⟩ := hphase\n  have hg : Measurable (gradient V) := by\n    unfold gradient\n    exact ((InnerProductSpace.toDual ℝ E).symm.continuous.comp\n      (hV.continuous_fderiv (by norm_num))).measurable\n  have hC : 0 ≤ 2+(1+Real.log ((1-c)⁻¹))/(-Real.log c) := by\n    have hcp := heta.trans_le hec\n    have hd : 0 < 1-c := sub_pos.mpr hc\n    have hi : 1 ≤ (1-c)⁻¹ := (one_le_inv₀ hd).mpr (by linarith)\n    have hl := Real.log_nonneg hi\n    have ha := neg_pos.mpr (Real.log_neg hcp hc)\n    positivity\n  refine ⟨p,q,N,hp,hq,hN,hall,hΦ,K,hK,hKlaw,?_,?_⟩\n  · intro i\n    obtain ⟨hcI,hcB⟩ := RealizedProximalWork.realized_proximal_expected_work μ\n      hκ hV hH heta hec hc heps q N (fun y => (hall y).2.2)\n      (fun w => X w+t i • P w) (by fun_prop) (hm0 i).1\n    refine ⟨(hm0 i).1,(hm0 i).2,hcI,hcB.trans ?_⟩\n    apply mul_le_mul_of_nonneg_left _ hC\n    apply add_le_add_right\n    apply Real.log_le_log (by positivity)\n    gcongr\n    exact (hm0 i).2\n  · intro i\n    obtain ⟨hcI,hcB⟩ := RealizedProximalWork.realized_proximal_expected_work μ\n      hκ hV hH heta hec hc heps q N (fun y => (hall y).2.2)\n      (fun w => X w+t i • P w - ∑ j, omega i j •\n        gradient V (q (X w+t j • P w) + Real.sqrt eta • G j w))\n      (by fun_prop) (hm1 i).1\n    refine ⟨(hm1 i).1,(hm1 i).2,hcI,hcB.trans ?_⟩\n    apply mul_le_mul_of_nonneg_left _ hC\n    apply add_le_add_right\n    apply Real.log_le_log (by positivity)\n    gcongr\n    exact (hm1 i).2\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Algorithm 3.1 and Lemma D.4, actual query centers before Jensen; D.7 and D.8 remain separate",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; ASTIS explicitly scoped implementation restatement, not a full D.4 or main theorem."
+    },
+    "statement": "For the full independent driving law gamma=(Gaussian zeta0 product Gaussian zeta1) product (Gaussian array G0 product Gaussian array G1), and mu=nu product gamma, set a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d and C=2+(1+log((1-c)^(-1)))/(-log c), d=finrank(E). There exist the same measurable exact proximal map p, actual stopped output q and natural index N, with p(y)+eta grad V(p(y))=y, ||q(y)-p(y)||<=eps and run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. Define P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta) G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta) G1_j), and Phi=(X+h P0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). Phi is measurable and gives a Markov kernel K(s)=gamma.map(z -> Phi(s,z)). For every i both gradient squares are integrable, with E_mu||grad V(Y0_i)||^2<=2MR and E_mu||grad V(Y1_i)||^2<=4MR+2S^2 B. Both actual counts N(Y0_i)+1 and N(Y1_i)+1 are integrable; their respective expectations are at most C[1+log(1+sqrt(2MR)/eps)] and C[1+log(1+sqrt(4MR+2S^2 B)/eps)].",
+    "formulae": [
+      {
+        "label": "Actual implementation component",
+        "tex": "M_R=M+(1-e^{-h})d,\\quad B=6M_R+3\\varepsilon^2+3\\eta d,\\quad A_0=2M_R,\\quad A_1=4M_R+2S^2B,\\quad \\mathbb E_\\mu[N(Y_i^k)+1]\\le C_c[1+\\log(1+\\sqrt{A_k}/\\varepsilon)],\\quad k=0,1."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J.",
+      "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+      "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.",
+      "The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+    ],
+    "obligations": [
+      {
+        "id": "full-phase-actual-query-moments-work",
+        "label": "Both actual Picard query layers under the full phase law"
+      },
+      {
+        "id": "run-wide-d7-d8",
+        "label": "Run-wide moment, executable aggregation and source parameter complexity (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork.implemented_phase_query_moments_and_work",
+      "title": "Both actual Picard query layers under the full phase law",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, stopped routine and actual Picard query centers",
+          "scope": "Single actual phase with arbitrary incoming L2 state budget and supplied bounded finite nodes/rows. Same q/N in the full Gaussian phase kernel, both center moments and both actual per-node query costs. No query-center gradient moment or count integrability/cost hypothesis. The run-wide D.7 induction, source quadrature/step selection, full-array direct/proximal execution aggregation D.8, Wp/proxy-warmness, initialization and main results remain separate; no TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCImplementedPhaseWork"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J.",
+        "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+        "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.",
+        "The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+      ],
+      "statement": "For the full independent driving law gamma=(Gaussian zeta0 product Gaussian zeta1) product (Gaussian array G0 product Gaussian array G1), and mu=nu product gamma, set a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d and C=2+(1+log((1-c)^(-1)))/(-log c), d=finrank(E). There exist the same measurable exact proximal map p, actual stopped output q and natural index N, with p(y)+eta grad V(p(y))=y, ||q(y)-p(y)||<=eps and run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. Define P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta) G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta) G1_j), and Phi=(X+h P0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). Phi is measurable and gives a Markov kernel K(s)=gamma.map(z -> Phi(s,z)). For every i both gradient squares are integrable, with E_mu||grad V(Y0_i)||^2<=2MR and E_mu||grad V(Y1_i)||^2<=4MR+2S^2 B. Both actual counts N(Y0_i)+1 and N(Y1_i)+1 are integrable; their respective expectations are at most C[1+log(1+sqrt(2MR)/eps)] and C[1+log(1+sqrt(4MR+2S^2 B)/eps)].",
+      "formula": "M_R=M+(1-e^{-h})d,\\quad B=6M_R+3\\varepsilon^2+3\\eta d,\\quad A_0=2M_R,\\quad A_1=4M_R+2S^2B,\\quad \\mathbb E_\\mu[N(Y_i^k)+1]\\le C_c[1+\\log(1+\\sqrt{A_k}/\\varepsilon)],\\quad k=0,1.",
+      "steps": [
+        {
+          "title": "Marginalize the full innovation law exactly",
+          "text": "Project ((state,(zeta0,zeta1)),(G0,G1)) to ((state,zeta0),G0). Probability-product first-coordinate projections preserve measure. Their product, followed by inverse product association, gives exactly the input law (nu product Gaussian) product Gaussian-array. Thus omitted zeta1 and G1 factors integrate to one; independence is present in the law, not inferred from TV closeness.",
+          "formula": "\\operatorname{proj}_\\#(\\nu\\otimes[(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^\\iota\\otimes\\gamma_E^\\iota)])=(\\nu\\otimes\\gamma_E)\\otimes\\gamma_E^\\iota.",
+          "lean": "first_input_projection_preserving; measurePreserving_fst; MeasurePreserving.prod; measurePreserving_prodAssoc"
+        },
+        {
+          "title": "Derive the corrected refresh and Gaussian budgets",
+          "text": "Apply the compiled input-law theorem to the incoming state law and the first half-refresh. Pull its L2 integrability and bound, and the exact Gaussian coordinate second moments, back along the measure-preserving projection. The refreshed budget is MR, including the positive innovation contribution (1-exp(-h))*d. The proof does not silently reuse M after adding noise.",
+          "formula": "\\mathbb E_\\mu[\\|X-x_*\\|^2+\\|P_0\\|^2]\\le M_R,\\qquad \\mathbb E_\\mu\\|G_j^0\\|^2=d.",
+          "lean": "PicardInputLaw.partial_refresh_with_picard_innovations; MeasurePreserving.integrable_comp_of_integrable; integral_map"
+        },
+        {
+          "title": "Identify the successful queries used by both parents",
+          "text": "The implemented-phase theorem supplies p,q,N and the complete phase map/kernel. The Picard-center theorem supplies another successful stopped q and N along with its moment conclusions. At every y, deterministic successful-execution uniqueness equates both returned pairs. Projection of that equality and natural-number cancellation identify q and N pointwise, so the center bounds now concern exactly the kernel witnesses. The exact proximal witnesses p need not be identified.",
+          "formula": "\\operatorname{run}(y,N(y)+1,y)=(q(y),N(y)+1)=\\operatorname{run}(y,N\\prime(y)+1,y),\\quad q=q\\prime,\\ N=N\\prime.",
+          "lean": "ProximalExecutionIdentity.successful_query_unique; congrArg Prod.fst; congrArg Prod.snd; Nat.add_right_cancel"
+        },
+        {
+          "title": "Use both actual Picard-center moments",
+          "text": "Apply the existing normalized-Hessian moment theorem under the full actual law using the derived refreshed state budget, full Gaussian G0 coordinates, supplied node bounds and row l1 bound. It gives the first-center bound 2MR, the first queried-gradient bound B, and the second-center bound 4MR+2S^2B. In particular neither actual-center gradient-square integrability nor its numerical bound is a premise.",
+          "formula": "\\mathbb E\\|\\nabla V(Y_i^0)\\|^2\\le2M_R,\\quad\\mathbb E\\|Z_j^0\\|^2\\le B,\\quad\\mathbb E\\|\\nabla V(Y_i^1)\\|^2\\le4M_R+2S^2B.",
+          "lean": "PicardCenterMoment.picard_center_gradient_moment"
+        },
+        {
+          "title": "Bound the same actual query count in each layer",
+          "text": "The C2 gradient and all finite phase-center maps are measurable. Apply the same-implementation expected-work theorem to each actual center under mu with the newly derived square-gradient integrability. Its count is N(Y)+1, including the final successful test. Since C>=0 and eps>0, monotonicity of square root and logarithm replaces the actual gradient moment by each derived numerical upper bound. Count integrability is a conclusion, and no different-law cost comparison is used.",
+          "formula": "M_R=M+(1-e^{-h})d,\\quad B=6M_R+3\\varepsilon^2+3\\eta d,\\quad A_0=2M_R,\\quad A_1=4M_R+2S^2B,\\quad \\mathbb E_\\mu[N(Y_i^k)+1]\\le C_c[1+\\log(1+\\sqrt{A_k}/\\varepsilon)],\\quad k=0,1.",
+          "lean": "RealizedProximalWork.realized_proximal_expected_work; Real.log_le_log; mul_le_mul_of_nonneg_left; gcongr"
+        },
+        {
+          "title": "Return the same full phase and both per-node costs",
+          "text": "Keep the measurable complete phase map and its canonical Gaussian pushforward Markov kernel from the implementation parent, together with the identified witnesses and both moment/work conclusions. The second array G1 and final refresh zeta1 remain in this phase law even though only the first-array marginal is needed to bound its second-layer centers. This does not yet sum executable per-phase gradient queries or iterate the state bound over a run.",
+          "formula": "K(s)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad\\mu=\\nu\\otimes\\gamma.",
+          "lean": "ImplementedPhaseKernel.implemented_phase_kernel; implemented_phase_query_moments_and_work"
+        }
+      ],
+      "lean_statement": "Exact supplied parameters, full product law and same actual witnesses are explicit in the compiled theorem.",
+      "lean_proof": "The authored steps explain the entire current module, including the measure-preserving marginal helper where present.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw.partial_refresh_with_picard_innovations",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardCenterMoment.picard_center_gradient_moment",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity.successful_query_unique",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.measurePreserving_fst",
+        "MeasureTheory.MeasurePreserving.prod",
+        "MeasureTheory.measurePreserving_prodAssoc",
+        "MeasureTheory.integral_map",
+        "Real.log_le_log"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork.implemented_phase_query_moments_and_work",
+      "role": "proof-edge",
+      "supports": [
+        "full-phase-actual-query-moments-work"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean source algorithm and its normalized C2 potential.",
+        "lean": "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J."
+      },
+      {
+        "source": "D.4 uses run-wide D.7 before Jensen and phase/run query aggregation.",
+        "lean": "Single actual phase with arbitrary incoming L2 state budget and supplied bounded finite nodes/rows. Same q/N in the full Gaussian phase kernel, both center moments and both actual per-node query costs. No query-center gradient moment or count integrability/cost hypothesis. The run-wide D.7 induction, source quadrature/step selection, full-array direct/proximal execution aggregation D.8, Wp/proxy-warmness, initialization and main results remain separate; no TV-to-unbounded-cost transfer."
+      },
+      {
+        "source": "Algorithm 3.1 fixes source quadrature and D.4 obtains a run-wide moment.",
+        "lean": "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M. The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "0ee6e71a2956228fd5916e7fcb0238534ee85a5fc7455814e06ec407590a69aa"
+}

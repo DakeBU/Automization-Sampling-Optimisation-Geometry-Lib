@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "reviewer_id": "picard_commit_verifier_20261005",
+  "review_date": "2026-10-05",
+  "result": "PASS for bounded incoming-state-conditioned phase query moments and per-center work",
+  "review_kind": "Independent mathematical review; not a commit-bound source-review or VERIFIED admission",
+  "inspected_head": "6410634a18e787d1e8d09e02a75a28c623398967",
+  "verified_commit": null,
+  "reviewed_files_raw_sha256": {
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ImplementedPhaseWork.lean": "e7a78dcc021dc489bfd56728286ca2c8705a54b29d6aa3c2717da5db0580f94a",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalExecutionIdentity.lean": "f56481c1f0c3dd58345b88c5f9fd1008dd838728b5d1ff9138dd5c65be2dea4e",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/RealizedProximalWork.lean": "5a66936c34192a7e31f1134108834258cdbe09623a5f6b173523c19672a90656",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ImplementedPhaseKernel.lean": "9a8e15b91b5bddc3cbda165c97b86c6d1603b1a06c262dd1d588211ce31804b0",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PicardInputLaw.lean": "bda75fbc4a43ce84a2c511e6220227e3b4392a63a0326b51fe8f8eb760e1d3d8",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PicardCenterMoment.lean": "38faf8e4e313d88191dfa4e3a09052fc59add60639cb5662465f1b5a6378f290",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PartialMomentumRefresh.lean": "46e14687c9ec3e3c5b43764f1307d9e336e0459fb28b6fccae3da58c8a91fcd1",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalExpectedWork.lean": "67d735f1adae0cd37b7f061d49aa8e7be6efd9faf28f733c860b706c6154cb99",
+    "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ApproximateProximalExecution.lean": "b94b440f87338465b48a80879f400389944e3dfbeeb7426672aeafa07fe2ed11",
+    "Tests/SmoothedPicardHMCImplementedPhaseWork.lean": "a8286365853afb72c8f7d74b36f69d890f786d492ee67e12407ed86480dbe0a7",
+    "lean-toolchain": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+    "lake-manifest.json": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "pinned_runtime": {
+    "Lean": "leanprover/lean4:v4.33.0",
+    "Mathlib": "db584cd6d46c92f209a44c0f1c829460d327499d",
+    "LEAN_NUM_THREADS": 2
+  },
+  "findings": [
+    {
+      "check": "Full-law marginal projection",
+      "result": "PASS",
+      "reason": "mu=nu x ((g x g) x (gi x gi)), gi=g^iota. Independent probability-factor projections retain zeta0 and G0, identity retains incoming state, and inverse prodAssoc gives exactly mu0=(nu x g) x gi. Thus proj=((state,zeta0),G0) is measure-preserving. Square integrability pulls back along this exact projection; integral_map transfers the same expectations. No cost is transported through TV."
+    },
+    {
+      "check": "Refreshed budget",
+      "result": "PASS",
+      "formula": "MR=M+(1-exp(-h))*d",
+      "reason": "The true first refresh uses exp(-h/2) incoming momentum and sqrt(1-exp(-h)) fresh Gaussian. Its product-law cross term vanishes, and Gaussian square expectation is d. h>=0 gives nonnegative variance. The supplied incoming state budget M is increased by the correct dimension term, not reused unchanged."
+    },
+    {
+      "check": "Both proximal-input center moments",
+      "result": "PASS",
+      "formula": "E||grad V(Y0_i)||^2<=2MR; B=6MR+3eps^2+3eta*d; E||grad V(Y1_i)||^2<=4MR+2S^2B",
+      "reason": "|t_i|<=1 yields E||Y0_i-xstar||^2<=2MR. Smoothness and grad V(xstar)=0 dominate gradient by distance. Prox nonexpansiveness and eps accuracy, followed by the three-term square bound, yield the first noisy query bound B. Weighted Cauchy-Schwarz and the absolute row sum S yield E||sum omega_ij Z0_j||^2<=S^2B. The second-center difference bound yields 4MR+2S^2B. Each integrability statement is proved before integrating. No center-moment hypothesis is supplied."
+    },
+    {
+      "check": "Same output and implementation count",
+      "result": "PASS",
+      "reason": "The exported deterministic uniqueness proof is the prior private induction, with identical stop and recursive branches. Comparing phase-kernel and center-moment successful runs from y identifies q=q_prime by first projection and N=N_prime by second projection plus natural cancellation. The moment and work proofs consequently use the actual phase q,N. p equality is unnecessary; the parent center estimate uses its own valid proximal map internally."
+    },
+    {
+      "check": "Actual count integrability and log monotonicity",
+      "result": "PASS",
+      "formula": "C=2+(1+log((1-c)^(-1)))/(-log c); E[N(Yl_i)+1]<=C*(1+log(1+sqrt(A_l)/eps)), A0=2MR, A1=4MR+2S^2B",
+      "reason": "RealizedProximalWork supplies integrable actual counts from the now-proved center square moments and measurable centers. C>=0 follows from 0<c<1; the log arguments are positive since eps>0 and sqrt is nonnegative. Sqrt, division by positive eps, log, addition and multiplication by C preserve the moment inequality. Each count includes the final successful test."
+    },
+    {
+      "check": "Nondegenerate focused consumer and proof dependencies",
+      "result": "PASS",
+      "reason": "The test uses E=R, Fin 2, h=1, eta=3/4, c=7/8, eps=1/10, incoming dirac(0,0), M=0, t=1/3, omega=1/4, S=1/2. Both independent Gaussian arrays and both refresh noises remain in the law. It derives the first-center moment and both layer count-integrability conclusions, without a center moment or work premise. The production theorem invokes real parents; no circular or fake consumer was found."
+    }
+  ],
+  "focused_check": {
+    "command": "lake env lean Tests/SmoothedPicardHMCImplementedPhaseWork.lean",
+    "session_id": 11325,
+    "result": "fresh PASS",
+    "exit_code": 0,
+    "compiler_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "axiom_targets": [
+      "ProximalExecutionIdentity.successful_query_unique",
+      "ImplementedPhaseWork.implemented_phase_query_moments_and_work"
+    ],
+    "warning": "Only unused node variable i style warning at test line 18"
+  },
+  "fake_closure_scan": {
+    "files": [
+      "ImplementedPhaseWork.lean",
+      "ProximalExecutionIdentity.lean",
+      "RealizedProximalWork.lean"
+    ],
+    "result": "No sorry/admit/axiom/Prop:=True/:=trivial mathematical closures"
+  },
+  "boundary": [
+    "Incoming joint-state probability law, integrable combined state square with budget M, normalized C2 Hessian bounds, stationary minimizer xstar, |t_i|<=1 and row sum <=S remain explicit inputs.",
+    "The moment conclusions are for gradients at actual proximal input centers Y0/Y1. They do not assert an exported second noisy-gradient Z1 moment or next-state moment bound.",
+    "Deterministic nodes and weights remain parameters; source Chebyshev-Lobatto construction and parameter substitution are not proved.",
+    "Per-center proximal work is established. Whole-phase direct-query execution count, finite 2J-call aggregation, repeated-run D.7, full D.8, sampling accuracy and both companion main results remain separate.",
+    "The changed RealizedProximalWork complete module and newly public uniqueness declaration require current packet-bound source review. Commit-bound VERIFIED, aggregate acceptance and publication integration are not performed by this math receipt."
+  ],
+  "ledger_transition": "None; no cell, ledger, Lean or aggregator edits",
+  "PR313_CI": "Not queried: published PR status would not certify this uncommitted mathematical delta."
+}

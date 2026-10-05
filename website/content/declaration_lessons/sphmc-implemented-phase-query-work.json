@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseWork.implemented_phase_query_moments_and_work",
+      "title": "Both actual Picard query layers under the full phase law",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, stopped routine and actual Picard query centers",
+          "scope": "Single actual phase with arbitrary incoming L2 state budget and supplied bounded finite nodes/rows. Same q/N in the full Gaussian phase kernel, both center moments and both actual per-node query costs. No query-center gradient moment or count integrability/cost hypothesis. The run-wide D.7 induction, source quadrature/step selection, full-array direct/proximal execution aggregation D.8, Wp/proxy-warmness, initialization and main results remain separate; no TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCImplementedPhaseWork"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra; i ranges over a finite index type of size J.",
+        "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+        "0<eta<=c<1, eps>0, h>=0, M>=0, S>=0. The incoming probability law nu on (X,P) has integrable ||X-xstar||^2+||P||^2, with integral at most M.",
+        "The supplied deterministic nodes satisfy |t_i|<=1 and each supplied omega row satisfies sum_j |omega_ij|<=S. Position and momentum weights are arbitrary supplied real arrays; source Chebyshev quadrature is not instantiated."
+      ],
+      "statement": "For the full independent driving law gamma=(Gaussian zeta0 product Gaussian zeta1) product (Gaussian array G0 product Gaussian array G1), and mu=nu product gamma, set a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d and C=2+(1+log((1-c)^(-1)))/(-log c), d=finrank(E). There exist the same measurable exact proximal map p, actual stopped output q and natural index N, with p(y)+eta grad V(p(y))=y, ||q(y)-p(y)||<=eps and run(grad V,eta,eps,y,N(y)+1,y)=some(q(y),N(y)+1) for every y. Define P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta) G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta) G1_j), and Phi=(X+h P0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). Phi is measurable and gives a Markov kernel K(s)=gamma.map(z -> Phi(s,z)). For every i both gradient squares are integrable, with E_mu||grad V(Y0_i)||^2<=2MR and E_mu||grad V(Y1_i)||^2<=4MR+2S^2 B. Both actual counts N(Y0_i)+1 and N(Y1_i)+1 are integrable; their respective expectations are at most C[1+log(1+sqrt(2MR)/eps)] and C[1+log(1+sqrt(4MR+2S^2 B)/eps)].",
+      "formula": "M_R=M+(1-e^{-h})d,\\quad B=6M_R+3\\varepsilon^2+3\\eta d,\\quad A_0=2M_R,\\quad A_1=4M_R+2S^2B,\\quad \\mathbb E_\\mu[N(Y_i^k)+1]\\le C_c[1+\\log(1+\\sqrt{A_k}/\\varepsilon)],\\quad k=0,1.",
+      "boundary": "Single actual phase with arbitrary incoming L2 state budget and supplied bounded finite nodes/rows. Same q/N in the full Gaussian phase kernel, both center moments and both actual per-node query costs. No query-center gradient moment or count integrability/cost hypothesis. The run-wide D.7 induction, source quadrature/step selection, full-array direct/proximal execution aggregation D.8, Wp/proxy-warmness, initialization and main results remain separate; no TV-to-unbounded-cost transfer.",
+      "steps": [
+        {
+          "title": "Marginalize the full innovation law exactly",
+          "text": "Project ((state,(zeta0,zeta1)),(G0,G1)) to ((state,zeta0),G0). Probability-product first-coordinate projections preserve measure. Their product, followed by inverse product association, gives exactly the input law (nu product Gaussian) product Gaussian-array. Thus omitted zeta1 and G1 factors integrate to one; independence is present in the law, not inferred from TV closeness.",
+          "formula": "\\operatorname{proj}_\\#(\\nu\\otimes[(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^\\iota\\otimes\\gamma_E^\\iota)])=(\\nu\\otimes\\gamma_E)\\otimes\\gamma_E^\\iota.",
+          "lean": "first_input_projection_preserving; measurePreserving_fst; MeasurePreserving.prod; measurePreserving_prodAssoc"
+        },
+        {
+          "title": "Derive the corrected refresh and Gaussian budgets",
+          "text": "Apply the compiled input-law theorem to the incoming state law and the first half-refresh. Pull its L2 integrability and bound, and the exact Gaussian coordinate second moments, back along the measure-preserving projection. The refreshed budget is MR, including the positive innovation contribution (1-exp(-h))*d. The proof does not silently reuse M after adding noise.",
+          "formula": "\\mathbb E_\\mu[\\|X-x_*\\|^2+\\|P_0\\|^2]\\le M_R,\\qquad \\mathbb E_\\mu\\|G_j^0\\|^2=d.",
+          "lean": "PicardInputLaw.partial_refresh_with_picard_innovations; MeasurePreserving.integrable_comp_of_integrable; integral_map"
+        },
+        {
+          "title": "Identify the successful queries used by both parents",
+          "text": "The implemented-phase theorem supplies p,q,N and the complete phase map/kernel. The Picard-center theorem supplies another successful stopped q and N along with its moment conclusions. At every y, deterministic successful-execution uniqueness equates both returned pairs. Projection of that equality and natural-number cancellation identify q and N pointwise, so the center bounds now concern exactly the kernel witnesses. The exact proximal witnesses p need not be identified.",
+          "formula": "\\operatorname{run}(y,N(y)+1,y)=(q(y),N(y)+1)=\\operatorname{run}(y,N\\prime(y)+1,y),\\quad q=q\\prime,\\ N=N\\prime.",
+          "lean": "ProximalExecutionIdentity.successful_query_unique; congrArg Prod.fst; congrArg Prod.snd; Nat.add_right_cancel"
+        },
+        {
+          "title": "Use both actual Picard-center moments",
+          "text": "Apply the existing normalized-Hessian moment theorem under the full actual law using the derived refreshed state budget, full Gaussian G0 coordinates, supplied node bounds and row l1 bound. It gives the first-center bound 2MR, the first queried-gradient bound B, and the second-center bound 4MR+2S^2B. In particular neither actual-center gradient-square integrability nor its numerical bound is a premise.",
+          "formula": "\\mathbb E\\|\\nabla V(Y_i^0)\\|^2\\le2M_R,\\quad\\mathbb E\\|Z_j^0\\|^2\\le B,\\quad\\mathbb E\\|\\nabla V(Y_i^1)\\|^2\\le4M_R+2S^2B.",
+          "lean": "PicardCenterMoment.picard_center_gradient_moment"
+        },
+        {
+          "title": "Bound the same actual query count in each layer",
+          "text": "The C2 gradient and all finite phase-center maps are measurable. Apply the same-implementation expected-work theorem to each actual center under mu with the newly derived square-gradient integrability. Its count is N(Y)+1, including the final successful test. Since C>=0 and eps>0, monotonicity of square root and logarithm replaces the actual gradient moment by each derived numerical upper bound. Count integrability is a conclusion, and no different-law cost comparison is used.",
+          "formula": "M_R=M+(1-e^{-h})d,\\quad B=6M_R+3\\varepsilon^2+3\\eta d,\\quad A_0=2M_R,\\quad A_1=4M_R+2S^2B,\\quad \\mathbb E_\\mu[N(Y_i^k)+1]\\le C_c[1+\\log(1+\\sqrt{A_k}/\\varepsilon)],\\quad k=0,1.",
+          "lean": "RealizedProximalWork.realized_proximal_expected_work; Real.log_le_log; mul_le_mul_of_nonneg_left; gcongr"
+        },
+        {
+          "title": "Return the same full phase and both per-node costs",
+          "text": "Keep the measurable complete phase map and its canonical Gaussian pushforward Markov kernel from the implementation parent, together with the identified witnesses and both moment/work conclusions. The second array G1 and final refresh zeta1 remain in this phase law even though only the first-array marginal is needed to bound its second-layer centers. This does not yet sum executable per-phase gradient queries or iterate the state bound over a run.",
+          "formula": "K(s)=\\Phi(s,\\cdot)_\\#\\gamma,\\qquad\\mu=\\nu\\otimes\\gamma.",
+          "lean": "ImplementedPhaseKernel.implemented_phase_kernel; implemented_phase_query_moments_and_work"
+        }
+      ],
+      "lean_statement": "Exact supplied parameters, full product law and same actual witnesses are explicit in the compiled theorem.",
+      "lean_proof": "The authored steps explain the entire current module, including the measure-preserving marginal helper where present.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ImplementedPhaseKernel.implemented_phase_kernel",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw.partial_refresh_with_picard_innovations",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardCenterMoment.picard_center_gradient_moment",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity.successful_query_unique",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork.realized_proximal_expected_work"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.measurePreserving_fst",
+        "MeasureTheory.MeasurePreserving.prod",
+        "MeasureTheory.measurePreserving_prodAssoc",
+        "MeasureTheory.integral_map",
+        "Real.log_le_log"
+      ]
+    }
+  ]
+}

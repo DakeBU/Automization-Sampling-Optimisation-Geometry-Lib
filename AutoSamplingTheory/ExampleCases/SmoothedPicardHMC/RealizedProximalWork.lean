@@ -1,4 +1,5 @@
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity
 
 /-!
 # Work of the same stopped proximal implementation under its realized input
@@ -12,26 +13,6 @@ open MeasureTheory InnerProductSpace
 open scoped Topology NNReal
 
 namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RealizedProximalWork
-
-private theorem successful_query_unique {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] (g : E → E) (eta eps : ℝ) (y : E)
-    {n m : ℕ} {x : E} {r s : E × ℕ}
-    (hr : ApproximateProximalExecution.proximalQuery g eta eps y n x = some r)
-    (hs : ApproximateProximalExecution.proximalQuery g eta eps y m x = some s) : r = s := by
-  classical
-  induction n generalizing m x r s with
-  | zero => simp [ApproximateProximalExecution.proximalQuery] at hr
-  | succ n ih =>
-    cases m with
-    | zero => simp [ApproximateProximalExecution.proximalQuery] at hs
-    | succ m =>
-      rw [ApproximateProximalExecution.proximalQuery] at hr hs
-      split_ifs at hr hs with hstop
-      · exact Option.some.inj (hr.symm.trans hs)
-      · obtain ⟨r', hr', hrr⟩ := Option.map_eq_some_iff.mp hr
-        obtain ⟨s', hs', hss⟩ := Option.map_eq_some_iff.mp hs
-        have heq := ih hr' hs'
-        simpa [← hrr, ← hss] using congrArg (fun z : E × ℕ => (z.1, z.2 + 1)) heq
 
 /-- Expected work belongs to the actual successful stopped-query witness,
 pulled back along the measurable realized center. No bound on an independent
@@ -66,7 +47,7 @@ theorem realized_proximal_expected_work
       hκ hV hH heta hec hc heps (μ.map Y) hm
   have hNM : N = M := by
     funext y
-    have h := successful_query_unique (gradient V) eta eps y (hrun y) (hall y).2.2
+    have h := ProximalExecutionIdentity.successful_query_unique (gradient V) eta eps y (hrun y) (hall y).2.2
     exact Nat.add_right_cancel (congrArg Prod.snd h)
   subst N
   have hcnt : Measurable (fun y => (M y : ℝ) + 1) := by fun_prop

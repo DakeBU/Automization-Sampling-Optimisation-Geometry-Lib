@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity.successful_query_unique",
+      "title": "Successful stopped executions have one output and count",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Chen–Chewi–Lu–Zhang, stopped routine and actual Picard query centers",
+          "scope": "Conditional deterministic identity for successful runs only. No existence of a successful run, proximal accuracy, count bound, Gaussian law or main theorem. Reusable interface extracted for the same-witness full-phase consumer; no independent paper-progress credit for extraction."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCImplementedPhaseWork"
+      ],
+      "assumptions": [
+        "E is a real normed vector space; g:E->E, eta,eps,y and initial state x are arbitrary. Two supplied finite fuels n,m yield successful returned pairs r,s under the same deterministic interpreter. No positivity, contractivity or termination hypothesis."
+      ],
+      "statement": "For the deterministic stopped gradient interpreter of Algorithm D.2, any two successful finite-fuel executions from the same y and initial x, using the same g,eta,eps, return exactly the same pair (output point, actual gradient-test count), independently of the sufficient fuels.",
+      "formula": "\\operatorname{run}(g,\\eta,\\varepsilon,y,n,x)=\\operatorname{some}(r),\\quad\\operatorname{run}(g,\\eta,\\varepsilon,y,m,x)=\\operatorname{some}(s)\\quad\\Longrightarrow\\quad r=s.",
+      "boundary": "Conditional deterministic identity for successful runs only. No existence of a successful run, proximal accuracy, count bound, Gaussian law or main theorem. Reusable interface extracted for the same-witness full-phase consumer; no independent paper-progress credit for extraction.",
+      "steps": [
+        {
+          "title": "Exclude zero fuel",
+          "text": "Zero fuel returns none, so a supplied successful run cannot have zero fuel. Induct on the first fuel and eliminate zero fuel for the second.",
+          "formula": "\\operatorname{run}(\\cdot,0,x)=\\operatorname{none}.",
+          "lean": "induction n; cases m; simp [proximalQuery] at hr hs"
+        },
+        {
+          "title": "Compare identical stopping branches",
+          "text": "Both positive-fuel runs evaluate the same gradient at the same current x and the same residual test. If that test succeeds, both return the current x with count one. This counts the final gradient evaluation.",
+          "formula": "\\|y-\\eta g(x)-x\\|\\le(1-\\eta)\\varepsilon\\ \\Longrightarrow\\ r=s=(x,1).",
+          "lean": "split_ifs; Option.some.inj"
+        },
+        {
+          "title": "Compare identical continuing branches",
+          "text": "If the common residual test fails, both recurse at the same next point y-eta*g(x). Successful Option.map outputs imply successful recursive returned pairs. The induction hypothesis identifies those pairs; applying the same count increment gives equality of the outer returned pairs. No mathematical contraction or termination claim is needed.",
+          "formula": "r\\prime=s\\prime\\ \\Longrightarrow\\ (r\\prime_1,r\\prime_2+1)=(s\\prime_1,s\\prime_2+1).",
+          "lean": "Option.map_eq_some_iff; induction hypothesis; congrArg"
+        }
+      ],
+      "lean_statement": "Arbitrary real normed E, g, eta, eps, y, x and finite fuels n,m; successful interpreter equations for both returned pairs imply exact equality r=s. No measure or probability law occurs.",
+      "lean_proof": "Induct on the first fuel, eliminate zero successful fuel for either run, then compare the identical residual test. A stopping branch returns the same pair; a continuing branch uses recursive pair equality and the same count increment.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Option.map_eq_some_iff"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-692c32b40d884c32",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "andi-restart-worker",
+    "blind_decoder": "restart_blind_71d35",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-lemma-4-1",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S4.SS1; Section4.1 opening radius-certified optimization convention; Lemma4.1 statement and proof (4.1)",
+    "original_text": "Assume an algorithm optimizes every convex beta-smooth Euclidean objective from a point within radius R of a minimizer to objective error epsilon in phi(beta R²/epsilon) first-order queries. For an alpha-strongly convex beta-smooth objective, Lemma4.1 constructs a restarted method with stated order O(phi(8kappa) log(alpha R²/epsilon)), kappa=beta/alpha. Its proof calls the base method at radii R/2^k and tolerances alpha(R/2^k)²/8; quadratic growth halves the radius after each call. After reaching radius at most sqrt(epsilon/alpha), one final call at tolerance epsilon gives the desired objective accuracy. The proof records per-stage phi(8kappa) and final phi(kappa) costs. The finite construction, final call and full asymptotic/oracle conclusion are distinct obligations.",
+    "text_sha256": "08da4ef939fe28956040e603ba65b39f21d1e812569ce4c0dffc3dc05155c3b0"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/RestartReduction.lean",
+    "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [CompleteSpace E] {f : E → ℝ} {α β R ε : ℝ},\n  ContDiff ℝ 1 f →\n    StrongConvexOn Set.univ α f →\n      0 < α →\n        0 < β →\n          0 < R →\n            0 < ε →\n              ∀ {z x₀ : E},\n                IsMinOn f Set.univ z →\n                  ‖x₀ - z‖ ≤ R →\n                    ∀ (A : E → ℝ → ℝ → E × ℕ) (φ : ℝ → ℕ),\n                      (∀ (y : E) (r δ : ℝ),\n                          0 < r → 0 < δ → ‖y - z‖ ≤ r → f (A y r δ).1 - f z ≤ δ ∧ (A y r δ).2 ≤ φ (β * r ^ 2 / δ)) →\n                        ∀ (N : ℕ),\n                          α * (R / 2 ^ N) ^ 2 ≤ ε →\n                            have r := fun k => R / 2 ^ k;\n                            have run := fun t =>\n                              Nat.rec (x₀, 0)\n                                (fun k p =>\n                                  have w := A p.1 (r k) (α * r k ^ 2 / 8);\n                                  (w.1, p.2 + w.2))\n                                t;\n                            have last := A (run N).1 (√(ε / α)) ε;\n                            ‖(run N).1 - z‖ ≤ r N ∧\n                              (run N).2 ≤ N * φ (8 * (β / α)) ∧\n                                f last.1 - f z ≤ ε ∧ (run N).2 + last.2 ≤ N * φ (8 * (β / α)) + φ (β / α)",
+    "statement_sha256": "5f3f85c52110050c23158ab4de3d1bd9e59d0f99cef886550e8be68fc8aeac5b",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any complete real inner-product space (with its normed additive commutative group structure), and let f:E→ℝ be continuously Fréchet differentiable on E. Let α, β, R, ε be arbitrary strictly positive real numbers. Assume f is α-strongly convex on all E, in the convention f((1−t)x+ty) ≤ (1−t)f(x)+tf(y)−(α/2)t(1−t)‖x−y‖² for every x,y∈E and t∈[0,1]. Let z∈E be a global minimizer of f and x₀∈E satisfy ‖x₀−z‖≤R.\nLet A:E×ℝ×ℝ→E×ℕ and φ:ℝ→ℕ be arbitrary maps satisfying the following uniform contract: for every y∈E and every strictly positive r,δ∈ℝ with ‖y−z‖≤r, if A(y,r,δ)=(a,c), then f(a)−f(z)≤δ and c≤φ(βr²/δ). Counts are natural numbers, including zero. No monotonicity or regularity of A or φ is assumed; in particular β is not asserted to be a gradient Lipschitz constant.\nFor every N∈ℕ satisfying α(R/2^N)²≤ε, define r_k=R/2^k and a sequence (x_k,C_k)∈E×ℕ by (x_0,C_0)=(x₀,0) and, for each k≥0, (a_k,c_k)=A(x_k,r_k,αr_k²/8), x_{k+1}=a_k, C_{k+1}=C_k+c_k. Finally define (x_fin,c_fin)=A(x_N,√(ε/α),ε), where the square root is the nonnegative real square root.\nThen all four conclusions hold simultaneously: ‖x_N−z‖≤R/2^N; C_N≤N·φ(8(β/α)); f(x_fin)−f(z)≤ε; and C_N+c_fin≤N·φ(8(β/α))+φ(β/α). These count products and sums are in ℕ. The theorem allows N=0: its condition is αR²≤ε, the recursive state remains (x₀,0), and the final call alone achieves objective gap at most ε and count at most φ(β/α). None of α,β,R,ε may be zero. The positivity assumptions make all recursive radii, recursive tolerances and the final square-root radius strictly positive. The conclusion is asserted for any N satisfying the displayed inequality; no formula selecting a minimal N, logarithmic iteration bound, or existence of A is asserted.",
+    "text_sha256": "95de30c7e4b2f54260c3236609c8bd913b6457d3cccbd1434acf9819f3af4bd0",
+    "decoder": "restart_blind_71d35",
+    "decoder_packet_sha256": "c2e9a2843a4ade6cdfdf578ec15cb376c50ddab890472c8636b6cd83b40f4e35",
+    "decoder_run_sha256": "aaf5f2ccd6972fe35dbb0dfb27b29e6be5a8ca75c5c88aff058ac19c4a3fccac",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "40fc64645a7c676b86c3007aa5106ff43a3ec23817c4f23267390bc0ca75f02e",
+  "candidate_publication_context": {
+    "file": "607c55177e00a7ea94fd3b2ec7d11ea2e8d574f22acc140dce34cd7fe90cacfe",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder\nimport Mathlib.Analysis.Calculus.LocalExtr.Basic\nimport Mathlib.Analysis.SpecialFunctions.Sqrt\n\n/-!\n# Finite restart reduction\n\nChewi arXiv2605.07006v1 Section4.1 Lemma4.1: the prescribed radius schedule,\nits radius-halving induction, and final polishing call. The base solver accepts\nan upper radius certificate and returns an output plus a certified natural cost.\nThis is finite composition of that source-assumed solver contract, not a formal\nfirst-order oracle machine or a logarithmic asymptotic theorem. C1 Hilbert\nregularity is sufficient for the sharp quadratic-growth argument.\n-/\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction\nopen Set\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- Actual scheduled restart states halve their certified radius; one final\npolishing call reaches the requested accuracy with the exact finite budget. -/\ntheorem radius_accuracy_and_cost {f : E → ℝ} {α β R ε : ℝ}\n    (hf : ContDiff ℝ 1 f) (hsc : StrongConvexOn univ α f)\n    (hα : 0 < α) (hβ : 0 < β) (hR : 0 < R) (hε : 0 < ε)\n    {z x₀ : E} (hmin : IsMinOn f univ z) (hx₀ : ‖x₀-z‖ ≤ R)\n    (A : E → ℝ → ℝ → E × ℕ) (φ : ℝ → ℕ)\n    (hA : ∀ y r δ, 0 < r → 0 < δ → ‖y-z‖ ≤ r →\n      f (A y r δ).1 - f z ≤ δ ∧ (A y r δ).2 ≤ φ (β*r^2/δ))\n    (N : ℕ) (hN : α * (R / (2:ℝ)^N)^2 ≤ ε) :\n    let r := fun k : ℕ => R / (2:ℝ)^k\n    let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =>\n      let w := A p.1 (r k) (α*(r k)^2/8)\n      (w.1, p.2 + w.2))\n    let last := A (run N).1 (Real.sqrt (ε/α)) ε\n    ‖(run N).1-z‖ ≤ r N ∧ (run N).2 ≤ N * φ (8*(β/α)) ∧\n      f last.1 - f z ≤ ε ∧ (run N).2 + last.2 ≤ N * φ (8*(β/α)) + φ (β/α) := by\n  let r := fun k : ℕ => R / (2:ℝ)^k\n  let run : ℕ → E × ℕ := Nat.rec (x₀, 0) (fun k p =>\n    let w := A p.1 (r k) (α*(r k)^2/8)\n    (w.1, p.2 + w.2))\n  change ‖(run N).1-z‖ ≤ r N ∧ (run N).2 ≤ N * φ (8*(β/α)) ∧ _\n  have hr (k : ℕ) : 0 < r k := div_pos hR (pow_pos (by norm_num) _)\n  have hgrad : gradient f z = 0 := by\n    simp [gradient, (hmin.isLocalMin Filter.univ_mem).fderiv_eq_zero]\n  have hqg (y : E) : α/2 * ‖y-z‖^2 ≤ f y - f z := by\n    have h := StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hsc\n      (fun x _ => (hf.differentiable_one x).hasGradientAt) (mem_univ z) (mem_univ y)\n    rw [hgrad, inner_zero_left] at h\n    linarith\n  have hind (k : ℕ) : ‖(run k).1-z‖ ≤ r k ∧ (run k).2 ≤ k * φ (8*(β/α)) := by\n    induction k with\n    | zero => simpa [run, r] using hx₀\n    | succ k ih =>\n      have hδ : 0 < α*(r k)^2/8 := by positivity\n      have hw := hA (run k).1 (r k) (α*(r k)^2/8) (hr k) hδ ih.1\n      have hid : β*(r k)^2 / (α*(r k)^2/8) = 8*(β/α) := by\n        field_simp [ne_of_gt (hr k)]\n      rw [hid] at hw\n      have hs : r (k+1) = r k / 2 := by dsimp [r]; rw [pow_succ, div_mul_eq_div_div]\n      constructor\n      · change ‖(A (run k).1 (r k) (α*(r k)^2/8)).1-z‖ ≤ r (k+1)\n        rw [hs]\n        have hg := (hqg (A (run k).1 (r k) (α*(r k)^2/8)).1).trans hw.1\n        have hsquare : ‖(A (run k).1 (r k) (α*(r k)^2/8)).1-z‖^2 ≤ (r k/2)^2 := by\n          nlinarith\n        nlinarith [norm_nonneg ((A (run k).1 (r k) (α*(r k)^2/8)).1-z), hr k]\n      · change (run k).2 + (A (run k).1 (r k) (α*(r k)^2/8)).2 ≤ (k+1) * φ (8*(β/α))\n        simpa only [Nat.add_mul, Nat.one_mul] using Nat.add_le_add ih.2 hw.2\n  have hs : r N ≤ Real.sqrt (ε/α) := by\n    apply Real.le_sqrt_of_sq_le\n    exact (le_div_iff₀ hα).mpr (by nlinarith [hN])\n  have hlast := hA (run N).1 (Real.sqrt (ε/α)) ε\n    (Real.sqrt_pos.mpr (div_pos hε hα)) hε ((hind N).1.trans hs)\n  have hid : β * (Real.sqrt (ε/α))^2 / ε = β/α := by\n    rw [Real.sq_sqrt (div_nonneg hε.le hα.le)]\n    field_simp\n  rw [hid] at hlast\n  exact ⟨(hind N).1, (hind N).2, hlast.1, Nat.add_le_add (hind N).2 hlast.2⟩\nend AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Section4.1 opening radius-certified optimization convention; Lemma4.1 statement and proof (4.1)",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+    },
+    "statement": "Assume an algorithm optimizes every convex beta-smooth Euclidean objective from a point within radius R of a minimizer to objective error epsilon in phi(beta R²/epsilon) first-order queries. For an alpha-strongly convex beta-smooth objective, Lemma4.1 constructs a restarted method with stated order O(phi(8kappa) log(alpha R²/epsilon)), kappa=beta/alpha. Its proof calls the base method at radii R/2^k and tolerances alpha(R/2^k)²/8; quadratic growth halves the radius after each call. After reaching radius at most sqrt(epsilon/alpha), one final call at tolerance epsilon gives the desired objective accuracy. The proof records per-stage phi(8kappa) and final phi(kappa) costs. The finite construction, final call and full asymptotic/oracle conclusion are distinct obligations.",
+    "formulae": [
+      {
+        "label": "Restart schedule and quadratic-growth consequence",
+        "tex": "r_k=R/2^k,\\quad\\delta_k=\\alpha r_k^2/8,\\quad\\frac\\alpha2\\|x_{k+1}-x_\\star\\|^2\\le\\delta_k\\Rightarrow\\|x_{k+1}-x_\\star\\|\\le r_{k+1}."
+      },
+      {
+        "label": "Exact finite budget before asymptotic normalization",
+        "tex": "C_{\\rm total}\\le N\\phi(8\\kappa)+\\phi(\\kappa),\\qquad\\alpha r_N^2\\le\\varepsilon."
+      },
+      {
+        "label": "Source asymptotic conclusion; separate obligation",
+        "tex": "O\\!\\left(\\phi(8\\kappa)\\log\\frac{\\alpha R^2}{\\varepsilon}\\right)."
+      }
+    ],
+    "assumptions": [
+      "A base first-order optimization algorithm works uniformly on the convex beta-smooth class under a supplied upper initial-distance bound.",
+      "The target objective is alpha-strongly convex and beta-smooth with an attained minimum. Positive moduli, radii and accuracy are the ordinary finite-call regime; the source logarithmic expression requires an appropriate accuracy regime."
+    ],
+    "obligations": [
+      {
+        "id": "restart-radius",
+        "label": "Construct actual recursive solver calls and derive the radius invariant"
+      },
+      {
+        "id": "finite-accuracy-cost",
+        "label": "Final polishing accuracy and exact cumulative certified finite cost"
+      },
+      {
+        "id": "asymptotic-oracle-reduction",
+        "label": "Logarithmic round selection, accuracy/cost conventions and full first-order-oracle class reduction (not closed)"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+      "kind": "theorem",
+      "title": "Restarting a convex solver halves the radius and preserves a finite budget",
+      "statement": "E is a complete real inner-product space and f:E→R is C1 and alpha-strongly convex on E, with the alpha/2 chord convention. A global minimizer z is supplied. Alpha,beta,R,epsilon are strictly positive real numbers. The initial point satisfies ||x0-z||<=R. R is a supplied positive upper radius, not an exact unknown distance. A(y,r,delta) returns a point and a natural certified cost. For every y and positive r,delta with ||y-z||<=r, its output gap is <=delta and its cost is <=phi(beta*r²/delta). Phi:R→N is arbitrary; monotonicity is not assumed. N is a natural number, including zero, and alpha*(R/2^N)²<=epsilon. Set r_k=R/2^k and define the actual state/cost recursion and final call below. The recursion has the stated radius and cumulative cost, and its final output has gap at most epsilon.",
+      "formula": "\\begin{gathered}r_k=R/2^k,\\quad (x_0,c_0)=(x_0,0),\\\\(w_k,q_k)=A(x_k,r_k,\\alpha r_k^2/8),\\quad(x_{k+1},c_{k+1})=(w_k,c_k+q_k),\\\\(x_{\\rm out},q_{\\rm out})=A(x_N,\\sqrt{\\varepsilon/\\alpha},\\varepsilon),\\\\\\|x_N-z\\|\\le r_N,\\quad c_N\\le N\\phi(8\\beta/\\alpha),\\\\ f(x_{\\rm out})-f(z)\\le\\varepsilon,\\quad c_N+q_{\\rm out}\\le N\\phi(8\\beta/\\alpha)+\\phi(\\beta/\\alpha).\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space and f:E→R is C1 and alpha-strongly convex on E, with the alpha/2 chord convention. A global minimizer z is supplied.",
+        "Alpha,beta,R,epsilon are strictly positive real numbers. The initial point satisfies ||x0-z||<=R. R is a supplied positive upper radius, not an exact unknown distance.",
+        "A(y,r,delta) returns a point and a natural certified cost. For every y and positive r,delta with ||y-z||<=r, its output gap is <=delta and its cost is <=phi(beta*r²/delta). Phi:R→N is arbitrary; monotonicity is not assumed.",
+        "N is a natural number, including zero, and alpha*(R/2^N)²<=epsilon. Set r_k=R/2^k and define the actual state/cost recursion and final call below."
+      ],
+      "steps": [
+        {
+          "title": "Derive the sharp quadratic growth bound",
+          "text": "Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant.",
+          "formula": "\\nabla f(z)=0,\\qquad \\frac{\\alpha}{2}\\|y-z\\|^2\\le f(y)-f(z).",
+          "lean": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; IsLocalMin.fderiv_eq_zero and actual HasGradientAt from C1."
+        },
+        {
+          "title": "Induct on the actual restarted calls",
+          "text": "Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k>0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis.",
+          "formula": "\\frac\\alpha2\\|x_{k+1}-z\\|^2\\le\\frac{\\alpha r_k^2}{8}\\quad\\Longrightarrow\\quad\\|x_{k+1}-z\\|\\le\\frac{r_k}{2}=r_{k+1}.",
+          "lean": "Nat.rec and natural induction; solver contract, positive-radius cancellation, pow_succ and div_mul_eq_div_div."
+        },
+        {
+          "title": "Accumulate the certified stage costs",
+          "text": "At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N<=N phi(8beta/alpha).",
+          "formula": "\\frac{\\beta r_k^2}{\\alpha r_k^2/8}=8\\frac\\beta\\alpha,\\qquad c_{k+1}=c_k+q_k,\\qquad c_N\\le N\\phi(8\\beta/\\alpha).",
+          "lean": "field_simp uses r_k nonzero; Nat.add_le_add and Nat.add_mul propagate the actual accumulated count."
+        },
+        {
+          "title": "Make the final polishing call on a justified radius",
+          "text": "The chosen horizon gives r_N<=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.",
+          "formula": "\\rho=\\sqrt{\\varepsilon/\\alpha},\\qquad\\frac{\\beta\\rho^2}{\\varepsilon}=\\frac\\beta\\alpha,\\qquad f(x_{\\rm out})-f(z)\\le\\varepsilon,\\qquad c_N+q_{\\rm out}\\le N\\phi(8\\beta/\\alpha)+\\phi(\\beta/\\alpha).",
+          "lean": "Real.le_sqrt_of_sq_le, Real.sqrt_pos, Real.sq_sqrt; final hA call and Nat.add_le_add."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "IsLocalMin.fderiv_eq_zero",
+        "Nat.rec",
+        "pow_succ",
+        "Real.le_sqrt_of_sq_le",
+        "Real.sqrt_pos",
+        "Real.sq_sqrt",
+        "Nat.add_le_add"
+      ],
+      "lean_statement": "Actual scheduled state/cost recursion and final solver call.",
+      "lean_proof": "Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant. Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k>0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis. At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N<=N phi(8beta/alpha). The chosen horizon gives r_N<=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.1 and preceding solver convention",
+          "scope": "Finite restart radius schedule, per-call budget and final accuracy; full logarithmic reduction remains separate."
+        },
+        {
+          "path": "Tests/Shared/RestartReduction.lean",
+          "label": "Actual gradient-descent base solver test",
+          "scope": "A nonstationary quadratic optimizer validates the base contract using the existing convex GD rate, then consumes this restart theorem."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+      "role": "proof-edge",
+      "supports": [
+        "restart-radius",
+        "finite-accuracy-cost"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Convex beta-smooth class algorithm applied to an alpha-strongly convex Euclidean objective.",
+        "lean": "C1 strongly convex Hilbert objective plus a uniform radius-certified output/cost contract for A."
+      },
+      {
+        "source": "Initial radius, strong-convexity parameter and tolerances in repeated calls.",
+        "lean": "Alpha,beta,R,epsilon strictly positive, with actual initial distance at most R."
+      },
+      {
+        "source": "Radius R_k bounds the current distance; final radius at most sqrt(epsilon/alpha).",
+        "lean": "A receives the prescribed upper radius; final call uses exactly sqrt(epsilon/alpha)."
+      },
+      {
+        "source": "Full asymptotic query complexity in the lemma conclusion.",
+        "lean": "Given N satisfying the algebraic radius condition, actual output accuracy and N phi(8kappa)+phi(kappa) certified cost."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "8400cab4506a43edd22d1a53df9c88f229eaa31c5a8cd1e883e1b8603fc6c8cb"
+}

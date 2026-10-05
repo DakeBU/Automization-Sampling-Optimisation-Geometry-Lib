@@ -1,5 +1,280 @@
 # Companion-paper formalization handoff
 
+## Picard HMC Part I route and researcher ledger — 2026-10-03
+
+The active companion route now includes Chen–Chewi–Lu–Zhang,
+*High-accuracy simulation of Picard HMC, part I: Gaussian cloud correction*,
+arXiv:2609.38710v1. This extends the current Goal; it does not replace or mark
+complete the PBPS/SPHMC routes. The source case is
+`ASTIS-SW-GAUSSIAN-CLOUD-2026` and remains red.
+
+The generated reader has a paper-level main-theorem route plus separate cards
+for Section 6 Lemma 6.1 and Lemma 6.3. Its maintained call/error ledger keeps
+the breadth-first request queue, local query caps, deterministic global cap,
+ideal-history replacement errors and final cap failure in distinct columns.
+Every proof step has an adjacent closed Lean-status disclosure. The two
+maintained SVGs were inspected at narrow/mobile width; formulas, labels, arrows
+and red/open status are readable.
+
+The first claimed packet is
+`ASTIS-SW-GC-adaptive-kernel-tv-telescope`: formalize Lemma 6.3's finite
+dummy-history adjacent-hybrid telescope, reusing the compiled factor-one common
+kernel TV contraction. Adaptive-tree MGF/tails, concrete cloud/FORS/RGO kernel
+measurability, conditional replacement bounds, Theorem 6.4 and the main query
+complexity remain independent red boundaries.
+
+Separately, the explicit exponential-tilt KL integral packet was committed at
+`fdb8e6853f730528e43f3895a5eb528220fb0f8d` and passed independent exact-commit
+verification under Lean 4.33. It proves KL finiteness and the exact integral
+identity only; restricted-fiber integrability, score/Fisher transport, LSI, T2
+and W2 contraction remain open.
+
+## Published checkpoint and next actual-cost edge — 2026-09-29
+
+The previous integration was fast-forwarded and pushed to main at
+`bc851d2155f40671fb36f59e6497eb2029b66a38`. Remote formalization gate
+36527879703 and site deployment 36527879640 both succeeded. The live homepage
+was checked: HTTP200, current commit present, no provisional author footer.
+All 210 website workflow unit tests passed after shortening the News list to
+the existing eight-entry limit. The old integration-pending notes below are
+historical, not current blockers.
+
+Next SAU `ASTIS-20260929-ProximalExpectedWork` is owned solely by root on
+`codex/sphmc-proximal-expected-work-20260929`. It derives integrability and the
+Jensen/L2 expectation bound for the actual stopped proximal program from an
+explicit square-integrable input gradient. Focused compilation passes3488;
+independent mathematical review found no blocker. Five reader proof steps are
+authored. Publication binding passes and the independent source-blind decoder
+and source reviewer accept the theorem as `equivalent-after-elaboration`.
+Commit-bound verification at `488d0bf5` passes focused build plus fresh direct
+elaboration, and the ledger is now STABILIZING. Root integration passes Tests9254,
+the canonical ASTIS/ATLAS gate, site and
+graph checks, 210 reader tests and actual desktop/mobile/local-graph inspection.
+The packet was then fast-forwarded to `main` at `fa25c599`; remote CI and
+deployment remain separately observable. Neither the Picard input moment bound
+D.7 nor the total cost D.8 is claimed. See
+`proof-blueprints/SPHMC-proximal-expected-work.md` for the exact continuation.
+
+## Integration in progress — 2026-09-29
+
+Safely incorporated main `208e36b0`, preserving collaborator title/attribution
+updates. Independent verifier `proximal_commit_verifier_0929` admitted the D.2/D.3
+packet at `534c926a` after fresh focused compilation and current reviewed-binding
+checks. Receipt: `runs/20260929-companion-priority/proximal-execution.verified.json`.
+The SAU is now STABILIZING, owned by root. Candidate `80f7e63` adds the actual
+production module to ExampleCases and its focused test to root Tests. Aggregate
+acceptance passed: root Tests (9252 jobs), ASTIS check, publication and contributor
+gates, semantic bindings, site build/check (12 chapters, 720 modules, 4034
+declarations), and both affected graph checks. Desktop/mobile formula proofs and
+the local graph were actually inspected; seven proof steps have adjacent folded
+Lean, with eight rendered formulas and no math rendering errors. Source overlays
+remain dashed and do not assert theorem implication. Merge/deployment remain
+pending; this is not whole-paper completion.
+
+At the owner's current request, unconfirmed project author lists are removed
+from public reader, README and citation surfaces. Source-paper authors remain
+credited. The definition/def reader compatibility fix has regression tests and
+does not change the Lean theorem, lesson or source-review context.
+
+Registry stays at 438: this is a paper theorem and interpreter, not an additional
+canonical technical-lemma entry. The next candidate is the expectation step for
+the actual query count under an explicitly square-integrable input gradient.
+The D.4 moment bound for actual Picard centers and total run cost remain open.
+
+## Shared progress checkpoint — 2026-09-19
+
+The two-paper Goal is active. Neither complete paper or final sampling-complexity
+theorem is formalized yet. Main contains 438 Registry leaves across the project,
+not 438 completed paper theorems. PR310's local-L2 prerequisite is merged.
+
+Latest SPHMC work is publicly pushed on `codex/sphmc-proximal-execution-20260918`
+at `2a043a5d`: actual Algorithm D.2 execution and Lemma D.3's pointwise accuracy
+and logarithmic gradient-query count, including measurable first stopping/output
+and the final successful query. Focused compilation and independent source-blind
+and source reviews passed. Its SAU is PROVED_LOCAL; commit-bound verification,
+root/site integration and aggregate acceptance remain pending. This is not D.4's
+expected run-wide cost or the full SPHMC theorem. See that branch's proof blueprint,
+Frontier Cells and round-trip artifacts for exact evidence.
+
+Remaining work includes PBPS process/operator/hypocoercivity and implementation
+guarantees, SPHMC smoothing/concentration/Picard and sampling-error guarantees,
+and actual-input expected costs and composition. No reliable completion date is
+established. Do not substitute a calendar promise for dependency-level evidence.
+The previously restored project author list is now withheld pending confirmation;
+primary-source author attribution remains preserved separately.
+
+## Protocol refresh and continuation — 2026-09-18
+
+The September 13 batch was successfully pushed to main at `9729cf5`; its failed-push
+notes below are historical. This continuation safely fast-forwarded 47 commits
+to `238ab415` and read the current AGENTS, CONTRIBUTING, collaborator bootstrap,
+contributor contract, publication protocol and optimisation prompt. The new
+incremental contributor gate, reuse_plan, reader_contract and graph_contribution
+are binding; metadata-only changes are within scope too. Registry baseline: 437.
+The unrelated pre-existing Measure.lean line-ending modification is preserved.
+
+Issue #309 and branch `codex/pbps-local-l2-20260918` own the next single shared cell,
+ASTIS-SHARED-gibbs-local-l2. At proof commit c856bb09c3940555fd7a48f467c01fde0ccff337,
+WeightedLocalL2.lp_locallyMemLp_volume proves local volume-integrability of squared
+norms and compact-restricted L2 for every Gibbs L2 representative, with only
+continuous W and integrable exp(-W); the target is any normed additive group.
+Focused Tests.WeightedLocalL2 passed3036 jobs/standard3 axioms. The test constructs
+an actual same-operator resolvent and applies the leaf to u, its gradient and f,
+retaining the weak PDE. Static independent proof/lesson review passed; fresh
+source-blind reconstruction and anti-anchored source review are recorded under
+runs/20260918-companion-priority. Read the current cell/audit for admission state,
+not this checkpoint as a claim of acceptance. Five authored formula steps and
+adjacent collapsed Lean are in the new gibbs-local-l2 lesson/publication.
+
+The integration candidate `59807460bcccecf284d019bd86a8139be80449b9` passed
+the canonical Lean/ASTIS gate (Tests: 9,250 jobs), 276 harness tests, publication,
+contributor, semantic and Frontier Cell checks. Registry: **438** compiled leaves.
+The site build/check passed with 12 chapters, 718 modules, 4,028 declarations and
+77 reviewed teaching declarations. Root and the independent verifier inspected
+desktop/mobile formula proofs and the local graph. Five proof steps have adjacent
+folded Lean, six formulas render without errors, and graph ownership edges remain
+distinct from source/audit overlays. Independent stabilization acceptance is in
+`runs/20260918-companion-priority/gibbs-local-l2.integration-review.json`.
+Any later receipt-only commit is not the revision on which these builds ran.
+PR #310 subsequently passed remote Lean, reader and contributor CI and merged
+as `bbd66fd17fe1670255abd2b9ed7b61bee227952f` on September 18. This is a merge
+receipt, not a deployment-success or whole-paper-completion claim.
+
+The app Goal was observed paused; no new Goal or detached harness was started.
+Work here follows the existing two-paper objective. Neither paper is complete;
+H2 regularity, operator core, Poincare and all other open paper boundaries remain.
+
+## Resumed checkpoint — 2026-09-13
+
+The current project is **Automization-Sampling-Optimisation-Geometry-Lib**;
+Samplinglib is the reader-facing library. The September 10 pause and counts below
+are historical, not the current frontier. Main was safely updated to collaborator
+commit `08b7eb3913ea7423f2cec34cfa1f68ac28ffd30c`. Preserve the pre-existing
+line-ending-only modification to `TechnicalLemmas/Measure.lean`.
+
+The current owner resumed the two-paper priority in this thread. One active Goal
+remains; neither complete paper is proved. No detached ASTIS session is running.
+Read current Frontier Cells and the bounded harness capsule rather than treating
+the old thirteen-result count or old next-step description as live state.
+
+Collaborator results now include actual parameterized proximal Gaussian estimator
+construction, Gibbs position moments, and further recursive execution/finite-output
+KL results. PBPS already includes its actual macroscopic representative. The old
+claim that this representative still needs construction is superseded.
+
+Resumed SPHMC packet: `ASTIS-SW-SPHMC-proximal-estimator-lipschitz`, with source
+and proof blueprint `proof-blueprints/SPHMC-proximal-estimator-lipschitz.md`.
+Focused compilation, including an actual zero-dimensional/eta=1/2 constructor
+test, passes. Independent proof/source and commit-bound admission passed at
+`4b75ac75c484c82385455d73b24d8e1dc60c9d41`; the source verdict is explicitly
+`lean-strengthened-assumptions`, not unrestricted source equivalence. Local
+integration passed root Tests (9218 jobs), canonical ASTIS check, publication,
+site and graph checks. Root inspected rendered desktop/mobile proof and graph
+PNGs. Exact evidence is in the cell and `runs/20260913-companion-priority/`.
+Two subsequent safe GitHub fetches failed (connection reset, then port443
+connection failure). Do not assume a push or deployment has occurred.
+
+This packet derives actual proximal nonexpansiveness and estimator input bounds
+with constants 1 and sqrt(eta). Its 0<eta<=1/2 domain is inherited from the
+existing constructor, not a mathematical necessity or source correction.
+Bias, Gaussian concentration, smoothing regularity, Picard accuracy and total
+cost remain separate. The source-facing decoder/reviewer protocol remains required.
+
+PBPS weighted compact-test identity is now compiled and independently VERIFIED
+at `019b4d68024c0498e90402d8a6db35e51e87d1bc`: see
+`ASTIS-SW-PBPS-closed-gradient-weak-identity`. It retains the **same closed-gradient
+graph**, proves both integrabilities and extends the actual compact-test identity
+by continuous L2 pairings. Focused tests pass (3032 jobs), including the real
+gradient constructor on every member of its closure domain. Independent blind
+and source review accepts it as an elaborated analytic prerequisite only.
+The seven-step lesson includes formulas and separate collapsed Lean disclosures.
+Exact local integration at `2c20567436ebbfe1351d4f01b4c94236f1c53366` passed
+build9031, Tests9220, canonical ASTIS/ATLAS gates, site/graph checks and actual
+desktop/mobile/graph visual review. The final independent integration record is
+`runs/20260913-companion-priority/closed-gradient-weak.integration-admission.json`.
+The local stabilization lane is released, not MERGED. Later evidence-only commits
+do not claim a new gate execution; these acceptance results and the generated
+site snapshot are pinned to the named mathematical integration commit. Before
+remote delivery, fetch safely, check divergence and regenerate/gate the actual
+delivery revision. Prior normal fetch and push attempts failed with GitHub
+connection errors, not evidence of an authentication problem. Technical Registry
+remains 425 compiled leaves; route publication inventory is a separate measure.
+
+The next PBPS bridge is now independently VERIFIED at
+`767058015387071c7d7907dbc5f3eeb293c11945`: see
+`ASTIS-SW-PBPS-gradient-distributional`. It establishes local volume integrability
+for both L2 representatives and the ordinary weak gradient identity against C1
+compact tests, including both product integrabilities. The same D.closure is
+retained. Focused PASS3033, independent full proof/lesson review and source-blind
+round trip passed; source acceptance is for the authored prerequisite only.
+The six-step reader lesson is `pbps-gradient-distributional`. Exact local
+integration at `6d21910fa55d6b8e294abacafa613e0347d72293` passed build9032,
+Tests9222, canonical ASTIS/ATLAS, site/graph and actual desktop/mobile/graph
+visual checks. Independent acceptance and lane release are recorded in
+`runs/20260913-companion-priority/gradient-distributional.integration-admission.json`.
+The generated snapshot contains 12 chapters, 691 modules and 4012 indexed
+declarations; technical Registry remains 425, a distinct curated metric.
+Subsequent evidence-only commits do not assert a fresh gate or remote merge.
+
+The latest bounded, noninteractive HTTP/1.1 fetch also failed with a GitHub
+low-speed timeout. No remote update, push or deployment is claimed; preserve
+all local commits and fetch/check divergence before delivery.
+
+The weighted resolvent PDE bridge is now independently VERIFIED at
+`86e334d2abd4f046ce9f7f069f5b133459a97308`: see
+`ASTIS-SW-PBPS-resolvent-distributional`. Production constructs one actual
+resolvent witness in the same gradient domain, proves the genuine compact smooth
+test embedding and all three weighted-volume integrabilities, and retains its
+all-domain equation and ordinary weak gradient. Focused PASS3035, full proof/
+lesson review and independent blind/source acceptance passed. No separately
+chosen conditional solution is definitionally identified; that would use
+uniqueness. Root aggregate/publication acceptance is separate from this proof
+commit and must be read from subsequent exact integration evidence.
+
+Network recovered on the next bounded fetch. Collaborator main
+`83a40eb8b8f50917845e3dce940973bccba08e82` adds three reviewed optimisation
+gradient-flow results and updates technical Registry to428. It was merged at
+`cf9e2de9986c0a54e0bb51b966b952d10cbfd436`, preserving both histories. The only
+conflict was the append-only SAU ledger: both sides' exact record union and its
+650-row count were checked before removing markers. Merged semantic registry
+passes108 audits/7repairs and cells116. Earlier connection failures below/above
+are historical; this fetch/merge does not itself assert a successful push or
+deployment. The pre-existing Measure.lean modification remains untouched.
+
+Final delivery candidate: `b4750e1d3922e43382b429240b87aea8a11adc2c` also preserves
+the next four collaborator commits through `bce39f7` (normalized gradient-descent
+rates). The lossless ledger union now has657 distinct rows. At this exact
+candidate, the canonical gate passed build9037, Tests9232, ASTIS and ATLAS;
+source digest `6121aa7d252c98f5fa18d9386d214164024d85e689d169de5b0c66783b7e3c6d`.
+Publication check against bce39f7 passes91 source items; semantic checks pass110
+audits/8repairs and Frontier Cells118. Site build/check passes12 chapters,
+430 Registry leaves,701 modules,4018 indexed declarations and77 reviewed teaching
+declarations. These are distinct inventory metrics, not completed-paper counts.
+The unchanged resolvent lesson has six formula-proof steps with per-step collapsed
+Lean; root and independent reviewer inspected desktop/mobile/graph PNGs at the
+preceding f6479e4 candidate. That precise acceptance is persisted separately.
+
+Remote delivery is still pending: the first ordinary push after this final merge
+failed a15-second low-speed timeout; one bounded retry failed with connection
+reset. No authentication failure, successful push or deployment is inferred.
+Keep these local commits and use a safe fetch/divergence check before retrying.
+Do not rerun unchanged global builds merely to update an evidence-only receipt.
+The canonical gate above belongs to the named candidate, not later receipt commits.
+
+Next PBPS dependency-ready candidate: establish local square integrability for
+every Gibbs L2 representative, applying it to the same u,G,f before invoking any
+L2 interior regularity. The bounded reviewed API route is in
+`proof-blueprints/PBPS-resolvent-distributional.md`: squared-norm integrability,
+positive inverse-weight local multiplication, compact restrictions, and explicit
+representative measurability transfer. Keep the PDE in divergence form. Do not
+use exp(W)*psi as a C-infinity core test when W is only C1/C2; that requires a
+separate test-domain extension. A gradient
+graph core is not an operator core for D*D; elliptic regularity, operator-core
+approximation, mean-zero resolvent limits, Poincare and macroscopic coercivity
+must remain separate. Do not increase the source C2 hypothesis silently.
+
+## Historical checkpoint — 2026-09-10
+
 Updated: 2026-09-10. Project: **Auto-Sampling-Theory-In-Sleep (ASTIS)**.
 
 The owner requested an immediate push and a pause because their usage allowance
@@ -173,8 +448,9 @@ actual status before claiming result 13 is visible online.
 
 Pinned toolchain: `leanprover/lean4:v4.33.0`.
 Mathlib commit: `db584cd6d46c92f209a44c0f1c829460d327499d`.
-On the owner's machine an inherited Lean 4.29.1 setting is wrong; explicitly
-use the repository toolchain and a conservative two-thread build.
+The ASTIS harness and local research server make this repository pin
+authoritative over any inherited `ELAN_TOOLCHAIN`; use a conservative
+two-thread build.
 
 Run in the repository (Linux-compatible command forms):
 

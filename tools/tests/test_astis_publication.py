@@ -30,12 +30,29 @@ class PublicationTest(unittest.TestCase):
         # The migration fixture remains partial as other source items are added.
         with patch.object(p, 'load', return_value=[self.item]):
             state = p.chapter_progress('optimisation', '01')
+            empty_chapter = p.chapter_progress('optimisation', '02')
         self.assertEqual(state['status'], 'partial')
         self.assertEqual(set(state['proof_declarations']),
                          {b['declaration'] for b in self.item['bindings']})
         self.assertEqual(len(self.legacy_bindings), 2)
         self.assertFalse(state['source_complete'])
-        self.assertEqual(p.chapter_progress('optimisation', '02')['status'], 'scaffold')
+        self.assertEqual(empty_chapter['status'], 'scaffold')
+        self.assertFalse(empty_chapter['proof_declarations'])
+        self.assertFalse(empty_chapter['source_complete'])
+
+    def test_reviewed_pullback_is_partial_not_chapter_completion(self):
+        item = next(i for i in self.items
+                    if i['id'] == 'chewi-opt-v1-exercise-2-3-pl-pullback')
+        # Freeze this source slice so future chapter contributions do not
+        # invalidate the regression or turn a scoped component into completion.
+        with patch.object(p, 'load', return_value=[item]), \
+                patch.object(p, 'inputs', return_value=self.data):
+            state = p.chapter_progress('optimisation', '02')
+        self.assertEqual(state['status'], 'partial')
+        self.assertEqual(state['proof_declarations'], [
+            'AutoSamplingTheory.TechnicalLemmas.Analysis.'
+            'StrongConvexPLPullback.exists_minimizer_and_pl'])
+        self.assertFalse(state['source_complete'])
 
     def test_companion_pages_exist_before_publication_projection(self):
         tree = ast.parse((p.ROOT / 'website/scripts/build_site.py').read_text(encoding='utf-8'))
@@ -67,6 +84,9 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual({b['declaration'] for b in self.legacy_bindings}, p.LEGACY_NAMES)
 
     def test_changed_legacy_requires_real_review(self):
+        # Historical debt alone must fail even after a real current-version
+        # audit has been attached to this unchanged migration fixture.
+        self.binding.pop('audit_id', None)
         errors = p.validate(self.items, self.data, strict_names={self.name})
         self.assertTrue(any('historical audit debt' in e for e in errors))
 
@@ -217,7 +237,7 @@ class PublicationTest(unittest.TestCase):
         text = publication_reader.source_card(self.item, self.item['chapter_path'])
         self.assertEqual(text.count('data-authored-declaration='), len(self.item['bindings']))
         self.assertNotIn('<h1>', text)
-        self.assertIn('pending historical audit', text)
+        self.assertIn('Historical audit record: legacy_audit_debt', text)
         # This source item now has a verified component for every obligation;
         # that does not certify the entire chapter or erase historical debt.
         self.assertNotIn('TODO — not closed', text)
@@ -233,6 +253,40 @@ class PublicationTest(unittest.TestCase):
         text = publication_reader.source_card(item, item['chapter_path'])
         self.assertIn('TODO — not closed by these contributions', text)
         self.assertIn('A deliberately unbound proof obligation', text)
+
+    def test_reader_labels_verified_prerequisites_without_claiming_a_proof_edge(self):
+        import publication_reader
+        item = copy.deepcopy(self.item)
+        for binding in item['bindings']:
+            binding['role'] = 'prerequisite'
+        text = publication_reader.source_card(item, item['chapter_path'])
+        self.assertIn('Independently verified prerequisite', text)
+        self.assertNotIn('Formalized proof edge;', text)
+        self.assertNotIn('TODO — not closed by these contributions', text)
+
+    def test_each_proof_keeps_its_own_assumptions_and_provenance_adjacent(self):
+        import publication_reader
+        text = publication_reader.source_card(self.item, self.item['chapter_path'])
+        self.assertLess(text.index('Complete source statement'),
+                        text.index('data-authored-declaration='))
+        for binding in self.item['bindings']:
+            name = binding['declaration']
+            start = text.index(f'<article class="proof-reader" data-authored-declaration="{name}">')
+            # Semantic repairs contain nested articles; stop at the next lesson,
+            # not at the first closing article inside this one.
+            end = text.find('<article class="proof-reader"', start + 1)
+            if end < 0:
+                end = len(text)
+            block = text[start:end]
+            self.assertEqual(block.count('data-source-comparison='), 1)
+            self.assertIn(f'data-source-comparison="{name}"', block)
+            markers = ['Mathematical proof', 'Lean statement ·', 'Lean proof ·',
+                       'Source assumptions versus formal assumptions',
+                       'proof-reader-provenance', 'Mathlib API called (external library)']
+            positions = [block.index(marker) for marker in markers]
+            self.assertEqual(positions, sorted(positions))
+            self.assertNotRegex(block, r'<details\b[^>]*\bopen(?:\s|=|>)')
+            self.assertNotIn('<summary>Source and reuse</summary>', block)
 
     def test_new_default_harness_schema_requires_publication(self):
         self.assertEqual(advance.ADVANCE_SCHEMA_VERSION, 4)
@@ -314,6 +368,24 @@ class PublicationTest(unittest.TestCase):
         reader, graph, site = self.graph_fixture()
         next(n for n in graph['nodes'] if n['id'] == 'chapter:fixture')['status'] = 'compiled'
         self.assertTrue(any('progress drift' in e for e in reader.validate_graph(graph, site)))
+
+    def test_chapter_path_progress_aggregates_all_source_sections(self):
+        reader, _, _ = self.graph_fixture()
+        with patch.object(reader.publication, 'load', return_value=[
+            {'library': 'fixture', 'chapter': 'one', 'chapter_path': 'fixture.html'},
+            {'library': 'fixture', 'chapter': 'two', 'chapter_path': 'fixture.html'},
+        ]), patch.object(reader.publication, 'chapter_progress', side_effect=[
+            {'status': 'partial', 'label': 'Partially formalized',
+             'proof_declarations': ['Fixture.proof'], 'prerequisites': [],
+             'source_complete': False},
+            {'status': 'prerequisite-ready', 'label': 'Prerequisites available',
+             'proof_declarations': [], 'prerequisites': ['Fixture.floor'],
+             'source_complete': False},
+        ]):
+            progress = reader.chapter_path_progress('fixture.html')
+        self.assertEqual(progress['status'], 'partial')
+        self.assertEqual(progress['proof_declarations'], ['Fixture.proof'])
+        self.assertEqual(progress['prerequisites'], ['Fixture.floor'])
 
     def test_actual_owner_module_not_namespace(self):
         from underlying_lean_graph_model import GraphBuilder

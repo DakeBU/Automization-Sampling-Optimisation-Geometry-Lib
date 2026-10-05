@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-85169c15c69d6d0d",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root",
+    "blind_decoder": "blind_20260918_d",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-algorithm-d2-lemma-d3",
+    "anchor": "Appendix D.2, Algorithm D.2 and Lemma D.3, equations D.5–D.6",
+    "original_text": "For a C² potential with kappa-inverse and unit Hessian bounds, the iteration x₀=y, xₙ₊₁=y−eta∇V(xₙ) stops at its first residual at most (1−eta)eps. It returns the current iterate, within eps of the unique proximal minimum. Its gradient-query count, including the successful test, is bounded by C_c[1+log(1+‖∇V(y)‖/eps)], uniformly in y, for fixed 0<eta≤c<1. Samplinglib additionally establishes measurable first-hit/output, quantitative unique minimum and the exact finite-fuel execution equation. Assumptions: The source uses Euclidean space; the formal statement uses a finite-dimensional complete real inner-product space with its Borel measurable structure. V is C², kappa≥1 and kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v. 0<eta≤c<1 and eps>0. Exact arithmetic and exact gradient queries are the cost model, not floating-point arithmetic.",
+    "text_sha256": "7b9a194aca54e11e9cf9d49e48c660845d8e62d861a2c6b215c22bd675a9980c"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ApproximateProximalExecution.lean",
+    "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]\n  [FiniteDimensional ℝ E] [inst_4 : MeasurableSpace E] [BorelSpace E] {V : E → ℝ} {κ : NNReal},\n  1 ≤ κ →\n    ContDiff ℝ 2 V →\n      (∀ (x v : E), (↑κ)⁻¹ * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ‖v‖ ^ 2) →\n        ∀ {eta c eps : ℝ},\n          0 < eta →\n            eta ≤ c →\n              c < 1 →\n                0 < eps →\n                  have T := fun y x => y - eta • gradient V x;\n                  have F := fun y x => V x + eta⁻¹ / 2 * ‖x - y‖ ^ 2;\n                  ∃ p N,\n                    Measurable p ∧\n                      Measurable N ∧\n                        (Measurable fun y => (T y)^[N y] y) ∧\n                          ∀ (y : E),\n                            p y + eta • gradient V (p y) = y ∧\n                              (∀ (z : E),\n                                  F y (p y) + ((↑κ)⁻¹ + eta⁻¹) / 2 * ‖z - p y‖ ^ 2 ≤ F y z ∧\n                                    (F y z ≤ F y (p y) ↔ z = p y)) ∧\n                                ‖(T y)^[N y + 1] y - (T y)^[N y] y‖ ≤ (1 - eta) * eps ∧\n                                  (∀ j < N y, ¬‖(T y)^[j + 1] y - (T y)^[j] y‖ ≤ (1 - eta) * eps) ∧\n                                    ‖(T y)^[N y] y - p y‖ ≤ eps ∧\n                                      ↑(N y) + 1 ≤\n                                          (2 + (1 + Real.log (1 - c)⁻¹) / -Real.log c) *\n                                            (1 + Real.log (1 + ‖gradient V y‖ / eps)) ∧\n                                        Q (gradient V) eta eps y (N y + 1) y = some ((T y)^[N y] y, N y + 1)",
+    "statement_sha256": "7fd48886f244543667448ca2697a37cdffb67d0d5bf549a22d98c479529759e3",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a finite-dimensional complete real inner-product space equipped with its Borel measurable structure. Let V:E→ℝ be C², and let κ∈ℝ≥0 satisfy κ≥1 and κ⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v∈E. For every η,c,ε∈ℝ with 0<η≤c<1 and ε>0, define T_y(x)=y−η∇V(x), F_y(x)=V(x)+(η⁻¹/2)‖x−y‖², and x_j(y)=T_y^[j](y). There exist measurable p:E→E and N:E→ℕ such that y↦x_{N(y)}(y) is measurable and, for every y∈E: (1) p(y)+η∇V(p(y))=y; (2) for every z∈E, F_y(p(y))+((κ⁻¹+η⁻¹)/2)‖z−p(y)‖²≤F_y(z), and F_y(z)≤F_y(p(y)) iff z=p(y); (3) ‖x_{N(y)+1}(y)−x_{N(y)}(y)‖≤(1−η)ε, whereas this inequality fails for every natural j<N(y); (4) ‖x_{N(y)}(y)−p(y)‖≤ε; (5) N(y)+1≤[2+(1+log((1−c)⁻¹))/(−log c)] [1+log(1+‖∇V(y)‖/ε)]; and (6) Q(∇V,η,ε,y,N(y)+1,y)=some(x_{N(y)}(y),N(y)+1).",
+    "text_sha256": "05b29b15c862cd4b4a4172b761b697ab94e655f826eaa83bfd4166b7a72968c5",
+    "decoder": "blind_20260918_d",
+    "decoder_packet_sha256": "d886709d6bad308be7c5b6b79971bd8dd0bff76c28b36ad34fb9e6d0f41461ea",
+    "decoder_run_sha256": "95770bf7a9d69217994c8b5d9b81c92743d3e9cd7f5aea7f00ba30049cf96410",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "ccd2f1c3b0124e8b29d5421bd1b8e0edf73b7c14de15d19d015fa0f2c59dd812",
+  "candidate_publication_context": {
+    "file": "01d2b711a9916dddfef0a07325f9ce333170a32d5d6f069117a859cd4d174ed5",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder\nimport Mathlib.Topology.MetricSpace.Contracting\nimport Mathlib.MeasureTheory.MeasurableSpace.Constructions\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Basic\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Order\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable\nimport Mathlib.Analysis.SpecialFunctions.Log.Basic\nimport Mathlib.Tactic\n\n/-!\n# Stopped gradient-only proximal queries\n\nWork in progress for arXiv:2609.06906v1 Algorithm D.2 / Lemma D.3.\nThe residual test returns the current iterate, counting the final gradient\nquery. Exact-real comparisons are the oracle model, not floating-point code.\nNo expected run-wide cost or sampling accuracy is asserted.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution\n\nopen Filter Topology MeasureTheory InnerProductSpace\nopen scoped NNReal RealInnerProductSpace\n\nprivate theorem geometric_certificate {c z t : ℝ} (hc : 0 < c) (hc1 : c < 1)\n    (hz : 0 ≤ z) (ht : 0 < t) :\n    z * c ^ Nat.ceil (Real.log (1+z/t) / (-Real.log c)) ≤ t := by\n  have ha : 0 < -Real.log c := neg_pos.mpr (Real.log_neg hc hc1)\n  have hp : 0 < 1+z/t := by positivity\n  have hN := Nat.le_ceil (Real.log (1+z/t) / (-Real.log c))\n  have hb := (div_le_iff₀ ha).mp hN\n  have he : (Nat.ceil (Real.log (1+z/t) / (-Real.log c)) : ℝ) * Real.log c ≤\n      -Real.log (1+z/t) := by nlinarith\n  have he' := mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr he) hz\n  rw [Real.exp_nat_mul, Real.exp_log hc, Real.exp_neg, Real.exp_log hp] at he'\n  apply he'.trans\n  rw [← div_eq_mul_inv]\n  apply (div_le_iff₀ hp).mpr\n  have hid : t*(1+z/t)=t+z := by field_simp\n  rw [hid]\n  linarith\n\nsection\nvariable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n\n/-- Exact-real interpreter. Each nonempty fuel step asks for g(x) once;\nthe final successful test returns x, not the newly computed point. -/\nnoncomputable def proximalQuery (g : E → E) (eta eps : ℝ) (y : E) :\n    ℕ → E → Option (E × ℕ)\n  | 0, _ => none\n  | n+1, x => by\n    classical\n    let z := y-eta • g x\n    exact if ‖z-x‖ ≤ (1-eta)*eps then some (x,1)\n      else (proximalQuery g eta eps y n z).map (fun r => (r.1,r.2+1))\n\nprivate theorem run_first_stop (g : E → E) (eta eps : ℝ) (y : E) (n : ℕ) (x : E)\n    (hs : ‖(fun z => y-eta • g z)^[n+1] x -\n      (fun z => y-eta • g z)^[n] x‖ ≤ (1-eta)*eps)\n    (hb : ∀ j < n, ¬ ‖(fun z => y-eta • g z)^[j+1] x -\n      (fun z => y-eta • g z)^[j] x‖ ≤ (1-eta)*eps) :\n    proximalQuery g eta eps y (n+1) x = some ((fun z => y-eta • g z)^[n] x,n+1) := by\n  classical\n  induction n generalizing x with\n  | zero => simpa [proximalQuery] using hs\n  | succ n ih =>\n    have hzero := hb 0 (Nat.zero_lt_succ n)\n    change ¬ ‖y-eta • g x-x‖ ≤ (1-eta)*eps at hzero\n    have hsn : ‖(fun z => y-eta • g z)^[n+1] (y-eta • g x) -\n        (fun z => y-eta • g z)^[n] (y-eta • g x)‖ ≤ (1-eta)*eps := by\n      simpa only [← Function.iterate_succ_apply] using hs\n    have hbn : ∀ j < n, ¬ ‖(fun z => y-eta • g z)^[j+1] (y-eta • g x) -\n        (fun z => y-eta • g z)^[j] (y-eta • g x)‖ ≤ (1-eta)*eps := by\n      intro j hj\n      simpa only [← Function.iterate_succ_apply] using hb (j+1) (Nat.succ_lt_succ hj)\n    rw [proximalQuery, if_neg hzero, ih _ hsn hbn]\n    simp only [Option.map_some, ← Function.iterate_succ_apply]\n\nprivate theorem stopped_contraction [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]\n    [SecondCountableTopology E] {g : E → E} (hg : LipschitzWith 1 g)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps) :\n    let T := fun y x : E => y-eta • g x\n    ∃ p : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable N ∧ Measurable (fun y => (T y)^[N y] y) ∧\n      ∀ y, p y + eta • g (p y) = y ∧\n        ‖(T y)^[N y+1] y-(T y)^[N y] y‖ ≤ (1-eta)*eps ∧\n        (∀ j < N y, ¬ ‖(T y)^[j+1] y-(T y)^[j] y‖ ≤ (1-eta)*eps) ∧\n        ‖(T y)^[N y] y-p y‖ ≤ eps ∧\n        N y ≤ Nat.ceil (Real.log (1+‖g y‖/((1-c)*eps))/(-Real.log c)) ∧\n        proximalQuery g eta eps y (N y+1) y = some ((T y)^[N y] y,N y+1) := by\n  classical\n  let T := fun y x : E => y-eta • g x\n  have het : eta < 1 := hec.trans_lt hc\n  have hcpos : 0 < c := heta.trans_le hec\n  have hcontract (y : E) : ContractingWith ⟨eta,heta.le⟩ (T y) := by\n    refine ⟨het, LipschitzWith.of_dist_le_mul fun x z => ?_⟩\n    have h := hg.dist_le_mul z x\n    simp only [NNReal.coe_one, one_mul, dist_eq_norm] at h\n    have hid : T y x - T y z = eta • (g z-g x) := by dsimp [T]; module\n    rw [dist_eq_norm, hid, norm_smul, Real.norm_eq_abs, abs_of_pos heta]\n    change eta*‖g z-g x‖ ≤ eta*dist x z\n    rw [dist_eq_norm]\n    simpa only [norm_sub_rev z x] using mul_le_mul_of_nonneg_left h heta.le\n  let p := fun y => (hcontract y).fixedPoint (T y)\n  have hit (n : ℕ) : Measurable (fun y => (T y)^[n] y) := by\n    induction n with\n    | zero => change Measurable (fun y : E => y); exact measurable_id\n    | succ n ih =>\n      simp only [Function.iterate_succ_apply']\n      exact measurable_id.sub ((hg.continuous.measurable.comp ih).const_smul eta)\n  have hp : Measurable p := measurable_of_tendsto_metrizable hit\n    (tendsto_pi_nhds.mpr fun y => (hcontract y).tendsto_iterate_fixedPoint y)\n  let B := fun y => Nat.ceil (Real.log (1+‖g y‖/((1-c)*eps))/(-Real.log c))\n  have hcert (y : E) : ‖(T y)^[B y+1] y-(T y)^[B y] y‖ ≤ (1-eta)*eps := by\n    have hgeom := (hcontract y).toLipschitzWith.dist_iterate_succ_le_geometric y (B y)\n    have hzero : dist y (T y y) = eta*‖g y‖ := by\n      simp [T, norm_smul, abs_of_pos heta]\n    rw [hzero, dist_eq_norm, norm_sub_rev] at hgeom\n    have hfac : eta*‖g y‖ ≤ ‖g y‖ := by nlinarith [norm_nonneg (g y)]\n    have hpow : eta ^ B y ≤ c ^ B y := pow_le_pow_left₀ heta.le hec _\n    have hprod : eta*‖g y‖*eta^B y ≤ ‖g y‖*c^B y :=\n      mul_le_mul hfac hpow (pow_nonneg heta.le _) (norm_nonneg _)\n    have hscalar := geometric_certificate hcpos hc (norm_nonneg (g y))\n      (mul_pos (sub_pos.mpr hc) heps)\n    have hend : (1-c)*eps ≤ (1-eta)*eps := by nlinarith\n    exact hgeom.trans (hprod.trans (hscalar.trans hend))\n  have ht (y : E) : ∃ n : ℕ, ‖(T y)^[n+1] y-(T y)^[n] y‖ ≤ (1-eta)*eps :=\n    ⟨B y,hcert y⟩\n  let N := fun y => Nat.find (ht y)\n  have hset (n : ℕ) : MeasurableSet {y : E | ‖(T y)^[n+1] y-(T y)^[n] y‖ ≤ (1-eta)*eps} :=\n    measurableSet_le ((hit (n+1)).sub (hit n)).norm measurable_const\n  refine ⟨p,N,hp,measurable_find ht hset,Measurable.find hit hset ht,fun y => ?_⟩\n  have hfix : T y (p y) = p y := (hcontract y).fixedPoint_isFixedPt\n  have hs := Nat.find_spec (ht y)\n  have hb : ∀ j < N y, ¬ ‖(T y)^[j+1] y-(T y)^[j] y‖ ≤ (1-eta)*eps :=\n    fun j hj => Nat.find_min (ht y) hj\n  refine ⟨(sub_eq_iff_eq_add.mp hfix).symm,hs,hb,?_,Nat.find_min' (ht y) (hcert y),\n    run_first_stop g eta eps y (N y) y hs hb⟩\n  have hd := (hcontract y).aposteriori_dist_iterate_fixedPoint_le y (N y)\n  rw [dist_eq_norm, dist_eq_norm] at hd\n  change ‖(T y)^[N y] y-p y‖ ≤\n    ‖(T y)^[N y] y-(T y)^[N y+1] y‖/(1-eta) at hd\n  rw [norm_sub_rev ((T y)^[N y] y) ((T y)^[N y+1] y)] at hd\n  exact hd.trans ((div_le_iff₀ (sub_pos.mpr het)).mpr (by simpa only [N, mul_comm] using hs))\n\nprivate theorem count_bound {c z eps : ℝ} (hc : 0 < c) (hc1 : c < 1)\n    (hz : 0 ≤ z) (heps : 0 < eps) {N : ℕ}\n    (hN : N ≤ Nat.ceil (Real.log (1+z/((1-c)*eps))/(-Real.log c))) :\n    (N : ℝ)+1 ≤ (2+(1+Real.log ((1-c)⁻¹))/(-Real.log c)) *\n      (1+Real.log (1+z/eps)) := by\n  have hd : 0 < 1-c := sub_pos.mpr hc1\n  have ha : 0 < -Real.log c := neg_pos.mpr (Real.log_neg hc hc1)\n  have hR : 0 ≤ z/eps := div_nonneg hz heps.le\n  have hL : 0 ≤ Real.log (1+z/eps) := Real.log_nonneg (by linarith)\n  have hb : 0 ≤ Real.log ((1-c)⁻¹) := Real.log_nonneg (by\n    have hm := mul_nonneg (inv_nonneg.mpr hd.le) hc.le\n    have hi := inv_mul_cancel₀ hd.ne'\n    nlinarith)\n  have harg : 1+z/((1-c)*eps) ≤ (1+z/eps)/(1-c) := by\n    apply (le_div_iff₀ hd).mpr\n    have hid : (1+z/((1-c)*eps))*(1-c)=1-c+z/eps := by field_simp\n    rw [hid]\n    linarith\n  have hlog := Real.log_le_log (by positivity : 0 < 1+z/((1-c)*eps)) harg\n  rw [Real.log_div (by positivity) (ne_of_gt hd)] at hlog\n  have hlog' : Real.log (1+z/((1-c)*eps)) ≤\n      Real.log (1+z/eps)+Real.log ((1-c)⁻¹) := by\n    rw [Real.log_inv]\n    linarith\n  have hnon : 0 ≤ Real.log (1+z/((1-c)*eps))/(-Real.log c) :=\n    div_nonneg (Real.log_nonneg (by\n      have hh := div_nonneg hz (mul_pos hd heps).le\n      linarith)) ha.le\n  have hceil := Nat.ceil_lt_add_one hnon\n  have hcast : (N : ℝ) ≤ (Nat.ceil (Real.log (1+z/((1-c)*eps))/(-Real.log c)) : ℝ) :=\n    by exact_mod_cast hN\n  have hfirst : (N : ℝ)+1 ≤\n      (Real.log (1+z/eps)+Real.log ((1-c)⁻¹))/(-Real.log c)+2 := by\n    have hh := (div_le_div_iff_of_pos_right ha).mpr hlog'\n    linarith\n  apply hfirst.trans\n  have hid : (2+(1+Real.log ((1-c)⁻¹))/(-Real.log c)) * (1+Real.log (1+z/eps)) -\n      ((Real.log (1+z/eps)+Real.log ((1-c)⁻¹))/(-Real.log c)+2) =\n      (1+(2*(-Real.log c)+Real.log ((1-c)⁻¹))*Real.log (1+z/eps))/(-Real.log c) := by\n    field_simp [ne_of_lt (Real.log_neg hc hc1)]\n    ring\n  apply sub_nonneg.mp\n  rw [hid]\n  positivity\n\nend\n\nsection\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E]\n  [MeasurableSpace E] [BorelSpace E]\n\n/-- The actual first-residual-stopped gradient program returns an accurate\nproximal point measurably, with logarithmic pointwise gradient work. The final\nsuccessful check costs one query. No expected work along a sampler is claimed. -/\ntheorem approximate_proximal_execution {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps) :\n    let T := fun y x : E => y-eta • gradient V x\n    let F := fun y x => V x+eta⁻¹/2*‖x-y‖^2\n    ∃ p : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable N ∧ Measurable (fun y => (T y)^[N y] y) ∧\n      ∀ y, (p y+eta • gradient V (p y)=y) ∧\n        (∀ z, F y (p y)+((κ : ℝ)⁻¹+eta⁻¹)/2*‖z-p y‖^2 ≤ F y z ∧\n          (F y z ≤ F y (p y) ↔ z=p y)) ∧\n        ‖(T y)^[N y+1] y-(T y)^[N y] y‖ ≤ (1-eta)*eps ∧\n        (∀ j < N y, ¬ ‖(T y)^[j+1] y-(T y)^[j] y‖ ≤ (1-eta)*eps) ∧\n        ‖(T y)^[N y] y-p y‖ ≤ eps ∧\n        (N y : ℝ)+1 ≤ (2+(1+Real.log ((1-c)⁻¹))/(-Real.log c)) *\n          (1+Real.log (1+‖gradient V y‖/eps)) ∧\n        proximalQuery (gradient V) eta eps y (N y+1) y = some ((T y)^[N y] y,N y+1) := by\n  have hκpos : 0 < (κ : ℝ) := lt_of_lt_of_le zero_lt_one (by exact_mod_cast hκ)\n  have hH' : ∀ x v : E, ((κ⁻¹ : ℝ≥0) : ℝ)*‖v‖^2 ≤\n      (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (1 : ℝ≥0)*‖v‖^2 := by\n    simpa only [NNReal.coe_inv, NNReal.coe_one, one_mul] using hH\n  have hr := TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n    (r := 0) hV hH' (0 : E)\n  have hg : LipschitzWith 1 (gradient V) := by simpa using hr.2\n  have hvconv : ConvexOn ℝ Set.univ V := by\n    have hs : StrongConvexOn Set.univ ((κ : ℝ)⁻¹) V := by simpa using hr.1\n    exact hs.convexOn (fun r => by positivity)\n  obtain ⟨p,N,hp,hN,ho,hall⟩ := stopped_contraction hg heta hec hc heps\n  refine ⟨p,N,hp,hN,ho,fun y => ?_⟩\n  obtain ⟨heq,hs,hbefore,herr,hcap,hrun⟩ := hall y\n  refine ⟨heq,?_,hs,hbefore,herr,count_bound (heta.trans_le hec) hc\n    (norm_nonneg _) heps hcap,hrun⟩\n  let F := fun x => V x+eta⁻¹/2*‖x-y‖^2\n  have hdiff := hV.differentiable (by norm_num)\n  have hdata := TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness\n    hdiff hvconv (δ := Real.toNNReal eta⁻¹) hg y\n  have hgrad (x : E) : gradient F x = gradient V x+eta⁻¹ • (x-y) := by\n    simpa only [Real.coe_toNNReal _ (inv_nonneg.mpr heta.le)] using hdata.2.2.1 x\n  have hFd : Differentiable ℝ F := by\n    simpa only [Real.coe_toNNReal _ (inv_nonneg.mpr heta.le)] using hdata.1\n  have hz : gradient F (p y)=0 := by\n    rw [hgrad]\n    have hsub : p y-y=-(eta • gradient V (p y)) := by\n      calc\n        p y-y = p y-(p y+eta • gradient V (p y)) :=\n          congrArg (fun t => p y-t) heq.symm\n        _ = _ := by abel\n    rw [hsub,smul_neg,smul_smul,inv_mul_cancel₀ heta.ne',one_smul,add_neg_cancel]\n  have hsc : StrongConvexOn Set.univ ((κ : ℝ)⁻¹+eta⁻¹) F := by\n    have hh := TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := Real.toNNReal eta⁻¹) hV hH' y\n    simpa only [NNReal.coe_add, NNReal.coe_inv, Real.coe_toNNReal _ (inv_nonneg.mpr heta.le)] using hh.1\n  intro z\n  have hb := TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn\n    hsc (fun x _ => (hFd x).hasGradientAt) (x := p y) (y := z) (Set.mem_univ _) (Set.mem_univ _)\n  rw [hz,inner_zero_left,add_zero] at hb\n  refine ⟨hb,⟨fun hle => ?_,fun he => by rw [he]⟩⟩\n  have ha : 0 < ((κ : ℝ)⁻¹+eta⁻¹)/2 := by positivity\n  have hn : ‖z-p y‖^2 ≤ 0 := by\n    change F z ≤ F (p y) at hle\n    have hnonpos : (((κ : ℝ)⁻¹+eta⁻¹)/2)*‖z-p y‖^2 ≤ 0 := by linarith\n    exact le_of_not_gt (fun hn => (not_lt_of_ge hnonpos) (mul_pos ha hn))\n  exact sub_eq_zero.mp (norm_eq_zero.mp (sq_eq_zero_iff.mp (le_antisymm hn (sq_nonneg _))))\n\nend\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Appendix D.2, Algorithm D.2 and Lemma D.3, equations D.5–D.6",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib restatement and expanded derivation; not the authors' original wording or an endorsement."
+    },
+    "statement": "For a C² potential with kappa-inverse and unit Hessian bounds, the iteration x₀=y, xₙ₊₁=y−eta∇V(xₙ) stops at its first residual at most (1−eta)eps. It returns the current iterate, within eps of the unique proximal minimum. Its gradient-query count, including the successful test, is bounded by C_c[1+log(1+‖∇V(y)‖/eps)], uniformly in y, for fixed 0<eta≤c<1. Samplinglib additionally establishes measurable first-hit/output, quantitative unique minimum and the exact finite-fuel execution equation.",
+    "formulae": [
+      {
+        "label": "Actual stopping rule and return",
+        "tex": "N(y)=\\min\\{n:\\|x_{n+1}-x_n\\|\\le(1-\\eta)\\varepsilon\\},\\quad\\widetilde x_y=x_{N(y)}."
+      },
+      {
+        "label": "Accuracy and pointwise query count",
+        "tex": "\\|\\widetilde x_y-\\operatorname{prox}_{\\eta V}(y)\\|\\le\\varepsilon,\\qquad N(y)+1\\le C_c[1+\\log(1+\\|\\nabla V(y)\\|/\\varepsilon)]."
+      },
+      {
+        "label": "Samplinglib-derived admissible constant",
+        "tex": "C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}."
+      }
+    ],
+    "assumptions": [
+      "The source uses Euclidean space; the formal statement uses a finite-dimensional complete real inner-product space with its Borel measurable structure.",
+      "V is C², kappa≥1 and kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v.",
+      "0<eta≤c<1 and eps>0. Exact arithmetic and exact gradient queries are the cost model, not floating-point arithmetic."
+    ],
+    "obligations": [
+      {
+        "id": "first-hit",
+        "label": "Finite first residual success and measurable stopped output"
+      },
+      {
+        "id": "certificate",
+        "label": "Genuine proximal identification and epsilon certificate"
+      },
+      {
+        "id": "pointwise-work",
+        "label": "Actual finite-fuel execution with logarithmic query count"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution",
+      "title": "Measurable stopped proximal execution with certified pointwise work",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+          "label": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, SPHMC D.2–D.3",
+          "scope": "Faithful attributed restatement with Samplinglib-derived measurability, quantitative unique minimum, exact interpreter semantics and explicit admissible constant."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCApproximateProximalExecution"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional complete real inner-product space with its Borel measurable structure. This includes Euclidean space and dimension zero.",
+        "V:E→R is C², kappa≥1, and for every x,v its genuine second derivative satisfies kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖². ContDiff makes the displayed fderiv a genuine derivative, not merely a totalized expression.",
+        "Fix 0<eta≤c<1 and eps>0. The constant c is uniform in the center y. No restriction eta≤1/2 is imposed. There is no assumed approximate proximal oracle and no assumed measurability of the output."
+      ],
+      "statement": "There exist measurable maps p:E→E and N:E→N. For each y, p(y) is the unique minimizer of F_y(x)=V(x)+‖x−y‖²/(2eta). Starting at y and iterating T_y(x)=y−eta∇V(x), N(y) is the first residual test success. The measurable returned point x_N is eps-close to p(y); the exact interpreter succeeds with fuel N(y)+1, returning that point and count N(y)+1, bounded by C_c[1+log(1+‖∇V(y)‖/eps)].",
+      "formula": "\\begin{gathered}x_0=y,\\quad x_{n+1}=T_y(x_n),\\quad N=\\min\\{n:\\|x_{n+1}-x_n\\|\\le(1-\\eta)\\varepsilon\\},\\\\\\|x_N-p(y)\\|\\le\\varepsilon,\\quad N+1\\le C_c[1+\\log(1+\\|\\nabla V(y)\\|/\\varepsilon)],\\\\C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}.\\end{gathered}",
+      "steps": [
+        {
+          "title": "Curvature gives a strict contraction",
+          "text": "The canonical quadratic-regularization lemma at zero regularization gives a 1-Lipschitz gradient and strong convexity of V. Subtracting two images under T_y cancels the center, so multiplication by eta gives a strict contraction. Completeness then supplies its unique fixed point p(y).",
+          "formula": "\\|T_y(x)-T_y(z)\\|\\le\\eta\\|x-z\\|,\\qquad p(y)+\\eta\\nabla V(p(y))=y.",
+          "lean": "QuadraticRegularization supplies hg; stopped_contraction constructs ContractingWith and its fixedPoint."
+        },
+        {
+          "title": "Identify a genuine unique proximal minimum",
+          "text": "The canonical first-order regularization formula shows that the fixed point has zero gradient for F_y. Its strong-convexity modulus is kappa inverse plus eta inverse. Applying the first-order lower bound at that point gives quantitative quadratic growth. Its strictly positive coefficient forces any other minimizer to coincide with p(y).",
+          "formula": "F_y(z)\\ge F_y(p(y))+\\frac{\\kappa^{-1}+\\eta^{-1}}2\\|z-p(y)\\|^2,\\qquad F_y(z)\\le F_y(p(y))\\iff z=p(y).",
+          "lean": "curvature_gradient_and_smoothness proves the gradient identity; firstOrder_lower_bound_of_strongConvexOn proves growth, then positivity proves uniqueness."
+        },
+        {
+          "title": "Produce a finite stopping certificate",
+          "text": "Successive residuals decay geometrically. Put z=‖∇V(y)‖ and t=(1−c)eps, both with t strictly positive. Taking the natural ceiling B below gives c^B≤1/(1+z/t), hence z c^B≤t. Since eta≤c and eta<1, the actual residual at B is no larger than t and therefore passes the test. This establishes existence before selecting a first index.",
+          "formula": "\\begin{gathered}\\|x_{n+1}-x_n\\|\\le\\eta^{n+1}\\|\\nabla V(y)\\|,\\\\ B=\\left\\lceil\\frac{\\log(1+z/t)}{-\\log c}\\right\\rceil,\\quad zc^B\\le t\\le(1-\\eta)\\varepsilon,\\quad N\\le B.\\end{gathered}",
+          "lean": "dist_iterate_succ_le_geometric and geometric_certificate prove hcert; Nat.find_spec/min/min' give success, first-hit minimality and the bound."
+        },
+        {
+          "title": "Explain the measurability that a sampler needs",
+          "text": "Every iterate is measurable as a function of y by induction and continuity of the gradient. Their pointwise limit is p(y), hence measurable. Each residual-test set is Borel. The least successful index is measurable, and selecting the N(y)-th member of this countable measurable family yields a measurable returned point. No integration or exchange of integrals is used.",
+          "formula": "\\{N=n\\}=A_n\\cap\\bigcap_{j<n}A_j^c,\\qquad A_n=\\{y:\\|x_{n+1}(y)-x_n(y)\\|\\le(1-\\eta)\\varepsilon\\}.",
+          "lean": "measurable_of_tendsto_metrizable, measurable_find and Measurable.find discharge limit, index and selected-output measurability."
+        },
+        {
+          "title": "Convert the residual to actual distance",
+          "text": "The contraction posterior-error estimate bounds the current iterate's distance to the fixed point by its residual divided by 1−eta. The denominator is strictly positive. At the selected first hit the test is exactly strong enough to bound this quotient by eps.",
+          "formula": "\\|x_N-p(y)\\|\\le\\frac{\\|x_{N+1}-x_N\\|}{1-\\eta}\\le\\varepsilon.",
+          "lean": "ContractingWith.aposteriori_dist_iterate_fixedPoint_le followed by div_le_iff₀; the bound concerns x_N, not x_(N+1)."
+        },
+        {
+          "title": "Bound the number of real oracle queries",
+          "text": "The ceiling estimate first gives N+1≤2+log(1+z/((1−c)eps))/(-log c). For R=z/eps, use 1+R/(1−c)≤(1+R)/(1−c), then log monotonicity. The displayed C_c dominates the resulting affine expression in log(1+R). It is an explicit Samplinglib choice, not a constant printed in the source; it depends only on c. When the initial gradient vanishes, one query is still required.",
+          "formula": "N+1\\le2+\\frac{\\log(1+R)+\\log((1-c)^{-1})}{-\\log c}\\le C_c[1+\\log(1+R)].",
+          "lean": "count_bound uses Nat.ceil_lt_add_one and Real.log_div; positivity uses 0<c<1 and R≥0."
+        },
+        {
+          "title": "Tie the proof to the actual interpreter",
+          "text": "All tests before N fail and the test at N succeeds. Induction over these failed tests unfolds one interpreter step at a time. The final step returns the current point with one query; unwinding increments the count to N+1. This is a pointwise evaluation theorem, not a theorem about expectations for randomly generated centers.",
+          "formula": "Q_{N+1}(y)=\\mathrm{some}(x_N,N+1).",
+          "lean": "run_first_stop proves the recurrence equation; focused tests exercise returned point, count, insufficient fuel and eta=3/4."
+        }
+      ],
+      "lean_statement": "Exact scoped typeclasses, every quantifier, genuine Hessian bounds and all conjuncts are extracted into the adjacent closed disclosure.",
+      "lean_proof": "The public proof reuses shared curvature/first-order lemmas; private helpers prove the logarithmic certificate, measurable stopped contraction, count bound and execution induction. Private helpers have no separate mathematical completion credit.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "ContractingWith.fixedPoint",
+        "ContractingWith.aposteriori_dist_iterate_fixedPoint_le",
+        "LipschitzWith.dist_iterate_succ_le_geometric",
+        "measurable_of_tendsto_metrizable",
+        "measurable_find",
+        "Measurable.find",
+        "Nat.find_spec",
+        "Nat.ceil_lt_add_one",
+        "Real.log_div"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution",
+      "role": "proof-edge",
+      "supports": [
+        "first-hit",
+        "certificate",
+        "pointwise-work"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite-dimensional Euclidean potential and curvature bounds.",
+        "lean": "Finite-dimensional complete real inner-product Borel space, C² V, genuine Hessian bounds and kappa≥1."
+      },
+      {
+        "source": "0<eta≤c₀<1 and positive target error.",
+        "lean": "0<eta≤c<1 and eps>0, without eta≤1/2."
+      },
+      {
+        "source": "Return the current tested iterate; count gradient evaluations.",
+        "lean": "Noncomputable exact-real finite-fuel interpreter returns (x_N,N+1)."
+      },
+      {
+        "source": "C_c₀ depends only on c₀; proximity to the proximal point.",
+        "lean": "An explicit finite C_c and quadratic growth at the unique proximal minimum; measurable p, N and stopped output."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "f4e53b5d9cf00f356d033babb3355bed3d67e59d2db8abefe32592ea6211ee04"
+}

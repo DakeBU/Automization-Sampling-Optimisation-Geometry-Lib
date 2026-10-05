@@ -1,0 +1,97 @@
+{
+  "reviewer_packet_sha256": "5eecaf71f0911ab9dbaedab68a5c147b94db2076c73ddbe240e8ba42eca6bd84",
+  "publication_binding_sha256": "6691dfdab678a5723f04211000971b34c21c7627a30a2d15f469ebc00f2e8f6a",
+  "semantic_slots": {
+    "objects": {
+      "original": "An alpha-strongly convex objective f, a surjective nonlinear parameter map g, the source d-by-n Jacobian J, and the actual gradient of f composed with g.",
+      "reconstructed": "An objective f:F→R, a surjection g:E→F, its Frechet derivative A_x:E→F, its adjoint A_x*:F→E, and the actual Riesz gradient of f composed with g.",
+      "relation": "explicit-elaboration",
+      "evidence": "With E=R^d and F=R^n, the source convention is J=A_x*, so J-transpose J=A_x A_x*. The quadratic form in hjac therefore has the correct orientation and acts on the objective space. The module proves the chain rule for the actual derivative and uses uniqueness of its gradient; it does not assume the desired composite gradient as independent data."
+    },
+    "domains": {
+      "original": "The entire finite-dimensional Euclidean spaces R^d and R^n, with d>=n, using Euclidean inner products.",
+      "reconstructed": "Arbitrary complete real inner-product spaces E and F, potentially infinite-dimensional, with all assumptions and conclusions on Set.univ. No numerical dimension condition is imposed.",
+      "relation": "different",
+      "evidence": "The elaborated typeclass parameters include completeness and real inner products but no finite-dimensionality. The source Euclidean setting is a specialization, not an identical domain. The proof only uses Hilbert adjoints, differentiability, strong convexity and surjectivity; its argument does not need finite-dimensional compactness because a base minimizer is supplied. This generalization is accurately exposed in the lesson and candidate assumption pairs."
+    },
+    "quantifiers": {
+      "original": "The Jacobian bound holds for every parameter x; its positive-semidefinite matrix order quantifies over all objective-space vectors. The PL inequality holds at every x, relative to a globally attained minimum.",
+      "reconstructed": "For each admissible f,g,alpha,sigma and each supplied global base minimizer z, assume the operator bound for every x and v; obtain one xstar with g(xstar)=z and global minimality, and the inequality for every x with this same xstar.",
+      "relation": "explicit-elaboration",
+      "evidence": "The operator hypothesis expands matrix order pointwise. The existential xstar precedes the universal x in the conclusion. Applying surjectivity once to z gives the same witness throughout. Since every minimizing preimage has value f(z), the chosen-witness formulation preserves the source minimum value; it does not make the minimum depend on x."
+    },
+    "assumptions": {
+      "original": "Alpha>0, global alpha-strong convexity, a surjective map with an everywhere Jacobian and uniform lower bound sigma, plus Section 2 smoothness and attained-minimum conventions. The exercise does not explicitly state a sign of sigma or continuity of the derivative of g.",
+      "reconstructed": "Alpha>0 and sigma>=0; global StrongConvexOn; everywhere Frechet differentiability of f and g; global surjectivity; a supplied z with IsMinOn f univ z; uniform coercivity of Dg(x)Dg(x)*. Derivative continuity is not assumed.",
+      "relation": "different",
+      "evidence": "hσ adds a nonnegative-sign restriction absent from the literal exercise. hf weakens the Section 2 C2 assumption to differentiability, sufficient for this numerical proof. hg interprets an everywhere Jacobian as a total derivative suitable for the chain rule, not merely existing coordinate partial derivatives. hz exposes the attained-minimum convention. The module and lesson consistently retain these differences and do not infer C1 of f composed with g."
+    },
+    "conclusion": {
+      "original": "Exercise 2.3 asks for the PL inequality with constant alpha*sigma and remarks on possible multiple minimizing preimages. The scoped publication selects the numerical inequality and a minimizing-preimage component; the full Definition 2.5 package additionally requires C1 and a positive modulus.",
+      "reconstructed": "There exists a preimage xstar of the supplied z that globally minimizes the composite, and 2*(alpha*sigma)*((f composed with g)(x)-(f composed with g)(xstar)) <= norm(gradient(f composed with g)(x))^2 for all x. No C1, positive modulus, uniqueness, or multiple-minimizer example is concluded.",
+      "relation": "equivalent",
+      "evidence": "For the declared numerical-pl-and-minimum scope and sigma>=0, the same gap, gradient, normalization and attained minimum occur. Surjectivity proves the preimage claim. Equivalence here is only of the selected numerical conclusion under the recorded assumptions; it is not equivalence to the entire exercise interpreted through Definition 2.5. The informal observation about multiplicity is not promoted to a universal or existential theorem."
+    },
+    "scopes": {
+      "original": "An unconstrained, global, deterministic exercise about reparametrized strongly convex functions. Its reference to PL invokes a definition requiring regularity and positivity; no stochastic, measure-theoretic or local-domain qualification occurs.",
+      "reconstructed": "A global deterministic numerical gradient-gap theorem on complete real Hilbert spaces. The packet binds it only to numerical-pl-and-minimum and leaves definition-regularity-positive-modulus uncovered.",
+      "relation": "different",
+      "evidence": "Both the whole-module comment and authored lesson explicitly limit the result to the numerical inequality. No convergence theorem, convexity of the composite, uniqueness, or full chapter completion is asserted. The narrower publication support is honest, but cannot discharge the separately listed Definition 2.5 obligation."
+    },
+    "constant_dependencies": {
+      "original": "The strong-convexity parameter is alpha, the Jacobian quadratic-form bound is sigma, and the displayed PL coefficient is alpha*sigma, with the standard factor 2 multiplying the gap.",
+      "reconstructed": "Exactly 2*(alpha*sigma) multiplies the global composite gap. Alpha and sigma are uniform across x and independent of the chosen minimizing preimage; sigma may be zero.",
+      "relation": "explicit-elaboration",
+      "evidence": "The proof first derives 2*alpha*(f(y)-f(z))<=norm(gradient f(y))^2, multiplies by nonnegative sigma, and applies coercivity. There is no additional dimension, Lipschitz, smoothness or norm-conversion factor. Sigma is the squared-singular-value lower bound in finite dimensions, not its square root. If sigma=0, the result is a degenerate norm-square bound and supplies no positive PL constant."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "The Lean theorem is a Hilbert-space generalization, not a literal Euclidean-domain reproduction.",
+      "evidence": "CompleteSpace E/F replaces finite Euclidean types and there is no d>=n parameter. The source case specializes to E=R^d,F=R^n; the same operator hypothesis is used."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "review",
+      "description": "Sigma>=0 is an explicit restriction beyond the literal exercise wording; the negative-sigma numerical case is not covered by this declaration.",
+      "evidence": "The source restatement omits the sign, while hσ is required and is consumed by mul_le_mul_of_nonneg_left. For sigma<0 the numerical conclusion would be immediate from a nonnegative objective gap, but that separate branch is not this theorem. Neither this observation nor the zero case resolves the positive-modulus definition obligation."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Smoothness is reduced to Frechet differentiability; the Jacobian is interpreted as an actual total derivative.",
+      "evidence": "hf and hg permit the chain rule and first-order support inequality. C2 of f is unnecessary for the selected numerical result. Merely existing coordinate partial derivatives would not justify the chain rule; the interpretation of Jacobian as a derivative is therefore material. No continuity of Dg or of the composite gradient is supplied."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "The base minimizer is supplied explicitly rather than proved to exist.",
+      "evidence": "hz is IsMinOn f univ z, matching the Section 2 attained-minimum convention. Surjectivity alone lifts that supplied minimum to the composition."
+    },
+    {
+      "slot": "scopes",
+      "severity": "review",
+      "description": "The selected numeric component does not certify the complete Definition 2.5 PL package.",
+      "evidence": "Alpha*sigma may vanish and no continuous differentiability conclusion occurs. The frozen publication keeps definition-regularity-positive-modulus as a separate obligation and the lesson labels the result numerical. This is a retained uncovered boundary, not a completed source repair."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The source observation that overparametrization can allow multiple minimizers is not separately formalized.",
+      "evidence": "The theorem constructs one minimizing preimage and makes no uniqueness or multiplicity assertion. This is consistent with, but does not prove an example of, the source observation."
+    }
+  ],
+  "verdict": "source-underspecified",
+  "repairs": [],
+  "reviewer": "pl_source_57329",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent anti-anchored comparison of reviewer-0.json, including the anonymous reconstruction, full frozen module, authored formula proof, source restatement and scoped publication binding. Checked pinned primary text at https://arxiv.org/html/2605.07006v1#S2 (Section 2 conventions, Definition 2.5, Exercise 2.3). The proof lifts z by surjectivity, derives the base gap bound by first-order strong convexity and a completed square, proves the actual composite-gradient identity by the adjoint chain rule, and transports coercivity with nonnegative sigma; the authored steps match these operations. No prior verdict, prior repair, proving transcript or previous route review was consulted. This is source review, not a fresh Lean build or aggregate publication gate.",
+  "source_review": {
+    "decision": "accepted",
+    "evidence": "Accepted solely as the declared numerical inequality and minimizing-preimage component, with the Hilbert-domain generalization and sigma>=0 restriction explicitly retained. The current module and lesson support that component without importing its conclusion as an assumption. This is not exact source equivalence: the source leaves sign/regularity implicit or unspecified, negative sigma is outside this declaration, and C1 plus a positive PL modulus remain uncovered. No source correction or whole-exercise completion is accepted."
+  },
+  "review_run_sha256": "3cef7db31e481d10f60de845b8e493a89b7deb3142b2fc59d667ad71917f5e5f"
+}

@@ -1,0 +1,131 @@
+{
+  "publication_binding_sha256": "c627f364d398939d8435cbb2069db956b0237c48582c350cfb0ed8200020b75b",
+  "publication_context": {
+    "file": "525556c5f5997842976155cd86c4edcdf7e2ddf4ae1cd17275a3afe9521f0560",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability\nimport AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace\nimport Mathlib.Tactic\n\n/-!\n# Transport of quadratic moments through Lipschitz observables\n\nFinite quadratic Wasserstein cost transfers square-integrability of a\nLipschitz observable from the reference marginal to the transported marginal.\nThe proof first works with an actual coupling and then approaches the infimum\ndefining `wassersteinDistance`; no optimal coupling is assumed.\n\nThis is a shared measure-theoretic interface.  In particular, applying it to\nphase-space coordinate projections is legitimate only for the metric used by\n`wassersteinDistance`.  A paper-specific twisted metric such as the SPHMC\n`M_kappa` norm still requires an explicit metric-comparison adapter.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment\n\nopen MeasureTheory\nopen scoped ENNReal NNReal\n\nnoncomputable section\n\nvariable {E F : Type*} [NormedAddCommGroup E] [MeasurableSpace E]\n  [BorelSpace E] [SecondCountableTopology E] [NormedAddCommGroup F]\n\nomit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in\nprivate theorem lipschitz_norm_sq_bound {g : E → F} {b : ℝ≥0}\n    (hg : LipschitzWith b g) (x y : E) :\n    ‖g x‖ ^ 2 ≤ 2 * ‖g y‖ ^ 2 + 2 * (b : ℝ) ^ 2 * ‖x - y‖ ^ 2 := by\n  have hLip : ‖g x - g y‖ ≤ (b : ℝ) * ‖x - y‖ := by\n    simpa only [dist_eq_norm] using hg.dist_le_mul x y\n  have htri := norm_sub_norm_le (g x) (g y)\n  have hnorm : ‖g x‖ ≤ ‖g y‖ + (b : ℝ) * ‖x - y‖ := by linarith\n  have hnonneg : 0 ≤ (b : ℝ) * ‖x - y‖ :=\n    mul_nonneg b.coe_nonneg (norm_nonneg _)\n  nlinarith [norm_nonneg (g x), norm_nonneg (g y),\n    sq_nonneg (‖g y‖ - (b : ℝ) * ‖x - y‖)]\n\n/-- An actual quadratic-cost coupling transfers the second moment of a\nLipschitz observable from its second marginal to its first marginal. -/\nprivate theorem of_isCoupling {mu nu : Measure E} {gamma : Measure (E × E)}\n    {g : E → F} {b : ℝ≥0} {s : ℝ} (hg : LipschitzWith b g)\n    (hi : Integrable (fun x => ‖g x‖ ^ 2) nu)\n    (hgamma : Transport.IsCoupling gamma mu nu) (hs : 0 ≤ s)\n    (hcost : (∫⁻ p, WassersteinSpace.quadraticCost p ∂gamma) ≤ ENNReal.ofReal s) :\n    Integrable (fun x => ‖g x‖ ^ 2) mu ∧\n      (∫ x, ‖g x‖ ^ 2 ∂mu) ≤\n        2 * (∫ x, ‖g x‖ ^ 2 ∂nu) + 2 * (b : ℝ) ^ 2 * s := by\n  have hc : Continuous (fun x => ‖g x‖ ^ 2) := hg.continuous.norm.pow 2\n  have hmp1 := CouplingQuadraticIntegrability.measurePreserving_fst_of_isCoupling hgamma\n  have hmp2 := CouplingQuadraticIntegrability.measurePreserving_snd_of_isCoupling hgamma\n  have hq : Integrable (fun p : E × E => ‖g p.2‖ ^ 2) gamma :=\n    hmp2.integrable_comp_of_integrable hi\n  have hd : Integrable (fun p : E × E => ‖p.1 - p.2‖ ^ 2) gamma := by\n    have hm : AEMeasurable\n        (fun p : E × E => WassersteinSpace.quadraticCost p) gamma := by\n      unfold WassersteinSpace.quadraticCost\n      fun_prop\n    have ht := integrable_toReal_of_lintegral_ne_top hm\n      (lt_of_le_of_lt hcost ENNReal.ofReal_lt_top).ne\n    simpa [WassersteinSpace.quadraticCost] using ht\n  have hdint : (∫ p : E × E, ‖p.1 - p.2‖ ^ 2 ∂gamma) ≤ s := by\n    apply (ENNReal.ofReal_le_ofReal_iff hs).1\n    rw [ofReal_integral_eq_lintegral_ofReal hd\n      (Filter.Eventually.of_forall (fun p => sq_nonneg _))]\n    exact hcost\n  have hdom : Integrable\n      (fun p : E × E =>\n        2 * ‖g p.2‖ ^ 2 + 2 * (b : ℝ) ^ 2 * ‖p.1 - p.2‖ ^ 2) gamma :=\n    (hq.const_mul 2).add (hd.const_mul _)\n  have hp : Integrable (fun p : E × E => ‖g p.1‖ ^ 2) gamma := by\n    apply hdom.mono' (hc.comp continuous_fst).aestronglyMeasurable\n    filter_upwards with p\n    change ‖(‖g p.1‖ ^ 2 : ℝ)‖ ≤ _\n    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg ‖g p.1‖)]\n    exact lipschitz_norm_sq_bound hg p.1 p.2\n  have hmu : Integrable (fun x => ‖g x‖ ^ 2) mu := by\n    rw [← hmp1.map_eq]\n    exact (integrable_map_measure hc.aestronglyMeasurable measurable_fst.aemeasurable).2 hp\n  have hpint : (∫ p : E × E, ‖g p.1‖ ^ 2 ∂gamma) = ∫ x, ‖g x‖ ^ 2 ∂mu := by\n    rw [← hmp1.map_eq, integral_map measurable_fst.aemeasurable hc.aestronglyMeasurable]\n  have hqint : (∫ p : E × E, ‖g p.2‖ ^ 2 ∂gamma) = ∫ x, ‖g x‖ ^ 2 ∂nu := by\n    rw [← hmp2.map_eq, integral_map measurable_snd.aemeasurable hc.aestronglyMeasurable]\n  have hm := integral_mono hp hdom (fun p => lipschitz_norm_sq_bound hg p.1 p.2)\n  rw [integral_add (hq.const_mul 2) (hd.const_mul _), integral_const_mul,\n    integral_const_mul, hpint, hqint] at hm\n  refine ⟨hmu, hm.trans ?_⟩\n  gcongr\n\n/-- A squared `wassersteinDistance` bound transfers square-integrability and\ngives the standard quadratic moment estimate for every Lipschitz observable.\n\nThe radius is written as a real number because paper applications normally\nstate the premise as `W₂² ≤ r²`. -/\ntheorem of_wassersteinDistance_sq_le {mu nu : Measure E}\n    {g : E → F} {b : ℝ≥0} {r : ℝ} (hg : LipschitzWith b g)\n    (hi : Integrable (fun x => ‖g x‖ ^ 2) nu)\n    (hw : WassersteinSpace.wassersteinDistance mu nu ^ 2 ≤ ENNReal.ofReal (r ^ 2)) :\n    Integrable (fun x => ‖g x‖ ^ 2) mu ∧\n      (∫ x, ‖g x‖ ^ 2 ∂mu) ≤\n        2 * (∫ x, ‖g x‖ ^ 2 ∂nu) + 2 * (b : ℝ) ^ 2 * r ^ 2 := by\n  have hall (s : ℝ) (hs : r ^ 2 < s) :\n      Integrable (fun x => ‖g x‖ ^ 2) mu ∧\n        (∫ x, ‖g x‖ ^ 2 ∂mu) ≤\n          2 * (∫ x, ‖g x‖ ^ 2 ∂nu) + 2 * (b : ℝ) ^ 2 * s := by\n    have hs0 : 0 < s := (sq_nonneg r).trans_lt hs\n    have hcost : Transport.transportCost\n        (WassersteinSpace.quadraticCost (E := E)) mu nu < ENNReal.ofReal s := by\n      rw [← WassersteinSpace.wassersteinDistance_sq]\n      exact hw.trans_lt ((ENNReal.ofReal_lt_ofReal_iff hs0).2 hs)\n    obtain ⟨gamma, hgamma, hgammaCost⟩ :=\n      Transport.exists_isCoupling_lintegral_lt_of_transportCost_lt\n        (WassersteinSpace.quadraticCost (E := E)) mu nu hcost\n    exact of_isCoupling hg hi hgamma hs0.le hgammaCost.le\n  refine ⟨(hall (r ^ 2 + 1) (by linarith)).1, ?_⟩\n  apply le_of_forall_pos_le_add\n  intro epsilon hepsilon\n  have hden : 0 < 2 * (b : ℝ) ^ 2 + 1 := by positivity\n  have hdelta : 0 < epsilon / (2 * (b : ℝ) ^ 2 + 1) := div_pos hepsilon hden\n  have hbound := (hall (r ^ 2 + epsilon / (2 * (b : ℝ) ^ 2 + 1)) (by linarith)).2\n  have heq := div_mul_cancel₀ epsilon hden.ne'\n  nlinarith\n\nend\n\nend AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/pdf/2609.06906",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Lemma D.4 proof, PDF page 56; equation (D.3) and Lemma 4.16",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib expands the standard coupling/integrability step; this is not the authors' wording or a complete Lemma D.4 claim."
+    },
+    "statement": "A quadratic Wasserstein estimate transfers reference phase-coordinate second moments to the incoming law; the current compiled adapter uses the ordinary product metric and keeps the paper's M_kappa comparison open.",
+    "formulae": [
+      {
+        "label": "Shared transfer",
+        "tex": "W_2^2(\\mu,\\nu)\\le r^2\\Rightarrow \\mathbb E_\\mu\\|g\\|^2\\le2\\mathbb E_\\nu\\|g\\|^2+2\\operatorname{Lip}(g)^2r^2."
+      },
+      {
+        "label": "Phase adapter",
+        "tex": "\\mathbb E[\\|X-x_\\star\\|^2+\\|P\\|^2]\\le2(M_X+M_P)+4r^2."
+      }
+    ],
+    "assumptions": [
+      "Lipschitz observable with an integrable reference second moment.",
+      "Finite ordinary squared Wasserstein radius stated using Samplinglib's ENNReal W2.",
+      "For the phase adapter, separate reference position and momentum moments."
+    ],
+    "obligations": [
+      {
+        "id": "shared-transfer",
+        "label": "W2 transfer for Lipschitz observable second moments"
+      },
+      {
+        "id": "ordinary-phase",
+        "label": "Ordinary product-metric phase-state moment"
+      },
+      {
+        "id": "mkappa",
+        "label": "M_kappa metric definition and norm comparison (remaining)"
+      },
+      {
+        "id": "history",
+        "label": "Uniform phase-history law bound from (D.3) (remaining)"
+      },
+      {
+        "id": "d7",
+        "label": "All actual Picard query-center gradient moments (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment.of_wassersteinDistance_sq_le",
+      "title": "Wasserstein distance transfers a Lipschitz observable's second moment",
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2609.06906",
+          "label": "SPHMC Lemma D.4 prerequisite",
+          "scope": "Samplinglib-authored expansion of the standard transport step used after (D.3)."
+        }
+      ],
+      "tests": [
+        "lake build Tests.WassersteinLipschitzMoment"
+      ],
+      "assumptions": [
+        "E is a second-countable Borel normed additive group and F is a normed additive group.",
+        "g:E→F is b-Lipschitz and its squared norm is integrable under the reference law ν.",
+        "The squared extended-real Wasserstein distance from μ to ν is at most ofReal(r²)."
+      ],
+      "statement": "The observable remains square-integrable under μ, and its μ second moment is bounded by twice its reference second moment plus 2b²r².",
+      "formula": "W_2^2(\\mu,\\nu)\\le r^2\\Longrightarrow \\int\\|g\\|^2d\\mu\\le 2\\int\\|g\\|^2d\\nu+2b^2r^2.",
+      "steps": [
+        {
+          "title": "Choose an almost-optimal coupling",
+          "text": "For every s>r², the definition of transport cost supplies a coupling whose quadratic cost is below s. Optimal-plan existence is unnecessary.",
+          "formula": "\\exists\\gamma\\in\\Gamma(\\mu,\\nu):\\int\\|x-y\\|^2d\\gamma\\le s.",
+          "lean": "wassersteinDistance_sq and exists_isCoupling_lintegral_lt_of_transportCost_lt."
+        },
+        {
+          "title": "Dominate the transported observable",
+          "text": "Lipschitz continuity and the quadratic two-term inequality control the first-coordinate observable by an integrable reference term plus coupling displacement.",
+          "formula": "\\|g(x)\\|^2\\le2\\|g(y)\\|^2+2b^2\\|x-y\\|^2.",
+          "lean": "The private pointwise bound and Integrable.mono' establish integrability before integral comparison."
+        },
+        {
+          "title": "Use the exact marginals",
+          "text": "The coordinate projections of γ preserve μ and ν, so the two coupling integrals are exactly the desired marginal moments.",
+          "formula": "(\\mathrm{fst})_\\#\\gamma=\\mu,\\quad(\\mathrm{snd})_\\#\\gamma=\\nu.",
+          "lean": "CouplingQuadraticIntegrability.measurePreserving_fst/snd_of_isCoupling."
+        },
+        {
+          "title": "Remove the excess cost",
+          "text": "The bound holds for every s>r². Applying it at a controlled positive excess and letting that excess be arbitrary gives the closed r² bound.",
+          "formula": "\\forall\\varepsilon>0,\\ I_\\mu\\le2I_\\nu+2b^2r^2+\\varepsilon.",
+          "lean": "le_of_forall_pos_le_add and real algebra close the infimum argument."
+        }
+      ],
+      "lean_statement": "The statement explicitly returns Integrable before its real-valued integral inequality.",
+      "lean_proof": "Approximate coupling, pointwise quadratic domination, marginal pushforward identities, then an epsilon closure argument.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability.measurePreserving_fst_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability.measurePreserving_snd_of_isCoupling"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integrable_toReal_of_lintegral_ne_top",
+        "MeasureTheory.integral_map",
+        "MeasureTheory.integral_mono"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment.of_wassersteinDistance_sq_le",
+      "role": "prerequisite",
+      "supports": [
+        "shared-transfer"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Lemma D.4 uses Wasserstein control to infer second moments without isolating a theorem.",
+        "lean": "The observable is explicitly b-Lipschitz and square-integrable under the reference measure; integrability under the transported measure is a conclusion."
+      },
+      {
+        "source": "The paper can appeal to optimal couplings in finite-dimensional Euclidean space.",
+        "lean": "The proof uses arbitrarily near-optimal couplings and therefore does not assume attainment."
+      }
+    ]
+  }
+}

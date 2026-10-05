@@ -1,0 +1,28 @@
+@AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound : ∀ {E : Type u_1}
+  {S : Type u_2} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]
+  [ProperSpace E] (β : NNReal) (u : E) {R ε : ℝ} (hR : 0 < R) (hε : 0 < ε),
+  ε ≤ ↑β * R ^ 2 →
+    ∀ (φ : ℝ → ℕ) (next : S → E ⊕ E) (update : S → E → ℝ × E → S) (s₀ : S),
+      have δ := NNReal.mk (ε / R ^ 2) ⋯;
+      have N := ⌈↑(φ (2 * ↑β / ↑δ)) * Real.log (↑δ * R ^ 2 / (ε / 2))⌉₊;
+      (∀ (g : E → ℝ),
+          Differentiable ℝ g →
+            StrongConvexOn Set.univ (↑δ) g →
+              LipschitzWith (2 * β) (gradient g) →
+                ∀ (w : E),
+                  IsMinOn g Set.univ w →
+                    ‖w - u‖ ≤ R →
+                      ∃ t x c,
+                        execute next update (fun y => (g y, gradient g y)) N s₀ = ((t, some x), c) ∧
+                          g x - g w ≤ ε / 2) →
+        have corrected := fun s y a => update s y (a.1 + ↑δ / 2 * ‖y - u‖ ^ 2, a.2 + ↑δ • (y - u));
+        ∀ (f : E → ℝ),
+          Differentiable ℝ f →
+            ConvexOn ℝ Set.univ f →
+              LipschitzWith β (gradient f) →
+                ∀ (z : E),
+                  IsMinOn f Set.univ z →
+                    ‖z - u‖ ≤ R →
+                      ∃ t x c,
+                        execute next corrected (fun y => (f y, gradient f y)) N s₀ = ((t, some x), c) ∧
+                          f x - f z ≤ ε ∧ c ≤ ⌈↑(φ (2 * ↑β * R ^ 2 / ε)) * Real.log 2⌉₊ ∧ c ≤ φ (2 * ↑β * R ^ 2 / ε)

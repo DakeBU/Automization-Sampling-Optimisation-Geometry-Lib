@@ -1,0 +1,78 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+      "kind": "theorem",
+      "title": "Restarting a convex solver halves the radius and preserves a finite budget",
+      "statement": "E is a complete real inner-product space and f:E→R is C1 and alpha-strongly convex on E, with the alpha/2 chord convention. A global minimizer z is supplied. Alpha,beta,R,epsilon are strictly positive real numbers. The initial point satisfies ||x0-z||<=R. R is a supplied positive upper radius, not an exact unknown distance. A(y,r,delta) returns a point and a natural certified cost. For every y and positive r,delta with ||y-z||<=r, its output gap is <=delta and its cost is <=phi(beta*r²/delta). Phi:R→N is arbitrary; monotonicity is not assumed. N is a natural number, including zero, and alpha*(R/2^N)²<=epsilon. Set r_k=R/2^k and define the actual state/cost recursion and final call below. The recursion has the stated radius and cumulative cost, and its final output has gap at most epsilon.",
+      "formula": "\\begin{gathered}r_k=R/2^k,\\quad (x_0,c_0)=(x_0,0),\\\\(w_k,q_k)=A(x_k,r_k,\\alpha r_k^2/8),\\quad(x_{k+1},c_{k+1})=(w_k,c_k+q_k),\\\\(x_{\\rm out},q_{\\rm out})=A(x_N,\\sqrt{\\varepsilon/\\alpha},\\varepsilon),\\\\\\|x_N-z\\|\\le r_N,\\quad c_N\\le N\\phi(8\\beta/\\alpha),\\\\ f(x_{\\rm out})-f(z)\\le\\varepsilon,\\quad c_N+q_{\\rm out}\\le N\\phi(8\\beta/\\alpha)+\\phi(\\beta/\\alpha).\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space and f:E→R is C1 and alpha-strongly convex on E, with the alpha/2 chord convention. A global minimizer z is supplied.",
+        "Alpha,beta,R,epsilon are strictly positive real numbers. The initial point satisfies ||x0-z||<=R. R is a supplied positive upper radius, not an exact unknown distance.",
+        "A(y,r,delta) returns a point and a natural certified cost. For every y and positive r,delta with ||y-z||<=r, its output gap is <=delta and its cost is <=phi(beta*r²/delta). Phi:R→N is arbitrary; monotonicity is not assumed.",
+        "N is a natural number, including zero, and alpha*(R/2^N)²<=epsilon. Set r_k=R/2^k and define the actual state/cost recursion and final call below."
+      ],
+      "steps": [
+        {
+          "title": "Derive the sharp quadratic growth bound",
+          "text": "Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant.",
+          "formula": "\\nabla f(z)=0,\\qquad \\frac{\\alpha}{2}\\|y-z\\|^2\\le f(y)-f(z).",
+          "lean": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; IsLocalMin.fderiv_eq_zero and actual HasGradientAt from C1."
+        },
+        {
+          "title": "Induct on the actual restarted calls",
+          "text": "Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k>0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis.",
+          "formula": "\\frac\\alpha2\\|x_{k+1}-z\\|^2\\le\\frac{\\alpha r_k^2}{8}\\quad\\Longrightarrow\\quad\\|x_{k+1}-z\\|\\le\\frac{r_k}{2}=r_{k+1}.",
+          "lean": "Nat.rec and natural induction; solver contract, positive-radius cancellation, pow_succ and div_mul_eq_div_div."
+        },
+        {
+          "title": "Accumulate the certified stage costs",
+          "text": "At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N<=N phi(8beta/alpha).",
+          "formula": "\\frac{\\beta r_k^2}{\\alpha r_k^2/8}=8\\frac\\beta\\alpha,\\qquad c_{k+1}=c_k+q_k,\\qquad c_N\\le N\\phi(8\\beta/\\alpha).",
+          "lean": "field_simp uses r_k nonzero; Nat.add_le_add and Nat.add_mul propagate the actual accumulated count."
+        },
+        {
+          "title": "Make the final polishing call on a justified radius",
+          "text": "The chosen horizon gives r_N<=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.",
+          "formula": "\\rho=\\sqrt{\\varepsilon/\\alpha},\\qquad\\frac{\\beta\\rho^2}{\\varepsilon}=\\frac\\beta\\alpha,\\qquad f(x_{\\rm out})-f(z)\\le\\varepsilon,\\qquad c_N+q_{\\rm out}\\le N\\phi(8\\beta/\\alpha)+\\phi(\\beta/\\alpha).",
+          "lean": "Real.le_sqrt_of_sq_le, Real.sqrt_pos, Real.sq_sqrt; final hA call and Nat.add_le_add."
+        }
+      ],
+      "boundary": [
+        "This is the finite restart construction and certified cost composition in the proof of Lemma4.1. It is not a new proof of correctness of every possible base solver, a formal first-order-oracle machine, or the full class-level asymptotic reduction. The solver contract is exactly the assumed ingredient being transformed.",
+        "The formal reduction works for C1 strongly convex Hilbert objectives admitting the stated base solver contract. Source beta-smoothness motivates that contract; it is not independently inferred from beta or from an arbitrary returned pair. No supplied quadratic-growth or stage-radius invariant replaces the proof.",
+        "R>0 avoids zero-tolerance calls. An exactly minimizing initial point is allowed by any positive upper-radius certificate, but the R=0 stopping branch is outside this declaration. N=0 still makes the distinct final polishing call; the radius condition alone is not used as an objective-accuracy certificate.",
+        "The radius supplied to a base call is a known upper bound, consistent with the opening definition in Section4.1. The final call uses sqrt(epsilon/alpha) rather than the unknown exact distance; its cost is exactly bounded by phi(kappa) without monotonicity.",
+        "No logarithmic round-count normalization or absorption of phi(kappa) into phi(8kappa) is claimed. A global bound must account for the last call when the logarithm is small or nonpositive; an asymptotic small-tolerance convention and any phi comparison must be stated when formalized.",
+        "The concrete test uses actual gradient descent on x²/2 at step1/2. Each base call executes ceil(r²/delta)+1 gradient updates and reports that count; the existing convex value theorem proves its uniform contract. All restart counts, including zero, exercise the real recursion and final call. No hidden access to the supplied minimizer is passed to A.",
+        "No minimizer-existence, reverse regularization reduction, oracle lower bound, Riemannian/stochastic method or companion-paper completion is asserted."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "IsLocalMin.fderiv_eq_zero",
+        "Nat.rec",
+        "pow_succ",
+        "Real.le_sqrt_of_sq_le",
+        "Real.sqrt_pos",
+        "Real.sq_sqrt",
+        "Nat.add_le_add"
+      ],
+      "lean_statement": "Actual scheduled state/cost recursion and final solver call.",
+      "lean_proof": "Fermat gives the genuine gradient at z equal to zero. Apply the existing strong-convexity first-order lower bound at z. The resulting alpha/2 factor is essential: the older midpoint-only alpha/4 bound would not give the prescribed halving constant. Assume the actual current point has distance at most r_k. Positivity of R and alpha makes r_k and delta_k=alpha*r_k²/8 positive, so the base solver contract applies. Its objective guarantee combined with quadratic growth yields squared distance at most r_k²/4. Nonnegative norms and r_k>0 then give radius r_k/2=r_(k+1). The initial radius is the supplied hypothesis. At every stage the prescribed radius appears in both the tolerance and the solver budget. Their ratio is exactly 8beta/alpha, so no monotonicity of phi is needed. The recursion adds the returned cost to the accumulated natural count. Induction gives c_N<=N phi(8beta/alpha). The chosen horizon gives r_N<=sqrt(epsilon/alpha). Pass that positive upper radius, together with tolerance epsilon, to the same solver at the actual state x_N. Its output has objective gap at most epsilon. The final budget argument simplifies exactly to beta/alpha. Add this final returned cost, including when N=0.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.1 and preceding solver convention",
+          "scope": "Finite restart radius schedule, per-call budget and final accuracy; full logarithmic reduction remains separate."
+        },
+        {
+          "path": "Tests/Shared/RestartReduction.lean",
+          "label": "Actual gradient-descent base solver test",
+          "scope": "A nonstationary quadratic optimizer validates the base contract using the existing convex GD rate, then consumes this restart theorem."
+        }
+      ]
+    }
+  ]
+}

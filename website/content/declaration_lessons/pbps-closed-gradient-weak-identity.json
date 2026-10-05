@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientWeak.closed_gradient_weighted_ibp",
+      "title": "Closed gradients satisfy weighted compact-test integration by parts",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS Appendix C.1: analytic prerequisite",
+          "scope": "Weighted compact-test identity for the same closed gradient only. Not an unweighted distributional derivative, H2 regularity, a D*D operator core, noncompact Bochner extension, Poincare, score variance, macroscopic coercivity or a complete paper."
+        },
+        {
+          "url": "https://arxiv.org/html/1310.2526v7",
+          "label": "Kolesnikov–Milman §2.5: weighted Sobolev background",
+          "scope": "Direct full-space proof, not the compact-manifold spectral theorem."
+        }
+      ],
+      "tests": [
+        "lake build Tests.WeightedGradientWeak"
+      ],
+      "assumptions": [
+        "E is any finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. W:E→R is C1 and exp(-W) is integrable for Euclidean volume; μ=volume.tilted(-W) is the actual normalized Gibbs law.",
+        "D is a given closable partial real-linear map from scalar L²(μ) to vector L²(μ). Its original graph is exactly the pairs represented μ-almost everywhere by (f,∇f) for smooth compactly supported f. This is the interface already proved by WeightedGradient, not an assumed integration-by-parts formula.",
+        "(u,G) belongs to the graph of D.closure. The test φ:E→R is C1 with compact support and v is any constant vector. No differentiability of the chosen measurable L² representatives u or G is required."
+      ],
+      "statement": "Both φ⟨G,v⟩ and u(D_vφ−φD_vW) are μ-integrable, and their integrals have opposite signs. This holds for every graph-closure pair of the same operator D, not just for its original smooth core.",
+      "formula": "\\int \\varphi\\langle G,v\\rangle\\,d\\mu=-\\int u\\,(D_v\\varphi-\\varphi D_vW)\\,d\\mu.",
+      "boundary": "Weighted compact-test identity for the same closed gradient only. Not an unweighted distributional derivative, H2 regularity, a D*D operator core, noncompact Bochner extension, Poincare, score variance, macroscopic coercivity or a complete paper.",
+      "steps": [
+        {
+          "title": "Localize the classical integration by parts",
+          "text": "For a smooth core representative f, put F=e^(−W)φ. Both F and its directional derivative are continuous and compactly supported. Products with f or its continuous derivative are therefore integrable for volume. The classical full-space formula has no boundary term. No global boundedness of f or the score is needed.",
+          "formula": "D_vF=e^{-W}(D_v\\varphi-\\varphi D_vW),\\qquad \\int F D_vf\\,dx=-\\int f D_vF\\,dx.",
+          "lean": "private compact_directional_ibp: hF,hFc,hDFc,h1,h2,h3,hi; genuine HasFDerivAt product rule"
+        },
+        {
+          "title": "Normalize the actual Gibbs measure",
+          "text": "The continuous strictly positive density exp(−W) is assumed integrable, so its normalizing integral is finite and positive and μ is a probability measure. Multiplying the volume identity by the reciprocal normalization gives the weighted identity. This uses the actual tilted measure, not an abstract measure with supplied IBP.",
+          "formula": "Z=\\int e^{-W}\\,dx,\\qquad d\\mu=Z^{-1}e^{-W}dx,\\qquad \\int\\varphi D_vf\\,d\\mu=-\\int f(D_v\\varphi-\\varphi D_vW)\\,d\\mu.",
+          "lean": "isProbabilityMeasure_tilted hI; ht uses integral_tilted and integral_const_mul"
+        },
+        {
+          "title": "Represent the tests in L²",
+          "text": "Set P=φv and q=D_vφ−φD_vW. The C1 assumptions make both continuous. The derivative of φ vanishes off its topological support, so both tests have compact support even if D_vW grows at infinity. Finite measure and compact continuity imply L² membership.",
+          "formula": "P(x)=\\varphi(x)v,\\qquad q(x)=D_v\\varphi(x)-\\varphi(x)D_vW(x),\\qquad P\\in L^2(\\mu;E),\\quad q\\in L^2(\\mu).",
+          "lean": "hP,hPc,hdφ,hdW,hdc,hq,hqc,hPL,hqL; pv and qv are toLp representatives"
+        },
+        {
+          "title": "Establish genuine integrability and representative independence",
+          "text": "Products of L² functions are integrable by Cauchy–Schwarz. The pointwise representatives supplied by toLp agree almost everywhere with the explicit tests; transfer both product integrabilities across these equalities. Changing u or G on a null set does not change the conclusion.",
+          "formula": "\\int|\\langle G,P\\rangle|\\,d\\mu\\le\\|G\\|_2\\|P\\|_2,\\qquad\\int|uq|\\,d\\mu\\le\\|u\\|_2\\|q\\|_2.",
+          "lean": "hPe,hqe; L2.integrable_inner and Integrable.congr"
+        },
+        {
+          "title": "Prove the pairing identity on the exact core",
+          "text": "Take any pair in D.graph. Its exact graph characterization provides a smooth compact representative f and its genuine gradient. Transfer through the almost-everywhere equalities, use D_vf=⟨∇f,v⟩, and apply the normalized identity. This proves the equality on the whole original graph without assuming it.",
+          "formula": "(a,H)\\in\\operatorname{graph}D\\ \\Longrightarrow\\ \\langle H,P\\rangle_{L^2}=-\\langle a,q\\rangle_{L^2}.",
+          "lean": "hsub uses hgraph, hleft, hright, ht and compact_directional_ibp"
+        },
+        {
+          "title": "Pass to the graph closure by continuity",
+          "text": "The two L² pairings are continuous functions on the product Hilbert space. Their equality set is closed and contains D.graph, hence contains its topological closure. Closability identifies that closure with D.closure.graph. This retains precisely the D already used in the weak resolvent.",
+          "formula": "\\overline{\\operatorname{graph}D}\\subseteq\\{(a,H):\\langle H,P\\rangle=-\\langle a,q\\rangle\\},\\qquad\\overline{\\operatorname{graph}D}=\\operatorname{graph}(\\overline D).",
+          "lean": "hclosed,closure_minimal,hmem; hD.graph_closure_eq_closure_graph"
+        },
+        {
+          "title": "Return to the readable integral identity",
+          "text": "Convert the two Hilbert pairings back to integrals using the same almost-everywhere test representatives. This establishes a weighted weak identity; it does not differentiate u pointwise. Passing to ordinary volume weak derivatives, or invoking elliptic regularity for the resolvent, still requires separate work.",
+          "formula": "\\int \\varphi\\langle G,v\\rangle\\,d\\mu=-\\int u\\,(D_v\\varphi-\\varphi D_vW)\\,d\\mu.",
+          "lean": "he; L2.inner_def,integral_congr_ae (hPe G),integral_congr_ae (hqe u)"
+        }
+      ],
+      "lean_statement": "All spaces, the exact graph, closability, representatives, compact C1 test and integrabilities appear explicitly below.",
+      "lean_proof": "Compact classical weighted IBP plus a closed equality of continuous L² pairings, with explicit representative and integrability transfers.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.fderiv_apply_eq_inner_gradient_of_differentiableAt"
+      ],
+      "mathlib_dependencies": [
+        "integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+        "MeasureTheory.integral_tilted",
+        "MeasureTheory.L2.integrable_inner",
+        "MeasureTheory.L2.inner_def",
+        "LinearPMap.IsClosable.graph_closure_eq_closure_graph",
+        "closure_minimal"
+      ]
+    }
+  ]
+}

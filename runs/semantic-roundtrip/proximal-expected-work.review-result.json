@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "semantic_slots": {
+    "objects": {
+      "original": "A proximal-query center Y, Algorithm D.2 iterates x^(k), its returned approximate proximal point, the gradient-evaluation count N_prox(Y), and the gradient norm entering the Jensen bound.",
+      "reconstructed": "A probability measure nu on E; measurable functions p:E->E and N:E->Nat; the iterates of T_y(x)=y-eta grad V(x); the exact finite-fuel proximalQuery interpreter; and the real-valued count N(y)+1.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source D.2 defines x^(0)=y, x^(k+1)=y-eta grad V(x^(k)), returns x^(k), and D.3 names N_prox(y). The Lean conclusion retains the proximal equation, accurate returned iterate, and exact interpreter return rather than postulating an abstract cost variable."
+    },
+    "domains": {
+      "original": "The paper works on R^d with the normalized Hessian bounds and a random center arising in the Picard HMC run.",
+      "reconstructed": "E is any finite-dimensional complete real inner-product space with a Borel measurable structure; nu is any probability measure satisfying the stated square-gradient integrability premise.",
+      "relation": "explicit-elaboration",
+      "evidence": "Finite-dimensional real inner-product spaces are the coordinate-free form of the Euclidean source domain, and all operations in this isolated bound are invariant under orthogonal coordinates. Replacing the realized center law by an arbitrary probability law is a valid conditional abstraction of the Jensen step, not an identification with the Picard law."
+    },
+    "quantifiers": {
+      "original": "For every queried center Y along the realized run, D.7 supplies a second-moment bound; Lemma D.3 and Jensen then bound its expected proximal-query work.",
+      "reconstructed": "Universally over E,V,kappa,eta,c,eps and a probability measure nu under the displayed hypotheses, there exist measurable p and N, and the pointwise execution facts hold for every y while the cost conclusions hold under nu.",
+      "relation": "explicit-elaboration",
+      "evidence": "The theorem deliberately factors the source proof: it conditions on an arbitrary center law with a finite square-gradient moment. Instantiating nu with any actual Picard-center law after proving D.7 recovers the source use."
+    },
+    "assumptions": {
+      "original": "V is C2 on R^d, kappa^(-1)I <= Hess V <= I, kappa>=1, 0<eta<=c0<1, eps_prox>0, and for the Jensen step the center has finite E||grad V(Y)||^2 (numerically furnished by D.7 in the paper).",
+      "reconstructed": "V is ContDiff R 2, the same quadratic-form Hessian bounds hold for every x,v, kappa is nonnegative with kappa>=1, 0<eta<=c<1, eps>0, nu is a probability measure, and y |-> ||gradient V(y)||^2 is integrable.",
+      "relation": "equivalent",
+      "evidence": "The full parameter range 0<eta<=c<1 is present; no eta<=1/2 assumption is introduced. ContDiff plus the explicit second-fderivative inequality makes the Hessian assumptions genuine. Integrability of the nonnegative square is the measure-theoretic version of finite second moment and supplies the measurability needed by the expectation."
+    },
+    "conclusion": {
+      "original": "The first displayed inequality after D.7 is E N_prox(Y) <= C[1+log(1+sqrt(E||grad V(Y)||^2)/eps_prox)], obtained from the D.3 pointwise bound and Jensen.",
+      "reconstructed": "The actual count N+1 is integrable and its integral is at most C_c[1+log(1+sqrt(integral ||grad V||^2)/eps)]; the same witnesses also satisfy the proximal equation, eps-accuracy, measurability, and exact interpreter return with fuel and reported count N+1.",
+      "relation": "explicit-elaboration",
+      "evidence": "N+1 matches the actual number of gradient evaluations: testing the stopping condition after x^(N+1) is formed uses gradients at x^(0),...,x^(N), including the successful test. The extra execution and integrability conjuncts make the source's random cost and expectation rigorous and do not weaken the inequality."
+    },
+    "scopes": {
+      "original": "Only the conditional per-proximal-query Jensen estimate in the proof of D.4 after D.7; the source next uses a numerical D.7 estimate and then counts calls and phases to obtain D.8.",
+      "reconstructed": "Only construction of one measurable stopped proximal execution and its conditional expected count bound under nu; the theorem does not assert the Picard-center moment estimate, parameter substitution, phase aggregation, approximate-kernel stability, sampling error, or a total-work theorem.",
+      "relation": "same",
+      "evidence": "The Lean statement contains no h,J,q,L_q,d, phase count, D.7 numerical right-hand side, D.8 total N_grad V, Wasserstein/TV claim, or kernel-transfer premise. In particular it performs no transfer of the unbounded work variable through total variation."
+    },
+    "constant_dependencies": {
+      "original": "Lemma D.3 uses a constant C_c0 depending on the fixed contraction ceiling c0; the first Jensen inequality after D.7 writes a generic C before later parameter substitutions.",
+      "reconstructed": "C_c is fixed explicitly as 2+(1+log((1-c)^(-1)))/(-log c), depending only on c, while the bound also displays eps and the square-gradient moment; it has no dependence on the realized Picard parameters beyond those explicit inputs.",
+      "relation": "explicit-elaboration",
+      "evidence": "The explicit formula is an admissible constant obtained from the geometric contraction estimate in the D.3 proof using eta<=c<1. It is provenance-preserving specialization of C_c, not a claim that the paper printed this exact formula."
+    }
+  },
+  "deltas": [
+    {
+      "id": "SR-PEW-001",
+      "classification": "explicit-elaboration",
+      "blocking": false,
+      "description": "Lean constructs measurable stopped-program witnesses and proves count integrability, details implicit in the paper's use of a random Algorithm D.2 cost."
+    },
+    {
+      "id": "SR-PEW-002",
+      "classification": "explicit-elaboration",
+      "blocking": false,
+      "description": "Lean states the conditional Jensen estimate for an arbitrary probability center law with a finite square-gradient moment; D.7 is intentionally left as a later instantiation obligation."
+    },
+    {
+      "id": "SR-PEW-003",
+      "classification": "explicit-elaboration",
+      "blocking": false,
+      "description": "The Euclidean source domain is generalized coordinate-free to finite-dimensional complete real inner-product Borel spaces."
+    },
+    {
+      "id": "SR-PEW-004",
+      "classification": "explicit-elaboration",
+      "blocking": false,
+      "description": "Lean exposes one admissible formula for the D.3 constant C_c, whose dependence only on c is consistent with the source's C_c notation."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "source_review": {
+    "state": "completed",
+    "evidence": "Reviewed arXiv:2609.06906v1 Appendix D.2 at the packet anchor: Algorithm D.2 and Lemma D.3 (HTML lines 2134-2164), Lemma D.4/D.7-D.8 and its proof (lines 2166-2186). The reviewed theorem matches only the first Jensen expected-work inequality at lines 2182-2184."
+  },
+  "reviewer": "expected_work_source_reviewer",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent comparison of all seven semantic slots against the named arXiv HTML anchor and the current Lean module embedded in the canonical packet. The actual interpreter count is N+1, measurability and integrability are explicit, the domain generalization is coordinate-free, C_c provenance and dependence are explicit, the full range 0<eta<=c<1 is retained, and no total-variation transfer occurs. Hash convention: review_run_sha256 is SHA-256 of the UTF-8 compact JSON document after removing the review_run_sha256 member.",
+  "review_run_sha256": "4c27dfd0fb1bf48a9c40cb7edede2c0d36e37b152881108ebe95897ace154ffd",
+  "reviewer_packet_sha256": "0af3773054b19129df14b4f3be3fa63caf8f8c0e62e79d1419faf0ea3e0cce68"
+}

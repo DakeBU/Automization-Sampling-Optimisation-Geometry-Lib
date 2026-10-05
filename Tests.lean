@@ -1,3 +1,34 @@
+import Tests.Shared.UniformRegularization
+import Tests.WeightedLocalL2
+import Tests.SmoothedPicardHMCApproximateProximalExecution
+import Tests.SmoothedPicardHMCProximalExpectedWork
+import Tests.SmoothedPicardHMCPicardCenterMoment
+import Tests.SmoothedPicardHMCPartialMomentumRefresh
+import Tests.WassersteinLipschitzMoment
+import Tests.SmoothedPicardHMCPhaseStateMoment
+import Tests.SmoothedPicardHMCPhaseMetric
+import Tests.SmoothedPicardHMCPhaseReferenceMoment
+import Tests.SmoothedPicardHMCInitialPhaseTransport
+import Tests.SmoothedPicardHMCInitialGibbsPhaseTransport
+import Tests.SmoothedPicardHMCInitialGibbsPhaseTransportUnconditional
+import Tests.Shared.QuadraticRegularizationOracle
+import Tests.Shared.QuadraticRegularizationFirstOrder
+import Tests.Shared.QuadraticRegularizationTransfer
+import Tests.Shared.RestartLogComplexity
+import Tests.Shared.RestartReduction
+import Tests.Shared.GradientDescentComplexity
+import Tests.Shared.GradientDescentRates
+import Tests.Shared.GradientFlowLastIterate
+import Tests.Shared.GradientFlowStationarity
+import Tests.Shared.GradientFlowValue
+import Tests.Shared.GradientFlowContraction
+import Tests.Shared.GradientFlowPL
+import Tests.Shared.StrongConvexPLPullback
+import Tests.Shared.ConvexGradientGapSharpness
+import Tests.Shared.GradientDescentSharpness
+import Tests.Shared.QuadraticGradientDescent
+import Tests.Shared.GradientDescentOptimalStep
+import Tests.Shared.GradientDescentStationarity
 import Tests.Shared.GradientDescentPL
 import Tests.Basic
 import Tests.HessianStrongConvexity
@@ -12,6 +43,8 @@ import Tests.ProximalBPSGaussianAugmentation
 import Tests.ProximalBPSGaussianReflection
 import Tests.BrownianMotion
 import Tests.BrownianQuadraticVariation
+import Tests.BrownianQuadraticVariationL2
+import Tests.EmpiricalCovariance
 import Tests.GaussianFourthMoment
 import Tests.VectorBrownianFiltration
 import Tests.EuclideanBrownianCoordinates
@@ -19,6 +52,7 @@ import Tests.CarreDuChamp
 import Tests.CoefficientTruncation
 import Tests.ContinuousCostWeakLowerSemicontinuity
 import Tests.DisplacementInterpolation
+import Tests.DisplacementInterpolationConstantSpeed
 import Tests.DisplacementJacobianEntropy
 import Tests.DiscreteDoobL2
 import Tests.ContinuousDoobL2
@@ -61,6 +95,7 @@ import Tests.ItoIntegralProcessCongruence
 import Tests.KantorovichDual
 import Tests.KernelInvariance
 import Tests.KernelTotalVariation
+import Tests.KernelHybridTelescope
 import Tests.LangevinCarreDuChamp
 import Tests.LaggedDyadicApproximation
 import Tests.LaggedDyadicConvergence
@@ -92,6 +127,7 @@ import Tests.GlobalItoProcessGluing
 import Tests.ChewiProposition1_1_16
 import Tests.RandomStoppingDyadicApprox
 import Tests.RandomStoppingBoundary
+import Tests.BoundedStoppedItoMean
 import Tests.RandomStoppingProcessApprox
 import Tests.RandomStoppingIntegrandLimit
 import Tests.RandomStoppingProgressiveL2
@@ -103,6 +139,9 @@ import Tests.RandomStoppingProcessConsistency
 import Tests.Reversibility
 import Tests.SampledElementaryApproximation
 import Tests.SemigroupDecay
+import Tests.BakryEmeryInterpolation
+import Tests.BakryEmeryCalculus
+import Tests.BakryEmeryGradientContraction
 import Tests.StoppingTime
 import Tests.TimeMeasureRealBridge
 import Tests.Transport
@@ -136,6 +175,9 @@ import Tests.ProximalBPSConditionalScoreDomain
 import Tests.ProximalBPSConditionalBochner
 import Tests.ProximalBPSConditionalGradient
 import Tests.ProximalBPSConditionalResolvent
+import Tests.WeightedGradientWeak
+import Tests.WeightedGradientDistribution
+import Tests.WeightedResolvent
 import Tests.SmoothedPicardHMCTruncation
 import Tests.SmoothedPicardHMCGaussianPowerMoment
 import Tests.SmoothedPicardHMCGaussianMixture
@@ -174,7 +216,17 @@ import Tests.SmoothedPicardHMCEnhancedKLOneStep
 import Tests.SmoothedPicardHMCEnhancedFiniteOutputKL
 import Tests.SmoothedPicardHMCProximalGaussianEstimator
 import Tests.SmoothedPicardHMCGibbsPositionMoment
+import Tests.SmoothedPicardHMCProximalEstimatorLipschitz
 import Tests.SmoothedPicardHMCClippedGradientProgram
+import Tests.TiltedLogRatio
+import Tests.TiltedKL
+import Tests.QuadraticTiltFisher
+import Tests.CanonicalLogSobolev
+import Tests.GradientAECongruence
+import Tests.FinitePowerSeries
+import Tests.UnitSphere
+import Tests.SphereSecondOrder
+import Tests.ExponentialKernelInterpolation
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

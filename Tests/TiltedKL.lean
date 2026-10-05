@@ -1,0 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL
+
+#check AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL.finite_klDiv_and_toReal_eq_integral_normalizedLogRatio
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL.finite_klDiv_and_toReal_eq_integral_normalizedLogRatio

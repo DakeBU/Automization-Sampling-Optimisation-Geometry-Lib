@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "units": [{
+    "kind": "theorem",
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw.partial_refresh_with_picard_innovations",
+    "title": "The actual independent Gaussian inputs for the first Picard layer",
+    "boundary": "This constructs the first refresh noise and first finite Picard innovation array. The incoming run-wide moment, second array, second refresh, quadrature data, numerical D.7 and D.8 remain separate.",
+    "sources": [{"url": "https://arxiv.org/html/2609.06906v1#S3.SS2", "label": "Chen–Chewi–Lu–Zhang, Algorithm 3.1", "scope": "Independent zeta_0 and G_j^[0] draws; Lemma D.4 uses their second moments."}],
+    "tests": ["lake build Tests.SmoothedPicardHMCPartialMomentumRefresh"],
+    "assumptions": [
+      "The incoming phase-state law is a probability measure with an integrable combined square bounded by M≥0.",
+      "The phase length is nonnegative and the Picard index type is finite.",
+      "E is a complete finite-dimensional real inner-product Borel space."
+    ],
+    "statement": "On the nested product of the incoming law, a fresh standard Gaussian, and a finite product of standard Gaussians, the refreshed X and P0 and every Picard innovation G_j are measurable and square-integrable with their exact consumer-ready moment bounds.",
+    "formula": "B_{\\rm refresh}=M+(1-e^{-h})d,\\qquad \\mathbb E\\|G_j^{[0]}\\|^2=d.",
+    "steps": [
+      {"title": "Build the probability space", "text": "The nested product measure represents freshness of the first refresh Gaussian and the first Picard innovation array.", "formula": "\\mu=(\\nu\\otimes\\gamma_d)\\otimes\\bigotimes_{j\\in[J]}\\gamma_d.", "lean": "Measure.prod constructs the refresh factor and Measure.pi constructs the finite innovation array."},
+      {"title": "Reuse the refresh calculation", "text": "The previous theorem already proves measurability, integrability, and the corrected OU moment budget; product integration lifts it unchanged over the extra innovation array.", "formula": "\\mathbb E_\\mu[\\|X-x_*\\|^2+\\|P_0\\|^2]\\le B_{\\rm refresh}.", "lean": "Integrable.comp_fst and integral_prod transport the established result."},
+      {"title": "Read each Gaussian coordinate", "text": "Evaluation at j is measurable. Finite-product marginal integration returns the original standard Gaussian law, so every coordinate has exactly dimension d as its squared-norm moment.", "formula": "G_j(w)=w_{\\rm array}(j),\\quad \\mathbb E\\|G_j\\|^2=d.", "lean": "integrable_comp_eval and integral_comp_eval are the pinned Mathlib APIs."},
+      {"title": "Feed the real variables to the next theorem", "text": "The focused test passes the product-law coordinate projections to the two-layer Picard moment theorem, and separately checks a nondegenerate one-dimensional Gaussian coordinate moment.", "formula": "(X,P_0,(G_j)_j)\\longrightarrow\\text{PicardCenterMoment}.", "lean": "Tests.SmoothedPicardHMCPartialMomentumRefresh checks symbolic API composition in dimension zero and the exact positive-dimensional Gaussian moment in E=R."}
+    ],
+    "lean_statement": "The nested lets expose the exact probability law and random variables, while the conjunction returns every measurability and integrability premise required downstream.",
+    "lean_proof": "ASTIS owns the OU refresh and Gaussian norm-square results. Mathlib owns finite product measures, coordinate marginals, and product integration.",
+    "astis_dependencies": ["AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PartialMomentumRefresh.partial_momentum_refresh_second_moment", "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"],
+    "mathlib_dependencies": ["MeasureTheory.Measure.pi", "MeasureTheory.integrable_comp_eval", "MeasureTheory.integral_comp_eval", "MeasureTheory.integral_prod"]
+  }]
+}

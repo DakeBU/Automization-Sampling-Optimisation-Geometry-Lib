@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-616856a647ca55cf",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1}\n  {S : Type u_2} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]\n  [ProperSpace E] (β : NNReal) (u : E) {R ε : ℝ} (hR : 0 < R) (hε : 0 < ε),\n  ε ≤ ↑β * R ^ 2 →\n    ∀ (φ : ℝ → ℕ) (next : S → E ⊕ E) (update : S → E → ℝ × E → S) (s₀ : S),\n      have δ := NNReal.mk (ε / R ^ 2) ⋯;\n      have N := ⌈↑(φ (2 * ↑β / ↑δ)) * Real.log (↑δ * R ^ 2 / (ε / 2))⌉₊;\n      (∀ (g : E → ℝ),\n          Differentiable ℝ g →\n            StrongConvexOn Set.univ (↑δ) g →\n              LipschitzWith (2 * β) (gradient g) →\n                ∀ (w : E),\n                  IsMinOn g Set.univ w →\n                    ‖w - u‖ ≤ R →\n                      ∃ t x c,\n                        execute next update (fun y => (g y, gradient g y)) N s₀ = ((t, some x), c) ∧\n                          g x - g w ≤ ε / 2) →\n        have corrected := fun s y a => update s y (a.1 + ↑δ / 2 * ‖y - u‖ ^ 2, a.2 + ↑δ • (y - u));\n        ∀ (f : E → ℝ),\n          Differentiable ℝ f →\n            ConvexOn ℝ Set.univ f →\n              LipschitzWith β (gradient f) →\n                ∀ (z : E),\n                  IsMinOn f Set.univ z →\n                    ‖z - u‖ ≤ R →\n                      ∃ t x c,\n                        execute next corrected (fun y => (f y, gradient f y)) N s₀ = ((t, some x), c) ∧\n                          f x - f z ≤ ε ∧ c ≤ ⌈↑(φ (2 * ↑β * R ^ 2 / ε)) * Real.log 2⌉₊ ∧ c ≤ φ (2 * ↑β * R ^ 2 / ε)",
+    "statement_sha256": "616856a647ca55cf1856e4ee3ef0580ce884f2952d126168217e663f2c76c9c2",
+    "compiled": true,
+    "approved_definition_context": [
+      "The operator execute takes pure deterministic next:S→X⊕Q, update:S→Q→A→S, oracle:Q→A, query fuel n and initial state s. It inspects next(s) first. At inl x return ((s,some x),0), including zero fuel. At inr q and zero fuel return ((s,none),0). At inr q and fuel k+1, obtain a=oracle(q), let tail=execute next update oracle k (update s q a), and return (tail.1,tail.2+1). Only the explicit oracle branch increments this counter. Some x is success; none is exhaustion. Arbitrary computation inside supplied functions is uncharged.",
+      "E is a complete real inner-product space, with its induced norm. ProperSpace means every closed bounded ball is compact. Differentiable R f means everywhere Frechet differentiable, gradient is the actual Riesz gradient of that derivative. ConvexOn R Set.univ is global convexity; StrongConvexOn Set.univ m g uses the additional subtraction (m/2)t(1-t)||x-y||² in the convex chord inequality. LipschitzWith K h means dist(hx,hy)<=K dist(x,y) for all x,y.",
+      "NNReal means nonnegative reals; NNReal.mk a proof packages a real a with its nonnegativity proof and coerces back to a. Natural ceiling is max(0, integer ceiling); it is the least nonnegative integer at least the real argument. IsMinOn f Set.univ z means f(z)<=f(x) for every x. Have-bindings are local expression definitions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "1951e0688ace262e62c39aed5d094bf4815f4bc45745196799b1b1485b46876c"
+}

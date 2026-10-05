@@ -1,0 +1,95 @@
+{
+  "reviewer": "pl_pullback_review",
+  "review_kind": "independent bounded source/reuse/route audit only",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S2",
+    "anchors": [
+      "Definition1.5 lines200–204",
+      "Proposition1.6 (1.5) lines208–215",
+      "Section2 conventions lines328–335",
+      "Theorem2.2 lines347–358"
+    ],
+    "alpha_convention": "Theorem2.2 invokes alpha-convex without restating its sign. Definition1.5 defines this only for alpha>=0; alpha0 is convex/nonexpansive, alpha>0 strongly convex/contractive. Arbitrary real alpha is not the literal source domain.",
+    "statement": "For two supplied gradient flows of the same alpha-convex objective, norm(Yt-Xt)<=exp(-alpha*t)*norm(Y0-X0), all t>=0.",
+    "proof": "Differentiate squared distance, apply gradient monotonicity (1.5), then Gronwall with coefficient-2alpha and take the nonnegative square root.",
+    "background": "Source Section2 assumes C2 f and does not prove gradient-flow well-posedness. Global attained-minimum convention is irrelevant to this two-trajectory estimate."
+  },
+  "candidate_assessment": {
+    "status": "Substantive and mathematically sound route, pending implementation/review",
+    "recommended_signature": "Complete real Hilbert E; f:E→R differentiable, StrongConvexOn univ alpha f; alpha>=0,T>=0; X,Y:R→E continuous onIcc0T, with actual right derivatives -gradient f(Xt),-gradient f(Yt) onIco0T. Conclude norm(Yt-Xt)<=exp(-alpha*t)*norm(Y0-X0) for t∈Icc0T.",
+    "arbitrary_real_alternative": "Mathematically valid with arbitrary real alpha because the existing parent and Gronwall allow it. If selected, explicitly label semiconvex generalization; alpha<0 gives exponential growth control, not contraction. Do not label universal source equivalence.",
+    "substantive_delta": "Compose two actual gradient dynamics with squared-norm differentiation and the existing strong-convexity monotonicity theorem. Do not merely assume the scalar distance differential inequality; this derived actual-trajectory interface is new.",
+    "generalizations": [
+      "Hilbert replaces Euclidean",
+      "Frechet differentiable replaces Section2 C2",
+      "Right-time finite-interval dynamics replace classical full forward flow",
+      "No minimizer hypothesis because it is unused in two-flow contraction; no minimizer is constructed"
+    ],
+    "endpoint_boundary": "ContinuousOn both curves onIcc0T supplies terminal continuity; derivatives only onIco0T. T0 gives initial equality. No negative-time or terminal derivative required.",
+    "not_claimed": [
+      "Existence or uniqueness theorem for solutions",
+      "Global extension of either flow",
+      "Distance-to-minimizer or point convergence",
+      "Discrete-time, stochastic, measure-valued or Wasserstein contraction",
+      "PL inequality or objective-value rate"
+    ]
+  },
+  "reuse_audit": {
+    "ASTIS": {
+      "parent": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+      "parent_statement": "For StrongConvexOn s m f and supplied actual gradients on s: m*norm(y-x)^2<=inner(grad y-grad x)(y-x). Arbitrary real m. Instantiate s=univ and gradients=(hf x).hasGradientAt.",
+      "searched": [
+        "TechnicalLemmas gradient/flow contraction names",
+        "GradientDescentContraction.lean",
+        "GradientFlowPL.lean",
+        "FunctionalInequalities/SemigroupDecay.lean",
+        "CommonNoiseContraction/GaussianSmoothing references"
+      ],
+      "exact_actual_two_gradient_flow_target_found": false,
+      "distinctions": "GradientDescentContraction is discrete; GradientFlowPL controls one objective gap; measure common-noise/heat-flow contractions do not identify this deterministic gradient dynamics."
+    },
+    "Mathlib": {
+      "exact_target_found": false,
+      "searched": [
+        "Analysis/ODE/Gronwall and ODE sources",
+        "Analysis/InnerProductSpace/Calculus",
+        "gradient calculus API"
+      ],
+      "reusable_APIs": [
+        "HasDerivWithinAt.sub",
+        "HasDerivWithinAt.norm_sq in Analysis.InnerProductSpace.Calculus: derivative2*inner(curve t)(curve prime)",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_ε0",
+        "Real.exp_add/Real.exp_pos for squared exponential and nonnegative square-root comparison"
+      ],
+      "nonmatching_ODE_API": "dist_le_of_trajectories_ODE(_of_mem) assumes a nonnegative LipschitzWith K for the vector field and yields exp(+K*t). It does not supply dissipative contraction from one-sided gradient monotonicity; do not add a global gradient Lipschitz hypothesis to use it."
+    },
+    "Optlib": {
+      "pin": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "parent_provenance": "Optlib/Convex/StronglyConvex.lean Strong_Convex_lower, already ASTIS-owned via the above parent.",
+      "searched": "Pinned Optlib sources for actual gradient-flow/contraction and strong-convexity APIs.",
+      "exact_target_found": false,
+      "decision": "Reuse ASTIS-owned monotonicity theorem; no external proof port needed."
+    },
+    "CvxLean": {
+      "pin": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "searched": "Pinned source flow/contraction/gradient and optimization-equivalence libraries.",
+      "exact_target_found": false,
+      "decision": "Out of scope."
+    }
+  },
+  "proof_route": [
+    "Set D(t)=Y(t)-X(t) and derive actual right derivative -(gradient f(Yt)-gradient f(Xt)).",
+    "Use HasDerivWithinAt.norm_sq; rewrite inner product using real symmetry/signs.",
+    "Apply existing gradient_inner_lower_bound_of_strongConvexOn atXt,Yt to obtain squared-distance derivative<=-2alpha*norm(Dt)^2.",
+    "Feed actual right slope and closed-interval continuity to existing scalar Gronwall.",
+    "Rewrite exp(-2alpha*t)=exp(-alpha*t)^2, use positivity and nonnegative norms to pass from squared estimate to requested norm estimate."
+  ],
+  "test_recommendation": {
+    "main": "f(x)=x²/2; X(t)=exp(-t), Y(t)=2exp(-t). Prove both actual derivatives and gradient, apply result at positive times on arbitrary finite horizon, and check sharp equality. Neither curve is stationary and initial distance1 is positive.",
+    "optional": "Alpha0 constant objective and distinct constant curves exercise nonexpansive source edge. If arbitrary real alpha chosen, negative quadratic with expanding exp(t) flows tests its separately labeled expansion regime.",
+    "robustness": "Using squared distance rather than differentiating norm avoids any hidden nonzero-separation hypothesis when trajectories meet."
+  },
+  "review_boundary": "No repository edits or proof created. Frozen compiler proof, independent decoder and source review, aggregate release/publication gates remain future obligations."
+}

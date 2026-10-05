@@ -12,6 +12,43 @@ are in `declaration_lessons/sphmc-recursive-condition.json`,
 `declaration_lessons/sphmc-rgo-closure.json`, `publications/sphmc.json` and
 `publications/sphmc-rgo-closure.json` under `website/content/`.
 
+## Compiled initialization component: Lemma 4.16 at q = 2
+
+`ASTIS-SW-SPHMC-initial-gibbs-q2` connects the actual normalized Gibbs law,
+its Gaussian smoothing, and the phase-space coupling used by Lemma 4.16.  In
+the paper's normalized regime, write $\kappa=1/\alpha$, let $p$ be a supplied
+critical point, and assume
+
+$$
+\|\nabla U(x_{\rm ref})\|^2\le\alpha d,
+\qquad 0<\alpha\le1,
+\qquad 0\le\eta\le1.
+$$
+
+The compiled proof first obtains
+$\|x_{\rm ref}-p\|^2\le d/\alpha$ from genuine Hessian strong convexity.
+It then combines the Gibbs moment about $p$ with the squared triangle
+inequality, adds the exact $\eta d$ Gaussian-smoothing contribution, and
+couples the two momentum coordinates identically:
+
+$$
+\begin{aligned}
+\mathbb E_\pi\|X-x_{\rm ref}\|^2&\le4d/\alpha,\\
+\mathbb E\|X+\sqrt\eta G-x_{\rm ref}\|^2&\le(4\kappa+\eta)d,\\
+W_{2,M_\kappa}^2(\delta_{x_{\rm ref}}\otimes\gamma,
+  \Pi_\eta)&\le5\kappa d.
+\end{aligned}
+$$
+
+This is an explicit conditional $q=2$ proof component, not all of Lemma 4.16.
+The source states a universal-constant bound for every $q\ge2$; the all-$q$
+concentration argument and a source-level theorem constructing the critical
+point from the curvature hypotheses remain separate open edges.  The constant
+$5$ is the ASTIS-derived second-moment constant, not a constant printed by the
+paper.  The reader proof and folded Lean are generated from
+`sphmc-initial-gibbs-q2.json` in the declaration-lesson and publication
+metadata directories.
+
 ## Exact conversion
 
 In (6.1)–(6.2), let $k=\kappa_A\ge2$, $h=\eta_j$, $\tau=k$,
@@ -35,6 +72,60 @@ cost/error; normalized density smoothing and score regularity; Picard local
 error and moment propagation; proxy construction; final actual-input cost.
 Theorems 1.1–1.3 remain open. No diagram or citation/download feature is a
 prerequisite for the next correct Lean packet.
+
+## Lemma 4.17: exact RGO recovery is compiled; fiberwise W2 contraction is blocked
+
+The recovery identity is already stronger than a paper-specific invariance
+wrapper: `GaussianConditionalKernel.exists_tilted_isCondKernel` supplies the
+joint disintegration certificate, and `RGOBackward.rgo_backward_recovery`
+records the SPHMC specialization. A duplicate recovery declaration is therefore
+not a new mathematical leaf.
+
+The remaining first inequality in Lemma 4.17 is genuinely analytic. With
+`alpha = kappa^{-1}` and `lambda = alpha + eta^{-1}`, the cited
+Lee--Shen--Tian proof is
+
+\[
+W_2^2(R_{\eta,y},R_{\eta,y'})
+ \le \frac{2}{\lambda}\,\mathrm{KL}(R_{\eta,y}\|R_{\eta,y'})
+ \le \frac{1}{\lambda^2}\,\mathrm{FI}(R_{\eta,y}\|R_{\eta,y'}),
+\]
+
+while direct differentiation of the normalized density ratio gives
+
+\[
+\nabla\log\frac{dR_{\eta,y}}{dR_{\eta,y'}}(x)
+ = \frac{y-y'}{\eta}.
+\]
+
+Consequently
+
+\[
+W_2(R_{\eta,y},R_{\eta,y'})
+ \le \frac{1}{1+\alpha\eta}\,\lVert y-y'\rVert
+ = \frac{\kappa}{\kappa+\eta}\,\lVert y-y'\rVert.
+\]
+
+At the pinned toolchain, neither Mathlib nor Samplinglib contains the required
+strong-convex Gibbs log-Sobolev instance and Otto--Villani `LSI -> T2` backend.
+Samplinglib now does compile the intervening canonical interface theorem: once
+an actual generator LSI with multiplier (C), canonical-density admissibility,
+and the genuine Dirichlet--Fisher domains are supplied, it proves both finite
+Mathlib KL and
+
+\[
+\mathrm{KL}(\mu\|\pi)\le \frac C2\,\mathrm{FI}(\mu\|\pi).
+\]
+
+For the source curvature rate this requires the explicit adapter
+(C=\lambda^{-1}). It does not construct the Gibbs LSI and does not include
+the independent Talagrand inequality.
+The route is therefore recorded as the typed blocker
+`ASTIS-SW-SPHMC-rgo-fiber-w2-contraction`, with the strictly smaller shared child
+`ASTIS-SHARED-strong-convex-gibbs-lsi-t2`. A theorem assuming the desired T2
+bound, or a coupling with the desired cost, would only restate the missing
+content. The alternative Wasserstein-subdifferential/JKO proof is source-valid
+but retired for this packet because its absent formal substrate is larger.
 
 ## Compiled normalized-law component: Lemma 6.4
 
@@ -255,3 +346,35 @@ This advances the prior open deterministic-depth boundary only. Independent
 commit admission, integration and rendered-reader validation
 remain pending; stochastic history, FORS, recursive errors and expected costs
 remain separate mathematical obligations. Neither complete paper is admitted.
+
+## Lemma 4.17: the relative-score calculation now compiles
+
+The shared cell ASTIS-SHARED-tilted-log-ratio-representative now isolates the
+source equation used in the Lee--Shen--Tian proof cited by SPHMC. For
+
+\[
+q_{\eta,y}(x)=-\frac{\|x-y\|^2}{2\eta},\qquad
+r_{y,y'}(x)=q_{\eta,y}(x)-\log Z_y-q_{\eta,y'}(x)+\log Z_{y'},
+\]
+
+the new Lean declarations prove both
+
+\[
+\operatorname{llr}(R_{\eta,y},R_{\eta,y'})=r_{y,y'}
+\quad R_{\eta,y}\text{-a.e.},
+\qquad
+\nabla r_{y,y'}(x)=\eta^{-1}(y-y').
+\]
+
+The first equality keeps sigma-finiteness, measurability and both exponential
+integrability obligations explicit. The second differentiates the displayed
+smooth representative only. It does **not** differentiate Mathlib's canonical
+measurable llr: equality almost everywhere does not preserve a classical
+gradient after arbitrary changes on a null set.
+
+This closes the exact algebra/calculus content of equation (11), not SPHMC
+Lemma 4.17. The conditional canonical LSI-to-finite-KL/Fisher bridge is now
+compiled, but a representative-to-canonical-Fisher adapter, a concrete
+strong-convex Gibbs LSI instance, and Talagrand T2 are still red; only after
+those independent analytic edges can the exact
+\(\kappa/(\kappa+\eta)\) Wasserstein contraction be claimed.

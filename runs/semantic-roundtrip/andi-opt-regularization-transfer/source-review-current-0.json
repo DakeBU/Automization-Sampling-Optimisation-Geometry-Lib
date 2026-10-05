@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "reviewer": "reg_source_6a15",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "6b23a8cc55b74b56bf2c93a2ea81aeae42e85541cd202c80adc5a4af98f2e66a",
+  "publication_binding_sha256": "56e66b70b2dc51ac63d886325e553ccae7ca1648321a29c16c02f044fea0d088",
+  "semantic_slots": {
+    "objects": {
+      "original": "f, its minimizer z, x0, regularized f_delta, its minimizer, solver and complexity function phi.",
+      "reconstructed": "f, z, x0, delta, W, one constructed w and every approximate point x.",
+      "relation": "missing-from-lean",
+      "evidence": "W is exactly the regularized objective after renaming f_delta; z and w have separate global-minimizer roles. The declaration introduces neither an algorithm nor phi. Those absent objects belong to the explicitly unbound oracle-cost-class obligation."
+    },
+    "domains": {
+      "original": "Unconstrained Euclidean space; real objective and parameters.",
+      "reconstructed": "An arbitrary proper normed additive commutative group; real objective and positive R, epsilon.",
+      "relation": "different",
+      "evidence": "Finite-dimensional Euclidean spaces satisfy the Lean domain assumptions. A proper normed group need not be a real vector space, so this is a strict domain generalization, not literal source equality. The selected proof uses only compact balls, a continuous norm, and ordered real arithmetic; it never needs convex combinations or a gradient."
+    },
+    "quantifiers": {
+      "original": "A class-uniform solver reduction, with comparisons for the chosen f and minimizers.",
+      "reconstructed": "For every continuous f and supplied global minimizer z, center and admissible R, epsilon, there exists one w; for every x its W-gap condition implies its f-gap bound.",
+      "relation": "different",
+      "evidence": "The reconstruction accurately preserves the declaration: w is outside the all-x quantifier and is the minimizer in that same implication. No solver is existentially constructed and no uniform oracle query bound is proved. The local all-x implication validly supplies the accuracy component independently of how a solver chooses x."
+    },
+    "assumptions": {
+      "original": "Convex beta-smooth Euclidean f; attained minimum and initial radius certificate; solver hypothesis.",
+      "reconstructed": "Continuous f, ProperSpace E, supplied IsMinOn f univ z, R>0, epsilon>0, and norm(z-x0)<=R.",
+      "relation": "different",
+      "evidence": "Source smoothness implies continuity and Euclidean closed balls are compact. Thus the explicit analytic assumptions impose no additional condition on the intended Euclidean instances. Convexity, smoothness constants and a solver are unnecessary for this comparison component. Positive R makes division genuine; R=0 is outside this declaration and can be handled separately by the already optimal center. This is an explicit boundary, not a source correction."
+    },
+    "conclusion": {
+      "original": "Algorithmic reduction; its proof includes radius and epsilon-accuracy comparisons.",
+      "reconstructed": "Existence of a global W-minimizer, sharp radius comparison, and uniform half-error transfer.",
+      "relation": "weaker-in-lean",
+      "evidence": "The three supported obligations are exactly regularized-minimum, radius-comparison and accuracy-transfer. The local construction is stronger than merely assuming that w exists. It does not establish strong convexity, smoothness, an implementable first-order algorithm, or the advertised class-uniform complexity. Accordingly this is accepted as a proof component, never as all of Lemma 4.2."
+    },
+    "scopes": {
+      "original": "Section 4.1 uses successful optimization in a first-order oracle model.",
+      "reconstructed": "IsMinOn over Set.univ and real-valued objective inequalities; no operational oracle semantics.",
+      "relation": "different",
+      "evidence": "Both minimizers are global, not local or constrained. The compact-ball step is only a proof device; the following outside-ball comparison upgrades it to a global minimum. The authored lesson and module explicitly exclude curvature and oracle costs, matching the binding scope. The minimum is not supplied as an algorithm output."
+    },
+    "constant_dependencies": {
+      "original": "delta=epsilon/R^2, two epsilon/2 terms, radius R; beta and phi in the remaining reduction.",
+      "reconstructed": "The same delta and half-error factors, norm(w-x0)<=norm(z-x0)<=R, no beta or phi.",
+      "relation": "explicit-elaboration",
+      "evidence": "The transfer constant is exactly one: the regularization penalty at z is at most epsilon/2 and the approximate W-gap is at most epsilon/2. No dimension or compactness constant enters. The declaration applies for all positive epsilon, since the condition epsilon<=beta R^2 is needed only by the remaining condition-number comparison."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "The local comparison is generalized beyond Euclidean vector spaces.",
+      "evidence": "Finite-dimensional Euclidean spaces satisfy the Lean domain assumptions. A proper normed group need not be a real vector space, so this is a strict domain generalization, not literal source equality. The selected proof uses only compact balls, a continuous norm, and ordered real arithmetic; it never needs convex combinations or a gradient."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Continuity and compact balls replace unused convexity and smoothness for this selected proof component.",
+      "evidence": "Source smoothness implies continuity and Euclidean closed balls are compact. Thus the explicit analytic assumptions impose no additional condition on the intended Euclidean instances. Convexity, smoothness constants and a solver are unnecessary for this comparison component. Positive R makes division genuine; R=0 is outside this declaration and can be handled separately by the already optimal center. This is an explicit boundary, not a source correction."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "review",
+      "description": "The pinned source includes a full algorithmic reduction; only three named proof obligations are supported here.",
+      "evidence": "The three supported obligations are exactly regularized-minimum, radius-comparison and accuracy-transfer. The local construction is stronger than merely assuming that w exists. It does not establish strong convexity, smoothness, an implementable first-order algorithm, or the advertised class-uniform complexity. Accordingly this is accepted as a proof component, never as all of Lemma 4.2."
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "informational",
+      "description": "Pointwise accuracy transfer is uniform in x, but it is not uniform algorithmic complexity.",
+      "evidence": "The reconstruction accurately preserves the declaration: w is outside the all-x quantifier and is the minimizer in that same implication. No solver is existentially constructed and no uniform oracle query bound is proved. The local all-x implication validly supplies the accuracy component independently of how a solver chooses x."
+    }
+  ],
+  "verdict": "lean-weakened-conclusion",
+  "repairs": [],
+  "review_evidence": "Independent review of the anti-anchored packet and primary source https://arxiv.org/html/2605.07006v1#S4.SS1, including the Section 4.1 opening definition and Lemma 4.2 statement/proof. I read neither the old registry nor previous review verdicts. The blind reconstruction matches the supplied elaborated Lean statement. I inspected the entire module text and authored lesson in this packet. Its compact-ball existence proof is valid: choose a minimizer on the closed ball containing z; outside the ball, global minimality of z and the radial penalty give W(z)<=W(x), so the chosen point minimizes globally. Comparing its value with W(z) and using f(z)<=f(w) cancels the positive coefficient to give the sharp norm inequality. Nonnegative penalty and the radius certificate then yield the advertised all-x implication. No hidden differentiability, convexity, uniqueness, or oracle hypothesis is used. The candidate publication statement is a faithful contextual paraphrase, while its binding and lesson expressly claim only three components. Its two remaining obligations are correctly uncovered. Acceptance is for that component publication; the verdict is lean-weakened-conclusion relative to the entire pinned source statement, not full-source equivalence. No source repair is necessary. Compiler success was supplied in the packet and was not independently rerun by this source-review role.",
+  "supported_obligations": [
+    "regularized-minimum",
+    "radius-comparison",
+    "accuracy-transfer"
+  ],
+  "uncovered_obligations": [
+    "curvature-smoothness",
+    "oracle-cost-class"
+  ],
+  "publication_assessment": {
+    "decision": "accepted",
+    "scope": "The three explicitly bound proof components only; no full-source theorem completion.",
+    "statement": "The lesson matches the decoded statement with all quantifiers, positivity and global-minimum assumptions exposed.",
+    "proof": "All four authored steps agree with the inspected module and a valid mathematical argument.",
+    "assumptions": "Properness and continuity are explicit and implied by intended source instances; dropping convexity and smoothness here is a valid generalization.",
+    "remaining_boundary": "Prove actual Euclidean curvature/smoothness and first-order oracle simulation, then connect class-uniform solver hypotheses and complexity parameter conventions. The current theorem neither receives nor implements a solver."
+  },
+  "source_review": {
+    "decision": "accepted",
+    "state": "accepted",
+    "reviewer": "reg_source_6a15",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "6b23a8cc55b74b56bf2c93a2ea81aeae42e85541cd202c80adc5a4af98f2e66a",
+    "evidence": "Independent review of the anti-anchored packet and primary source https://arxiv.org/html/2605.07006v1#S4.SS1, including the Section 4.1 opening definition and Lemma 4.2 statement/proof. I read neither the old registry nor previous review verdicts. The blind reconstruction matches the supplied elaborated Lean statement. I inspected the entire module text and authored lesson in this packet. Its compact-ball existence proof is valid: choose a minimizer on the closed ball containing z; outside the ball, global minimality of z and the radial penalty give W(z)<=W(x), so the chosen point minimizes globally. Comparing its value with W(z) and using f(z)<=f(w) cancels the positive coefficient to give the sharp norm inequality. Nonnegative penalty and the radius certificate then yield the advertised all-x implication. No hidden differentiability, convexity, uniqueness, or oracle hypothesis is used. The candidate publication statement is a faithful contextual paraphrase, while its binding and lesson expressly claim only three components. Its two remaining obligations are correctly uncovered. Acceptance is for that component publication; the verdict is lean-weakened-conclusion relative to the entire pinned source statement, not full-source equivalence. No source repair is necessary. Compiler success was supplied in the packet and was not independently rerun by this source-review role.",
+    "review_run_sha256": "eefd2ea5309c501f5e8dbc6cc396539b1eff43caa1f42604fdee13596206d327"
+  },
+  "review_run_sha256": "eefd2ea5309c501f5e8dbc6cc396539b1eff43caa1f42604fdee13596206d327"
+}

@@ -36,6 +36,7 @@
   let mappings = [];
   let currentResult = null;
   let localMode = false;
+  let compilerMode = false;
   let compiledSource = "";
   let compilerAccepted = false;
   let semanticReviewed = false;
@@ -155,7 +156,7 @@
   };
 
   const compile = async () => {
-    if (!localMode || !elements.lean.value.trim()) return;
+    if (!compilerMode || !elements.lean.value.trim()) return;
     elements.compile.disabled = true;
     elements.diagnostics.textContent = "Lean is checking a temporary snippet…";
     try {
@@ -176,7 +177,7 @@
       elements.diagnostics.textContent = `Local Lean service unavailable: ${error.message}`;
       setStatus(elements.leanStatus, "Unavailable", "red");
     } finally {
-      elements.compile.disabled = !localMode;
+      elements.compile.disabled = !compilerMode;
     }
   };
 
@@ -253,13 +254,17 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const health = await response.json();
       localMode = true;
+      compilerMode = Boolean(health.toolchain_matches_pin);
       elements.mode.classList.add("local");
-      elements.modeTitle.textContent = "Local verified mode";
-      elements.modeDetail.textContent = `${health.lean_version}; deterministic ASTIS adapter; repository source is read-only.`;
+      elements.modeTitle.textContent = compilerMode ? "Local verified mode" : "Local research mode · compiler blocked";
+      elements.modeDetail.textContent = compilerMode
+        ? `${health.lean_version}; deterministic ASTIS adapter; repository source is read-only.`
+        : `${health.lean_version}; expected Lean ${health.pinned_lean_version}. Candidate generation remains available, but compilation is disabled until the pinned toolchain is active.`;
       elements.formalize.disabled = false;
-      elements.compile.disabled = false;
+      elements.compile.disabled = !compilerMode;
     } catch (_error) {
       localMode = false;
+      compilerMode = false;
       elements.mode.classList.add("static");
       elements.modeTitle.textContent = "Static mode";
       elements.modeDetail.textContent = "Reviewed mappings, LaTeX preview, navigation, and packet export are available. Candidate generation and Lean execution are disabled.";

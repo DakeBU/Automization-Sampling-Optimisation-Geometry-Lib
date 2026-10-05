@@ -26,6 +26,7 @@ import astis_harness as harness
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LEAN_TOOLCHAIN_FILE = ROOT / "lean-toolchain"
 STATE_DIR = ROOT / ".astis"
 STATE_FILE = STATE_DIR / "state.json"
 TRIAL_LOG = ROOT / "runs" / "trials.jsonl"
@@ -10673,7 +10674,17 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def enforce_repository_lean_toolchain() -> str:
+    """Make the repository pin authoritative over an inherited user override."""
+    toolchain = LEAN_TOOLCHAIN_FILE.read_text(encoding="utf-8").strip()
+    if not toolchain:
+        raise RuntimeError("lean-toolchain is empty")
+    os.environ["ELAN_TOOLCHAIN"] = toolchain
+    return toolchain
+
+
 def main(argv: list[str]) -> int:
+    enforce_repository_lean_toolchain()
     args = build_parser().parse_args(argv)
     return args.func(args)
 

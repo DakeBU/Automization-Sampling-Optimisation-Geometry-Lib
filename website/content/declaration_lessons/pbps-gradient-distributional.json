@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientDistribution.closed_gradient_distributional",
+      "title": "From the closed Gibbs gradient to ordinary weak derivatives",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS Appendix C.1: analytic prerequisite",
+          "scope": "Ordinary weak derivative direction only: no converse domain characterization, H2, resolvent PDE adapter, D*D operator core, Poincare or complete paper."
+        },
+        {
+          "url": "https://arxiv.org/html/1310.2526v7",
+          "label": "Kolesnikov–Milman §2.5: weighted Sobolev background",
+          "scope": "Direct full-space proof, not the compact-manifold spectral theorem."
+        }
+      ],
+      "tests": [
+        "lake build Tests.WeightedGradientDistribution"
+      ],
+      "assumptions": [
+        "E is any finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. W:E→R is C1 and exp(-W) is integrable for Euclidean volume; μ=volume.tilted(-W) is the actual normalized Gibbs law.",
+        "D is a given closable partial real-linear map from scalar L²(μ) to vector L²(μ). Its original graph is exactly the pairs represented μ-almost everywhere by (f,∇f) for smooth compactly supported f. This is the interface already proved by WeightedGradient, not an assumed integration-by-parts formula.",
+        "Fix (u,G) in the graph of this same D.closure. Tests ψ are arbitrary C1 compact scalar functions, and v is any constant vector. The L2 coercions select measurable representatives; no differentiability, global volume integrability or tail bound for these representatives is assumed."
+      ],
+      "statement": "The scalar representative u and vector representative G are locally integrable for ordinary Euclidean volume. For every ψ and v as above, both ψ⟨G,v⟩ and uD_vψ are volume-integrable, and their integrals have opposite signs. Thus G is the ordinary distributional gradient of u in this test sense; the converse graph-domain characterization is not claimed.",
+      "formula": "u,G\\in L^1_{\\mathrm{loc}}(dx),\\qquad\\int\\psi\\langle G,v\\rangle\\,dx=-\\int uD_v\\psi\\,dx.",
+      "boundary": "Ordinary weak derivative direction only: no converse domain characterization, H2, resolvent PDE adapter, D*D operator core, Poincare or complete paper.",
+      "steps": [
+        {
+          "title": "Start with integrability for the Gibbs law",
+          "text": "For either scalar or vector representative h, finite μ makes L² membership imply L¹ membership. The actual tilted-measure integrability equivalence transfers this to integrability of e^(−W)h for volume. Positivity and finiteness of normalization follow from the assumed integrable exponential density.",
+          "formula": "h\\in L^2(\\mu)\\Longrightarrow h\\in L^1(\\mu)\\Longleftrightarrow e^{-W}h\\in L^1(dx).",
+          "lean": "private lp_locallyIntegrable_volume: MemLp.integrable, Lp.memLp, integrable_tilted_iff"
+        },
+        {
+          "title": "Remove the weight locally",
+          "text": "Multiplication by a continuous scalar preserves local integrability. Apply this to e^W and the locally integrable e^(−W)h, then cancel exponentials. Doing this for both u and G establishes their local volume integrability without asserting global volume integrability.",
+          "formula": "h=e^W(e^{-W}h)\\in L^1_{\\mathrm{loc}}(dx).",
+          "lean": "LocallyIntegrable.continuous_smul (Real.continuous_exp.comp hW); smul_smul, Real.exp_add"
+        },
+        {
+          "title": "Choose the inverse-weighted test",
+          "text": "Given compact C1 ψ, set φ=e^Wψ. Continuity at infinity is irrelevant: its support stays inside the compact support of ψ, and φ is genuinely C1. Apply the existing weighted identity to the same D,u,G; no operator is replaced.",
+          "formula": "\\varphi=e^W\\psi,\\qquad\\int\\varphi\\langle G,v\\rangle\\,d\\mu=-\\int u(D_v\\varphi-\\varphi D_vW)\\,d\\mu.",
+          "lean": "hφ,hφc; WeightedGradientWeak.closed_gradient_weighted_ibp"
+        },
+        {
+          "title": "Use the genuine first-order product rule",
+          "text": "Differentiate e^Wψ using the C1 hypotheses. Subtract φD_vW and cancel its two drift contributions. No classical derivative of u is used.",
+          "formula": "D_v(e^W\\psi)=e^W\\psi D_vW+e^WD_v\\psi,\\qquad D_v\\varphi-\\varphi D_vW=e^WD_v\\psi.",
+          "lean": "hq; HasFDerivAt.exp.mul, hd.fderiv, ring"
+        },
+        {
+          "title": "Transfer both test-product integrabilities",
+          "text": "The parent proves both weighted products integrable under μ. Apply integrable_tilted_iff to each separately; multiply by e^(−W) and cancel e^(−W)e^W=1. These are actual volume-integrability proofs, not an appeal to the convention for undefined integrals.",
+          "formula": "e^{-W}\\varphi\\langle G,v\\rangle=\\psi\\langle G,v\\rangle,\\qquad e^{-W}u(D_v\\varphi-\\varphi D_vW)=uD_v\\psi.",
+          "lean": "hcancel,hl,hr; hli,hri from integrable_tilted_iff"
+        },
+        {
+          "title": "Cancel the positive normalization",
+          "text": "The tilted integral is Z⁻¹ times its density-weighted volume integral. Substitute the two pointwise cancellations into the parent identity and cancel Z⁻¹, which is nonzero. Together with local integrability this is the ordinary weak derivative identity, in one direction only.",
+          "formula": "Z^{-1}\\int\\psi\\langle G,v\\rangle\\,dx=-Z^{-1}\\int uD_v\\psi\\,dx,\\qquad Z=\\int e^{-W}dx>0.",
+          "lean": "ht, integral_tilted; mul_left_cancel₀ (inv_ne_zero (integral_exp_pos hI).ne')"
+        }
+      ],
+      "lean_statement": "All same-operator graph assumptions, local-volume and product-integrability conclusions are explicit below.",
+      "lean_proof": "Invert the positive density locally; insert exp(W)ψ in the weighted identity; cancel genuine derivative terms and positive normalization.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientWeak.closed_gradient_weighted_ibp"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.MemLp.integrable",
+        "MeasureTheory.integrable_tilted_iff",
+        "MeasureTheory.LocallyIntegrable.continuous_smul",
+        "MeasureTheory.integral_tilted",
+        "MeasureTheory.integral_exp_pos",
+        "HasFDerivAt.exp",
+        "HasFDerivAt.mul"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+name: Contributor contract
+
+on:
+  push:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contributor-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test contributor scope and publication regressions
+        run: python3 -m unittest tools.tests.test_astis_contributor_contract tools.tests.test_astis_publication
+      - name: Check affected contributor contracts
+        env:
+          PUBLICATION_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before || github.sha }}
+        run: python3 tools/astis_contributor_contract.py check --ci

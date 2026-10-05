@@ -11,11 +11,18 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import ProxyHandler, Request, build_opener
 
-from website.scripts.ide_server import SamplinglibIDEHandler
+from website.scripts.ide_server import (
+    SamplinglibIDEHandler,
+    assistant_prompt,
+    response_text,
+    workspace_context,
+)
 
 
 class QuietHandler(SamplinglibIDEHandler):
     lean_version_text = "Lean test version"
+    pinned_lean_version_text = "test"
+    toolchain_matches_pin = True
     compile_timeout = 60
     auth_user = ""
     auth_password = ""
@@ -61,6 +68,8 @@ class SamplinglibIDEServerTest(unittest.TestCase):
         self.assertEqual(health["mode"], "local_verified")
         self.assertFalse(health["source_writes"])
         self.assertFalse(health["public_execution"])
+        self.assertFalse(health["ai_assistant_configured"])
+        self.assertTrue(health["toolchain_matches_pin"])
 
         status, payload = self.json_request(
             "/api/formalize",
@@ -93,6 +102,78 @@ class SamplinglibIDEServerTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertFalse(payload["ok"])
         self.assertIn("False", payload["output"])
+
+    def test_compile_fails_closed_on_toolchain_mismatch(self) -> None:
+        original = QuietHandler.toolchain_matches_pin
+        QuietHandler.toolchain_matches_pin = False
+        try:
+            status, payload = self.json_request("/api/compile", {"code": "#check Nat"})
+        finally:
+            QuietHandler.toolchain_matches_pin = original
+        self.assertEqual(status, 503)
+        self.assertEqual(payload["certificate_boundary"], "toolchain_mismatch_no_compilation")
+
+    def test_assistant_fails_closed_without_server_credentials(self) -> None:
+        status, payload = self.json_request(
+            "/api/assist",
+            {
+                "workspace_id": "case",
+                "theorem_id": "theorem",
+                "step_id": "step",
+                "action": "explain",
+            },
+        )
+        self.assertEqual(status, 503)
+        self.assertIn("not configured", payload["error"])
+
+    def test_bounded_workspace_context_and_response_parser(self) -> None:
+        data = {
+            "workspaces": [
+                {
+                    "id": "case",
+                    "title": "Case",
+                    "source_records": [{"title": "Paper", "version": "v1", "url": "https://example.test"}],
+                    "theorems": [
+                        {
+                            "id": "theorem",
+                            "title": "Theorem",
+                            "statement": "Statement",
+                            "formula": "x=x",
+                            "source_anchor": "Section 1",
+                            "assumptions": ["x is real"],
+                            "boundary": "No main theorem claim.",
+                            "steps": [
+                                {
+                                    "id": "step",
+                                    "title": "Step",
+                                    "formula": "x=x",
+                                    "source_anchor": "Proof",
+                                    "explanation": "Reflexivity.",
+                                    "status": "open",
+                                    "compiled_support": [],
+                                    "support_note": "Open.",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+        workspace, theorem, step = workspace_context(data, "case", "theorem", "step")
+        instructions, user = assistant_prompt(workspace, theorem, step, "explain", "why?")
+        self.assertIn("Never claim", instructions)
+        self.assertIn("No main theorem claim", user)
+        self.assertIn("why?", user)
+        self.assertEqual(
+            response_text(
+                {
+                    "output": [
+                        {"content": [{"type": "output_text", "text": "answer"}]}
+                    ]
+                }
+            ),
+            "answer",
+        )
 
 
 class SamplinglibIDEAuthTest(unittest.TestCase):

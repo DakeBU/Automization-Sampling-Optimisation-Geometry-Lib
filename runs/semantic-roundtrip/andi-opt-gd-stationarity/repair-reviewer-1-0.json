@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "task": "independent-theorem-repair-review",
+  "packet_id": "ASTIS-REPAIR-REVIEW-db973430616b3eda",
+  "anti_anchoring": {
+    "prior_fidelity_verdict_included": false,
+    "prior_semantic_deltas_included": false,
+    "prior_source_review_included": false,
+    "prior_repair_review_included": false
+  },
+  "roles": {
+    "formalizer": "andi-gds-worker",
+    "blind_decoder": "gds_blind",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-theorem-3-7",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S3; Theorem3.7 and its proof; Section2 attained-minimum convention",
+    "original_text": "Chewi arXiv:2605.07006v1 Theorem3.7. In the smooth Euclidean setting, let f be beta-smooth and h<=1/beta. For actual iterates x_(k+1)=x_k-h grad f(x_k), min_{k=0,...,N-1} ||grad f(x_k)|| <= sqrt(2(f(x0)-fstar)/(N*h)). Section2 fixes an attained global minimum fstar=f(xstar). Its proof telescopes Lemma3.1: (h/(2N)) sum_{k<N} ||grad f(x_k)||^2 <= (1/N) sum_{k<N}(f(x_k)-f(x_(k+1))) <= (f(x0)-fstar)/N. The theorem line does not explicitly state h>0 or N>=1.",
+    "text_sha256": "c9d2268dad4a5884dcd1dc75fb9465114fde6603377ca361a67cd5ff5f71ae2e"
+  },
+  "lean": {
+    "statement": "∀\n  {E : Type u_1} [inst : NormedAddCommGroup.{u_1} E] [inst_1 : InnerProductSpace.{0, u_1} ℝ E]\n  [inst_2 : CompleteSpace.{u_1} E] {f : E → ℝ} {β h : ℝ} {z : E},\n  IsMinOn.{u_1, 0} f Set.univ.{u_1} z →\n    LT.lt.{0} 0 h →\n      LE.le.{0} (HMul.hMul.{0, 0, 0} β h) 1 →\n        (∀ (x y : E),\n            LE.le.{0} (f y)\n              (HAdd.hAdd.{0, 0, 0}\n                (HAdd.hAdd.{0, 0, 0} (f x) (inner.{0, u_1} ℝ (gradient.{0, u_1} f x) (HSub.hSub.{u_1, u_1, u_1} y x)))\n                (HMul.hMul.{0, 0, 0} (HDiv.hDiv.{0, 0, 0} β 2)\n                  (HPow.hPow.{0, 0, 0} (norm.{u_1} (HSub.hSub.{u_1, u_1, u_1} y x)) 2)))) →\n          ∀ (x₀ : E) {N : ℕ},\n            LT.lt.{0} 0 N →\n              ∃ k,\n                Membership.mem.{0, 0} (Finset.range N) k ∧\n                  LE.le.{0}\n                    (norm.{u_1}\n                      (gradient.{0, u_1} f\n                        (Nat.iterate.{u_1 + 1}\n                          (fun x => HSub.hSub.{u_1, u_1, u_1} x (HSMul.hSMul.{0, u_1, u_1} h (gradient.{0, u_1} f x))) k\n                          x₀)))\n                    √(HDiv.hDiv.{0, 0, 0} (HMul.hMul.{0, 0, 0} 2 (HSub.hSub.{0, 0, 0} (f x₀) (f z)))\n                        (HMul.hMul.{0, 0, 0} (↑N) h))",
+    "statement_sha256": "c41215b2f02d83145d2b1ac81be398c58e23647e63d493ccac22645e7e7de354",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every complete real inner product space E, every function f:E→ℝ, every pair of real numbers β,h, and every z∈E, assume f(z)≤f(x) for every x∈E, h>0, βh≤1, and, for all x,y∈E, f(y)≤f(x)+⟨gradient f(x),y−x⟩+(β/2)‖y−x‖². Here gradient f(x) denotes the Riesz vector of the totalized Fréchet derivative; no separate differentiability hypothesis is imposed, and no positivity hypothesis on β is imposed. For every initial point x₀∈E, define xₖ=T^[k](x₀), where T(x)=x−h·gradient f(x), h·v is real scalar multiplication, and the zeroth iterate is x₀. For every natural number N>0, there exists a natural number k with 0≤k<N such that ‖gradient f(xₖ)‖≤sqrt(2(f(x₀)−f(z))/((N:ℝ)h)). The square root is the nonnegative real square root, totalized to zero on negative arguments; here its argument is nonnegative because z is a global minimizer and (N:ℝ)h>0. The index set includes k=0 and excludes k=N. N=1 is included and forces k=0. N=0 and h=0 are excluded by the hypotheses. If f(x₀)=f(z), the bound is zero.",
+    "text_sha256": "43a8a61c944639caf23984a601c2ca670ba4a2e1afa78c9227118f3b901a5645",
+    "decoder": "gds_blind",
+    "decoder_packet_sha256": "7a3686e255ee6efa9dc33ceb3738786e8da01b40060952f33547d5b8d8773c75",
+    "decoder_run_sha256": "72a36057ed8251d904ac8ecc280227b78e27df73f3b9c5175476e0d45ff5a94e"
+  },
+  "proposal": {
+    "id": "chewi-opt-v1-theorem-3-7-positive-domain-gds-source",
+    "class": "domain-clarification",
+    "necessity": "source-implicit",
+    "proposed_change": "State the ordinary reciprocal domain beta>0, the descent step 0<h≤1/beta, and the nonempty iteration range N≥1. Retain the Euclidean C² setting, actual updates, attained minimum and original best-iterate conclusion. Do not import the Lean Hilbert/algebraic extension into the source theorem.",
+    "reconstructed_statement": "For every natural dimension d, let f:R^d→R be twice continuously differentiable and let beta>0. Assume f(y)≤f(x)+<grad f(x),y-x>+(beta/2)||y-x||² for all x,y∈R^d, and let z be a global minimizer of f, with f_star=f(z). For every h with 0<h≤1/beta, every x₀∈R^d and every natural N≥1, define x_(k+1)=x_k-h grad f(x_k) for all natural k starting from x₀. Then min_{0≤k<N}||grad f(x_k)||≤sqrt(2(f(x₀)-f_star)/(N*h)).",
+    "statement_sha256": "2812cb7485a318eff467efdd12607ba876245dc95a6b583e6e5c705d14e28ae1",
+    "justification": "The denominator Nh must be positive for the averaging argument, and a minimum over the first N indices needs N≥1. beta>0 selects the ordinary reciprocal domain from the beta≥0 smoothness definition. These are source-domain clarifications rather than consequences of Lean division conventions.",
+    "minimality_evidence": "Only domains of already present parameters are clarified. No convexity, PL inequality, gradient-Lipschitz condition, coercivity or unique minimizer is added. The source C² and attained-minimum conventions and numerical constant 2 are retained. beta=0 remains a separate algebraic extension through beta*h≤1, not a replacement for the printed reciprocal statement.",
+    "reference_or_counterexample": "Primary source https://arxiv.org/html/2605.07006v1 Definition1.12, S2 convention, S3 and Theorem3.7. Step endpoint: on R take f(t)=t²/2, beta=1, z=0, x₀=1, h=0, N=1 and x_(k+1)=x_k-h*f'(x_k)=x_k, so all x_k=1 and the minimum gradient norm is 1; ordinary Nh division is undefined, while Lean-totalized division gives RHS 0 and a false bound. Negative step: on R take f(t)=t²/2, beta=1, z=0, x₀=1, h=-1, N=1 and x_(k+1)=2x_k; the radicand is -1, not an ordinary real square-root domain, while Real.sqrt makes RHS 0 and the bound false. Empty range: on R take f(t)=t²/2, beta=1, z=0, x₀=1, h=1, N=0 and x_(k+1)=x_k-f'(x_k)=0; there is no k<N and no real-valued finite minimum over that empty range. Reciprocal endpoint: on R take f(t)=0, beta=0, z=0, x₀=1, h=1, N=1 and x_(k+1)=x_k; the algebraic bound holds but 1/beta in ordinary real arithmetic is undefined.",
+    "proposal_sha256": "7dfed653f0e7a8ea6417d5efa72c8de583b45b9bc72b75e24f885ce8c952fffa"
+  },
+  "review_contract": {
+    "rule": "Decide whether this exact minimal change is source-correct, not merely helpful to the current Lean proof route.",
+    "allowed_states": [
+      "accepted",
+      "needs-revision",
+      "rejected"
+    ]
+  },
+  "output_contract": {
+    "state": "",
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": "",
+    "proposal_sha256": "7dfed653f0e7a8ea6417d5efa72c8de583b45b9bc72b75e24f885ce8c952fffa"
+  },
+  "publication_binding_sha256": "6f15ff28b9beff88943a36dc348f08557e88a0a33f0740833f4320ab3e274b36",
+  "candidate_publication_context": {
+    "file": "153f0d676936653c97320261b5a3b3d141346653566b13874ed85acf495c0513",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic\nimport Mathlib.Algebra.BigOperators.Group.Finset.Basic\nimport Mathlib.Algebra.Order.BigOperators.Group.Finset\nimport Mathlib.Analysis.Real.Sqrt\n\n/-!\n# Nonconvex gradient descent and approximate stationarity\n\nChewi arXiv:2605.07006v1 Theorem 3.7 and its telescoping proof.\nThe upper model uses the actual gradient; no convexity or PL inequality is assumed.\nThe normalized conclusion requires positive step and nonempty iteration range.\nThe supplied global minimizer retains the source's attainment convention.\nThe algebraic upper-model formulation extends the source's smooth Euclidean setting.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity\n\nopen Set\nopen scoped BigOperators RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- Telescoping the actual gradient-step decrease bounds the accumulated squared gradients.\nThis unnormalized inequality includes zero steps and empty sums. -/\ntheorem gradient_descent_sum_sq_bound {f : E → ℝ} {β h : ℝ}\n    (hh : 0 ≤ h) (hstep : β * h ≤ 1)\n    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)\n    (x₀ : E) (N : ℕ) :\n    h / 2 * ∑ k ∈ Finset.range N, ‖gradient f ((fun x => x - h • gradient f x)^[k] x₀)‖ ^ 2 ≤\n      f x₀ - f ((fun x => x - h • gradient f x)^[N] x₀) := by\n  let T : E → E := fun x => x - h • gradient f x\n  calc\n    h / 2 * ∑ k ∈ Finset.range N, ‖gradient f (T^[k] x₀)‖ ^ 2 =\n        ∑ k ∈ Finset.range N, h / 2 * ‖gradient f (T^[k] x₀)‖ ^ 2 := Finset.mul_sum _ _ _\n    _ ≤ ∑ k ∈ Finset.range N, (f (T^[k] x₀) - f (T^[k + 1] x₀)) := by\n      apply Finset.sum_le_sum\n      intro k _\n      rw [Function.iterate_succ_apply']\n      have hd := GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound\n        hh hstep hu (T^[k] x₀)\n      change h / 2 * ‖gradient f (T^[k] x₀)‖ ^ 2 ≤ f (T^[k] x₀) - f (T (T^[k] x₀))\n      dsimp [T] at *\n      linarith\n    _ = f x₀ - f (T^[N] x₀) := by\n      simpa using Finset.sum_range_sub' (fun k => f (T^[k] x₀)) N\n\n/-- Among the first `N` actual gradient iterates, one has small gradient norm.\nThis is a best-iterate guarantee, not a last-iterate or global optimality guarantee. -/\ntheorem exists_gradient_descent_norm_le {f : E → ℝ} {β h : ℝ} {z : E}\n    (hz : IsMinOn f univ z) (hh : 0 < h) (hstep : β * h ≤ 1)\n    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)\n    (x₀ : E) {N : ℕ} (hN : 0 < N) :\n    ∃ k ∈ Finset.range N,\n      ‖gradient f ((fun x => x - h • gradient f x)^[k] x₀)‖ ≤\n        Real.sqrt (2 * (f x₀ - f z) / ((N : ℝ) * h)) := by\n  let T : E → E := fun x => x - h • gradient f x\n  let B : ℝ := 2 * (f x₀ - f z) / ((N : ℝ) * h)\n  have hNr : 0 < (N : ℝ) := by exact_mod_cast hN\n  have hd := gradient_descent_sum_sq_bound hh.le hstep hu x₀ N\n  have hzN : f z ≤ f (T^[N] x₀) := hz (mem_univ _)\n  have hsum : (∑ k ∈ Finset.range N, ‖gradient f (T^[k] x₀)‖ ^ 2) ≤\n      ∑ _k ∈ Finset.range N, B := by\n    have hb : h / 2 * ((N : ℝ) * B) = f x₀ - f z := by\n      dsimp [B]\n      field_simp\n    simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul]\n    apply (mul_le_mul_iff_right₀ (show 0 < h / 2 by positivity)).mp\n    change h / 2 * (∑ k ∈ Finset.range N, ‖gradient f (T^[k] x₀)‖ ^ 2) ≤\n      h / 2 * ((N : ℝ) * B)\n    rw [hb]\n    change h / 2 * (∑ k ∈ Finset.range N, ‖gradient f (T^[k] x₀)‖ ^ 2) ≤\n      f x₀ - f (T^[N] x₀) at hd\n    linarith\n  obtain ⟨k, hk, hkle⟩ := Finset.exists_le_of_sum_le ⟨0, Finset.mem_range.mpr hN⟩ hsum\n  refine ⟨k, hk, ?_⟩\n  exact Real.le_sqrt_of_sq_le hkle\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S3",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Theorem3.7 and its proof; Section2 attained-minimum convention",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS-authored paraphrase; no endorsement implied."
+    },
+    "statement": "For a β-smooth objective and the printed step restriction h≤1/β, the smallest gradient norm among x₀,…,x_(N−1) is bounded by the displayed square root. The proof adds the single-step descent inequalities and bounds the last objective value below by f★.",
+    "formulae": [
+      {
+        "label": "Best-iterate stationarity",
+        "tex": "\\min_{0\\le k<N}\\|\\nabla f(x_k)\\|\\le\\sqrt{\\frac{2(f(x_0)-f_\\star)}{Nh}}."
+      },
+      {
+        "label": "Telescoping proof component",
+        "tex": "\\frac h2\\sum_{k=0}^{N-1}\\|\\nabla f(T^k x_0)\\|^2\\le f(x_0)-f(T^N x_0)."
+      }
+    ],
+    "assumptions": [
+      "The section uses smooth Euclidean objectives, positive β for the reciprocal restriction, and actual gradient updates x_(k+1)=x_k−h∇f(x_k).",
+      "Section2 fixes an attained global minimum f★=f(x★). No convexity or PL hypothesis appears in Theorem3.7.",
+      "The theorem prints h≤1/β; positive h and a nonempty iteration range are not explicitly included in that line."
+    ],
+    "obligations": [
+      {
+        "id": "accumulated-descent",
+        "label": "Derive cumulative squared-gradient decrease from actual updates"
+      },
+      {
+        "id": "best-iterate-norm",
+        "label": "Use the global minimum, average and square root to obtain a small-gradient iterate"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.exists_gradient_descent_norm_le",
+      "kind": "theorem",
+      "title": "A small-gradient iterate without convexity",
+      "statement": "For every initial point and positive natural iteration count, one of the first N actual gradient iterates satisfies the displayed norm bound.",
+      "formula": "\\exists k\\in\\{0,\\ldots,N-1\\}:\\quad\\|\\nabla f(T^k x_0)\\|\\le\\sqrt{\\frac{2(f(x_0)-f(z))}{Nh}}.",
+      "assumptions": [
+        "E is a complete real inner-product space; f:E→ℝ and β,h∈ℝ. Write T(x)=x−h∇f(x), x_k=T^k(x₀), with x₀∈E. T^0 is the identity.",
+        "For every x,y∈E, f(y)≤f(x)+⟨∇f(x),y−x⟩+(β/2)‖y−x‖², and βh≤1. ∇f is the actual Riesz vector of the totalized Fréchet derivative, not a supplied vector field.",
+        "The result is algebraic after this upper model is supplied; no separate C¹ or C² premise is required by the implication. The source smooth Euclidean setting supplies that model. This does not say that an arbitrary function is differentiable or satisfies the model.",
+        "h>0 and N∈ℕ with N≥1. z∈E is a supplied global minimizer: f(z)≤f(x) for all x∈E."
+      ],
+      "steps": [
+        {
+          "title": "Use the true objective lower bound",
+          "text": "The supplied global minimizer z gives f(z)≤f(x_N). Apply accumulated descent to replace the final objective value by f(z).",
+          "formula": "\\frac h2\\sum_{k=0}^{N-1}\\|\\nabla f(x_k)\\|^2\\le f(x_0)-f(z).",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.gradient_descent_sum_sq_bound; IsMinOn."
+        },
+        {
+          "title": "Normalize with positive denominators",
+          "text": "Let B=2(f(x₀)−f(z))/(Nh). Since h>0 and N>0, multiplication by h/2 preserves and reflects order; (h/2)NB is exactly the initial gap. Hence the sum is at most NB.",
+          "formula": "\\sum_{k=0}^{N-1}\\|\\nabla f(x_k)\\|^2\\le NB,\\qquad B=\\frac{2(f(x_0)-f(z))}{Nh}.",
+          "lean": "Nat.cast_pos; field_simp; Finset.sum_const; Finset.card_range; mul_le_mul_iff_right₀."
+        },
+        {
+          "title": "Select a small term and take a square root",
+          "text": "A nonempty finite sum bounded by the sum of the constant B has a term at most B. Convert that squared-norm bound to a norm bound with Mathlib’s square-root lemma. The witness is one of x₀,…,x_(N−1).",
+          "formula": "\\exists k<N:\\quad\\|\\nabla f(x_k)\\|^2\\le B\\quad\\Longrightarrow\\quad\\|\\nabla f(x_k)\\|\\le\\sqrt B.",
+          "lean": "Finset.exists_le_of_sum_le; Finset.mem_range; Real.le_sqrt_of_sq_le."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.gradient_descent_sum_sq_bound"
+      ],
+      "mathlib_dependencies": [
+        "Finset.exists_le_of_sum_le",
+        "Finset.sum_const",
+        "Finset.card_range",
+        "mul_le_mul_iff_right₀",
+        "Real.le_sqrt_of_sq_le"
+      ],
+      "lean_statement": "Actual gradient iterates, explicit upper model and step/iteration domains.",
+      "lean_proof": "The supplied global minimizer z gives f(z)≤f(x_N). Apply accumulated descent to replace the final objective value by f(z). Let B=2(f(x₀)−f(z))/(Nh). Since h>0 and N>0, multiplication by h/2 preserves and reflects order; (h/2)NB is exactly the initial gap. Hence the sum is at most NB. A nonempty finite sum bounded by the sum of the constant B has a term at most B. Convert that squared-norm bound to a norm bound with Mathlib’s square-root lemma. The witness is one of x₀,…,x_(N−1).",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Theorem3.7 and its proof",
+          "scope": "ASTIS-authored source restatement; explicit domain repair, algebraic Hilbert generalization."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentStationarity.lean",
+          "label": "Quadratic objective and endpoint tests",
+          "scope": "Actual gradients, beta=0 constant objective, and zero-step accumulation; no separate theorem credit."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.exists_gradient_descent_norm_le",
+      "role": "proof-edge",
+      "supports": [
+        "best-iterate-norm"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Smooth Euclidean objective and β-smoothness.",
+        "lean": "Complete real Hilbert space and the global quadratic upper model in the actual gradient."
+      },
+      {
+        "source": "Positive β and h≤1/β.",
+        "lean": "Real β and βh≤1, with h>0."
+      },
+      {
+        "source": "The printed bound divides by Nh and takes a minimum over 0,…,N−1 without explicit positivity in the theorem line.",
+        "lean": "Strictly positive h and N≥1."
+      },
+      {
+        "source": "Attained minimum and finite minimum of gradient norms.",
+        "lean": "Supplied IsMinOn f univ z and an existential index in Finset.range N."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "c6c7506867738356003260512091a4df480a2916c4deb4b93d87de9244992f90"
+}

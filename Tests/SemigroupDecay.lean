@@ -1,4 +1,4 @@
-import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ForcedSemigroupDecay
 
 namespace AutoSamplingTheory.Tests.SemigroupDecay
 
@@ -45,6 +45,19 @@ example {rate t : ℝ} (ht : 0 ≤ t) :
   · intro s
     simp [zeroDissipationCurve]
   · exact ht
+
+example {rate forcing s t : ℝ} (hrate : 0 < rate)
+    (hforcing : 0 ≤ forcing) (hst : s ≤ t) :
+    (zeroDissipationCurve 3).energy t ≤
+      (zeroDissipationCurve 3).energy s *
+          Real.exp (-rate * (t - s)) +
+        (forcing / rate) * (1 - Real.exp (-rate * (t - s))) := by
+  apply forced_exponential_decay_of_scaled_dissipation_from
+    hrate (zeroDissipationCurve 3)
+  · intro u
+    simp [zeroDissipationCurve]
+    exact hforcing
+  · exact hst
 
 example {scale rate : ℝ} :
     ∀ s : ℝ,

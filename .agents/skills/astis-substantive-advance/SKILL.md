@@ -5,17 +5,19 @@ description: Own one source-backed ASTIS theorem-DAG advance, with independent v
 
 # ASTIS Substantive Advance Worker Packet
 
-Before new/changed Lean work, read `docs/theorem-publication-protocol.md` and run
-`python3 tools/astis_publication.py packet --cell CELL_ID`. Reuse the bounded
-source/lesson/audit packet. New schema-v4 `PROVED_LOCAL` evidence includes
-`publication_declarations` equal to `lean_declarations`; `VERIFIED` and
-`STABILIZING` enforce completed independent semantic review. Keep source gaps,
-proposed repairs and actual Lean assumptions separately visible in the reader.
-The same protocol covers graph publication: exact declaration/module ids,
-source and consumer links, generated graph checks, and one visual inspection of
-the affected branch. Reuse `integration_notes`; no second graph packet or agent.
+Before new/changed Lean work, read **all three**:
 
-Use this packet for one Universal Worker and one source-backed theorem-DAG advance. Delete fields that truly do not apply, but never hide a truth boundary, source gap, compiler failure, unchanged route, or source-to-Lean semantic delta.
+- `docs/contributor-codex-contract.md`;
+- `docs/theorem-publication-protocol.md`;
+- this packet.
+
+Then run `python3 tools/astis_publication.py packet --cell CELL_ID`. Reuse the bounded source/lesson/audit packet. For any changed production declaration, also run `python3 tools/astis_contributor_contract.py check --base BASE_COMMIT` before asking for stabilization.
+
+New schema-v4 `PROVED_LOCAL` evidence includes `publication_declarations` equal to `lean_declarations`; `VERIFIED` and `STABILIZING` enforce completed independent semantic review. Keep source gaps, proposed repairs and actual Lean assumptions separately visible in the reader. The same protocol covers graph publication: exact declaration/module ids, source and consumer links, generated graph checks, canonical evidence colours/edge types, and one visual inspection of the affected branch. Reuse `integration_notes`; no second graph packet or graph-only agent.
+
+The public reader-quality reference is `textbook/chapter-01/section-1-3.html`. A code dump, theorem inventory, detached proof list, or status table is not a finished textbook contribution.
+
+Use this packet for one Universal Worker and one source-backed theorem-DAG advance. Delete fields that truly do not apply, but never hide a truth boundary, source gap, compiler failure, unchanged route, source-to-Lean semantic delta, or graph/Functor classification.
 
 A Worker is not a narrow proof-script executor. It may cross source reading, mathematical derivation, library retrieval, counterexample search, Lean editing, focused verification, refactoring, and exposition whenever those actions help close the assigned mathematical delta.
 
@@ -45,6 +47,30 @@ shared_floor_audit:
   decision: reuse_existing | adapt_existing | new_route_local | new_canonical_shared | out_of_scope
   canonical_declaration:
   canonical_shared_cell:
+reuse_plan:
+  searched_existing: []
+  reused_declarations: []
+  new_shared_declarations: []
+  known_consumers: []
+  planned_consumers: []
+  no_duplicate_wrapper: true
+  decision_reason:
+reader_contract:
+  reference_standard: textbook/chapter-01/section-1-3.html
+  source_ordered: true
+  source_statement_adjacent: true
+  natural_language_formula_proof: true
+  hidden_assumptions_visible: true
+  lean_collapsed: true
+  external_dependencies_visible: true
+graph_contribution:
+  lean_view: new-node | reuse-only | integration-node
+  overview_view: updated | no-change-with-reason
+  functor_view: none-found | candidate-published | stabilized
+  edge_semantics: formal-solid; overlays-dashed
+  color_semantics: evidence-status; library-scope
+  focus_targets: []
+  visual_review:
 owned_files: []
 forbidden_shared_files:
   - AutoSamplingTheory/TechnicalLemmas/Analysis.lean
@@ -63,9 +89,15 @@ context_budget:
 
 ## Worker instruction
 
-Own the mathematical advance end to end. Read the exact source, challenge the statement when necessary, and **search ASTIS/Mathlib/shared Frontier Cells before inventing an API**. For Optimisation, search Optlib/CvxLean when relevant. Implement an isolated theorem module, add a focused test, and run the smallest useful check early. Do not stop at a former Upper/Middle/Lower boundary. Do not edit shared aggregators in the exploration lane.
+Own the mathematical advance end to end. Read the exact source, challenge the statement when necessary, and **search ASTIS/Mathlib/shared Frontier Cells before inventing an API**. For Optimisation, search Optlib/CvxLean when relevant; for statistical-learning results, search StatsMLlib when relevant. Implement an isolated theorem module, add a focused test, and run the smallest useful check early. Do not stop at a former Upper/Middle/Lower boundary. Do not edit shared aggregators in the exploration lane.
+
+The objective is not minimum local code. It is the smallest faithful **shared formal substrate**: reuse an existing canonical declaration whenever possible; if the missing lemma has multiple realistic consumers, generalize it once at the shared layer and keep route-specific hypotheses in explicit adapters. Never create wrappers merely to inflate a reuse count. Record exact reused declarations and actual/planned consumers in `reuse_plan`.
 
 If the proposed missing lemma is useful to two or more routes, do not prove a private copy inside the current route. Record `decision: new_canonical_shared`, open/name one `route: shared` Frontier Cell, and make the current cell depend on it. A route-local cell with this decision must not advance beyond `claimed` before the shared cell exists.
+
+For every source-facing statement, author the reader in source order: attributed source statement and formulas → hidden assumptions → readable mathematical proof → source-vs-Lean assumption ledger → folded exact Lean → ASTIS/Mathlib/external reuse → remaining boundary. The source-of-truth is declaration lessons/publication metadata; never hand-edit generated HTML.
+
+Every contribution must classify all three graph views. Formal module/declaration structure stays solid; source, scan, curated, semantic and conceptual overlays stay dashed. Evidence-status colouring and library-scope colouring are separate. A conceptual mirror is never a solid Lean edge or certified functor without an independent formal certificate.
 
 A successful return closes the proposed theorem edge, reusable interface, or integration node. A blocked return must strictly reduce the boundary and include evidence strong enough to change the next scheduling decision. “Lean failed” or “more work remains” is not a result.
 
@@ -104,6 +136,30 @@ shared_floor_audit:
   decision:
   canonical_declaration:
   canonical_shared_cell:
+reuse_plan:
+  searched_existing: []
+  reused_declarations: []
+  new_shared_declarations: []
+  known_consumers: []
+  planned_consumers: []
+  no_duplicate_wrapper: true
+  decision_reason:
+reader_contract:
+  reference_standard: textbook/chapter-01/section-1-3.html
+  source_ordered: true
+  source_statement_adjacent: true
+  natural_language_formula_proof: true
+  hidden_assumptions_visible: true
+  lean_collapsed: true
+  external_dependencies_visible: true
+graph_contribution:
+  lean_view:
+  overview_view:
+  functor_view:
+  edge_semantics: formal-solid; overlays-dashed
+  color_semantics: evidence-status; library-scope
+  focus_targets: []
+  visual_review:
 focused_checks:
   - command:
     result:
@@ -125,7 +181,7 @@ retired_route:
 minimal_reproducer:
 new_discoveries:
   - discovery_id:
-    kind: lemma | interface | counterexample | source-gap | refactor | conjecture | process | synthesis
+    kind: lemma | interface | counterexample | source-gap | refactor | conjecture | process | synthesis | conceptual-mirror
     frontier_cell:
     statement:
     evidence:
@@ -149,7 +205,7 @@ For `BLOCKED`, use `result_kind: strict-obstruction` and provide a typed blocker
 
 ## Source-facing semantic addendum
 
-A source-facing theorem is not assimilated merely because its Lean declaration compiles. When `semantic_roundtrip_required: true`, open or update an audit in `research-wiki/semantic-roundtrip/registry.json` and follow `.agents/skills/astis-semantic-roundtrip/SKILL.md`.
+A source-facing theorem is not assimilated merely because its Lean declaration compiles. When `semantic_roundtrip_required: true`, open or update the canonical semantic audit and follow `.agents/skills/astis-semantic-roundtrip/SKILL.md`.
 
 The formalizer may prepare the draft audit, but cannot serve as the blind decoder or source reviewer. Export the anonymous decoder packet and the later anti-anchored review packet through:
 
@@ -191,3 +247,5 @@ Only the designated stabilization lane may:
 - update Registry, graph, source, semantic-roundtrip, and site surfaces;
 - record root build and graph regeneration evidence;
 - move a cell to `stabilized` and then `merged` after the PR lands.
+
+Before requesting merge, run the publication gate, contributor-contract gate, semantic-roundtrip check, Frontier Cell check, focused/root Lean checks, site build/check, and `graph-check --cell CELL_ID`. Generated `_site` output is never committed.

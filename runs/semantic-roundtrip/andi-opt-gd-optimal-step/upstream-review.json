@@ -1,0 +1,114 @@
+{
+  "audit_kind": "read-only source and exact API reuse audit; no builds or repository edits",
+  "checked_context": {
+    "mathlib_pin": "db584cd6d46c92f209a44c0f1c829460d327499d",
+    "optlib_pin": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+    "cvxlean_pin": "c62c2f292c6420f31a12e738ebebdfed50f6f840"
+  },
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S3",
+    "anchor": "Exercise 3.2, rendered lines 668\u2013677; Definition 3.2 at lines 533\u2013536",
+    "observed_statement": "C2 Euclidean Hessian/eigenvalue and affine-segment FTC argument; h=2/(alpha+beta) minimizes the uniform derivative norm envelope and yields pairwise factor (kappa-1)/(kappa+1).",
+    "source_wording_boundary": "The exercise asks for eigenvalue bounds, minimization of the resulting bound, and pairwise contraction. It does not assert exact minimization of the actual derivative norm for every objective."
+  },
+  "recommended_route": {
+    "decision": "Proceed with C2 genuine Hessian -> Riesz symmetric operator -> Rayleigh norm formula -> explicit affine-segment FTC.",
+    "justification": "Matches the source mechanism while reusing an existing norm characterization instead of reconstructing the spectral theorem. Record Rayleigh as the implementation of the source symmetric spectral norm estimate.",
+    "target_endpoint_bound": "For h>=0 and signed alpha,beta, global lower/upper Hessian forms imply norm(T_h(y)-T_h(x)) <= max(abs(1-h*alpha),abs(1-h*beta))*norm(y-x).",
+    "target_optimal_bound": "For 0<=alpha<=beta and beta>0, h*=2/(alpha+beta), q=(beta-alpha)/(beta+alpha), pairwise norm contraction by q plus q<=max(abs(1-h*alpha),abs(1-h*beta)) for every real h.",
+    "shared_floor_classification": "adapt existing exact Mathlib norm characterization and local actual-Hessian construction; no external code port required"
+  },
+  "exact_reuse": [
+    {
+      "name": "ContinuousLinearMap.norm_eq_iSup_rayleighQuotient",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Rayleigh.lean",
+      "line": 120,
+      "type": "(hT : T.IsSymmetric) -> norm T = iSup (fun x => abs (T.rayleighQuotient x))",
+      "use": "ciSup_le reduces operator bound to a scalar absolute-value Rayleigh bound; no finite-dimension or Nontrivial E assumption."
+    },
+    {
+      "name": "LinearMap.IsSymmetric.id / sub / smul",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Symmetric.lean",
+      "lines": [
+        84,
+        98,
+        104
+      ],
+      "use": "Symmetry of id-h H; real smul has conjugation identity."
+    },
+    {
+      "name": "ContDiffAt.isSymmSndFDerivAt",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Symmetric.lean",
+      "line": 533,
+      "use": "C2 gives symmetry of the actual second Frechet derivative."
+    },
+    {
+      "name": "InnerProductSpace.toDual_symm_apply",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Dual.lean",
+      "use": "Riesz inverse turns fderiv(fderiv f) into an E-valued operator preserving bilinear pairings.",
+      "line": 177
+    },
+    {
+      "name": "QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "line": 29,
+      "use": "Lines78\u2013114 already construct continuous-linear Riesz inverse, actual derivative of gradient, Hessian symmetry, and Rayleigh norm bound. Reuse construction pattern without editing old theorem."
+    },
+    {
+      "name": "ConvexityC2.gradient_mono_iff_fderiv2_lower",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC2.lean",
+      "line": 46,
+      "use": "Signed modulus complete-real-Hilbert C2 equivalence; combine with signed first-order monotonicity for hsc input."
+    },
+    {
+      "name": "ConvexityC2.strongConvexOn_iff_fderiv2_lower",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC2.lean",
+      "line": 88,
+      "use": "Nonnegative modulus Euclidean source wrapper only; do not apply it to arbitrary signed alpha."
+    },
+    {
+      "name": "ConvexityC2.gradient_sub_inner_eq_integral_fderiv2",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC2.lean",
+      "line": 26,
+      "use": "Existing scalar paired FTC pattern; vector gradient-step FTC still requires its own actual derivative composition."
+    },
+    {
+      "name": "SmoothnessEquivalences.upper_model_iff_fderiv2_upper",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothnessEquivalences.lean",
+      "line": 50,
+      "use": "Signed beta global quadratic upper model -> genuine Hessian diagonal upper bound, no convexity assumption."
+    }
+  ],
+  "external_candidates": [
+    {
+      "name": "Strong_convex_Lipschitz_smooth",
+      "snapshot_file": "/private/tmp/samplinglib-reuse-audit/optlib-5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/GD/GradientDescentStronglyConvex.lean",
+      "line": 32,
+      "contract": "Real Hilbert; m>0; StrongConvexOn univ m f; supplied HasGradientAt f (f' x); LipschitzWith l f'; l>0. Sharp gradient interpolation m*l/(m+l)||dx||\u00b2+1/(m+l)||dg||\u00b2 <= inner dg dx.",
+      "route_difference": "Shifted cocoercivity of f-m||x||\u00b2/2; does not use actual C2 Hessian or segment FTC. Existing adjacent theorem, not exact source-route port. Not selected."
+    },
+    {
+      "name": "gradient_method_strong_convex",
+      "same_file_as": "Strong_convex_Lipschitz_smooth",
+      "line": 140,
+      "contract": "Squared minimizer-distance iterate bound for positive modulus and step<=2/(m+l).",
+      "boundary": "Adjacent rate, not pairwise optimal-step norm theorem; requires minimizer/algorithm fields."
+    },
+    {
+      "name": "LinearMap.spectral_theorem'",
+      "snapshot_file": "/private/tmp/samplinglib-reuse-audit/CvxLean-c62c2f292c6420f31a12e738ebebdfed50f6f840/CvxLean/Lib/Math/Analysis/InnerProductSpace/Spectrum.lean",
+      "line": 18,
+      "boundary": "General finite-dimensional diagonalization. Scoped full CvxLean Lean search for gradient/Hessian/cocoercivity and norm-eigenvalue bounds found no exact candidate. Mathlib norm characterization avoids needing this."
+    }
+  ],
+  "endpoint_audit": {
+    "alpha_zero": "Valid nonexpansive q=1 extension at h=2/beta. Source kappa=beta/alpha expression is undefined here; advertise parameter-form extension, not literal kappa identity.",
+    "alpha_equals_beta": "For beta>0, h=1/beta and q=0. T is constant from derivative zero; no minimizer input needed. Scalar minimax optimality remains valid.",
+    "dimension_zero": "All pairwise distances vanish. Do not infer alpha<=beta from form bounds without Nontrivial E. Explicit alpha<=beta in optimal theorem is a parameter-domain condition; no hidden dimension positivity. Rayleigh iSup over E includes zero and works.",
+    "beta_positive": "Together with alpha>=0 makes alpha+beta>0 and the optimal step defined; excludes alpha=beta=0, whose envelope is identically1 for every finite step.",
+    "alpha_le_beta": "Needed to identify nonnegative q and match source condition number >=1; for nontrivial space follows from lower/upper Hessian bounds, but explicit hypothesis is correct on all dimensions.",
+    "signed_endpoint_bound": "M(h)>=0 automatically. No alpha<=beta needed if theorem only derives a norm envelope from existing compatible bounds; singleton case remains harmless.",
+    "minimax": "Uniform two-endpoint envelope minimizer; may be nonunique when alpha=0. Do not claim unique minimizer, actual norm optimality for every function, oracle optimality or iterate complexity."
+  },
+  "truth_boundary": "API/source audit only; no Lean compile or theorem completion asserted; final declarations and proof must receive focused checks and independent semantic review."
+}

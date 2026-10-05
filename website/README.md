@@ -86,9 +86,15 @@ Each step needs `title`, natural-language `text`, a display-TeX `formula`, and
 a declaration-specific beginner `lean` explanation. The `lean_statement` and
 `lean_proof` fields are **explanations**, not duplicated code: exact signatures
 and complete proof source are extracted from the current Lean declaration.
-Include notation, ASTIS parents, Mathlib calls, exact sources, tests and their
+Include notation, Samplinglib parents, Mathlib calls, exact sources, tests and their
 actual scope. Definitions require their construction and meaning, not invented
 proofs of the propositions their metadata describes.
+
+The generated lesson starts with a human reading pass: the mathematical claim,
+main formula, and a short proof roadmap are visible together. Full assumptions,
+scope ledgers, provenance, and exact Lean source remain one click away. This
+keeps the mathematical argument readable while preserving every premise and
+the complete kernel-checked declaration for audit.
 
 Source entries use either an HTTPS `url` or a repository-relative `path` with
 an optional one-based `line`. Mathlib paths resolve using `lake-manifest.json`;
@@ -169,9 +175,25 @@ diagrams, and source links are all checked before publication.
 
 ## Live Formalization
 
-Static GitHub Pages supports LaTeX rendering, reviewed mappings, library
-navigation, dependency inspection, and ASTIS packet export. It cannot execute
-Lean or call a formalizer.
+Static GitHub Pages supports a source-grounded research proof tracker, LaTeX
+rendering, recursive-call/error ledgers, reviewed mappings, library navigation,
+dependency inspection, and bounded ASTIS packet export. A theorem or individual
+proof step can be opened directly from its companion reader. The static page
+cannot execute Lean or call an AI provider; its action buttons copy a precise,
+source-labelled prompt instead.
+
+Every source workspace has three generated downloads under `_site/downloads/`:
+
+- a JSON/Markdown context packet for ChatGPT or Codex;
+- a reproducible research pack containing a standalone visual reader, pinned
+  toolchain metadata, and only the ASTIS-owned compiled support modules actually
+  attached to that route;
+- `samplinglib-research-mcp.zip`, a read-only MCP App with a proof-route and
+  bookkeeping widget for ChatGPT or another MCP Apps-compatible host.
+
+All of these are projected from
+`website/content/samplewiki_companion_frontiers.json`; they are not another
+theorem-status source. See `docs/research-workspace.md`.
 
 Local verified mode adds a deterministic ASTIS formalization adapter and the
 pinned Lean compiler:
@@ -187,6 +209,21 @@ serializes compiler work, uses a temporary directory, does not alter repository
 source, and does not log submitted source bodies. It is a development service,
 not a public execution sandbox.
 
+An optional source-grounded Responses API assistant can answer inside the local
+workspace. The API key stays on the server and the model is explicit rather
+than silently changing with defaults:
+
+```bash
+export OPENAI_API_KEY='set-this-outside-git'
+export ASTIS_OPENAI_MODEL='an-available-responses-model'
+python3 website/scripts/ide_server.py
+```
+
+On PowerShell use `$env:OPENAI_API_KEY=...` and
+`$env:ASTIS_OPENAI_MODEL=...`. The browser receives neither credential. An AI
+answer is always labelled unverified; it cannot change Registry state or the
+blue/red proof status.
+
 The workspace never merges these states:
 
 - candidate translation;
@@ -199,6 +236,30 @@ Unsupported formulas remain unresolved and can be exported with
 `analytic_contract`, `formalization_map`, `proof_attempt`, and `review`
 boundaries for ASTIS decomposition. No provider credentials are sent to the
 browser.
+
+## ChatGPT / Codex research app
+
+Build the site, download `_site/downloads/samplinglib-research-mcp.zip`, unpack
+it, and run:
+
+```bash
+npm install
+npm start
+```
+
+The app exposes a read-only `/mcp` endpoint and an MCP Apps widget. During
+development, connect its HTTPS-tunnel URL from ChatGPT developer mode according
+to the current OpenAI MCP Apps instructions. The app itself performs no model
+call and needs no OpenAI API key: ChatGPT/Codex uses the structured tools while
+the widget renders the selected theorem, proof steps, evidence labels and
+bookkeeping ledger. Availability of ChatGPT plan usage and plugin/developer-mode
+features is controlled by OpenAI and the user's account; ASTIS does not infer
+entitlement.
+
+For the simplest no-server route, upload a generated `workspace.md` and
+`workspace.json` to the user's ChatGPT/Codex conversation. To obtain a Lean
+certificate, use the full repository and the pinned local compiler service;
+the downloadable MCP App deliberately does not expose remote code execution.
 
 ## Authenticated private preview
 

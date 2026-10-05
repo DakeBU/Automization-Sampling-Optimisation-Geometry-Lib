@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-phase-state-moment-transfer",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "SPHMC Wasserstein-to-phase-state second moment",
+    "source": {
+      "url": "https://arxiv.org/pdf/2609.06906",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Lemma D.4 proof, PDF page 56; equation (D.3) and Lemma 4.16",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib expands the standard coupling/integrability step; this is not the authors' wording or a complete Lemma D.4 claim."
+    },
+    "statement": "A quadratic Wasserstein estimate transfers reference phase-coordinate second moments to the incoming law; the current compiled adapter uses the ordinary product metric and keeps the paper's M_kappa comparison open.",
+    "assumptions": ["Lipschitz observable with an integrable reference second moment.", "Finite ordinary squared Wasserstein radius stated using Samplinglib's ENNReal W2.", "For the phase adapter, separate reference position and momentum moments."],
+    "formulae": [
+      {"label": "Shared transfer", "tex": "W_2^2(\\mu,\\nu)\\le r^2\\Rightarrow \\mathbb E_\\mu\\|g\\|^2\\le2\\mathbb E_\\nu\\|g\\|^2+2\\operatorname{Lip}(g)^2r^2."},
+      {"label": "Phase adapter", "tex": "\\mathbb E[\\|X-x_\\star\\|^2+\\|P\\|^2]\\le2(M_X+M_P)+4r^2."}
+    ],
+    "obligations": [
+      {"id": "shared-transfer", "label": "W2 transfer for Lipschitz observable second moments"},
+      {"id": "ordinary-phase", "label": "Ordinary product-metric phase-state moment"},
+      {"id": "mkappa", "label": "M_kappa metric definition and norm comparison (remaining)"},
+      {"id": "history", "label": "Uniform phase-history law bound from (D.3) (remaining)"},
+      {"id": "d7", "label": "All actual Picard query-center gradient moments (remaining)"}
+    ],
+    "bindings": [
+      {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment.of_wassersteinDistance_sq_le",
+        "cell": "ASTIS-SHARED-wasserstein-lipschitz-moment",
+        "role": "prerequisite",
+        "audit_id": "ASTIS-RT-20260929-WassersteinLipschitzMoment",
+        "supports": ["shared-transfer"],
+        "boundary": "Ordinary quadratic W2 and one observable only; no optimal coupling, twisted metric or SPHMC history.",
+        "assumption_deltas": [
+          {"source": "Lemma D.4 uses Wasserstein control to infer second moments without isolating a theorem.", "lean": "The observable is explicitly b-Lipschitz and square-integrable under the reference measure; integrability under the transported measure is a conclusion.", "classification": "source-implicit", "reason": "Real integral inequalities require the involved moments to be integrable."},
+          {"source": "The paper can appeal to optimal couplings in finite-dimensional Euclidean space.", "lean": "The proof uses arbitrarily near-optimal couplings and therefore does not assume attainment.", "classification": "generalization", "reason": "This weakens the proof infrastructure without changing the bound."}
+        ]
+      },
+      {
+        "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment.phase_state_second_moment_of_wasserstein",
+        "cell": "ASTIS-SW-SPHMC-phase-state-moment-transfer",
+        "role": "proof-edge",
+        "audit_id": "ASTIS-RT-20260929-SPHMCPhaseStateMoment",
+        "supports": ["ordinary-phase"],
+        "boundary": "Ordinary product max metric only. No M_kappa comparison, (D.3), run history, complete D.7, D.8 or main theorem.",
+        "assumption_deltas": [
+          {"source": "The paper controls W_{2,M_kappa} and invokes uniform equivalence with Euclidean phase energy.", "lean": "The current theorem assumes Samplinglib's ordinary product-metric W2 bound.", "classification": "unresolved", "reason": "Lean's product norm is max norm; the explicit M_kappa linear metric and comparison constants are the next separate theorem."},
+          {"source": "The stationary phase law and Lemma 4.16 supply its moments in the paper.", "lean": "Reference position/momentum integrability and bounds Mx,Mp are explicit premises.", "classification": "source-implicit", "reason": "Constructing the smoothed stationary phase law and proving its moments remain independent inputs."}
+        ]
+      }
+    ]
+  }]
+}

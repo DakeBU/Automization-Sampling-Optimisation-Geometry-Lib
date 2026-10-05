@@ -20,6 +20,26 @@ def status(library: str, chapter: str | None = None) -> str:
             f'data-publication-status="{p["status"]}">{escape(p["label"])}</span>')
 
 
+def chapter_path_progress(chapter_path: str) -> dict:
+    """Aggregate publication progress for every source item rendered on one page.
+
+    A companion page may cover several source sections.  Its graph badge must not
+    depend on which JSON item happened to be loaded last.
+    """
+    progress = [publication.chapter_progress(item['library'], item['chapter'])
+                for item in publication.load() if item['chapter_path'] == chapter_path]
+    proved = sorted({name for item in progress for name in item['proof_declarations']})
+    prerequisites = sorted({name for item in progress for name in item['prerequisites']})
+    return {
+        'status': 'partial' if proved else 'prerequisite-ready' if prerequisites else 'scaffold',
+        'label': ('Partially formalized' if proved else
+                  'Prerequisites available' if prerequisites else 'scaffold'),
+        'proof_declarations': proved,
+        'prerequisites': prerequisites,
+        'source_complete': False,
+    }
+
+
 def semantic_details(audit: dict) -> str:
     gaps = ''.join(f'<li><strong>{escape(str(d.get("slot", "")))}</strong>: '
                    f'{escape(str(d.get("description", "")))} — {escape(str(d.get("evidence", "")))}</li>'
@@ -40,25 +60,42 @@ def source_card(item: dict, page: str) -> str:
                        f'\\[{escape(f["tex"])}\\]</div>' for f in item['formulae'])
     obligations = []
     for o in item['obligations']:
-        supporters = [b for b in item['bindings'] if o['id'] in b.get('supports', []) and b['role'] == 'proof-edge' and publication.verified_binding(b, data)]
-        label = 'Local proof component; source adapter/review separate' if supporters else 'TODO — not closed by these contributions'
-        obligations.append(f'<li><span class="status status-{"orange" if supporters else "red"}">{label}</span> {escape(o["label"])}</li>')
-    comparisons = []
+        verified = [b for b in item['bindings']
+                    if o['id'] in b.get('supports', [])
+                    and publication.verified_binding(b, data)]
+        proof_supporters = [b for b in verified if b['role'] == 'proof-edge']
+        prerequisite_supporters = [b for b in verified if b['role'] == 'prerequisite']
+        if proof_supporters:
+            label, color = 'Formalized proof edge; source adapter/review separate', 'orange'
+        elif prerequisite_supporters:
+            label, color = 'Independently verified prerequisite', 'green'
+        else:
+            label, color = 'TODO — not closed by these contributions', 'red'
+        obligations.append(f'<li><span class="status status-{color}">{label}</span> '
+                           f'{escape(o["label"])}</li>')
     lessons = []
     for b in item['bindings']:
         name = b['declaration']
         audit = data['audits'].get(b.get('audit_id'), {})
+        debt = b.get('legacy_audit_debt', {})
+        history = ('<p><strong>Historical audit record: legacy_audit_debt.</strong> '
+                   + escape(debt.get('reason', ''))
+                   + ' Any current review below applies to the current version; it does not certify a historical worker run.</p>') if debt else ''
         rows = ''.join('<tr>' + ''.join(f'<td>{escape(r[k])}</td>' for k in ('source', 'lean', 'classification', 'reason')) + '</tr>'
                        for r in b['assumption_deltas'])
-        comparisons.append(f'<h3>{escape(name.rsplit(".", 1)[-1])}</h3>'
+        comparison = (f'<section data-source-comparison="{escape(name)}">'
+                           '<h3>Source assumptions versus formal assumptions</h3>'
                            '<div class="table-scroll"><table><thead><tr><th>Source</th><th>Actual Lean</th>'
                            '<th>Difference kind</th><th>Why it matters</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                            f'<p>{escape(b["boundary"])}</p>'
-                           '<p><strong>Encoder–denoiser:</strong> ' + escape(audit.get('state', 'pending historical audit'))
-                           + ' · ' + escape(audit.get('verdict', 'No source-fidelity verdict. Local compilation is not source assimilation.')) + '</p>')
-        comparisons.append(semantic_details(audit))
+                           + history
+                           + '<p><strong>Encoder–denoiser:</strong> ' + escape(audit.get('state', 'pending historical audit'))
+                           + ' · ' + escape(audit.get('verdict', 'No source-fidelity verdict. Local compilation is not source assimilation.')) + '</p>'
+                           + semantic_details(audit)
+                           + '<p>A generalization is not a source correction. Proposed missing conditions require separate independent repair review. '
+                           'No proposed repair silently changes the original theorem.</p></section>')
         lesson = data['lessons'][name]
-        rendered = declaration_lessons.render_unit(lesson, page)
+        rendered = declaration_lessons.render_unit(lesson, page, source_comparison=comparison)
         rendered = rendered.replace('<h1>', '<h2>').replace('</h1>', '</h2>')
         rendered = rendered.replace('href="index.html">Teaching coverage',
                                     f'href="{astis_site.relative_prefix(page)}lessons/index.html">Teaching coverage')
@@ -66,15 +103,13 @@ def source_card(item: dict, page: str) -> str:
     return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
             f'<p><a href="{escape(source["url"])}">{escape(source["edition"])} · {escape(source["anchor"])}</a>'
-            f' · {escape(source["wording_status"])}</p><h3>Complete source statement (ASTIS restatement)</h3>'
+            f' · {escape(source["wording_status"])}</p><h3>Complete source statement (Samplinglib restatement)</h3>'
             f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
-            + '<h3>Which proof edges are actually covered?</h3><ul>' + ''.join(obligations) + '</ul>'
-            + '<h3>Source assumptions versus formal assumptions</h3>' + ''.join(comparisons)
-            + '<p>A generalization is not a source correction. Proposed missing conditions require separate independent repair review. '
-            'No proposed repair silently changes the original theorem.</p>'
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
-            'ASTIS parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
-            + ''.join(lessons) + '</section>')
+            'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
+            + ''.join(lessons)
+            + '<h3>Which proof obligations and prerequisites are covered?</h3><ul>'
+            + ''.join(obligations) + '</ul></section>')
 
 
 def enrich_site(output: Path) -> None:
@@ -124,7 +159,7 @@ def project_graph(builder) -> None:
                             subtitle='Source-present publication; compiled badge not inferred',
                             url=astis_site.declaration_path(decl))
             builder.edge('module:' + decl.module, ident, 'declares')
-    by_path = {i['chapter_path']: publication.chapter_progress(i['library'], i['chapter']) for i in publication.load()}
+    by_path = {i['chapter_path']: chapter_path_progress(i['chapter_path']) for i in publication.load()}
     by_path.update({str(Path(i['chapter_path']).parent / 'index.html').replace('\\', '/'):
                    publication.chapter_progress(i['library']) for i in publication.load()})
     for node in builder.nodes.values():
@@ -213,7 +248,7 @@ def validate_graph(graph: dict, site: dict, items: list[dict] | None = None) -> 
         if len(chapters) != 1:
             errors.append(f'Graph contribution needs one source chapter: {item["id"]}')
             continue
-        expected = publication.chapter_progress(item['library'], item['chapter'])
+        expected = chapter_path_progress(item['chapter_path'])
         if chapters[0].get('status') != ('partial' if expected['status'] == 'partial' else 'planned'):
             errors.append(f'Graph chapter progress drift: {item["id"]}')
         for binding in item['bindings']:

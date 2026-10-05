@@ -1,0 +1,8 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
+
+open MeasureTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+#check WassersteinLipschitzMoment.of_wassersteinDistance_sq_le
+
+#print axioms WassersteinLipschitzMoment.of_wassersteinDistance_sq_le

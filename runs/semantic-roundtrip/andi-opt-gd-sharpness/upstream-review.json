@@ -1,0 +1,136 @@
+{
+  "reviewer": "sharp_route_review",
+  "review_kind": "bounded independent source and reuse audit; no proof implementation or repository edits",
+  "checked_base_commit": "7b3f5bc5ca8463afe3632765e39641c4456b3971",
+  "verdict": "accept bounded scalar witness route with explicit class-modulus and quantifier boundaries",
+  "source": {
+    "edition": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1",
+    "url": "https://arxiv.org/html/2605.07006v1#S3",
+    "accessed": "2026-09-13",
+    "anchors": {
+      "GD": "Section 3 opening, HTML lines 508-516",
+      "condition_number": "Definition 3.2, HTML lines 533-536",
+      "upper_sharp_rate": "Exercise 3.2, HTML lines 668-677",
+      "quadratic_sharpness": "Exercise 3.3, HTML lines 678-680"
+    },
+    "summary": "Section 3 assumes twice continuously differentiable objectives and actual gradient updates. Exercise 3.2 asks for the endpoint spectral bound, optimal constant step 2/(alpha+beta), and contraction factor (kappa-1)/(kappa+1). Exercise 3.3 asks for explicit iterates of a positive-definite quadratic and assessment of Section 3 sharpness. Definition 3.2 relates quadratic moduli to extremal eigenvalues.",
+    "detail_status": "exercise leaves witness calculations to reader; scalar construction is ASTIS-authored derivation of a bounded conclusion, not an explicitly printed theorem",
+    "source_mapping": "partial Exercise 3.3 component resolving sharpness of Exercise 3.2 distance contraction; lean-weakened-conclusion relative to whole Exercise 3.3"
+  },
+  "proposed_statement": {
+    "parameters": "real 0 < alpha <= beta; arbitrary real constant step h; natural N",
+    "witness": "Choose mu=alpha if |1-h*beta|<=|1-h*alpha|, otherwise mu=beta; f_mu(x)=mu*x^2/2 on R; x0=1 and xstar=0.",
+    "required_certificates": [
+      "mu in {alpha,beta}, hence 0<mu and alpha<=mu<=beta",
+      "ContDiff R 2 f_mu",
+      "StrongConvexOn univ alpha f_mu",
+      "actual beta-smooth upper model with gradient f_mu, or actual Lipschitz gradient plus compiled model adapter",
+      "0 is a global minimizer and x0 has norm one (hence is nonzero)",
+      "actual gradient iteration satisfies norm(T_h^[N](1)-0)=max(|1-h*alpha|,|1-h*beta|)^N",
+      "q^N <= norm(T_h^[N](1)-0), q=(beta-alpha)/(alpha+beta)"
+    ],
+    "preferred_quantifier_order": "forall alpha beta, 0<alpha -> alpha<=beta -> forall h, exists mu in {alpha,beta}, all objective certificates and forall N, exact equality and lower bound",
+    "minimal_quantifier_order": "forall alpha beta h N, admissible parameters -> exists mu with objective certificates and the N-step equality/lower bound",
+    "optimal_step": "At h=2/(alpha+beta), either endpoint gives norm(T_h^[N](1))=q^N. Existing general endpoint upper bound plus iteration establishes uniform optimality for nonnegative fixed steps."
+  },
+  "scalar_vs_fixed_matrix": {
+    "scalar_suffices": "Yes, for class-level worst-case constant-step distance sharpness. The adversarial objective may depend on h; its selection need not depend on N. alpha and beta are valid lower/upper curvature bounds, not necessarily both tight.",
+    "not_supported": "When alpha<beta, a one-dimensional scalar quadratic has intrinsic tight condition number 1. Do not identify beta/alpha as the intrinsic condition number of this witness or claim its Hessian has both endpoints.",
+    "fixed_2d_option": "For the stronger quantifier exists f forall h exists unit x0 forall N, use the single objective (alpha*x1^2+beta*x2^2)/2 with diag(alpha,beta), and select an endpoint basis vector according to h. This objective has exact extremal curvatures alpha,beta. It is optional for the bounded class-level theorem."
+  },
+  "route": [
+    "Construct the scalar quadratic with mu>0 and actual differentiability.",
+    "Prove exact mu curvature/smoothness then weaken constants using alpha<=mu<=beta, or use direct exact quadratic remainder for both bounds.",
+    "Certify zero as global minimizer and one as unit start.",
+    "Instantiate existing quadratic_eigenmode at H=mu times identity and x=1; do not reprove iteration or eigenvector powers.",
+    "Select the endpoint attaining the maximum by total order.",
+    "Reuse optimal_gradient_step second conjunct for q<=M (or extract a standalone scalar envelope lemma if that reduces artificial objective coupling). Raise nonnegative quantities to N.",
+    "At balanced step simplify both endpoint absolute values to q; keep full-section and oracle claims open."
+  ],
+  "searched_dependencies": [
+    {
+      "scope": "ASTIS",
+      "paths": [
+        "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticGradientDescent.lean",
+        "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentOptimalStep.lean",
+        "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+        "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC2.lean",
+        "AutoSamplingTheory/TechnicalLemmas/Geometry/StrongConvexity.lean"
+      ],
+      "results": [
+        "quadratic_eigenmode supplies exact actual trajectory, norm and objective identity",
+        "optimal_gradient_step supplies nonnegative q and all-real-step minimax scalar inequality via second conjunct (hypotheses include actual objective certificates)",
+        "strongConvexOn_and_lipschitzWith_gradient_add_quadratic can specialize U=0,m=L=0,r=mu but is heavier than scalar convexity/model arithmetic",
+        "ConvexityC2.strongConvexOn_iff_fderiv2_lower and Geometry centered lower-envelope theorem are available; avoid rebuilding general Hessian infrastructure"
+      ]
+    },
+    {
+      "scope": "frontier and publication memory",
+      "paths": [
+        "research-wiki/frontier-cells/ASTIS-SHARED-quadratic-gradient-iterate.json",
+        "research-wiki/frontier-cells/ASTIS-SHARED-quadratic-gradient-eigenmode.json",
+        "research-wiki/frontier-cells/ASTIS-SHARED-gradient-step-endpoint-bound.json",
+        "research-wiki/technical-lemmas/quadratic-gradient-descent.md",
+        "website/content/declaration_lessons/quadratic-gradient-descent.json"
+      ],
+      "results": [
+        "existing identities explicitly leave sharpness comparison open",
+        "existing concrete diag(1,3) tests are not a parameterized theorem"
+      ]
+    },
+    {
+      "scope": "Mathlib",
+      "commit": "db584cd6d46c92f209a44c0f1c829460d327499d",
+      "license": "Apache-2.0",
+      "results": [
+        "Analysis.Convex.Strong: strongConvexOn_iff_convex rewrites scalar mu-strong convexity to convexity of zero after subtracting mu/2 norm-square",
+        "StrongConvexOn.mono weakens exact mu curvature to alpha",
+        "HasFDerivAt.inner, HasGradientAt.gradient, FunLike.coe_pow_eq_iterate and Module.End.HasEigenvector.pow_apply already consumed by ASTIS quadratic_eigenmode",
+        "pow_le_pow_left₀ raises q<=M with q>=0; abs_nonneg and le_max_left certify M>=0"
+      ],
+      "compatibility": "root Lean 4.33.0; no fresh compile claim in this audit"
+    },
+    {
+      "scope": "Optlib pinned local source search",
+      "commit": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "license": "Apache-2.0",
+      "toolchain": "Lean 4.13.0",
+      "local_root": "/private/tmp/samplinglib-reuse-audit/optlib-5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "results": [
+        "Optlib/Algorithm/GD/GradientDescentStronglyConvex.lean:32 Strong_convex_Lipschitz_smooth is interpolation inequality, not endpoint witness",
+        "same file:140 gradient_method_strong_convex is an upper squared-distance rate for step<=2/(m+l), not lower/equality witness",
+        "Optlib/Algorithm/LASSO.lean:61 quadratic_gradient differentiates squared norm via adjoint",
+        "Optlib/Algorithm/ADMM/Lemma.lean:312 Gradient_of_quadratic_forms is squared norm differentiation",
+        "bounded search of GD files for quadratic/sharp/worst/optimal found no direct parameterized sharpness witness"
+      ],
+      "compatibility": "reference only; no external code copied or imported"
+    },
+    {
+      "scope": "CvxLean pinned local source search",
+      "commit": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "license": "Apache-2.0",
+      "toolchain": "Lean 4.8.0-rc1",
+      "local_root": "/private/tmp/samplinglib-reuse-audit/CvxLean-c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "results": [
+        "CvxLean/Lib/Math/LinearAlgebra/Eigenspace.lean has eigenspace_add, has_eigenvector_add and has_eigenvector_one",
+        "CvxLean/Lib/Math/LinearAlgebra/Matrix/Spectrum.lean has IsHermitian.hasEigenvector_eigenvectorBasis",
+        "bounded CvxLean-wide gradient-descent/strong-convex/quadratic/eigen search found algebraic spectral and DCP material, no matching optimization sharpness witness"
+      ],
+      "compatibility": "reference only; no upstream adapter needed for scalar route"
+    }
+  ],
+  "truth_boundary": [
+    "An attained lower bound against any one fixed scalar step does not lower-bound arbitrary first-order algorithms, adaptive or varying step sequences, or accelerated methods.",
+    "The source Exercise 3.3 asks about all section results; this target resolves only the distance endpoint bound/optimal fixed-step comparison, not function-value or stationarity sharpness.",
+    "Arbitrary h is permitted for exact evolution and lower bounds, including h<0 and unstable h. This is not an arbitrary-step convergence statement.",
+    "N=0 uses the conventional zeroth power 1, including q=0; alpha=beta gives q=0 and one-step exact optimization at h=1/alpha.",
+    "alpha=0 is deliberately excluded to retain positive-definite source witnesses and source condition-number interpretation.",
+    "No compact spectral endpoint existence theorem in general Hilbert spaces is needed or asserted."
+  ],
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "This combines existing scalar endpoint geometry and exact quadratic powers in one domain; no new cross-domain transport is needed."
+  },
+  "classification": "adapt_existing",
+  "verification_scope": "Read-only mathematical/source/reuse assessment. No Lean proof implemented, no theorem compiled, no publication admission or VERIFIED transition authorized by this report."
+}

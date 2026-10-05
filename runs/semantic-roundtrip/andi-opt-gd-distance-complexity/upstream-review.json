@@ -1,0 +1,95 @@
+{
+  "reviewer_id": "pl_pullback_review",
+  "role": "bounded independent source/reuse route audit, no frozen proof/source certification",
+  "checked_head": "9729cf596830f2cd6b4419f12cef24643508f4ca",
+  "verdict": "PASS proposed exact logarithmic stopping-threshold interface with explicit zero-radius treatment",
+  "source": {
+    "identity": "Chewi arXiv2605.07006v1 Theorem3.3, paragraph after its contraction proof, Section3 lines551-555 of fetched HTML",
+    "url": "https://arxiv.org/html/2605.07006v1#S3",
+    "statement": "At h=1/beta and kappa=beta/alpha, distance_N<=exp(-N/(2*kappa))*R; N>=2*kappa*log(R/epsilon) suffices for distance_N<=epsilon.",
+    "assumptions": "Standing C2 Euclidean objective, alpha-convex/beta-smooth, supplied minimizer; positive alpha,beta for condition number and prescribed step, positive epsilon for target accuracy. Ordinary log ratio requires R>0. No positive lower bound on N is needed: N0 is valid when epsilon>=R.",
+    "scope": "Sufficient iteration threshold, not an optimal/necessary stopping time, runtime count, floating-point computation guarantee or improved Exercise3.2 rate."
+  },
+  "local_parent": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_descent_distance_bound",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentContraction.lean:60",
+    "actual_contract": "C1 Hilbert f, StrongConvexOn alpha, nonnegative alpha/beta/h, beta*h<=1, global quadratic upper model, actual minimizing xstar. Returns distance_N<=sqrt(1-alpha*h)^N*R AND geometric_RHS<=exp(-(alpha*h*N)/2)*R. Compose .1.trans .2; second conjunct alone is not distance bound.",
+    "existing_consumer": "Tests/Shared/GradientDescentContraction.lean already instantiates h=beta inverse and proves exponential distance expression. Reuse that setup, do not redo contraction, Fermat fixed point or exponential scalar inequality.",
+    "scope_advancement": "Prior technical memory and lesson explicitly leave logarithmic complexity unclosed. This public theorem is a quantitative threshold/accuracy integration edge from existing exponential control; exact threshold and real-to-natural count handling are new consumers, not new contraction mathematics."
+  },
+  "retrieval": [
+    {
+      "scope": "ASTIS TechnicalLemmas Analysis and Tests Shared",
+      "finding": "No existing actual GD logarithmic distance complexity theorem found. Existing exponential-distance test specialization noted above."
+    },
+    {
+      "scope": "Pinned Mathlib",
+      "finding": "Reuse Real.log_le_iff_le_exp or exp_le_exp + exp_log, positivity/field algebra, and Nat.le_ceil/Nat.ceil_eq_zero. No scalar exponential/logarithm reproof needed."
+    },
+    {
+      "scope": "Optlib pinned5da27c5 Algorithm/GD",
+      "finding": "Bounded log/ceil/complexity search found no target. Nearby GradientDescentStronglyConvex.gradient_method_strong_convex is a geometric distance rate under its own algorithm structure, not exact source stopping threshold. Local parent already stronger route fit."
+    },
+    {
+      "scope": "CvxLean pinnedc62c2f",
+      "finding": "Search hits logarithmic objective reformulations/examples rather than gradient-descent iteration thresholds; no matching target found. No external port required."
+    }
+  ],
+  "exact_apis": [
+    {
+      "name": "gradient_descent_distance_bound",
+      "use": "Set h=beta inverse, hbeta.le, inv_nonneg.mpr hbeta.le; beta*beta inverse<=1 by simp [ne_of_gt hbeta]. Compose both conjuncts and rewrite div_eq_mul_inv."
+    },
+    {
+      "name": "Real.log_le_iff_le_exp",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/SpecialFunctions/Log/Basic.lean:161",
+      "use": "For R/epsilon>0, log(R/epsilon)<=c iff R/epsilon<=exp c."
+    },
+    {
+      "name": "Real.exp_log; Real.exp_neg; Real.exp_le_exp",
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/SpecialFunctions/Log/Basic.lean:59 and imported exp APIs",
+      "use": "Equivalent route: c>=log(R/epsilon) gives exp(-c)<=exp(-log(R/epsilon))=epsilon/R. Positive R justifies cancellation after multiplying byR."
+    },
+    {
+      "name": "Nat.le_ceil",
+      "file": ".lake/packages/mathlib/Mathlib/Algebra/Order/Floor/Semiring.lean:178",
+      "use": "For every real a, a<= (Nat.ceil a : real). Works for negative threshold too; no max0 needed because natural ceiling truncates there."
+    },
+    {
+      "name": "Nat.ceil_eq_zero",
+      "file": ".lake/packages/mathlib/Mathlib/Algebra/Order/Floor/Semiring.lean:187",
+      "use": "Natural ceiling equals0 iff real threshold<=0; captures epsilon>=R whenR>0."
+    }
+  ],
+  "recommended_interface": {
+    "main_hypotheses": "alpha>0,beta>0,epsilon>0, C1 Hilbert objective/strong convexity/upper model, supplied global minimizer; natural N and prescribed step beta inverse.",
+    "threshold": "Prefer (0<R -> 2*(beta/alpha)*Real.log(R/epsilon)<=(N:real)), R=norm(x0-z), or equivalent R=0 OR threshold. Handle R0 explicitly in proof; do not pretend Real.log0 is ordinary mathematical log.",
+    "alternative": "An unconditional Lean threshold with totalized log is mathematically valid if R0 separately proved; reader must still distinguish source positive-log domain from this totalized extension. Conditional R>0 interface is cleaner.",
+    "ceiling_consumer": "At R>0 choose N=Nat.ceil(2*(beta/alpha)*log(R/epsilon)) and discharge threshold via Nat.le_ceil. At R0 choose0 without evaluating a mathematical log. Can be a focused consumer example if retaining one public theorem.",
+    "alpha_beta_domain": "No extra alpha<=beta or q>0 required by existing Hilbert parent. Source nontrivial usual condition number has alpha<=beta, but singleton cases need not force that relation. h=beta inverse is automatically positive, so prior missing nonnegative-step issue is discharged rather than inherited as arbitrary h."
+  },
+  "proof_route": [
+    "Invoke existing actual-iterate distance parent at h=beta inverse and combine its conjuncts to obtain exp(-(alpha/beta*N)/2)*R control.",
+    "Split R=0 versusR>0 using norm nonnegativity. Zero case gives distance<=0 directly from bound and epsilon>0, all naturalN, no log evaluation.",
+    "For positiveR, multiply threshold by alpha/(2beta)>0 or divide by2(beta/alpha)>0 to obtain log(R/epsilon)<=(alpha/beta*N)/2. Positivity of alpha,beta is load-bearing; log may be negative and must not be assumed nonnegative.",
+    "Apply Mathlib exponential/logarithm comparison to show exp(-(alpha/beta*N)/2)*R<=epsilon; combine with actual distance bound.",
+    "Optionally instantiate natural ceiling via Nat.le_ceil. No requirementepsilon<R orN>0: ifepsilon>=R, threshold<=0 soN0 legitimately suffices."
+  ],
+  "failure_boundaries": [
+    "epsilon0 makes exact finite logarithmic formula invalid; require positive accuracy.",
+    "alpha0/beta0 excluded from this linear-convergence complexity regime.",
+    "Do not divide/cancel R until R>0; log0 totalization is not a source repair.",
+    "Do not assume log(R/epsilon)>=0; larger target tolerances produce nonpositive thresholds and must allowN0.",
+    "Ceiling is a sufficient count, not optimal iteration count or machine arithmetic guarantee.",
+    "Keep C1 Hilbert/upper-model generalizations and supplied minimizer explicit; do not claim existence or source ambient equivalence."
+  ],
+  "focused_tests_recommended": [
+    "Actual f(x)=x\u00b2/2, alpha1,beta2 (valid loose upper model), so h1/2 and actual iterates nonstationary; invoke public threshold for arbitrary positiveepsilon and naturalN satisfying it. This avoids relying only on beta=alpha one-step collapse.",
+    "Initial point equal supplied minimizer, anyepsilon>0 andN: conditional threshold vacuous and actual distance0.",
+    "N0 with0<R<=epsilon, including equalityepsilon=R; tests negative/zero logarithmic threshold and no hiddenN>0.",
+    "Natural ceiling consumer onR>0, exercises real-to-natural count conversion; can reuse theorem without a new public wrapper."
+  ],
+  "evidence_scope": "Read-only exact source and local/pinned API inspection. No proof implementation or Lean/test/full-gate execution. Root sole writer; later frozen proof/source reviews independent.",
+  "unresolved_findings": [],
+  "next_action": "Root implement minimal exact threshold adapter, freeze theorem/test/lesson, then independent proof and semantic review."
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BoundedStoppedItoMean.itoIntegralProcess_at_boundedStopping_integrable",
+      "kind": "theorem",
+      "title": "A completed Ito process is integrable at a bounded stopping time",
+      "statement": "Let eta be progressive and square-integrable on a positive finite horizon T, and let tau be a nonnegative stopping time with tau at most T pointwise. The completed Ito process I(eta) evaluated at tau is integrable.",
+      "formula": "I_t=\\int_0^t\\eta_s\\,dB_s,\\qquad \\tau\\le T\\Longrightarrow I_\\tau\\in L^1.",
+      "assumptions": [
+        "eta is a Samplinglib ProgressiveL2Integrand on a positive NNReal horizon T.",
+        "B is Brownian with respect to the filtration and measure; this contract implies that the measure is a probability measure.",
+        "The filtration satisfies Samplinglib's usual conditions.",
+        "tau is an NNReal-valued Chewi stopping time and tau(omega)≤T for every omega.",
+        "Lean requests an ambient finite-measure instance to elaborate the completed process; this is logically redundant because the Brownian contract supplies a probability measure."
+      ],
+      "steps": [
+        {
+          "title": "Stop the integrand",
+          "text": "Form the closed stopped integrand eta times the indicator of s≤tau. It remains progressive and L2 on the same horizon.",
+          "formula": "\\eta^\\tau_s=\\eta_s\\mathbf 1_{s\\le\\tau}.",
+          "lean": "Use ProgressiveL2Stopping.stop."
+        },
+        {
+          "title": "Use terminal L2 integrability",
+          "text": "The terminal representative of the completed Ito integral of the stopped integrand belongs to L2, hence to L1 on the finite measure space.",
+          "formula": "\\int_0^T\\eta^\\tau_s\\,dB_s\\in L^2\\subseteq L^1.",
+          "lean": "Use ItoIntegralProcess.terminalRepresentative_integrable."
+        },
+        {
+          "title": "Identify random evaluation",
+          "text": "The completed bounded random-stopping theorem identifies that terminal representative almost everywhere with the original continuous Ito process evaluated at tau. Integrability transfers across almost-everywhere equality.",
+          "formula": "\\int_0^T\\eta^\\tau_s\\,dB_s=I_\\tau\\quad\\text{a.s.}",
+          "lean": "Use RandomStoppingGeneralIto.itoIntegralTerminal_stop_ae and Integrable.congr."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.terminalRepresentative_integrable",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingGeneralIto.itoIntegralTerminal_stop_ae"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Integrable.congr"
+      ],
+      "lean_statement": "The theorem returns literal Bochner integrability of omega ↦ itoIntegralProcess eta ... (tau omega) omega under the ambient measure, with an explicit finite-measure typeclass already entailed by the Brownian contract.",
+      "lean_proof": "The proof transfers the existing L1 property of the stopped terminal representative through the library's completed random-stopping almost-everywhere identity.",
+      "boundary": "The theorem requires a positive finite construction horizon and a pointwise bounded NNReal stopping time. It does not cover unbounded stopping, local-L2 integrands before localization, vector stochastic integrals, or any Ito formula.",
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/2fdbd600d7fe4731458dc7cde2184fd4fdaf7e02/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/RandomStoppingGeneralIto.lean",
+          "label": "Samplinglib completed bounded random-stopping identity",
+          "scope": "Almost-everywhere identification of the stopped terminal integral with random evaluation of the continuous completed Ito process."
+        }
+      ],
+      "tests": [
+        "Lean 4.33.0: lake build AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BoundedStoppedItoMean",
+        "Lean 4.33.0: lake env lean Tests/BoundedStoppedItoMean.lean"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BoundedStoppedItoMean.integral_itoIntegralProcess_at_boundedStopping_eq_zero",
+      "kind": "theorem",
+      "title": "A completed Ito process has mean zero at a bounded stopping time",
+      "statement": "Under the same global L2, Brownian, usual-filtration, stopping-time, and pointwise horizon-bound assumptions, the integral of the completed Ito process evaluated at tau is zero.",
+      "formula": "\\mathbb E\\left[\\int_0^\\tau\\eta_s\\,dB_s\\right]=0.",
+      "assumptions": [
+        "eta is a Samplinglib ProgressiveL2Integrand on a positive NNReal horizon T.",
+        "B is Brownian with respect to the filtration and measure, and the filtration satisfies the usual conditions.",
+        "tau is an NNReal-valued stopping time with tau(omega)≤T for every omega.",
+        "The theorem concerns the library's actual completed continuous Ito process, not an arbitrary process supplied together with a martingale premise."
+      ],
+      "steps": [
+        {
+          "title": "Use the stopped-integrand martingale",
+          "text": "The completed Ito process of the stopped integrand is a martingale and starts exactly at zero, including on the patched exceptional set.",
+          "formula": "J_t=\\int_0^t\\eta_s\\mathbf 1_{s\\le\\tau}\\,dB_s,\\qquad J_0=0.",
+          "lean": "Use itoIntegralProcess_martingale and itoIntegralProcess_at_zero."
+        },
+        {
+          "title": "Compare deterministic times zero and T",
+          "text": "The martingale set-integral identity on the whole sample space makes the expectation at T equal the expectation at zero, hence zero.",
+          "formula": "\\mathbb E[J_T]=\\mathbb E[J_0]=0.",
+          "lean": "Use Martingale.setIntegral_eq with the universal measurable set."
+        },
+        {
+          "title": "Transfer to the bounded stopping time",
+          "text": "The terminal representative agrees almost everywhere both with J_T and with the original completed process I evaluated at tau. Integral congruence transfers the zero expectation.",
+          "formula": "J_T=\\int_0^T\\eta_s\\mathbf 1_{s\\le\\tau}\\,dB_s=I_\\tau\\quad\\text{a.s.}",
+          "lean": "Use terminalRepresentative_ae_eq_actual, itoIntegralTerminal_stop_ae, and integral_congr_ae."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_martingale",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_at_zero",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.terminalRepresentative_ae_eq_actual",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingGeneralIto.itoIntegralTerminal_stop_ae"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Martingale.setIntegral_eq",
+        "MeasureTheory.integral_congr_ae"
+      ],
+      "lean_statement": "The conclusion is the literal Bochner integral equality for random-time evaluation of the constructed completed Ito process.",
+      "lean_proof": "The proof applies deterministic-time preservation of martingale expectation to the stopped integrand and then rewrites the terminal value using the two existing almost-everywhere consistency theorems.",
+      "boundary": "This is not a general optional-sampling theorem and does not cover unbounded stopping times, local martingales without localization, vector stochastic integrals, quadratic variation, or Ito's formula.",
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/2fdbd600d7fe4731458dc7cde2184fd4fdaf7e02/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/RandomStoppingGeneralIto.lean",
+          "label": "Samplinglib completed bounded random-stopping identity",
+          "scope": "The completed stochastic-integral consistency result used after the martingale mean calculation."
+        },
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/cb7b1080879fe662f5b103a59f612c4930290ea1/Mathlib/Probability/Martingale/Basic.lean",
+          "label": "Mathlib martingale set-integral identity",
+          "scope": "Equality of martingale integrals at ordered deterministic times."
+        }
+      ],
+      "tests": [
+        "Lean 4.33.0: lake build AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BoundedStoppedItoMean",
+        "Lean 4.33.0: lake env lean Tests/BoundedStoppedItoMean.lean"
+      ]
+    }
+  ]
+}

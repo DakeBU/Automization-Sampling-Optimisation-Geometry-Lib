@@ -45,11 +45,17 @@ def build_graph(output: Path) -> dict[str, Any]:
     builder = GraphBuilder()
     textbook = add_textbook(builder, site)
     setting_ids = add_frontier(builder, manifest, audit_registry, textbook["chapter_ids"])
+    # Publication mappings can introduce reviewed declarations that are not
+    # Registry headline nodes.  Add those declaration nodes before semantic
+    # audits so every accepted audit can attach to its actual Lean target.
+    publication_reader.project_graph(builder)
     semantic = add_semantic(builder, semantic_registry)
     functor = cross_domain.add_to_graph(builder)
     memory = cross_domain.load(cross_domain.GRAPH_MEMORY_PATH)
     companion_counts = samplewiki_companions.add_to_graph(builder)
     scope_metadata = sampling_perspectives.apply_to_graph(builder)
+    # Re-project after all chapter/frontier overlays so their final progress
+    # badges and source-correspondence edges use the completed graph.
     publication_reader.project_graph(builder)
     graph = builder.export()
     graph["library_scope_metadata"] = scope_metadata

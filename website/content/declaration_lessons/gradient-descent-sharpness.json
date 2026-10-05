@@ -1,0 +1,72 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case",
+      "kind": "theorem",
+      "title": "Quadratics attain the constant-step worst-case distance bound",
+      "statement": "For every 0<alpha<=beta and real fixed step h, there is one positive scalar curvature mu in {alpha,beta} whose actual quadratic belongs to the alpha-strongly convex, beta-smooth class and realizes the following bounds for every natural N.",
+      "formula": "f(x)=\\tfrac\\mu2x^2,\\quad T_t(x)=x-t\\nabla f(x),\\quad \\forall N\\in\\mathbb N:\\quad \\|T_h^N(1)\\|=M_h^N\\ge q^N,\\qquad \\|T_{h_\\star}^N(1)\\|=q^N.",
+      "assumptions": [
+        "Alpha,beta,h are real, 0<alpha<=beta. Define M_h=max{|1−h alpha|,|1−h beta|}, q=(beta−alpha)/(alpha+beta) and hstar=2/(alpha+beta). The denominator is positive.",
+        "The conclusion constructs mu∈{alpha,beta}, mu>0, and f:R→R, f(x)=mu x²/2. It certifies ContDiff R2 f, StrongConvexOn univ alpha f, the global beta quadratic upper model using the actual gradient, and IsMinOn f univ0.",
+        "T_t is the actual gradient update with real constant step t; T_t^0 is the identity. The initial point is1 and the certified minimizer is0. One mu works for all N, including zero."
+      ],
+      "steps": [
+        {
+          "title": "Select an endpoint after fixing the step",
+          "text": "Let M_h be the larger of the two endpoint magnitudes. Choose mu=alpha or beta attaining this maximum. Then alpha<=mu<=beta and mu>0. This choice does not depend on N.",
+          "formula": "M_h=\\max\\{|1-h\\alpha|,|1-h\\beta|\\},\\qquad \\mu\\in\\{\\alpha,\\beta\\},\\quad |1-h\\mu|=M_h.",
+          "lean": "Order comparison and max_eq_left/max_eq_right."
+        },
+        {
+          "title": "Verify the witness belongs to the function class",
+          "text": "Set f(x)=mu x²/2. Differentiate to get the actual gradient mu x. Subtracting mu‖x‖²/2 leaves the zero convex function; lowering the strong-convexity modulus gives alpha. The exact quadratic remainder is mu(y−x)²/2, which is bounded above by beta(y−x)²/2. Positivity makes0 a global minimizer.",
+          "formula": "\\nabla f(x)=\\mu x,\\qquad f(y)-f(x)-\\nabla f(x)(y-x)=\\tfrac\\mu2(y-x)^2\\le\\tfrac\\beta2(y-x)^2,\\qquad f(0)=0\\le f(x).",
+          "lean": "HasDerivAt.hasGradientAt; strongConvexOn_iff_convex; StrongConvexOn.mono; quadratic remainder algebra."
+        },
+        {
+          "title": "Reuse the exact quadratic trajectory and minimax envelope",
+          "text": "Apply the compiled eigenmode identity to H=mu I and x0=1. Its norm is |1−hmu|^N=M_h^N. The compiled optimal-step theorem applied to this certified objective gives q<=M_h. Since q>=0, raising to N preserves the inequality.",
+          "formula": "\\|T_h^N(1)\\|=M_h^N\\ge q^N,\\qquad q=\\frac{\\beta-\\alpha}{\\alpha+\\beta}.",
+          "lean": "QuadraticGradientDescent.quadratic_eigenmode; GradientDescentOptimalStep.optimal_gradient_step; pow_le_pow_left₀."
+        },
+        {
+          "title": "Attain the balanced factor on the same witness",
+          "text": "At hstar=2/(alpha+beta), the two endpoint update scalars are q and−q. Either selected mu therefore gives absolute factor q, and the same exact trajectory yields q^N for every N. Together with the previously compiled uniform one-step upper bound, this witnesses its class-level sharpness.",
+          "formula": "h_\\star=\\frac2{\\alpha+\\beta},\\qquad1-h_\\star\\alpha=q,\\quad1-h_\\star\\beta=-q,\\qquad\\|T_{h_\\star}^N(1)\\|=q^N.",
+          "lean": "Endpoint field arithmetic, abs_of_nonneg, abs_neg, and the local specialization of quadratic_eigenmode."
+        }
+      ],
+      "boundary": [
+        "This is class-level sharpness for constant-step distance contraction. Alpha and beta are valid curvature bounds; a scalar witness has tight constants mu,mu, so beta/alpha is not claimed to be its intrinsic condition number. A fixed two-dimensional quadratic with both exact endpoint eigenvalues is not constructed.",
+        "The scalar witness is chosen after the step h but before N, and is valid for every N. This does not cover varying or adaptive step sequences, general first-order algorithms, acceleration, oracle complexity lower bounds, or all Section3 estimates.",
+        "Positive alpha is retained to ensure the witness is positive definite. Equal bounds are included; q=0 then, and N=0 still has distance1 because 0^0=1. Negative and zero h are allowed for the obstruction; no convergence for those steps is claimed.",
+        "The statement constructs a C2 quadratic and its global minimizer0, and uses actual gradients. No gradient identity, trajectory formula, smoothness model or minimizer certificate is supplied as a hypothesis. The starting point1 has distance1 from0."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_eigenmode",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.optimal_gradient_step"
+      ],
+      "mathlib_dependencies": [
+        "HasDerivAt.hasGradientAt",
+        "strongConvexOn_iff_convex",
+        "StrongConvexOn.mono",
+        "pow_le_pow_left₀"
+      ],
+      "lean_statement": "Positive class curvature bounds; every fixed real step admits one actual positive scalar quadratic, all class certificates, and exact/lower distance identities for all natural iterations.",
+      "lean_proof": "Let M_h be the larger of the two endpoint magnitudes. Choose mu=alpha or beta attaining this maximum. Then alpha<=mu<=beta and mu>0. This choice does not depend on N. Set f(x)=mu x²/2. Differentiate to get the actual gradient mu x. Subtracting mu‖x‖²/2 leaves the zero convex function; lowering the strong-convexity modulus gives alpha. The exact quadratic remainder is mu(y−x)²/2, which is bounded above by beta(y−x)²/2. Positivity makes0 a global minimizer. Apply the compiled eigenmode identity to H=mu I and x0=1. Its norm is |1−hmu|^N=M_h^N. The compiled optimal-step theorem applied to this certified objective gives q<=M_h. Since q>=0, raising to N preserves the inequality. At hstar=2/(alpha+beta), the two endpoint update scalars are q and−q. Either selected mu therefore gives absolute factor q, and the same exact trajectory yields q^N for every N. Together with the previously compiled uniform one-step upper bound, this witnesses its class-level sharpness.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Exercises3.2-3.3",
+          "scope": "ASTIS-authored class-level distance sharpness component of the exercise; other section estimates remain outside this result."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentSharpness.lean",
+          "label": "Negative/zero steps and equal-curvature boundary",
+          "scope": "Tests the actual constructed function and the same-witness balanced-step identity."
+        }
+      ]
+    }
+  ]
+}

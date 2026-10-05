@@ -1,0 +1,124 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.gradient_descent_sum_sq_bound",
+      "kind": "theorem",
+      "title": "Accumulated squared-gradient descent",
+      "statement": "For every N∈ℕ, actual gradient descent satisfies the cumulative squared-gradient inequality.",
+      "formula": "\\frac h2\\sum_{k=0}^{N-1}\\|\\nabla f(T^k x_0)\\|^2\\le f(x_0)-f(T^N x_0).",
+      "assumptions": [
+        "E is a complete real inner-product space; f:E→ℝ and β,h∈ℝ. Write T(x)=x−h∇f(x), x_k=T^k(x₀), with x₀∈E. T^0 is the identity.",
+        "For every x,y∈E, f(y)≤f(x)+⟨∇f(x),y−x⟩+(β/2)‖y−x‖², and βh≤1. ∇f is the actual Riesz vector of the totalized Fréchet derivative, not a supplied vector field.",
+        "The result is algebraic after this upper model is supplied; no separate C¹ or C² premise is required by the implication. The source smooth Euclidean setting supplies that model. This does not say that an arbitrary function is differentiable or satisfies the model.",
+        "h≥0 and N∈ℕ; neither a minimum nor a lower bound is required."
+      ],
+      "steps": [
+        {
+          "title": "Apply descent at every actual iterate",
+          "text": "The existing shared descent theorem controls the gradient norm at x_k by the decrease from x_k to x_(k+1). The successor identity connects the abstract iterate to the actual update.",
+          "formula": "\\tfrac h2\\|\\nabla f(x_k)\\|^2\\le f(x_k)-f(x_{k+1}).",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound; Function.iterate_succ_apply'."
+        },
+        {
+          "title": "Add and telescope",
+          "text": "Distribute h/2 over the finite sum, sum the pointwise inequalities, then cancel adjacent objective values with Mathlib’s reversed telescoping identity. No lower bound is needed.",
+          "formula": "\\frac h2\\sum_{k=0}^{N-1}\\|\\nabla f(x_k)\\|^2\\le\\sum_{k=0}^{N-1}(f(x_k)-f(x_{k+1}))=f(x_0)-f(x_N).",
+          "lean": "Finset.mul_sum; Finset.sum_le_sum; Finset.sum_range_sub'."
+        }
+      ],
+      "boundary": [
+        "No convexity, PL inequality, or stochastic oracle is assumed. These are shared textbook optimization results, not companion-paper completion.",
+        "The real parameter β need not be positive in this algebraic model. For source β>0, βh≤1 is equivalent to h≤1/β; β=0 and negative β are explicitly broader model domains, not new reciprocal smoothness claims.",
+        "The source prints only h≤1/β. The normalized theorem additionally needs h>0 and N≥1. For f(t)=t²/2, β=1,x₀=1,z=0,N=1, h=0 or h=−1 makes the Lean-totalized square-root bound equal to 0, although the only tested gradient has norm 1. In ordinary real arithmetic these expressions are undefined. At N=0 the minimum has an empty index set. Proposed domain repairs are separately reviewed; the pinned source wording remains unchanged.",
+        "The unnormalized sum includes h=0 and N=0; both are equality cases. This proof component alone is not the normalized stationary-iterate guarantee."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound"
+      ],
+      "mathlib_dependencies": [
+        "Function.iterate_succ_apply'",
+        "Finset.mul_sum",
+        "Finset.sum_le_sum",
+        "Finset.sum_range_sub'"
+      ],
+      "lean_statement": "Actual gradient iterates, explicit upper model and step/iteration domains.",
+      "lean_proof": "The existing shared descent theorem controls the gradient norm at x_k by the decrease from x_k to x_(k+1). The successor identity connects the abstract iterate to the actual update. Distribute h/2 over the finite sum, sum the pointwise inequalities, then cancel adjacent objective values with Mathlib’s reversed telescoping identity. No lower bound is needed.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Theorem3.7 and its proof",
+          "scope": "ASTIS-authored source restatement; explicit domain repair, algebraic Hilbert generalization."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentStationarity.lean",
+          "label": "Quadratic objective and endpoint tests",
+          "scope": "Actual gradients, beta=0 constant objective, and zero-step accumulation; no separate theorem credit."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.exists_gradient_descent_norm_le",
+      "kind": "theorem",
+      "title": "A small-gradient iterate without convexity",
+      "statement": "For every initial point and positive natural iteration count, one of the first N actual gradient iterates satisfies the displayed norm bound.",
+      "formula": "\\exists k\\in\\{0,\\ldots,N-1\\}:\\quad\\|\\nabla f(T^k x_0)\\|\\le\\sqrt{\\frac{2(f(x_0)-f(z))}{Nh}}.",
+      "assumptions": [
+        "E is a complete real inner-product space; f:E→ℝ and β,h∈ℝ. Write T(x)=x−h∇f(x), x_k=T^k(x₀), with x₀∈E. T^0 is the identity.",
+        "For every x,y∈E, f(y)≤f(x)+⟨∇f(x),y−x⟩+(β/2)‖y−x‖², and βh≤1. ∇f is the actual Riesz vector of the totalized Fréchet derivative, not a supplied vector field.",
+        "The result is algebraic after this upper model is supplied; no separate C¹ or C² premise is required by the implication. The source smooth Euclidean setting supplies that model. This does not say that an arbitrary function is differentiable or satisfies the model.",
+        "h>0 and N∈ℕ with N≥1. z∈E is a supplied global minimizer: f(z)≤f(x) for all x∈E."
+      ],
+      "steps": [
+        {
+          "title": "Use the true objective lower bound",
+          "text": "The supplied global minimizer z gives f(z)≤f(x_N). Apply accumulated descent to replace the final objective value by f(z).",
+          "formula": "\\frac h2\\sum_{k=0}^{N-1}\\|\\nabla f(x_k)\\|^2\\le f(x_0)-f(z).",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.gradient_descent_sum_sq_bound; IsMinOn."
+        },
+        {
+          "title": "Normalize with positive denominators",
+          "text": "Let B=2(f(x₀)−f(z))/(Nh). Since h>0 and N>0, multiplication by h/2 preserves and reflects order; (h/2)NB is exactly the initial gap. Hence the sum is at most NB.",
+          "formula": "\\sum_{k=0}^{N-1}\\|\\nabla f(x_k)\\|^2\\le NB,\\qquad B=\\frac{2(f(x_0)-f(z))}{Nh}.",
+          "lean": "Nat.cast_pos; field_simp; Finset.sum_const; Finset.card_range; mul_le_mul_iff_right₀."
+        },
+        {
+          "title": "Select a small term and take a square root",
+          "text": "A nonempty finite sum bounded by the sum of the constant B has a term at most B. Convert that squared-norm bound to a norm bound with Mathlib’s square-root lemma. The witness is one of x₀,…,x_(N−1).",
+          "formula": "\\exists k<N:\\quad\\|\\nabla f(x_k)\\|^2\\le B\\quad\\Longrightarrow\\quad\\|\\nabla f(x_k)\\|\\le\\sqrt B.",
+          "lean": "Finset.exists_le_of_sum_le; Finset.mem_range; Real.le_sqrt_of_sq_le."
+        }
+      ],
+      "boundary": [
+        "No convexity, PL inequality, or stochastic oracle is assumed. These are shared textbook optimization results, not companion-paper completion.",
+        "The real parameter β need not be positive in this algebraic model. For source β>0, βh≤1 is equivalent to h≤1/β; β=0 and negative β are explicitly broader model domains, not new reciprocal smoothness claims.",
+        "The source prints only h≤1/β. The normalized theorem additionally needs h>0 and N≥1. For f(t)=t²/2, β=1,x₀=1,z=0,N=1, h=0 or h=−1 makes the Lean-totalized square-root bound equal to 0, although the only tested gradient has norm 1. In ordinary real arithmetic these expressions are undefined. At N=0 the minimum has an empty index set. Proposed domain repairs are separately reviewed; the pinned source wording remains unchanged.",
+        "The existential witness is equivalent to the finite-minimum upper bound on this nonempty index set. No last-iterate guarantee, convergence of the entire sequence, exact stationary point, or global optimality is concluded.",
+        "The minimizer is supplied, not constructed. At h=1/β with β>0, the formula gives the source O(βΔ₀/ε²) stationarity scaling; no separate stopping algorithm or oracle-complexity theorem is claimed."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.gradient_descent_sum_sq_bound"
+      ],
+      "mathlib_dependencies": [
+        "Finset.exists_le_of_sum_le",
+        "Finset.sum_const",
+        "Finset.card_range",
+        "mul_le_mul_iff_right₀",
+        "Real.le_sqrt_of_sq_le"
+      ],
+      "lean_statement": "Actual gradient iterates, explicit upper model and step/iteration domains.",
+      "lean_proof": "The supplied global minimizer z gives f(z)≤f(x_N). Apply accumulated descent to replace the final objective value by f(z). Let B=2(f(x₀)−f(z))/(Nh). Since h>0 and N>0, multiplication by h/2 preserves and reflects order; (h/2)NB is exactly the initial gap. Hence the sum is at most NB. A nonempty finite sum bounded by the sum of the constant B has a term at most B. Convert that squared-norm bound to a norm bound with Mathlib’s square-root lemma. The witness is one of x₀,…,x_(N−1).",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Theorem3.7 and its proof",
+          "scope": "ASTIS-authored source restatement; explicit domain repair, algebraic Hilbert generalization."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentStationarity.lean",
+          "label": "Quadratic objective and endpoint tests",
+          "scope": "Actual gradients, beta=0 constant objective, and zero-step accumulation; no separate theorem credit."
+        }
+      ]
+    }
+  ]
+}

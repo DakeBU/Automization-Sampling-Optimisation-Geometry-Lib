@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport.phaseWassersteinSq_initial_le_position_moment",
+      "title": "Couple the initial and reference phase laws with identical momentum",
+      "boundary": "This is only the q=2 coupling-cost edge in the proof of SPHMC Lemma 4.16. It does not yet insert Gibbs concentration or the small-gradient reference-point bound, establish q>2, or control any Picard trajectory.",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1#S4.SS5", "label": "Smoothed Picard Hamiltonian Monte Carlo, Lemma 4.16 proof", "scope": "ASTIS expands the source's identical-momentum coupling and the precise Kantorovich-cost estimate."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCInitialPhaseTransport"],
+      "assumptions": ["E is a finite-dimensional complete real inner-product Borel space.", "The target position law pi is a probability measure with an integrable squared distance from xref.", "The paper phase parameter kappa is at least one; its M_kappa quadratic form is used without changing normalization.", "Both phase laws use the same standard-Gaussian momentum marginal."],
+      "statement": "The actual initial phase law at xref and any product reference law with standard-Gaussian momentum admit a coupling that uses the same momentum on both sides. Its M-kappa transportation cost is at most the reference law's position second moment about xref.",
+      "formula": "W_{2,M_\\kappa}^{2}(\\delta_{x_{\\rm ref}}\\otimes\\gamma,\\,\\pi\\otimes\\gamma)\\le\\int\\|x_{\\rm ref}-y\\|^2\\,\\pi(dy),\\qquad\\kappa\\ge1,\\quad\\gamma=\\mathsf N(0,I).",
+      "steps": [
+        {"title": "Build the actual coupling", "text": "Draw Y from pi and P independently from the standard Gaussian; pair the phase states (xref,P) and (Y,P). The first and second marginals are exactly the required phase laws.", "formula": "\\Gamma=\\operatorname{Law}((x_{\\rm ref},P),(Y,P)),\\quad\\Gamma_1=\\delta_{x_{\\rm ref}}\\otimes\\gamma,\\quad\\Gamma_2=\\pi\\otimes\\gamma.", "lean": "identicalMomentumCoupling; Measure.fst_map_prodMk, Measure.snd_map_prodMk and Measure.dirac_prod certify both marginals."},
+        {"title": "Cancel the momentum displacement", "text": "For a paired sample the momentum difference is zero. The paper's twisted quadratic form therefore reduces to its position coefficient, which is at most one when kappa is at least one.", "formula": "\\|(x_{\\rm ref},P)-(Y,P)\\|_{M_\\kappa}^2=\\left(\\frac1{2\\kappa}+\\frac12\\right)\\|x_{\\rm ref}-Y\\|^2\\le\\|x_{\\rm ref}-Y\\|^2.", "lean": "phaseCost_identical_momentum_le unfolds the exact phase cost and proves the coefficient inequality."},
+        {"title": "Bound the Kantorovich infimum", "text": "Any admissible coupling upper-bounds the optimal transport cost. Measurability permits pushforward integration, and the finite position moment converts the nonnegative Lebesgue integral back to the ordinary expectation.", "formula": "\\inf_{\\Lambda\\in\\mathsf{Cpl}(\\mu_0,\\Pi)}\\int c_{M_\\kappa}\\,d\\Lambda\\le\\int c_{M_\\kappa}\\,d\\Gamma\\le\\mathbb E_\\pi\\|x_{\\rm ref}-Y\\|^2.", "lean": "Transport.transportCost_le_lintegral_of_isCoupling, lintegral_map, lintegral_mono and ofReal_integral_eq_lintegral_ofReal."}
+      ],
+      "lean_statement": "The result controls the squared Kantorovich value directly. It is generic in the position law, so the paper's smoothed Gibbs law must still be supplied by a separate specialization.",
+      "lean_proof": "The proof constructs an explicit pushforward coupling; it does not assume existence of an optimal coupling. Product-law measurability and square integrability justify the cost calculation.",
+      "astis_dependencies": ["AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseWassersteinSq", "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseCost", "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling"],
+      "mathlib_dependencies": ["Measure.fst_map_prodMk", "Measure.snd_map_prodMk", "Measure.dirac_prod", "lintegral_map", "ofReal_integral_eq_lintegral_ofReal"]
+    }
+  ]
+}

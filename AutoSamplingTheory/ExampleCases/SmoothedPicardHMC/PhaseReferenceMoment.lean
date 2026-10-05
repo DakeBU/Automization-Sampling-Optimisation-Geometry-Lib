@@ -1,0 +1,177 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.Tactic
+
+/-!
+# Second moments of the SPHMC stationary phase reference
+
+For the smoothed target `pi_eta = pi * N(0, eta I)`, the phase reference in
+Chen--Chewi--Lu--Zhang, arXiv:2609.06906v1, is
+
+`Pi_eta = pi_eta.prod (stdGaussian E)`.
+
+This module makes the elementary but necessary moment calculation explicit.
+It starts from an arbitrary probability law with a finite position second
+moment, adds independent centered Gaussian noise, and then adjoins the
+independent standard-Gaussian momentum.  The exact identities expose the two
+dimension terms rather than hiding them in a universal constant.
+
+No Hamiltonian invariance, contraction, phase history, estimate (D.3), or
+query-cost conclusion is asserted here.
+-/
+
+noncomputable section
+
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ENNReal RealInnerProductSpace
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment
+
+open AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+open AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- Adding independent centered Gaussian noise of scale `sigma` increases the
+second moment about `xstar` by exactly `sigma ^ 2 * dim(E)`. -/
+theorem gaussianSmoothing_position_second_moment
+    (mu : Measure E) [IsProbabilityMeasure mu] (xstar : E) (sigma : ℝ)
+    (hpos : Integrable (fun x : E => ‖x - xstar‖ ^ 2) mu) :
+    let piSigma := gaussianSmoothing mu sigma
+    Integrable (fun y : E => ‖y - xstar‖ ^ 2) piSigma ∧
+      (∫ y : E, ‖y - xstar‖ ^ 2 ∂piSigma) =
+        (∫ x : E, ‖x - xstar‖ ^ 2 ∂mu) +
+          sigma ^ 2 * (Module.finrank ℝ E : ℝ) := by
+  classical
+  let A : E × E → E := fun w => w.1 + sigma • w.2
+  let piSigma := gaussianSmoothing mu sigma
+  have hA : Measurable A := by fun_prop
+  have hprod :
+      mu.prod (scaledStdGaussian (E := E) sigma) =
+        (mu.prod (stdGaussian E)).map (Prod.map id (fun z : E => sigma • z)) := by
+    simpa only [Measure.map_id, scaledStdGaussian] using
+      Measure.map_prod_map mu (stdGaussian E) measurable_id
+        (by fun_prop : Measurable (fun z : E => sigma • z))
+  have hpiSigma : piSigma = (mu.prod (stdGaussian E)).map A := by
+    dsimp [piSigma, gaussianSmoothing,
+      AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.addNoise]
+    rw [hprod, Measure.map_map (by fun_prop) (by fun_prop)]
+    rfl
+  have hx1 : Integrable (fun x : E => x - xstar) mu :=
+    MemLp.integrable (by norm_num : 1 ≤ (2 : ℝ≥0∞))
+      ((memLp_two_iff_integrable_sq_norm (by fun_prop)).2 hpos)
+  obtain ⟨hgauss, hgaussIntegral⟩ :=
+    integrable_norm_sq_and_integral_stdGaussian (E := E)
+  have hz1 : Integrable (fun z : E => z) (stdGaussian E) :=
+    IsGaussian.integrable_id
+  have hcross : Integrable
+      (fun w : E × E => inner ℝ (w.1 - xstar) w.2)
+      (mu.prod (stdGaussian E)) :=
+    hx1.op_fst_snd (by fun_prop)
+      ⟨1, by intro x y; simpa using norm_inner_le_norm (𝕜 := ℝ) x y⟩ hz1
+  have hcross0 :
+      (∫ w : E × E, inner ℝ (w.1 - xstar) w.2
+          ∂mu.prod (stdGaussian E)) = 0 := by
+    rw [integral_prod _ hcross]
+    have hz (x : E) :
+        (∫ z : E, inner ℝ (x - xstar) z ∂stdGaussian E) = 0 :=
+      integral_strongDual_stdGaussian (innerSL ℝ (x - xstar))
+    simp only [hz, integral_zero]
+  have hposP := hpos.comp_fst (stdGaussian E)
+  have hgaussP := hgauss.comp_snd mu
+  have hcrossC : Integrable (fun w : E × E =>
+      (2 * sigma) * inner ℝ (w.1 - xstar) w.2)
+      (mu.prod (stdGaussian E)) := hcross.const_mul _
+  have hbase : Integrable (fun w : E × E =>
+      ‖w.1 - xstar‖ ^ 2 + (2 * sigma) * inner ℝ (w.1 - xstar) w.2)
+      (mu.prod (stdGaussian E)) := hposP.add hcrossC
+  have hnoise : Integrable (fun w : E × E => sigma ^ 2 * ‖w.2‖ ^ 2)
+      (mu.prod (stdGaussian E)) := hgaussP.const_mul _
+  have hpieces := hbase.add hnoise
+  have hexpand (w : E × E) :
+      ‖A w - xstar‖ ^ 2 =
+        ‖w.1 - xstar‖ ^ 2 +
+          (2 * sigma) * inner ℝ (w.1 - xstar) w.2 +
+          sigma ^ 2 * ‖w.2‖ ^ 2 := by
+    have hsub : A w - xstar = (w.1 - xstar) + sigma • w.2 := by
+      dsimp [A]
+      abel
+    rw [hsub, norm_add_sq_real, norm_smul, real_inner_smul_right]
+    rw [Real.norm_eq_abs]
+    simp only [mul_pow, sq_abs]
+    ring
+  have hmapI : Integrable (fun w : E × E => ‖A w - xstar‖ ^ 2)
+      (mu.prod (stdGaussian E)) := by
+    apply hpieces.congr
+    filter_upwards with w
+    simpa only [Pi.add_apply] using (hexpand w).symm
+  have houtI : Integrable (fun y : E => ‖y - xstar‖ ^ 2) piSigma := by
+    rw [hpiSigma]
+    exact (integrable_map_measure (by fun_prop) hA.aemeasurable).2 hmapI
+  refine ⟨houtI, ?_⟩
+  change (∫ y : E, ‖y - xstar‖ ^ 2 ∂piSigma) = _
+  rw [hpiSigma, integral_map hA.aemeasurable (by fun_prop)]
+  simp_rw [hexpand]
+  rw [integral_add hbase hnoise, integral_add hposP hcrossC,
+    integral_const_mul, hcross0, mul_zero, add_zero, integral_const_mul,
+    integral_prod _ hposP, integral_prod _ hgaussP]
+  simp only [integral_const, hgaussIntegral, probReal_univ]
+  ring
+
+/-- The SPHMC product phase reference has the exact combined position-momentum
+second moment obtained from the smoothed position law and standard momentum. -/
+theorem phaseReference_second_moment
+    (mu : Measure E) [IsProbabilityMeasure mu] (xstar : E) (sigma M : ℝ)
+    (hpos : Integrable (fun x : E => ‖x - xstar‖ ^ 2) mu)
+    (hposBound : (∫ x : E, ‖x - xstar‖ ^ 2 ∂mu) ≤ M) :
+    let piSigma := gaussianSmoothing mu sigma
+    let PiSigma := piSigma.prod (stdGaussian E)
+    IsProbabilityMeasure PiSigma ∧
+      Integrable (fun z : E × E => ‖z.1 - xstar‖ ^ 2) PiSigma ∧
+      Integrable (fun z : E × E => ‖z.2‖ ^ 2) PiSigma ∧
+      (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 ∂PiSigma) =
+        (∫ x : E, ‖x - xstar‖ ^ 2 ∂mu) +
+          sigma ^ 2 * (Module.finrank ℝ E : ℝ) ∧
+      (∫ z : E × E, ‖z.2‖ ^ 2 ∂PiSigma) = Module.finrank ℝ E ∧
+      Integrable
+        (fun z : E × E => ‖z.1 - xstar‖ ^ 2 + ‖z.2‖ ^ 2) PiSigma ∧
+      (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 + ‖z.2‖ ^ 2 ∂PiSigma) ≤
+        M + (sigma ^ 2 + 1) * (Module.finrank ℝ E : ℝ) := by
+  classical
+  dsimp only
+  let piSigma := gaussianSmoothing mu sigma
+  have hposition :
+      Integrable (fun y : E => ‖y - xstar‖ ^ 2) piSigma ∧
+        (∫ y : E, ‖y - xstar‖ ^ 2 ∂piSigma) =
+          (∫ x : E, ‖x - xstar‖ ^ 2 ∂mu) +
+            sigma ^ 2 * (Module.finrank ℝ E : ℝ) := by
+    simpa only [piSigma] using
+      gaussianSmoothing_position_second_moment mu xstar sigma hpos
+  obtain ⟨hgauss, hgaussIntegral⟩ :=
+    integrable_norm_sq_and_integral_stdGaussian (E := E)
+  letI : IsProbabilityMeasure piSigma := by
+    dsimp [piSigma, gaussianSmoothing,
+      AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.addNoise]
+    exact Measure.isProbabilityMeasure_map
+      (by fun_prop : AEMeasurable (fun p : E × E => p.1 + p.2)
+        (mu.prod (scaledStdGaussian (E := E) sigma)))
+  have hX := hposition.1.comp_fst (stdGaussian E)
+  have hP := hgauss.comp_snd piSigma
+  have hXI :
+      (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 ∂piSigma.prod (stdGaussian E)) =
+        (∫ x : E, ‖x - xstar‖ ^ 2 ∂mu) +
+          sigma ^ 2 * (Module.finrank ℝ E : ℝ) := by
+    rw [integral_prod _ hX]
+    simp only [integral_const, probReal_univ, one_smul, hposition.2]
+  have hPI :
+      (∫ z : E × E, ‖z.2‖ ^ 2 ∂piSigma.prod (stdGaussian E)) =
+        Module.finrank ℝ E := by
+    rw [integral_prod _ hP]
+    simp only [hgaussIntegral, integral_const, probReal_univ, one_smul]
+  refine ⟨inferInstance, hX, hP, hXI, hPI, hX.add hP, ?_⟩
+  rw [integral_add hX hP, hXI, hPI]
+  linarith
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "units": [{
+    "kind": "theorem",
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PartialMomentumRefresh.partial_momentum_refresh_second_moment",
+    "title": "The actual OU half-refresh and its corrected moment budget",
+    "boundary": "This is only Algorithm 3.1's first partial momentum refresh and the adapter needed before the existing two-layer Picard moment theorem. It does not construct the repeated phase history, prove the run-wide state estimate, instantiate the Picard Gaussian array, prove the numerical D.7 bound, aggregate D.8, or prove Theorem 5.1.",
+    "sources": [{"url": "https://arxiv.org/html/2609.06906v1#S3.SS2", "label": "Chen–Chewi–Lu–Zhang, Algorithm 3.1", "scope": "First partial momentum refresh at lines 282–300, used in the proof of Lemma D.4 at lines 2177–2180."}],
+    "tests": ["lake build Tests.SmoothedPicardHMCPartialMomentumRefresh"],
+    "assumptions": [
+      "The incoming phase-state law nu on E×E is a probability measure, and the combined square ‖X−x*‖²+‖Pinit‖² is integrable with expectation at most M.",
+      "E is a complete finite-dimensional real inner-product Borel space and h≥0.",
+      "Freshness of Z~N(0,I) is represented by the actual product measure nu⊗stdGaussian(E), rather than by assuming the mixed term has expectation zero."
+    ],
+    "statement": "Set a=exp(−h/2), sigma=sqrt(1−exp(−h)), X0=X and P0=a Pinit+sigma Z on the product law of the incoming state and a fresh standard Gaussian. Then X0 and P0 are measurable, their combined squared distance is integrable, and its expectation satisfies the exact identity and corrected budget below.",
+    "formula": "\\mathbb E[\\|X_0-x_*\\|^2+\\|P_0\\|^2]=\\mathbb E[\\|X-x_*\\|^2+e^{-h}\\|P_{\\rm init}\\|^2]+(1-e^{-h})d\\le M+(1-e^{-h})d.",
+    "steps": [
+      {"title": "Realize the fresh draw by a product law", "text": "A sample is a pair ((X,Pinit),Z) distributed according to nu⊗gamma_d. The first coordinate is the incoming phase state and the second is a genuinely fresh standard Gaussian. Coordinate projections and continuous linear combinations make X0 and P0 measurable.", "formula": "\\mu=\\nu\\otimes\\gamma_d,\\qquad P_0=e^{-h/2}P_{\\rm init}+\\sqrt{1-e^{-h}}\\,Z.", "lean": "The public X and P0 lets use product projections; the final fun_prop goals prove their measurability."},
+      {"title": "Establish every integrability premise", "text": "Nonnegativity lets us extract the position and momentum square integrability from the combined incoming energy. L2 then gives integrability of Pinit itself. The shared ASTIS theorem gives ‖Z‖² in L1, while Mathlib's Gaussian integrability API separately gives Z in L1; together these make the mixed inner product integrable on the product measure.", "formula": "\\|X-x_*\\|^2,\\|P_{\\rm init}\\|^2\\in L^1(\\nu),\\quad P_{\\rm init}\\in L^1(\\nu),\\quad Z,\\|Z\\|^2\\in L^1(\\gamma_d).", "lean": "hposI, hmomI, hmom1, hgaussI, hz1 and Integrable.op_fst_snd justify Fubini and all subsequent integral algebra."},
+      {"title": "Use actual independence to kill the cross term", "text": "For every fixed incoming momentum, the Gaussian mean is zero. Fubini is legal because the mixed inner product was proved integrable, hence its expectation under the product law vanishes without a centering assumption on Pinit.", "formula": "\\mathbb E_{\\nu\\otimes\\gamma_d}\\langle P_{\\rm init},Z\\rangle=\\mathbb E_\\nu\\langle P_{\\rm init},\\mathbb E_{\\gamma_d}Z\\rangle=0.", "lean": "integral_strongDual_stdGaussian and integral_prod prove hcross0."},
+      {"title": "Expand the refreshed square", "text": "The coefficients satisfy a²=e^(−h) and sigma²=1−e^(−h). Expanding the Hilbert norm, integrating the four integrable terms, using the zero cross term and E‖Z‖²=d gives the exact identity.", "formula": "\\|P_0\\|^2=e^{-h}\\|P_{\\rm init}\\|^2+2e^{-h/2}\\sqrt{1-e^{-h}}\\langle P_{\\rm init},Z\\rangle+(1-e^{-h})\\|Z\\|^2.", "lean": "ha2, hs2, hexpand, hpieces and heq mirror this algebra and product integration."},
+      {"title": "Derive the consumer-ready bound", "text": "Because h≥0, 0<e^(−h)≤1. Replacing the damped momentum term by the incoming momentum square and applying the input budget yields M+(1−e^(−h))d. The extra dimension term must remain visible until the later paper-parameter absorption step.", "formula": "\\mathbb E[\\|X-x_*\\|^2+e^{-h}\\|P_{\\rm init}\\|^2]\\le M.", "lean": "hexp, hweighted and heq prove the final inequality. The focused test passes this result to picard_center_gradient_moment."}
+    ],
+    "lean_statement": "The source's independent Gaussian draw is represented definitionally by a product measure. The conclusion exposes measurability and integrability because the next Picard theorem requires them, and keeps Pinit distinct from the refreshed P0.",
+    "lean_proof": "ASTIS supplies the canonical Gaussian norm-square leaf and the paper-specific product-law adapter. Mathlib supplies product Fubini, Gaussian mean/covariance, Lp-to-integrability and Hilbert norm algebra.",
+    "astis_dependencies": ["AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"],
+    "mathlib_dependencies": ["ProbabilityTheory.integral_strongDual_stdGaussian", "MeasureTheory.Integrable.op_fst_snd", "MeasureTheory.integral_prod", "Real.exp_le_one_iff", "InnerProductSpace.norm_add_sq_real"]
+  }]
+}

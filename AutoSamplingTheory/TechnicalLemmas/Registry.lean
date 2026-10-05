@@ -1,5 +1,6 @@
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
@@ -7,9 +8,12 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolev
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ForcedSemigroupDecay
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BakryEmeryInterpolation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates
 import AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity
 import AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity
@@ -18,6 +22,10 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DonskerVaradhan
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.Renyi
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
 import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
 import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsIntegral
 import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsLogConcavity
@@ -25,6 +33,7 @@ import AutoSamplingTheory.TechnicalLemmas.Measure.KantorovichDual
 import AutoSamplingTheory.TechnicalLemmas.Measure.Product
 import AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym
 import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
@@ -72,6 +81,246 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.gradient.ae-congruence-obstruction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence.not_gradient_ae_congr_for_arbitrary_measure",
+    upstreamDecl := "representative-choice obstruction for classical gradients",
+    upstreamFile := "Mathlib.Analysis.Calculus.Gradient.Basic; Mathlib.MeasureTheory.Measure.Dirac",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "FI", "gradient", "almost-everywhere", "representative", "typed-blocker", "SPHMC"],
+    saldUse := "prevent unsound transfer of a classical score from an explicit smooth log-ratio representative to an arbitrary a.e.-equal canonical llr representative",
+    note := "Dirac counterexample: the zero and identity functions agree delta_0-a.e. but their classical gradients disagree delta_0-a.e. A valid adapter needs local equality, a selected differentiable representative, or weak-gradient semantics."
+  },
+  {
+    key := "analysis.optimisation.uniform-regularization",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",
+    upstreamDecl := "QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy; QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; QuadraticRegularizationOracle.simulate_regularized",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "regularization", "oracle", "uniform-complexity"],
+    saldUse := "Uniform convex solver accuracy and actual normalized query bound from a uniform strongly convex program.",
+    note := "Proper Hilbert; positive small-error regime; natural-valued budget and finite deterministic execution. No Phi monotonicity. Full source model/domain adapters remain."
+  },
+  {
+    key := "analysis.optimisation.regularization-oracle",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+    upstreamDecl := "QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; Nat.succ_le_succ",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section1.1 and Section4.1 Lemma4.2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "regularization", "oracle", "query-count"],
+    saldUse := "Actual adaptive first-order oracle execution with one original reply per regularized reply.",
+    note := "Finite deterministic query-fuel semantics; exact state/outcome/count preservation. Halt and exhaustion distinct. No class-uniform solver/budget or full Lemma4.2 closure."
+  },
+  {
+    key := "analysis.optimisation.regularization-first-order",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+    upstreamDecl := "strongConvexOn_iff_convex; LinearMap.convexOn; HasFDerivAt.norm_sq; LipschitzWith.dist_le_mul",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "regularization", "smoothness"],
+    saldUse := "Actual regularized curvature and gradient Lipschitz shift at first-order regularity.",
+    note := "Differentiable convex Hilbert objective with genuine beta-Lipschitz gradient. Nonnegative precision includes zero. No C2/Hessian, minimizer or oracle/class theorem."
+  },
+  {
+    key := "analysis.optimisation.regularization-transfer",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy",
+    upstreamDecl := "IsCompact.exists_isMinOn; isCompact_closedBall; Metric.mem_closedBall; dist_eq_norm",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "regularization", "minimizer", "accuracy"],
+    saldUse := "Construct actual regularized minimum and transfer radius and objective approximation.",
+    note := "Continuous proper normed group, supplied original minimum, positive radius and precision. No convexity/C2 assumed; no uniqueness, curvature/smoothness, solver or oracle/class closure."
+  },
+  {
+    key := "analysis.optimisation.restart-log-complexity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartLogComplexity.logarithmic_accuracy_and_cost",
+    upstreamDecl := "RestartReduction.radius_accuracy_and_cost; Nat.le_ceil; Nat.ceil_eq_zero; Real.log_le_log_iff; Real.log_pow",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.1 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "restart", "complexity"],
+    saldUse := "Actual logarithmic restart horizon, final accuracy and explicit certified call-cost bounds.",
+    note := "Positive radius, C1 Hilbert, supplied minimizer/base solver. N0 retains final call. Global two-term cost; pure-log3/log4 bound only under phi comparison and q>=4. No formal oracle/class realization."
+  },
+  {
+    key := "analysis.optimisation.restart-reduction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.RestartReduction.radius_accuracy_and_cost",
+    upstreamDecl := "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; IsLocalMin.fderiv_eq_zero; Nat.rec",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.1 proof",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "restart"],
+    saldUse := "Actual radius-halving restart, final objective accuracy and cumulative certified solver cost.",
+    note := "Positive upper radius, C1 Hilbert, supplied minimizer/base solver; exact finite N phi(8kappa)+phi(kappa). No phi monotonicity, oracle-machine or full logarithmic reduction claim; N0 retains polishing."
+  },
+  {
+    key := "analysis.gradient-descent.distance-complexity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentComplexity.distance_le_of_log_bound",
+    upstreamDecl := "GradientDescentContraction.gradient_descent_distance_bound; Real.log_le_iff_le_exp",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section3 Theorem3.3 following rate paragraph",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-descent"],
+    saldUse := "Actual reciprocal-step gradient iterates reach distance accuracy under the exact logarithmic budget.",
+    note := "Positive alpha,beta,epsilon; threshold only R>0, zero radius and zero iterations retained. C1 Hilbert upper-model generalization; supplied minimizer. Sufficient count, not optimal complexity or companion-paper progress."
+  },
+  {
+    key := "analysis.gradient-descent.convex-normalized-value",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.convex_value_le",
+    upstreamDecl := "Theorem3.4; GradientDescentValue.gradient_descent_weighted_value_bound",
+    upstreamFile := "Chewi Lectures on Optimization arXiv2605.07006v1 Section3",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-descent"],
+    saldUse := "Normalized actual-iterate function-value rate from existing weighted parent.",
+    note := "Positive h,N; arbitrary comparator; source beta reciprocal specialization tested; no analytic alpha limit."
+  },
+  {
+    key := "analysis.gradient-descent.strong-normalized-value",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentRates.strongly_convex_value_le",
+    upstreamDecl := "Theorem3.4; GradientDescentValue.gradient_descent_weighted_value_bound",
+    upstreamFile := "Chewi Lectures on Optimization arXiv2605.07006v1 Section3",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-descent"],
+    saldUse := "Normalized actual-iterate function-value rate from existing weighted parent.",
+    note := "Rational q0 extension and exact inverse power only q>0; source singular domain independently reviewed."
+  },
+  {
+    key := "analysis.gradient-flow.last-time-lyapunov",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate.lyapunov_and_rates",
+    upstreamDecl := "Exercise2.1; ConvexityC2.gradient_mono_iff_fderiv2_lower; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Actual convex-flow Lyapunov antitonicity and last-time gradient-square/value upper bounds.",
+    note := "Hessian positivity derived; C2 Hilbert and right-time generalization explicit. Positive-time normalized coefficients 1/t squared and 1/(4t); nonsmooth sharpness and Exercise2.2 remain separate."
+  },
+  {
+    key := "analysis.gradient-flow.attained-stationarity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+    upstreamDecl := "Corollary2.8; IsCompact.exists_isMinOn; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "optimisation", "gradient-flow", "stationarity"],
+    saldUse := "Attained minimum of actual gradient norm over a positive time interval, bounded by the square root of initial objective gap divided by time.",
+    note := "C1 Hilbert and right-time generalization explicit; global minimum and actual flow supplied. No convexity, PL, existence, final-time gradient or full trajectory convergence claim."
+  },
+  {
+    key := "analysis.gradient-flow.convex-value-rate",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue.value_le",
+    upstreamDecl := "Theorem2.4; firstOrder_lower_bound_of_strongConvexOn; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Actual convex gradient trajectory objective rate with direct zero-curvature branch on finite forward intervals.",
+    note := "Positive observation time: printed t0 quotient singularity has independent domain-clarification review. Hilbert/differentiability/right-time generalization explicit; minimum and flow supplied; no analytic parameter-limit or existence claim."
+  },
+  {
+    key := "analysis.gradient-flow.pair-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowContraction.norm_sub_le",
+    upstreamDecl := "Theorem2.2; gradient_inner_lower_bound_of_strongConvexOn; HasDerivWithinAt.norm_sq; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "convexity", "optimisation", "gradient-flow"],
+    saldUse := "Two actual gradient trajectories contract with exact curvature rate on finite forward intervals.",
+    note := "Source alpha>=0 retained. C2 Euclidean setting generalized to differentiable Hilbert objective and right derivatives; no minimum or nonzero distance needed. No existence, extension or stochastic-flow claim."
+  },
+  {
+    key := "analysis.gradient-flow.pl-dissipation-decay",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowPL.dissipation_and_decay",
+    upstreamDecl := "Lemma2.1 and Corollary2.6; HasFDerivAt.comp_hasDerivWithinAt; le_gronwallBound_of_liminf_deriv_right_le",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "PL", "optimisation", "gradient-flow"],
+    saldUse := "Actual Hilbert gradient dynamics yield objective dissipation and PL exponential value decay on a finite forward interval.",
+    note := "Source C2 Euclidean setting generalized to differentiable Hilbert objective and right derivatives. Terminal continuity retained; no negative-time dynamics, existence/uniqueness, point-distance or stochastic-flow claim."
+  },
+  {
+    key := "analysis.strong-convex.nonlinear-pl-pullback",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexPLPullback.exists_minimizer_and_pl",
+    upstreamDecl := "Exercise2.3 (numerical PL inequality component)",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "PL", "optimisation"],
+    saldUse := "Strong convexity and adjoint Jacobian coercivity yield a numerical PL bound for a differentiable nonlinear composite, with a lifted global minimizer.",
+    note := "Differentiable Hilbert extension; sigma0 is degenerate. Does not assert composite C1 regularity, full positive-modulus PL definition, convexity, uniqueness or algorithm convergence."
+  },
+  {
+    key := "analysis.gradient-descent.convex-gap-sharpness",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexGradientGapSharpness.quadratic_gap_lower_bound",
+    upstreamDecl := "Exercise3.3 (convex function-value order in Theorem3.4)",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "quadratic", "optimisation"],
+    saldUse := "Horizon-dependent admissible quadratic gives exact actual GD gap and beta/(16(N+1)) lower bound at step1/beta.",
+    note := "Class beta need not be tight. Witness depends on N; no fixed-objective reciprocal tail, optimal constant, full exercise or adaptive/oracle lower bound."
+  },
+  {
+    key := "analysis.gradient-descent.sharpness",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case",
+    upstreamDecl := "Exercise3.3 (fixed-step distance sharpness of Exercise3.2)",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "quadratic", "optimisation"],
+    saldUse := "Actual scalar quadratic witnesses the endpoint envelope at every iteration count and its balanced minimax factor, with all function-class certificates proved.",
+    note := "Positive alpha<=beta are valid class bounds, not both tight constants of the witness. Fixed-step distance sharpness only; no full-section or variable/adaptive/oracle lower bound."
+  },
+  {
+    key := "analysis.quadratic-gd.iterate",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_gradient_iterate",
+    upstreamDecl := "Exercise3.3 (exact trajectories component)",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "quadratic", "optimisation"],
+    saldUse := "Actual centered-quadratic gradient derived by differentiation and symmetry; trajectory is the update operator power.",
+    note := "Symmetric continuous Hilbert operator generalizes the positive-definite Euclidean source. Identities only: no stability, spectral endpoint existence, full-section sharpness or companion-paper completion."
+  },
+  {
+    key := "analysis.quadratic-gd.eigenmode",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_eigenmode",
+    upstreamDecl := "Exercise3.3 (exact trajectories component)",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "quadratic", "optimisation"],
+    saldUse := "Given a mode relation, exact trajectory, absolute-value norm factor and squared objective factor; zero vector and unstable steps included.",
+    note := "Symmetric continuous Hilbert operator generalizes the positive-definite Euclidean source. Identities only: no stability, spectral endpoint existence, full-section sharpness or companion-paper completion."
+  },
+  {
+    key := "analysis.gradient-step.endpoint-bound",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.gradient_step_endpoint_bound",
+    upstreamDecl := "Exercise3.2",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "smoothness", "optimisation"],
+    saldUse := "Actual-gradient endpoint curvature bound from C2 Hessian bounds, symmetry, Rayleigh norm and explicit segment FTC.",
+    note := "C2 actual-gradient Hilbert extension; explicit parameter domains. Uniform curvature envelope, not an objective-specific optimal step, iterate convergence or companion-paper completion."
+  },
+  {
+    key := "analysis.gradient-step.optimal-step",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.optimal_gradient_step",
+    upstreamDecl := "Exercise3.2",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "smoothness", "optimisation"],
+    saldUse := "Balanced step 2/(alpha+beta) gives factor (beta-alpha)/(alpha+beta), minimizing the endpoint envelope over all real steps.",
+    note := "C2 actual-gradient Hilbert extension; explicit parameter domains. Uniform curvature envelope, not an objective-specific optimal step, iterate convergence or companion-paper completion."
+  },
+  {
+    key := "analysis.gradient-descent.sum-sq",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.gradient_descent_sum_sq_bound",
+    upstreamDecl := "Theorem3.7 and proof",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "smoothness", "optimisation"],
+    saldUse := "Actual-iterate accumulated squared-gradient bound via canonical descent and finite telescoping; no minimum needed.",
+    note := "Actual gradient and global quadratic upper model; Hilbert algebraic generalization. Explicit domain overlay independently accepted. Best iterate, not last iterate, global optimality or companion-paper completion."
+  },
+  {
+    key := "analysis.gradient-descent.stationarity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentStationarity.exists_gradient_descent_norm_le",
+    upstreamDecl := "Theorem3.7 and proof",
+    upstreamFile := "Chewi Lectures on Optimization arXiv:2605.07006v1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "smoothness", "optimisation"],
+    saldUse := "Nonconvex best-iterate gradient-norm guarantee from actual updates, supplied global minimum, positive step and nonempty horizon.",
+    note := "Actual gradient and global quadratic upper model; Hilbert algebraic generalization. Explicit domain overlay independently accepted. Best iterate, not last iterate, global optimality or companion-paper completion."
+  },
   {
     key := "analysis.gradient-descent.step-descent",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound",
@@ -261,6 +510,16 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["CALC", "CONV", "strong-convexity", "gradient", "monotonicity", "shared"],
     saldUse := "Positive-modulus gradient injectivity in Tests.Shared.StrongConvexFirstOrder; intended Optimization Proposition 1.6 (1.5) and gradient-flow contraction adapters",
     note := "PR #248 by andyjm3: sum the ASTIS first-order bounds in both directions. Arbitrary real modulus; only the injectivity consumer needs positivity. No reverse implication, Hessian equivalence, flow theorem, Gibbs invariance or new conceptual transport certificate is claimed."
+  },
+  {
+    key := "analysis.strong-convexity.minimizer-existence",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero",
+    upstreamDecl := "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn / IsCompact.exists_isMinOn / IsLocalMin.fderiv_eq_zero",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer; Mathlib",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "CONV", "SPHMC", "strong-convexity", "minimizer", "gradient", "finite-dimensional"],
+    saldUse := "SPHMC Lemma 4.16 hidden minimizer-selection prerequisite: construct the minimizer used by the initialization argument",
+    note := "Independently verified at exact commit 8be837c. Requires positive modulus, genuine differentiability and finite-dimensional compactness. No uniqueness, Gibbs normalization, concentration or all-q statement is claimed."
   },
   {
     key := "analysis.strong-convexity.of-gradient-inner-lower-bound",
@@ -491,10 +750,40 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Gibbs", "withDensity", "Laplace-tail", "absolute-linear-lower-bound", "probability-measure"],
     saldUse := "Chewi DENS/CONV/SDE root: construct normalized one-dimensional Gibbs targets with Laplace-type tails",
     note := "Source-facing probability bridge for Chewi's log-concave but non-strongly-log-concave Laplace examples."
+  },
+  {
+    key := "analysis.finite-power-series.iterated-derivative-budget",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.abs_iteratedDeriv_finitePowerSeries_le_mass",
+    upstreamDecl := "iteratedDeriv_pow / iteratedDeriv_fun_sum",
+    upstreamFile := "Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "polynomial", "iterated-derivative", "coefficient-budget", "C4"],
+    saldUse := "Reusable signed finite-polynomial derivative budget for smooth kernels, moment features, and local truncation estimates.",
+    note := "All derivative orders are covered through Nat.descFactorial; coefficients may have arbitrary signs and the bound holds on the closed unit interval."
+  },
+  {
+    key := "analysis.fourth-order-composition-expression",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries.fourthOrderCompositionExpression_abs_le",
+    upstreamDecl := "one-dimensional fourth-order chain rule coefficients",
+    upstreamFile := "Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "C4", "chain-rule", "Faa-di-Bruno", "remainder"],
+    saldUse := "Termwise fourth-order composition control after derivative bounds for the outer and inner functions are available.",
+    note := "This is the scalar algebraic estimate with coefficients 1,6,3,4,1; identifying actual iterated derivatives of a composition is a separate Mathlib theorem."
   }
 ]
 
 def gaussianMemory : List LemmaMemoryEntry := [
+  {
+    key := "gaussian.std.norm-square-second-moment"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+    upstreamDecl := "IsGaussian.memLp_two_id / covarianceBilin_stdGaussian / finite-dimensional Parseval"
+    upstreamFile := "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["gaussian", "stdGaussian", "integrability", "second-moment", "finite-dimensional", "sampling"]
+    saldUse := "shared Gaussian second-moment leaf for OU momentum refreshes and stochastic-gradient moment estimates"
+    note := "Canonical public owner replacing future repetition of two older private SPHMC helper proofs; no independence or higher-moment claim."
+  },
   {
     key := "gaussian.product.coordinate-law",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian.map_eval_stdGaussianPi",
@@ -1755,6 +2044,16 @@ def measureMemory : List LemmaMemoryEntry := [
     note := "Exact measure-class definition; no Wasserstein metric, optimal map, or gradient-flow theorem is asserted."
   },
   {
+    key := "measure.wasserstein.lipschitz-observable-second-moment",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment.of_wassersteinDistance_sq_le",
+    upstreamDecl := "quadratic coupling inequality for Lipschitz observables",
+    upstreamFile := "standard Wasserstein consequence; SPHMC arXiv:2609.06906v1 Lemma D.4 prerequisite",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Wasserstein", "Lipschitz", "second-moment", "integrability", "SPHMC"],
+    saldUse := "transfer square-integrability and a quadratic observable moment bound along a W2 estimate",
+    note := "Uses approximate couplings rather than optimal-plan existence. A twisted paper metric such as SPHMC M_kappa still needs an explicit metric comparison."
+  },
+  {
     key := "measure.wasserstein.quadratic-optimal-coupling",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolation.IsQuadraticOptimalCoupling",
     upstreamDecl := "Chewi Definition 1.3.25 / quadratic Kantorovich attainment",
@@ -2213,12 +2512,42 @@ def measureMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Gibbs", "withDensity", "potential", "normalization", "envelope", "probability-measure"],
     saldUse := "Chewi DENS/CONV root: construct the normalized target law once a lower-potential integrable envelope is supplied",
     note := "Useful for Chewi coercivity/growth proofs because the analytic tail estimate only has to provide `W ≤ V` and finite integral for `exp(-W)`."
+  },
+  {
+    key := "samplewiki.sphmc.initial-gibbs-q2",
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2",
+    upstreamDecl := "GibbsPositionMoment.gibbs_position_moment / PhaseReferenceMoment.gaussianSmoothing_position_second_moment / InitialPhaseTransport.phaseWassersteinSq_initial_le_position_moment",
+    upstreamFile := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SampleWiki", "SPHMC", "Gibbs", "Gaussian-smoothing", "phase-transport", "q2", "initialization"],
+    saldUse := "SPHMC Lemma 4.16 q=2 initialization component: assemble the actual smoothed Gibbs position moment with the identical-momentum phase coupling",
+    note := "Independently verified at commit c470a1b. Conditional on a supplied critical point; all-q concentration and critical-point existence remain separate open edges. The explicit factor 5 is ASTIS-derived, not source-literal."
+  },
+  {
+    key := "samplewiki.sphmc.initial-gibbs-q2-unconditional",
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional.initial_gibbs_phase_transport_q2_of_hessian_bounds",
+    upstreamDecl := "HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower / StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero / InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2",
+    upstreamFile := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SampleWiki", "SPHMC", "Gibbs", "Gaussian-smoothing", "phase-transport", "q2", "initialization", "unconditional"],
+    saldUse := "SPHMC Lemma 4.16 unconditional q=2 initialization edge: discharge the source's implicit minimizer witness from its Hessian bounds",
+    note := "Independently verified at exact commit 8be837c. The source all-q concentration, Picard dynamics, final accuracy and query cost remain open. The explicit factor 5 is ASTIS-derived, not source-literal."
   }
 ]
 
 
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
+  {
+    key := "functional-inequality.gibbs-local-l2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume",
+    upstreamDecl := "memLp_two_iff_integrable_sq_norm; integrable_tilted_iff; absolutelyContinuous_tilted",
+    upstreamFile := "Mathlib MeasureTheory; authored PBPS arXiv2609.06905v1 Appendix C.1 prerequisite",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "Gibbs", "local-integrability"],
+    saldUse := "Actual weak-resolvent solution, gradient and forcing acquire compact unweighted L2 inputs.",
+    note := "Continuous potential and finite Gibbs normalization; arbitrary normed additive target. No global L2 bound, H2, Poincare or paper completion."
+  },
   {
     key := "functional-inequality.chewi-definition-1-2-19",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator.SatisfiesPoincare",
@@ -2238,6 +2567,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "log-Sobolev", "generator", "Dirichlet-form", "density", "definition"],
     saldUse := "Chewi Definition 1.2.25 root: state KL(rho mu || mu) <= (C/2) E(rho,log rho) for every admissible normalized density",
     note := "Exact density-generator formulation with positivity, normalization, and finite entropy/energy conditions explicit. KL decay is a separate theorem route."
+  },
+  {
+    key := "functional-inequality.canonical-lsi-kl-fisher",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev.finite_klDiv_and_toReal_le_half_mul_information",
+    upstreamDecl := "Chewi Definition 1.2.25 applied to the canonical RN density; canonical Dirichlet--Fisher bridge",
+    upstreamFile := "Log-Concave Sampling, Definition 1.2.25; AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Chewi", "SALD", "SPHMC", "log-Sobolev", "KL", "Fisher", "Radon-Nikodym", "finite-entropy"],
+    saldUse := "turn an established generator LSI plus explicit canonical density/IBP/score domains into finite canonical KL and KL <= (C/2) FI",
+    note := "Conditional interface bridge only. Finiteness comes from density admissibility. Strong-convex Gibbs LSI, the reciprocal-rate adapter, Talagrand T2 and Wasserstein contraction remain separate red nodes."
   },
   {
     key := "gronwall.chewi-lemma-1-2-20",
@@ -2338,10 +2677,70 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "log-Sobolev", "KL", "Fisher-information", "semigroup", "exponential-decay", "forward"],
     saldUse := "derive KL-style decay at rate 2/C from LSI coercivity and the entropy-dissipation identity KL'=-FI",
     note := "Source-faithful forward direction only; density regularity, concrete entropy dissipation, and the converse remain explicit."
+  },
+  {
+    key := "semigroup-decay.forced-dissipation-from-arbitrary-time",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.forced_exponential_decay_of_scaled_dissipation_from",
+    upstreamDecl := "le_gronwallBound_of_liminf_deriv_right_le / gronwallBound with nonzero forcing",
+    upstreamFile := "Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["functional-inequality", "semigroup", "dissipation", "Gronwall", "forcing", "steady-state-floor"],
+    saldUse := "turn a forced coercive energy-dissipation inequality into the exact exponential interpolation between the initial energy and forcing floor",
+    note := "Scalar reusable leaf. Concrete carré-du-champ differentiation, Bakry–Émery curvature, and generator-domain closure remain separate prerequisites."
+  },
+  {
+    key := "semigroup-decay.backward-interpolation-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth",
+    upstreamDecl := "le_gronwallBound_of_liminf_deriv_right_le / Bakry--Émery backward interpolation",
+    upstreamFile := "Mathlib.Analysis.ODE.Gronwall",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "semigroup", "gradient-contraction", "interpolation", "Gronwall"],
+    saldUse := "convert a lower differential bound for a backward interpolation quantity into the endpoint exponential contraction estimate",
+    note := "Scalar interpolation leaf only. Concrete carré-du-champ derivative identities, semigroup order preservation, and generator-domain closure remain explicit inputs."
+  },
+  {
+    key := "semigroup-decay.backward-interval-interpolation-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_endpoint_contraction_of_growth_on_Icc",
+    upstreamDecl := "derivative monotonicity / Bakry--Émery backward interpolation on a compact interval",
+    upstreamFile := "Mathlib.Analysis.Calculus.Deriv.MeanValue",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "semigroup", "gradient-contraction", "interpolation", "closed-interval"],
+    saldUse := "derive exact endpoint contraction from a derivative-growth bound only on the interpolation interval",
+    note := "Interval-scoped scalar leaf with genuine HasDerivAt hypotheses. The semigroup derivative identity, curvature bound, and terminal-energy identification remain explicit inputs."
+  },
+  {
+    key := "semigroup-interpolation.exponential-kernel-endpoint",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.endpoint_le_of_deriv_le_exponential_kernel",
+    upstreamDecl := "fundamental theorem / monotonicity from a nonnegative derivative",
+    upstreamFile := "Mathlib.Analysis.Calculus.Deriv.MeanValue",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["functional-inequality", "semigroup", "entropy", "interpolation", "exponential-kernel"],
+    saldUse := "integrate a backward exponential derivative bound into its exact endpoint convolution factor",
+    note := "Reusable scalar analytic leaf. A concrete semigroup must still provide the entropy derivative identity and gradient-contraction estimate."
   }
 ]
 
 def stochasticProcessMemory : List LemmaMemoryEntry := [
+  {
+    key := "bakry-emery.abstract-gradient-contraction",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_expandedBakryEmery",
+    upstreamDecl := "Bakry-Emery backward interpolation argument",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BakryEmeryGradientContraction",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "semigroup", "positive-operator", "gradient-contraction"],
+    saldUse := "combine curvature, positivity, the interpolation derivative identity, and scalar Gronwall into endpoint contraction",
+    note := "Abstract adapter only. Concrete semigroups must discharge positivity, the exact interpolation derivative identity, continuity, and domain closure."
+  },
+  {
+    key := "bakry-emery.interpolation-derivative-lower-bound",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.interpolationDerivative_lower_bound_of_expandedBakryEmery",
+    upstreamDecl := "CD(alpha, infinity) and the defining Gamma-two identity",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChamp",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Bakry-Emery", "carre-du-champ", "Gamma2", "semigroup", "gradient-contraction"],
+    saldUse := "derive the exact lower bound for the backward interpolation derivative expression from CD(alpha, infinity)",
+    note := "Algebraic generator leaf only. A concrete semigroup must still prove the interpolation derivative identity, positivity/order preservation, and domain regularity."
+  },
   {
     key := "localization.chewi-proposition-1-1-13",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem.chewi_proposition_1_1_13",
@@ -2681,6 +3080,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Ito", "Borel-Cantelli", "continuous-martingale", "restriction"],
     saldUse := "construct the actual continuous martingale version and identify every fixed time with the restricted terminal completion",
     note := "A summable Doob-Borel-Cantelli argument gives a uniform path limit; usual-condition completeness makes the null-set patch adapted."
+  },
+  {
+    key := "ito-integral.bounded-stopping-mean-zero",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BoundedStoppedItoMean.integral_itoIntegralProcess_at_boundedStopping_eq_zero",
+    upstreamDecl := "RandomStoppingGeneralIto.itoIntegralTerminal_stop_ae; ItoIntegralProcess.itoIntegralProcess_martingale",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/RandomStoppingGeneralIto.lean; AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralProcess.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Ito", "random-stopping", "martingale", "integrability", "mean-zero"],
+    saldUse := "replace an abstract optional-stopping or centered-martingale premise by the constructed completed Ito process at a bounded stopping time",
+    note := "The companion theorem proves integrability of the randomly evaluated process. The stopping time must be pointwise bounded by the positive construction horizon; no claim is made for unbounded stopping times or local-L2 integrands before localization."
   },
   {
     key := "ito-integral.chewi-theorem-1-1-8",
@@ -3584,6 +3993,59 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
   }
 ]
 
+def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.empirical-covariance.preconcentration",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+    upstreamDecl := "rank-one empirical covariance decomposition before matrix Bernstein",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["empirical-covariance", "rank-one", "matrix-concentration", "operator-norm", "finite-sample"],
+    saldUse := "prepare bounded symmetric centered summands for a later matrix Bernstein or covariance concentration theorem",
+    note := "Proves the exact normalized decomposition, symmetry, and the 2 B^2 summand bound. It does not assume or prove a matrix concentration tail inequality."
+  },
+  {
+    key := "probability.empirical-covariance.unit-rank-one-moments",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.unitRankOneCovariance_momentPackage",
+    upstreamDecl := "unit-vector rank-one covariance first and centered second operator moments",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["empirical-covariance", "rank-one", "matrix-concentration", "operator-moment", "Bochner-integral"],
+    saldUse := "derive self-adjointness, contraction, the exact C-C^2 centered second moment, and its norm bound before invoking self-adjoint matrix Bernstein",
+    note := "Compiles the model-independent expectation calculation for unit-vector samples. Independence, noncommutative MGF estimates, trace bounds, probability tails, and sample complexity remain outside the theorem."
+  },
+  {
+    key := "probability.kernel-hybrid.mean-event-error",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+    upstreamDecl := "Chen--Chewi--Lu--Zhang arXiv:2609.38710v1, Lemma 6.3 mean one-call replacement step",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope; arXiv:2609.38710v1 Section 6.1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian-cloud", "Markov-kernel", "total-variation", "adaptive", "integrability"],
+    saldUse := "average a history-dependent eventwise kernel discrepancy under the ideal history law without replacing expectation by a uniform bound",
+    note := "Compiled reusable core only. It does not construct the paper's dummy-filled histories or prove the local conditional-error estimates."
+  },
+  {
+    key := "probability.kernel-hybrid.common-suffix",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound",
+    upstreamDecl := "Lemma 6.3 adjacent-hybrid replacement plus Markov-kernel data processing",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.{KernelHybridTelescope,KernelTotalVariation}; arXiv:2609.38710v1 Section 6.1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian-cloud", "Markov-kernel", "total-variation", "adaptive", "data-processing"],
+    saldUse := "absorb every later adaptive call into one common Markov suffix while preserving the mean one-slot error",
+    note := "The downstream suffix must be the same Markov kernel on both adjacent hybrids; history construction and measurability stay separate."
+  },
+  {
+    key := "probability.kernel-hybrid.finite-adjacent-sum",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent",
+    upstreamDecl := "Lemma 6.3 finite adjacent-hybrid triangle telescope",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope; arXiv:2609.38710v1 Section 6.1",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian-cloud", "hybrid-argument", "error-budget", "finite-sum"],
+    saldUse := "sum the event discrepancy of adjacent ideal/implemented hybrids across a fixed finite call cap",
+    note := "Real-valued telescope only; the capped/uncapped comparison epsilon_cap is an independent source obligation."
+  }
+]
+
 def klDensityMemory : List LemmaMemoryEntry := [
   {
     key := "kl-density.pointwise-derivative-simplify",
@@ -3604,6 +4066,46 @@ def klDensityMemory : List LemmaMemoryEntry := [
     tags := ["KL", "density", "mass-conservation", "HasDerivAt"],
     saldUse := "remove the integral qdot term in KL differentiation after mass conservation is supplied",
     note := "Small derivative-target rewrite; mass conservation itself remains a separate theorem or hypothesis."
+  },
+  {
+    key := "information-theory.tilted-log-ratio-ae-representative",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.llr_tilted_tilted_ae",
+    upstreamDecl := "MeasureTheory.llr_tilted_left / llr_tilted_right / llr_self",
+    upstreamFile := "Mathlib.MeasureTheory.Measure.Tilted; Lee--Shen--Tian arXiv:2010.03106v4 equation (11)",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "log-density-ratio", "tilted-measure", "representative", "almost-everywhere"],
+    saldUse := "SPHMC Lemma 4.17: identify the canonical measurable llr almost everywhere with the explicit normalized tilt representative",
+    note := "The equality is under the left tilted law. It does not identify derivatives of arbitrary a.e.-equal representatives or prove Fisher, LSI, T2, or Wasserstein bounds."
+  },
+  {
+    key := "information-theory.quadratic-tilt-representative-gradient",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.gradient_quadratic_representative",
+    upstreamDecl := "HasFDerivAt.norm_sq / InnerProductSpace.toDual / Lee--Shen--Tian equation (11)",
+    upstreamFile := "Mathlib.Analysis.InnerProductSpace.Calculus; Lee--Shen--Tian arXiv:2010.03106v4 equation (11)",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "quadratic-tilt", "score", "gradient", "representative"],
+    saldUse := "SPHMC Lemma 4.17: compute the constant relative score (y-y')/eta for restricted-Gaussian fibers",
+    note := "Differentiates only the explicit smooth representative, not Mathlib's canonical measurable llr. The eta != 0 reusable statement is consumed with source eta > 0."
+  },
+  {
+    key := "information-theory.tilted-kl-explicit-integral",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL.finite_klDiv_and_toReal_eq_integral_normalizedLogRatio",
+    upstreamDecl := "InformationTheory.klDiv_ne_top / toReal_klDiv_of_measure_eq / TiltedLogRatio.llr_tilted_tilted_ae",
+    upstreamFile := "Mathlib.InformationTheory.KullbackLeibler.Basic; AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio; Lee--Shen--Tian arXiv:2010.03106v4 Lemma 2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "KL", "tilted-measure", "log-density-ratio", "representative", "integrability"],
+    saldUse := "SPHMC Lemma 4.17 route: evaluate canonical KL through the explicit normalized tilt representative without differentiating the canonical llr",
+    note := "Assumes integrability of the displayed representative under the left tilt, proves finite canonical KL and its exact real integral formula. LSI, Fisher, T2 and W2 contraction remain separate."
+  },
+  {
+    key := "information-theory.quadratic-tilt-relative-fisher",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher.information_quadratic_representative",
+    upstreamDecl := "TiltedLogRatio.gradient_quadratic_representative / RelativeFisher.information / Lee--Shen--Tian Lemma 2",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio; AutoSamplingTheory.TechnicalLemmas.InformationTheory.RelativeFisher; Lee--Shen--Tian arXiv:2010.03106v4 Lemma 2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["SPHMC", "RGO", "quadratic-tilt", "relative-Fisher", "score", "probability-integral"],
+    saldUse := "SPHMC Lemma 4.17: integrate the exact restricted-Gaussian relative score under the left probability fiber",
+    note := "The common normalizer base and the probability integration law are separate. This evaluates only the explicit smooth representative; canonical score domains, LSI, T2 and W2 contraction remain separate."
   }
 ]
 
@@ -4173,6 +4675,46 @@ def geometryMemory : List LemmaMemoryEntry := [
     tags := ["Chewi", "Gibbs", "Gaussian-kernel", "proximal", "pair-difference", "normalizer", "log-concavity"],
     saldUse := "Chewi GAUSS/DISC root: log-concavity of finite-dimensional Gaussian-kernel shapes with the usual conditional normalizing constant",
     note := "This is not a probability-density theorem on product volume; it is the reusable convex-geometric kernel-shape leaf."
+  },
+  {
+    key := "geometry.unit-sphere.geodesic-derivatives",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereGeodesic_derivatives_and_bounds",
+    upstreamDecl := "explicit great-circle geodesic and elementary trigonometric derivatives",
+    upstreamFile := "Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc; Mathlib.Analysis.InnerProductSpace.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Riemannian-geometry", "sphere", "geodesic", "C4", "retraction"],
+    saldUse := "Fourth-order local analysis for sphere-valued optimization and geometric integrators.",
+    note := "Exact derivatives through order four and uniform norm bounds for a unit base point; no finite-dimensional or probabilistic hypothesis."
+  },
+  {
+    key := "geometry.unit-sphere.exponential-map-norm",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere.unitSphereExp_norm_eq_one",
+    upstreamDecl := "sin_sq_add_cos_sq / orthogonal norm identity",
+    upstreamFile := "Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic; Mathlib.Analysis.InnerProductSpace.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Riemannian-geometry", "sphere", "exponential-map", "constraint-preservation"],
+    saldUse := "Exact feasibility certificate for tangent exponential-map updates on the unit sphere.",
+    note := "The tangent hypothesis is the ambient inner-product equation; the result works in arbitrary real inner-product spaces."
+  },
+  {
+    key := "analysis.second-order-extremum.necessary-sign",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.IsLocalMin.deriv_deriv_nonneg_of_continuousAt",
+    upstreamDecl := "isLocalMax_of_deriv_deriv_neg / isLocalMin_of_deriv_deriv_pos",
+    upstreamFile := "Mathlib.Analysis.Calculus.DerivativeTest",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["calculus", "second-derivative", "local-extremum", "necessary-condition"],
+    saldUse := "Reusable second-order sign condition for optimization and maximum-principle arguments.",
+    note := "Complements Mathlib's strict sufficient tests with the non-strict necessary direction for the total double derivative."
+  },
+  {
+    key := "geometry.unit-sphere.laplacian-extremum-sign",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereSecondOrder.unitSphere_isMinOn_laplacian_nonneg",
+    upstreamDecl := "unitSphereExp_norm_eq_one / second-order necessary condition / Finset.sum_nonneg",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphere; Mathlib.Analysis.Calculus.DerivativeTest",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Riemannian-geometry", "sphere", "Hessian", "Laplacian", "maximum-principle"],
+    saldUse := "Sign of a supplied finite Hessian trace at a unit-sphere extremum.",
+    note := "Exposes tangent directions, curve continuity, diagonal identities, and the finite trace identity; no PDE or model coefficient is included."
   }
 ]
 
@@ -4274,7 +4816,7 @@ def portQueueMemory : List LemmaMemoryEntry := [
 
 def technicalLemmaMemory : List LemmaMemoryEntry :=
   analysisMemory ++ gaussianMemory ++ taylorMemory ++ calculusMemory ++ measureMemory ++ functionalInequalityMemory ++ stochasticProcessMemory ++
-    klDensityMemory ++ renyiDensityMemory ++ variationalMemory ++ geometryMemory ++
+    probabilityMemory ++ klDensityMemory ++ renyiDensityMemory ++ variationalMemory ++ geometryMemory ++
     saldExtractedMemory ++ portQueueMemory
 
 def formalizedTechnicalLemmaCount : Nat :=

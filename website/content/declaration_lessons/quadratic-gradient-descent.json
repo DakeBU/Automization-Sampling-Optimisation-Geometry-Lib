@@ -1,0 +1,116 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_gradient_iterate",
+      "kind": "theorem",
+      "title": "Exact gradient descent on a quadratic",
+      "statement": "For every natural iteration count, the actual gradient-descent trajectory equals the indicated operator power.",
+      "formula": "T_h^N(x)=(I-hH)^N x,\\qquad f(x)=\\tfrac12\\langle x,Hx\\rangle.",
+      "assumptions": [
+        "E is a complete real inner-product space. H:E→E is a continuous linear operator symmetric in the sense ⟨Hx,y⟩=⟨x,Hy⟩ for every x,y.",
+        "Define the actual centered objective f(x)=⟨x,Hx⟩/2 and its actual gradient update T_h(x)=x−h∇f(x). h∈ℝ is constant across steps, N∈ℕ, and the initial point x∈E is arbitrary."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate the actual objective",
+          "text": "The product rule for the inner product gives half the sum of two linear terms. Symmetry moves H between arguments, and real inner-product symmetry identifies both terms. This is the continuous linear functional represented by Hx, so uniqueness of the Riesz gradient yields ∇f(x)=Hx.",
+          "formula": "Df(x)[v]=\\tfrac12\\bigl(\\langle x,Hv\\rangle+\\langle v,Hx\\rangle\\bigr)=\\langle Hx,v\\rangle,\\qquad\\nabla f(x)=Hx.",
+          "lean": "HasFDerivAt.inner; HasFDerivAt.const_mul; LinearMap.IsSymmetric.apply_clm; hasGradientAt_iff_hasFDerivAt; HasGradientAt.gradient."
+        },
+        {
+          "title": "Identify every update and its iterates",
+          "text": "Substitute the computed gradient into T_h. The update is the continuous linear endomorphism I−hH. Reuse Mathlib’s identity equating endomorphism powers with function iteration; the zero-th power is the identity.",
+          "formula": "T_h=I-hH\\quad\\Longrightarrow\\quad T_h^N(x)=(I-hH)^Nx.",
+          "lean": "FunLike.coe_pow_eq_iterate; congrFun."
+        }
+      ],
+      "boundary": [
+        "The source assumes a positive-definite symmetric matrix on Euclidean space. These exact identities extend to bounded symmetric operators on complete real Hilbert spaces, including signed or zero operators and the zero-dimensional space.",
+        "Positivity and a stability condition on h are unnecessary for identities. The theorem does not assert convergence for arbitrary h or indefinite H. The quadratic is smooth by bounded bilinear calculus; symmetry, not a supplied gradient equality, gives its true gradient.",
+        "This is a bounded Exercise3.3 proof component. Assessment of every Section3 bound, spectral decomposition/existence, complexity lower bounds, accelerated methods and companion-paper completion remain outside its conclusions.",
+        "The formula covers every initial point, without choosing an eigenbasis. The source matrix-power notation is instantiated by a continuous linear map on Euclidean space."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasFDerivAt.inner",
+        "HasFDerivAt.const_mul",
+        "LinearMap.IsSymmetric.apply_clm",
+        "HasGradientAt.gradient",
+        "FunLike.coe_pow_eq_iterate"
+      ],
+      "lean_statement": "Actual quadratic and actual gradient iteration; symmetric continuous linear H on complete real Hilbert E, real h, natural N.",
+      "lean_proof": "The product rule for the inner product gives half the sum of two linear terms. Symmetry moves H between arguments, and real inner-product symmetry identifies both terms. This is the continuous linear functional represented by Hx, so uniqueness of the Riesz gradient yields ∇f(x)=Hx. Substitute the computed gradient into T_h. The update is the continuous linear endomorphism I−hH. Reuse Mathlib’s identity equating endomorphism powers with function iteration; the zero-th power is the identity.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Exercise3.3",
+          "scope": "ASTIS-authored derivation of exact quadratic iterations; remaining sharpness analysis stays separate."
+        },
+        {
+          "path": "Tests/Shared/QuadraticGradientDescent.lean",
+          "label": "Diagonal endpoint and unstable-step tests",
+          "scope": "Actual diagonal spectrum 1,3 at balanced step, and scalar unit quadratic at unstable step3; no standalone theorem credit."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_eigenmode",
+      "kind": "theorem",
+      "title": "Exact evolution of a quadratic eigenmode",
+      "statement": "The supplied eigenmode evolves by a scalar geometric factor, with the displayed exact norm and objective-value identities.",
+      "formula": "Hx=\\mu x,\\quad z=T_h^N(x):\\quad z=(1-h\\mu)^Nx,\\quad\\|z\\|=|1-h\\mu|^N\\|x\\|,\\quad f(z)=(1-h\\mu)^{2N}f(x).",
+      "assumptions": [
+        "E is a complete real inner-product space. H:E→E is a continuous linear operator symmetric in the sense ⟨Hx,y⟩=⟨x,Hy⟩ for every x,y.",
+        "Define the actual centered objective f(x)=⟨x,Hx⟩/2 and its actual gradient update T_h(x)=x−h∇f(x). h∈ℝ is constant across steps, N∈ℕ, and the initial point x∈E is arbitrary.",
+        "μ∈ℝ and Hx=μx is supplied for the initial point. x=0 is allowed as an algebraic mode relation; a genuine eigenvector requires x≠0."
+      ],
+      "steps": [
+        {
+          "title": "Transport the supplied mode to the update operator",
+          "text": "The given relation Hx=μx implies (I−hH)x=(1−hμ)x. If x=0, every power identity is immediate. Otherwise this is a genuine nonzero eigenvector of I−hH, so Mathlib’s eigenvector power theorem applies. No eigenvector is constructed.",
+          "formula": "(I-hH)x=(1-h\\mu)x\\quad\\Longrightarrow\\quad (I-hH)^Nx=(1-h\\mu)^Nx.",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_gradient_iterate; Module.End.mem_eigenspace_iff; Module.End.HasEigenvector.pow_apply; ContinuousLinearMap.toLinearMap_pow."
+        },
+        {
+          "title": "Read the exact norm and value",
+          "text": "Take norms of the scalar multiple and use homogeneity. The quadratic is homogeneous of degree two, so its value is multiplied by the square of the trajectory scalar. The absolute value is essential when the update changes sign.",
+          "formula": "\\|c x\\|=|c|\\|x\\|,\\qquad f(cx)=c^2f(x),\\qquad c=(1-h\\mu)^N.",
+          "lean": "norm_smul; Real.norm_eq_abs; map_smul; inner_smul_left; inner_smul_right; pow_mul."
+        }
+      ],
+      "boundary": [
+        "The source assumes a positive-definite symmetric matrix on Euclidean space. These exact identities extend to bounded symmetric operators on complete real Hilbert spaces, including signed or zero operators and the zero-dimensional space.",
+        "Positivity and a stability condition on h are unnecessary for identities. The theorem does not assert convergence for arbitrary h or indefinite H. The quadratic is smooth by bounded bilinear calculus; symmetry, not a supplied gradient equality, gives its true gradient.",
+        "This is a bounded Exercise3.3 proof component. Assessment of every Section3 bound, spectral decomposition/existence, complexity lower bounds, accelerated methods and companion-paper completion remain outside its conclusions.",
+        "To use this as a sharpness witness, supply a nonzero endpoint eigenvector and the appropriate positive curvature bounds. At h=2/(α+β), modes μ=α or μ=β give |1−hμ|=(β−α)/(α+β). The concrete diagonal-matrix tests realize both endpoints for α=1,β=3; this is not a general spectral existence theorem.",
+        "N=0 gives the initial point and value even when 1−hμ=0; the zero-th power is one. A zero mode vector yields zero throughout. For arbitrary Hilbert operators, neither endpoint eigenvectors nor a diagonalizing eigenbasis are asserted."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_gradient_iterate"
+      ],
+      "mathlib_dependencies": [
+        "Module.End.mem_eigenspace_iff",
+        "Module.End.HasEigenvector.pow_apply",
+        "ContinuousLinearMap.toLinearMap_pow",
+        "norm_smul",
+        "inner_smul_left",
+        "inner_smul_right",
+        "pow_mul"
+      ],
+      "lean_statement": "Actual quadratic and actual gradient iteration; symmetric continuous linear H on complete real Hilbert E, real h, natural N.",
+      "lean_proof": "The given relation Hx=μx implies (I−hH)x=(1−hμ)x. If x=0, every power identity is immediate. Otherwise this is a genuine nonzero eigenvector of I−hH, so Mathlib’s eigenvector power theorem applies. No eigenvector is constructed. Take norms of the scalar multiple and use homogeneity. The quadratic is homogeneous of degree two, so its value is multiplied by the square of the trajectory scalar. The absolute value is essential when the update changes sign.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Exercise3.3",
+          "scope": "ASTIS-authored derivation of exact quadratic iterations; remaining sharpness analysis stays separate."
+        },
+        {
+          "path": "Tests/Shared/QuadraticGradientDescent.lean",
+          "label": "Diagonal endpoint and unstable-step tests",
+          "scope": "Actual diagonal spectrum 1,3 at balanced step, and scalar unit quadratic at unstable step3; no standalone theorem credit."
+        }
+      ]
+    }
+  ]
+}

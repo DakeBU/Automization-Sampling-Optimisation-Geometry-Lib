@@ -1,0 +1,77 @@
+import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Tactic
+
+/-!
+# Exponential-kernel interpolation
+
+This module isolates the real-analysis step shared by semigroup entropy and
+gradient estimates.  A differentiable interpolation whose derivative is
+bounded by a backward exponential kernel admits the corresponding exact
+endpoint convolution bound.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities
+
+open Filter Set
+
+noncomputable section
+
+/-- Integrating a derivative bound with a backward exponential kernel gives
+the exact endpoint convolution factor.
+
+The quantities `source` and `energy` may have either sign: the theorem assumes
+the required derivative inequality directly.  Algebraically, a nonzero rate
+is enough for the proof; strict positivity records the intended decay regime. -/
+theorem endpoint_le_of_deriv_le_exponential_kernel
+    {H H' : ℝ → ℝ} {rate source t energy : ℝ}
+    (hrate : 0 < rate) (ht : 0 ≤ t)
+    (hH : ∀ s ∈ Icc (0 : ℝ) t, HasDerivAt H (H' s) s)
+    (hzero : H 0 = 0)
+    (hderiv : ∀ s ∈ Ioo (0 : ℝ) t,
+      H' s ≤ source * Real.exp (-rate * (t - s)) * energy) :
+    H t ≤ (source / rate) * (1 - Real.exp (-rate * t)) * energy := by
+  let B : ℝ → ℝ := fun s =>
+    (source / rate) *
+      (Real.exp (-rate * (t - s)) - Real.exp (-rate * t)) * energy
+  have hB : ∀ s : ℝ,
+      HasDerivAt B
+        (source * Real.exp (-rate * (t - s)) * energy) s := by
+    intro s
+    have hinner : HasDerivAt (fun u : ℝ => -rate * (t - u)) rate s := by
+      have hcoeff : -(-rate) = rate := by ring
+      simpa only [Pi.sub_apply, id_eq, zero_sub, mul_neg, mul_one, hcoeff] using
+        (((hasDerivAt_const s t).sub (hasDerivAt_id s)).const_mul (-rate))
+    have hexp := (Real.hasDerivAt_exp (-rate * (t - s))).comp s hinner
+    have hsub := hexp.sub_const (Real.exp (-rate * t))
+    have hmul := (hsub.const_mul (source / rate)).mul_const energy
+    convert hmul using 1 <;> try rfl
+    field_simp [ne_of_gt hrate]
+  have hmono : MonotoneOn (fun s => B s - H s) (Icc (0 : ℝ) t) := by
+    apply monotoneOn_of_deriv_nonneg (convex_Icc (0 : ℝ) t)
+    · exact continuousOn_of_forall_continuousAt fun s hs =>
+        ((hB s).sub (hH s hs)).continuousAt
+    · intro s hs
+      exact ((hB s).sub (hH s (interior_subset hs))).differentiableAt.differentiableWithinAt
+    · intro s hs
+      change 0 ≤ deriv (B - H) s
+      rw [((hB s).sub (hH s (interior_subset hs))).deriv]
+      exact sub_nonneg.mpr (hderiv s (by simpa only [interior_Icc] using hs))
+  have hend := hmono ⟨le_rfl, ht⟩ ⟨ht, le_rfl⟩ ht
+  dsimp [B] at hend
+  have hBzero :
+      (source / rate) *
+        (Real.exp (-rate * (t - 0)) - Real.exp (-rate * t)) * energy = 0 := by
+    ring_nf
+  rw [hBzero, hzero] at hend
+  have hBt :
+      (source / rate) *
+        (Real.exp (-rate * (t - t)) - Real.exp (-rate * t)) * energy =
+      (source / rate) * (1 - Real.exp (-rate * t)) * energy := by
+    rw [sub_self, mul_zero, Real.exp_zero]
+  rw [hBt] at hend
+  exact sub_nonneg.mp (by simpa only [sub_self] using hend)
+
+end
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities

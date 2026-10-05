@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher.information_quadratic_representative",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.QuadraticTiltFisher",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/QuadraticTiltFisher.lean",
+      "source_line": 40,
+      "short_name": "information_quadratic_representative",
+      "title": "The quadratic fiber score has exact relative Fisher energy",
+      "classification": "source proof-edge theorem",
+      "statement": "Let ν be the common measure used in the two quadratic normalizers and let μ be any probability law on a finite-dimensional Euclidean space. For η≠0 and centers y,y′, the μ-relative Fisher energy of this explicit normalized quadratic log-ratio representative is exactly η⁻²‖y−y′‖². In the source specialization, ν is the common Gibbs base and μ is its left restricted-Gaussian fiber.",
+      "formula": "\\mathcal I_{\\mu}(r_{y,y'})=\\int\\!\\|\\nabla r_{y,y'}(x)\\|^2\\,d\\mu(x)=\\eta^{-2}\\|y-y'\\|^2.",
+      "assumptions": [
+        "The common normalization measure ν and the probability integration law μ are separate parameters. In the source, μ is the left tilt of ν.",
+        "The integration law μ is a probability measure; this is what turns the integral of a constant into the same constant.",
+        "The state space is a finite-dimensional Euclidean space and η is nonzero. The paper's fiber variance satisfies η>0.",
+        "The argument evaluates the displayed smooth log-ratio representative. It does not differentiate Mathlib's canonical measurable llr representative."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Insert the exact score",
+          "text": "The preceding ASTIS theorem differentiates the displayed quadratic representative genuinely and gives a vector independent of x.",
+          "formula": "\\nabla r_{y,y'}(x)=\\eta^{-1}(y-y').",
+          "lean": "TiltedLogRatio.gradient_quadratic_representative"
+        },
+        {
+          "number": 2,
+          "title": "Expose the constant integrand",
+          "text": "Substituting the score in the definition of relative Fisher information leaves a spatially constant squared norm.",
+          "formula": "\\mathcal I_{\\mu}(r_{y,y'})=\\int\\!\\|\\eta^{-1}(y-y')\\|^2\\,d\\mu(x).",
+          "lean": "RelativeFisher.information; RelativeFisher.densityEnergy"
+        },
+        {
+          "number": 3,
+          "title": "Use probability mass one",
+          "text": "Because μ has total mass one, integrating this nonnegative constant does not introduce a mass factor.",
+          "formula": "\\int c\\,d\\mu=c\\,\\mu(\\mathbb R^d)=c.",
+          "lean": "IsProbabilityMeasure μ; MeasureTheory.integral_const"
+        },
+        {
+          "number": 4,
+          "title": "Pull the scalar out of the norm",
+          "text": "The norm of a real scalar multiple is its absolute value times the norm. Squaring removes the sign and gives the exact η⁻² coefficient.",
+          "formula": "\\|\\eta^{-1}(y-y')\\|^2=|\\eta^{-1}|^2\\|y-y'\\|^2=\\eta^{-2}\\|y-y'\\|^2.",
+          "lean": "norm_smul; Real.norm_eq_abs; mul_pow"
+        }
+      ],
+      "lean_statement": "The function supplied to RelativeFisher.information contains both ν-normalizers explicitly, while the Fisher integral is taken under the separate probability law μ. The normalizers disappear only through the previously proved genuine gradient theorem.",
+      "lean_proof": "The proof unfolds the ASTIS relative-Fisher definitions, rewrites every pointwise gradient with the compiled quadratic-score theorem, and lets Mathlib evaluate the constant integral under the probability instance and normalize the scalar norm square.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.RelativeFisher.information",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.gradient_quadratic_representative"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.IsProbabilityMeasure",
+        "MeasureTheory.integral_const",
+        "norm_smul",
+        "Real.norm_eq_abs"
+      ],
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2010.03106v4",
+          "label": "Lee–Shen–Tian, Lemma 2 proof and equation (11)",
+          "scope": "The line immediately before equation (11) evaluates the relative Fisher information after the exact score calculation."
+        },
+        {
+          "url": "https://arxiv.org/html/2609.06906v1",
+          "label": "Smoothed Picard HMC, Lemma 4.17",
+          "scope": "This exact Fisher value is one analytic input to the cited restricted-Gaussian W₂ contraction route."
+        }
+      ],
+      "boundary": [
+        "This theorem does not identify the Fisher information of an arbitrary canonical llr representative.",
+        "It does not prove a log-Sobolev inequality, Talagrand inequality, Wasserstein contraction, Markov-kernel contraction, or any SPHMC main theorem.",
+        "The left law is assumed to be a probability measure and is kept distinct from the common normalization base. Construction and normalization of the actual restricted-Gaussian fiber remain separate adapters."
+      ],
+      "tests": {
+        "file": "Tests/QuadraticTiltFisher.lean",
+        "scope": "The paper domain η>0 specializes the reusable η≠0 theorem and the axiom print guards the proof kernel."
+      },
+      "review": {
+        "status": "pass",
+        "reviewer": "independent source/proof reviewer",
+        "scope": "The repaired two-measure interface, exact coefficient, left probability specialization, explicit-representative boundary and absence of an LSI/T₂/W₂ conclusion were accepted."
+      }
+    }
+  ]
+}

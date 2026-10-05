@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "empirical-covariance-preconcentration",
+      "library": "log-concave-sampling",
+      "chapter": "01",
+      "chapter_path": "textbook/chapter-01.html",
+      "title": "Rank-one empirical covariance preprocessing and moment identities",
+      "source": {
+        "url": "https://arxiv.org/abs/1501.01571",
+        "edition": "Tropp, An Introduction to Matrix Concentration Inequalities, 2015",
+        "anchor": "matrix Bernstein setup and sample-covariance applications",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Samplinglib isolates the deterministic rank-one decomposition, bounded symmetric summand conditions, and the unit-vector covariance moment calculation used before applying a self-adjoint matrix concentration theorem."
+      },
+      "statement": "A bounded finite sample yields bounded symmetric centered rank-one summands. For an integrable unit-vector random variable with population second moment C, the population operator is self-adjoint with norm at most one, the centered operator second moment is exactly C-C², and its norm is at most 2‖C‖.",
+      "assumptions": [
+        "A real inner-product space and a nonempty finite sample index.",
+        "A nonnegative radius B bounding every sample vector.",
+        "A symmetric population continuous linear operator with norm at most B².",
+        "For the expectation-level result: a complete real inner-product space, a probability measure, an everywhere unit-norm random vector, Bochner integrability of its rank-one operator, and an explicit identity identifying its expectation with C."
+      ],
+      "formulae": [
+        {
+          "label": "empirical second moment",
+          "tex": "\\widehat\\Sigma=|I|^{-1}\\sum_i x_i\\otimes x_i"
+        },
+        {
+          "label": "centered decomposition and summand bound",
+          "tex": "\\widehat\\Sigma-\\Sigma=|I|^{-1}\\sum_i(x_i\\otimes x_i-\\Sigma),\\qquad\\|x_i\\otimes x_i-\\Sigma\\|\\le2B^2"
+        },
+        {
+          "label": "unit-vector covariance moment package",
+          "tex": "C=\\mathbb E[X\\otimes X],\\quad C^*=C,\\quad \\|C\\|\\le1,\\quad \\mathbb E[(X\\otimes X-C)^2]=C-C^2,\\quad \\|C-C^2\\|\\le2\\|C\\|"
+        }
+      ],
+      "obligations": [
+        {
+          "id": "empirical-second-moment-definition",
+          "label": "Define the normalized finite-sample rank-one operator average"
+        },
+        {
+          "id": "rank-one-operator-norm",
+          "label": "Identify the exact operator norm of a self outer product"
+        },
+        {
+          "id": "empirical-covariance-centered-summands",
+          "label": "Prove the exact centered decomposition, summand symmetry, and 2B² bound"
+        },
+        {
+          "id": "unit-rank-one-covariance-moments",
+          "label": "Derive self-adjointness, contraction, exact centered second moment, and its norm bound from a unit-vector rank-one expectation"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment",
+          "cell": "ASTIS-SHARED-empirical-second-moment",
+          "role": "prerequisite",
+          "supports": [
+            "empirical-second-moment-definition"
+          ],
+          "audit_id": "ASTIS-RT-20261003-empirical-second-moment",
+          "boundary": "Definition only; no probability law, centering convention, independence, or concentration is asserted.",
+          "assumption_deltas": [
+            {
+              "source": "Sample-covariance arguments average rank-one outer products.",
+              "lean": "Samplinglib defines the finite-type normalized second-moment operator with an explicit empty-sample inverse-cardinality convention.",
+              "classification": "API-limitation",
+              "reason": "The downstream theorem assumes a nonempty index; the total definition remains meaningful on every finite type."
+            }
+          ]
+        },
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq",
+          "cell": "ASTIS-SHARED-rank-one-self-norm",
+          "role": "prerequisite",
+          "supports": [
+            "rank-one-operator-norm"
+          ],
+          "audit_id": "ASTIS-RT-20261003-rank-one-self-norm",
+          "boundary": "Deterministic operator norm identity only; no random-matrix statement is inferred.",
+          "assumption_deltas": [
+            {
+              "source": "A self outer product has operator norm ‖x‖².",
+              "lean": "The theorem proves the same identity for Mathlib's continuous rank-one operator on an arbitrary real inner-product space.",
+              "classification": "same",
+              "reason": "The domains and constant are unchanged."
+            }
+          ]
+        },
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+          "cell": "ASTIS-SHARED-empirical-covariance-preconcentration",
+          "role": "prerequisite",
+          "supports": [
+            "empirical-covariance-centered-summands"
+          ],
+          "audit_id": "ASTIS-RT-20261003-empirical-covariance-preconcentration",
+          "boundary": "No independence, expectation identity, matrix variance proxy, noncommutative concentration theorem, probability tail, or sample-complexity conclusion is asserted.",
+          "assumption_deltas": [
+            {
+              "source": "Matrix Bernstein applications first express the empirical error as a sum of centered self-adjoint random matrices and bound each summand.",
+              "lean": "The theorem assumes a nonempty finite deterministic sample, symmetry and norm control of the supplied population operator, and proves exactly the decomposition, symmetry, and 2B² summand bound.",
+              "classification": "same",
+              "reason": "The probabilistic concentration step is deliberately outside this deterministic prerequisite."
+            }
+          ]
+        },
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.unitRankOneCovariance_momentPackage",
+          "cell": "ASTIS-SHARED-unit-rank-one-covariance-moments",
+          "role": "prerequisite",
+          "supports": [
+            "unit-rank-one-covariance-moments"
+          ],
+          "audit_id": "ASTIS-RT-20261004-unit-rank-one-covariance-moments",
+          "boundary": "No independence across samples, noncommutative moment-generating-function argument, matrix Bernstein theorem, probability tail, dimension factor, or sample-complexity conclusion is asserted.",
+          "assumption_deltas": [
+            {
+              "source": "For a unit-vector random variable X with C=E[X⊗X], matrix Bernstein variance calculations use E[(X⊗X-C)²]=C-C² together with self-adjointness and operator-norm control.",
+              "lean": "The theorem assumes a complete real inner-product space, a probability measure, pointwise unit norm, Bochner integrability of X⊗X, and the explicit Bochner expectation identity defining C; it proves the four operator conclusions as one conjunction.",
+              "classification": "same",
+              "reason": "Completeness and Bochner integrability make the operator-valued expectation literal in Mathlib. The theorem neither adds a concentration premise nor concludes a tail bound."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

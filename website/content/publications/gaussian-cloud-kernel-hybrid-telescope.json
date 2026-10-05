@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "gaussian-cloud-kernel-hybrid-telescope",
+      "library": "samplewiki-route",
+      "chapter": "gaussian-cloud-06",
+      "chapter_path": "example-cases/samplewiki/companions/gaussian-cloud-picard-hmc.html",
+      "title": "Adaptive conditional-kernel hybrid telescope",
+      "source": {
+        "url": "https://arxiv.org/html/2609.38710v1#S6.SS1",
+        "edition": "arXiv:2609.38710v1",
+        "anchor": "Section 6.1, Lemma 6.3 and its adjacent-hybrid proof",
+        "wording_status": "faithful paraphrase",
+        "attribution": "The adaptive sampler and Lemma 6.3 are due to Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. The explicit measurable-kernel decomposition is ASTIS's rigorous supporting expansion; no author endorsement is implied."
+      },
+      "statement": "For a capped adaptive algorithm represented on a common dummy-filled history space, replacing one conditional kernel at a time changes the final output law by at most the ideal-history expectation of that call's conditional total-variation error. Summing adjacent hybrids gives the total capped implementation error; a separate capped-versus-uncapped comparison contributes epsilon_cap exactly once.",
+      "assumptions": [
+        "All capped histories and conditional transitions are measurable and use genuine Markov probability kernels.",
+        "The ideal and implemented algorithms share a deterministic call cap and dummy continuation convention.",
+        "Each local conditional event discrepancy is bounded by an integrable history-dependent budget under the ideal pre-call history law.",
+        "The capped ideal output is compared separately with the uncapped ideal algorithm."
+      ],
+      "formulae": [
+        {"label": "one replaced call", "tex": "\\operatorname{TV}(P_t,P_{t-1})\\le\\mathbb E[\\varepsilon_t(H_{t-1})]"},
+        {"label": "finite capped telescope", "tex": "\\operatorname{TV}(P_{T_{\\max}},P_0)\\le\\sum_{t=1}^{T_{\\max}}\\delta_t"},
+        {"label": "source target after cap comparison", "tex": "\\operatorname{TV}(\\widehat P,P)\\le\\sum_t\\delta_t+\\varepsilon_{\\mathrm{cap}}"}
+      ],
+      "obligations": [
+        {"id": "mean-one-call-error", "label": "Average an almost-everywhere conditional event bound under the ideal history law"},
+        {"id": "common-adaptive-suffix", "label": "Apply the same downstream Markov continuation after one replaced call"},
+        {"id": "finite-adjacent-telescope", "label": "Sum adjacent hybrid event discrepancies over the deterministic cap"},
+        {"id": "dummy-history-adapter", "label": "Construct measurable dummy-filled histories and identify the paper's delta_t"},
+        {"id": "cap-comparison", "label": "Compare capped and uncapped ideal outputs and add epsilon_cap once"}
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+          "cell": "ASTIS-SW-GC-mean-kernel-error",
+          "role": "proof-edge",
+          "supports": ["mean-one-call-error"],
+          "audit_id": "ASTIS-RT-20261003-GCMeanKernelError",
+          "boundary": "Mean eventwise conditional error only; no history construction, TV-supremum measurability, dummy continuation or cap comparison.",
+          "assumption_deltas": [
+            {"source": "The paper writes delta_t as expected conditional TV under the ideal history.", "lean": "An explicit integrable real budget epsilon dominates every measurable-event discrepancy almost everywhere under an arbitrary probability input law.", "classification": "source-implicit", "reason": "The explicit budget and integrability witness make the source averaging step mathematically defined without requiring measurability of a supremum representation of TV."}
+          ]
+        },
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound",
+          "cell": "ASTIS-SW-GC-adaptive-kernel-tv-telescope",
+          "role": "proof-edge",
+          "supports": ["common-adaptive-suffix"],
+          "audit_id": "ASTIS-RT-20261003-GCCommonKernelSuffix",
+          "boundary": "Common Markov suffix only; proving that the paper's later adaptive calls define this suffix is still open.",
+          "assumption_deltas": [
+            {"source": "The source says subsequent calls are shared by adjacent hybrids.", "lean": "A single explicit Markov kernel S represents all later computation on both sides.", "classification": "source-implicit", "reason": "Encoding the retained history in the state is necessary for the informal shared-continuation statement to be a valid data-processing application."}
+          ]
+        },
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent",
+          "cell": "ASTIS-SW-GC-finite-hybrid-sum",
+          "role": "proof-edge",
+          "supports": ["finite-adjacent-telescope"],
+          "audit_id": "ASTIS-RT-20261003-GCFiniteHybridSum",
+          "boundary": "Finite real triangle telescope only; dummy histories, conditional kernel bounds and epsilon_cap remain separate.",
+          "assumption_deltas": [
+            {"source": "The source telescopes a finite family of capped hybrid output laws.", "lean": "An arbitrary real sequence with adjacent absolute-difference bounds is telescoped over Finset.range n.", "classification": "generalization", "reason": "The probability-law application is a direct specialization for one measurable output event."}
+          ]
+        }
+      ]
+    }
+  ]
+}

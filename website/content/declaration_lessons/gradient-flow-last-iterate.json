@@ -1,0 +1,81 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowLastIterate.lyapunov_and_rates",
+      "kind": "theorem",
+      "title": "A convex gradient flow has last-time gradient and value bounds",
+      "statement": "Let E be a complete real inner-product space, f:E→R be C2 and convex on E, z a supplied global minimizer, and T>=0. Supply X:R→E continuous on [0,T] with actual right derivative -gradient f(X(t)) for all t in [0,T). The following Lyapunov is antitone on [0,T]. At every 0<t<=T it gives both displayed last-time upper bounds.",
+      "formula": "\\begin{gathered}L(t)=t^2\\|\\nabla f(X(t))\\|^2+2t(f(X(t))-f(z))+\\|X(t)-z\\|^2,\\\\L(b)\\le L(a)\\quad(0\\le a\\le b\\le T),\\\\\\|\\nabla f(X(t))\\|^2\\le\\frac{\\|X(0)-z\\|^2}{t^2},\\qquad f(X(t))-f(z)\\le\\frac{\\|X(0)-z\\|^2}{4t}\\quad(0<t\\le T).\\end{gathered}",
+      "assumptions": [
+        "Complete real inner-product space E; f is C2 (ContDiff R 2 f) and ConvexOn R univ f.",
+        "A supplied z is a global minimizer; T>=0.",
+        "X is continuous on [0,T]; at every t in [0,T), HasDerivWithinAt X (-gradient f(X(t))) (Ici t) t. Normalized bounds use 0<t<=T."
+      ],
+      "steps": [
+        {
+          "title": "Recover the genuine Hessian sign from convexity",
+          "text": "The existing first-order convexity theorem gives gradient monotonicity. The compiled gradient-Hessian equivalence turns it into nonnegativity of the true second Frechet derivative on every diagonal direction. Compose the derivative of Df with the inverse Riesz map to obtain the actual derivative H(x) of gradient f. Then inner(H(x)v,v)>=0. No Hessian sign or independent gradient field is supplied.",
+          "formula": "\\langle H(x)v,v\\rangle=D^2f(x)[v,v]\\ge0,\\qquad D(\\nabla f)(x)=H(x).",
+          "lean": "StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn, ConvexityC2.gradient_mono_iff_fderiv2_lower and toDual_symm_apply."
+        },
+        {
+          "title": "Differentiate the three Lyapunov terms",
+          "text": "Write g(t)=gradient f(X(t)), e(t)=f(X(t))-f(z), r(t)=norm(X(t)-z) squared. The actual right gradient ODE gives the three identities below. They are derived by chain and product rules, including differentiation of the actual gradient via H.",
+          "formula": "(\\|g\\|^2)^{\\prime+}=-2\\langle H(X)g,g\\rangle,\\qquad e^{\\prime+}=-\\|g\\|^2,\\qquad r^{\\prime+}=-2\\langle g,X-z\\rangle.",
+          "lean": "HasFDerivAt.comp_hasDerivWithinAt, HasDerivWithinAt.norm_sq and product rules."
+        },
+        {
+          "title": "Cancel the gradient-square terms",
+          "text": "Differentiate L(t)=t squared norm(g) squared+2t e+r. The two opposite 2t norm(g) squared terms cancel. The Hessian term is nonpositive; first-order support gives e<=inner(g,X-z). Therefore the actual right derivative of L is nonpositive. Scalar K0, zero-forcing Gronwall on every subinterval [a,b] proves L(b)<=L(a).",
+          "formula": "L^{\\prime+}(t)=-2t^2\\langle H(X(t))g(t),g(t)\\rangle+2e(t)-2\\langle g(t),X(t)-z\\rangle\\le0.",
+          "lean": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; le_gronwallBound_of_liminf_deriv_right_le and gronwallBound_K0."
+        },
+        {
+          "title": "Extract the last-time gradient bound",
+          "text": "For positive t, global minimality makes e(t) nonnegative, and r(t) is a squared norm. Drop these two nonnegative terms from L(t)<=L(0). Divide by t squared, which is strictly positive.",
+          "formula": "t^2\\|g(t)\\|^2\\le L(t)\\le L(0)=\\|X(0)-z\\|^2,\\qquad \\|g(t)\\|^2\\le\\frac{\\|X(0)-z\\|^2}{t^2}.",
+          "lean": "IsMinOn, sq_nonneg and le_div_iff₀."
+        },
+        {
+          "title": "Extract the improved objective bound",
+          "text": "First-order support and Cauchy-Schwarz bound e by norm(g) norm(X-z). Young inequality, obtained by squaring t norm(g)-norm(X-z), then gives 2t e<=t squared norm(g) squared+r. Hence 4t e<=L(t)<=L(0). Division by 4t yields the exact improved upper coefficient.",
+          "formula": "2t e(t)\\le t^2\\|g(t)\\|^2+r(t),\\qquad 4t e(t)\\le L(t)\\le\\|X(0)-z\\|^2,\\qquad e(t)\\le\\frac{\\|X(0)-z\\|^2}{4t}.",
+          "lean": "real_inner_le_norm, sq_nonneg, mul_le_mul_of_nonneg_left and le_div_iff₀."
+        }
+      ],
+      "boundary": [
+        "The Lyapunov is antitone on the closed interval [0,T], including T=0. Both normalized rates are asserted only for 0<t<=T; no finite t0 quotient is assigned.",
+        "The source C2 Euclidean objective is generalized to a C2 objective on a complete real Hilbert space. Convexity and an attained global minimizer are retained. A continuous actual trajectory and its right ODE only on [0,T) are supplied; no final-endpoint or negative-time derivative is needed.",
+        "The later max-function sharpness witness in Exercise2.1 is not globally C2 and is not proved here. Neither existence of a flow/minimizer, the positive-curvature Exercise2.2 rates, discrete-time convergence nor a stochastic transport follows from this declaration."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexityC2.gradient_mono_iff_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.fderiv_right",
+        "InnerProductSpace.toDual_symm_apply",
+        "HasFDerivAt.comp_hasDerivWithinAt",
+        "HasDerivWithinAt.norm_sq",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_K0",
+        "real_inner_le_norm"
+      ],
+      "lean_statement": "Closed-interval Lyapunov antitonicity and both positive-time bounds.",
+      "lean_proof": "The existing first-order convexity theorem gives gradient monotonicity. The compiled gradient-Hessian equivalence turns it into nonnegativity of the true second Frechet derivative on every diagonal direction. Compose the derivative of Df with the inverse Riesz map to obtain the actual derivative H(x) of gradient f. Then inner(H(x)v,v)>=0. No Hessian sign or independent gradient field is supplied. Write g(t)=gradient f(X(t)), e(t)=f(X(t))-f(z), r(t)=norm(X(t)-z) squared. The actual right gradient ODE gives the three identities below. They are derived by chain and product rules, including differentiation of the actual gradient via H. Differentiate L(t)=t squared norm(g) squared+2t e+r. The two opposite 2t norm(g) squared terms cancel. The Hessian term is nonpositive; first-order support gives e<=inner(g,X-z). Therefore the actual right derivative of L is nonpositive. Scalar K0, zero-forcing Gronwall on every subinterval [a,b] proves L(b)<=L(a). For positive t, global minimality makes e(t) nonnegative, and r(t) is a squared norm. Drop these two nonnegative terms from L(t)<=L(0). Divide by t squared, which is strictly positive. First-order support and Cauchy-Schwarz bound e by norm(g) norm(X-z). Young inequality, obtained by squaring t norm(g)-norm(X-z), then gives 2t e<=t squared norm(g) squared+r. Hence 4t e<=L(t)<=L(0). Division by 4t yields the exact improved upper coefficient.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Exercise2.1",
+          "scope": "Lyapunov and two upper-bound conclusions, excluding the later nonsmooth sharpness example."
+        },
+        {
+          "path": "Tests/Shared/GradientFlowLastIterate.lean",
+          "label": "Actual quadratic flow",
+          "scope": "Nonstationary exp(-t) trajectory invokes all three conclusions at arbitrary nonnegative horizon."
+        }
+      ]
+    }
+  ]
+}

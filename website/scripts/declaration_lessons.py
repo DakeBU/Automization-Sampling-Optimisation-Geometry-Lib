@@ -127,11 +127,16 @@ def validate_projection(projection: dict, known: dict) -> None:
         raise ValueError(f'Missing projection explanation: {parent}.{field}')
 
 
-def render_unit(unit: dict, page: str) -> str:
+def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
     name = unit['declaration']
     declaration = inline_lean.declarations()[name]
     is_proof = declaration.kind in {'lemma', 'theorem', 'instance'}
     proof_title = 'Mathematical proof' if is_proof else 'Construction and meaning'
+    roadmap = ''.join(
+        f'<li><span>{i}</span><strong>{base.esc(s["title"])}</strong>'
+        f'<p>{inline_text(s["text"])}</p></li>'
+        for i, s in enumerate(unit['steps'], 1)
+    )
     steps = ''.join(
         f'<div class="proof-reader-step"><h4>{i}. {base.esc(s["title"])}</h4>'
         f'<p>{inline_text(s["text"])}</p><div class="proof-reader-equation">\\[{base.esc(s["formula"])}\\]</div>'
@@ -148,7 +153,7 @@ def render_unit(unit: dict, page: str) -> str:
         f'<li><a href="{base.relative_prefix(page)}{base.declaration_path(inline_lean.declarations()[p["structure"]])}"><code>{base.esc(p["structure"] + "." + p["field"])}</code></a> — {base.esc(p["role"])}</li>'
         for p in unit.get('astis_projection_dependencies', [])
     )
-    external = base.list_html(unit.get('mathlib_dependencies', []), empty='No direct Mathlib call recorded; see the ASTIS parents.')
+    external = base.list_html(unit.get('mathlib_dependencies', []), empty='No direct Mathlib call recorded; see the Samplinglib parents.')
     sources = ''.join(f'<li><a href="{base.esc(source_link(s, page))}">{base.esc(s["label"])}</a> — {base.esc(s["scope"])}</li>' for s in unit.get('sources', []))
     notation = ''.join(f'<dt>{inline_text(n["symbol"])}</dt><dd><p>{inline_text(n["text"])}</p><div class="proof-reader-equation">\\[{base.esc(n["formula"])}\\]</div></dd>' for n in unit.get('notation', []))
     test = unit.get('tests', {})
@@ -165,20 +170,32 @@ def render_unit(unit: dict, page: str) -> str:
         boundary = [boundary]
     return (
         f'<article class="proof-reader" data-authored-declaration="{base.esc(name)}">'
-        '<div class="eyebrow">ASTIS mathematical exposition</div>'
+        '<div class="eyebrow">Samplinglib mathematical lesson</div>'
         f'<h1>{base.esc(unit["title"])}</h1>'
         f'<p><code>{base.esc(name)}</code> · {base.esc(declaration.kind)} · <a href="index.html">Teaching coverage</a></p>'
-        f'<h2>Statement</h2><p>{base.esc(unit["statement"])}</p>'
-        f'<div class="proof-reader-equation">\\[{base.esc(unit["formula"])}\\]</div>'
+        '<section class="reader-first-pass" aria-label="First reading">'
+        '<div class="reader-first-pass-label">Read this first</div>'
+        f'<h2>Mathematical statement</h2><p class="reader-claim">{base.esc(unit["statement"])}</p>'
+        f'<div class="proof-reader-equation reader-main-equation">\\[{base.esc(unit["formula"])}\\]</div>'
+        '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol></section>'
+        '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
         '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
-        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'], page=page)
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
-        + base.list_html(unit.get('conventions', []), empty='')
+        + base.list_html(unit.get('conventions', []), empty='') + '</details>'
         + f'<h2>{proof_title}</h2>' + steps
-        + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page, helpers=tuple(unit.get('helpers', [])))
+        + '<section class="lean-verification"><h2>Lean verification</h2>'
+        '<p>The exact proposition and proof begin folded so the mathematical argument remains the primary reading path.</p>'
+        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
+                                 page=page, trim_following_docstring=True)
+        + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
+                                 helpers=tuple(unit.get('helpers', [])),
+                                 trim_following_docstring=True)
+        + '</section>'
         + examples
-        + '<h2>Scope and omitted-condition boundaries</h2>' + base.list_html(boundary)
-        + '<details><summary>Source and reuse</summary><h3>ASTIS parents called</h3><ul>' + astis
+        + source_comparison
+        + '<details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary>'
+        + base.list_html(boundary) + '</details>'
+        + '<details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul>' + astis
         + '</ul>'
         + ('<h3>Domain assumptions accessed</h3><p>These are fields of the linked structure, not additional independently authored theorem leaves.</p><ul>' + projections + '</ul>' if projections else '')
         + '<h3>Mathlib API called (external library)</h3>' + external
@@ -187,7 +204,7 @@ def render_unit(unit: dict, page: str) -> str:
         + '<h3>Mathematical sources</h3><ul>' + sources
         + '</ul>'
         + (f'<p>{base.esc(unit["source_history_boundary"])}</p>' if unit.get('source_history_boundary') else '')
-        + '<p>ASTIS prose is not a quotation or a source-equivalence certificate. '
+        + '<p>Samplinglib prose is not a quotation or a source-equivalence certificate. '
         'Definitions and aliases are explained as constructions, not counted as new mathematical proofs.</p></details>'
         + '</article>'
     )
@@ -214,6 +231,11 @@ def coverage(data: dict, units: list[dict], data_lessons: dict | None = None) ->
     return rows
 
 
+def declaration_kind_matches(authored: str, lean: str) -> bool:
+    """Accept the prose spelling of `def`, never a proof-kind promotion."""
+    return {'definition': 'def'}.get(authored, authored) == lean
+
+
 def enrich_site(output: Path) -> None:
     units = load_units()
     export_sources(output, units)
@@ -222,7 +244,7 @@ def enrich_site(output: Path) -> None:
         for name in [unit['declaration'], *unit.get('astis_dependencies', []), *unit.get('helpers', [])]:
             if name not in known:
                 raise ValueError(f'Unknown lesson dependency: {name}')
-        if unit['kind'] != known[unit['declaration']].kind:
+        if not declaration_kind_matches(unit['kind'], known[unit['declaration']].kind):
             raise ValueError(f'{unit["declaration"]}: Lean declaration kind drift')
         for projection in unit.get('astis_projection_dependencies', []):
             validate_projection(projection, known)

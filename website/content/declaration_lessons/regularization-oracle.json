@@ -1,0 +1,111 @@
+{
+  "units": [
+    {
+      "boundary": [
+        "The interpreter counts exact oracle interactions; local arithmetic and control inspection are free. It is a mathematical semantics on exact replies, not executable real arithmetic, finite precision or machine runtime.",
+        "This is a finite deterministic simulation component. Equality holds for every fixed program and initial state, including adaptive queries and early stopping. It does not prove that a program chosen using f is information-restricted. Class-uniform work must quantify a single program/initialization before f and prove its halting accuracy and budget over the whole class.",
+        "Halting after the last allowed reply is detected with no extra query. A halted output is some x; none means fuel exhaustion and carries no successful-output claim. No randomized/unbounded-machine equivalence, minimizer existence or full Lemma4.2 complexity reduction is asserted."
+      ],
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S1.SS1",
+          "label": "Chewi Section1.1 oracle interactions",
+          "scope": "Exact first-order replies and cost model; class-uniformity remains an additional obligation."
+        },
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 quadratic reduction",
+          "scope": "Explicit realization of its regularized oracle using one original reply."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+      "kind": "def",
+      "title": "A deterministic interpreter that counts oracle queries",
+      "statement": "S,Q,A,X are arbitrary types of state, query, reply and output. A fixed deterministic policy next:S→X⊕Q either halts (left) or asks a query (right). An update:S→Q→A→S and oracle:Q→A are given. Fuel n is a natural query allowance and s is any initial state. There are no analytic assumptions. The following recursion defines its final state, optional successful output and actual interaction counter.",
+      "formula": "R_n(s)\\in(S\\times\\mathrm{Option}(X))\\times\\mathbb N.",
+      "assumptions": [
+        "S,Q,A,X are arbitrary types of state, query, reply and output. A fixed deterministic policy next:S→X⊕Q either halts (left) or asks a query (right).",
+        "An update:S→Q→A→S and oracle:Q→A are given. Fuel n is a natural query allowance and s is any initial state. There are no analytic assumptions."
+      ],
+      "steps": [
+        {
+          "title": "Inspect control before spending query fuel",
+          "text": "If next(s) halts with x, return the current state, some x, and zero queries, even when n=0. If it asks q with n=0, return state s, none, and zero queries.",
+          "formula": "R_0(s)=\\begin{cases}((s,\\mathrm{some}(x)),0)&\\mathrm{next}(s)=\\mathrm{halt}(x),\\\\((s,\\mathrm{none}),0)&\\mathrm{next}(s)=\\mathrm{query}(q).\\end{cases}",
+          "lean": "Outer match on next s; zero-fuel branch."
+        },
+        {
+          "title": "Consume exactly one oracle interaction",
+          "text": "For a query q with positive fuel, obtain the single answer a=O(q), update to s′, and recurse with one fewer query. Preserve the final state and halt/exhaustion outcome; increment only the returned counter.",
+          "formula": "a=O(q),\\quad s^\\prime=\\mathrm{update}(s,q,a),\\quad R_{n+1}(s)=(p,c+1)\\ \\text{if }R_n(s^\\prime)=(p,c).",
+          "lean": "Structural recursion on natural query fuel; let-bound answer and tail."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Nat.rec"
+      ],
+      "lean_statement": "Generic fuel-bounded state/output/query-count recursion.",
+      "lean_proof": "If next(s) halts with x, return the current state, some x, and zero queries, even when n=0. If it asks q with n=0, return state s, none, and zero queries. For a query q with positive fuel, obtain the single answer a=O(q), update to s′, and recurse with one fewer query. Preserve the final state and halt/exhaustion outcome; increment only the returned counter."
+    },
+    {
+      "boundary": [
+        "The interpreter counts exact oracle interactions; local arithmetic and control inspection are free. It is a mathematical semantics on exact replies, not executable real arithmetic, finite precision or machine runtime.",
+        "This is a finite deterministic simulation component. Equality holds for every fixed program and initial state, including adaptive queries and early stopping. It does not prove that a program chosen using f is information-restricted. Class-uniform work must quantify a single program/initialization before f and prove its halting accuracy and budget over the whole class.",
+        "Halting after the last allowed reply is detected with no extra query. A halted output is some x; none means fuel exhaustion and carries no successful-output claim. No randomized/unbounded-machine equivalence, minimizer existence or full Lemma4.2 complexity reduction is asserted."
+      ],
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S1.SS1",
+          "label": "Chewi Section1.1 oracle interactions",
+          "scope": "Exact first-order replies and cost model; class-uniformity remains an additional obligation."
+        },
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 quadratic reduction",
+          "scope": "Explicit realization of its regularized oracle using one original reply."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+      "kind": "theorem",
+      "title": "Simulate the regularized first-order oracle with no extra queries",
+      "statement": "E is a complete real inner-product space. The objective f:E→R is everywhere differentiable and convex, with genuine beta-Lipschitz gradient; beta,delta are nonnegative (including zero), and u:E is arbitrary. S and X are arbitrary state and output types. Fix next:S→X⊕E and update:S→E→(R×E)→S. Quantify every query allowance n:N and initial state s:S. Set W(x)=f(x)+delta||x-u||²/2, O_f(x)=(f(x),gradient f(x)), and O_W(x)=(W(x),gradient W(x)). Correct a reply a using the known x,u,delta before applying the same update. The corrected original run equals the true regularized run in final state, halt/exhaustion outcome and actual count; that count is at most n.",
+      "formula": "\\begin{gathered}O_f(x)=(f(x),\\nabla f(x)),\\qquad W(x)=f(x)+\\frac\\delta2\\|x-u\\|^2,\\\\T_x(v,g)=(v+\\frac\\delta2\\|x-u\\|^2,g+\\delta(x-u)),\\\\R_n^{\\mathrm{update}\\circ T,O_f}(s)=R_n^{\\mathrm{update},O_W}(s),\\qquad c_n\\le n.\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space. The objective f:E→R is everywhere differentiable and convex, with genuine beta-Lipschitz gradient; beta,delta are nonnegative (including zero), and u:E is arbitrary.",
+        "S and X are arbitrary state and output types. Fix next:S→X⊕E and update:S→E→(R×E)→S. Quantify every query allowance n:N and initial state s:S.",
+        "Set W(x)=f(x)+delta||x-u||²/2, O_f(x)=(f(x),gradient f(x)), and O_W(x)=(W(x),gradient W(x)). Correct a reply a using the known x,u,delta before applying the same update."
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual regularized reply",
+          "text": "The compiled first-order regularization theorem computes the genuine gradient of W. Its value is W by definition. Therefore adding the known quadratic value and gradient correction to one O_f reply produces exactly O_W(x). Convexity and gradient Lipschitzness are inherited source-class premises of the reused parent; no Hessian or second derivative is needed.",
+          "formula": "T_x(v,g)=\\left(v+\\frac\\delta2\\|x-u\\|^2,\\ g+\\delta(x-u)\\right),\\qquad T_x(O_f(x))=O_W(x).",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness (third conjunct)."
+        },
+        {
+          "title": "Follow the same adaptive control path",
+          "text": "Induct on query allowance, for every state. Both runs inspect the same next(s). A halt or zero-fuel exhaustion returns the same result without querying. In the positive-fuel query branch, corrected and true replies update to exactly the same state. Apply the induction hypothesis there; this handles reply-dependent future queries and stopping.",
+          "formula": "R^{\\mathrm{update}\\circ T,O_f}_n(s)=R^{\\mathrm{update},O_W}_n(s).",
+          "lean": "Natural induction generalizing s; cases on next s; rewrite actual gradient identity; congrArg on recursive pair."
+        },
+        {
+          "title": "Preserve and bound the interaction counter",
+          "text": "In the only querying branch both interpreters make one interaction and add one to the equal recursive counters. The inductive bound c≤n gives c+1≤n+1. Halt/exhaustion branches have zero cost. No externally supplied cost label or objective minimizer enters the execution.",
+          "formula": "c_{\\rm base}=c_{\\rm target}\\le n.",
+          "lean": "Nat.succ_le_succ; run query branch."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness"
+      ],
+      "mathlib_dependencies": [
+        "Nat.succ_le_succ",
+        "congrArg"
+      ],
+      "lean_statement": "Full execution equality and actual query counter bounded by fuel.",
+      "lean_proof": "The compiled first-order regularization theorem computes the genuine gradient of W. Its value is W by definition. Therefore adding the known quadratic value and gradient correction to one O_f reply produces exactly O_W(x). Convexity and gradient Lipschitzness are inherited source-class premises of the reused parent; no Hessian or second derivative is needed. Induct on query allowance, for every state. Both runs inspect the same next(s). A halt or zero-fuel exhaustion returns the same result without querying. In the positive-fuel query branch, corrected and true replies update to exactly the same state. Apply the induction hypothesis there; this handles reply-dependent future queries and stopping. In the only querying branch both interpreters make one interaction and add one to the equal recursive counters. The inductive bound c≤n gives c+1≤n+1. Halt/exhaustion branches have zero cost. No externally supplied cost label or objective minimizer enters the execution."
+    }
+  ]
+}

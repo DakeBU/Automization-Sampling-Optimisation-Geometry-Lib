@@ -1,0 +1,73 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexPLPullback.exists_minimizer_and_pl",
+      "kind": "theorem",
+      "title": "A nonlinear parametrization preserves a numerical PL bound",
+      "statement": "Let E and F be complete real inner-product spaces, f:F→R and g:E→F be everywhere Frechet differentiable, alpha>0 and sigma>=0. Assume f is globally alpha-strongly convex, z is its global minimizer, g is surjective, and the derivative satisfies the following quadratic-form bound at every x and every v in F. Then there is a minimizing preimage xstar and the actual composite gradient satisfies the stated numerical PL inequality.",
+      "formula": "\\begin{gathered}A_x=Dg(x),\\qquad\\langle v,A_xA_x^*v\\rangle\\ge\\sigma\\|v\\|^2\\quad(\\forall x\\in E,\\ v\\in F),\\\\\\exists x_\\star\\in E:\\quad g(x_\\star)=z,\\quad x_\\star\\in\\arg\\min(f\\circ g),\\\\2\\alpha\\sigma\\big((f\\circ g)(x)-(f\\circ g)(x_\\star)\\big)\\le\\|\\nabla(f\\circ g)(x)\\|^2\\quad(\\forall x\\in E).\\end{gathered}",
+      "assumptions": [
+        "E,F are real complete inner-product spaces. f:F→R and g:E→F are Frechet differentiable at every point; continuity of their derivatives is not assumed.",
+        "Alpha>0 and sigma>=0 are real constants. StrongConvexOn univ alpha f supplies the global strong convexity inequality.",
+        "A supplied z:F satisfies f(z)<=f(y) for all y:F. The map g is surjective.",
+        "For every x:E and v:F, sigma||v||²<=<v,Dg(x)(Dg(x)-adjoint v)>. This is a bound on the actual Frechet derivative, not on a supplied gradient of the composite."
+      ],
+      "steps": [
+        {
+          "title": "Lift the attained minimum",
+          "text": "Let z be the supplied global minimizer of f. Surjectivity gives xstar with g(xstar)=z. Every g(x) lies in the objective space, so f(g(xstar))=f(z)<=f(g(x)); thus the same xstar minimizes the composite.",
+          "formula": "g(x_\\star)=z,\\qquad (f\\circ g)(x_\\star)=f(z)\\le f(g(x)).",
+          "lean": "Function.Surjective applied to z; IsMinOn transported pointwise."
+        },
+        {
+          "title": "Turn strong convexity into a gradient-gap bound",
+          "text": "At y=g(x), the shared first-order strong-convexity bound at comparator z gives the gap at most <grad f(y),y-z> minus alpha times the squared distance divided by2. Cauchy-Schwarz bounds the inner product. The nonnegative square (norm grad f(y)−alpha norm(y−z))² yields the numerical PL bound for f.",
+          "formula": "\\begin{gathered}f(y)-f(z)\\le\\langle\\nabla f(y),y-z\\rangle-\\frac\\alpha2\\|y-z\\|^2\\\\\\le\\|\\nabla f(y)\\|\\|y-z\\|-\\frac\\alpha2\\|y-z\\|^2,\\\\2\\alpha(f(y)-f(z))\\le\\|\\nabla f(y)\\|^2.\\end{gathered}",
+          "lean": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn, real_inner_le_norm, sq_nonneg and positive alpha."
+        },
+        {
+          "title": "Identify the actual composite gradient",
+          "text": "Put A_x=Dg(x). The Frechet chain rule gives D(f∘g)(x)[v]=<grad f(g(x)),A_x v>. The defining adjoint identity rewrites this as <A_x-adjoint grad f(g(x)),v>. Uniqueness of the Riesz representative identifies the actual composite gradient.",
+          "formula": "\\nabla(f\\circ g)(x)=A_x^*\\nabla f(g(x)),\\qquad A_x=Dg(x).",
+          "lean": "HasFDerivAt.comp; hasGradientAt_iff_hasFDerivAt; InnerProductSpace.toDual_apply_apply; ContinuousLinearMap.adjoint_inner_left; HasGradientAt.gradient."
+        },
+        {
+          "title": "Transport the coercivity constant",
+          "text": "Apply the assumed operator lower bound to v=grad f(g(x)). Its quadratic form equals norm(A_x-adjoint v)² by the adjoint identity. Multiply the base gradient-gap bound by nonnegative sigma and combine. Finally use g(xstar)=z to express the same gap relative to the attained composite minimum.",
+          "formula": "\\begin{aligned}\\|\\nabla(f\\circ g)(x)\\|^2&=\\langle v,A_xA_x^*v\\rangle\\ge\\sigma\\|v\\|^2\\\\&\\ge2\\alpha\\sigma\\big((f\\circ g)(x)-(f\\circ g)(x_\\star)\\big).\\end{aligned}",
+          "lean": "ContinuousLinearMap.adjoint_inner_left; real_inner_self_eq_norm_sq; mul_le_mul_of_nonneg_left."
+        }
+      ],
+      "boundary": [
+        "The conclusion is the numerical PL inequality and a lifted global minimizer. Definition2.5 additionally asks for a continuously differentiable objective and a positive PL constant. The exercise does not explicitly impose continuity of Dg or sigma>0. Neither is silently inferred here: sigma=0 is a degenerate inequality, and continuous differentiability of the composite remains a separate obligation.",
+        "Real complete Hilbert spaces and everywhere Frechet differentiability generalize the source finite Euclidean spaces and Section2 C2 objective convention. Completeness provides Riesz gradients and adjoints. No infinite-dimensional minimizer-existence theorem is claimed: the source attained minimizer z of f is supplied and surjectivity constructs its preimage.",
+        "The source uses a d-by-n Jacobian J, transposed relative to Dg:R^d to R^n. Here A=Dg and J corresponds to A-adjoint, so J-transpose J corresponds to A A-adjoint. The assumed operator quadratic form is exactly the adjoint norm square. It is not a lower bound on A on the parameter space. No compiled matrix-coordinate identification theorem is asserted.",
+        "No convexity, uniqueness or multiplicity of composite minimizers, gradient Lipschitz upper bound, gradient-descent rate, Riemannian statement or companion-paper completion follows. The gradient of the composite and its minimum are conclusions, not supplied certificates."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "HasFDerivAt.comp",
+        "hasGradientAt_iff_hasFDerivAt",
+        "ContinuousLinearMap.adjoint_inner_left",
+        "real_inner_le_norm",
+        "mul_le_mul_of_nonneg_left"
+      ],
+      "lean_statement": "Construct a preimage of the base minimizer and prove a global numerical gradient-gap inequality for the actual composition.",
+      "lean_proof": "Let z be the supplied global minimizer of f. Surjectivity gives xstar with g(xstar)=z. Every g(x) lies in the objective space, so f(g(xstar))=f(z)<=f(g(x)); thus the same xstar minimizes the composite. At y=g(x), the shared first-order strong-convexity bound at comparator z gives the gap at most <grad f(y),y-z> minus alpha times the squared distance divided by2. Cauchy-Schwarz bounds the inner product. The nonnegative square (norm grad f(y)−alpha norm(y−z))² yields the numerical PL bound for f. Put A_x=Dg(x). The Frechet chain rule gives D(f∘g)(x)[v]=<grad f(g(x)),A_x v>. The defining adjoint identity rewrites this as <A_x-adjoint grad f(g(x)),v>. Uniqueness of the Riesz representative identifies the actual composite gradient. Apply the assumed operator lower bound to v=grad f(g(x)). Its quadratic form equals norm(A_x-adjoint v)² by the adjoint identity. Multiply the base gradient-gap bound by nonnegative sigma and combine. Finally use g(xstar)=z to express the same gap relative to the attained composite minimum.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Exercise2.3, Definition2.5 and Section2 conventions",
+          "scope": "Numerical inequality component; the positive-modulus and C1 definition package is kept separate."
+        },
+        {
+          "path": "Tests/Shared/StrongConvexPLPullback.lean",
+          "label": "Actual nonlinear parametrization test",
+          "scope": "Instantiates the theorem with a nonlinear surjection and proves its derivative/minimum certificates."
+        }
+      ]
+    }
+  ]
+}

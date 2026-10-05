@@ -1,24 +1,22 @@
 <div align="center">
 
-# Auto-Sampling-Theory-In-Sleep
+# An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry
 
-### An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory
+**Samplinglib:** Verified Sampling, Optimisation, Geometry Theory in Lean
 
-**Samplinglib:** a source-backed Lean graph for sampling and optimisation
-
-[![Samplinglib](https://img.shields.io/badge/Samplinglib-formal_knowledge_graph-155EEF?style=flat-square)](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/)
+[![Samplinglib](https://img.shields.io/badge/Samplinglib-formal_knowledge_graph-155EEF?style=flat-square)](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/)
 [![Lean 4](https://img.shields.io/badge/Lean-4-6B4FBB?style=flat-square)](https://lean-lang.org/)
-[![Samplinglib site](https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/actions/workflows/blueprint-site.yml/badge.svg)](https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/actions/workflows/blueprint-site.yml)
+[![Samplinglib site](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/workflows/blueprint-site.yml/badge.svg)](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/workflows/blueprint-site.yml)
 
-[**Home**](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/)
-· [**Libraries**](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/libraries/)
-· [**Current Progress**](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/progress/)
-· [**Underlying Lean Graph**](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/underlying-lean-graph/)
-· [**Harness**](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/workflow/)
+[**Home**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/)
+· [**Libraries**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/)
+· [**Current Progress**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/progress/)
+· [**Underlying Lean Graph**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/underlying-lean-graph/)
+· [**Harness**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/workflow/)
 
 </div>
 
-ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean declarations, and theorem dependencies in one inspectable graph. Primary sources, official supplements, background textbooks, and formal upstream libraries have different roles and are recorded separately; frontier papers are inserted into the same graph so that their actual mathematical contribution can be compared, verified, and reused.
+ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean declarations, and theorem dependencies for sampling, optimisation, and geometry in one inspectable graph. Primary sources, official supplements, background textbooks, and formal upstream libraries have different roles and are recorded separately; frontier papers are inserted into the same graph so that their actual mathematical contribution can be compared, verified, and reused.
 
 | Library | Primary source |
 |---|---|
@@ -32,12 +30,11 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 
 ## News
 
+- **2026-10-03:** Added source-grounded research workspaces, proof ledgers, and a downloadable ChatGPT/MCP App.
+- **2026-09-29:** [Our system paper](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the NeurIPS 2026 Workshop MATH-AI.
 - **2026-09-10:** Compiled and source-reviewed the first [SPHMC](conversion-windows/ASTIS-SW-SPHMC-2026.md) and [Proximal BPS](conversion-windows/ASTIS-SW-PBPS-2026.md) proof packets.
-- **2026-09-09:** Connected mathematics-first readers to [chapter progress and semantic review](docs/theorem-publication-protocol.md).
-
 - **2026-09-07:** Added Discrete Sampling and MCMC as peer libraries.
 - **2026-09-05:** Added Statistical Optimal Transport and the Functor Hypergraph.
-- **2026-08-30:** Unified cross-library progress and Frontier Cell collaboration.
 - **2026-08-29:** Added source-fidelity checks and theorem denoising.
 - **2026-07-27:** Added the Blueprint-style textbook and formalization website.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.
@@ -78,7 +75,7 @@ Lean compilation does not by itself guarantee source fidelity. Source-facing nod
 <details>
 <summary><strong>Collaborative route protocol</strong></summary>
 
-[Current Progress](https://dakebu.github.io/Auto-Sampling-Theory-In-Sleep/progress/) is one dashboard containing **SampleWiki Route**, **Riemannian Optimization**, and **Optimisation**. Collaborators can advance different theorem-sized Frontier Cells while seeing the other routes and the shared Lean floor on the same page.
+[Current Progress](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/progress/) is one dashboard containing **SampleWiki Route**, **Riemannian Optimization**, and **Optimisation**. Collaborators can advance different theorem-sized Frontier Cells while seeing the other routes and the shared Lean floor on the same page.
 
 Persistent cells live under [`research-wiki/frontier-cells/`](research-wiki/frontier-cells/). Their status is evidence-backed and CI-checked by:
 
@@ -129,8 +126,8 @@ publication are supported; their durability is limited by filesystem/device
 flush guarantees, as documented in the implementation.
 
 ```bash
-git clone https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep.git
-cd Auto-Sampling-Theory-In-Sleep
+git clone https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib.git
+cd Automization-Sampling-Optimisation-Geometry-Lib
 python3 tools/astis.py check
 python3 tools/astis_frontier_cells.py check
 ```
@@ -147,14 +144,10 @@ SAU ledger, not from this historical run note.
 
 ```bibtex
 @misc{bu2026astis,
-  title  = {Auto-Sampling-Theory-In-Sleep: An Automated Theorem Proving System
-            and Visualized Lean Library for Sampling Theory},
-  author = {Dake Bu and Ji Cheng and Huanjian Zhou and Andi Han and
-            Zonghao Chen and Sinho Chewi and Matthew S. Zhang and Hau-San Wong and
-            Qingfu Zhang and Atsushi Nitanda},
+  title  = {An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry},
   year   = {2026},
-  url    = {https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep}
+  url    = {https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib}
 }
 ```
 
-**Project contributors:** Dake Bu, Ji Cheng, Huanjian Zhou, Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, Qingfu Zhang, Atsushi Nitanda.
+Project authorship is not yet finalized; no provisional author list is published.

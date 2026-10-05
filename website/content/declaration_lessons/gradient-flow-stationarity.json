@@ -1,0 +1,71 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowStationarity.exists_min_norm_le",
+      "kind": "theorem",
+      "title": "A gradient flow reaches a small gradient",
+      "statement": "Let E be a complete real inner-product space and f:E→R be C1. Supply a global minimizer z, a time T>0, and a curve X:R→E continuous on [0,T] whose right derivative equals minus the actual gradient of f at X(u), for each 0<=u<T. Then some s in [0,T] attains the smallest gradient norm on that entire interval and satisfies the displayed bound.",
+      "formula": "\\begin{gathered}X^{\\prime+}(u)=-\\nabla f(X(u))\\quad(0\\le u<T),\\qquad z\\in\\arg\\min f,\\quad T>0,\\\\\\exists s\\in[0,T]:\\quad\\|\\nabla f(X(s))\\|=\\min_{u\\in[0,T]}\\|\\nabla f(X(u))\\|\\le\\sqrt{\\frac{f(X(0))-f(z)}{T}}.\\end{gathered}",
+      "assumptions": [
+        "Complete real inner-product space E; f is continuously Frechet differentiable (ContDiff R 1 f).",
+        "A supplied z satisfies f(z)<=f(x) for every x:E; elapsed time T is strictly positive.",
+        "X is continuous on [0,T]; for every u in [0,T), HasDerivWithinAt X (-gradient f(X(u))) (Ici u) u."
+      ],
+      "steps": [
+        {
+          "title": "Attain the smallest gradient norm",
+          "text": "The C1 assumption makes the Frechet derivative continuous. The Riesz inverse is continuous, so the actual gradient, and hence its norm along X, is continuous. The nonempty compact time interval therefore contains a minimizing time s. Put m=norm(gradient f(X(s))).",
+          "formula": "\\exists s\\in[0,T],\\qquad 0\\le m:=\\|\\nabla f(X(s))\\|\\le\\|\\nabla f(X(u))\\|\\quad(0\\le u\\le T).",
+          "lean": "ContDiff.continuous_fderiv, continuity of InnerProductSpace.toDual.symm, and IsCompact.exists_isMinOn."
+        },
+        {
+          "title": "Derive the actual energy dissipation",
+          "text": "Compose the Frechet derivative of f with the supplied right derivative of X. The gradient ODE makes the resulting inner product minus the squared gradient norm. Minimality of m bounds that derivative above by -m squared.",
+          "formula": "\\partial_u^+f(X(u))=\\langle\\nabla f(X(u)),-\\nabla f(X(u))\\rangle=-\\|\\nabla f(X(u))\\|^2\\le-m^2\\quad(0\\le u<T).",
+          "lean": "DifferentiableAt.hasGradientAt and HasFDerivAt.comp_hasDerivWithinAt derive the identity; sq_le_sq₀ compares nonnegative norms."
+        },
+        {
+          "title": "Use the available energy budget",
+          "text": "Integrating this constant derivative bound gives f(X(T))<=f(X(0))-T m squared. In Lean the existing scalar right-slope Gronwall theorem with coefficient zero and forcing -m squared performs this comparison. The supplied minimum gives f(z)<=f(X(T)), so T m squared cannot exceed the initial objective gap.",
+          "formula": "Tm^2\\le f(X(0))-f(X(T))\\le f(X(0))-f(z).",
+          "lean": "le_gronwallBound_of_liminf_deriv_right_le with K=0, epsilon=-m²; gronwallBound_K0 and IsMinOn."
+        },
+        {
+          "title": "Convert to the gradient-norm rate",
+          "text": "Divide by the strictly positive T, then take the nonnegative square root. Because s was chosen as a minimizer, this bounds the attained minimum over the whole time interval, not necessarily the gradient at its final time.",
+          "formula": "\\min_{0\\le u\\le T}\\|\\nabla f(X(u))\\|=m\\le\\sqrt{\\frac{f(X(0))-f(z)}{T}}.",
+          "lean": "le_div_iff₀ and Real.le_sqrt; the global minimum supplies nonnegativity of the initial gap."
+        }
+      ],
+      "boundary": [
+        "Only positive elapsed time T is used in the finite normalized bound. The source 1/t formula implicitly requires t>0; no finite t=0 coefficient is assigned.",
+        "The source C2 Euclidean setting is generalized to C1 on a complete real Hilbert space. A global minimizer z is retained, rather than replaced by a terminal lower bound. The supplied continuous trajectory satisfies only right derivatives on [0,T); no derivative at the final endpoint or negative time is needed.",
+        "No convexity, smoothness constant, PL inequality, flow or minimizer existence theorem, last-time gradient estimate, infinite-time subsequence or convergence of the trajectory is asserted. The conclusion explicitly supplies an attained minimum of the actual gradient norm."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ContDiff.continuous_fderiv",
+        "IsCompact.exists_isMinOn",
+        "HasFDerivAt.comp_hasDerivWithinAt",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_K0",
+        "Real.le_sqrt"
+      ],
+      "lean_statement": "An attained time-interval minimum of gradient norm with the exact square-root objective-gap rate.",
+      "lean_proof": "The C1 assumption makes the Frechet derivative continuous. The Riesz inverse is continuous, so the actual gradient, and hence its norm along X, is continuous. The nonempty compact time interval therefore contains a minimizing time s. Put m=norm(gradient f(X(s))). Compose the Frechet derivative of f with the supplied right derivative of X. The gradient ODE makes the resulting inner product minus the squared gradient norm. Minimality of m bounds that derivative above by -m squared. Integrating this constant derivative bound gives f(X(T))<=f(X(0))-T m squared. In Lean the existing scalar right-slope Gronwall theorem with coefficient zero and forcing -m squared performs this comparison. The supplied minimum gives f(z)<=f(X(T)), so T m squared cannot exceed the initial objective gap. Divide by the strictly positive T, then take the nonnegative square root. Because s was chosen as a minimizer, this bounds the attained minimum over the whole time interval, not necessarily the gradient at its final time.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S2",
+          "label": "Chewi Corollary2.8",
+          "scope": "Nonconvex gradient-norm rate; standing C2, attained-minimum and actual-flow conventions of Section2."
+        },
+        {
+          "path": "Tests/Shared/GradientFlowStationarity.lean",
+          "label": "Actual quadratic and constant trajectories",
+          "scope": "Nonstationary positive-gap and stationary zero-gap examples invoke the public theorem and retain the minimum witness."
+        }
+      ]
+    }
+  ]
+}

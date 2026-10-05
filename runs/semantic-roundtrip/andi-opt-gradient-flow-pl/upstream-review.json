@@ -1,0 +1,127 @@
+{
+  "reviewer": "pl_pullback_review",
+  "review_kind": "independent bounded source/reuse/route audit; no proof implementation or final verification",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S2",
+    "anchors": [
+      "Section2 lines328–335: gradient flow ODE, C2 objective convention, attained minimizer convention",
+      "Lemma2.1 lines337–344: d/dt f(Xt)=-norm(gradient f(Xt))² via chain rule",
+      "Definition2.5 lines407–411: C1 objective, alpha>0, 2alpha gap<=gradient norm squared",
+      "Corollary2.6 lines414–418: gap(t)<=gap(0)*exp(-2alpha t) for t>=0"
+    ],
+    "source_scope": "Finite Euclidean spaces; supplied trajectory of actual gradient flow; no ODE well-posedness proof attempted in section. Attained minimum is assumed. Convexity is unnecessary under PL."
+  },
+  "accepted_candidate": {
+    "status": "source-backed substantive route, pending implementation and independent source review",
+    "space": "A complete real inner-product space E",
+    "data": "f:E→R, X:R→E, base minimizer z:E, alpha>0, horizon T>=0",
+    "assumptions": [
+      "Differentiable R f",
+      "ContinuousOn X (Icc0T)",
+      "For t∈Ico0T, HasDerivWithinAt X (-gradient f(Xt)) (Ici t) t",
+      "IsMinOn f univ z",
+      "For all y:E, 2alpha*(f(y)-f(z))<=norm(gradient f(y))²"
+    ],
+    "conclusions": [
+      "For t∈Ico0T, derive the actual right derivative of f∘X (and/or its gap) as -norm(gradient f(Xt))².",
+      "For t∈Icc0T, 0<=f(Xt)-f(z)<= (f(X0)-f(z))*exp(-2alpha t)."
+    ],
+    "generalisations": [
+      "Euclidean space replaced with complete real Hilbert space.",
+      "C2/C1 objective assumptions weakened to Frechet differentiability, retaining continuity and actual chain rule.",
+      "Ordinary flow derivative weakened to a right derivative before terminal time.",
+      "Conclusion is on a chosen finite interval; every nonnegative time follows if hypotheses are supplied on every horizon."
+    ],
+    "truth_boundary": [
+      "No existence, uniqueness, extension or global existence of X.",
+      "No convergence of points X(t), finite path length, distance decay or quadratic-growth theorem.",
+      "No convexity, gradient Lipschitzness, distribution/Markov semigroup, Wasserstein or stochastic flow is asserted.",
+      "Supplied z retains attained-minimum convention rather than deriving attainment."
+    ]
+  },
+  "endpoint_audit": {
+    "T0": "ODE and energy derivative statements on Ico00 are vacuous; Icc00={0}, and value bound is equality.",
+    "terminal": "No derivative at T is needed. ContinuousOn X Icc0T is essential to exclude a terminal jump and close Grönwall at T.",
+    "right_derivative": "Ici t uses only a right germ at each t<T, which lies locally within0T. Although X has total type R→E, no global/negative-time flow hypothesis is required.",
+    "minimum": "hz gives the nonnegative gap; it is not needed to derive the scalar differential upper bound itself."
+  },
+  "reuse_audit": {
+    "ASTIS": {
+      "searched": [
+        "AutoSamplingTheory/TechnicalLemmas global gradient-flow/energy-derivative/PL/Gronwall names",
+        "FunctionalInequalities/SemigroupDecay.lean",
+        "Analysis/Calculus/Gradient.lean",
+        "Analysis/GradientDescentPL.lean",
+        "Registry.lean"
+      ],
+      "exact_target_found": false,
+      "reusable": [
+        "Analysis.Calculus.Gradient.fderiv_apply_eq_inner_gradient_of_differentiableAt, or Mathlib HasGradientAt derivative map directly",
+        "SemigroupDecay provides the existing scalar Gronwall mechanism and comparison route"
+      ],
+      "nonmatching_interfaces": [
+        {
+          "name": "FunctionalInequalities.SemigroupDecay.exponential_decay_of_scaled_dissipation_from",
+          "reason": "DissipationCurve requires Continuous energy globally and exact right derivative at every real time; coercivity is also for all reals. A finite forward-time solution cannot instantiate this without unjustified global extension."
+        },
+        {
+          "name": "FunctionalInequalities.SemigroupDecay.chewi_lemma_1_2_20",
+          "reason": "Requires globally Differentiable scalar g and derivative inequality throughout closed0T, stronger than interval right-derivative data."
+        },
+        {
+          "name": "Analysis.GradientDescentPL.gradient_descent_pl_value_bound",
+          "reason": "Actual discrete gradient iterates, not continuous-time flow."
+        }
+      ],
+      "decision": "new shared actual-gradient-flow energy adapter; reuse Mathlib scalar theorem directly, no duplicate scalar proof"
+    },
+    "Mathlib": {
+      "searched": [
+        "Analysis/ODE/Gronwall.lean",
+        "Analysis/ODE namespace files",
+        "Analysis/Calculus/Gradient/Basic.lean",
+        "Analysis/Calculus/Deriv/Comp.lean"
+      ],
+      "exact_target_found": false,
+      "exact_APIs": [
+        "HasFDerivAt.comp_hasDerivWithinAt t hX; explicit time argument inherited from variable(x) at Deriv/Comp line352",
+        "DifferentiableAt.hasGradientAt / HasGradientAt.hasFDerivAt",
+        "InnerProductSpace.toDual_apply_apply",
+        "inner_neg_right and real_inner_self_eq_norm_sq",
+        "HasDerivWithinAt.sub_const",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le: scalar ContinuousOn Icc; slope/derivative upper bound on Ico; initial value comparison",
+        "gronwallBound_ε0"
+      ]
+    },
+    "Optlib": {
+      "pin": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "searched": "All Optlib sources for gradient-flow, PL/Polyak/Lojasiewicz, dissipation/Gronwall terms; discrete GD and scalar composition libraries inspected in prior audit.",
+      "exact_target_found": false,
+      "decision": "No direct import/port; current ASTIS/Mathlib calculus is sufficient."
+    },
+    "CvxLean": {
+      "pin": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "searched": "All CvxLean sources for gradient-flow, PL/Polyak/Lojasiewicz, dissipation/Gronwall terms; minimization equivalence adapters are unrelated.",
+      "exact_target_found": false,
+      "decision": "Out of scope for actual flow energy/differential comparison."
+    }
+  },
+  "proof_route": [
+    "Let e(t)=f(Xt)-f(z); compose hf.continuous with interval continuity of X.",
+    "At each t<T compose the actual Frechet derivative of f with the supplied trajectory derivative.",
+    "Rewrite the resulting inner product with negative actual gradient as -norm(gradient f(Xt))² and subtract the constant minimum.",
+    "Use PL to get e-right-derivative<=(-2alpha)*e(t).",
+    "Apply existing one-sided Mathlib Gronwall on0T with delta=e(0),K=-2alpha,epsilon0; rewrite exponential normalization.",
+    "Use supplied global minimum for e(t)>=0, including endpoints."
+  ],
+  "substantiveness": "The missing mathematical edge is the chain rule connecting an actual Hilbert trajectory and actual objective to energy dissipation. PL-to-exponential scalar comparison alone is already present and must not be counted as a new theorem. Returning the derived energy identity together with the bound makes the discharged premise visible.",
+  "focused_test": {
+    "required_shape": "Instantiate with f(u)=u²/2, X(t)=exp(-t), alpha1,z0 and positive T. Derive gradient, right flow derivative, continuity, minimum and PL; invoke new theorem. Nonzero initial gap avoids a vacuous stationary test.",
+    "normalization": "The exact gap is exp(-2t)/2, so the test should exercise coefficient2alpha; e.g arbitrary t∈Icc0T or terminal t=T, not only t0.",
+    "optional_endpoint": "Check T0 specialization to ensure the closed endpoint does not require nonexistent derivative obligations.",
+    "not_needed": "No new proof of ODE existence, no additional artificial scalar-energy certificate as test hypothesis, and no matrix-coordinate smoke."
+  },
+  "conceptual_mirror_audit_advice": "This is the already recorded gradient-energy/PL/scalar-Gronwall mechanism. Check existing metric-gradient-flow and gap-gradient families; do not invent a new certified transport or equate deterministic optimization with measure semigroups. New scalar/actual-flow linkage can be a real Lean dependency only where imported and compiled.",
+  "remaining_review": "Frozen Lean/source packet, independent decoder/source reviewer, exact focused compilation, canonical full gate and publication/graph admission. This route audit does not certify implementation."
+}

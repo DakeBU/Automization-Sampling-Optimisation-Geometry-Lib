@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "definition",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseCost",
+      "title": "The exact SPHMC M-kappa phase cost",
+      "boundary": "A pointwise extended-nonnegative cost only; no metric-space instance, contraction or transport estimate is asserted.",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1", "label": "M-kappa display before Theorem 4.5", "scope": "Exact block-matrix quadratic form."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCPhaseMetric"],
+      "assumptions": ["E is a real inner-product normed additive group.", "kappa is a real parameter; positivity is imposed by later theorems."],
+      "statement": "The cost between two phase points is the nonnegative-real embedding of their M-kappa quadratic displacement.",
+      "formula": "c_\\kappa(z,z')=\\operatorname{ofReal}\\!\\left[(\\frac1{2\\kappa}+\\frac12)\\|\\Delta x\\|^2+\\langle\\Delta x,\\Delta p\\rangle+\\|\\Delta p\\|^2\\right].",
+      "steps": [{"title": "Expand the block matrix", "text": "The two off-diagonal one-half blocks combine into one real inner product.", "formula": "2(\\tfrac12)\\langle\\Delta x,\\Delta p\\rangle=\\langle\\Delta x,\\Delta p\\rangle.", "lean": "The private real quadratic form is embedded with ENNReal.ofReal."}],
+      "lean_statement": "The definition is total for all real kappa; later comparison theorems assume kappa>=1.",
+      "lean_proof": "Definitional expansion of the paper matrix.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": ["ENNReal.ofReal", "inner"]
+    },
+    {
+      "kind": "definition",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseWassersteinSq",
+      "title": "Squared Wasserstein cost in the M-kappa geometry",
+      "boundary": "Raw Kantorovich infimum; optimizer existence is not included.",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1", "label": "W_{2,M_kappa} notation", "scope": "Squared twisted transport cost."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCPhaseMetric"],
+      "assumptions": ["The phase space carries the product measurable structure."],
+      "statement": "Take the infimum of the exact M-kappa cost over all couplings.",
+      "formula": "W_{2,M_\\kappa}^2(\\mu,\\nu)=\\inf_{\\gamma\\in\\Gamma(\\mu,\\nu)}\\int c_\\kappa\\,d\\gamma.",
+      "steps": [{"title": "Reuse the canonical transport infimum", "text": "No second Wasserstein implementation is introduced.", "formula": "W_{2,M_\\kappa}^2=\\mathsf{transportCost}(c_\\kappa).", "lean": "Transport.transportCost."}],
+      "lean_statement": "The value is ENNReal and therefore retains infinite costs.",
+      "lean_proof": "Definition by the shared Kantorovich API.",
+      "astis_dependencies": ["AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost"],
+      "mathlib_dependencies": []
+    },
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.wassersteinDistance_sq_le_phaseWassersteinSq",
+      "title": "M-kappa transport controls ordinary phase transport",
+      "boundary": "One-way comparison with explicit kappa-uniform factor 6; no contraction or (D.3).",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1", "label": "Uniform norm equivalence after M-kappa definition", "scope": "ASTIS expands the omitted constants and infimum argument."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCPhaseMetric"],
+      "assumptions": ["kappa>=1.", "The two laws are arbitrary measures on phase space."],
+      "statement": "Ordinary squared Wasserstein distance is at most six times the M-kappa squared transport value.",
+      "formula": "W_2^2(\\mu,\\nu)\\le6W_{2,M_\\kappa}^2(\\mu,\\nu).",
+      "steps": [
+        {"title": "Lower-bound the twisted form", "text": "Cauchy--Schwarz and a completed square absorb the cross term without losing kappa.", "formula": "q_\\kappa(x,p)\\ge\\frac16(\\|x\\|^2+\\|p\\|^2).", "lean": "Private ordinary_energy_le_phaseQuadraticForm."},
+        {"title": "Compare each coupling", "text": "The product max norm is bounded by the Euclidean sum of coordinate squares.", "formula": "\\|z-z'\\|_{\\max}^2\\le6q_\\kappa(z-z').", "lean": "lintegral_mono and lintegral_const_mul."},
+        {"title": "Remove near-optimal excess", "text": "Choose a twisted coupling within delta of the infimum and let delta vanish; no optimizer is assumed.", "formula": "\\forall\\varepsilon>0,\\ W_2^2\\le6W_{2,M_\\kappa}^2+\\varepsilon.", "lean": "exists_isCoupling_lintegral_lt_of_transportCost_lt and ENNReal.le_of_forall_pos_le_add."}
+      ],
+      "lean_statement": "The ENNReal conclusion includes infinite-cost laws without a separate branch in the statement.",
+      "lean_proof": "Pointwise quadratic comparison, monotone integration, near-optimal coupling, epsilon closure.",
+      "astis_dependencies": ["AutoSamplingTheory.TechnicalLemmas.Measure.Transport.exists_isCoupling_lintegral_lt_of_transportCost_lt", "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq"],
+      "mathlib_dependencies": ["abs_real_inner_le_norm", "ENNReal.le_of_forall_pos_le_add"]
+    },
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phase_state_second_moment_of_phaseWasserstein",
+      "title": "Twisted SPHMC transport gives the phase-state second moment",
+      "boundary": "Consumes a twisted transport bound; does not prove the paper's (D.3), history estimate, D.7 or D.8.",
+      "sources": [{"url": "https://arxiv.org/html/2609.06906v1", "label": "Lemma D.4 proof after (D.3)", "scope": "Metric conversion and coordinate-moment step."}],
+      "tests": ["lake build Tests.SmoothedPicardHMCPhaseMetric"],
+      "assumptions": ["kappa>=1.", "Reference position and momentum squares are integrable and bounded by Mx,Mp.", "The incoming law has M-kappa squared transport radius at most r^2."],
+      "statement": "The incoming phase energy is integrable and bounded by 2(Mx+Mp)+24r^2.",
+      "formula": "\\mathbb E_\\mu[\\|X-x_\\star\\|^2+\\|P\\|^2]\\le2(M_X+M_P)+24r^2.",
+      "steps": [
+        {"title": "Convert the radius", "text": "The uniform metric comparison gives the ordinary radius sqrt(6)|r|.", "formula": "W_2^2\\le6r^2=(\\sqrt6\\,r)^2.", "lean": "wassersteinDistance_sq_le_phaseWassersteinSq and Real.sq_sqrt."},
+        {"title": "Reuse the compiled coordinate theorem", "text": "The earlier theorem proves both integrability and the ordinary-Wasserstein moment estimate.", "formula": "I\\le2(M_X+M_P)+4(\\sqrt6r)^2.", "lean": "PhaseStateMoment.phase_state_second_moment_of_wasserstein."},
+        {"title": "Normalize the constant", "text": "Expand the square to obtain the explicit final factor.", "formula": "4(\\sqrt6r)^2=24r^2.", "lean": "Real.sq_sqrt and ring."}
+      ],
+      "lean_statement": "All reference integrability and moment assumptions remain visible.",
+      "lean_proof": "Metric comparison followed by the already audited general moment adapter.",
+      "astis_dependencies": ["AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment.phase_state_second_moment_of_wasserstein"],
+      "mathlib_dependencies": ["Real.sq_sqrt"]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.gradient_step_endpoint_bound",
+      "kind": "theorem",
+      "title": "The endpoint bound for a gradient update",
+      "statement": "Every nonnegative gradient step satisfies the displayed pairwise Lipschitz bound.",
+      "formula": "\\forall x,y\\in E,\\quad\\|T_h(y)-T_h(x)\\|\\le\\max\\{|1-h\\alpha|,|1-h\\beta|\\}\\,\\|y-x\\|.",
+      "assumptions": [
+        "E is a complete real inner-product space and f:E→ℝ is C² (ContDiff ℝ 2 f). ∇f is the actual Riesz gradient of f; no arbitrary gradient or Hessian field is supplied. Write T_h(x)=x−h∇f(x).",
+        "f is globally α-strongly convex in the StrongConvexOn univ α sense, and for all x,y∈E the upper model f(y)≤f(x)+⟨∇f(x),y−x⟩+(β/2)‖y−x‖² holds. All derivatives and curvature bounds are global.",
+        "α,β∈ℝ may be signed; h≥0. The simultaneous global curvature models are assumed, not inferred for incompatible parameters."
+      ],
+      "steps": [
+        {
+          "title": "Recover the actual Hessian interval",
+          "text": "Apply the strong-convex first-order gradient monotonicity theorem and its C² Hessian equivalence. The upper-model equivalence gives the opposite inequality. The Riesz map turns D²f(z) into a continuous linear operator H_z with the displayed quadratic form.",
+          "formula": "\\alpha\\|v\\|^2\\le\\langle H_zv,v\\rangle=D^2f(z)[v,v]\\le\\beta\\|v\\|^2.",
+          "lean": "StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn; ConvexityC2.gradient_mono_iff_fderiv2_lower; SmoothnessEquivalences.upper_model_iff_fderiv2_upper; toDual_symm_apply."
+        },
+        {
+          "title": "Bound the symmetric derivative of the update",
+          "text": "Differentiate T_h to obtain A_z=I−hH_z. C² symmetry makes A_z symmetric. Multiplying the Hessian inequalities by h≥0 puts the Rayleigh value of every nonzero vector in [1−hβ,1−hα]. Its absolute value is at most the maximum of the endpoint absolute values. Mathlib’s supremum formula bounds the operator norm; the zero vector is treated separately. In this supremum the Rayleigh quotient is assigned value zero at v=0, including when E is the zero space.",
+          "formula": "\\|DT_h(z)\\|_{\\rm op}=\\sup_v\\left|\\frac{\\langle (I-hH_z)v,v\\rangle}{\\|v\\|^2}\\right|\\le M_h,\\quad M_h=\\max\\{|1-h\\alpha|,|1-h\\beta|\\}.",
+          "lean": "ContDiffAt.isSymmSndFDerivAt; ContinuousLinearMap.norm_eq_iSup_rayleighQuotient; HasFDerivAt.comp; HasFDerivAt.sub; HasFDerivAt.const_smul."
+        },
+        {
+          "title": "Integrate along the actual segment",
+          "text": "Set v=y−x. The derivative of t↦T_h(x+tv) is A_(x+tv)v and is continuous. The vector fundamental theorem of calculus expresses the update difference as its integral over [0,1]. Bound the integral norm by the uniform derivative bound times the segment length.",
+          "formula": "\\|T_h(y)-T_h(x)\\|=\\left\\|\\int_0^1 A_{x+t(y-x)}(y-x)\\,dt\\right\\|\\le\\int_0^1 M_h\\|y-x\\|\\,dt=M_h\\|y-x\\|.",
+          "lean": "intervalIntegral.integral_eq_sub_of_hasDerivAt; intervalIntegral.norm_integral_le_of_norm_le_const; ContinuousLinearMap.le_opNorm; ContDiff.continuous_fderiv."
+        }
+      ],
+      "boundary": [
+        "The source works in Euclidean space; the Lean theorem extends the same argument to complete real Hilbert spaces using the symmetric Rayleigh norm formula. Completeness supplies the Riesz map and the vector-valued integral.",
+        "C² regularity supplies the actual gradient derivative, Hessian symmetry, and continuity/integrability along the closed line segment. No additional domination, measurability, boundary or supplied spectral hypothesis is assumed.",
+        "These are textbook optimisation edges. No minimizer, N-step convergence, stochastic sampling theorem, oracle lower bound or companion-paper completion is asserted.",
+        "This is the Exercise3.2 derivative/integral proof component before step selection. It does not by itself assert contraction: M_h can exceed one. It includes h=0 and allows signed curvature bounds."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexityC2.gradient_mono_iff_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences.upper_model_iff_fderiv2_upper"
+      ],
+      "mathlib_dependencies": [
+        "toDual_symm_apply",
+        "ContDiffAt.isSymmSndFDerivAt",
+        "ContinuousLinearMap.norm_eq_iSup_rayleighQuotient",
+        "intervalIntegral.integral_eq_sub_of_hasDerivAt",
+        "intervalIntegral.norm_integral_le_of_norm_le_const",
+        "ContinuousLinearMap.le_opNorm"
+      ],
+      "lean_statement": "C² actual-gradient map, global lower curvature and quadratic upper model; explicit real parameter domains.",
+      "lean_proof": "Apply the strong-convex first-order gradient monotonicity theorem and its C² Hessian equivalence. The upper-model equivalence gives the opposite inequality. The Riesz map turns D²f(z) into a continuous linear operator H_z with the displayed quadratic form. Differentiate T_h to obtain A_z=I−hH_z. C² symmetry makes A_z symmetric. Multiplying the Hessian inequalities by h≥0 puts the Rayleigh value of every nonzero vector in [1−hβ,1−hα]. Its absolute value is at most the maximum of the endpoint absolute values. Mathlib’s supremum formula bounds the operator norm; the zero vector is treated separately. In this supremum the Rayleigh quotient is assigned value zero at v=0, including when E is the zero space. Set v=y−x. The derivative of t↦T_h(x+tv) is A_(x+tv)v and is continuous. The vector fundamental theorem of calculus expresses the update difference as its integral over [0,1]. Bound the integral norm by the uniform derivative bound times the segment length.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Exercise3.2",
+          "scope": "ASTIS-authored paraphrase and complete proof of the curvature-envelope argument."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentOptimalStep.lean",
+          "label": "Actual quadratic and boundary tests",
+          "scope": "Equal and unequal moduli, actual gradients, nonexpansive zero-lower-curvature endpoint; no separate theorem credit."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.optimal_gradient_step",
+      "kind": "theorem",
+      "title": "The optimal uniform gradient step",
+      "statement": "The balanced positive step satisfies the displayed bound, and its factor is a lower bound for the endpoint envelope at every real step.",
+      "formula": "h_\\star=\\frac2{\\alpha+\\beta},\\quad q=\\frac{\\beta-\\alpha}{\\alpha+\\beta}:\\qquad\\|T_{h_\\star}(y)-T_{h_\\star}(x)\\|\\le q\\|y-x\\|,\\quad\\forall h\\in\\mathbb R,\\ q\\le\\max\\{|1-h\\alpha|,|1-h\\beta|\\}.",
+      "assumptions": [
+        "E is a complete real inner-product space and f:E→ℝ is C² (ContDiff ℝ 2 f). ∇f is the actual Riesz gradient of f; no arbitrary gradient or Hessian field is supplied. Write T_h(x)=x−h∇f(x).",
+        "f is globally α-strongly convex in the StrongConvexOn univ α sense, and for all x,y∈E the upper model f(y)≤f(x)+⟨∇f(x),y−x⟩+(β/2)‖y−x‖² holds. All derivatives and curvature bounds are global.",
+        "0≤α≤β and β>0; hence α+β>0. The optimality comparison quantifies over every real step h, while the chosen step is positive."
+      ],
+      "steps": [
+        {
+          "title": "Balance the two endpoints",
+          "text": "Let D=α+β>0 and q=(β−α)/D≥0. At h★=2/D the endpoint values are q and −q. Their maximum absolute value is q, so the preceding actual-gradient bound gives the stated two-point inequality.",
+          "formula": "1-h_\\star\\alpha=q,\\quad 1-h_\\star\\beta=-q,\\qquad\\|T_{h_\\star}(y)-T_{h_\\star}(x)\\|\\le q\\|y-x\\|.",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.gradient_step_endpoint_bound; field_simp; abs_neg; abs_of_nonneg; max_self."
+        },
+        {
+          "title": "Prove optimality of this uniform envelope",
+          "text": "For any real h, M_h≥1−hα and M_h≥hβ−1. Multiply these inequalities by β≥0 and α≥0 respectively and add. The h terms cancel. Dividing by α+β>0 yields M_h≥q, including negative h. This is envelope minimization, not an objective-by-objective optimal-step theorem.",
+          "formula": "(\\alpha+\\beta)M_h\\ge\\beta(1-h\\alpha)+\\alpha(h\\beta-1)=\\beta-\\alpha\\quad\\Longrightarrow\\quad M_h\\ge q.",
+          "lean": "le_abs_self; neg_le_abs; mul_le_mul_of_nonneg_left; div_le_iff₀."
+        }
+      ],
+      "boundary": [
+        "The source works in Euclidean space; the Lean theorem extends the same argument to complete real Hilbert spaces using the symmetric Rayleigh norm formula. Completeness supplies the Riesz map and the vector-valued integral.",
+        "C² regularity supplies the actual gradient derivative, Hessian symmetry, and continuity/integrability along the closed line segment. No additional domination, measurability, boundary or supplied spectral hypothesis is assumed.",
+        "These are textbook optimisation edges. No minimizer, N-step convergence, stochastic sampling theorem, oracle lower bound or companion-paper completion is asserted.",
+        "For the source’s condition-number interpretation assume α>0: κ=β/α and q=(κ−1)/(κ+1)<1. At α=0 the extension gives q=1 (nonexpansive) and κ is undefined. At α=β>0 the map has zero pairwise difference; this does not identify a minimizer without further argument.",
+        "The explicit order α≤β preserves the zero-dimensional case, where curvature inequalities alone do not imply this order. The result minimizes the endpoint upper envelope; it does not state that every individual objective has its actual smallest Lipschitz constant at h★."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.gradient_step_endpoint_bound"
+      ],
+      "mathlib_dependencies": [
+        "le_abs_self",
+        "neg_le_abs",
+        "mul_le_mul_of_nonneg_left",
+        "div_le_iff₀"
+      ],
+      "lean_statement": "C² actual-gradient map, global lower curvature and quadratic upper model; explicit real parameter domains.",
+      "lean_proof": "Let D=α+β>0 and q=(β−α)/D≥0. At h★=2/D the endpoint values are q and −q. Their maximum absolute value is q, so the preceding actual-gradient bound gives the stated two-point inequality. For any real h, M_h≥1−hα and M_h≥hβ−1. Multiply these inequalities by β≥0 and α≥0 respectively and add. The h terms cancel. Dividing by α+β>0 yields M_h≥q, including negative h. This is envelope minimization, not an objective-by-objective optimal-step theorem.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S3",
+          "label": "Chewi Exercise3.2",
+          "scope": "ASTIS-authored paraphrase and complete proof of the curvature-envelope argument."
+        },
+        {
+          "path": "Tests/Shared/GradientDescentOptimalStep.lean",
+          "label": "Actual quadratic and boundary tests",
+          "scope": "Equal and unequal moduli, actual gradients, nonexpansive zero-lower-curvature endpoint; no separate theorem credit."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport
+
+#check AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2
+#print axioms AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-proximal-query-interpreter",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "Finite-fuel meaning of a gradient-only proximal query",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Appendix D.2, Algorithm D.2",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; Samplinglib supplies finite-fuel semantics for the stated recurrence."
+    },
+    "statement": "Represent one gradient evaluation and residual test per positive-fuel step. With no fuel return none. Otherwise set z=y−eta g(x); on a successful test return the current x with count one, and on failure recurse from z with one less fuel, adding one to a successful count. This is a definition, not a correctness or termination theorem.",
+    "assumptions": ["E is a real normed vector space, g:E→E is an arbitrary oracle, eta and eps are real, y and x are points, and fuel is natural. Exact-real comparison is noncomputable. Source correctness assumptions apply in the separate execution theorem, not in this definition."],
+    "formulae": [{"label": "Current-point return", "tex": "z=y-\\eta g(x),\\qquad\\|z-x\\|\\le(1-\\eta)\\varepsilon\\quad\\Longrightarrow\\quad\\mathrm{return}\\ (x,1)."}],
+    "obligations": [{"id": "interpreter", "label": "Finite-fuel construction with exact gradient-count and return convention"}],
+    "bindings": [{
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.proximalQuery",
+      "cell": "ASTIS-SW-SPHMC-proximal-query-interpreter",
+      "role": "prerequisite",
+      "supports": ["interpreter"],
+      "audit_id": "ASTIS-RT-20260918-ProximalQueryInterpreter",
+      "boundary": "Construction only. No termination, minimizer, accuracy, expected cost or floating-point implementation claim; no query-list trace. The separate execution theorem proves successful fuel and its returned count.",
+      "assumption_deltas": [
+        {"source": "The algorithm is applied to gradient V under curvature and positive-parameter assumptions.", "lean": "The recurrence is defined for arbitrary g, eta and eps in a real normed space.", "classification": "generalization", "reason": "Only the construction is generalized. Its correctness theorem reinstates the source assumptions; the definition supplies no correctness conclusion."},
+        {"source": "Iterate until the first successful residual and return the current iterate.", "lean": "A natural-number fuel bounds the recursion; failure returns none and success records current point plus query count.", "classification": "API-limitation", "reason": "Finite fuel gives a total Lean definition. The execution theorem supplies sufficient fuel; it does not turn this into a floating-point executable or an unbounded recursive program."}
+      ]
+    }]
+  }]
+}

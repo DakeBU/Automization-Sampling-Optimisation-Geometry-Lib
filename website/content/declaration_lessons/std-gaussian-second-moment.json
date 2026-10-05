@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "units": [{
+    "kind": "theorem",
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+    "title": "The squared norm of a standard Gaussian has mean d",
+    "boundary": "A reusable finite-dimensional standard-Gaussian second-moment identity. It does not assert independence, construct an OU refresh, give higher moments, or prove a sampling result.",
+    "sources": [{"url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean", "label": "Mathlib multivariate Gaussian covariance API", "scope": "Formal upstream for L2 integrability, covariance and mean zero; ASTIS supplies the finite-basis norm-square packaging."}],
+    "tests": ["lake build Tests.SmoothedPicardHMCPartialMomentumRefresh"],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra.",
+      "The probability law is Mathlib's actual standard Gaussian stdGaussian E; no abstract covariance hypothesis replaces it."
+    ],
+    "statement": "If Z is standard Gaussian in E, then its squared norm is Bochner-integrable and its expectation is the real dimension of E.",
+    "formula": "\\mathbb E\\|Z\\|^2=\\dim_{\\mathbb R}E.",
+    "steps": [
+      {"title": "Obtain genuine L2 integrability", "text": "Mathlib proves that the identity random variable belongs to L2 under the standard Gaussian law. The L2-to-integrable-square equivalence therefore gives integrability of the squared norm before any coordinate sum is exchanged with the integral.", "formula": "Z\\in L^2(\\gamma_E)\\quad\\Longrightarrow\\quad \\|Z\\|^2\\in L^1(\\gamma_E).", "lean": "IsGaussian.memLp_two_id and memLp_two_iff_integrable_sq_norm produce hi."},
+      {"title": "Compute every directional variance", "text": "For an orthonormal basis vector e_i, the covariance identity and zero Gaussian mean give E<e_i,Z>²=1. Each scalar square is dominated by ‖Z‖², so it is integrable.", "formula": "\\mathbb E\\langle e_i,Z\\rangle^2=1,\\qquad |\\langle e_i,Z\\rangle|^2\\le\\|Z\\|^2.", "lean": "covarianceBilin_apply, covarianceBilin_stdGaussian and integral_id_stdGaussian prove hdir; norm_inner_le_norm supplies hL1."},
+      {"title": "Apply finite-dimensional Parseval", "text": "Parseval writes the squared norm as the finite sum of directional squares. Since every summand is integrable, the integral commutes with the finite sum and each term contributes one.", "formula": "\\mathbb E\\|Z\\|^2=\\sum_{i=1}^{d}\\mathbb E\\langle e_i,Z\\rangle^2=\\sum_{i=1}^{d}1=d.", "lean": "stdOrthonormalBasis.sum_sq_norm_inner_right and integral_finsetSum close the calculation."}
+    ],
+    "lean_statement": "The declaration returns integrability and the exact integral in one reusable interface, because downstream product-measure calculations need both facts.",
+    "lean_proof": "ASTIS packages existing Mathlib Gaussian L2/covariance facts through finite-dimensional Parseval; it introduces no new axiom or source-specific assumption.",
+    "astis_dependencies": [],
+    "mathlib_dependencies": ["ProbabilityTheory.IsGaussian.memLp_two_id", "ProbabilityTheory.covarianceBilin_apply", "ProbabilityTheory.covarianceBilin_stdGaussian", "InnerProductSpace.stdOrthonormalBasis", "MeasureTheory.integral_finsetSum"]
+  }]
+}

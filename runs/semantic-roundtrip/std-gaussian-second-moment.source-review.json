@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-10b2c958e27f5a6b",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root",
+    "blind_decoder": "std_gaussian_blind_decoder",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "mathlib:std-gaussian-second-moment-consequence",
+    "anchor": "Mathlib Multivariate Gaussian: standard Gaussian L2, mean and covariance APIs",
+    "original_text": "Mathlib supplies L2 integrability, zero mean and identity covariance for its finite-dimensional standard Gaussian. ASTIS packages the coordinate-free consequence that the squared norm is integrable and has expectation equal to the real dimension. This is a shared formal prerequisite, not a theorem attributed to the SPHMC paper.",
+    "text_sha256": "3dfe381f6849465989a5b116a83333648b39209fde222acf5c9aeea88e353510"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/StdGaussianMoment.lean",
+    "statement": "For every complete finite-dimensional real inner-product Borel space E, the function x ↦ ‖x‖² is integrable under stdGaussian E and its integral is Module.finrank ℝ E.",
+    "statement_sha256": "0d3db095e96aaed8d278543afc9b5f31ef8dcf380ef7456fbc3764453add80fd",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every complete finite-dimensional real inner-product Borel space E, the squared-norm function x ↦ ‖x‖² is integrable with respect to stdGaussian E, and its integral is Module.finrank ℝ E.",
+    "text_sha256": "f12558fef1e802caa162b4b0f95f3b54e6a1bcd5972d4fae01819b09b673b59a",
+    "decoder": "std_gaussian_blind_decoder",
+    "decoder_packet_sha256": "f93234e3630f732b7d110dd24f7be717259dce65bab043a4302fe1b8ecd33dd4",
+    "decoder_run_sha256": "3e1ec7ecbfd6cd8e29d5b663942cfdab72a33c011655424a045f87e05713c4c2",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "5a269a3aad0a8464ee502ce414a65f598e41f47337ff80dd8ec2fbb6c441ea64",
+  "candidate_publication_context": {
+    "file": "f87a1c18284dbe58658c3c312f1015fa2eec0b203d5a1187618e5f43ea2a6e00",
+    "current_lean_module": "import Mathlib.MeasureTheory.Function.L2Space\nimport Mathlib.Probability.Distributions.Gaussian.Multivariate\nimport Mathlib.Tactic\n\n/-!\n# The squared norm of a finite-dimensional standard Gaussian\n\nThis is the coordinate-free second-moment identity needed by several sampling\nalgorithms.  Mathlib supplies the Gaussian `L²` fact and covariance identity;\nfinite-dimensional Parseval turns their directional form into the squared-norm\nformula.  No independence, higher moment, or sampling-algorithm statement is\nincluded here.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped RealInnerProductSpace\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\n\n/-- A standard Gaussian on a finite-dimensional real inner-product space has\nintegrable squared norm, with expectation equal to the real dimension. -/\ntheorem integrable_norm_sq_and_integral_stdGaussian\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] :\n    Integrable (fun x : E => ‖x‖ ^ 2) (stdGaussian E) ∧\n      (∫ x : E, ‖x‖ ^ 2 ∂stdGaussian E) = Module.finrank ℝ E := by\n  classical\n  have hi : Integrable (fun x : E => ‖x‖ ^ 2) (stdGaussian E) :=\n    (memLp_two_iff_integrable_sq_norm (by fun_prop)).1 IsGaussian.memLp_two_id\n  let b := stdOrthonormalBasis ℝ E\n  have hdir (i) : (∫ x : E, (inner ℝ (b i) x) ^ 2 ∂stdGaussian E) = 1 := by\n    have hh := covarianceBilin_apply (μ := stdGaussian E)\n      IsGaussian.memLp_two_id (b i) (b i)\n    rw [covarianceBilin_stdGaussian] at hh\n    change inner ℝ (b i) (b i) = _ at hh\n    simpa [integral_id_stdGaussian, real_inner_self_eq_norm_sq,\n      b.orthonormal.norm_eq_one, pow_two] using hh.symm\n  have hL1 (i) : Integrable (fun x : E => (inner ℝ (b i) x) ^ 2)\n      (stdGaussian E) := by\n    apply hi.mono' (by fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]\n    have hb := norm_inner_le_norm (𝕜 := ℝ) (b i) x\n    rw [b.orthonormal.norm_eq_one, one_mul] at hb\n    have hsq := (sq_le_sq₀ (norm_nonneg (inner ℝ (b i) x)) (norm_nonneg x)).2 hb\n    simpa [Real.norm_eq_abs, sq_abs] using hsq\n  refine ⟨hi, ?_⟩\n  calc\n    (∫ x : E, ‖x‖ ^ 2 ∂stdGaussian E) =\n        ∫ x : E, ∑ i, (inner ℝ (b i) x) ^ 2 ∂stdGaussian E := by\n      apply integral_congr_ae\n      filter_upwards with x\n      simpa [Real.norm_eq_abs, sq_abs] using (b.sum_sq_norm_inner_right x).symm\n    _ = ∑ i, ∫ x : E, (inner ℝ (b i) x) ^ 2 ∂stdGaussian E :=\n      integral_finsetSum _ (fun i _ => hL1 i)\n    _ = Module.finrank ℝ E := by simp [hdir]\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "edition": "Mathlib pinned by lake-manifest.json",
+      "anchor": "stdGaussian mean, covariance and L2 APIs",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Mathlib contributors. ASTIS packages the finite-dimensional norm-square consequence; this wording is not a quotation."
+    },
+    "statement": "For a standard Gaussian Z in a finite-dimensional real inner-product space, ‖Z‖² is integrable and its expectation equals the real dimension.",
+    "formulae": [
+      {
+        "label": "Second moment",
+        "tex": "\\int\\|z\\|^2\\,\\gamma_d(\\mathrm dz)=d."
+      }
+    ],
+    "assumptions": [
+      "Complete finite-dimensional real inner-product Borel space.",
+      "Mathlib's actual standard Gaussian measure."
+    ],
+    "obligations": [
+      {
+        "id": "gaussian-l2",
+        "label": "Squared-norm integrability and exact dimension moment"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+      "title": "The squared norm of a standard Gaussian has mean d",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+          "label": "Mathlib multivariate Gaussian covariance API",
+          "scope": "Formal upstream for L2 integrability, covariance and mean zero; ASTIS supplies the finite-basis norm-square packaging."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCPartialMomentumRefresh"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra.",
+        "The probability law is Mathlib's actual standard Gaussian stdGaussian E; no abstract covariance hypothesis replaces it."
+      ],
+      "statement": "If Z is standard Gaussian in E, then its squared norm is Bochner-integrable and its expectation is the real dimension of E.",
+      "formula": "\\mathbb E\\|Z\\|^2=\\dim_{\\mathbb R}E.",
+      "steps": [
+        {
+          "title": "Obtain genuine L2 integrability",
+          "text": "Mathlib proves that the identity random variable belongs to L2 under the standard Gaussian law. The L2-to-integrable-square equivalence therefore gives integrability of the squared norm before any coordinate sum is exchanged with the integral.",
+          "formula": "Z\\in L^2(\\gamma_E)\\quad\\Longrightarrow\\quad \\|Z\\|^2\\in L^1(\\gamma_E).",
+          "lean": "IsGaussian.memLp_two_id and memLp_two_iff_integrable_sq_norm produce hi."
+        },
+        {
+          "title": "Compute every directional variance",
+          "text": "For an orthonormal basis vector e_i, the covariance identity and zero Gaussian mean give E<e_i,Z>²=1. Each scalar square is dominated by ‖Z‖², so it is integrable.",
+          "formula": "\\mathbb E\\langle e_i,Z\\rangle^2=1,\\qquad |\\langle e_i,Z\\rangle|^2\\le\\|Z\\|^2.",
+          "lean": "covarianceBilin_apply, covarianceBilin_stdGaussian and integral_id_stdGaussian prove hdir; norm_inner_le_norm supplies hL1."
+        },
+        {
+          "title": "Apply finite-dimensional Parseval",
+          "text": "Parseval writes the squared norm as the finite sum of directional squares. Since every summand is integrable, the integral commutes with the finite sum and each term contributes one.",
+          "formula": "\\mathbb E\\|Z\\|^2=\\sum_{i=1}^{d}\\mathbb E\\langle e_i,Z\\rangle^2=\\sum_{i=1}^{d}1=d.",
+          "lean": "stdOrthonormalBasis.sum_sq_norm_inner_right and integral_finsetSum close the calculation."
+        }
+      ],
+      "lean_statement": "The declaration returns integrability and the exact integral in one reusable interface, because downstream product-measure calculations need both facts.",
+      "lean_proof": "ASTIS packages existing Mathlib Gaussian L2/covariance facts through finite-dimensional Parseval; it introduces no new axiom or source-specific assumption.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.memLp_two_id",
+        "ProbabilityTheory.covarianceBilin_apply",
+        "ProbabilityTheory.covarianceBilin_stdGaussian",
+        "InnerProductSpace.stdOrthonormalBasis",
+        "MeasureTheory.integral_finsetSum"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+      "role": "prerequisite",
+      "supports": [
+        "gaussian-l2"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Mathlib exposes standard-Gaussian mean, covariance and L2 facts separately.",
+        "lean": "ASTIS combines them with a finite orthonormal basis to return squared-norm integrability and its exact integral."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "38a36a40100fe895a57c5a974673afaa93e329243f47f92082b2a67dcac5fb1a"
+}

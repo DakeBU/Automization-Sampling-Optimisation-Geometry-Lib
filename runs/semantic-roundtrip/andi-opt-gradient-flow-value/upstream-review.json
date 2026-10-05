@@ -1,0 +1,97 @@
+{
+  "reviewer": "pl_pullback_review",
+  "review_kind": "bounded independent source/reuse/route audit",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S2",
+    "anchors": [
+      "Section2 conventions331–335",
+      "Lemma2.1 descent337–344",
+      "Theorem2.4 statement384–390/proof391–404"
+    ],
+    "statement": "alpha>=0, alpha-convex f, supplied gradient flow and attained minimum z; gap(t)<=alpha/(2(exp(alpha*t)-1))*norm(X0-z)^2. At alpha0 source explicitly interprets coefficient as1/(2t).",
+    "proof": "Squared distance to z has derivative<=-alpha distance²-2gap(s) by first-order convexity. Gronwall with time-dependent gap forcing; objective descent bounds earlier gap below by terminal gap; evaluate exponential integral.",
+    "regularity": "Source C2 Euclidean f, classical supplied forward curve, standing attained minimum."
+  },
+  "endpoint_source_gap": {
+    "finding": "Source says all t>=0 but the real quotient is singular at t0, including stated alpha0 limit1/(2t).",
+    "required_scope": "Use strictly positive observation time t>0 for the normalized value bound and retain this as an explicit source endpoint qualification. Do not silently use Lean total division at0.",
+    "counterexample_to_literal_Lean_t0": "f(x)=x²/2, X(t)=exp(-t), z0, alpha1. At t0 the initial gap is1/2, but the raw Lean quotient1/(2(exp0-1))=0, so the purported all-nonnegative-time formula becomes1/2<=0.",
+    "alpha0": "Use the direct branch coefficient1/(2t), proved by K0 comparison. No analytic alpha→0 limit theorem is needed for the case split; do not claim such a limit has been formalized.",
+    "alternative": "A division-free weighted inequality can include t0 vacuously, but normalized source rate still requires t>0.",
+    "publication": "Record the t0 source gap and its exact positive-time target boundary; any claimed repair overlay requires separate independent source review."
+  },
+  "candidate_assessment": {
+    "status": "Valid substantive interval-local route, pending compiler and independent source admission",
+    "assumptions": "Complete real Hilbert E; f differentiable; StrongConvexOn univ alpha f with alpha>=0; z global minimizer; X continuous onIcc0T and actual gradient right derivative onIco0T; observation0<t<=T.",
+    "conclusion": "Nonnegative gap bounded by norm(X0-z)^2/(2t) if alpha0, otherwise alpha*norm(X0-z)^2/(2(exp(alpha*t)-1)).",
+    "substantive_delta": "Derive actual objective monotonicity and squared-distance forcing from the supplied gradient trajectory and first-order convexity; these combine into a source-shaped value-rate adapter. Scalar Gronwall/integral manipulation alone is existing background, not new progress.",
+    "generalizations": "Hilbert space and Frechet differentiability/right-time finite-horizon dynamics replace Euclidean C2/classical flows; terminal continuity remains. No flow existence, uniqueness or extension; supplied minimizer explicit.",
+    "not_claimed": [
+      "Optimal sharp rate from Exercises2.1/2.2",
+      "Analytic alpha→0 limit theorem",
+      "PL-only value rate or gradient norm rate",
+      "Discrete optimization or stochastic/Wasserstein result"
+    ]
+  },
+  "accepted_route": [
+    "Derive actual right derivative d/ds f(Xs)=-norm(gradient f(Xs))² via Frechet/curve chain rule.",
+    "Use existing scalar one-sided Gronwall on arbitrary[s,t] with K0,epsilon0 to prove f(Xt)<=f(Xs) for0<=s<=t<=T. This avoids assuming unavailable ordinary interior derivatives.",
+    "Differentiate norm(Xs-z)² using HasDerivWithinAt.sub_const and norm_sq. Apply ASTIS firstOrder_lower_bound_of_strongConvexOn at Xs,z to get D prime(s)<=-alpha D(s)-2gap(s).",
+    "For a fixed terminal t>0, monotonicity gives gap(s)>=gap(t), so D prime(s)<=-alpha D(s)-2gap(t) on0t.",
+    "Apply existing scalar le_gronwallBound_of_liminf_deriv_right_le with K=-alpha and epsilon=-2gap(t). Its epsilon is an arbitrary real, so negative forcing is allowed; avoid norm variants.",
+    "Use D(t)>=0. For alpha0, gronwallBound_K0 yields2t gap(t)<=D0. For alpha>0, explicit nonzero-K bound gives2gap(t)(1-exp(-alpha*t))<=alpha D0 exp(-alpha*t); multiply by exp(alpha*t), divide by positive denominator.",
+    "Use global minimum for nonnegative gap. Restrict hX continuity from0T to0t; no derivative at terminal t or T needed."
+  ],
+  "reuse_audit": {
+    "ASTIS": {
+      "searched": [
+        "Analysis gradient-flow and value-rate modules",
+        "FunctionalInequalities/SemigroupDecay.lean",
+        "Analysis/StrongConvexFirstOrder.lean",
+        "Analysis/GradientDescentValue.lean"
+      ],
+      "exact_target_found": false,
+      "parent": "StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+      "related_boundaries": [
+        "GradientFlowPL supplies objective dissipation only bundled with positive PL premise, not an unconditional energy-only leaf suitable for alpha0.",
+        "GradientFlowContraction controls pairwise distance, not this objective-rate forcing.",
+        "GradientDescentValue is discrete-time.",
+        "Global DissipationCurve APIs impose unnecessary all-real dynamics and are not direct finite-forward adapters."
+      ],
+      "decision": "New actual-flow value adapter using existing first-order convexity and scalar comparison; avoid reproof of scalar integrals."
+    },
+    "Mathlib": {
+      "exact_target_found": false,
+      "APIs": [
+        "HasFDerivAt.comp_hasDerivWithinAt (explicit point)",
+        "HasDerivWithinAt.sub_const",
+        "HasDerivWithinAt.norm_sq",
+        "HasDerivWithinAt.liminf_right_slope_le",
+        "le_gronwallBound_of_liminf_deriv_right_le",
+        "gronwallBound_K0",
+        "gronwallBound_of_K_ne_0",
+        "gronwallBound_ε0",
+        "Real.exp_pos, Real.exp_add, Real.one_lt_exp_iff"
+      ],
+      "pitfall": "antitoneOn_of_deriv_nonpos and antitoneOn_of_hasDerivWithinAt_nonpos need derivatives within a fixed interior domain, not merely the right germ at each point; scalar right-slope comparison is already matched."
+    },
+    "Optlib": {
+      "pin": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "search": "Pinned sources flow/Gronwall/value-exp and strongly-convex calculus.",
+      "exact_target_found": false,
+      "reuse": "Existing ASTIS first-order support result already covers its Strong_Convex_second_lower mathematics."
+    },
+    "CvxLean": {
+      "pin": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "search": "Pinned sources flow/Gronwall/value-exp; optimization-equivalence library.",
+      "exact_target_found": false,
+      "decision": "Out of scope."
+    }
+  },
+  "tests": {
+    "main": "Nonstationary f(x)=x²/2,X(t)=exp(-t),z0 and positive observation t. Invoke both alpha1 strong and alpha0 convex interpretations, proving actual flow and convexity premises. Positive objective gap makes both branches nonvacuous.",
+    "source_endpoint": "Explicitly preserve positive-time hypothesis; a t0 raw quotient counterexample or source-review note should prevent accidental admission of all t>=0.",
+    "not_sharp": "Theorem2.4 coefficient is deliberately not sharp. Do not insist on quadratic equality; verify correct bound/branches and source coefficient."
+  },
+  "review_boundary": "No Lean proof or repository edits by reviewer. Frozen proof, exact source repair/scope admission, independent decoder/source review and release gates remain pending."
+}

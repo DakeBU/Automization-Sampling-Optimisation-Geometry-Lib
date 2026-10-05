@@ -1,0 +1,4 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport
+
+#check AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport.phaseWassersteinSq_initial_le_position_moment
+#print axioms AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport.phaseWassersteinSq_initial_le_position_moment

@@ -1,0 +1,131 @@
+{
+  "reviewer": "sharp_route_review",
+  "review_kind": "bounded independent source/reuse/mathematical route audit",
+  "checked_base_commit": "09d558cefd62db8d0b0ed650a40434416f2c0763",
+  "verdict": "accept as substantive bounded class-level order-sharpness component; not an exact-constant sharpness theorem",
+  "repo_edits": false,
+  "proof_implementation_or_gate_runs": false,
+  "protocols_read": [
+    "AGENTS.md (also present in assigned context)",
+    "docs/formalization-protocol.md",
+    "docs/theorem-publication-protocol.md"
+  ],
+  "source": {
+    "edition": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1",
+    "url": "https://arxiv.org/html/2605.07006v1#S3",
+    "anchors": [
+      "Section3 opening actual GD and C2 convention, HTML508-516",
+      "Theorem3.4 equation(3.2) and alpha=0 interpretation, HTML559-568",
+      "Theorem3.4 h=1/beta convex specialization, HTML606-612",
+      "Exercise3.3 positive-definite quadratic iterates and sharpness checks, HTML678-680"
+    ],
+    "summary": "Theorem3.4 gives final objective gap at most beta times initial squared distance divided by 2N for convex beta-smooth objectives using step1/beta. The section assumes C2 regularity and actual gradient updates. Exercise3.3 asks for explicit positive-definite quadratic iterates and assessment of Section3 sharpness.",
+    "omission": "The source does not print this horizon-dependent witness, its chosen curvature, or the constant1/16; these are an ASTIS-authored derivation answering one selected exercise component.",
+    "fidelity_classification": "bounded selected component of Exercise3.3; conclusion weaker than exact sharpness/all-section assessment; no source repair required"
+  },
+  "candidate": {
+    "quantifiers": "forall beta>0, forall N:natural, define mu_N=beta/(2*(N+1)) and f_N(x)=mu_N*x^2/2; all certificates and N-step objective conclusion concern this horizon-dependent f_N.",
+    "parameters": "beta real positive; N natural including0; casts of N+1 into real explicit",
+    "certificates": [
+      "0<mu_N<=beta",
+      "ContDiff R2 f_N",
+      "StrongConvexOn univ mu_N f_N and hence ConvexOn R univ f_N",
+      "global beta quadratic upper model using actual gradient f_N",
+      "IsMinOn f_N univ0; f_N(0)=0",
+      "actual gradient-descent iteration T(x)=x-(1/beta)*gradient f_N x from1"
+    ],
+    "exact_gap": "f_N(T^[N](1))-f_N(0) = mu_N/2 * (1-1/(2*(N+1)))^(2*N)",
+    "lower_bound": "beta/(16*(N+1)) <= f_N(T^[N](1))-f_N(0)",
+    "source_upper_comparison": "For N>=1, source upper beta/(2N) and lower beta/(16(N+1)) >= beta/(32N) establish matching order in beta/N for initial distance1.",
+    "zero_horizon": "N=0 yields mu=beta/2 and initial gap beta/4; the proposed lower beta/16 is valid. Source beta/(2N) comparison is asserted only for N>=1."
+  },
+  "mathematical_check": {
+    "q": "q_N=1-1/(2*(N+1)); 1/2<=q_N<1",
+    "bernoulli": "q_N^N >= 1+N*(q_N-1) = (N+2)/(2*(N+1)) >= 1/2",
+    "square_step": "q_N^(2*N)=(q_N^N)^2 >= 1/4, using nonnegativity before squaring",
+    "normalization": "mu_N/2=beta/(4*(N+1)); multiplying by1/4 gives beta/(16*(N+1)) exactly",
+    "no_counterexample_found": "Algebraic derivation valid for all beta>0 and every natural N, including0. No numerical sampling or unproved analytic approximation is needed.",
+    "exact_optimal_constant": "Not asserted. Bernoulli estimate is deliberately slack. On scalar quadratics and positive N, maximizing the exact gap over curvature can yield a different curvature/constant; this target need not solve that optimization."
+  },
+  "substantive_delta": "Constructs an admitted actual objective whose final value has an Omega(beta/N) lower bound, closing a new selected convex objective-gap order comparison. Earlier fixed-step distance sharpness holds for fixed positive class lower modulus and targets norm; it does not state this horizon-dependent value lower bound. The new result is a real integration edge combining exact dynamics with a quantitative horizon choice and Bernoulli inequality, not a wrapper that assumes the desired inequality.",
+  "reuse_decision": "adapt_existing",
+  "recommended_route": [
+    "Fix beta>0 and horizonN; define positive mu=beta/(2(N+1)) and prove mu<=beta.",
+    "Specialize exists_quadratic_worst_case with equal class bounds mu,mu and step1/beta; endpoint disjunction forces returned curvature=mu. Reuse its actual C2, strong-convexity, upper-model, minimizer and norm certificates.",
+    "Use StrongConvexOn.mono to reach zero modulus and strongConvexOn_zero to obtain ordinary convexity; widen the mu upper model to beta by nonnegative squared distance.",
+    "Read actual norm=q_N^N after proving 1-mu/beta=q_N>=0. Compute f_N(x)-f_N(0)=mu/2*norm(x)^2. Alternatively use quadratic_eigenmode objective identity if direct value reuse is clearer; do not reprove actual iteration induction.",
+    "Apply one_add_mul_sub_le_pow at q_N, then rational arithmetic to obtain q_N^N>=1/2.",
+    "Square using nonnegativity, rewrite exponent2N and insert mu to derive lower beta/(16(N+1)).",
+    "Publish one explicitly selected Exercise3.3/Theorem3.4 convex-order component, leaving exact constant and other comparisons uncovered; independent blind/source review and standard publication admission still required."
+  ],
+  "searched_dependencies": [
+    {
+      "scope": "ASTIS",
+      "results": [
+        "Analysis.GradientDescentSharpness.exists_quadratic_worst_case: equal endpoints give the exact requested scalar objective, internally certified regularity/strong-convexity/upper-model/minimizer and all-step norm identities. It does not itself state horizon-dependent objective order sharpness.",
+        "Analysis.QuadraticGradientDescent.quadratic_eigenmode: exact actual iterate norm and quadratic objective identity, available for direct value route.",
+        "Analysis.GradientDescentValue.gradient_descent_weighted_value_bound: source upper-value recurrence; at alpha=0, h=1/beta, x0=1,z=0 it supplies the existing uniform convex upper bound in division-free form. This should remain a preserved upper-bound parent/reference, not be reimplemented.",
+        "Analysis.GradientDescentValue.gradient_step_energy_bound: comparator energy upper inequality; not a sharpness witness.",
+        "Bounded searches in ASTIS Analysis modules, frontier cells and declaration lessons found no existing horizon-dependent beta/(16(N+1)) value witness. Existing gradient-descent-sharpness cell addresses constant-step distance instead."
+      ]
+    },
+    {
+      "scope": "Mathlib",
+      "commit": "db584cd6d46c92f209a44c0f1c829460d327499d",
+      "toolchain": "Lean4.33.0",
+      "license": "Apache-2.0",
+      "results": [
+        "Mathlib/Algebra/Order/Ring/Pow.lean:100 one_add_mul_le_pow (H:-2<=a)(n:N):1+n*a<=(1+a)^n",
+        "Same file:104 one_add_mul_sub_le_pow (H:-1<=a)(n:N):1+n*(a-1)<=a^n. This exact Bernoulli variant directly fits q_N.",
+        "Mathlib/Analysis/Convex/Strong.lean: StrongConvexOn.mono and strongConvexOn_zero permit convex-class membership from positive mu curvature.",
+        "sq_abs / Real.norm_eq_abs, pow_mul, pow_nonneg and ordered-square arithmetic suffice to turn existing norm identity into objective identity."
+      ]
+    },
+    {
+      "scope": "Optlib",
+      "commit": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "license": "Apache-2.0",
+      "toolchain": "Lean4.13.0",
+      "results": [
+        "Optlib/Algorithm/GD/GradientDescent.lean:157 point_descent_for_convex is one-step inequality.",
+        "Same file:198 gradient_method proves f(x(k+1))-f(xm) <= norm(x0-xm)^2/(2*(k+1)*step) for convex objective and step<=1/l. This is the existing O(1/N) upper estimate, not a lower witness.",
+        "Bounded pinned GD search for worst-case/lower-bound/sharp found no matching horizon-dependent objective construction. Adjacent LASSO/ADMM squared-quadratic derivative APIs were audited in prior route report; local ASTIS actual quadratic APIs already supersede their need here."
+      ],
+      "compatibility": "reference only; no upstream source imported, copied or freshly compiled"
+    },
+    {
+      "scope": "CvxLean",
+      "commit": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "license": "Apache-2.0",
+      "toolchain": "Lean4.8.0-rc1",
+      "results": [
+        "Bounded pinned CvxLean/Lib/Math search for gradient-descent/worst-case/lower-bound/sharp found no matching horizon-dependent GD objective lower witness.",
+        "Prior scoped audit identifies eigenspace and spectral algebra but no relevant actual GD value-sharpness theorem."
+      ],
+      "compatibility": "reference only; no adapter needed"
+    }
+  ],
+  "truth_boundaries": [
+    "Horizon quantification is forallN existsf_N (or explicit f_N definition), not existsf forallN with a 1/N asymptotic lower tail. A fixed positive scalar quadratic converges geometrically and does not support the latter claim.",
+    "Each witness is positively strongly convex, but its modulus mu_N tends to0 with growing horizon. There is no fixed positive strong-convexity modulus uniform in N, so there is no conflict with exponential rates in a fixed strongly-convex class.",
+    "beta is an admissible smoothness upper bound, not the witness tight smoothness constant mu_N. The prescribed step1/beta depends on class information, not the optimal step1/mu_N for that known scalar objective.",
+    "The result is order sharpness for prescribed constant step1/beta and initial distance1. It does not establish the best numerical constant, arbitrary fixed-step minimax sharpness, adaptive/variable-step hardness, acceleration barriers or general first-order oracle lower bounds.",
+    "The exact gap is for the N-th iterate; keep indexing N versus N+1 precise. N+1 appears in chosen curvature and denominator, not in the iteration count.",
+    "This selected convex objective-gap component does not complete Exercise3.3, Section3, either companion paper, or separate strong-convex value/stationarity comparisons."
+  ],
+  "publication_guidance": {
+    "source_item": "Create a separately scoped order-sharpness item or obligation rather than modifying the existing whole Exercise3.3 source meaning. Preserve previous accepted audits and distance-sharpness theorem files.",
+    "suggested_title": "Horizon-dependent quadratics witness the convex GD objective-gap order",
+    "assumption_deltas": [
+      "N>=1 only for comparison to source inverse-N upper rate; new lower identity remains valid at0",
+      "convex class membership allows the stronger but horizon-dependent mu_N-strong-convex witness",
+      "beta is valid class smoothness bound; do not claim exact intrinsic condition number or tight constant",
+      "constant1/16 and explicit horizon witness are authored exercise derivation, not printed source statement"
+    ]
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Quantitative parameter choice within existing Euclidean quadratic GD/value mechanism; no new cross-domain transport."
+  },
+  "verification_scope": "Source/reuse and mathematical route audit only. No Lean theorem has been implemented or independently compiled in this audit; no PROVED_LOCAL/VERIFIED status recommended before frozen proof and publication review."
+}

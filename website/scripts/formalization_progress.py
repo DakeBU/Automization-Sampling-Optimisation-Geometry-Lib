@@ -283,7 +283,7 @@ def workflow_block(shared_cells: list[dict[str, object]]) -> str:
     <article><span>Integration</span><h3>Single stabilization lane</h3><p>Shared aggregators, root registries, duplicate API resolution, graph regeneration, and final root builds are serialized after independent verification.</p></article>
   </div>
   <div class="progress-shared-cells"><h3>Shared-foundation Frontier Cells</h3>{cells_html(shared_cells, empty_copy="No shared Frontier Cell is currently registered. Candidate cross-route checkpoints are tracked in Libraries/shared-foundations.yml.")}</div>
-  <p class="progress-protocol-actions"><a class="button primary" href="../workflow/index.html">Open ASTIS Harness</a> <a class="button" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/tree/main/docs">Protocol docs ↗</a> <a class="button" href="https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/issues/new?template=frontier-cell.yml">Claim a Frontier Cell ↗</a></p>
+  <p class="progress-protocol-actions"><a class="button primary" href="../workflow/index.html">Open ASTIS Harness</a> <a class="button" href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/docs">Protocol docs ↗</a> <a class="button" href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/issues/new?template=frontier-cell.yml">Claim a Frontier Cell ↗</a></p>
 </section>
 """
 

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-proximal-expected-work",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "Gradient-only proximal execution: expected pointwise work under an input moment",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Appendix D.2, Lemma D.4 proof after equation D.7: the first Jensen expected-work inequality",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib isolates and expands the expectation/Jensen step; this is not the full Lemma D.4, equation D.7 or equation D.8, and is not the authors' original wording or an endorsement."
+    },
+    "statement": "Let an actual Algorithm D.2 query at a random center Y have pointwise count N_prox(Y) bounded by C_c[1+log(1+‖∇V(Y)‖/eps)]. If the center law is a probability measure and E‖∇V(Y)‖² is finite, then the actual count is integrable and E[N_prox(Y)]≤C_c[1+log(1+sqrt(E‖∇V(Y)‖²)/eps)]. Samplinglib constructs the measurable first-stopped execution and its count rather than assuming an accurate oracle or a cost random variable. The explicit C_c is the admissible constant already derived for D.3.",
+    "assumptions": [
+      "E is a finite-dimensional complete real inner-product space with its Borel measurable structure; the source specializes to Euclidean space.",
+      "V is C², kappa≥1, and kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v. Fix 0<eta≤c<1 and eps>0.",
+      "nu is a probability law for the query center and y↦‖∇V(y)‖² is integrable. Lemma D.4's separate equation D.7 must later supply a uniform numerical bound for the actual Picard center laws."
+    ],
+    "formulae": [
+      {"label": "Conditional expected query work", "tex": "\\mathbb E_\\nu[N_{\\rm prox}(Y)]\\le C_c\\left[1+\\log\\left(1+\\frac{(\\mathbb E_\\nu\\|\\nabla V(Y)\\|^2)^{1/2}}{\\varepsilon}\\right)\\right]."},
+      {"label": "Samplinglib admissible D.3 constant", "tex": "C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}."}
+    ],
+    "obligations": [
+      {"id": "actual-count", "label": "Measurable actual Algorithm D.2 output and query count"},
+      {"id": "count-integrability", "label": "Integrability of the realized count before taking expectation"},
+      {"id": "jensen-l2", "label": "Jensen and probability-L2 expected-work inequality"},
+      {"id": "picard-moment", "label": "Actual Picard center moment estimate D.7 (remaining)"},
+      {"id": "total-work", "label": "Phase/call aggregation and total gradient work D.8 (remaining)"}
+    ],
+    "bindings": [{
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExpectedWork.approximate_proximal_expected_work",
+      "cell": "ASTIS-SW-SPHMC-proximal-expected-work",
+      "role": "proof-edge",
+      "supports": ["actual-count", "count-integrability", "jensen-l2"],
+      "audit_id": "ASTIS-RT-20260929-ProximalExpectedWork",
+      "boundary": "Conditional expected work for one actual stopped proximal query. No proof that the realized Picard center law satisfies D.7, no uniform C*kappa*d*L_q^18 moment bound, no 2J-per-phase/number-of-phases aggregation, no D.8, approximate-kernel stability, sampling accuracy or full-paper result. Total variation is not used to transfer unbounded cost.",
+      "assumption_deltas": [
+        {"source": "Lemma D.4 concerns the actual Picard HMC center laws and first proves their numerical second-moment bound D.7.", "lean": "An arbitrary probability measure nu is allowed, under the explicit premise Integrable(y↦‖∇V(y)‖²).", "classification": "generalization", "reason": "This isolates exactly the conditional Jensen consequence after D.7. The actual-law identification and numerical moment bound remain visible unsupported obligations, so this binding does not claim the full source lemma."},
+        {"source": "The source works on R^d with the normalized Hessian bounds and its stated algorithmic parameters.", "lean": "Finite-dimensional complete real inner-product Borel space, genuine C² Hessian bounds, kappa≥1 and full 0<eta≤c<1, eps>0.", "classification": "generalization", "reason": "The coordinate-free domain contains the source Euclidean setting. C² prevents interpreting totalized fderiv as a derivative without regularity; the parameter range matches the parent D.3 execution theorem."},
+        {"source": "The proof invokes Lemma D.3's pointwise number of gradient evaluations and then Jensen's inequality.", "lean": "The same measurable witnesses p,N returned by the actual finite-fuel interpreter are retained; N+1 is proved integrable before integral_mono and Jensen are used.", "classification": "source-implicit", "reason": "Measurability and integrability are logically required to take the displayed expectation. N+1 includes the successful residual-test query and is not a supplied cost assumption."},
+        {"source": "The paper writes a constant C and obtains the later bound C*L_q after inserting D.7 and parameter choices.", "lean": "The conditional inequality uses the explicit admissible C_c=2+(1+log((1-c)^-1))/(-log c) inherited from the formal D.3 bound.", "classification": "source-implicit", "reason": "This makes the c-dependence explicit without claiming the later L_q estimate or D.8. The formula was derived in Samplinglib and is not printed verbatim in the paper."}
+      ]
+    }]
+  }]
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariationL2.tendsto_integral_dyadic_quadraticVariationError_sq",
+      "kind": "theorem",
+      "title": "Dyadic scalar Brownian quadratic variation converges in mean square",
+      "statement": "Let B be a real pre-Brownian process and T≥0. On the regular partition of [0,T] into 2^m equal cells, the expected square of the sum of squared increments minus their cell lengths tends to zero as m tends to infinity.",
+      "formula": "\\lim_{m\\to\\infty}\\mathbb E\\left[\\left(\\sum_{i=0}^{2^m-1}((B_{(i+1)T/2^m}-B_{iT/2^m})^2-T/2^m)\\right)^2\\right]=0",
+      "assumptions": [
+        "B satisfies Samplinglib's real pre-Brownian contract under μ.",
+        "T is an arbitrary nonnegative real horizon; the theorem includes T=0.",
+        "The grids are canonical deterministic dyadic regular grids. No filtration, adaptedness, usual conditions, or positive-horizon assumption is required."
+      ],
+      "steps": [
+        {
+          "title": "Specialize the finite-grid identity",
+          "text": "Apply the exact finite-grid L² theorem to the regular grid with 2^m cells and mesh δ_m=T/2^m.",
+          "formula": "\\mathbb E[Q_m^2]=2\\sum_{i=0}^{2^m-1}\\delta_m^2",
+          "lean": "Use integral_quadraticVariationError_sq with regularGridTimes_monotone."
+        },
+        {
+          "title": "Evaluate equal cell lengths",
+          "text": "Every adjacent difference in the regular grid is exactly δ_m. The sum of 2^m equal squared lengths simplifies to Tδ_m.",
+          "formula": "\\sum_{i=0}^{2^m-1}\\delta_m^2=T\\delta_m",
+          "lean": "Use regularGridTimes_cellLength and sum_dyadic_cellLengths_sq."
+        },
+        {
+          "title": "Let the dyadic mesh vanish",
+          "text": "The canonical dyadic mesh tends to zero. Multiplication by the fixed nonnegative scalar 2T preserves the limit, so the exact error moment tends to zero.",
+          "formula": "2T\\delta_m\\longrightarrow 0",
+          "lean": "Apply FiniteTimeGrid.dyadicMesh_tendsto_zero T and Tendsto.const_mul."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianQuadraticVariationL2.integral_quadraticVariationError_sq",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid.dyadicMesh_tendsto_zero",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes"
+      ],
+      "mathlib_dependencies": [
+        "Filter.Tendsto",
+        "Finset.sum_const",
+        "NNReal.coe_div"
+      ],
+      "lean_statement": "The theorem quantifies over every nonnegative horizon and uses the canonical regular grid with 2^level cells, keeping IsPreBrownianReal explicit.",
+      "lean_proof": "The proof rewrites the exact finite-grid second moment as 2T times the dyadic mesh and passes to the known zero-mesh limit.",
+      "boundary": "This is scalar mean-square convergence on deterministic dyadic grids only. Almost-sure or ucp convergence, predictable weights, vector cross-variation, stochastic integration, Taylor localization, and a complete Ito formula remain separate obligations.",
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Sinho Chewi, Log-Concave Sampling, 2026-08-09, Section 3.1",
+          "scope": "Quadratic variation along dyadic partitions."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianQuadraticVariationL2.lean",
+          "label": "Samplinglib compiled dyadic L² theorem",
+          "scope": "Exact assumptions, finite-level reduction, and the Tendsto conclusion."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 LEAN_NUM_THREADS=1 lake build Tests.BrownianQuadraticVariationL2"
+      ]
+    }
+  ]
+}

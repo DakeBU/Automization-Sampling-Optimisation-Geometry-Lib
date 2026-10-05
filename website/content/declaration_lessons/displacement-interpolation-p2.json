@@ -1,0 +1,81 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationConstantSpeed.wassersteinDistance_interpolation_eq_of_le_of_integrable_norm_sq",
+      "kind": "theorem",
+      "title": "Optimal displacement interpolation has constant speed for arbitrary P2 endpoints",
+      "statement": "Let E be the repository's finite-dimensional real inner-product Borel space. Let mu0 and mu1 be probability measures with finite second moments, and let gamma be a coupling of them attaining the quadratic transport infimum. For 0 <= s <= t <= 1, the 2-Wasserstein distance between the affine pushforwards mu_s and mu_t is exactly (t-s) times the endpoint distance.",
+      "formula": "\\mu_r=((x,y)\\mapsto(1-r)x+ry)_\\#\\gamma,\\qquad W_2(\\mu_s,\\mu_t)=(t-s)W_2(\\mu_0,\\mu_1),\\qquad 0\\le s\\le t\\le1.",
+      "assumptions": [
+        "E retains the existing NormedAddCommGroup, real InnerProductSpace, FiniteDimensional, Borel, SecondCountableTopology, StandardBorelSpace and Nonempty assumptions used by the interpolation and exact triangle APIs.",
+        "mu0 and mu1 are probability measures, expressed by IsProbabilityMeasure instances, and their real squared norms are integrable. Absolute continuity with respect to volume is not assumed.",
+        "gamma is supplied and is a quadratic-optimal coupling: it has marginals mu0 and mu1 and its ENNReal quadratic cost equals the transport-cost infimum. The theorem does not prove that gamma exists.",
+        "The parameters satisfy 0 <= s <= t <= 1. The ordered formula uses t-s rather than an absolute value.",
+        "The output is an equality in ENNReal. Finite second moments are used to prove that the endpoint Wasserstein distance is below infinity before additive cancellation."
+      ],
+      "steps": [
+        {
+          "title": "Build probability laws along the interpolation",
+          "text": "The optimal coupling has probability mass because its first marginal is the probability law mu0. Mapping this coupling by the measurable affine point map gives a probability measure mu_s at time s and similarly mu_t at time t. No density or absolute-continuity argument is used.",
+          "formula": "\\mu_r=(\\pi_r)_\\#\\gamma,\\qquad \\pi_r(x,y)=(1-r)x+ry,\\qquad \\gamma( E\\times E)=1\\Longrightarrow\\mu_r(E)=1.",
+          "lean": "Transport.isProbabilityMeasure_of_isCoupling_left supplies the probability instance for gamma, and isProbabilityMeasure_displacementInterpolation transports it through the measurable affine map."
+        },
+        {
+          "title": "Use the canonical two-time coupling for the upper bound",
+          "text": "Push gamma forward by the pair of affine maps at s and t. This is a coupling of mu_s and mu_t, and its displacement is exactly (t-s)(y-x). Quadratic optimality at the endpoints therefore gives the sharp upper bound for each of the three ordered subintervals [0,s], [s,t], and [t,1].",
+          "formula": "W_2(\\mu_s,\\mu_t)\\le(t-s)W_2(\\mu_0,\\mu_1).",
+          "lean": "wassersteinDistance_interpolation_le packages the measurable two-time coupling, exact quadratic-cost scaling, endpoint optimality and monotonicity of the positive square root. Endpoint rewrites use displacementInterpolation_zero and displacementInterpolation_one."
+        },
+        {
+          "title": "Compare the three pieces with the endpoint distance",
+          "text": "The exact Wasserstein triangle inequality along mu0, mu_s, mu_t, mu1 bounds the endpoint distance by the sum of the three segment distances. Replacing the prefix and suffix by their sharp upper bounds produces a lower bound on the middle segment after cancellation. The coefficients s, t-s and 1-t are nonnegative and sum to one.",
+          "formula": "W_2(\\mu_0,\\mu_1)\\le W_2(\\mu_0,\\mu_s)+W_2(\\mu_s,\\mu_t)+W_2(\\mu_t,\\mu_1),\\qquad s+(t-s)+(1-t)=1.",
+          "lean": "WassersteinTriangleExact.wassersteinDistance_triangle is applied twice. interpolation_coefficients_sum_one converts the coefficient partition into an ENNReal equality."
+        },
+        {
+          "title": "Justify extended-real cancellation using finite moments",
+          "text": "Cancellation in ENNReal is invalid when the common prefix or suffix is infinite. The endpoint probability and finite-second-moment hypotheses feed the existing independent-product-coupling lemma, proving the endpoint W2 distance is finite. Multiplying by finite real coefficients keeps the prefix and suffix finite, so the two additive cancellations are sound. Combining the resulting lower bound with the canonical-coupling upper bound gives equality.",
+          "formula": "\\int\\|x\\|^2\\,d\\mu_0<\\infty,\\quad\\int\\|y\\|^2\\,d\\mu_1<\\infty\\Longrightarrow W_2(\\mu_0,\\mu_1)<\\infty\\Longrightarrow W_2(\\mu_s,\\mu_t)=(t-s)W_2(\\mu_0,\\mu_1).",
+          "lean": "WassersteinFiniteSecondMoment.wassersteinDistance_lt_top_of_integrable_norm_sq proves hd. ENNReal.mul_lt_top and ENNReal.add_le_add_iff_left/right justify the two cancellations, and le_antisymm closes the equality."
+        }
+      ],
+      "lean_statement": "The theorem quantifies over the existing ambient E, endpoint measures mu0 and mu1 with probability instances, an optimal quadratic coupling gamma, explicit Integrable squared-norm hypotheses, and ordered s,t in the unit interval. It returns the exact ENNReal Wasserstein-distance identity for the two displacementInterpolation pushforwards.",
+      "lean_proof": "The proof reuses the existing sharp interpolation upper bound and exact triangle inequality. Its only endpoint-domain change is to call wassersteinDistance_lt_top_of_integrable_norm_sq directly instead of unpacking the stronger P2ac predicate. The historical wassersteinDistance_interpolation_eq_of_le declaration and module remain unchanged. The focused compatibility test installs probability instances from its P2ac hypotheses and derives the same signature from this general theorem.",
+      "boundary": [
+        "This is exactly the ordered metric-identity component of Statistical Optimal Transport Theorem 7.6, conditional on a supplied optimal plan; it does not prove optimal-plan existence or the complete geodesic-space assertion.",
+        "Relative to Log-Concave Sampling Theorem 1.3.23, removing endpoint absolute continuity is a genuine generalization. That source's P2ac theorem and IsWassersteinGeodesic interface remain unchanged and follow as a compatibility corollary.",
+        "No uniqueness, continuity equation, Benamou-Brenier identity, optimal map, path continuity, arbitrary-time symmetry wrapper, or completion of either source chapter is claimed."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationConstantSpeed.wassersteinDistance_interpolation_le",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationConstantSpeed.interpolation_coefficients_sum_one",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinFiniteSecondMoment.wassersteinDistance_lt_top_of_integrable_norm_sq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleExact.wassersteinDistance_triangle",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolation.displacementInterpolation_zero",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolation.displacementInterpolation_one"
+      ],
+      "mathlib_dependencies": [
+        "ENNReal.mul_lt_top",
+        "ENNReal.add_le_add_iff_left",
+        "ENNReal.add_le_add_iff_right",
+        "le_antisymm"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=215",
+          "label": "Chewi, Niles-Weed and Rigollet, Statistical Optimal Transport, Theorem 7.6, printed pp.209-210/PDF pp.215-216",
+          "scope": "Direct source for arbitrary P2 endpoints, the optimal-plan affine pushforward and the constant-speed identity. ASTIS formalizes only the ordered metric identity conditional on the plan."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=42",
+          "label": "Chewi, Log-Concave Sampling, Theorem 1.3.23 and Definition 1.3.25, printed p.30/PDF p.42",
+          "scope": "The existing P2ac source theorem is the compatibility specialization. It is not the source for removing absolute continuity."
+        }
+      ],
+      "tests": {
+        "file": "Tests/DisplacementInterpolationConstantSpeed.lean",
+        "command": "LEAN_NUM_THREADS=2 lake build Tests.DisplacementInterpolationConstantSpeed"
+      }
+    }
+  ]
+}

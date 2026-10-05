@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_expandedBakryEmery",
+      "kind": "theorem",
+      "title": "Backward interpolation yields gradient contraction",
+      "statement": "Let P_u be positive real-linear evolution operators and q_u a family of observables. If α>0, the expanded CD(α,∞) inequality holds, Φ(u)=P_uΓ(q_u) is continuous, and its exact right derivative is P_u(LΓ(q_u)−2Γ(q_u,Lq_u)), then Φ(s)≤Φ(t)e^{-2α(t-s)} for s≤t.",
+      "formula": "\\Phi'(u)=P_u(L\\Gamma(q_u)-2\\Gamma(q_u,Lq_u))\\ge2\\alpha\\Phi(u)\\Longrightarrow\\Phi(s)\\le\\Phi(t)e^{-2\\alpha(t-s)}",
+      "assumptions": [
+        "X is arbitrary and L is real-linear on real-valued observables.",
+        "The curvature parameter α is strictly positive and the fully expanded diagonal CD inequality holds for every observable and point.",
+        "Each P_u is real-linear and preserves pointwise order.",
+        "The scalar interpolation Φ(u)=P_uΓ(q_u)(x) is continuous.",
+        "At every u, its exact right derivative within [u,∞) is P_u(LΓ(q_u)−2Γ(q_u,Lq_u))(x).",
+        "The endpoints satisfy s≤t."
+      ],
+      "steps": [
+        {
+          "title": "Turn curvature into a pointwise generator bound",
+          "text": "The expanded CD inequality gives LΓ(q_u)−2Γ(q_u,Lq_u)≥2αΓ(q_u) at every state.",
+          "formula": "L\\Gamma(q_u)-2\\Gamma(q_u,Lq_u)\\ge2\\alpha\\Gamma(q_u)",
+          "lean": "Apply interpolationDerivative_lower_bound_of_expandedBakryEmery to q_u."
+        },
+        {
+          "title": "Push the inequality through the positive linear evolution",
+          "text": "Order preservation maps the pointwise bound through P_u; linearity pulls out 2α. The supplied derivative identity then gives Φ'(u)≥2αΦ(u).",
+          "formula": "\\Phi'(u)\\ge2\\alpha\\Phi(u)",
+          "lean": "Use hpositive, then simplify with the linear-map laws."
+        },
+        {
+          "title": "Read the backward interpolation endpoints",
+          "text": "The scalar comparison theorem converts the derivative lower bound into exponential contraction from t back to s.",
+          "formula": "\\Phi(s)\\le\\Phi(t)e^{-2\\alpha(t-s)}",
+          "lean": "Apply backward_interpolation_contraction_of_growth with rate 2α."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.interpolationDerivative_lower_bound_of_expandedBakryEmery",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.SemigroupDecay.backward_interpolation_contraction_of_growth"
+      ],
+      "mathlib_dependencies": [
+        "LinearMap.map_smul",
+        "HasDerivWithinAt",
+        "Continuous",
+        "Real.exp"
+      ],
+      "lean_statement": "Every curvature, positivity, continuity, derivative, and endpoint premise is explicit. The evolution and orbit are arbitrary functions of real time; no semigroup law is inferred.",
+      "lean_proof": "The proof derives the pointwise curvature bound, transfers it through each positive linear operator, and invokes the independently verified scalar backward interpolation theorem.",
+      "boundary": "The theorem assumes rather than proves the exact derivative identity, positivity, continuity, and domain closure for a concrete semigroup. It does not construct a diffusion or identify a concrete generator.",
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=31",
+          "label": "Chewi, Definitions 1.2.28–1.2.29",
+          "scope": "Γ₂ and CD(α,∞) background for the curvature step."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BakryEmeryGradientContraction.lean",
+          "label": "Samplinglib compiled abstract adapter",
+          "scope": "Exact positivity, derivative, and endpoint composition."
+        }
+      ],
+      "tests": [
+        "lake -Kjobs=1 build AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BakryEmeryGradientContraction",
+        "lake env lean Tests/BakryEmeryGradientContraction.lean"
+      ]
+    }
+  ]
+}

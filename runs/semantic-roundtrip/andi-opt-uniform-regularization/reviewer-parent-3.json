@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-e651abab7c0d6b6f",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "andi-reg-oracle-worker",
+    "blind_decoder": "reg_oracle_blind",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "chewi-opt-v1-lemma-4-2",
+    "anchor": "https://arxiv.org/html/2605.07006v1#S4.SS1; Section4.1 Lemma4.2 statement and proof; regularized minimum and radius comparisons",
+    "original_text": "Assume a first-order method optimizes the alpha-strongly convex beta-smooth class in phi(kappa) log(alpha R²/epsilon) queries, where kappa=beta/alpha. Lemma4.2 reduces the convex beta-smooth class to it with stated order O(phi(2 beta R²/epsilon)). The proof forms W=f+delta||x-x0||²/2 with delta=epsilon/R², solves W to tolerance epsilon/2, and compares its minimizer w with an original minimizer z. W(w)<=W(z) and f(z)<=f(w) show ||w-x0||<=||z-x0||<=R; the two half-error terms then give f(x)-f(z)<=epsilon. In the regime epsilon<=beta R², the regularized smoothness is beta+delta<=2beta and its condition number is at most2 beta R²/epsilon. The existence/comparison, curvature/smoothness and oracle-complexity obligations are separate.",
+    "text_sha256": "4d3daec39388f683999976d48b6253931c3a640ba2794824692aa0d866e9dd79"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationOracle.lean",
+    "statement": "∀ {E : Type u_1}\n  {S : Type u_2} {X : Type u_3} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]\n  [inst_2 : CompleteSpace E] (next : S → X ⊕ E) (update : S → E → ℝ × E → S) {f : E → ℝ},\n  Differentiable ℝ f →\n    ConvexOn ℝ Set.univ f →\n      ∀ {β δ : NNReal},\n        LipschitzWith β (gradient f) →\n          ∀ (u : E) (fuel : ℕ) (s : S),\n            have W := fun x => f x + ↑δ / 2 * ‖x - u‖ ^ 2;\n            have corrected := fun s x a => update s x (a.1 + ↑δ / 2 * ‖x - u‖ ^ 2, a.2 + ↑δ • (x - u));\n            have base := execute next corrected (fun x => (f x, gradient f x)) fuel s;\n            have target := execute next update (fun x => (W x, gradient W x)) fuel s;\n            base = target ∧ base.2 ≤ fuel",
+    "statement_sha256": "b40c40f37cab29fb7fa885b13197a6763d405e0b6d854ab0dd19cfdea27f9f78",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any complete real inner-product space, S any state type, and X any output type. Let next:S→X⊕E and update:S→E→(ℝ×E)→S be arbitrary pure functions. Suppose f:E→ℝ is everywhere Frechet differentiable and convex on all of E, and its genuine Riesz gradient is β-Lipschitz, where β≥0. For every δ≥0, center u∈E, natural fuel N, and initial state s, define W(x)=f(x)+(δ/2)‖x−u‖². Modify the update to transform an answer (v,g) at query x into (v+(δ/2)‖x−u‖², g+δ(x−u)) before passing it to update. Executing next with this modified update and the oracle x↦(f(x),∇f(x)) yields exactly the same nested result ((final state, optional output), explicit oracle-query count) as executing next with the original update and the oracle x↦(W(x),∇W(x)), with identical fuel and initial state. The count in the first result is at most N. Consequently equality also gives that bound for the second result. The count charges only the explicit oracle branches described in the execution definition.",
+    "text_sha256": "260a028bb24aec9b153b48d3234bb61b15b057da52f65cf6af8be3c416122468",
+    "decoder": "reg_oracle_blind",
+    "decoder_packet_sha256": "6eafa2d2bc9220681973e3e5777efdcb3aae6b42a66586947d1a364390127c15",
+    "decoder_run_sha256": "e0bf1526a026eac02c8b148e297872e26a0305e46b32971143e160cecffe9f0c",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "2db994e578aaca7eaf86bfbabfbeacb1e9c96d1a16a8a31cb7449f9bf9ad376d",
+  "candidate_publication_context": {
+    "file": "90f4fd2b792fe585b1e8a2c7adfac2295cb20f8fc9a46f46db27e43238eaa729",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder\n\n/-!\n# Counted adaptive oracle simulation\n\nChewi arXiv2605.07006v1 §1.1 and Lemma4.2: one genuine first-order reply\nimplements a reply for the quadratically regularized function. The counter\nbelow counts oracle interactions, not local arithmetic or machine runtime.\nThis finite deterministic interface does not assert class-uniform complexity.\n-/\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nopen Set\nopen scoped NNReal\n\n/-- A query-fuel interpreter. `next` either halts with an output or requests a\nquery. Each reply updates the state and costs one query. Halting is inspected\neven at zero fuel. `none` marks exhaustion, never a successful output. -/\ndef run {S Q A X : Type*} (next : S → Sum X Q) (update : S → Q → A → S)\n    (oracle : Q → A) : ℕ → S → (S × Option X) × ℕ\n  | fuel, s => match next s with\n    | .inl x => ((s, some x), 0)\n    | .inr q => match fuel with\n      | 0 => ((s, none), 0)\n      | n+1 =>\n        let answer := oracle q\n        let tail := run next update oracle n (update s q answer)\n        (tail.1, tail.2+1)\n\nset_option backward.isDefEq.respectTransparency false in\n/-- Correct each original value/gradient reply using known quadratic data.\nFor every adaptive program and fuel, this preserves the actual regularized\nexecution, including its state, halt/exhaustion outcome and query count. -/\ntheorem simulate_regularized\n    {E S X : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n    (next : S → Sum X E) (update : S → E → (ℝ × E) → S)\n    {f : E → ℝ} (hd : Differentiable ℝ f) (hc : ConvexOn ℝ univ f)\n    {β δ : ℝ≥0} (hL : LipschitzWith β (gradient f)) (u : E) (fuel : ℕ) (s : S) :\n    let W := fun x => f x + (δ : ℝ)/2*‖x-u‖^2\n    let corrected := fun s x (a : ℝ × E) =>\n      update s x (a.1 + (δ : ℝ)/2*‖x-u‖^2, a.2 + (δ : ℝ) • (x-u))\n    let base := run next corrected (fun x => (f x, gradient f x)) fuel s\n    let target := run next update (fun x => (W x, gradient W x)) fuel s\n    base = target ∧ base.2 ≤ fuel := by\n  dsimp only\n  have hg := (QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness\n    hd hc hL (δ := δ) u).2.2.1\n  induction fuel generalizing s with\n  | zero => cases h : next s <;> simp [run, h]\n  | succ n ih =>\n    cases h : next s with\n    | inl x => simp [run, h]\n    | inr x =>\n      have step (upd : S → E → (ℝ × E) → S) (O : E → ℝ × E) :\n          run next upd O (n+1) s =\n            let tail := run next upd O n (upd s x (O x))\n            (tail.1, tail.2+1) := by rw [run, h]\n      simp only [step, hg]\n      obtain ⟨he, hn⟩ := ih (update s x\n        (f x + (δ : ℝ)/2*‖x-u‖^2, gradient f x + (δ : ℝ) • (x-u)))\n      refine ⟨?_, Nat.succ_le_succ hn⟩\n      simpa only [hg] using congrArg (fun r => (r.1, r.2+1)) he\nend AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+      "edition": "arXiv:2605.07006v1",
+      "anchor": "Section4.1 Lemma4.2 statement and proof; regularized minimum and radius comparisons",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Lectures on Optimization. ASTIS restatement, not quoted prose; no endorsement implied."
+    },
+    "statement": "Assume a first-order method optimizes the alpha-strongly convex beta-smooth class in phi(kappa) log(alpha R²/epsilon) queries, where kappa=beta/alpha. Lemma4.2 reduces the convex beta-smooth class to it with stated order O(phi(2 beta R²/epsilon)). The proof forms W=f+delta||x-x0||²/2 with delta=epsilon/R², solves W to tolerance epsilon/2, and compares its minimizer w with an original minimizer z. W(w)<=W(z) and f(z)<=f(w) show ||w-x0||<=||z-x0||<=R; the two half-error terms then give f(x)-f(z)<=epsilon. In the regime epsilon<=beta R², the regularized smoothness is beta+delta<=2beta and its condition number is at most2 beta R²/epsilon. The existence/comparison, curvature/smoothness and oracle-complexity obligations are separate.",
+    "formulae": [
+      {
+        "label": "Quadratic regularization and error transfer",
+        "tex": "W(x)=f(x)+\\frac{\\varepsilon}{2R^2}\\|x-x_0\\|^2,\\qquad W(x)-W(w)\\le\\varepsilon/2\\Rightarrow f(x)-f(z)\\le\\varepsilon."
+      },
+      {
+        "label": "The regularized minimizer keeps the radius certificate",
+        "tex": "W(w)\\le W(z),\\quad f(z)\\le f(w)\\ \\Longrightarrow\\ \\|w-x_0\\|\\le\\|z-x_0\\|\\le R."
+      },
+      {
+        "label": "Remaining source complexity reduction",
+        "tex": "\\delta=\\varepsilon/R^2\\le\\beta,\\quad\\beta+\\delta\\le2\\beta,\\quad\\kappa_\\delta\\le2\\beta R^2/\\varepsilon,\\quad O\\!\\left(\\phi(2\\beta R^2/\\varepsilon)\\right)."
+      }
+    ],
+    "assumptions": [
+      "A base first-order algorithm works uniformly on each relevant strongly convex smooth function class with the stated complexity.",
+      "The original function is convex and beta-smooth on Euclidean space with an attained minimum z and ||z-x0||<=R. Positive radii/accuracy are the regularization regime; the source treats coarse accuracy separately."
+    ],
+    "obligations": [
+      {
+        "id": "regularized-minimum",
+        "label": "Construct a global minimizer of the actual regularized objective"
+      },
+      {
+        "id": "radius-comparison",
+        "label": "Compare its distance to the center with the original minimizer"
+      },
+      {
+        "id": "accuracy-transfer",
+        "label": "Transfer epsilon/2 regularized objective error to epsilon original error"
+      },
+      {
+        "id": "curvature-smoothness",
+        "label": "Source-regularity strong convexity and smoothness of the actual W"
+      },
+      {
+        "id": "finite-oracle-simulation",
+        "label": "Finite deterministic implementation of the actual regularized first-order oracle with exact query-count preservation"
+      },
+      {
+        "id": "finite-uniform-reduction",
+        "label": "Uniform finite deterministic solver success, accuracy and normalized natural query budget in the positive small-error regime"
+      },
+      {
+        "id": "oracle-cost-class",
+        "label": "Remaining source-model and parameter-domain adapters: budget convention, smoothness interface, zero-radius/large-tolerance branches (not closed)"
+      }
+    ],
+    "lesson": {
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S1.SS1",
+          "label": "Chewi Section1.1 oracle interactions",
+          "scope": "Exact first-order replies and cost model; class-uniformity remains an additional obligation."
+        },
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 quadratic reduction",
+          "scope": "Explicit realization of its regularized oracle using one original reply."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+      "kind": "theorem",
+      "title": "Simulate the regularized first-order oracle with no extra queries",
+      "statement": "E is a complete real inner-product space. The objective f:E→R is everywhere differentiable and convex, with genuine beta-Lipschitz gradient; beta,delta are nonnegative (including zero), and u:E is arbitrary. S and X are arbitrary state and output types. Fix next:S→X⊕E and update:S→E→(R×E)→S. Quantify every query allowance n:N and initial state s:S. Set W(x)=f(x)+delta||x-u||²/2, O_f(x)=(f(x),gradient f(x)), and O_W(x)=(W(x),gradient W(x)). Correct a reply a using the known x,u,delta before applying the same update. The corrected original run equals the true regularized run in final state, halt/exhaustion outcome and actual count; that count is at most n.",
+      "formula": "\\begin{gathered}O_f(x)=(f(x),\\nabla f(x)),\\qquad W(x)=f(x)+\\frac\\delta2\\|x-u\\|^2,\\\\T_x(v,g)=(v+\\frac\\delta2\\|x-u\\|^2,g+\\delta(x-u)),\\\\R_n^{\\mathrm{update}\\circ T,O_f}(s)=R_n^{\\mathrm{update},O_W}(s),\\qquad c_n\\le n.\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space. The objective f:E→R is everywhere differentiable and convex, with genuine beta-Lipschitz gradient; beta,delta are nonnegative (including zero), and u:E is arbitrary.",
+        "S and X are arbitrary state and output types. Fix next:S→X⊕E and update:S→E→(R×E)→S. Quantify every query allowance n:N and initial state s:S.",
+        "Set W(x)=f(x)+delta||x-u||²/2, O_f(x)=(f(x),gradient f(x)), and O_W(x)=(W(x),gradient W(x)). Correct a reply a using the known x,u,delta before applying the same update."
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual regularized reply",
+          "text": "The compiled first-order regularization theorem computes the genuine gradient of W. Its value is W by definition. Therefore adding the known quadratic value and gradient correction to one O_f reply produces exactly O_W(x). Convexity and gradient Lipschitzness are inherited source-class premises of the reused parent; no Hessian or second derivative is needed.",
+          "formula": "T_x(v,g)=\\left(v+\\frac\\delta2\\|x-u\\|^2,\\ g+\\delta(x-u)\\right),\\qquad T_x(O_f(x))=O_W(x).",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness (third conjunct)."
+        },
+        {
+          "title": "Follow the same adaptive control path",
+          "text": "Induct on query allowance, for every state. Both runs inspect the same next(s). A halt or zero-fuel exhaustion returns the same result without querying. In the positive-fuel query branch, corrected and true replies update to exactly the same state. Apply the induction hypothesis there; this handles reply-dependent future queries and stopping.",
+          "formula": "R^{\\mathrm{update}\\circ T,O_f}_n(s)=R^{\\mathrm{update},O_W}_n(s).",
+          "lean": "Natural induction generalizing s; cases on next s; rewrite actual gradient identity; congrArg on recursive pair."
+        },
+        {
+          "title": "Preserve and bound the interaction counter",
+          "text": "In the only querying branch both interpreters make one interaction and add one to the equal recursive counters. The inductive bound c≤n gives c+1≤n+1. Halt/exhaustion branches have zero cost. No externally supplied cost label or objective minimizer enters the execution.",
+          "formula": "c_{\\rm base}=c_{\\rm target}\\le n.",
+          "lean": "Nat.succ_le_succ; run query branch."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness"
+      ],
+      "mathlib_dependencies": [
+        "Nat.succ_le_succ",
+        "congrArg"
+      ],
+      "lean_statement": "Full execution equality and actual query counter bounded by fuel.",
+      "lean_proof": "The compiled first-order regularization theorem computes the genuine gradient of W. Its value is W by definition. Therefore adding the known quadratic value and gradient correction to one O_f reply produces exactly O_W(x). Convexity and gradient Lipschitzness are inherited source-class premises of the reused parent; no Hessian or second derivative is needed. Induct on query allowance, for every state. Both runs inspect the same next(s). A halt or zero-fuel exhaustion returns the same result without querying. In the positive-fuel query branch, corrected and true replies update to exactly the same state. Apply the induction hypothesis there; this handles reply-dependent future queries and stopping. In the only querying branch both interpreters make one interaction and add one to the equal recursive counters. The inductive bound c≤n gives c+1≤n+1. Halt/exhaustion branches have zero cost. No externally supplied cost label or objective minimizer enters the execution."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+      "role": "proof-edge",
+      "supports": [
+        "finite-oracle-simulation"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "First-order replies are (f(x),gradient f(x)); oracle interactions alone count.",
+        "lean": "Explicit deterministic state/control/update recursion with a query counter and distinguished halt/exhaustion result."
+      },
+      {
+        "source": "A convex beta-smooth Euclidean objective and positive precision in Lemma4.2.",
+        "lean": "Generic types for the interpreter; the simulation uses a differentiable convex Hilbert objective with beta-Lipschitz genuine gradient and nonnegative precision."
+      },
+      {
+        "source": "One method works for every objective in the class with the prescribed budget.",
+        "lean": "Execution equality for any fixed program and initial state, for every finite allowance."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "63cd9348844b98ae38e2506016cb59aff199303b2ebd07ee4f1b7d42fa817324"
+}

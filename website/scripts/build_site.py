@@ -32,6 +32,7 @@ import information_architecture  # noqa: E402
 import lean_tutor  # noqa: E402
 import library_shelves  # noqa: E402
 import reader_contract_final  # noqa: E402
+import research_workspace  # noqa: E402
 import samplewiki_audit_queue  # noqa: E402
 import samplewiki_casebook_assets  # noqa: E402
 import samplewiki_casebook_polish  # noqa: E402
@@ -64,7 +65,7 @@ ORGANIZER_FOOTER_INPUTS = (
         "Qingfu Zhang, and Atsushi Nitanda.</p>"
     ),
 )
-CANONICAL_ORGANIZER_FOOTER = (
+PROVISIONAL_ORGANIZER_FOOTER = (
     "<p><strong>Organizer (Authors):</strong> Dake Bu, Ji Cheng, Huanjian Zhou, "
     "Andi Han, Zonghao Chen, Sinho Chewi, Matthew S. Zhang, Hau-San Wong, "
     "Qingfu Zhang, and Atsushi Nitanda.</p>"
@@ -91,28 +92,19 @@ def repair_final_content_anchors(output: Path) -> None:
         path.write_text(repaired, encoding="utf-8", newline="\n")
 
 
-def repair_project_author_footer(output: Path) -> None:
-    """Keep every generated page aligned with the canonical ASTIS author list.
 
-    `tools/astis_site.py` historically carried an older five-person footer and
-    now carries the canonical ten-person names in its base template.  This final
-    build pass normalizes either source form to the public `Organizer (Authors)`
-    rendering after all late overlays and redirect pages have been generated.
-    """
+def repair_project_author_footer(output: Path) -> None:
+    """Suppress unconfirmed project authors, without touching source attribution."""
     for path in sorted(output.rglob("*.html")):
         text = path.read_text(encoding="utf-8")
         original = text
-        for source_footer in ORGANIZER_FOOTER_INPUTS:
-            text = text.replace(source_footer, CANONICAL_ORGANIZER_FOOTER)
+        for source_footer in (*ORGANIZER_FOOTER_INPUTS, PROVISIONAL_ORGANIZER_FOOTER):
+            text = text.replace(source_footer, "")
         if text != original:
             path.write_text(text, encoding="utf-8", newline="\n")
-        if (
-            "Samplinglib</strong> is the public formal library and learning interface"
-            in text
-            and CANONICAL_ORGANIZER_FOOTER not in text
-        ):
+        if "Organizer (Authors):" in text:
             raise RuntimeError(
-                f"{path.relative_to(output)}: Samplinglib footer is missing the canonical Organizer (Authors) list"
+                f"{path.relative_to(output)}: unconfirmed project authors remain"
             )
 
 
@@ -231,6 +223,7 @@ def main() -> int:
     # those source pages before attaching their checked theorem/proof lessons;
     # running the companion generator later would overwrite the attachments.
     samplewiki_companions.enrich_site(output)
+    research_workspace.enrich_site(output)
     publication_reader.enrich_site(output)
     metadata_lessons.enrich_site(output)
     inline_lean.enrich_textbook(output)

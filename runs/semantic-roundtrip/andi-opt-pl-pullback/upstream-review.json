@@ -1,0 +1,117 @@
+{
+  "review_kind": "independent bounded source/reuse/route audit; not final theorem verification",
+  "reviewer": "pl_pullback_review",
+  "source": {
+    "url": "https://arxiv.org/html/2605.07006v1#S2",
+    "anchor": "Exercise 2.3, HTML lines 505–507",
+    "context": [
+      "Section 2 lines 331–335 assumes twice continuously differentiable f and an attained minimizer.",
+      "Definition 2.5 lines 407–411 requires continuously differentiable objective and strictly positive PL constant."
+    ],
+    "exact_mathematical_statement": "f:R^n→R is alpha-convex, alpha>0; g:R^d→R^n, d>=n, is surjective; the d×n Jacobian J satisfies J^T J >= sigma I everywhere; f∘g satisfies the displayed PL inequality at constant alpha*sigma.",
+    "source_gaps": [
+      "Exercise does not explicitly require sigma>0 although its reference to Def2.5 needs alpha*sigma>0.",
+      "Everywhere Jacobian implies differentiability; continuity of Dg, needed to infer a C1 composite for literal Def2.5, is not explicit."
+    ]
+  },
+  "accepted_scoped_component": {
+    "status": "mathematically sound proposed route, pending frozen Lean review",
+    "assumptions": [
+      "E,F real complete inner-product spaces",
+      "f:F→R and g:E→F differentiable",
+      "StrongConvexOn univ alpha f, alpha>0",
+      "supplied z:F with IsMinOn f univ z",
+      "g surjective",
+      "sigma>=0",
+      "forall x v, sigma*norm(v)^2 <= inner v ((fderiv R g x) ((fderiv R g x).adjoint v))"
+    ],
+    "conclusion": "There exists w:E with g(w)=z and IsMinOn (f∘g) univ w; for all x, 2*(alpha*sigma)*((f∘g)(x)-(f∘g)(w)) <= norm(gradient (f∘g) x)^2.",
+    "generalization": "Real Hilbert spaces and differentiability replace finite Euclidean and section C2 regularity. The proof only requires the Hilbert adjoint chain rule and strong-convexity first-order bound. Supply attainment instead of claiming new infinite-dimensional existence.",
+    "sigma_zero": "Degenerate numerical inequality only; not a positive PL constant.",
+    "not_claimed": [
+      "C1 regularity of f∘g",
+      "the complete Definition2.5 package",
+      "minimizer existence from Hilbert strong convexity",
+      "uniqueness or multiplicity of composite minimizers",
+      "matrix-to-operator coordinate equivalence as a compiled adapter"
+    ]
+  },
+  "reuse_audit": {
+    "ASTIS": {
+      "searched": [
+        "AutoSamplingTheory/TechnicalLemmas/Analysis",
+        "AutoSamplingTheory/TechnicalLemmas/Geometry",
+        "Analysis/Calculus/Gradient.lean"
+      ],
+      "parent": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+      "related": "GradientDescentPL.gradient_descent_pl_value_bound consumes supplied PL inequality; not a proof of this new property.",
+      "classification": "adapt existing first-order interface; missing pullback result"
+    },
+    "Mathlib": {
+      "searched": [
+        "Analysis/Calculus/Gradient/Basic.lean",
+        "Analysis/Calculus/FDeriv/Comp.lean",
+        "Analysis/InnerProductSpace/Adjoint.lean"
+      ],
+      "APIs": [
+        "HasFDerivAt.comp requires explicit point x: outerDerivative.comp x innerDerivative. The file-level variable (x) at FDeriv/Comp.lean line45 is inherited by the theorem; inspecting only lines105–108 previously missed it.",
+        "hasGradientAt_iff_hasFDerivAt",
+        "DifferentiableAt.hasGradientAt",
+        "HasGradientAt.gradient",
+        "InnerProductSpace.toDual_apply_apply",
+        "ContinuousLinearMap.adjoint_inner_left: inner (A† y) x = inner y (A x)",
+        "ContinuousLinearMap.adjoint_inner_right: inner x (A† y) = inner (A x) y"
+      ],
+      "classification": "reusable chain rule and adjoint facts; no gradient vector-pullback or PL theorem found"
+    },
+    "Optlib": {
+      "pin": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "root": "/private/tmp/samplinglib-reuse-audit/optlib-5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib",
+      "searched": "all Lean files for Polyak/ojas/adjoint/surject/gradient-comp; read Differential/Calculation and Convex/StronglyConvex",
+      "result": "HasGradientAt.comp and gradient.comp in Differential/Calculation.lean lines47–77 apply only F→scalar→scalar. Not an arbitrary vector-inner pullback. Strong_Convex_second_lower already has ASTIS-owned counterpart. No target PL theorem found.",
+      "classification": "adapt ASTIS parent; scalar chain rule out of scope"
+    },
+    "CvxLean": {
+      "pin": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "root": "/private/tmp/samplinglib-reuse-audit/CvxLean-c62c2f292c6420f31a12e738ebebdfed50f6f840/CvxLean",
+      "searched": "all Lean files and Lib/Equivalence.lean",
+      "result": "Minimization.Equivalence transports optimal points; no gradient coercivity or PL pullback result found.",
+      "classification": "out of scope"
+    }
+  },
+  "route": [
+    "Apply strong-convexity first-order lower bound at arbitrary x and minimizer z.",
+    "Complete the square / Cauchy–Schwarz to deduce 2*alpha*(f(x)-f(z))<=norm(gradient f x)^2.",
+    "Derive actual gradient of composite via HasFDerivAt.comp and adjoint dual equality.",
+    "Rewrite operator quadratic form as squared adjoint norm; multiply base PL inequality by nonnegative sigma.",
+    "Use surjectivity to choose w with g(w)=z and lift IsMinOn."
+  ],
+  "orientation_warning": "Source J is d×n, corresponding to Dg†, so J^T J = Dg Dg† on target space F. A lower singular bound on Dg itself is the wrong orientation when d>n.",
+  "tests_suggested": [
+    "Projection g:R×R→R, g(x,y)=x with f(t)=t²/2 exercises different dimensions and multiple minimizers; sigma=1.",
+    "Nonlinear scalar g(x)=x+x³, f(t)=t²/2, derivative 1+3x² gives sigma=1; odd cubic surjectivity is mathematically immediate but Lean adapter may be more costly."
+  ],
+  "remaining_independent_review": "Read frozen declaration and actual checks; record checked commit, Lean/source gate and fake-closure scan. This route review is not VERIFIED admission.",
+  "mechanical_correction": {
+    "previous_advice": "incorrectly said no explicit point argument",
+    "corrected": "HasFDerivAt.comp x hg",
+    "evidence": "Read file-level variable (x) at Mathlib/Analysis/Calculus/FDeriv/Comp.lean:45 and production explicit-point call; root reports pinned compiler rejected previous call."
+  },
+  "production_route_review": {
+    "status": "route and scope reviewed; no compiler or frozen-commit certification",
+    "files": [
+      "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexPLPullback.lean",
+      "website/content/declaration_lessons/strong-convex-pl-pullback.json"
+    ],
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexPLPullback.exists_minimizer_and_pl",
+    "assessment": "The production theorem and lesson agree on assumptions, quantified operator inequality, constructed minimizer and numerical gradient-gap conclusion. Proof uses the actual Frechet chain rule, proves equality of continuous dual maps through the adjoint identity, then invokes gradient uniqueness. The first-order strong-convexity/Cauchy–Schwarz/square argument and nonnegative sigma multiplication give the claimed factor 2*alpha*sigma. Surjectivity is used substantively to produce a minimizing preimage.",
+    "scope": "Correctly separates sigma=0 and absence of C1 composite regularity from literal Definition2.5. Supplied minimizer is explicit. Hilbert generalization and lack of compiled matrix coordinate adapter are visible.",
+    "findings": [],
+    "not_performed": [
+      "No build was run, as requested.",
+      "No source-blind decoding or anti-anchored source review was performed by this route reviewer.",
+      "No VERIFIED transition or completion certification."
+    ],
+    "pending": "Frozen commit, focused production/test compilation, full project Lean/source gate and fake-closure scan; separately assigned anti-anchored source reviewer."
+  }
+}

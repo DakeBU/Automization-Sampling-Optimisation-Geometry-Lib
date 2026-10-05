@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalEstimatorLipschitz.proximal_estimator_lipschitz",
+      "title": "Actual proximal estimator: stability in both inputs",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+          "label": "SPHMC Lemma 4.2, equations (4.4)-(4.5)",
+          "scope": "Partial coverage of (4.4)-(4.5) for 0<eta<=1/2, inherited from the existing constructor, not a necessary mathematical threshold or a source repair. Finite-dimensional real inner-product spaces, including dimension zero, are a coordinate-free extension. No estimator bias, centered exponential moment, smoothed score, Picard accuracy, initialization or query-cost conclusion."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCProximalEstimatorLipschitz"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional complete real inner-product space with its Borel sigma algebra; dimension zero is allowed.",
+        "V:E→R is genuinely twice continuously Frechet differentiable; kappa is a nonnegative real with kappa>=1. For every x,v, kappa^-1 ||v||^2 <= D²V(x)[v,v] <= ||v||^2 (normalized beta=1).",
+        "Fix 0<eta<=1/2. Set F_y(x)=V(x)+||x-y||²/(2 eta). All y,y',G,G' are arbitrary deterministic vectors. No Gaussian-law or integrability hypothesis is used for these pointwise inequalities."
+      ],
+      "statement": "There exists a measurable map p:E→E with p(y)+eta∇V(p(y))=y. For every y,z it satisfies F_y(p(y))+((kappa^-1+eta^-1)/2)||z-p(y)||² <= F_y(z), and F_y(z)<=F_y(p(y)) iff z=p(y). The map p is 1-Lipschitz. For the actual estimator ĝ_eta(y;G)=∇V(p(y)+sqrt(eta)G), the position-input difference is at most ||y-y'|| and the noise-input difference is at most sqrt(eta)||G-G'||.",
+      "formula": "\\widehat g_\\eta(y;G)=\\nabla V(p(y)+\\sqrt\\eta G),\\quad\\|\\widehat g_\\eta(y;G)-\\widehat g_\\eta(y';G)\\|\\le\\|y-y'\\|,\\quad\\|\\widehat g_\\eta(y;G)-\\widehat g_\\eta(y;G')\\|\\le\\sqrt\\eta\\|G-G'\\|.",
+      "boundary": "Partial coverage of (4.4)-(4.5) for 0<eta<=1/2, inherited from the existing constructor, not a necessary mathematical threshold or a source repair. Finite-dimensional real inner-product spaces, including dimension zero, are a coordinate-free extension. No estimator bias, centered exponential moment, smoothed score, Picard accuracy, initialization or query-cost conclusion.",
+      "steps": [
+        {
+          "title": "Construct the same exact proximal oracle",
+          "text": "Specialize the existing parameterized theorem to identity centers and constant eta. Retain the actual optimality equation, measurability and quantitative unique-minimum certificate; do not choose a new arbitrary function called a proximal map. The parent constructs it as a limit of contracting iterations. Its Gaussian moments are not new results here.",
+          "formula": "p(y)+\\eta\\nabla V(p(y))=y,\\qquad F_y(z)\\ge F_y(p(y))+\\tfrac{\\kappa^{-1}+\\eta^{-1}}2\\|z-p(y)\\|^2.",
+          "lean": "obtain p,hp,heq,hmin from ProximalGaussianEstimator.proximal_gaussian_estimator"
+        },
+        {
+          "title": "Turn genuine Hessian bounds into gradient controls",
+          "text": "Apply the existing quadratic-regularization result with zero added precision. This produces strong convexity and 1-Lipschitz gradient from the actual C2 Hessian. Apply the existing two-point first-order bound to this genuine gradient. Its nonnegative lower bound gives monotonicity.",
+          "formula": "\\|\\nabla V(a)-\\nabla V(b)\\|\\le\\|a-b\\|,\\qquad\\langle\\nabla V(a)-\\nabla V(b),a-b\\rangle\\ge\\kappa^{-1}\\|a-b\\|^2\\ge0.",
+          "lean": "hH',hreg,hLip,hsc,hmono; DifferentiableAt.hasGradientAt"
+        },
+        {
+          "title": "Subtract optimality and pair with the displacement",
+          "text": "Let d=p(y)-p(y') and e=∇V(p(y))-∇V(p(y')). Subtract the actual equations. Pair with d. Nonnegative eta and gradient monotonicity make the added term nonnegative. This is the substantive new resolvent step, not a supplied nonexpansiveness assumption.",
+          "formula": "y-y'=d+\\eta e,\\qquad\\langle y-y',d\\rangle=\\|d\\|^2+\\eta\\langle e,d\\rangle\\ge\\|d\\|^2.",
+          "lean": "private nonexpansive_of_monotone_optimality: hsub,hpair"
+        },
+        {
+          "title": "Apply Cauchy-Schwarz and cancel only when permitted",
+          "text": "Cauchy-Schwarz bounds the pairing by ||y-y'|| ||d||. If d=0 the required inequality is immediate. Otherwise ||d||>0 and cancellation gives the result. This step covers zero-dimensional spaces too. The private argument only needs eta>=0; the public construction has a narrower range.",
+          "formula": "\\|d\\|^2\\le\\|y-y'\\|\\|d\\|\\quad\\Longrightarrow\\quad\\|p(y)-p(y')\\|\\le\\|y-y'\\|.",
+          "lean": "hbound,hzero,hpos; LipschitzWith.of_dist_le_mul; hpLip"
+        },
+        {
+          "title": "Hold the noise fixed and compare centers",
+          "text": "Use the 1-Lipschitz genuine gradient. The common translated noise cancels from its two arguments; then apply nonexpansiveness of p. Every G is allowed, so this pathwise inequality can later be used under shared random noise.",
+          "formula": "\\|\\widehat g_\\eta(y;G)-\\widehat g_\\eta(y';G)\\|\\le\\|(p(y)+\\sqrt\\eta G)-(p(y')+\\sqrt\\eta G)\\|=\\|p(y)-p(y')\\|\\le\\|y-y'\\|.",
+          "lean": "first final branch: hLip.dist_le_mul,hpLip.dist_le_mul,add_sub_add_right_eq_sub"
+        },
+        {
+          "title": "Hold the center fixed and compare noise inputs",
+          "text": "Again apply the gradient Lipschitz bound. The common proximal point cancels, scalar multiplication distributes over subtraction, and sqrt(eta) is nonnegative. No expectation, Gaussian concentration, integrability or smoothed-score identity is needed or established.",
+          "formula": "\\|\\widehat g_\\eta(y;G)-\\widehat g_\\eta(y;G')\\|\\le\\|\\sqrt\\eta(G-G')\\|=\\sqrt\\eta\\|G-G'\\|.",
+          "lean": "second final branch: hLip.dist_le_mul,smul_sub,norm_smul,Real.sqrt_nonneg"
+        }
+      ],
+      "lean_statement": "The code below supplies the full constructed map, exact optimality/minimum certificate, and both pointwise bounds with all typeclasses explicit.",
+      "lean_proof": "Existing proximal construction and genuine Hessian APIs; monotone optimality pairing; Cauchy-Schwarz with a zero case; two translation and scalar norm estimates.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator.proximal_gaussian_estimator",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "LipschitzWith.of_dist_le_mul",
+        "LipschitzWith.dist_le_mul",
+        "real_inner_le_norm",
+        "real_inner_self_eq_norm_sq",
+        "DifferentiableAt.hasGradientAt",
+        "norm_smul",
+        "Real.sqrt_nonneg"
+      ]
+    }
+  ]
+}

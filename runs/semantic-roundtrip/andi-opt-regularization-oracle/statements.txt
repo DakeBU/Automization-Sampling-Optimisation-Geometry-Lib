@@ -1,0 +1,16 @@
+@AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run : {S : Type u_1} →
+  {Q : Type u_2} →
+    {A : Type u_3} → {X : Type u_4} → (S → X ⊕ Q) → (S → Q → A → S) → (Q → A) → ℕ → S → (S × Option X) × ℕ
+@AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized : ∀ {E : Type u_1}
+  {S : Type u_2} {X : Type u_3} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]
+  [inst_2 : CompleteSpace E] (next : S → X ⊕ E) (update : S → E → ℝ × E → S) {f : E → ℝ},
+  Differentiable ℝ f →
+    ConvexOn ℝ Set.univ f →
+      ∀ {β δ : NNReal},
+        LipschitzWith β (gradient f) →
+          ∀ (u : E) (fuel : ℕ) (s : S),
+            have W := fun x => f x + ↑δ / 2 * ‖x - u‖ ^ 2;
+            have corrected := fun s x a => update s x (a.1 + ↑δ / 2 * ‖x - u‖ ^ 2, a.2 + ↑δ • (x - u));
+            have base := execute next corrected (fun x => (f x, gradient f x)) fuel s;
+            have target := execute next update (fun x => (W x, gradient W x)) fuel s;
+            base = target ∧ base.2 ≤ fuel

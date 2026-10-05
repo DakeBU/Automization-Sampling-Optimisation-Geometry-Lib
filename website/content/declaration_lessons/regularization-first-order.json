@@ -1,0 +1,74 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+      "kind": "theorem",
+      "title": "Quadratic regularization preserves first-order smoothness",
+      "statement": "E is a complete real inner-product space. The real-valued function f on E is everywhere Frechet differentiable and convex on the whole space. Beta and delta are nonnegative real constants (Lean NNReal), and the genuine gradient of f is beta-Lipschitz. The center u is arbitrary. W(x)=f(x)+delta||x-u||²/2 is the actual regularized objective. No second derivative, Hessian field or supplied gradient of W is assumed. Then W is differentiable, delta-strongly convex and (beta+delta)-smooth, with the exact gradient formula below.",
+      "formula": "\\begin{gathered}W(x)=f(x)+\\frac\\delta2\\|x-u\\|^2,\\qquad\\nabla W(x)=\\nabla f(x)+\\delta(x-u),\\\\W((1-t)x+ty)\\le(1-t)W(x)+tW(y)-\\frac\\delta2t(1-t)\\|x-y\\|^2\\quad(0\\le t\\le1),\\\\\\|\\nabla W(x)-\\nabla W(y)\\|\\le(\\beta+\\delta)\\|x-y\\|.\\end{gathered}",
+      "assumptions": [
+        "E is a complete real inner-product space. The real-valued function f on E is everywhere Frechet differentiable and convex on the whole space.",
+        "Beta and delta are nonnegative real constants (Lean NNReal), and the genuine gradient of f is beta-Lipschitz. The center u is arbitrary.",
+        "W(x)=f(x)+delta||x-u||²/2 is the actual regularized objective. No second derivative, Hessian field or supplied gradient of W is assumed."
+      ],
+      "steps": [
+        {
+          "title": "Subtract the centered quadratic correction",
+          "text": "Subtract delta||x||²/2 from W. Expanding the squared distance leaves f plus a linear functional and a constant. This is convex because f is convex. The Mathlib characterization therefore proves delta-strong convexity, with the delta/2 chord convention.",
+          "formula": "W(x)-\\frac\\delta2\\|x\\|^2=f(x)-\\delta\\langle u,x\\rangle+\\frac\\delta2\\|u\\|^2.",
+          "lean": "strongConvexOn_iff_convex; LinearMap.convexOn; ConvexOn.add; ConvexOn.add_const; norm_sub_sq_real."
+        },
+        {
+          "title": "Differentiate the actual quadratic term",
+          "text": "Differentiate the squared norm composed with x↦x-u, multiply by delta/2 and add the derivative of f. The factors two and one-half cancel. This gives the genuine Frechet derivative of W and hence its differentiability.",
+          "formula": "DW(x)[v]=Df(x)[v]+\\delta\\langle x-u,v\\rangle.",
+          "lean": "HasFDerivAt.norm_sq; HasFDerivAt.const_mul; HasFDerivAt.add; DifferentiableAt.hasFDerivAt."
+        },
+        {
+          "title": "Identify the genuine gradient",
+          "text": "Apply the inverse Riesz isometry to the derivative just computed. Linearity preserves addition and scalar multiplication, while the inverse of the functional v↦⟨x-u,v⟩ is x-u. Thus the claimed gradient is computed from W, not supplied as an assumption.",
+          "formula": "\\nabla W(x)=\\nabla f(x)+\\delta(x-u).",
+          "lean": "gradient; InnerProductSpace.toDual; map_add; map_smul; LinearIsometryEquiv.symm_apply_apply."
+        },
+        {
+          "title": "Control differences of the regularized gradient",
+          "text": "Subtract the gradient identity at y from the one at x; the center cancels. The triangle inequality, the given beta-Lipschitz estimate for the true gradient of f, and nonnegativity of delta bound the two terms. Add the bounds to obtain beta+delta.",
+          "formula": "\\begin{aligned}\\|\\nabla W(x)-\\nabla W(y)\\|&\\le\\|\\nabla f(x)-\\nabla f(y)\\|+\\delta\\|x-y\\|\\\\&\\le(\\beta+\\delta)\\|x-y\\|.\\end{aligned}",
+          "lean": "LipschitzWith.of_dist_le_mul; LipschitzWith.dist_le_mul; norm_add_le; norm_smul; dist_eq_norm."
+        }
+      ],
+      "boundary": [
+        "This is the curvature and smoothness component of Chewi Lemma4.2: W is differentiable and delta-strongly convex, its genuine gradient is identified, and that gradient is (beta+delta)-Lipschitz. It does not close the full first-order-oracle or class-uniform complexity reduction.",
+        "Hilbert spaces generalize the source Euclidean space. Completeness supplies Riesz representation for genuine gradients; finite dimension and compactness are unnecessary here. Differentiability plus Lipschitz gradient is the source first-order smoothness contract, with no C2 strengthening.",
+        "Beta=0 and delta=0 are included. At delta=0 the strong-convexity predicate reduces to ordinary convexity. Strict convexity, uniqueness and condition-number division require further positive-modulus hypotheses and are not asserted here.",
+        "The general precision delta is not forced to epsilon/R² in this declaration. A compiled test checks the source parameter inequalities for positive beta,R,epsilon with epsilon<=beta R². Those anonymous arithmetic checks are not a public oracle-cost theorem or complete reduction.",
+        "The earlier regularized-minimum existence/radius/accuracy theorem is separately compiled and reviewed. It is a downstream companion ingredient, not an invoked dependency of this theorem. The existing C2/Hessian shift theorem was searched but is not used."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "strongConvexOn_iff_convex",
+        "LinearMap.convexOn",
+        "ConvexOn.add",
+        "ConvexOn.add_const",
+        "HasFDerivAt.norm_sq",
+        "HasFDerivAt.const_mul",
+        "LipschitzWith.of_dist_le_mul",
+        "LipschitzWith.dist_le_mul"
+      ],
+      "lean_statement": "Differentiability, exact delta-strong convexity, genuine gradient formula and beta+delta gradient Lipschitz continuity.",
+      "lean_proof": "Subtract delta||x||²/2 from W. Expanding the squared distance leaves f plus a linear functional and a constant. This is convex because f is convex. The Mathlib characterization therefore proves delta-strong convexity, with the delta/2 chord convention. Differentiate the squared norm composed with x↦x-u, multiply by delta/2 and add the derivative of f. The factors two and one-half cancel. This gives the genuine Frechet derivative of W and hence its differentiability. Apply the inverse Riesz isometry to the derivative just computed. Linearity preserves addition and scalar multiplication, while the inverse of the functional v↦⟨x-u,v⟩ is x-u. Thus the claimed gradient is computed from W, not supplied as an assumption. Subtract the gradient identity at y from the one at x; the center cancels. The triangle inequality, the given beta-Lipschitz estimate for the true gradient of f, and nonnegativity of delta bound the two terms. Add the bounds to obtain beta+delta.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 proof",
+          "scope": "Regularized curvature and smoothness at first-order regularity; oracle/class conclusion remains separate."
+        },
+        {
+          "path": "Tests/Shared/QuadraticRegularizationFirstOrder.lean",
+          "label": "Actual gradient update and positive-regime parameter checks",
+          "scope": "Quadratic consumer for every nonnegative precision, including zero; separate epsilon/R² inequalities."
+        }
+      ]
+    }
+  ]
+}

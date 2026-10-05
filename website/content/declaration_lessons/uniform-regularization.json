@@ -1,0 +1,82 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization.uniform_accuracy_and_query_bound",
+      "kind": "theorem",
+      "title": "A uniform convex solver with the regularized query budget",
+      "statement": "E is a proper complete real inner-product space and S is any state type. Beta is nonnegative; R and epsilon are positive and epsilon<=beta R² (hence beta is actually positive). The center u is fixed. Phi:R→N is an arbitrary natural-valued budget function, with no monotonicity. Fix next:S→E⊕E, update:S→E→(R×E)→S and initial state s0 before quantifying any objective. Left control is a successful output, right control is a query. Set delta=epsilon/R²>0 and N=ceil_nat(Phi(2beta/delta) log(delta R²/(epsilon/2))). For every differentiable delta-strongly-convex g whose genuine gradient is 2beta-Lipschitz, and every global minimizer w with ||w-u||<=R, assume this same program really halts with some x within query allowance N and satisfies g(x)-g(w)<=epsilon/2. The convex consumer is any differentiable convex f with genuine beta-Lipschitz gradient and a supplied global minimizer z satisfying ||z-u||<=R. Neither z nor the subsequently constructed regularized minimizer is passed into the program. Then the fixed corrected program succeeds for every such f with objective error at most epsilon, identical successful state/output, and actual query count at most both ceil_nat(Phi(2beta R²/epsilon)log2) and Phi(2beta R²/epsilon).",
+      "formula": "\\begin{gathered}W=f+\\frac\\delta2\\|\\cdot-u\\|^2,\\quad\\delta=\\frac\\varepsilon{R^2},\\quad q=\\frac{2\\beta R^2}{\\varepsilon},\\\\\\mathrm{run}(P\\circ T,O_f,N,s_0)=((t,\\mathrm{some}(x)),c),\\\\f(x)-f(z)\\le\\varepsilon,\\qquad c\\le\\lceil\\Phi(q)\\log2\\rceil_{\\mathbb N}\\le\\Phi(q).\\end{gathered}",
+      "assumptions": [
+        "E is a proper complete real inner-product space and S is any state type. Beta is nonnegative; R and epsilon are positive and epsilon<=beta R² (hence beta is actually positive). The center u is fixed.",
+        "Phi:R→N is an arbitrary natural-valued budget function, with no monotonicity. Fix next:S→E⊕E, update:S→E→(R×E)→S and initial state s0 before quantifying any objective. Left control is a successful output, right control is a query.",
+        "Set delta=epsilon/R²>0 and N=ceil_nat(Phi(2beta/delta) log(delta R²/(epsilon/2))). For every differentiable delta-strongly-convex g whose genuine gradient is 2beta-Lipschitz, and every global minimizer w with ||w-u||<=R, assume this same program really halts with some x within query allowance N and satisfies g(x)-g(w)<=epsilon/2.",
+        "The convex consumer is any differentiable convex f with genuine beta-Lipschitz gradient and a supplied global minimizer z satisfying ||z-u||<=R. Neither z nor the subsequently constructed regularized minimizer is passed into the program."
+      ],
+      "steps": [
+        {
+          "title": "Choose a declared smoothness bound",
+          "text": "The chosen positive regularization satisfies delta<=beta. The existing first-order theorem proves the actual W=f+delta||x-u||²/2 is differentiable, delta-strongly convex and has (beta+delta)-Lipschitz gradient. Weaken that Lipschitz constant to 2beta and invoke the solver with that declared parameter. This avoids replacing Phi at unequal arguments.",
+          "formula": "\\delta=\\varepsilon/R^2\\le\\beta,\\qquad \\mathrm{Lip}(\\nabla W)\\le\\beta+\\delta\\le2\\beta.",
+          "lean": "QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness; LipschitzWith.of_dist_le_mul; multiplication of nonnegative distance bounds."
+        },
+        {
+          "title": "Construct the required minimizer and radius witness",
+          "text": "Apply the existing compact-ball comparison theorem to continuous f and its supplied original minimizer z. It constructs a global minimizer w of the actual W, proves the original radius bound also holds for w, and provides the half-error-to-full-error implication. Do not assume that W already has a minimizer.",
+          "formula": "w\\in\\arg\\min W,\\quad\\|w-u\\|\\le\\|z-u\\|\\le R,\\qquad W(x)-W(w)\\le\\varepsilon/2\\Rightarrow f(x)-f(z)\\le\\varepsilon.",
+          "lean": "QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy; Differentiable.continuous."
+        },
+        {
+          "title": "Apply the same successful program to W",
+          "text": "All premises of the uniform strongly convex solver contract now hold. Its execution against the actual value/gradient oracle of W halts with some x and the required half-error. The program and its initial state were fixed before the function was quantified, so this instantiation cannot choose a new solver using W or w.",
+          "formula": "\\mathrm{run}(P,O_W,N,s_0)=((t,\\mathrm{some}(x)),c),\\qquad W(x)-W(w)\\le\\varepsilon/2.",
+          "lean": "Instantiate the universally quantified actual-execution hypothesis at W and the constructed w."
+        },
+        {
+          "title": "Transfer actual execution and accuracy",
+          "text": "Correct each original reply by the known quadratic value and gradient terms. The previous oracle simulation gives identical final state, successful output and query count, with c<=N. Apply the previously obtained value-transfer implication to this actual halted output. Exhaustion never counts as successful optimization.",
+          "formula": "T_y(v,g)=(v+\\tfrac\\delta2\\|y-u\\|^2,g+\\delta(y-u)),\\qquad\\mathrm{run}(P\\circ T,O_f,N,s_0)=((t,\\mathrm{some}(x)),c),\\quad f(x)-f(z)\\le\\varepsilon.",
+          "lean": "QuadraticRegularizationOracle.simulate_regularized; equality transitivity; constructed accuracy implication."
+        },
+        {
+          "title": "Normalize the budget without monotonicity",
+          "text": "Positive R and epsilon justify cancellation in both budget arguments. The logarithmic ratio is exactly two; the condition-number parameter is exactly 2beta R²/epsilon. Finally log2<=1 and the nonnegative natural value Phi(q) give ceil_nat(Phi(q)log2)<=Phi(q). Thus the actual query count obeys both bounds.",
+          "formula": "\\begin{gathered}\\frac{2\\beta}{\\delta}=\\frac{2\\beta R^2}{\\varepsilon}=q,\\qquad\\frac{\\delta R^2}{\\varepsilon/2}=2,\\\\c\\le N=\\lceil\\Phi(q)\\log2\\rceil_{\\mathbb N}\\le\\Phi(q).\\end{gathered}",
+          "lean": "Field cancellation using R,epsilon>0; Real.log_le_sub_one_of_pos; Nat.ceil_le."
+        }
+      ],
+      "boundary": [
+        "This closes a uniform class reduction within the existing finite deterministic exact-oracle interpreter. The strongly convex solver guarantee is a uniform hypothesis, as in the source reduction; it is about actual successful executions, not arbitrary returned cost labels. The corrected program depends only on the supplied program and known regularization parameters, never on the particular f or a minimizer.",
+        "Properness supplies compact closed balls for the independently proved regularized-minimizer construction. Source finite-dimensional Euclidean spaces satisfy it; arbitrary infinite-dimensional Hilbert minimizer existence is not claimed. Differentiability and actual gradient Lipschitzness are the first-order smoothness interface; no C2/Hessian assumption is added.",
+        "This declaration is in the positive small-error regime epsilon<=beta R². The zero-radius and larger-tolerance stopping branches, and an adapter from the source quadratic-upper smoothness convention where needed, remain outside the declared interface.",
+        "Phi is natural-valued. The premise uses a natural ceiling of the source-shaped real budget; the output is bounded by ceil(Phi(q)log2)<=Phi(q). This is not an exact equivalence to every possible real-valued Phi or hidden-constant convention. No monotonicity of Phi is used: choose the declared smoothness parameter 2beta before invoking the solver.",
+        "No universal equivalence with randomized or unbounded oracle-machine models, machine runtime or finite-precision computation is asserted. Full unrestricted Lemma4.2 completion remains separate. The test proves a real one-query half-gradient-step solver guarantee for the entire differentiable 1-strong/2-gradient-Lipschitz scalar class; it does not assume success only on one preselected function."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.simulate_regularized",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationTransfer.exists_minimizer_radius_and_accuracy"
+      ],
+      "mathlib_dependencies": [
+        "LipschitzWith.of_dist_le_mul",
+        "Differentiable.continuous",
+        "Real.log_le_sub_one_of_pos",
+        "Nat.ceil_le"
+      ],
+      "lean_statement": "A single supplied uniform strongly convex program yields one corrected uniform convex program with actual halting accuracy and exact normalized query bound.",
+      "lean_proof": "The chosen positive regularization satisfies delta<=beta. The existing first-order theorem proves the actual W=f+delta||x-u||²/2 is differentiable, delta-strongly convex and has (beta+delta)-Lipschitz gradient. Weaken that Lipschitz constant to 2beta and invoke the solver with that declared parameter. This avoids replacing Phi at unequal arguments. Apply the existing compact-ball comparison theorem to continuous f and its supplied original minimizer z. It constructs a global minimizer w of the actual W, proves the original radius bound also holds for w, and provides the half-error-to-full-error implication. Do not assume that W already has a minimizer. All premises of the uniform strongly convex solver contract now hold. Its execution against the actual value/gradient oracle of W halts with some x and the required half-error. The program and its initial state were fixed before the function was quantified, so this instantiation cannot choose a new solver using W or w. Correct each original reply by the known quadratic value and gradient terms. The previous oracle simulation gives identical final state, successful output and query count, with c<=N. Apply the previously obtained value-transfer implication to this actual halted output. Exhaustion never counts as successful optimization. Positive R and epsilon justify cancellation in both budget arguments. The logarithmic ratio is exactly two; the condition-number parameter is exactly 2beta R²/epsilon. Finally log2<=1 and the nonnegative natural value Phi(q) give ceil_nat(Phi(q)log2)<=Phi(q). Thus the actual query count obeys both bounds.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2605.07006v1#S4.SS1",
+          "label": "Chewi Lemma4.2 and preceding class-success convention",
+          "scope": "Regularization, radius and error transfer, parameter substitution; scoped deterministic/natural-budget interface."
+        },
+        {
+          "path": "Tests/Shared/UniformRegularization.lean",
+          "label": "Uniform one-query gradient-step consumer",
+          "scope": "Proves the base guarantee over the entire stated scalar class from actual gradient smoothness, then consumes the reduction."
+        }
+      ]
+    }
+  ]
+}

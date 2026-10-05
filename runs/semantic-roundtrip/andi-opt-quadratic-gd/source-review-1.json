@@ -1,0 +1,103 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "The pinned centered quadratic, its matrix A, and actual GD iterates.",
+      "reconstructed": "The same quadratic construction with a continuous linear H; the update uses gradient of that literal f.",
+      "relation": "explicit-elaboration",
+      "evidence": "The proof computes Df(z)[v]=(inner z (H v)+inner v (H z))/2=inner (H z) v. Thus gradient f z=H z is established, not assumed as an unrelated oracle."
+    },
+    "domains": {
+      "original": "Euclidean real finite-dimensional space.",
+      "reconstructed": "Any complete real inner-product space E with a continuous linear endomorphism H.",
+      "relation": "different",
+      "evidence": "This is a valid domain generalization for the bounded identities, not equivalence of source and Lean domains. Every source matrix induces such a bounded operator. Completeness supports the gradient API; no unbounded operator is included."
+    },
+    "quantifiers": {
+      "original": "Compute the source trajectory from an initial point with a fixed step; assess the section estimates.",
+      "reconstructed": "For every such E,H and real mu, every x satisfying Hx=mu*x, every real h, and every natural N.",
+      "relation": "different",
+      "evidence": "The function iterate means N updates of one fixed map, including the identity at N=0. There is no variable-step sequence. The mode relation is a conditional restriction for this component, not a claim that every initial vector is one eigenvector. x=0 is deliberately allowed; no eigenvector-existence quantifier occurs."
+    },
+    "assumptions": {
+      "original": "Positive-definite symmetric A; the section regularity holds for this quadratic.",
+      "reconstructed": "Symmetric bounded real-linear H; positivity absent; no step restriction. Additionally Hx=mu*x for the supplied initial mode.",
+      "relation": "different",
+      "evidence": "Symmetry alone identifies the gradient. Positivity is unnecessary for these identities but cannot be dropped from conclusions about minimizers or convergence. The derivative is built explicitly, so no hidden differentiability hypothesis or total-gradient default is used. Boundedness supplies quadratic regularity."
+    },
+    "conclusion": {
+      "original": "The exercise requests explicit iterates and sharpness assessment of the section results.",
+      "reconstructed": "z=(1-h*mu)^N*x, norm z=abs(1-h*mu)^N*norm x, and f(z)=(1-h*mu)^(2*N)*f(x).",
+      "relation": "weaker-in-lean",
+      "evidence": "This proves exactly the publication obligation modewise-exact-rates. It does not prove all-section-sharpness. Apply the endomorphism power to the supplied mode, then norm homogeneity and the quadratic identity f(c*x)=c^2*f(x). The squared exponent is 2*N and the norm factor requires absolute value."
+    },
+    "scopes": {
+      "original": "Deterministic centered quadratic GD, with the wider exercise asking about optimization estimates.",
+      "reconstructed": "Exact pointwise finite-iterate identities on the whole E, not convergence assertions.",
+      "relation": "different",
+      "evidence": "No measure, almost-everywhere representative, integral, boundary condition, asymptotic limit, or stochastic oracle appears. In the generalized indefinite case zero need not minimize f. No spectral endpoint exists by force of this statement. The lesson correctly distinguishes an algebraic zero mode from a nonzero eigenvector."
+    },
+    "constant_dependencies": {
+      "original": "The requested comparison concerns the constants and step regimes of the section estimates.",
+      "reconstructed": "Only the exact factor 1-h*mu and its powers; dependence on the initial norm and objective value is explicit.",
+      "relation": "different",
+      "evidence": "No smoothness bound, condition number, extremal eigenvalue, optimized step, or uniform contraction factor is asserted. The identities remain true for unstable and nonpositive steps; such validity cannot certify a convergence regime."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "classification": "generalization",
+      "description": "The matrix/Euclidean source is extended to bounded symmetric operators on complete real inner-product spaces.",
+      "evidence": "The inspected complete module quantifies over E and H : E →L[ℝ] E. The product-rule calculation and composition-power argument remain valid there; the lesson discloses this exact domain."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "classification": "generalization",
+      "description": "Positive definiteness is omitted for the exact identities; arbitrary real steps are permitted.",
+      "evidence": "The proof uses symmetry to derive the gradient and never uses positivity. No decay inequality or minimizer claim is stated. This is an extension of a selected component, not a correction to the source assumptions."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "classification": "source-implicit",
+      "description": "The bounded-operator and complete-inner-product interfaces make the gradient regularity explicit.",
+      "evidence": "On the source Euclidean domain matrix linear maps are bounded and the space is complete. The proof constructs the derivative represented by Hx. The assumptions do not restrict the source case."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "review",
+      "classification": "unresolved",
+      "description": "The full exercise sharpness assessment remains uncovered; accept only the named publication proof component.",
+      "evidence": "The binding supports only modewise-exact-rates and explicitly leaves all-section-sharpness uncovered. Neither declaration compares all source estimates, constructs extremal modes, nor proves a sharp worst-case rate."
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "informational",
+      "classification": "same",
+      "description": "This selected modewise component assumes a supplied mode relation; it does not solve the spectral decomposition or endpoint-attainment obligations.",
+      "evidence": "The hypothesis Hx=mu*x appears explicitly in Lean and the lesson. The proof splits x=0 before invoking HasEigenvector.pow_apply. The zero case and N=0 are both correctly included."
+    }
+  ],
+  "verdict": "lean-weakened-conclusion",
+  "repairs": [],
+  "reviewer": "qgd_source",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent anti-anchored review by qgd_source, distinct from andi-qgd-worker and qgd_blind. Read only the two fresh reviewer packets, required protocol/schema, the current indicated Lean module, and the primary arXiv HTML. Verified current module text equals the packet module. Primary source checked at https://arxiv.org/html/2605.07006v1#S3, Exercise 3.3 (HTML lines 678-680), GD definition (510-513), and nearby parameter discussion/Exercise 3.2. Independently derived the gradient and both algebraic identities and compared all seven semantic slots. The supplied reconstruction and lesson correctly describe the Lean theorem, including arbitrary-step and nonpositive-operator scope; source and Lean are not equivalent as whole statements. Accept the exact bound modewise-exact-rates only, with generalizations and residual all-section-sharpness visible. No mathematical/source repair is needed or proposed. Compilation status in the packet was not used as source-fidelity evidence; this review does not independently rerun the compiler.",
+  "review_run_sha256": "c581f6e21bf071e1e91107b5b991a46f7d496fffd74e411e131529d3ef442be7",
+  "reviewer_packet_sha256": "c4264d2c7d436e0f73900bda519ef7f214dd4fc4e23a1ddd78c71203c1b2bbde",
+  "publication_binding_sha256": "6c201292e936132622819f4a30ace54a46fcd67f936c108351fc7418d90b9a79",
+  "source_review": {
+    "state": "accepted",
+    "decision": "accepted",
+    "reviewer": "qgd_source",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "c4264d2c7d436e0f73900bda519ef7f214dd4fc4e23a1ddd78c71203c1b2bbde",
+    "publication_binding_sha256": "6c201292e936132622819f4a30ace54a46fcd67f936c108351fc7418d90b9a79",
+    "evidence": "Independent anti-anchored review by qgd_source, distinct from andi-qgd-worker and qgd_blind. Read only the two fresh reviewer packets, required protocol/schema, the current indicated Lean module, and the primary arXiv HTML. Verified current module text equals the packet module. Primary source checked at https://arxiv.org/html/2605.07006v1#S3, Exercise 3.3 (HTML lines 678-680), GD definition (510-513), and nearby parameter discussion/Exercise 3.2. Independently derived the gradient and both algebraic identities and compared all seven semantic slots. The supplied reconstruction and lesson correctly describe the Lean theorem, including arbitrary-step and nonpositive-operator scope; source and Lean are not equivalent as whole statements. Accept the exact bound modewise-exact-rates only, with generalizations and residual all-section-sharpness visible. No mathematical/source repair is needed or proposed. Compilation status in the packet was not used as source-fidelity evidence; this review does not independently rerun the compiler.",
+    "review_run_sha256": "c581f6e21bf071e1e91107b5b991a46f7d496fffd74e411e131529d3ef442be7"
+  }
+}

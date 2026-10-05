@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment",
+      "kind": "def",
+      "title": "The empirical second moment is an average of rank-one operators",
+      "statement": "For a finite sample x_i in a real inner-product space, the empirical second-moment operator is the inverse sample size times the sum of y ↦ ⟪x_i,y⟫x_i. The empty-sample convention is zero; concentration consumers use a nonempty index type.",
+      "formula": "\\widehat\\Sigma=|I|^{-1}\\sum_{i\\in I}x_i\\otimes x_i",
+      "assumptions": [
+        "E is a real inner-product space and I is a finite type.",
+        "The sample is an arbitrary function I→E.",
+        "No probability law, independence, centering, or boundedness is assumed by the definition."
+      ],
+      "steps": [
+        {
+          "title": "Turn each vector into a rank-one operator",
+          "text": "The Mathlib rank-one operator sends y to the inner product with x_i multiplied by x_i.",
+          "formula": "(x_i\\otimes x_i)y=\\langle x_i,y\\rangle x_i",
+          "lean": "Use InnerProductSpace.rankOne ℝ (sample i) (sample i)."
+        },
+        {
+          "title": "Average the finite family",
+          "text": "Sum the continuous linear maps and scale by the inverse real cardinality.",
+          "formula": "\\widehat\\Sigma=|I|^{-1}\\sum_i x_i\\otimes x_i",
+          "lean": "Continuous linear maps carry finite sums and real scalar multiplication."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductSpace.rankOne",
+        "Fintype.card"
+      ],
+      "lean_statement": "Lean keeps the real inner-product space, finite sample index, and empty-sample inverse-cardinality convention explicit.",
+      "lean_proof": "This is a transparent definition; no theorem or probabilistic premise is hidden in it.",
+      "boundary": "This definition is an empirical second moment. Calling it a covariance requires an appropriate centering convention, supplied separately by the consumer.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "label": "Tropp, An Introduction to Matrix Concentration Inequalities",
+          "scope": "Standard rank-one sample-covariance setup used before matrix concentration."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+          "label": "Samplinglib compiled definition",
+          "scope": "Exact finite-type normalization and operator representation."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq",
+      "kind": "theorem",
+      "title": "A self outer product has operator norm equal to the squared vector norm",
+      "statement": "For every vector x in a real inner-product space, the continuous rank-one operator y ↦ ⟪x,y⟫x has operator norm exactly ‖x‖².",
+      "formula": "\\|x\\otimes x\\|_{\\mathrm{op}}=\\|x\\|^2",
+      "assumptions": [
+        "E is a real inner-product space.",
+        "x is arbitrary; finite dimensionality and completeness are not assumed."
+      ],
+      "steps": [
+        {
+          "title": "Use the rank-one norm identity",
+          "text": "Mathlib computes the norm of u⊗v as ‖u‖‖v‖.",
+          "formula": "\\|x\\otimes x\\|=\\|x\\|\\,\\|x\\|",
+          "lean": "Simplify InnerProductSpace.rankOne with its norm theorem."
+        },
+        {
+          "title": "Rewrite the product as a square",
+          "text": "The identical norm factors are exactly ‖x‖².",
+          "formula": "\\|x\\|\\,\\|x\\|=\\|x\\|^2",
+          "lean": "simp [pow_two] closes the equality."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductSpace.rankOne",
+        "ContinuousLinearMap.norm_rankOne"
+      ],
+      "lean_statement": "The equality is stated directly for Mathlib's continuous rank-one operator.",
+      "lean_proof": "The proof uses the library norm formula and the definition of a square.",
+      "boundary": "This is deterministic Hilbert-space operator algebra; it contains no concentration claim.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "label": "Tropp, matrix concentration monograph",
+          "scope": "Rank-one covariance summands in the standard empirical-covariance application."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+          "label": "Samplinglib compiled norm leaf",
+          "scope": "Exact operator-norm equality."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",
+      "kind": "theorem",
+      "title": "Empirical covariance is reduced to bounded symmetric centered summands",
+      "statement": "For a nonempty finite sample with ‖x_i‖≤B, a symmetric population operator Σ with ‖Σ‖≤B², and B≥0, the empirical error is the average of x_i⊗x_i−Σ; every summand is symmetric and has operator norm at most 2B².",
+      "formula": "\\widehat\\Sigma-\\Sigma=|I|^{-1}\\sum_i(x_i\\otimes x_i-\\Sigma),\\qquad (x_i\\otimes x_i-\\Sigma)^*=x_i\\otimes x_i-\\Sigma,\\qquad \\|x_i\\otimes x_i-\\Sigma\\|\\le2B^2",
+      "assumptions": [
+        "E is a real inner-product space and I is a nonempty finite type.",
+        "B is nonnegative and every sample vector has norm at most B.",
+        "The supplied population continuous linear operator is symmetric and has norm at most B².",
+        "No independence, expectation, variance proxy, tail theorem, or dimension bound is assumed."
+      ],
+      "steps": [
+        {
+          "title": "Expand the centered finite sum",
+          "text": "Distribute the finite sum over subtraction. Nonemptiness makes the sample cardinality nonzero, so inverse scaling cancels the repeated population term.",
+          "formula": "|I|^{-1}\\sum_i(A_i-\\Sigma)=|I|^{-1}\\sum_iA_i-\\Sigma",
+          "lean": "Use Finset.sum_sub_distrib, Finset.sum_const, and inv_smul_smul₀."
+        },
+        {
+          "title": "Preserve symmetry under centering",
+          "text": "Each x_i⊗x_i is symmetric, and the difference of symmetric operators is symmetric.",
+          "formula": "(x_i\\otimes x_i-\\Sigma)^*=x_i\\otimes x_i-\\Sigma",
+          "lean": "Combine isSymmetric_rankOne_self with LinearMap.IsSymmetric.sub."
+        },
+        {
+          "title": "Bound each centered summand",
+          "text": "The triangle inequality, the exact rank-one norm, ‖x_i‖≤B, and ‖Σ‖≤B² yield the standard 2B² bound.",
+          "formula": "\\|x_i\\otimes x_i-\\Sigma\\|\\le\\|x_i\\|^2+\\|\\Sigma\\|\\le2B^2",
+          "lean": "Use norm_sub_le, norm_rankOne_self_eq_sq, monotonicity of squaring on nonnegative reals, and ring normalization."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq"
+      ],
+      "mathlib_dependencies": [
+        "Finset.sum_sub_distrib",
+        "InnerProductSpace.isSymmetric_rankOne_self",
+        "LinearMap.IsSymmetric.sub",
+        "norm_sub_le",
+        "inv_smul_smul₀"
+      ],
+      "lean_statement": "All boundedness, symmetry, nonemptiness, and normalization assumptions are explicit, and the conclusion is a three-part conjunction.",
+      "lean_proof": "The proof performs the exact finite-sum cancellation, transports symmetry through subtraction, and combines the triangle inequality with the exact rank-one norm.",
+      "boundary": "This theorem prepares a matrix-concentration input. It does not prove matrix Bernstein, choose a variance proxy, establish independence, or derive a probability tail or sample complexity.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "label": "Tropp, An Introduction to Matrix Concentration Inequalities",
+          "scope": "Matrix Bernstein setup and empirical-covariance applications; the Lean theorem isolates the deterministic preprocessing obligations."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+          "label": "Samplinglib compiled preconcentration theorem",
+          "scope": "Exact decomposition, symmetry, and uniform summand norm bound."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.unitRankOneCovariance_momentPackage",
+      "kind": "theorem",
+      "title": "A unit-vector covariance has an exact centered operator second moment",
+      "statement": "Let X be a unit-vector-valued map such that X⊗X is Bochner integrable, and let C be the Bochner expectation of X⊗X. Then C is self-adjoint, ‖C‖≤1, E[(X⊗X-C)²]=C-C², and ‖C-C²‖≤2‖C‖.",
+      "formula": "C=\\mathbb E[X\\otimes X],\\quad C^*=C,\\quad \\|C\\|\\le1,\\quad \\mathbb E[(X\\otimes X-C)^2]=C-C^2,\\quad \\|C-C^2\\|\\le2\\|C\\|",
+      "assumptions": [
+        "E is a complete real inner-product space and μ is a probability measure.",
+        "X has norm exactly one at every point; no almost-everywhere weakening is hidden.",
+        "The rank-one operator X⊗X is Bochner integrable and its integral is the supplied population operator C.",
+        "No independent sample family, dimension, matrix exponential, or concentration theorem is assumed."
+      ],
+      "steps": [
+        {
+          "title": "Integrate rank-one symmetry",
+          "text": "Every self outer product is symmetric. Evaluation and the real inner product commute with the Bochner integral, so the expectation C is self-adjoint.",
+          "formula": "(X\\otimes X)^*=X\\otimes X\\Longrightarrow C^*=C",
+          "lean": "Use isSymmetric_rankOne_self, ContinuousLinearMap.integral_apply, integral_inner, and isSelfAdjoint_iff_isSymmetric."
+        },
+        {
+          "title": "Bound the population operator",
+          "text": "The Bochner integral norm is at most the integral of the pointwise operator norm. Unit norm makes ‖X⊗X‖=1, and a probability measure gives total mass one.",
+          "formula": "\\|C\\|\\le\\mathbb E\\|X\\otimes X\\|=1",
+          "lean": "Apply norm_integral_le_of_norm_le_const and norm_rankOne_self_eq_sq."
+        },
+        {
+          "title": "Expand the centered square",
+          "text": "A unit-vector outer product is an idempotent projection. Expanding the noncommutative square and commuting left and right multiplication with integration turns both cross terms into C².",
+          "formula": "(X\\otimes X-C)^2=X\\otimes X-(X\\otimes X)C-C(X\\otimes X)+C^2",
+          "lean": "Use isStarProjection_rankOne_self, noncomm_ring, integral_sub/add, and ContinuousLinearMap.integral_comp_comm."
+        },
+        {
+          "title": "Control the variance operator",
+          "text": "Submultiplicativity gives ‖C²‖≤‖C‖². Since ‖C‖≤1, the triangle inequality yields ‖C-C²‖≤2‖C‖.",
+          "formula": "\\|C-C^2\\|\\le\\|C\\|+\\|C\\|^2\\le2\\|C\\|",
+          "lean": "Use norm_sub_le, norm_pow_le', hNorm, and real arithmetic."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.norm_rankOne_self_eq_sq"
+      ],
+      "mathlib_dependencies": [
+        "InnerProductSpace.isStarProjection_rankOne_self",
+        "InnerProductSpace.isSymmetric_rankOne_self",
+        "ContinuousLinearMap.integral_apply",
+        "ContinuousLinearMap.integral_comp_comm",
+        "integral_inner",
+        "norm_integral_le_of_norm_le_const"
+      ],
+      "lean_statement": "The conclusion is a four-part conjunction and all probability, integrability, unit-norm, and population-identification assumptions occur explicitly in the signature.",
+      "lean_proof": "The proof integrates pointwise rank-one symmetry, applies the Bochner norm bound, expands the noncommutative centered square using rank-one idempotence, commutes multiplication through the integral, and finishes with the operator-norm triangle inequality.",
+      "boundary": "This is the expectation-level moment calculation immediately before matrix Bernstein. It does not establish independence, an operator MGF bound, a trace inequality, a tail estimate, or sample complexity.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/1501.01571",
+          "label": "Tropp, An Introduction to Matrix Concentration Inequalities",
+          "scope": "Self-adjoint matrix Bernstein setup and sample-covariance variance calculation."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/EmpiricalCovariance.lean",
+          "label": "Samplinglib compiled moment package",
+          "scope": "Self-adjointness, contraction, exact centered second moment, and variance-operator norm bound."
+        }
+      ],
+      "tests": [
+        "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 lake build Tests.EmpiricalCovariance"
+      ]
+    }
+  ]
+}

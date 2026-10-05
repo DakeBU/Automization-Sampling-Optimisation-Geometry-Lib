@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "std-gaussian-second-moment",
+      "library": "samplewiki-route",
+      "chapter": "sphmc-01",
+      "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+      "title": "Shared prerequisite: standard-Gaussian squared norm",
+      "source": {
+        "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+        "edition": "Mathlib pinned by lake-manifest.json",
+        "anchor": "stdGaussian mean, covariance and L2 APIs",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Mathlib contributors. ASTIS packages the finite-dimensional norm-square consequence; this wording is not a quotation."
+      },
+      "statement": "For a standard Gaussian Z in a finite-dimensional real inner-product space, ‖Z‖² is integrable and its expectation equals the real dimension.",
+      "assumptions": [
+        "Complete finite-dimensional real inner-product Borel space.",
+        "Mathlib's actual standard Gaussian measure."
+      ],
+      "formulae": [{"label": "Second moment", "tex": "\\int\\|z\\|^2\\,\\gamma_d(\\mathrm dz)=d."}],
+      "obligations": [{"id": "gaussian-l2", "label": "Squared-norm integrability and exact dimension moment"}],
+      "bindings": [{
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+        "cell": "ASTIS-SHARED-std-gaussian-second-moment",
+        "role": "prerequisite",
+        "audit_id": "ASTIS-RT-20260929-StdGaussianSecondMoment",
+        "supports": ["gaussian-l2"],
+        "boundary": "Only the standard-Gaussian squared-norm L1 identity; no independent product law, OU update, higher moment or sampler theorem.",
+        "assumption_deltas": [
+          {"source": "Mathlib exposes standard-Gaussian mean, covariance and L2 facts separately.", "lean": "ASTIS combines them with a finite orthonormal basis to return squared-norm integrability and its exact integral.", "classification": "same", "reason": "This is a finite-dimensional consequence of the cited formal APIs, not a strengthened probability claim."}
+        ]
+      }]
+    },
+    {
+      "id": "sphmc-partial-momentum-refresh",
+      "library": "samplewiki-route",
+      "chapter": "sphmc-01",
+      "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+      "title": "SPHMC Algorithm 3.1 first partial momentum refresh",
+      "source": {
+        "url": "https://arxiv.org/html/2609.06906v1#S3.SS2",
+        "edition": "arXiv:2609.06906v1",
+        "anchor": "Algorithm 3.1 lines 282–300; Lemma D.4 proof lines 2177–2180",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib expands the first refresh moment calculation; it is not the authors' original wording, complete D.7, D.8 or an endorsement."
+      },
+      "statement": "Adjoin a fresh standard Gaussian to the incoming phase-state law and perform Algorithm 3.1's first OU half-refresh. The refreshed state is measurable and square-integrable, and its exact second moment contains the additional Gaussian term (1−exp(−h))d.",
+      "assumptions": [
+        "A probability law nu on incoming (X,Pinit), with integrable combined squared distance to (x*,0) and expectation at most M.",
+        "A nonnegative phase length h and a complete finite-dimensional real inner-product Borel state space.",
+        "Fresh standard Gaussian momentum noise represented by nu.prod(stdGaussian E)."
+      ],
+      "formulae": [
+        {"label": "Actual refresh", "tex": "P_0=e^{-h/2}P_{\\rm init}+\\sqrt{1-e^{-h}}\\,Z,\\qquad Z\\sim N(0,I_d)\\text{ fresh}."},
+        {"label": "Exact and bounded moment", "tex": "\\mathbb E[\\|X-x_*\\|^2+\\|P_0\\|^2]=\\mathbb E[\\|X-x_*\\|^2+e^{-h}\\|P_{\\rm init}\\|^2]+(1-e^{-h})d\\le M+(1-e^{-h})d."}
+      ],
+      "obligations": [
+        {"id": "product-refresh", "label": "Actual independent product-law refresh and zero mixed term"},
+        {"id": "refresh-integrability", "label": "Measurability and combined-square integrability"},
+        {"id": "refresh-moment", "label": "Exact identity and corrected consumer budget"},
+        {"id": "run-state", "label": "Repeated Algorithm 3.1 law and run-wide incoming state bound (remaining)"},
+        {"id": "picard-array", "label": "Actual joint Picard Gaussian array and nodes/weights (remaining)"},
+        {"id": "d7-parameters", "label": "Absorption into C kappa d L_q^18 (remaining)"}
+      ],
+      "bindings": [{
+        "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PartialMomentumRefresh.partial_momentum_refresh_second_moment",
+        "cell": "ASTIS-SW-SPHMC-partial-momentum-refresh",
+        "role": "proof-edge",
+        "audit_id": "ASTIS-RT-20260929-SPHMCPartialMomentumRefresh",
+        "supports": ["product-refresh", "refresh-integrability", "refresh-moment"],
+        "boundary": "One first half-refresh over an abstract incoming state law. No repeated history, derivation of the line-2179 state bound, second refresh, actual Picard Gaussian array, node/weight instantiation, numerical D.7 substitution, D.8 or paper theorem.",
+        "assumption_deltas": [
+          {"source": "Algorithm 3.1 draws zeta0 independently of the whole incoming state.", "lean": "Freshness is represented by the concrete product measure nu.prod(stdGaussian E).", "classification": "same", "reason": "The product construction supplies actual independence instead of assuming a zero cross moment."},
+          {"source": "The D.7 proof says the run-wide state estimate also controls layer-one nodes and suppresses this elementary refresh calculation.", "lean": "The refreshed budget is explicitly M+(1−exp(−h))*finrank(E).", "classification": "source-implicit", "reason": "The Gaussian innovation adds this term. Reusing M unchanged is generally false; later universal-constant arithmetic may absorb d only after its own assumptions are present."},
+          {"source": "The source works in R^d.", "lean": "A complete finite-dimensional real inner-product Borel space is used.", "classification": "generalization", "reason": "This contains the Euclidean setting and preserves the norm, Gaussian covariance and dimension calculation."},
+          {"source": "The source's incoming state comes from the repeated Algorithm 3.1 run and D.3/Lemma 4.16.", "lean": "Its probability law and M-bound are explicit premises.", "classification": "source-implicit", "reason": "The history construction and run-wide estimate remain separate visible red obligations rather than being assumed complete."}
+        ]
+      }]
+    }
+  ]
+}

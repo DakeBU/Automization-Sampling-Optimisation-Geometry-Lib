@@ -3,16 +3,16 @@
 ## Upstream
 
 - Repository: `https://github.com/YuanheZ/lean-stat-learning-theory`
-- Local clone: `/home/nitanda_sub/mark/repos/outer_repos/sampling_theory_sde/lean-stat-learning-theory`
+- Local clone: not recorded in public metadata
 - Upstream file:
 - Upstream declaration:
-- Upstream toolchain: `leanprover/lean4:v4.27.0-rc1`
+- Upstream toolchain: `<record the exact upstream toolchain>`
 
 ## ASTIS Port
 
 - Local file:
 - Local declaration:
-- ASTIS toolchain: `leanprover/lean4:v4.29.1`
+- Samplinglib toolchain: `leanprover/lean4:v4.33.0`
 - Status: `direct-port | needs-mathlib-api-update | reference-only | blocked | formalized`
 
 ## Exact Statement Used

@@ -1,0 +1,178 @@
+{
+  "audit": "andi-qgd-route-audit",
+  "status": "source-and-reuse-audit-complete; no proof or repository edits",
+  "role": "source/reuse route audit; not independent semantic decoder or verifier",
+  "source": {
+    "edition": "arXiv:2605.07006v1",
+    "url": "https://arxiv.org/html/2605.07006v1#S3",
+    "anchor": "Exercise 3.3, HTML extracted lines 678\u2013680",
+    "scope": "Positive-definite symmetric matrix on Euclidean space; centered objective f(x)=<x,Ax>/2. Exercise asks for explicit GD iterates and assessment of section sharpness. Surrounding \u00a73 is C\u00b2. No printed solution in the exercise.",
+    "background_consumer": {
+      "url": "https://arxiv.org/html/2605.07006v1#S5.SS1",
+      "anchor": "\u00a75.1 polynomial discussion preceding Lemma5.5, extracted lines 910\u2013925",
+      "scope": "Positive-definite symmetric finite-dimensional quadratic including linear term; polynomial error representation and conjugate-gradient comparison. Planned consumer only, not covered or certified by proposed delta."
+    }
+  },
+  "proposed_delta": {
+    "classification": "internal-paper-step using mathlib-available calculus and power algebra; new canonical shared interface",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticGradientDescent.lean",
+    "namespace": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent",
+    "declarations": [
+      {
+        "name": "quadratic_gradient_iterate",
+        "hypotheses": "E complete real inner-product space; H:E\u2192L[\u211d]E symmetric; h:\u211d; x:E; N:\u2115",
+        "objective": "q(x)=inner \u211d x (H x)/2",
+        "conclusion": "((fun y => y-h \u2022 gradient q y)^[N]) x = ((ContinuousLinearMap.id \u211d E-h \u2022 H)^N) x",
+        "required_content": "Derive HasGradientAt q (H x) x from the actual objective before rewriting the gradient update. Do not assume gradient q=H."
+      },
+      {
+        "name": "quadratic_eigenmode",
+        "hypotheses": "Same E,H,q; H x=\u03bb \u2022 x, \u03bb,h:\u211d, N:\u2115; zero x allowed",
+        "conclusion": [
+          "actualGDiterate = (1-h*\u03bb)^N \u2022 x",
+          "norm actualGDiterate = |1-h*\u03bb|^N * norm x",
+          "q actualGDiterate = (1-h*\u03bb)^(2*N) * q x"
+        ],
+        "required_content": "Consume quadratic_gradient_iterate and existing eigenvector power theorem, with explicit x=0 branch when needed."
+      }
+    ],
+    "domain_extensions": [
+      "Hilbert-space bounded symmetric operator extends finite-dimensional matrix source.",
+      "Any signed symmetric H and any real h are algebraically allowed; positivity and step stability are unnecessary for these identities.",
+      "N=0 and x=0 included. The eigenrelation Hx=\u03bbx does not assert nonzero eigenvector or existence."
+    ],
+    "excluded": [
+      "No eigenvalue/eigenvector existence for arbitrary Hilbert operators.",
+      "No claim of convergence for unrestricted step or indefinite H.",
+      "No claim that all \u00a73 bounds are sharp.",
+      "No CG, Chebyshev, affine quadratic, or oracle-complexity theorem."
+    ],
+    "sharpness_use": "For a nonzero mode, the exact norm contraction is |1-h\u03bb|^N, with value factor its square. Substituting endpoint \u03bb=\u03b1 or \u03b2 at h=2/(\u03b1+\u03b2), under 0<\u03b1\u2264\u03b2, demonstrates the factor ((\u03b2-\u03b1)/(\u03b1+\u03b2))^N in a genuine endpoint mode. This is a downstream specialization to be identified explicitly, not an eigenvector-existence conclusion."
+  },
+  "local_reuse": [
+    {
+      "module": "GradientDescentOptimalStep",
+      "declarations": [
+        "gradient_step_endpoint_bound",
+        "optimal_gradient_step"
+      ],
+      "scope": "Existing actual C\u00b2 gradient map upper bounds and scalar minimax envelope; no exact quadratic trajectory or attained lower witness. Do not duplicate endpoint optimization."
+    },
+    {
+      "module": "GradientDescentContraction",
+      "declarations": [
+        "gradient_step_contraction",
+        "gradient_descent_distance_bound"
+      ],
+      "scope": "Actual gradient Function.iterate convention and estimates with supplied minimizer. Reuse conventions, not a new recurrence abstraction."
+    },
+    {
+      "module": "QuadraticRegularization",
+      "declarations": [
+        "strongConvexOn_and_lipschitzWith_gradient_add_quadratic"
+      ],
+      "scope": "General objective plus scalar identity quadratic shift; not a general symmetric-operator gradient identity. No duplicate needed."
+    },
+    {
+      "modules": [
+        "GradientDescentBasic",
+        "GradientDescentValue",
+        "GradientDescentPL",
+        "GradientDescentStationarity"
+      ],
+      "scope": "General upper estimates; no exact symmetric quadratic iterates found in bounded search."
+    }
+  ],
+  "mathlib": {
+    "commit": "db584cd6d46c92f209a44c0f1c829460d327499d",
+    "api": [
+      {
+        "name": "HasFDerivAt.inner",
+        "path": "Mathlib/Analysis/InnerProductSpace/Calculus.lean:98",
+        "scope": "Differentiates actual inner-product composite via fderivInnerCLM; combine hasFDerivAt_id with H.hasFDerivAt, divide by2, simplify using symmetry."
+      },
+      {
+        "name": "hasGradientAt_iff_hasFDerivAt",
+        "path": "Mathlib/Analysis/Calculus/Gradient/Basic.lean:102",
+        "scope": "Riesz identification of derived derivative with Hx."
+      },
+      {
+        "name": "HasGradientAt.gradient",
+        "path": "Mathlib/Analysis/Calculus/Gradient/Basic.lean:173",
+        "scope": "Concludes actual gradient equals proved gradient."
+      },
+      {
+        "name": "FunLike.coe_pow_eq_iterate",
+        "path": "Mathlib/Topology/Algebra/Module/ContinuousLinearMap/Basic.lean:592",
+        "scope": "ContinuousLinearMap.coe_pow old aliases deprecated; use this current power/iterate theorem. Referenced here by alias location."
+      },
+      {
+        "name": "ContinuousLinearMap.toLinearMap_pow",
+        "path": "Mathlib/Topology/Algebra/Module/ContinuousLinearMap/Basic.lean:594",
+        "scope": "Transfers CLM powers to underlying endomorphism powers."
+      },
+      {
+        "name": "Module.End.HasEigenvector.pow_apply",
+        "path": "Mathlib/LinearAlgebra/Eigenspace/Basic.lean:458",
+        "scope": "(f^n)v=\u03bc^n\u2022v for nonzero eigenvector; split x=0 before packaging update-map eigenvector. No need to reprove generic eigenmode power algebra."
+      },
+      {
+        "name": "Module.End.mem_eigenspace_iff",
+        "path": "Mathlib/LinearAlgebra/Eigenspace/Basic.lean:449",
+        "scope": "Eigenspace membership equivalent to exact Hx=\u03bb\u2022x."
+      },
+      {
+        "name": "LinearMap.IsSymmetric",
+        "path": "Mathlib/Analysis/InnerProductSpace/Symmetric.lean:59",
+        "scope": "inner(Tx,y)=inner(x,Ty), matching required real quadratic symmetry."
+      }
+    ]
+  },
+  "external_reuse": [
+    {
+      "library": "Optlib",
+      "commit": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "path": "Optlib/Algorithm/LASSO.lean:61",
+      "declaration": "quadratic_gradient",
+      "scope": "Euclidean Fin n; objective ||A*x||\u00b2, gradient 2 A\u1d40Ax. Not general symmetric H; no exact iterate theorem found.",
+      "decision": "Do not port: Mathlib inner calculus directly gives smaller proof and supports indefinite symmetric operators.",
+      "placeholder_scan": "No sorry/axiom/admit matches in searched LASSO.lean or ADMM/Lemma.lean; this is not a dependency-closure evaluation."
+    },
+    {
+      "library": "Optlib",
+      "commit": "5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "path": "Optlib/Algorithm/ADMM/Lemma.lean:312",
+      "declaration": "ADMM_Converge_Proof.Gradient_of_quadratic_forms",
+      "scope": "Complete real Hilbert \u03b1,\u03b2; A:\u03b1\u2192L[\u211d]\u03b2; objective <Ax,Ax>, gradient 2 A\u2020Ax. No symmetric H objective or GD powers.",
+      "decision": "Background analogy only; no external code port."
+    },
+    {
+      "library": "CvxLean",
+      "commit": "c62c2f292c6420f31a12e738ebebdfed50f6f840",
+      "paths": [
+        "CvxLean/Lib/Math/LinearAlgebra/Eigenspace.lean",
+        "CvxLean/Lib/Math/Analysis/InnerProductSpace/Spectrum.lean",
+        "CvxLean/Lib/Math/LinearAlgebra/Matrix/Spectrum.lean"
+      ],
+      "declarations": [
+        "Module.End.eigenspace_add",
+        "Module.End.has_eigenvector_add",
+        "Module.End.has_eigenvector_one",
+        "Matrix.IsHermitian.hasEigenvector_eigenvectorBasis"
+      ],
+      "scope": "Eigenvector addition and spectral basis algebra; no actual quadratic gradient-descent iterate theorem located.",
+      "decision": "No port: pinned Mathlib covers needed power algebra. Spectral-basis construction outside this bounded target."
+    }
+  ],
+  "route_max_seven_steps": [
+    "Use actual inner-product derivative and symmetry to prove HasGradientAt q (Hx).",
+    "Rewrite actual update as I-hH.",
+    "Use FunLike.coe_pow_eq_iterate to obtain explicit operator powers.",
+    "Split x=0; otherwise package Hx=\u03bbx as update-map eigenvector with eigenvalue1-h\u03bb.",
+    "Use Module.End.HasEigenvector.pow_apply and CLM power coercion.",
+    "Take norms and use norm_smul/abs_pow; use quadratic homogeneity for objective identity.",
+    "Focused validation should cover signed H/h, N0, zero x, and positive scalar endpoint example; independently review all domain extensions."
+  ],
+  "failure_policy": "After repeated same-shape calculus/coercion errors, diagnose the exact API boundary; do not replace actual gradient by assumed field or weaken source positivity claims without recording scope. Return compiled power interface or typed smaller obstruction, never generic failure.",
+  "verification_scope": "Read-only source/API audit; no Lean build or source-blind semantic certification performed."
+}

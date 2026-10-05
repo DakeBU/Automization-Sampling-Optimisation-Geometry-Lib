@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL.finite_klDiv_and_toReal_eq_integral_normalizedLogRatio",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/TiltedKL.lean",
+      "source_line": 28,
+      "short_name": "finite_klDiv_and_toReal_eq_integral_normalizedLogRatio",
+      "title": "Evaluate canonical KL with an explicit normalized tilt ratio",
+      "classification": "measure-theoretic KL representative bridge",
+      "statement": "Let mu be a nonzero sigma-finite measure and let f and g define integrable exponential tilts. If their displayed normalized log-density ratio is integrable under the left tilt, then the canonical KL divergence from the left tilt to the right tilt is finite, and its real value is exactly the left-tilt integral of that displayed ratio.",
+      "formula": "\\mathrm{KL}(\\mu_f\\|\\mu_g)<\\infty,\\qquad \\mathrm{KL}(\\mu_f\\|\\mu_g)=\\int\\!\\left(f-\\log Z_f-g+\\log Z_g\\right)\\,d\\mu_f.",
+      "assumptions": [
+        "The common base measure is sigma-finite and nonzero.",
+        "The left exponent f is measurable, and exp(f) and exp(g) are integrable under the base measure, so both normalized tilts are probability measures.",
+        "The explicit normalized ratio f-log Z_f-g+log Z_g is integrable under the left tilt. This real analytic obligation is not inferred merely from normalization.",
+        "No differentiability or gradient statement is used."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Normalize the two tilts and obtain absolute continuity",
+          "text": "Integrability of both exponential weights makes each tilt a probability measure. The left tilt is absolutely continuous with respect to the common base, and the base is absolutely continuous with respect to the right tilt; composing gives the KL direction.",
+          "formula": "\\mu_f\\ll\\mu\\ll\\mu_g\\quad\\Longrightarrow\\quad\\mu_f\\ll\\mu_g,\\qquad \\mu_f(X)=\\mu_g(X)=1.",
+          "lean": "Use isProbabilityMeasure_tilted, tilted_absolutelyContinuous, absolutelyContinuous_tilted and trans."
+        },
+        {
+          "number": 2,
+          "title": "Transfer integrability only at the value level",
+          "text": "The previously compiled representative theorem identifies Mathlib's canonical llr with the explicit normalized ratio almost everywhere under the left tilt. Therefore the assumed integrability of the explicit ratio implies integrability of the canonical llr.",
+          "formula": "\\operatorname{llr}(\\mu_f,\\mu_g)=f-\\log Z_f-g+\\log Z_g\\quad\\mu_f\\text{-a.e.}",
+          "lean": "Apply Integrable.congr to TiltedLogRatio.llr_tilted_tilted_ae in the reverse direction."
+        },
+        {
+          "number": 3,
+          "title": "Certify finite canonical KL",
+          "text": "Mathlib's finite-KL criterion requires precisely absolute continuity in the KL direction and integrability of its canonical llr. Both have now been proved.",
+          "formula": "\\mu_f\\ll\\mu_g\\ \\wedge\\ \\operatorname{llr}(\\mu_f,\\mu_g)\\in L^1(\\mu_f)\\quad\\Longrightarrow\\quad\\mathrm{KL}(\\mu_f\\|\\mu_g)\\ne\\infty.",
+          "lean": "Invoke InformationTheory.klDiv_ne_top."
+        },
+        {
+          "number": 4,
+          "title": "Replace the canonical llr integral by the smooth representative",
+          "text": "Because both tilted measures have mass one, Mathlib's equal-mass KL formula has no extra mass correction. Almost-everywhere equality then changes the integrand without changing the integral.",
+          "formula": "\\mathrm{KL}(\\mu_f\\|\\mu_g)=\\int\\operatorname{llr}(\\mu_f,\\mu_g)\\,d\\mu_f=\\int(f-\\log Z_f-g+\\log Z_g)\\,d\\mu_f.",
+          "lean": "Use InformationTheory.toReal_klDiv_of_measure_eq and integral_congr_ae."
+        }
+      ],
+      "lean_statement": "The conclusion contains both the ENNReal finiteness certificate and the exact real integral identity. Its explicit integrability premise prevents toReal from silently collapsing infinity to zero.",
+      "lean_proof": "Build probability instances for both tilts, compose absolute continuity, transfer L1 integrability through the existing a.e. representative theorem, then apply Mathlib's KL theorems and integral congruence.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedLogRatio.llr_tilted_tilted_ae"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.isProbabilityMeasure_tilted",
+        "MeasureTheory.tilted_absolutelyContinuous",
+        "MeasureTheory.absolutelyContinuous_tilted",
+        "MeasureTheory.Integrable.congr",
+        "InformationTheory.klDiv_ne_top",
+        "InformationTheory.toReal_klDiv_of_measure_eq",
+        "MeasureTheory.integral_congr_ae"
+      ],
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2010.03106v4",
+          "label": "Lee, Shen and Tian, Lemma 2",
+          "scope": "The entropy/LSI proof uses the explicit restricted-fiber log ratio and then computes its score; ASTIS isolates the canonical-KL representative interface."
+        },
+        {
+          "url": "https://arxiv.org/html/2609.06906v1",
+          "label": "Chen, Chewi, Lu and Zhang, SPHMC v1, Lemma 4.17",
+          "scope": "The restricted-Gaussian contraction cites the prior argument. This declaration supplies only its KL representative bridge."
+        }
+      ],
+      "boundary": [
+        "The explicit ratio's integrability under the left fiber is an input, not a consequence of exponential-weight integrability alone.",
+        "Almost-everywhere equality is used for values, integrability and integrals only; it is not used to transport classical gradients.",
+        "The theorem does not prove the restricted-fiber score formula, relative Fisher energy, log-Sobolev inequality, Talagrand inequality, W2 contraction or SPHMC main theorem."
+      ],
+      "tests": {
+        "file": "Tests/TiltedKL.lean",
+        "scope": "The declaration is imported, type-checked and its axioms are printed."
+      },
+      "review": {
+        "status": "pass",
+        "reviewer": "tilted_kl_source_reviewer",
+        "scope": "A source-blind decoder reconstructed the full theorem, and an independent anti-anchored reviewer accepted the generic exponential-tilt result as equivalent after elaboration to the cited restricted-fiber KL prerequisite, with one nonblocking documented domain generalization."
+      }
+    }
+  ]
+}

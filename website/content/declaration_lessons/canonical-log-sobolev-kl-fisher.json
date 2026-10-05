@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev.finite_klDiv_and_toReal_le_half_mul_information",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CanonicalLogSobolev.lean",
+      "source_line": 46,
+      "short_name": "finite_klDiv_and_toReal_le_half_mul_information",
+      "title": "A canonical generator LSI gives finite KL and a Fisher bound",
+      "classification": "shared conditional analytic bridge",
+      "statement": "Let mu be a probability law and pi a reference law on finite-dimensional Euclidean space. Assume pi satisfies the density-form generator log-Sobolev inequality with constant C. If the canonical density dmu/dpi is admissible, its canonical log-ratio has a finite smooth score, and the generator integration-by-parts and carré-du-champ identities identify its Dirichlet form with Fisher information, then KL(mu||pi) is finite and KL(mu||pi) ≤ (C/2) FI(mu||pi).",
+      "formula": "\\mathrm{KL}(\\mu\\|\\pi)<\\infty,\\qquad \\mathrm{KL}(\\mu\\|\\pi)\\le \\frac{C}{2}\\,\\mathrm{FI}(\\mu\\|\\pi).",
+      "assumptions": [
+        "mu is a probability measure; hLSI supplies that pi is a probability measure and C>0.",
+        "The canonical Radon--Nikodym density is nonnegative, normalized and integrable, with integrable rho log rho and rho L(log rho).",
+        "mu is absolutely continuous with respect to pi; the canonical log-ratio is differentiable mu-almost everywhere and its squared score is integrable.",
+        "The density/log-density pair lies in the generator integration-by-parts domain and its carré-du-champ is rho times the squared score.",
+        "Chewi uses C. SALD and Lee--Shen--Tian use the reciprocal rate c_LSI=lambda=C^{-1}."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Extract genuine KL finiteness",
+          "text": "Entropy admissibility gives integrability of rho log rho under pi. Mathlib transports this to integrability of the canonical log-likelihood ratio under mu, which together with absolute continuity proves that the ENNReal KL divergence is not infinity.",
+          "formula": "\\rho\\log\\rho\\in L^1(\\pi)\\Longrightarrow \\log(d\\mu/d\\pi)\\in L^1(\\mu)\\Longrightarrow \\mathrm{KL}(\\mu\\|\\pi)<\\infty.",
+          "lean": "integrable_rnDeriv_mul_log_iff; InformationTheory.klDiv_ne_top"
+        },
+        {
+          "number": 2,
+          "title": "Apply LSI to the canonical density",
+          "text": "The supplied LSI is specialized to rho=dmu/dpi. Its entropy side is a genuine finite integral because admissibility was stated before applying the inequality.",
+          "formula": "\\operatorname{Ent}_{\\pi}(\\rho)\\le \\frac C2\\,\\mathcal E_{\\pi}(\\rho,\\log\\rho).",
+          "lean": "Generator.SatisfiesLogSobolev; Generator.LogSobolevAdmissible"
+        },
+        {
+          "number": 3,
+          "title": "Identify entropy with canonical KL",
+          "text": "The Radon--Nikodym change-of-measure identity rewrites the density entropy as the integral of Mathlib's canonical log-ratio under mu, hence as klDiv.toReal.",
+          "formula": "\\int \\rho\\log\\rho\\,d\\pi=\\int\\log(d\\mu/d\\pi)\\,d\\mu=\\mathrm{KL}(\\mu\\|\\pi).",
+          "lean": "integral_rnDeriv_mul_log; RNLogRatio.toReal_klDiv_eq_integral_logRatio_of_probability"
+        },
+        {
+          "number": 4,
+          "title": "Identify Dirichlet energy with Fisher information",
+          "text": "The already verified integration-by-parts and carré-du-champ bridge turns the generator Dirichlet form into the canonical squared-score integral.",
+          "formula": "\\mathcal E_{\\pi}(\\rho,\\log\\rho)=\\int\\|\\nabla\\log(d\\mu/d\\pi)\\|^2\\,d\\mu=\\mathrm{FI}(\\mu\\|\\pi).",
+          "lean": "CanonicalDirichletFisher.dirichletForm_density_logRatio_eq_information"
+        }
+      ],
+      "lean_statement": "The Lean theorem returns klDiv mu pi != infinity together with the toReal inequality. It keeps density admissibility, canonical score regularity, generator-domain integration by parts and the gamma/score identity as separate hypotheses.",
+      "lean_proof": "The proof first derives integrability of the canonical llr from the admissible RN entropy integrand. It then applies the generator LSI to the canonical density and rewrites its two sides using Mathlib's RN/KL theorem and ASTIS's compiled Dirichlet--Fisher theorem.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator.SatisfiesLogSobolev",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator.LogSobolevAdmissible",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalRelativeFisher.SmoothFiniteScoreDomain",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher.DirichletPairDomain",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher.HasCanonicalFisherGamma"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integrable_rnDeriv_mul_log_iff",
+        "MeasureTheory.integral_rnDeriv_mul_log",
+        "InformationTheory.klDiv_ne_top"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Sinho Chewi, Log-Concave Sampling, Definition 1.2.25",
+          "scope": "Density-form generator log-Sobolev convention with coefficient C/2."
+        },
+        {
+          "url": "https://arxiv.org/html/2010.03106v4",
+          "label": "Lee--Shen--Tian, Lemma 2",
+          "scope": "Uses the reciprocal curvature rate lambda, so C=lambda^{-1}; its Talagrand step is not part of this theorem."
+        }
+      ],
+      "boundary": [
+        "This theorem does not prove that any concrete Gibbs measure satisfies LSI.",
+        "It does not prove Bakry--Emery, Talagrand T2, Wasserstein contraction or an SPHMC/PBPS main theorem.",
+        "It does not derive canonical score differentiability from almost-everywhere agreement with an explicit representative.",
+        "KL finiteness comes from hAdmissible and is returned explicitly; toReal of infinity is never accepted as evidence."
+      ],
+      "tests": {
+        "file": "Tests/CanonicalLogSobolev.lean",
+        "scope": "The public declaration is imported and its kernel axioms are printed."
+      },
+      "review": {
+        "status": "pass",
+        "reviewer": "independent blind decoder and independent source-fidelity reviewer",
+        "scope": "Both reviews accepted the assumptions, C/2 constant, finite-KL guard and non-claims."
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "items": [{
+    "id": "sphmc-approximate-proximal-execution",
+    "library": "samplewiki-route",
+    "chapter": "sphmc-01",
+    "chapter_path": "example-cases/samplewiki/companions/smoothed-picard-hmc.html",
+    "title": "Gradient-only approximate proximal execution: certificate and pointwise work",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A4.SS2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Appendix D.2, Algorithm D.2 and Lemma D.3, equations D.5–D.6",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Samplinglib restatement and expanded derivation; not the authors' original wording or an endorsement."
+    },
+    "statement": "For a C² potential with kappa-inverse and unit Hessian bounds, the iteration x₀=y, xₙ₊₁=y−eta∇V(xₙ) stops at its first residual at most (1−eta)eps. It returns the current iterate, within eps of the unique proximal minimum. Its gradient-query count, including the successful test, is bounded by C_c[1+log(1+‖∇V(y)‖/eps)], uniformly in y, for fixed 0<eta≤c<1. Samplinglib additionally establishes measurable first-hit/output, quantitative unique minimum and the exact finite-fuel execution equation.",
+    "assumptions": [
+      "The source uses Euclidean space; the formal statement uses a finite-dimensional complete real inner-product space with its Borel measurable structure.",
+      "V is C², kappa≥1 and kappa⁻¹‖v‖²≤D²V(x)[v,v]≤‖v‖² for every x,v.",
+      "0<eta≤c<1 and eps>0. Exact arithmetic and exact gradient queries are the cost model, not floating-point arithmetic."
+    ],
+    "formulae": [
+      {"label": "Actual stopping rule and return", "tex": "N(y)=\\min\\{n:\\|x_{n+1}-x_n\\|\\le(1-\\eta)\\varepsilon\\},\\quad\\widetilde x_y=x_{N(y)}."},
+      {"label": "Accuracy and pointwise query count", "tex": "\\|\\widetilde x_y-\\operatorname{prox}_{\\eta V}(y)\\|\\le\\varepsilon,\\qquad N(y)+1\\le C_c[1+\\log(1+\\|\\nabla V(y)\\|/\\varepsilon)]."},
+      {"label": "Samplinglib-derived admissible constant", "tex": "C_c=2+\\frac{1+\\log((1-c)^{-1})}{-\\log c}."}
+    ],
+    "obligations": [
+      {"id": "first-hit", "label": "Finite first residual success and measurable stopped output"},
+      {"id": "certificate", "label": "Genuine proximal identification and epsilon certificate"},
+      {"id": "pointwise-work", "label": "Actual finite-fuel execution with logarithmic query count"}
+    ],
+    "bindings": [{
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution.approximate_proximal_execution",
+      "cell": "ASTIS-SW-SPHMC-approximate-proximal-execution",
+      "role": "proof-edge",
+      "supports": ["first-hit", "certificate", "pointwise-work"],
+      "audit_id": "ASTIS-RT-20260918-ProximalExecution",
+      "boundary": "Pointwise D.2/D.3 execution only. Expected work along the realized Picard run (D.4), D.1 stability, sampling accuracy and the main paper remain separate. The interpreter records point/count but not a query-list trace; its successful fuel is N+1, with no arbitrary-excess-fuel theorem.",
+      "assumption_deltas": [
+        {"source": "Finite-dimensional Euclidean potential and curvature bounds.", "lean": "Finite-dimensional complete real inner-product Borel space, C² V, genuine Hessian bounds and kappa≥1.", "classification": "generalization", "reason": "Coordinate-free representation includes the source Euclidean setting; C² ensures totalized fderiv denotes the genuine Hessian."},
+        {"source": "0<eta≤c₀<1 and positive target error.", "lean": "0<eta≤c<1 and eps>0, without eta≤1/2.", "classification": "same", "reason": "The contraction proof covers the full stated parameter range."},
+        {"source": "Return the current tested iterate; count gradient evaluations.", "lean": "Noncomputable exact-real finite-fuel interpreter returns (x_N,N+1).", "classification": "source-implicit", "reason": "Every tested residual spends one query, including the successful test. This does not model floating-point rounding or export machine code."},
+        {"source": "C_c₀ depends only on c₀; proximity to the proximal point.", "lean": "An explicit finite C_c and quadratic growth at the unique proximal minimum; measurable p, N and stopped output.", "classification": "source-implicit", "reason": "These are derived certificates and measurability details, not extra premises. No integration or expected-cost claim is made."}
+      ]
+    }]
+  }]
+}

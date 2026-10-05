@@ -19,22 +19,62 @@ SOURCE_CSS = ROOT / "website" / "static" / "quantumcomputinglib-polish.css"
 DETAIL_CSS = ROOT / "website" / "static" / "quantumcomputinglib-detail-polish.css"
 STYLE_NAMES = ("quantumcomputinglib-polish.css", "quantumcomputinglib-detail-polish.css")
 HOME = Path("index.html")
+LIBRARY_SUBTITLE = "Verified Sampling, Optimisation, Geometry Theory in Lean"
+HOME_LEDE = (
+    "A readable formal library for sampling, optimisation, and geometry: "
+    "Chewi's sampling and optimisation texts, Boumal's Riemannian optimisation route, "
+    "statistical optimal transport, a live SampleWiki frontier, and the shared Lean proof graph beneath them."
+)
+OLD_REPO = "https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep"
+NEW_REPO = "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
 
 
 def prefix_for(path: Path) -> str:
     return "../" * len(path.parent.parts)
 
 
+def canonical_home_masthead() -> str:
+    return (
+        f'<div class="eyebrow">{LIBRARY_SUBTITLE}</div>\n'
+        '  <h1>Samplinglib</h1>\n'
+        f'  <p class="lede">{HOME_LEDE}</p>'
+    )
+
+
+def rewrite_scope(text: str) -> str:
+    """Normalize public scope strings that originate in the base site template."""
+    text = text.replace("Verified Sampling Theory in Lean", LIBRARY_SUBTITLE)
+    text = text.replace("Verified sampling theory in Lean", LIBRARY_SUBTITLE)
+    text = text.replace(
+        "Samplinglib: verified sampling theory in Lean",
+        "Samplinglib: verified sampling, optimisation, and geometry theory in Lean",
+    )
+    text = text.replace(
+        f'<a href="{OLD_REPO}">GitHub',
+        f'<a href="{NEW_REPO}">GitHub',
+    )
+    return text
+
+
 def rewrite_home(text: str) -> str:
+    canonical = canonical_home_masthead()
+    if canonical in text:
+        return text
+
     text = re.sub(
         r'<div class="eyebrow">Samplinglib · formal sampling theory</div>\s*'
         r'<h1>Sampling theory, readable and verified\.</h1>\s*'
         r'<p class="lede">.*?</p>',
-        '<div class="eyebrow">Verified sampling theory in Lean</div>\n'
-        '  <h1>Samplinglib</h1>\n'
-        '  <p class="lede">A readable formal library for sampling theory: '
-        'Sinho Chewi\'s <em>Log-Concave Sampling</em>, a live SampleWiki '
-        'frontier, and the shared Lean proof graph beneath both.</p>',
+        canonical,
+        text,
+        count=1,
+        flags=re.S,
+    )
+    text = re.sub(
+        r'<div class="eyebrow">Verified sampling theory in Lean</div>\s*'
+        r'<h1>Samplinglib</h1>\s*'
+        r'<p class="lede">A readable formal library for sampling theory:.*?</p>',
+        canonical,
         text,
         count=1,
         flags=re.S,
@@ -61,10 +101,18 @@ def validate(output: Path) -> None:
     errors: list[str] = []
     if "<h1>Samplinglib</h1>" not in home:
         errors.append("home masthead is not Samplinglib")
-    if "Sampling theory, readable and verified." in home:
-        errors.append("obsolete marketing masthead remains")
-    if "Verified sampling theory in Lean" not in home:
-        errors.append("Samplinglib purpose kicker is missing")
+    for obsolete in (
+        "Sampling theory, readable and verified.",
+        "Verified sampling theory in Lean",
+        "Verified Sampling Theory in Lean",
+        "A readable formal library for sampling theory:",
+    ):
+        if obsolete in home:
+            errors.append(f"obsolete sampling-only branding remains: {obsolete}")
+    if LIBRARY_SUBTITLE not in home:
+        errors.append("widened Samplinglib purpose kicker is missing")
+    if HOME_LEDE not in home:
+        errors.append("widened Samplinglib home description is missing")
 
     primary_css = output / "assets" / STYLE_NAMES[0]
     detail_css = output / "assets" / STYLE_NAMES[1]
@@ -107,6 +155,7 @@ def enrich_site(output: Path) -> None:
     for path in sorted(output.rglob("*.html")):
         rel = path.relative_to(output)
         text = path.read_text(encoding="utf-8")
+        text = rewrite_scope(text)
         if rel == HOME:
             text = rewrite_home(text)
         text = inject_styles(text, rel)

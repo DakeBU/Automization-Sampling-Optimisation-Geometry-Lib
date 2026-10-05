@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights",
+      "title": "Actual Chebyshev-Lobatto momentum integrals are nonnegative",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A2.SS1",
+          "label": "SPHMC Appendix B.1 (B2)",
+          "scope": "Only the momentum-integral positivity clause of Proposition B.1(B2). Constant exactness/sum omega=h and absolute integrated row bounds are earlier separate compiled results. The logarithmic Lebesgue constant and Banach interpolation error, actual smoothed Hessian/averaged H producer, discrete K expansion and contraction, stochastic Khat/Kbar, repeated history, both complete main results and composition remain independent. No probability cost, invariance or kernel guarantee follows from this scalar quadrature edge. Private implementation helpers share whole-module review and receive no separate proof credit."
+        },
+        {
+          "url": "https://www.sam.math.ethz.ch/sam_reports/reports_final/reports2008/2008-07.pdf",
+          "label": "Waldvogel2008 §2(2.4)-(2.6)",
+          "scope": "Supplemental classical uniform Clenshaw-Curtis formula background; no theorem certificate or additional assumption is imported."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCPositiveIntegralWeights"
+      ],
+      "assumptions": [
+        "J is an integer >=2 and h is a positive real duration. Fin J uses zero-based indices; source indices are1,...,J.",
+        "t_j=(h/2)(1-cos(j*pi/(J-1))), ell_j is the actual Lagrange cardinal polynomial on all these nodes. All j in Fin J are quantified, including both endpoints.",
+        "Weights are actual interval integrals against ordinary real Lebesgue measure. Polynomials are continuous and hence integrable on the finite intervals; these facts are proved, never supplied as premises."
+      ],
+      "statement": "For every integer J>=2, every real h>0 and every j in Fin J, with t_i=(h/2)(1-cos(i*pi/(J-1))) and ell_j=Lagrange.basis univ t j, the actual momentum weight omega_j=integral_0^h ell_j(s) ds is nonnegative.",
+      "formula": "t_i=\\frac h2\\bigl(1-\\cos\\frac{i\\pi}{J-1}\\bigr),\\quad\\ell_j=L_j(t_0,\\ldots,t_{J-1}),\\quad\\omega_j=\\int_0^h\\ell_j(s)\\,ds\\ge0.",
+      "boundary": "Only the momentum-integral positivity clause of Proposition B.1(B2). Constant exactness/sum omega=h and absolute integrated row bounds are earlier separate compiled results. The logarithmic Lebesgue constant and Banach interpolation error, actual smoothed Hessian/averaged H producer, discrete K expansion and contraction, stochastic Khat/Kbar, repeated history, both complete main results and composition remain independent. No probability cost, invariance or kernel guarantee follows from this scalar quadrature edge. Private implementation helpers share whole-module review and receive no separate proof credit.",
+      "steps": [
+        {
+          "title": "Work with the actual extrema, keeping endpoint factors",
+          "text": "Put n=J-1>=1, theta_i=i*pi/n and c_i=1 at i=0,n and2 otherwise. Define C_n(a)=2 sum_(k=0)^n cos(ka)-1-cos(na). A finite sine telescope gives sin(a/2)C_n(a)=cos(a/2)sin(na). At all integer multiples m*pi/n with0<=m<=2n, C_n is2n at m=0,2n and0 otherwise. The interior sine factor is strictly positive, so division is justified. Negative differences use evenness.",
+          "formula": "\\sin(a/2)C_n(a)=\\cos(a/2)\\sin(na),\\quad C_n(m\\pi/n)=\\begin{cases}2n&m=0,2n,\\\\0&0<m<2n.\\end{cases}",
+          "lean": "sine_C; C_index; C_difference; C_sum"
+        },
+        {
+          "title": "Derive the finite cardinal polynomial, rather than assume it",
+          "text": "The cosine product identity gives twice the product sum as C_n(a-b)+C_n(a+b). Hence P_i(x)=c_i/(2n)[2 sum_(k=0)^n cos(k theta_i)T_k(x)-1-cos(n theta_i)T_n(x)] has degree<=n and value1 at its own cos(theta_i) node and0 at every other node. Both endpoint factors and n=1 are included. Chebyshev T_k(cos a)=cos(ka) is a pinned Mathlib fact.",
+          "formula": "P_i(x)=\\frac{c_i}{2n}\\left(2\\sum_{k=0}^n\\cos(k\\theta_i)T_k(x)-1-\\cos(n\\theta_i)T_n(x)\\right),\\quad P_i(\\cos\\theta_j)=\\mathbf1_{i=j}.",
+          "lean": "D_formula; D_cardinal; cardinalPoly_eval; cardinalPoly_natDegree"
+        },
+        {
+          "title": "Compute ordinary Lebesgue moments by an antiderivative",
+          "text": "For integer k different from ±1, F_k=T_(k+1)/(2(k+1))-T_(k-1)/(2(k-1)) has derivative T_k, using the polynomial derivative/U recurrence. The genuine FTC on[-1,1] yields I_k=integral T_k=(1+(-1)^k)/(1-k²). The exceptional k=1 integral is zero directly; I_0=2. Thus odd positive moments vanish, and even k>=2 give -2/(k²-1). No Chebyshev weighted measure or Gauss zeros are substituted.",
+          "formula": "F_k=\\frac{T_{k+1}}{2(k+1)}-\\frac{T_{k-1}}{2(k-1)},\\quad I_0=2,\\quad I_{2r+1}=0,\\quad I_{2r}=-\\frac2{4r^2-1}\\ (r\\ge1).",
+          "lean": "F_hasDeriv; integral_T_formula; I_zero; I_one; I_odd; I_even"
+        },
+        {
+          "title": "Keep both parities in the strict absolute-moment budget",
+          "text": "For A_m=sum_(k=1)^m |I_k|, the even moments telescope since2/(4r²-1)=1/(2r-1)-1/(2r+1). Two-step induction proves A_m=1-1/(m+1) if m is even, and1-1/m if m is odd. It includes m=0, with A_0=0, and gives A_m<1 for every m.",
+          "formula": "A_m=\\begin{cases}1-(m+1)^{-1}&m\\text{ even},\\\\1-m^{-1}&m\\text{ odd},\\end{cases}\\qquad A_m<1.",
+          "lean": "A_formula; A_lt_one"
+        },
+        {
+          "title": "Integrate the actual finite cardinal polynomial and prove positivity",
+          "text": "Continuity supplies all interval-integrability conditions for finite-sum and subtraction linearity. The integrated bracket is B_i=2+2 sum_(k=1)^(n-1) cos(k theta_i)I_k+cos(n theta_i)I_n. Since |cos|<=1, B_i>=2-2 A_(n-1)-|I_n|>=2-2 A_n>0. Multiplying by the strictly positive c_i/(2n) proves integral_(-1)^1 P_i>0 for every actual node. The empty interior sum handles n=1.",
+          "formula": "\\int_{-1}^1P_i=\\frac{c_i}{2n}B_i,\\quad B_i\\ge2-2A_n>0.",
+          "lean": "cardinal_integral_formula; cos_mul_moment_ge; cardinal_integral_positive_succ"
+        },
+        {
+          "title": "Identify the exact source basis and scale its actual integral",
+          "text": "Use x=1-2s/h. P_i(1-2s/h) has degree<=J-1 and the actual source cardinal values. The existing compiled coefficient producer supplies injectivity of the original t_i; polynomial interpolation uniqueness then identifies P_i(1-2s/h)=ell_i(s), with all natural/real J-1 casts checked. The genuine interval-integral affine substitution, including reversed extrema ordering, gives omega_i=(h/2) integral_(-1)^1 P_i>0 and hence the source nonnegativity conclusion. h>0 justifies the affine inverse.",
+          "formula": "\\ell_i(s)=P_i(1-2s/h),\\quad\\omega_i=\\frac h2\\int_{-1}^1P_i(x)\\,dx>0.",
+          "lean": "scaledPoly_eq_source; chebyshev_lobatto_coefficients; scaledPoly_integral; nonnegative_momentum_weights"
+        }
+      ],
+      "lean_statement": "Exact all-J, all-h source Lagrange polynomial Lebesgue integrals.",
+      "lean_proof": "Finite cosine cardinal construction, polynomial FTC/moments, strict absolute budget and exact affine source identification; whole private implementation module covered by the public review.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients"
+      ],
+      "mathlib_dependencies": [
+        "Polynomial.Chebyshev.T_real_cos",
+        "Polynomial.Chebyshev.T_derivative_eq_U",
+        "Polynomial.eq_of_degrees_lt_of_eval_index_eq",
+        "Lagrange.degree_basis",
+        "Lagrange.eval_basis_self",
+        "Lagrange.eval_basis_of_ne",
+        "intervalIntegral.integral_eq_sub_of_hasDerivAt",
+        "intervalIntegral.integral_finsetSum",
+        "intervalIntegral.integral_comp_sub_mul",
+        "Polynomial.continuous"
+      ]
+    }
+  ]
+}

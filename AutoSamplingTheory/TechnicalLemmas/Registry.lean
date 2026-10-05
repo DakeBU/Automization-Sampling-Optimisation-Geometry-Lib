@@ -3,6 +3,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights
 import AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
@@ -84,6 +85,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.chebyshev-lobatto.momentum-positive",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights",
+    upstreamDecl := "Actual ordinary integral momentum weights are nonnegative",
+    upstreamFile := "arXiv:2609.06906v1 Appendix B.1 Proposition B.1 (B2)",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "interpolation", "quadrature", "Chebyshev-Lobatto", "SPHMC"],
+    saldUse := "SPHMC Lemma4.6 actual averaged Hessian bounds (planned), then Proposition4.7",
+    note := "All J>=2,h>0; actual source cardinal polynomials/ordinary Lebesgue integrals. Derive finite cosine formula, moments, both parities, positive bracket and source affine scaling. No positivity/formula premise. Private helpers no separate credit. LogLambda/B2 and actual average-H/kernel/main remain independent."
+  },
   {
     key := "analysis.monotone-proximal.nonexpansive",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap.nonexpansive_of_monotone_optimality",

@@ -1,5 +1,38 @@
 # Companion-paper formalization handoff
 
+## Actual integral momentum positivity — 2026-10-05
+
+`ASTIS-SA-20261005-SPHMCPositiveIntegralWeights` proves actual source
+ordinary Lebesgue integrals omega_j=integral_0^h ell_j >=0 for every J>=2,
+h>0 and every source node. The finite cosine cardinal expression, genuine
+Chebyshev polynomial FTC moments, endpoint factors and both degree parities
+are proved internally. A_n=sum_(k=1)^n|I_k|<1 gives a strictly positive
+integrated bracket. Actual source-basis identity comes from affine polynomial
+uniqueness and the existing coefficient producer's node injectivity; the
+actual integral scales by h/2. No supplied positive weights/cardinal formula,
+weighted Gauss rule, stochastic/kernel or extra regularity premise.
+
+Focused production3388/Test3389 PASS; all J,h plus J=2,4,5, both endpoints
+and parities, standard3. Independent whole-module mathematics, source-blind
+reconstruction and anti-anchored source review pass. Exact proof commit
+`39556a3ee600e2dc314e7e666c68230ee5fbe236` independently verified; receipt
+`runs/20261005-companion-priority/positive-integral-weights/verified.json`.
+One public theorem receives admission; all private helpers have no separate
+progress credit. Both full main results/composition remain unfinished.
+
+Root serializes one additional technical Registry leaf471 and shared
+Analysis/Tests imports in the existing sole STABILIZING/PR313 lane.
+Aggregate/reader/graph checks pending at this integration checkpoint.
+Remote470d9a0f CI covers prior kinetic integration only; local weight proof
+is excluded. Main merge/live publication and copy/download/visual delivery
+remain separate. Older frontiers/cycles/source inventories retained.
+
+Next: construct the source actual integral-weight average H from genuine
+symmetric source Hessian bounds, with sum omega=h and positivity supplied
+by compiled source coefficients, before any first-order K difference/remainder.
+Smoothed curvature, logLambda/B2, source step restrictions and all stochastic
+bias/variance/history/PBPS/composition boundaries remain independent.
+
 ## Integral momentum weight exploration — 2026-10-05
 
 `ASTIS-SA-20261005-SPHMCPositiveIntegralWeights` is root-owned EXPLORING,

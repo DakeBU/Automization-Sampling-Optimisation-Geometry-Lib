@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.KineticDissipation.source_kinetic_dissipation",
+      "title": "Full-dimensional kinetic drift dissipation in the actual source metric",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+          "label": "SPHMC (4.14)-(4.15)",
+          "scope": "Only source full-dimensional drift dissipation(4.14)-(4.15). The exact-gradient kernel K difference expansion/remainder, actual averaged H producer, positivity of integral momentum weights, logarithmic Lambda and actual step adapters remain open. No K/Khat/Kbar interchange, supplied contraction recurrence, kinetic path/invariance or run-wide D3/D7/D8/main/PBPS/composition guarantee is claimed. The private scalar and coordinate helpers share the public whole-module review and gain no separate theorem/leaf credit."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCKineticDissipation"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space, including dimension zero; H:E→E is a real linear map. For all v,w, inner(Hv,w)=inner(v,Hw). No supplied eigenbasis or commuting/certified H-square condition is assumed.",
+        "kappa>=1, alpha=1/(2kappa); for every v, alpha||v||²<=inner(v,Hv)<=||v||². These are the actual source symmetric operator bounds. Construction of H from genuine positive integral momentum weights belongs to Lemma4.6 and remains separate.",
+        "x,p range over all E, without probability laws, moment, measure, smoothness or integrability assumptions. The phase norm is the actual M_kappa quadratic form, not the default product max norm."
+      ],
+      "statement": "For every finite-dimensional real inner-product E, kappa>=1, symmetric real linear H with (2kappa)^-1 I<=H<=I and every x,p∈E, D_H(x,p)>=Q_kappa(x,p)/(8kappa), where Q_kappa=(1/(2kappa)+1/2)||x||²+inner(x,p)+||p||² and D_H=inner(x,Hx)+2inner(p,Hx)-kappa^-1 inner(x,p)+||p||². With A_H(x,p)=(p,-Hx-p), M_kappa(x,p)=((alpha+1/2)x+p/2,x/2+p), this is exactly -2 inner(M_kappa(x,p),A_H(x,p))>=Q_kappa/(8kappa), hence the full matrix quadratic inequality (4.15). Product inner here is the sum of the two E inner products.",
+      "formula": "A_H^{\\mathsf T}M_\\kappa+M_\\kappa A_H\\preceq-\\frac1{8\\kappa}M_\\kappa,\\qquad D_H(x,p)\\ge\\frac1{8\\kappa}Q_\\kappa(x,p).",
+      "boundary": "Only source full-dimensional drift dissipation(4.14)-(4.15). The exact-gradient kernel K difference expansion/remainder, actual averaged H producer, positivity of integral momentum weights, logarithmic Lambda and actual step adapters remain open. No K/Khat/Kbar interchange, supplied contraction recurrence, kinetic path/invariance or run-wide D3/D7/D8/main/PBPS/composition guarantee is claimed. The private scalar and coordinate helpers share the public whole-module review and gain no separate theorem/leaf credit.",
+      "steps": [
+        {
+          "title": "Retain the actual two block operators",
+          "text": "Put alpha=1/(2kappa)∈(0,1/2]. The real full phase form is Q=(alpha+1/2)||x||²+inner(x,p)+||p||². Direct block multiplication for A_H(x,p)=(p,-Hx-p) and M_kappa gives -2 inner(M_kappa z,A_H z)=D_H. Source operator order is precisely comparison of these forms for every phase vector; no stochastic kernel contraction enters.",
+          "formula": "Q_\\kappa=(\\alpha+\\tfrac12)\\|x\\|^2+\\langle x,p\\rangle+\\|p\\|^2,\\quad D_H=\\langle x,Hx\\rangle+2\\langle p,Hx\\rangle-2\\alpha\\langle x,p\\rangle+\\|p\\|^2.",
+          "lean": "source_kinetic_dissipation; exact displayed source form"
+        },
+        {
+          "title": "Prove the source scalar determinant lower bound",
+          "text": "For an eigenvalue alpha<=lambda<=1, factor lambda-(lambda-alpha)²-alpha=(lambda-alpha)(1+alpha-lambda)>=0. For t=1-alpha/2>0, det(([[lambda,lambda-alpha],[lambda-alpha,1]])-(alpha/2)I)>=0: its determinant is at least alpha(1-lambda)/2+alpha²/4. This exposes the PSD detail behind the source determinant/trace argument.",
+          "formula": "\\lambda-(\\lambda-\\alpha)^2\\ge\\alpha,\\quad(\\lambda-\\alpha/2)(1-\\alpha/2)-(\\lambda-\\alpha)^2\\ge0.",
+          "lean": "scalar_dissipation; hd; hdet; ht"
+        },
+        {
+          "title": "Establish actual scalar coercivity",
+          "text": "Complete the square: t[(lambda-alpha/2)u²+2(lambda-alpha)uv+t v²]=(t v+(lambda-alpha)u)²+det*u²>=0. Hence D_lambda>=alpha(u²+v²)/2. Since alpha<=1/2 and (u-v)²>=0, the source M form is <=2(u²+v²). Thus D_lambda>=alpha Q_lambda/4, the exact source1/(8kappa) factor.",
+          "formula": "D_\\lambda(u,v)\\ge\\frac\\alpha2(u^2+v^2)\\ge\\frac\\alpha4\\{(\\alpha+\\tfrac12)u^2+uv+v^2\\}.",
+          "lean": "scalar_dissipation; hid; hp; hM; hMalpha"
+        },
+        {
+          "title": "Derive rather than assume the eigenvalue bounds",
+          "text": "Pinned Mathlib supplies an orthonormal eigenbasis b_i of the real symmetric H. At a unit basis vector, the actual full-space lower/upper quadratic hypotheses and H b_i=lambda_i b_i give alpha<=lambda_i<=1. The basis is internally obtained; no external certificate is supplied. Symmetry yields inner(b_i,Hx)=inner(Hb_i,x)=lambda_i inner(b_i,x).",
+          "formula": "\\alpha\\le\\lambda_i\\le1,\\quad H b_i=\\lambda_i b_i,\\quad\\langle b_i,Hx\\rangle=\\lambda_i\\langle b_i,x\\rangle.",
+          "lean": "full_dissipation; eigenvectorBasis; apply_eigenvectorBasis; hbounds; hc"
+        },
+        {
+          "title": "Lift every scalar block to the whole E",
+          "text": "Write u_i=inner(b_i,x),v_i=inner(b_i,p). Parseval and the exact inner-product sum identify sum u_i²=||x||², sum v_i²=||p||², sum u_i v_i=inner(x,p), sum lambda_i u_i²=inner(x,Hx) and sum lambda_i u_i v_i=inner(p,Hx). Sum the scalar inequalities and substitute all identities; this includes dimension zero without a nonempty basis hypothesis.",
+          "formula": "\\sum_iD_{\\lambda_i}(u_i,v_i)=D_H(x,p),\\qquad\\sum_iQ(u_i,v_i)=Q_\\kappa(x,p).",
+          "lean": "full_dissipation; sum_inner_mul_inner; hs; hn; hxx; hpx; hleft; hright; Finset.sum_le_sum"
+        },
+        {
+          "title": "Recover the precise source constant",
+          "text": "Use kappa>=1 to derive 0<alpha<=1/2. Substitute alpha=1/(2kappa), alpha/4=1/(8kappa),2alpha=1/kappa into the full-E inequality. Only the public source theorem receives admission; its two private proof helpers remain implementation details.",
+          "formula": "\\alpha=\\frac1{2\\kappa},\\quad\\frac\\alpha4=\\frac1{8\\kappa},\\quad2\\alpha=\\frac1\\kappa.",
+          "lean": "source_kinetic_dissipation; ha; hah; hc; hd"
+        }
+      ],
+      "lean_statement": "Exact source full E real quadratic comparison, kappa>=1 and all-vector symmetric quadratic H bounds.",
+      "lean_proof": "Whole module has one public theorem and two private scalar/coordinate helpers; source constants preserved.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "LinearMap.IsSymmetric.eigenvectorBasis",
+        "LinearMap.IsSymmetric.apply_eigenvectorBasis",
+        "OrthonormalBasis.norm_eq_one",
+        "OrthonormalBasis.sum_inner_mul_inner",
+        "Finset.sum_le_sum",
+        "real_inner_self_eq_norm_sq",
+        "real_inner_smul_left",
+        "real_inner_comm"
+      ]
+    }
+  ]
+}

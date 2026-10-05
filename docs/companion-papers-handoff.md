@@ -24,9 +24,10 @@ receipt: `runs/20261005-companion-priority/phase-query.verified.json`.
 The sole stabilization owner remains root in the existing PR313 lane.
 
 Canonical `python tools/astis.py check` passes after shared integration, including
-Lake root build, Tests9315, ATLAS and fake-closure scans. Site/graph admission is
-being regenerated at the fixed integrated state; it is not inferred from Lean
-compilation or source review. The immutable historical
+Lake root build, Tests9315, ATLAS and fake-closure scans. Static site/proof-reader admission and all three bounded graph checks also pass
+at the fixed integrated state. The actual import branches were inspected
+structurally; this does not imply browser visual acceptance. Exact receipt:
+`runs/20261005-companion-priority/phase-query.integration.json`. The immutable historical
 citation fix preserves the exact old source URLs and labels them as historical;
 current implementation links must still match the generated commit. Its72
 regression tests pass. Prior remote Lean CI passed at the previous PR head;

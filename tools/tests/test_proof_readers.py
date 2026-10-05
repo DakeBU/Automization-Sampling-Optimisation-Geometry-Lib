@@ -142,8 +142,28 @@ class ProofReaderTests(unittest.TestCase):
         self.assertIsNone(check(external + 'b'*40 + '/A.lean', commit, root))
         self.assertIsNotNone(check(external + 'master/A.lean', commit, root))
 
+    def test_historical_citations_do_not_relax_implementation_pins(self):
+        check = reader.base.source_commit_link_error
+        root = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib'
+        old = root + '/blob/' + 'b'*40 + '/A.lean'
+        self.assertIsNone(check(old, 'a'*40, root, historical_citation=True))
+        self.assertIsNotNone(check(old, 'a'*40, root))
+        self.assertIsNotNone(check(root + '/blob/main/A.lean', 'a'*40, root,
+                                  historical_citation=True))
+
 
 class DeclarationLessonTests(unittest.TestCase):
+    def test_historical_citation_is_labelled_without_rewriting_its_source(self):
+        root = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib'
+        source = {'url': root + '/blob/' + 'b'*40 + '/A.lean',
+                  'label': 'Pinned background', 'scope': 'Original mathematical reference'}
+        with patch.object(lessons.base, '_ACTIVE_GIT',
+                          SimpleNamespace(web_root=root, commit='a'*40)):
+            html = lessons.source_citation(source, 'lessons/test.html')
+        self.assertIn(source['url'], html)
+        self.assertIn('data-source-kind="historical-citation"', html)
+        self.assertIn('(historical source)', html)
+
     def test_structure_accessors_are_not_invented_theorem_leaves(self):
         known = {'A.Domain': SimpleNamespace(kind='structure', source_text='structure Domain : Prop where\n  integrable : P\n')}
         projection = {'structure': 'A.Domain', 'field': 'integrable', 'role': 'Read the supplied premise.'}

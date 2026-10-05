@@ -46,6 +46,23 @@ def source_link(source: dict, page: str) -> str:
     return base.relative_prefix(page) + 'data/lesson-sources/' + path.as_posix() + '.html' + (f'#L{source["line"]}' if source.get('line') else '')
 
 
+def source_citation_anchor(source: dict, page: str) -> str:
+    """Keep a historical mathematical citation distinct from current implementation links."""
+    url = source_link(source, page)
+    git = base._ACTIVE_GIT or base.git_context()
+    root = git.web_root.rstrip("/")
+    historical = bool(root and url.startswith(root + '/blob/')
+                      and re.search(r'/blob/[0-9a-f]{40}/', url)
+                      and git.commit and f'/blob/{git.commit}/' not in url)
+    marker = ' data-source-kind="historical-citation"' if historical else ''
+    suffix = ' (historical source)' if historical else ''
+    return f'<a href="{base.esc(url)}"{marker}>{base.esc(source["label"])}</a>{suffix}'
+
+
+def source_citation(source: dict, page: str) -> str:
+    return f'<li>{source_citation_anchor(source, page)} — {base.esc(source["scope"])}</li>'
+
+
 def inline_text(value: str) -> str:
     """Only inline code is interpreted; mathematical TeX remains for MathJax."""
     return ''.join('<code>' + base.esc(part) + '</code>' if i % 2 else base.esc(part)
@@ -154,7 +171,7 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         for p in unit.get('astis_projection_dependencies', [])
     )
     external = base.list_html(unit.get('mathlib_dependencies', []), empty='No direct Mathlib call recorded; see the Samplinglib parents.')
-    sources = ''.join(f'<li><a href="{base.esc(source_link(s, page))}">{base.esc(s["label"])}</a> — {base.esc(s["scope"])}</li>' for s in unit.get('sources', []))
+    sources = ''.join(source_citation(s, page) for s in unit.get('sources', []))
     notation = ''.join(f'<dt>{inline_text(n["symbol"])}</dt><dd><p>{inline_text(n["text"])}</p><div class="proof-reader-equation">\\[{base.esc(n["formula"])}\\]</div></dd>' for n in unit.get('notation', []))
     test = unit.get('tests', {})
     examples = ''

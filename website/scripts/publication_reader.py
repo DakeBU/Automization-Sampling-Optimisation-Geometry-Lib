@@ -102,8 +102,9 @@ def source_card(item: dict, page: str) -> str:
         lessons.append(rendered)
     return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
-            f'<p><a href="{escape(source["url"])}">{escape(source["edition"])} · {escape(source["anchor"])}</a>'
-            f' · {escape(source["wording_status"])}</p><h3>Complete source statement (Samplinglib restatement)</h3>'
+            '<p>' + declaration_lessons.source_citation_anchor(
+                {'url': source['url'], 'label': source['edition'] + ' · ' + source['anchor']}, page)
+            + f' · {escape(source["wording_status"])}</p><h3>Complete source statement (Samplinglib restatement)</h3>'
             f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
             'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'

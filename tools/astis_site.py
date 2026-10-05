@@ -888,10 +888,16 @@ def local_declaration_status(declaration: SourceDeclaration, gate: GateEvidence)
     return "Compiled" if gate.passed else "Partial"
 
 
-def source_commit_link_error(url: str, commit: str, web_root: str) -> str | None:
-    """Local source uses this checkout; external libraries use their own pins."""
+def source_commit_link_error(
+    url: str, commit: str, web_root: str, *, historical_citation: bool = False,
+) -> str | None:
+    """Implementation links use this checkout; labelled citations retain immutable pins."""
     root = web_root.rstrip("/") or "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
     if url.startswith(root + "/blob/"):
+        if historical_citation:
+            if not re.search(r"/blob/[0-9a-f]{40}/", url):
+                return f"historical source citation is not pinned to an immutable commit: {url}"
+            return None
         if commit and f"/blob/{commit}/" not in url:
             return f"source link is not pinned to the generated commit: {url}"
     elif not re.search(r"/blob/[0-9a-f]{40}/", url):
@@ -3733,11 +3739,14 @@ def validate_site(
     if re.search(r"github\.com/DakeBU/Auto-Sampling-Theory-In-Sleep/blob/main/", generated_text):
         errors.append("source links incorrectly assume files exist on main")
     commit = str(site_data["git"].get("commit", ""))
-    for source_link in re.findall(
-        r'href="(https://github\.com/[^"]+/blob/[^"]+)"',
+    for source_anchor, source_link in re.findall(
+        r'(<a\b[^>]*href="(https://github\.com/[^"]+/blob/[^"]+)"[^>]*>)',
         generated_text,
     ):
-        pin_error = source_commit_link_error(source_link, commit, str(site_data["git"].get("web_root", "")))
+        pin_error = source_commit_link_error(
+            source_link, commit, str(site_data["git"].get("web_root", "")),
+            historical_citation='data-source-kind="historical-citation"' in source_anchor,
+        )
         if pin_error:
             errors.append(pin_error)
             break

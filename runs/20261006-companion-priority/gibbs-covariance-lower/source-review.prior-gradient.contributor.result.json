@@ -1,0 +1,638 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual Gibbs law, actual gradient and full Hessian diagonal trace in a genuine finite orthonormal basis.",
+      "reconstructed": "mu=volume.tilted(-U), H is exactly the finite sum, with actual gradient/integrals.",
+      "relation": "equivalent",
+      "evidence": "Old helper proof is independently included in current full-module review."
+    },
+    "domains": {
+      "original": "Disclosed complete finite-dimensional real Hilbert/Borel extension of finite Euclidean ideal Gibbs background; zero dimension allowed.",
+      "reconstructed": "Same instances, NNReal alpha,beta and empty full basis in dimension zero.",
+      "relation": "explicit-elaboration",
+      "evidence": "No coordinate-only approximation or supplied trace."
+    },
+    "quantifiers": {
+      "original": "Every C2 U and 0<alpha<=beta with global all-x,v curvature bounds.",
+      "reconstructed": "The unchanged fully expanded public type retains all premises and all five conjunctions.",
+      "relation": "equivalent",
+      "evidence": "Fresh #check/Test elaboration confirms exact expanded type, including alpha<=beta."
+    },
+    "assumptions": {
+      "original": "Only ambient instances, positive lower curvature, ordered nonnegative bounds, C2 and actual Hessian inequalities.",
+      "reconstructed": "No supplied probability/integrability/minimizer, score IBP or final integral certificate.",
+      "relation": "equivalent",
+      "evidence": "Gaussian domination and directional Haar IBP prove those requirements."
+    },
+    "conclusion": {
+      "original": "Probability; integrability of gradient-square and H; equality of their actual Gibbs expectations; expectation<=beta*finrank.",
+      "reconstructed": "All five conclusions reconstructed accurately.",
+      "relation": "equivalent",
+      "evidence": "Parseval and finite integral sum prove equality and beta*d, not a trace surrogate for directional covariance."
+    },
+    "scopes": {
+      "original": "Expanded ideal Gibbs gradient-moment proof component used in Section 6.3, not the entire reference-point/history/cost theorem.",
+      "reconstructed": "Only this component, without stochastic-history or summed-cost guarantees.",
+      "relation": "equivalent",
+      "evidence": "Fresh current module/binding review grants no new mathematical credit to the unchanged old public theorem."
+    },
+    "constant_dependencies": {
+      "original": "Exact upper bound beta*d; alpha positivity and U(0)/gradient(0) used only for domination.",
+      "reconstructed": "Same beta*finrank and exact equality, zero-dimension sum handled.",
+      "relation": "equivalent",
+      "evidence": "No hidden kappa/eta/noise/history constant in this standalone interface."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "phase_source_reviewer_20261005",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Bounded independent reconciliation passed: Exactly one cell footprint changes per original review. Before snapshots independently reproduce the raw and LF hashes pinned by my original full reviews. Exact structural diffs are limited to two append-only reuse lists and three added historical-cell reader/reuse/graph records. All other original frozen inputs match; all three contributor packets are byte-identical to original packets and preserve their canonical hashes, source/statement/decoder text/run/context/binding. Original full source/math checks and explicit limited signature exposure are reused only under this matching freeze; no new compilation, full-proof credit, paper/main/BL/composition or VERIFIED assertion. The original seven-slot scoped verdict and explicit prior signature/keyword exposure remain unchanged. Read source-contributor-reconciliation.json for exact before/current raw-LF hashes, allowed diffs and exhaustive original input checks.",
+  "reviewer_packet_sha256": "23a7fd7a8bceacc46c30a286c76a3bb409afd068fe994677c0137c8edd782818",
+  "schema_version": 1,
+  "task": "bounded-independent-source-contributor-footprint-reconciliation",
+  "formalizer": "root-samplinglib-writer",
+  "decoder": "blind_reconstruction_r",
+  "packet_id": "ASTIS-REVIEW-ee802c37273356c9",
+  "publication_binding_sha256": "a680fee055a2108b9a76c585c19de67200dd747ed1575d772f7e5808bf1c5c06",
+  "review_context": {
+    "file": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient\nimport Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.MeasureTheory.Function.L2Space\nimport Mathlib.Probability.Moments.CovarianceBilin\nimport Mathlib.Tactic\n\n/-!\n# Actual Gibbs gradient moment and covariance lower bound\n\nThe ideal Gibbs gradient moment consumed by Section 6.3 of Chen, Chewi, Lu\nand Zhang, arXiv:2609.06906v1. Genuine C2 Hessian bounds imply all noncompact\nweighted integrability facts before full-space directional integration by\nparts. A finite orthonormal-basis sum and the actual exponential tilt give\nboth Gibbs L1 statements, the moment identity, and the beta-times-dimension\nbound. No minimizer, weighted-integrability input or moment bound is assumed.\n\nThe finite-dimensional real inner-product formulation includes dimension zero.\nThe explicit alpha<=beta assumption is retained even though its binder is\nunused. H denotes the actual standard-orthonormal-basis Hessian diagonal sum;\nno separate abstract trace/Laplacian or basis-independence theorem is claimed.\nThe covariance extension derives position L2 by strong gradient monotonicity,\nthen proves centered linear-score IBP and the covariance lower bound beta^-1\nin every direction. It is the linear-observable Cramer-Rao corollary, with\nfull-space integrability proved rather than a well-behaved premise.\nNo general nonlinear Cramer-Rao or Brascamp-Lieb inequality is claimed.\nThis ideal-law component does not establish approximate/smoothed output\nmoments, random-history conditioning or summed reference-query cost.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment\n\nopen MeasureTheory InnerProductSpace\nopen scoped RealInnerProductSpace NNReal\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\nprivate theorem absorb_quadratic {a r : ℝ} (ha : 0 < a) :\n    r^2 * Real.exp (-a*r^2) ≤ (2/a)*Real.exp (-(a/2)*r^2) := by\n  have hx : (a/2)*r^2 ≤ Real.exp ((a/2)*r^2) := by\n    linarith [Real.add_one_le_exp ((a/2)*r^2)]\n  have hm := mul_le_mul_of_nonneg_right hx (Real.exp_nonneg (-a*r^2))\n  have he : Real.exp ((a/2)*r^2)*Real.exp (-a*r^2) = Real.exp (-(a/2)*r^2) := by\n    rw [← Real.exp_add]\n    congr 1\n    ring\n  rw [he] at hm\n  calc\n    r^2 * Real.exp (-a*r^2) ≤ Real.exp (-(a/2)*r^2)/(a/2) :=\n      (le_div_iff₀ (by positivity : 0 < a/2)).2 (by nlinarith [hm])\n    _ = (2/a)*Real.exp (-(a/2)*r^2) := by ring\n\nprivate theorem weighted_square (w q : E → ℝ) (hw : Continuous w)\n    (hq : Continuous q) {a C A B : ℝ} (ha : 0 < a) (hC : 0 ≤ C)\n    (hA : 0 ≤ A) (hB : 0 ≤ B)\n    (hweight : ∀ x, Real.exp (w x) ≤ C*Real.exp (-a*‖x‖^2))\n    (hgrowth : ∀ x, ‖q x‖ ≤ A+B*‖x‖) :\n    Integrable (fun x => Real.exp (w x) * (q x)^2) (volume : Measure E) := by\n  have hdom := (Integrability.integrable_exp_neg_mul_norm_sq\n      (E := E) (show 0 < a/2 by positivity)).const_mul (C*(2*A^2+4*B^2/a))\n  apply hdom.mono' (hw.rexp.mul (hq.pow 2)).aestronglyMeasurable\n  filter_upwards with x\n  change ‖Real.exp (w x)*(q x)^2‖ ≤ C*(2*A^2+4*B^2/a)*Real.exp (-(a/2)*‖x‖^2)\n  simp only [Real.norm_eq_abs,abs_of_nonneg (mul_nonneg (Real.exp_nonneg _) (sq_nonneg _))]\n  have hs : (q x)^2 ≤ 2*A^2+2*B^2*‖x‖^2 := by\n    have hh := (sq_le_sq₀ (norm_nonneg (q x)) (by positivity)).2 (hgrowth x)\n    rw [Real.norm_eq_abs,sq_abs] at hh\n    nlinarith [sq_nonneg (A-B*‖x‖)]\n  have he : Real.exp (-a*‖x‖^2) ≤ Real.exp (-(a/2)*‖x‖^2) := by\n    apply Real.exp_le_exp.mpr\n    nlinarith [mul_nonneg ha.le (sq_nonneg ‖x‖)]\n  calc\n    Real.exp (w x)*(q x)^2 ≤ (C*Real.exp (-a*‖x‖^2))*(2*A^2+2*B^2*‖x‖^2) :=\n      mul_le_mul (hweight x) hs (sq_nonneg _) (mul_nonneg hC (Real.exp_nonneg _))\n    _ = C*(2*A^2*Real.exp (-a*‖x‖^2)+2*B^2*(‖x‖^2*Real.exp (-a*‖x‖^2))) := by ring\n    _ ≤ C*(2*A^2*Real.exp (-(a/2)*‖x‖^2)+2*B^2*((2/a)*Real.exp (-(a/2)*‖x‖^2))) := by\n      apply mul_le_mul_of_nonneg_left _ hC\n      exact add_le_add (mul_le_mul_of_nonneg_left he (by positivity))\n        (mul_le_mul_of_nonneg_left (absorb_quadratic (r := ‖x‖) ha) (by positivity))\n    _ = C*(2*A^2+4*B^2/a)*Real.exp (-(a/2)*‖x‖^2) := by ring\n\nprivate theorem weighted_gradient [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}\n    (hα : 0 < α) (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :\n    Integrable (fun x => Real.exp (-U x)) (volume : Measure E) ∧\n    Integrable (fun x => Real.exp (-U x)*‖gradient U x‖^2) (volume : Measure E) ∧\n    Integrable (fun x => Real.exp (-U x)*‖gradient U x‖) (volume : Measure E) := by\n  have ha : (0 : ℝ) < α := hα\n  have hdata := QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n    (r := 0) hU hH (0 : E)\n  simp only [NNReal.coe_zero, zero_div, zero_mul, add_zero] at hdata\n  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)\n  have hc : Continuous (gradient U) :=\n    Calculus.Gradient.continuous_gradient_of_contDiff_one (hU.of_le (by norm_num))\n  have hi := StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn ha hd hdata.1\n  let g := gradient U (0 : E)\n  let b : ℝ := U 0 - ((α : ℝ)/2)⁻¹/2*‖g‖^2\n  have hquad (x : E) : (α : ℝ)/4*‖x‖^2+b ≤ U x := by\n    have hfirst : U 0 + inner ℝ g x + (α : ℝ)/2*‖x‖^2 ≤ U x := by\n      simpa only [g, sub_zero] using\n        StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hdata.1\n          (fun z _ => (hd z).hasGradientAt) (x := 0) (y := x)\n          (Set.mem_univ _) (Set.mem_univ _)\n    have hinner := (abs_le.mp (abs_real_inner_le_norm g x)).1\n    have hyoung := two_mul_le_add_mul_sq (a := ‖x‖) (b := ‖g‖)\n      (show 0 < (α : ℝ)/2 by positivity)\n    dsimp only [b]\n    nlinarith\n  have hgrowth (x : E) : ‖‖gradient U x‖‖ ≤ ‖g‖+(β : ℝ)*‖x‖ := by\n    rw [norm_norm]\n    have hl := hdata.2.norm_sub_le x 0\n    rw [sub_zero] at hl\n    calc\n      ‖gradient U x‖ ≤ ‖gradient U x-gradient U 0‖+‖gradient U 0‖ := norm_le_norm_sub_add _ _\n      _ ≤ ‖g‖+(β : ℝ)*‖x‖ := by dsimp only [g]; linarith\n  have hsq := weighted_square (fun x => -U x) (fun x => ‖gradient U x‖)\n    hU.continuous.neg hc.norm (a := (α : ℝ)/4) (C := Real.exp (-b))\n    (A := ‖g‖) (B := (β : ℝ)) (by positivity) (Real.exp_nonneg _) (norm_nonneg _)\n    β.coe_nonneg (fun x => by\n      calc\n        Real.exp (-U x) ≤ Real.exp (-((α : ℝ)/4*‖x‖^2+b)) :=\n          Real.exp_le_exp.mpr (neg_le_neg (hquad x))\n        _ = Real.exp (-b)*Real.exp (-((α : ℝ)/4)*‖x‖^2) := by\n          rw [← Real.exp_add]\n          congr 1\n          ring) hgrowth\n  refine ⟨hi,hsq,?_⟩\n  apply (hi.add hsq).mono' (hU.continuous.neg.rexp.mul hc.norm).aestronglyMeasurable\n  filter_upwards with x\n  change ‖Real.exp (-U x)*‖gradient U x‖‖ ≤ Real.exp (-U x)+Real.exp (-U x)*‖gradient U x‖^2\n  rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg (Real.exp_nonneg _) (norm_nonneg _))]\n  have hx : ‖gradient U x‖ ≤ 1+‖gradient U x‖^2 := by nlinarith [sq_nonneg (‖gradient U x‖-1)]\n  simpa only [mul_add,mul_one] using mul_le_mul_of_nonneg_left hx (Real.exp_nonneg (-U x))\n\nprivate theorem directional_ibp [CompleteSpace E] {U : E → ℝ} {β : ℝ≥0}\n    (hU : ContDiff ℝ 2 U) (v : E) (hv : ‖v‖ = 1)\n    (hH : ∀ x, 0 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ β)\n    (hi : Integrable (fun x => Real.exp (-U x)) (volume : Measure E))\n    (hsq : Integrable (fun x => Real.exp (-U x)*‖gradient U x‖^2) (volume : Measure E))\n    (hlin : Integrable (fun x => Real.exp (-U x)*‖gradient U x‖) (volume : Measure E)) :\n    Integrable (fun x => Real.exp (-U x)*(fderiv ℝ U x v)^2) (volume : Measure E) ∧\n    Integrable (fun x => Real.exp (-U x)*fderiv ℝ (fderiv ℝ U) x v v) (volume : Measure E) ∧\n    (∫ x, Real.exp (-U x)*(fderiv ℝ U x v)^2) =\n      ∫ x, Real.exp (-U x)*fderiv ℝ (fderiv ℝ U) x v v := by\n  let f := fun x => Real.exp (-U x)\n  let q := fun x => fderiv ℝ U x v\n  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)\n  have hq : ContDiff ℝ 1 q :=\n    (hU.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const\n  have hf : ContDiff ℝ 1 f := (hU.of_le (by norm_num)).neg.exp\n  have hqder (x : E) : fderiv ℝ q x v = fderiv ℝ (fderiv ℝ U) x v v := by\n    have he := (((hU.fderiv_right (m := 1) (by norm_num)).differentiable_one x).hasFDerivAt).clm_apply\n      (hasFDerivAt_const v x)\n    rw [show fderiv ℝ q x = _ from he.fderiv]\n    simp\n  have hfder (x : E) : fderiv ℝ f x v = -f x*q x := by\n    rw [show fderiv ℝ f x = _ from (hd x).hasFDerivAt.neg.exp.fderiv]\n    simp only [smul_apply,neg_apply,smul_eq_mul,Pi.neg_apply]\n    dsimp only [f,q]\n    ring\n  have hqbound (x : E) : ‖q x‖ ≤ ‖gradient U x‖ := by\n    dsimp only [q]\n    rw [← inner_gradient_left]\n    simpa only [hv,mul_one] using norm_inner_le_norm (gradient U x) v\n  have hqq : Integrable (fun x => f x*(q x)^2) (volume : Measure E) := by\n    apply hsq.mono' (hf.continuous.mul (hq.continuous.pow 2)).aestronglyMeasurable\n    filter_upwards with x\n    change ‖f x*(q x)^2‖ ≤ f x*‖gradient U x‖^2\n    rw [Real.norm_eq_abs,abs_of_nonneg (mul_nonneg (Real.exp_nonneg _) (sq_nonneg _))]\n    apply mul_le_mul_of_nonneg_left _ (Real.exp_nonneg _)\n    have hh := (sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)).2 (hqbound x)\n    simpa only [Real.norm_eq_abs,sq_abs] using hh\n  have hHc : Continuous (fun x => fderiv ℝ q x v) :=\n    (hq.fderiv_right (m := 0) (by norm_num)).continuous.clm_apply continuous_const\n  have hqh : Integrable (fun x => f x*fderiv ℝ q x v) (volume : Measure E) := by\n    apply (hi.mul_const (β : ℝ)).mono' (hf.continuous.mul hHc).aestronglyMeasurable\n    filter_upwards with x\n    change ‖f x*fderiv ℝ q x v‖ ≤ f x*(β : ℝ)\n    rw [hqder,Real.norm_eq_abs,abs_of_nonneg (mul_nonneg (Real.exp_nonneg _) (hH x).1)]\n    exact mul_le_mul_of_nonneg_left (hH x).2 (Real.exp_nonneg _)\n  have hq1 : Integrable (fun x => f x*q x) (volume : Measure E) := by\n    apply hlin.mono' (hf.continuous.mul hq.continuous).aestronglyMeasurable\n    filter_upwards with x\n    change ‖f x*q x‖ ≤ f x*‖gradient U x‖\n    rw [norm_mul,Real.norm_eq_abs,abs_of_pos (Real.exp_pos _)]\n    exact mul_le_mul_of_nonneg_left (hqbound x) (Real.exp_nonneg _)\n  have hfq : Integrable (fun x => fderiv ℝ f x v*q x) (volume : Measure E) := by\n    convert hqq.neg using 1\n    ext x\n    change fderiv ℝ f x v*q x = -(f x*(q x)^2)\n    rw [hfder]\n    ring\n  have hidentity := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hfq hqh hq1\n    (fun x _ => hf.differentiable_one x) (fun x _ => hq.differentiable_one x)\n  have hHintegral : Integrable (fun x => f x*fderiv ℝ (fderiv ℝ U) x v v) (volume : Measure E) := by\n    simpa only [hqder] using hqh\n  refine ⟨hqq,hHintegral,?_⟩\n  change (∫ x, f x*(q x)^2) = ∫ x, f x*fderiv ℝ (fderiv ℝ U) x v v\n  calc\n    (∫ x, f x*(q x)^2) = -(∫ x, fderiv ℝ f x v*q x) := by\n      rw [← integral_neg]\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hfder]\n      ring\n    _ = ∫ x, f x*fderiv ℝ q x v := hidentity.symm\n    _ = ∫ x, f x*fderiv ℝ (fderiv ℝ U) x v v := by simp only [hqder]\n\n/-- Probability, actual Gibbs L1, the score-square/diagonal-Hessian identity,\nand its sharp curvature-dimension upper bound for the normalized Gibbs law. -/\ntheorem gibbs_gradient_moment [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}\n    (hα : 0 < α) (_hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :\n    let μ := (volume : Measure E).tilted (fun x => -U x)\n    let H := fun x => ∑ i, fderiv ℝ (fderiv ℝ U) x\n      ((stdOrthonormalBasis ℝ E) i) ((stdOrthonormalBasis ℝ E) i)\n    IsProbabilityMeasure μ ∧ Integrable (fun x => ‖gradient U x‖^2) μ ∧\n      Integrable H μ ∧ (∫ x, ‖gradient U x‖^2 ∂μ) = (∫ x, H x ∂μ) ∧\n      (∫ x, ‖gradient U x‖^2 ∂μ) ≤ (β : ℝ)*Module.finrank ℝ E := by\n  classical\n  let μ := (volume : Measure E).tilted (fun x => -U x)\n  let b := stdOrthonormalBasis ℝ E\n  let H := fun x => ∑ i, fderiv ℝ (fderiv ℝ U) x (b i) (b i)\n  have hw := weighted_gradient hα hU hH\n  have hunit (i) : ‖b i‖ = 1 := b.orthonormal.norm_eq_one i\n  have hdiag (x : E) (i) : 0 ≤ fderiv ℝ (fderiv ℝ U) x (b i) (b i) ∧\n      fderiv ℝ (fderiv ℝ U) x (b i) (b i) ≤ β := by\n    have hh := hH x (b i)\n    rw [hunit,one_pow,mul_one,mul_one] at hh\n    exact ⟨(NNReal.coe_nonneg α).trans hh.1,hh.2⟩\n  have hdir (i) := directional_ibp hU (b i) (hunit i) (fun x => hdiag x i)\n    hw.1 hw.2.1 hw.2.2\n  have hHi : Integrable (fun x => Real.exp (-U x)*H x) (volume : Measure E) := by\n    have hi := integrable_finsetSum Finset.univ (fun i _ => (hdir i).2.1)\n    simpa only [H,Finset.mul_sum] using hi\n  have hparseval (x : E) : (∑ i, (fderiv ℝ U x (b i))^2) = ‖gradient U x‖^2 := by\n    simpa only [inner_gradient_left,Real.norm_eq_abs,sq_abs] using\n      b.sum_sq_norm_inner_left (gradient U x)\n  have heq : (∫ x, Real.exp (-U x)*‖gradient U x‖^2) = ∫ x, Real.exp (-U x)*H x := by\n    calc\n      (∫ x, Real.exp (-U x)*‖gradient U x‖^2) =\n          ∫ x, ∑ i, Real.exp (-U x)*(fderiv ℝ U x (b i))^2 := by\n        simp only [← Finset.mul_sum,hparseval]\n      _ = ∑ i, ∫ x, Real.exp (-U x)*(fderiv ℝ U x (b i))^2 :=\n        integral_finsetSum _ (fun i _ => (hdir i).1)\n      _ = ∑ i, ∫ x, Real.exp (-U x)*fderiv ℝ (fderiv ℝ U) x (b i) (b i) := by\n        apply Finset.sum_congr rfl\n        intro i _\n        exact (hdir i).2.2\n      _ = ∫ x, ∑ i, Real.exp (-U x)*fderiv ℝ (fderiv ℝ U) x (b i) (b i) :=\n        (integral_finsetSum _ (fun i _ => (hdir i).2.1)).symm\n      _ = ∫ x, Real.exp (-U x)*H x := by simp only [H,Finset.mul_sum]\n  have : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hw.1\n  have hgμ : Integrable (fun x => ‖gradient U x‖^2) μ := by\n    apply (integrable_tilted_iff hw.1 _).2\n    simpa only [smul_eq_mul] using hw.2.1\n  have hHμ : Integrable H μ := by\n    apply (integrable_tilted_iff hw.1 _).2\n    simpa only [smul_eq_mul] using hHi\n  have htilt (g : E → ℝ) : (∫ x, g x ∂μ) =\n      (∫ x, Real.exp (-U x)*g x)/(∫ x, Real.exp (-U x)) := by\n    rw [integral_tilted]\n    simp only [smul_eq_mul]\n    rw [← integral_div]\n    apply integral_congr_ae\n    filter_upwards with x\n    ring\n  have heqμ : (∫ x, ‖gradient U x‖^2 ∂μ) = ∫ x, H x ∂μ := by\n    rw [htilt,htilt,heq]\n  refine ⟨inferInstance,hgμ,hHμ,heqμ,?_⟩\n  change (∫ x, ‖gradient U x‖^2 ∂μ) ≤ (β : ℝ)*Module.finrank ℝ E\n  rw [heqμ]\n  have hbound (x : E) : H x ≤ (β : ℝ)*Module.finrank ℝ E := by\n    calc\n      H x ≤ ∑ _i : Fin (Module.finrank ℝ E), (β : ℝ) :=\n        Finset.sum_le_sum (fun i _ => (hdiag x i).2)\n      _ = (β : ℝ)*Module.finrank ℝ E := by simp [mul_comm]\n  simpa only [integral_const,probReal_univ,one_smul] using\n    integral_mono hHμ (integrable_const ((β : ℝ)*Module.finrank ℝ E)) hbound\n\nprivate theorem gibbs_position_l2 [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}\n    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :\n    let μ := (volume : Measure E).tilted (fun x => -U x)\n    IsProbabilityMeasure μ ∧ MemLp (fun x : E => x) 2 μ := by\n  let μ := (volume : Measure E).tilted (fun x => -U x)\n  have hg := gibbs_gradient_moment hα hαβ hU hH\n  have : IsProbabilityMeasure μ := hg.1\n  have hgrad : Integrable (fun x => ‖gradient U x‖^2) μ := hg.2.1\n  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)\n  have hdata := QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n    (r := 0) hU hH (0 : E)\n  simp only [NNReal.coe_zero,zero_div,zero_mul,add_zero] at hdata\n  have ha : (0:ℝ) < α := hα\n  have hbound (x : E) : ‖x‖ ≤ (‖gradient U x‖+‖gradient U (0:E)‖)/(α:ℝ) := by\n    have hi := StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn\n      hdata.1 (fun z _ => (hd z).hasGradientAt) (x := 0) (y := x)\n      (Set.mem_univ _) (Set.mem_univ _)\n    simp only [sub_zero,real_inner_comm] at hi\n    have hb := norm_sub_le (gradient U x) (gradient U (0:E))\n    have hc := (hi.trans (real_inner_le_norm x (gradient U x-gradient U (0:E)))).trans\n      (mul_le_mul_of_nonneg_left hb (norm_nonneg _))\n    by_cases hz : ‖x‖=0\n    · rw [hz]; positivity\n    · have hn : 0<‖x‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hz)\n      apply (le_div_iff₀ ha).2\n      have hh : ‖x‖*((α:ℝ)*‖x‖) ≤ ‖x‖*(‖gradient U x‖+‖gradient U (0:E)‖) := by nlinarith [hc]\n      have ht := le_of_mul_le_mul_left hh hn\n      nlinarith [ht]\n  have hpos : Integrable (fun x : E => ‖x‖^2) μ := by\n    apply ((hgrad.add (integrable_const (‖gradient U (0:E)‖^2))).const_mul (2/(α:ℝ)^2)).mono'\n      (continuous_id.norm.pow 2).aestronglyMeasurable\n    filter_upwards with x\n    change ‖‖x‖^2‖ ≤ 2/(α:ℝ)^2*(‖gradient U x‖^2+‖gradient U (0:E)‖^2)\n    rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _)]\n    have hs := (sq_le_sq₀ (norm_nonneg _) (by positivity)).2 (hbound x)\n    have ht : (‖gradient U x‖+‖gradient U (0:E)‖)^2 ≤ 2*(‖gradient U x‖^2+‖gradient U (0:E)‖^2) := by\n      nlinarith [sq_nonneg (‖gradient U x‖-‖gradient U (0:E)‖)]\n    rw [div_pow] at hs\n    have hh := (div_le_div_iff_of_pos_right (sq_pos_of_pos ha)).2 ht\n    calc\n      ‖x‖^2 ≤ (‖gradient U x‖+‖gradient U (0:E)‖)^2/(α:ℝ)^2 := hs\n      _ ≤ 2*(‖gradient U x‖^2+‖gradient U (0:E)‖^2)/(α:ℝ)^2 := hh\n      _ = _ := by ring\n  exact ⟨inferInstance, (memLp_two_iff_integrable_sq_norm continuous_id.aestronglyMeasurable).2 hpos⟩\n\nprivate theorem coordinate_position_ibp {U : E → ℝ} (hU : ContDiff ℝ 2 U)\n    (p v : E) (hv : ‖v‖ = 1)\n    (hw : Integrable (fun x => Real.exp (-U x)) (volume : Measure E))\n    (hpos : Integrable (fun x => ‖x-p‖^2) ((volume : Measure E).tilted (fun x => -U x)))\n    (hlin : Integrable (fun x => ‖x-p‖) ((volume : Measure E).tilted (fun x => -U x)))\n    (hgrad : Integrable (fun x => ‖gradient U x‖^2) ((volume : Measure E).tilted (fun x => -U x))) :\n    Integrable (fun x => Real.exp (-U x)*inner ℝ (x-p) v*fderiv ℝ U x v)\n      (volume : Measure E) ∧\n    (∫ x, Real.exp (-U x)*inner ℝ (x-p) v*fderiv ℝ U x v) =\n      ∫ x, Real.exp (-U x) := by\n  let f := fun x => Real.exp (-U x)\n  let q := fun x => inner ℝ (x-p) v\n  let a := fun x => fderiv ℝ U x v\n  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)\n  have hf : ContDiff ℝ 1 f := (hU.of_le (by norm_num)).neg.exp\n  have hq : ContDiff ℝ 1 q := (contDiff_id.sub contDiff_const).inner ℝ contDiff_const\n  have hac : Continuous a :=\n    (hU.fderiv_right (m := 1) (by norm_num)).continuous.clm_apply continuous_const\n  have hqder (x : E) : fderiv ℝ q x v = 1 := by\n    have he := ((hasFDerivAt_id x).sub_const p).inner ℝ (hasFDerivAt_const v x)\n    rw [show fderiv ℝ q x = _ from he.fderiv]\n    simp [hv]\n  have hfder (x : E) : fderiv ℝ f x v = -f x*a x := by\n    rw [show fderiv ℝ f x = _ from (hd x).hasFDerivAt.neg.exp.fderiv]\n    simp only [smul_apply,neg_apply,smul_eq_mul,Pi.neg_apply]\n    dsimp only [f,a]\n    ring\n  have hqbound (x : E) : ‖q x‖ ≤ ‖x-p‖ := by\n    dsimp only [q]\n    simpa only [hv,mul_one] using norm_inner_le_norm (x-p) v\n  have habound (x : E) : ‖a x‖ ≤ ‖gradient U x‖ := by\n    dsimp only [a]\n    rw [← inner_gradient_left]\n    simpa only [hv,mul_one] using norm_inner_le_norm (gradient U x) v\n  have hqμ : Integrable q ((volume : Measure E).tilted (fun x => -U x)) := by\n    apply hlin.mono' hq.continuous.aestronglyMeasurable\n    filter_upwards with x\n    exact hqbound x\n  have hqaμ : Integrable (fun x => q x*a x)\n      ((volume : Measure E).tilted (fun x => -U x)) := by\n    apply (hpos.add hgrad).mono' (hq.continuous.mul hac).aestronglyMeasurable\n    filter_upwards with x\n    change ‖q x*a x‖ ≤ ‖x-p‖^2+‖gradient U x‖^2\n    rw [norm_mul]\n    have hi := mul_le_mul (hqbound x) (habound x) (norm_nonneg _) (norm_nonneg _)\n    nlinarith [hi,sq_nonneg (‖x-p‖-‖gradient U x‖)]\n  have hfq : Integrable (fun x => f x*q x) (volume : Measure E) := by\n    simpa only [smul_eq_mul] using (integrable_tilted_iff hw q).1 hqμ\n  have hfqa : Integrable (fun x => f x*q x*a x) (volume : Measure E) := by\n    simpa only [smul_eq_mul,mul_assoc] using\n      (integrable_tilted_iff hw (fun x => q x*a x)).1 hqaμ\n  have hf'q : Integrable (fun x => fderiv ℝ f x v*q x) (volume : Measure E) := by\n    convert hfqa.neg using 1\n    ext x\n    change fderiv ℝ f x v*q x = -(f x*q x*a x)\n    rw [hfder]\n    ring\n  have hfq' : Integrable (fun x => f x*fderiv ℝ q x v) (volume : Measure E) := by\n    simpa only [hqder,mul_one] using hw\n  have hid := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hf'q hfq' hfq\n    (fun x _ => hf.differentiable_one x) (fun x _ => hq.differentiable_one x)\n  refine ⟨hfqa,?_⟩\n  change (∫ x, f x*q x*a x) = ∫ x, f x\n  calc\n    (∫ x, f x*q x*a x) = -(∫ x, fderiv ℝ f x v*q x) := by\n      rw [← integral_neg]\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hfder]\n      ring\n    _ = ∫ x, f x*fderiv ℝ q x v := hid.symm\n    _ = ∫ x, f x := by simp only [hqder,mul_one]\n\n\n\nset_option maxHeartbeats 800000 in\nprivate theorem gibbs_covariance_unit [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}\n    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2)\n    (v : E) (hv : ‖v‖=1) :\n    let μ := (volume : Measure E).tilted (fun x => -U x)\n    (β:ℝ)⁻¹ ≤ ProbabilityTheory.covarianceBilin μ v v := by\n  let μ := (volume : Measure E).tilted (fun x => -U x)\n  change (β:ℝ)⁻¹ ≤ ProbabilityTheory.covarianceBilin μ v v\n  have hpos := gibbs_position_l2 hα hαβ hU hH\n  have : IsProbabilityMeasure μ := hpos.1\n  have hLp : MemLp id 2 μ := hpos.2\n  let p := ∫ x, x ∂μ\n  let q := fun x => inner ℝ (x-p) v\n  let a := fun x => fderiv ℝ U x v\n  have hw := weighted_gradient hα hU hH\n  have hg := gibbs_gradient_moment hα hαβ hU hH\n  have hgrad : Integrable (fun x => ‖gradient U x‖^2) μ := hg.2.1\n  have hLpc : MemLp (fun x : E => x-p) 2 μ := hLp.sub (memLp_const p)\n  have hsq : Integrable (fun x : E => ‖x-p‖^2) μ :=\n    (memLp_two_iff_integrable_sq_norm hLpc.aestronglyMeasurable).1 hLpc\n  have hlin : Integrable (fun x : E => ‖x-p‖) μ := (hLpc.integrable (by norm_num)).norm\n  have hpair := coordinate_position_ibp hU p v hv hw.1 hsq hlin hgrad\n  have hdiag (x : E) : 0 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ β := by\n    have hh := hH x v\n    rw [hv,one_pow,mul_one,mul_one] at hh\n    exact ⟨(NNReal.coe_nonneg α).trans hh.1,hh.2⟩\n  have hs := directional_ibp hU v hv hdiag hw.1 hw.2.1 hw.2.2\n  have htilt (f : E → ℝ) : (∫ x, f x ∂μ) =\n      (∫ x, Real.exp (-U x)*f x)/(∫ x, Real.exp (-U x)) := by\n    rw [integral_tilted]\n    simp only [smul_eq_mul]\n    rw [← integral_div]\n    apply integral_congr_ae\n    filter_upwards with x\n    ring\n  have hZ := integral_exp_pos hw.1\n  have ha2 : Integrable (fun x => (a x)^2) μ := by\n    apply (integrable_tilted_iff hw.1 _).2\n    simpa only [smul_eq_mul,a] using hs.1\n  have hqa : Integrable (fun x => q x*a x) μ := by\n    apply (integrable_tilted_iff hw.1 _).2\n    simpa only [smul_eq_mul,mul_assoc,q,a] using hpair.1\n  have hpairmean : (∫ x, q x*a x ∂μ)=1 := by\n    rw [htilt]\n    simp only [q,a,← mul_assoc]\n    change (∫ x, Real.exp (-U x)*inner ℝ (x-p) v*fderiv ℝ U x v)/_ = 1\n    rw [hpair.2,div_self hZ.ne']\n  have hscore : (∫ x, (a x)^2 ∂μ) ≤ (β:ℝ) := by\n    rw [htilt]\n    change (∫ x, Real.exp (-U x)*(fderiv ℝ U x v)^2)/_ ≤ (β:ℝ)\n    rw [hs.2.2]\n    apply (div_le_iff₀ hZ).2\n    have hm := integral_mono hs.2.1 (hw.1.mul_const (β:ℝ))\n      (fun x => mul_le_mul_of_nonneg_left (hdiag x).2 (Real.exp_nonneg _))\n    calc\n      (∫ x, Real.exp (-U x)*fderiv ℝ (fderiv ℝ U) x v v) ≤\n          ∫ x, Real.exp (-U x)*(β:ℝ) := hm\n      _ = (β:ℝ)*(∫ x, Real.exp (-U x)) := by rw [integral_mul_const];ring\n  have hqLp : MemLp q 2 μ := hLpc.inner_const (𝕜:=ℝ) v\n  have hq2 := (memLp_two_iff_integrable_sq hqLp.aestronglyMeasurable).1 hqLp\n  have hb : (0:ℝ)<β := lt_of_lt_of_le hα hαβ\n  have hnonneg : 0 ≤ ∫ x, (a x-(β:ℝ)*q x)^2 ∂μ := integral_nonneg (fun x => sq_nonneg _)\n  have hexp : (∫ x, (a x-(β:ℝ)*q x)^2 ∂μ) =\n      (∫ x, (a x)^2 ∂μ)-2*(β:ℝ)*(∫ x, q x*a x ∂μ)+(β:ℝ)^2*(∫ x, (q x)^2 ∂μ) := by\n    have hid : (fun x => (a x-(β:ℝ)*q x)^2) =\n        (fun x => (a x)^2-2*(β:ℝ)*(q x*a x)+(β:ℝ)^2*(q x)^2) := by funext x;ring\n    have hiqa : Integrable (fun x => (2*(β:ℝ))*(q x*a x)) μ :=\n      hqa.const_mul (2*(β:ℝ))\n    have hiq2 : Integrable (fun x => (β:ℝ)^2*(q x)^2) μ :=\n      hq2.const_mul ((β:ℝ)^2)\n    have hsum := integral_add (ha2.sub hiqa) hiq2\n    have hsub := integral_sub ha2 hiqa\n    rw [hid]\n    calc\n      (∫ x, (a x)^2-2*(β:ℝ)*(q x*a x)+(β:ℝ)^2*(q x)^2 ∂μ) =\n          (∫ x, (a x)^2-2*(β:ℝ)*(q x*a x) ∂μ)+\n          (∫ x, (β:ℝ)^2*(q x)^2 ∂μ) := by\n        simpa only [Pi.sub_apply] using hsum\n      _ = _ := by\n        rw [hsub]\n        rw [integral_const_mul (2*(β:ℝ)),integral_const_mul ((β:ℝ)^2)]\n  rw [hexp,hpairmean] at hnonneg\n  have hcov : ProbabilityTheory.covarianceBilin μ v v = ∫ x, (q x)^2 ∂μ := by\n    rw [ProbabilityTheory.covarianceBilin_apply hLp]\n    apply integral_congr_ae\n    filter_upwards with x\n    simp only [q,p,real_inner_comm,Function.id_def,pow_two]\n  rw [hcov]\n  rw [← one_div]\n  apply (div_le_iff₀ hb).2\n  have hprod : (β:ℝ)^2*(∫ x, (q x)^2 ∂μ) ≥ (β:ℝ) := by nlinarith [hscore,hnonneg]\n  have hh : (β:ℝ)*1 ≤ (β:ℝ)*((β:ℝ)*(∫ x, (q x)^2 ∂μ)) := by nlinarith [hprod]\n  have ht := le_of_mul_le_mul_left hh hb\n  nlinarith [ht]\n\n\n/-- Actual Gibbs covariance lower bound in every direction, with probability\nand position L2 derived from genuine Hessian bounds. No Fisher-information,\nscore-pairing, moment or covariance certificate is supplied. -/\ntheorem gibbs_covariance_lower [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}\n    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :\n    let μ := (volume : Measure E).tilted (fun x => -U x)\n    IsProbabilityMeasure μ ∧ MemLp id 2 μ ∧\n      ∀ v : E, ‖v‖^2/(β:ℝ) ≤ ProbabilityTheory.covarianceBilin μ v v := by\n  let μ := (volume : Measure E).tilted (fun x => -U x)\n  have hp := gibbs_position_l2 hα hαβ hU hH\n  refine ⟨hp.1,hp.2,?_⟩\n  intro v\n  by_cases hvzero : v=0\n  · subst v\n    simp\n  · have hn : ‖v‖≠0 := norm_ne_zero_iff.mpr hvzero\n    let u := ‖v‖⁻¹ • v\n    have hu : ‖u‖=1 := by\n      dsimp only [u]\n      rw [norm_smul,Real.norm_eq_abs,abs_inv,abs_of_nonneg (norm_nonneg v),inv_mul_cancel₀ hn]\n    have hv : ‖v‖ • u = v := by\n      dsimp only [u]\n      rw [smul_smul,mul_inv_cancel₀ hn,one_smul]\n    have hc := gibbs_covariance_unit hα hαβ hU hH u hu\n    have hscale : ProbabilityTheory.covarianceBilin μ v v =\n        ‖v‖^2*ProbabilityTheory.covarianceBilin μ u u := by\n      calc\n        ProbabilityTheory.covarianceBilin μ v v =\n            ProbabilityTheory.covarianceBilin μ (‖v‖ • u) (‖v‖ • u) := by rw [hv]\n        _ = _ := by\n          simp only [map_smul,smul_apply,smul_eq_mul]\n          ring\n    rw [hscale,div_eq_mul_inv]\n    exact mul_le_mul_of_nonneg_left hc (sq_nonneg _)\n\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Section6.3 reference-point construction: ideal Gibbs gradient-moment proof component",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS expanded mathematical proof component for Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, Smoothed Picard Hamiltonian Monte Carlo. Explicit integrability, normalization and domain extensions are disclosed; the full initialization/history and summed-cost argument is not asserted."
+    },
+    "statement": "The actual measure mu is a probability measure. Both norm(grad U)^2 and H are integrable under mu. Their expectations are equal, and the expected squared gradient is at most beta*finrank(E). These are five public conclusions; bare exponential integrability, weighted linear integrability and directional integration by parts are proved internally.",
+    "formulae": [
+      {
+        "label": "Actual ideal-law gradient moment",
+        "tex": "\\mu=(\\mathrm{vol}).\\mathrm{tilted}(-U),\\qquad H(x)=\\sum_i D^2U(x)[e_i,e_i],\\qquad \\mathbb E_\\mu\\|\\nabla U\\|^2=\\mathbb E_\\mu H\\le\\beta\\dim E."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra and canonical Lebesgue volume. Dimension zero is included. U:E->R is twice continuously differentiable.",
+      "The nonnegative real parameters alpha,beta satisfy 0<alpha and alpha<=beta. At every x,v the genuine Hessian obeys alpha*norm(v)^2<=D2U(x)[v,v]<=beta*norm(v)^2. The alpha<=beta assumption remains in the public statement, despite its unused binder name.",
+      "Define mu=volume.tilted(-U), the actual normalized exponential Gibbs measure. For the standard orthonormal basis (e_i), define H(x)=sum_i D2U(x)[e_i,e_i]. No minimizer, normalizing constant, weighted integrability or moment bound is supplied as an assumption."
+    ],
+    "obligations": [
+      {
+        "id": "ideal-gibbs-gradient-moment",
+        "label": "Actual normalized ideal Gibbs gradient second moment"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment",
+      "title": "Actual Gibbs gradient second moment",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1",
+          "label": "SPHMC Section6.3 ideal Gibbs gradient moment",
+          "scope": "Ideal-law moment input to reference-point initialization; actual history and total cost remain separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GibbsGradientMoment"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma-algebra and canonical Lebesgue volume. Dimension zero is included. U:E->R is twice continuously differentiable.",
+        "The nonnegative real parameters alpha,beta satisfy 0<alpha and alpha<=beta. At every x,v the genuine Hessian obeys alpha*norm(v)^2<=D2U(x)[v,v]<=beta*norm(v)^2. The alpha<=beta assumption remains in the public statement, despite its unused binder name.",
+        "Define mu=volume.tilted(-U), the actual normalized exponential Gibbs measure. For the standard orthonormal basis (e_i), define H(x)=sum_i D2U(x)[e_i,e_i]. No minimizer, normalizing constant, weighted integrability or moment bound is supplied as an assumption."
+      ],
+      "statement": "The actual measure mu is a probability measure. Both norm(grad U)^2 and H are integrable under mu. Their expectations are equal, and the expected squared gradient is at most beta*finrank(E). These are five public conclusions; bare exponential integrability, weighted linear integrability and directional integration by parts are proved internally.",
+      "formula": "\\mu=(\\mathrm{vol}).\\mathrm{tilted}(-U),\\qquad H(x)=\\sum_i D^2U(x)[e_i,e_i],\\qquad \\mathbb E_\\mu\\|\\nabla U\\|^2=\\mathbb E_\\mu H\\le\\beta\\dim E.",
+      "steps": [
+        {
+          "title": "Obtain actual curvature, gradient growth and a Gaussian envelope",
+          "text": "Instantiate QuadraticRegularization at zero regularization precision to obtain strong convexity and Lipschitz continuity of the actual gradient. Thus norm(grad U(x))<=G+beta*norm(x), with G=norm(grad U(0)). The first-order strong-convexity inequality at zero and Young inequality give U(x)>=b+a*norm(x)^2, where a=alpha/4>0 and b=U(0)-G^2/alpha. No minimizer is chosen. The existing Gibbs-integrability theorem supplies integrability of exp(-U).",
+          "formula": "\\|\\nabla U(x)\\|\\le G+\\beta\\|x\\|,\\quad U(x)\\ge b+a\\|x\\|^2,\\quad a=\\alpha/4,\\quad b=U(0)-G^2/\\alpha.",
+          "lean": "weighted_gradient; QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn; StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn"
+        },
+        {
+          "title": "Prove weighted square and first-power integrability",
+          "text": "The inequality t<=exp(t), with t=a*r^2/2, absorbs r^2 into a Gaussian with half the exponent. For a continuous scalar q with norm(q(x))<=A+B*norm(x) and exp(w(x))<=C*exp(-a*norm(x)^2), expand the square and use this absorption to obtain the displayed integrable majorant. Apply it to q=norm(grad U), w=-U. Then norm(grad U)<=1+norm(grad U)^2 gives the weighted first-power L1 bound. Each domination is against a genuinely integrable Gaussian, not merely a bounded function.",
+          "formula": "r^2e^{-ar^2}\\le\\frac2a e^{-ar^2/2},\\qquad e^{w(x)}q(x)^2\\le C\\left(2A^2+\\frac{4B^2}{a}\\right)e^{-a\\|x\\|^2/2}.",
+          "lean": "absorb_quadratic; weighted_square; weighted_gradient; Integrability.integrable_exp_neg_mul_norm_sq; MeasureTheory.Integrable.mono'"
+        },
+        {
+          "title": "Apply full-space integration by parts only after all three L1 checks",
+          "text": "Fix a unit basis direction v and put f=exp(-U), q=DU[v]. C2 gives q in C1 and its actual directional derivative D2U[v,v]; the derivative of f is -f*q. The three products needed by the Haar-volume IBP theorem are -f*q^2, f*D2U[v,v], and f*q. Weighted gradient-square and gradient-norm integrability bound the first and third; 0<=D2U[v,v]<=beta and bare weight integrability bound the second. Only then apply the full-space IBP identity. There is no assumed vanishing boundary term, cutoff or third derivative.",
+          "formula": "D_vf=-fq,\\quad D_vq=D^2U[v,v],\\qquad \\int fD^2U[v,v]= -\\int (D_vf)q=\\int fq^2.",
+          "lean": "directional_ibp; MeasureTheory.integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable"
+        },
+        {
+          "title": "Sum the directional identities and identify the actual gradient square",
+          "text": "The standard orthonormal basis has finitely many vectors. Each weighted directional square and Hessian diagonal term is integrable, so their sums may pass through the integral. Parseval identifies the sum of squared genuine directional derivatives with the squared norm of the actual gradient. This proves the unnormalized weighted identity and integrability of the weighted Hessian diagonal sum, including the empty basis in dimension zero.",
+          "formula": "\\sum_i(DU[e_i])^2=\\|\\nabla U\\|^2,\\qquad \\int e^{-U}\\|\\nabla U\\|^2=\\int e^{-U}\\sum_iD^2U[e_i,e_i].",
+          "lean": "gibbs_gradient_moment: hdir, hHi, hparseval, heq; OrthonormalBasis.sum_sq_norm_inner_left; MeasureTheory.integral_finsetSum"
+        },
+        {
+          "title": "Normalize the actual exponential measure and transfer L1",
+          "text": "Canonical volume is nonzero, also in dimension zero. The positive integrable exponential therefore has a positive finite normalizer, as used by isProbabilityMeasure_tilted. The tilted-integrability equivalence converts the two proved weighted L1 statements into actual Gibbs L1 statements. integral_tilted rewrites both expectations with the same normalizing denominator; their equality follows from the already proved weighted identity. No undefined-integral fallback or supplied probability assumption is used.",
+          "formula": "Z=\\int e^{-U}>0,\\qquad \\mathbb E_\\mu g=\\frac{\\int e^{-U}g}{Z},\\qquad \\|\\nabla U\\|^2,H\\in L^1(\\mu).",
+          "lean": "gibbs_gradient_moment: hgμ, hHμ, htilt, heqμ; MeasureTheory.isProbabilityMeasure_tilted; MeasureTheory.integrable_tilted_iff; MeasureTheory.integral_tilted"
+        },
+        {
+          "title": "Use the Hessian upper bound under the same Gibbs law",
+          "text": "Every basis vector has unit norm, so each Hessian diagonal entry is at most beta. Their sum is at most beta times finrank(E). Integrate this inequality under the actual probability measure and use the moment identity. The result concerns the ideal Gibbs law; the actual approximate initialization law still needs its own moment-transfer proof before supplying a reference-descent cost bound.",
+          "formula": "H(x)\\le\\beta\\dim E\\quad\\Longrightarrow\\quad \\mathbb E_\\mu\\|\\nabla U\\|^2=\\mathbb E_\\mu H\\le\\beta\\dim E.",
+          "lean": "gibbs_gradient_moment: hdiag, hbound; MeasureTheory.integral_mono; MeasureTheory.probReal_univ"
+        }
+      ],
+      "lean_statement": "Actual normalized Gibbs probability, gradient-square and Hessian-diagonal-sum L1, expectation identity and beta*finrank bound.",
+      "lean_proof": "Derive noncompact weighted integrability from curvature, apply directional Haar IBP, sum via Parseval, normalize the actual exponential measure and integrate the Hessian bound.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability.integrable_exp_neg_mul_norm_sq",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+        "OrthonormalBasis.sum_sq_norm_inner_left",
+        "MeasureTheory.integrable_finsetSum",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.isProbabilityMeasure_tilted",
+        "MeasureTheory.integrable_tilted_iff",
+        "MeasureTheory.integral_tilted",
+        "MeasureTheory.integral_mono"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment",
+      "role": "proof-edge",
+      "supports": [
+        "ideal-gibbs-gradient-moment"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The paper uses Euclidean space of positive dimension.",
+        "lean": "Complete finite-dimensional real inner-product Borel space, including dimension zero."
+      },
+      {
+        "source": "Section6.3 uses a normalized smoothness bound for its recursive potential.",
+        "lean": "Actual Hessian upper bound beta with 0<alpha<=beta."
+      },
+      {
+        "source": "The ideal Gibbs gradient moment is used in the initial-gradient estimate.",
+        "lean": "Actual tilted probability, both Gibbs L1 statements, and a moment identity preceding the bound."
+      },
+      {
+        "source": "The Hessian trace interpretation underlies the standard gradient-moment calculation.",
+        "lean": "Actual standard-orthonormal-basis Hessian diagonal sum H."
+      },
+      {
+        "source": "The Gibbs moment is one input to the larger reference-initialization estimate.",
+        "lean": "Ideal Gibbs moment component only."
+      }
+    ]
+  },
+  "review_context_sha256": "88157ead338bcc964afa0848b62509e18859bdc81a8ee33b1eb21d376acaf377",
+  "lean_statement_sha256": "fb0e1631711a05ef96df649ad8845a0190d18f39038f229a0d8aab017514afaa",
+  "source_text_sha256": "d700645723874701214290f5f2859a4512c993c894ad25774ddddbe1802be2a0",
+  "reconstruction_text_sha256": "6b76e6ab9189676369e93093d56493f265b07bf6419d2ebf1d6e3ef35040c616",
+  "decoder_packet_sha256": "d8d893cf7c266e83aff4c19553407aa37fe0c704c73a360f3ba8e68fd7c7695b",
+  "decoder_run_sha256": "841d42adcd03839731295946a41df6b1d299a181273fb025f102f27bf10d8e97",
+  "decoder_input_components": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment",
+  "whole_module_file_sha256": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+  "whole_module_raw_sha256": "b04ba946e2051b2e1fc6eb5cb14cb67e82fa3ebd2e049dd8b469e3d1540c01a7",
+  "whole_module_lf_sha256": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMoment.lean",
+      "raw_sha256": "b04ba946e2051b2e1fc6eb5cb14cb67e82fa3ebd2e049dd8b469e3d1540c01a7",
+      "sha256": "b04ba946e2051b2e1fc6eb5cb14cb67e82fa3ebd2e049dd8b469e3d1540c01a7",
+      "byte_length": 29341,
+      "exact_case_checked": true,
+      "lf_sha256": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+      "sha256_lf": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "raw_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "byte_length": 5800,
+      "exact_case_checked": true,
+      "lf_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "sha256_lf": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "raw_sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "byte_length": 4880,
+      "exact_case_checked": true,
+      "lf_sha256": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "sha256_lf": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexGibbsIntegrability.lean",
+      "raw_sha256": "d1f328e72bc871acc27d936e985b75f4ffc45ef6126d364b60e01c45cf835ee5",
+      "sha256": "d1f328e72bc871acc27d936e985b75f4ffc45ef6126d364b60e01c45cf835ee5",
+      "byte_length": 2802,
+      "exact_case_checked": true,
+      "lf_sha256": "6497a5901e6fa898524821007f053d8c7396cd4d72d12ee647379d8bfa3dacf1",
+      "sha256_lf": "6497a5901e6fa898524821007f053d8c7396cd4d72d12ee647379d8bfa3dacf1",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Integrability.lean",
+      "raw_sha256": "21218e636e5c0a1474b3809f246ab168d4cf0d3ff888a3b90496f9d512c5cc6f",
+      "sha256": "21218e636e5c0a1474b3809f246ab168d4cf0d3ff888a3b90496f9d512c5cc6f",
+      "byte_length": 24468,
+      "exact_case_checked": true,
+      "lf_sha256": "4919829eaae678c687cb23c6deb82e61cf6446d807e7c23e9381441194fa8e8e",
+      "sha256_lf": "4919829eaae678c687cb23c6deb82e61cf6446d807e7c23e9381441194fa8e8e",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/Gradient.lean",
+      "raw_sha256": "b0e6a1c0c60c273621d9d612bf7874ac90fb5d90dee0c202d56b75a149e16db5",
+      "sha256": "b0e6a1c0c60c273621d9d612bf7874ac90fb5d90dee0c202d56b75a149e16db5",
+      "byte_length": 9433,
+      "exact_case_checked": true,
+      "lf_sha256": "9482edb1349892d5a8104f25080e5ce2a0b6135862a3ece6ec283a614e42920a",
+      "sha256_lf": "9482edb1349892d5a8104f25080e5ce2a0b6135862a3ece6ec283a614e42920a",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "Tests/GibbsCovarianceLower.lean",
+      "raw_sha256": "8d0eb6c66f249a43c1ca0d0ec200d60b148ba72d8141f5b6f15d45f2551d8400",
+      "sha256": "8d0eb6c66f249a43c1ca0d0ec200d60b148ba72d8141f5b6f15d45f2551d8400",
+      "byte_length": 3273,
+      "exact_case_checked": true,
+      "lf_sha256": "077318e8d327ddecf6d0fe1e8bd868048e69e16c405df228216603f379c6f2c2",
+      "sha256_lf": "077318e8d327ddecf6d0fe1e8bd868048e69e16c405df228216603f379c6f2c2",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "Tests/GibbsGradientMoment.lean",
+      "raw_sha256": "205e3797030f3c41acfbe3e865fc344e7adf91bfa7ea090bab8e12ec9597b18d",
+      "sha256": "205e3797030f3c41acfbe3e865fc344e7adf91bfa7ea090bab8e12ec9597b18d",
+      "byte_length": 269,
+      "exact_case_checked": true,
+      "lf_sha256": "42816c4411de991e5b277f6b8c3d09affbcf39e2708e2b253e7be95fbe6d4e84",
+      "sha256_lf": "42816c4411de991e5b277f6b8c3d09affbcf39e2708e2b253e7be95fbe6d4e84",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/LineDeriv/IntegrationByParts.lean",
+      "raw_sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "byte_length": 13259,
+      "exact_case_checked": true,
+      "lf_sha256": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962",
+      "sha256_lf": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Tilted.lean",
+      "raw_sha256": "53cc37610d1b21725a178c7d8064c59bb28629625d844b02430a30714ecd0c3e",
+      "sha256": "53cc37610d1b21725a178c7d8064c59bb28629625d844b02430a30714ecd0c3e",
+      "byte_length": 17366,
+      "exact_case_checked": true,
+      "lf_sha256": "355cce542b03dd9130d9511f80ae803cc11a12ba9e6a947e68402b124be2165f",
+      "sha256_lf": "355cce542b03dd9130d9511f80ae803cc11a12ba9e6a947e68402b124be2165f",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Moments/CovarianceBilin.lean",
+      "raw_sha256": "c94b26cad39e2da03f089dc1a889ff227d57e2774283cd2ce9300ceedf04becf",
+      "sha256": "c94b26cad39e2da03f089dc1a889ff227d57e2774283cd2ce9300ceedf04becf",
+      "byte_length": 10901,
+      "exact_case_checked": true,
+      "lf_sha256": "1005d48eb36c1dfe48d6ff8315c513cb10c682f91d9c66b6172ae9d3a0d29df6",
+      "sha256_lf": "1005d48eb36c1dfe48d6ff8315c513cb10c682f91d9c66b6172ae9d3a0d29df6",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Function/L2Space.lean",
+      "raw_sha256": "b27eb9c9823a58a229a17f69860c5bcf3defb433c23ff3bab335f864676df3b5",
+      "sha256": "b27eb9c9823a58a229a17f69860c5bcf3defb433c23ff3bab335f864676df3b5",
+      "byte_length": 14200,
+      "exact_case_checked": true,
+      "lf_sha256": "7dd0542490f2841e8a91d2258a903d328383d7305915375d99d589fae40de399",
+      "sha256_lf": "7dd0542490f2841e8a91d2258a903d328383d7305915375d99d589fae40de399",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": ".astis/chewi-20261006-covariance.pdf",
+      "raw_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+      "sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+      "byte_length": 2315687,
+      "exact_case_checked": true,
+      "kind": "binary"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "byte_length": 26,
+      "exact_case_checked": true,
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "sha256_lf": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "byte_length": 3234,
+      "exact_case_checked": true,
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "sha256_lf": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "tools/astis_publication.py",
+      "raw_sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+      "sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+      "byte_length": 25431,
+      "exact_case_checked": true,
+      "lf_sha256": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5",
+      "sha256_lf": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "tools/astis_semantic_roundtrip_core.py",
+      "raw_sha256": "a3e92a6e161944031fdee813838d6a4729e0e76a4c6abdd84c300cb5b2f0b229",
+      "sha256": "a3e92a6e161944031fdee813838d6a4729e0e76a4c6abdd84c300cb5b2f0b229",
+      "byte_length": 43547,
+      "exact_case_checked": true,
+      "lf_sha256": "90049b13ea83ccc41876f9267fd2e1a8052acac42e89a1063f97ac5619d39058",
+      "sha256_lf": "90049b13ea83ccc41876f9267fd2e1a8052acac42e89a1063f97ac5619d39058",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "website/content/publications/sphmc-gibbs-gradient-moment.json",
+      "raw_sha256": "75e246397bf02faf92e3da99bbf0931e787e92cf5c78365f3d4ddd7fdaa4bbe8",
+      "sha256": "75e246397bf02faf92e3da99bbf0931e787e92cf5c78365f3d4ddd7fdaa4bbe8",
+      "byte_length": 5916,
+      "exact_case_checked": true,
+      "lf_sha256": "4cc108d0e3482dc319d44f4de4abd516fbff3c82d6eee5a481c03a48bbad983c",
+      "sha256_lf": "4cc108d0e3482dc319d44f4de4abd516fbff3c82d6eee5a481c03a48bbad983c",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "website/content/declaration_lessons/sphmc-gibbs-gradient-moment.json",
+      "raw_sha256": "a39965cc1ca9c834ece566228038f4165414ada0f3ad712702593922eaa294f7",
+      "sha256": "a39965cc1ca9c834ece566228038f4165414ada0f3ad712702593922eaa294f7",
+      "byte_length": 9574,
+      "exact_case_checked": true,
+      "lf_sha256": "051349666df025740a0158a0abf691a2473c13125a1f00a020a7ddd61d60bb23",
+      "sha256_lf": "051349666df025740a0158a0abf691a2473c13125a1f00a020a7ddd61d60bb23",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-gibbs-gradient-moment.json",
+      "raw_sha256": "51e035ddabfa1ebc5b4d128b1071f0de4f25500c1f2dd3421a6a3cd1db5ef87e",
+      "sha256": "51e035ddabfa1ebc5b4d128b1071f0de4f25500c1f2dd3421a6a3cd1db5ef87e",
+      "byte_length": 9139,
+      "exact_case_checked": true,
+      "lf_sha256": "d8c381c80550a18753fc2410fb5fcad7ef31dc65cf9105924a9ed6ca14bf1e67",
+      "sha256_lf": "d8c381c80550a18753fc2410fb5fcad7ef31dc65cf9105924a9ed6ca14bf1e67",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-review.prior-gradient.json",
+      "raw_sha256": "169de470e1da05b041152e278a4cbd6bcbc48a13f785e056610cbbb2668c012c",
+      "sha256": "169de470e1da05b041152e278a4cbd6bcbc48a13f785e056610cbbb2668c012c",
+      "byte_length": 49623,
+      "exact_case_checked": true,
+      "lf_sha256": "aece11f30198cf0705f8d924a1d559e2cf10fbafd53766c0c3e980752667bae3",
+      "sha256_lf": "aece11f30198cf0705f8d924a1d559e2cf10fbafd53766c0c3e980752667bae3",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/prior-current.decoder.json",
+      "raw_sha256": "9153a818ae76b2392836584c22ba5b55285ffdbf662ae2ab5095f5a7e0654540",
+      "sha256": "9153a818ae76b2392836584c22ba5b55285ffdbf662ae2ab5095f5a7e0654540",
+      "byte_length": 4242,
+      "exact_case_checked": true,
+      "lf_sha256": "413723566cead7617118be881635a92b6282eac45b0df7628919f2301fc629ac",
+      "sha256_lf": "413723566cead7617118be881635a92b6282eac45b0df7628919f2301fc629ac",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedHessianUpper.lean",
+      "raw_sha256": "5f0a15bc02f820ed84335cd67d10fc16d3abfb5828aaddcca7d661ffbb71b0e2",
+      "sha256": "5f0a15bc02f820ed84335cd67d10fc16d3abfb5828aaddcca7d661ffbb71b0e2",
+      "byte_length": 7106,
+      "exact_case_checked": true,
+      "lf_sha256": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+      "sha256_lf": "48ca3942ab5a690d332f2cf86af6989a283dbff1f7e338ff912bdb8dfc3e2650",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedGibbsPotential.lean",
+      "raw_sha256": "7e7c826f599cc14d817e1f0693c272a9b94439ce3cbaab468b806b7e15ef457b",
+      "sha256": "7e7c826f599cc14d817e1f0693c272a9b94439ce3cbaab468b806b7e15ef457b",
+      "byte_length": 7451,
+      "exact_case_checked": true,
+      "lf_sha256": "bba8bc9656b2df2c6653478b0b47b7573137b4a3712a0c5a631bed3fee1570ce",
+      "sha256_lf": "bba8bc9656b2df2c6653478b0b47b7573137b4a3712a0c5a631bed3fee1570ce",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianConvolutionRegularity.lean",
+      "raw_sha256": "25394020514aba3d497bd91b498c06155e2e84675dc077c96466677c4860feb5",
+      "sha256": "25394020514aba3d497bd91b498c06155e2e84675dc077c96466677c4860feb5",
+      "byte_length": 26260,
+      "exact_case_checked": true,
+      "lf_sha256": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+      "sha256_lf": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-review.prior-gradient.result.json",
+      "raw_sha256": "f502b142c9694e46e74e898c5ff84e5edb1bbc5fa703e860449d2e572f1af69c",
+      "sha256": "f502b142c9694e46e74e898c5ff84e5edb1bbc5fa703e860449d2e572f1af69c",
+      "byte_length": 69097,
+      "exact_case_checked": true,
+      "lf_sha256": "a4b9d690cb5f8ad1f8423d1810cc814658c7e5290781149c34e355e86bad1cd0",
+      "sha256_lf": "a4b9d690cb5f8ad1f8423d1810cc814658c7e5290781149c34e355e86bad1cd0",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/prior-gradient-cell.before-contributor.snapshot.json",
+      "raw_sha256": "f4106f9df9bcdddd9b966b482ae43be59d6bb861749ff306b7582387ad709198",
+      "sha256": "f4106f9df9bcdddd9b966b482ae43be59d6bb861749ff306b7582387ad709198",
+      "byte_length": 6560,
+      "exact_case_checked": true,
+      "lf_sha256": "a0e0429613da7efb2144995940f77c0fb18d408bd160a8c9cd4d56c766915f75",
+      "sha256_lf": "a0e0429613da7efb2144995940f77c0fb18d408bd160a8c9cd4d56c766915f75",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-review.prior-gradient.contributor.json",
+      "raw_sha256": "169de470e1da05b041152e278a4cbd6bcbc48a13f785e056610cbbb2668c012c",
+      "sha256": "169de470e1da05b041152e278a4cbd6bcbc48a13f785e056610cbbb2668c012c",
+      "byte_length": 49623,
+      "exact_case_checked": true,
+      "lf_sha256": "aece11f30198cf0705f8d924a1d559e2cf10fbafd53766c0c3e980752667bae3",
+      "sha256_lf": "aece11f30198cf0705f8d924a1d559e2cf10fbafd53766c0c3e980752667bae3",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-contributor-reconciliation.json",
+      "raw_sha256": "0b7c082d9dee784e73abb7272b08d23445f0e12b7e8309f6e5ee3e307053dd70",
+      "sha256": "0b7c082d9dee784e73abb7272b08d23445f0e12b7e8309f6e5ee3e307053dd70",
+      "byte_length": 76635,
+      "exact_case_checked": true,
+      "lf_sha256": "56618fdfe9a5521ef606ebe6ea716755e223aa937826b70dbf8a5547b9c62fd0",
+      "sha256_lf": "56618fdfe9a5521ef606ebe6ea716755e223aa937826b70dbf8a5547b9c62fd0",
+      "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+    }
+  ],
+  "anti_anchoring": {
+    "primary_contract_pre_read_before_fresh_candidate_packet": true,
+    "prior_candidate_exposure": "During the bounded next BL dependency search, rg exposed GibbsGradientMoment declaration signatures, keywords and matching lines including covariance helper names. That exposure is disclosed, not used as correctness evidence. Before these fresh packets I had not read the new complete candidate proofs or their anonymous reconstructions, independent math review or earlier verdicts.",
+    "candidate_completely_unseen": false,
+    "forbidden_history_or_math_verdict_used": false,
+    "current_full_module_and_proof_independently_inspected": true,
+    "current_receipt_scope": "Administrative footprint/provenance delta only; original independent whole-module/source review reused on explicitly matched freeze."
+  },
+  "source_read_evidence": [
+    {
+      "url": "https://arxiv.org/html/2609.06906v1",
+      "anchors": [
+        "equation 1.1",
+        "Section 3.1 HTML 229-237",
+        "Section 3.4 HTML 353-355",
+        "Section 4.1 equation 4.1/Lemma 4.1 HTML 403-430",
+        "Section 6.3 HTML 1383-1403"
+      ],
+      "contract": "Source beta=1 uses actual unnormalized V_eta and normalized RGO. Reverse covariance yields the upper Hessian bound; the separate BL inequality yields its lower bound. Section 6.3 uses an ideal Gibbs gradient moment as background to a larger reference-point/cost argument.",
+      "read_in_original_full_review": true,
+      "reread_for_this_administrative_reconciliation": false,
+      "reused_from_review_run_sha256": "b926c4d1d8c60c076d43fc9dcbf4d04246a21722362ba29e5c95eb3b19c6da6f"
+    },
+    {
+      "path": ".astis/chewi-20261006-covariance.pdf",
+      "raw_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+      "pages_zero_based": [
+        124,
+        125
+      ],
+      "page_count": 333,
+      "anchors": [
+        "Theorem 3.5.8",
+        "Corollary 3.5.9"
+      ],
+      "contract": "Well-behaved observables in the general CR theorem require valid IBP and integrability. This reviewed component derives those requirements for centered linear observables, giving beta^-1 I without asserting general nonlinear CR or the BL half.",
+      "read_in_original_full_review": true,
+      "reread_for_this_administrative_reconciliation": false,
+      "reused_from_review_run_sha256": "b926c4d1d8c60c076d43fc9dcbf4d04246a21722362ba29e5c95eb3b19c6da6f"
+    }
+  ],
+  "blocking": false,
+  "proof_review": [
+    "Old four private helpers absorb_quadratic, weighted_square, weighted_gradient, directional_ibp and both public proofs were read in the 546-line current module, together with new gibbs_position_l2, coordinate_position_ibp and gibbs_covariance_unit. No private implementation is outside this review.",
+    "C2 Hessian hypotheses feed actual strong convexity and gradient Lipschitz bounds. Gaussian domination derives exp(-U) integrability, positive partition function and weighted score products. Haar integration by parts requires three integrable products; the proof establishes each rather than assuming an unexplained boundary condition.",
+    "The old score identity is derived direction by direction then summed over the genuine finite orthonormal basis using Parseval. Probability, gradient-square integrability, Hessian-trace integrability, equality and the beta*d bound are all genuine conclusions.",
+    "Actual strong monotonicity gives alpha*norm(x) <= norm(gradient U x)+norm(gradient U 0) away from x=0; the zero case is separate. Squaring and the old score second-moment conclusion give position L2. The vector mean and centered linear coordinates therefore exist.",
+    "For unit v and arbitrary center p, q=<x-p,v> has directional derivative 1. L2 domination proves q*score integrable and weighted q integrable before the second Haar IBP, yielding E(q*score)=1. Directional score IBP and Hessian upper bound give E(score^2)<=beta.",
+    "Expanding the genuine nonnegative square E(score-beta*q)^2 gives beta^2 E(q^2)>=beta. beta>0 follows from alpha>0 and alpha<=beta. Center p is the actual Bochner mean and covarianceBilin_apply is used with proven id L2, excluding its non-L2 zero fallback. Bilinear scaling extends the unit inequality to every vector; v=0 and dimension zero are handled without a positive-dimension premise."
+  ],
+  "focused_elaboration": {
+    "independent_of_math_reviewer": true,
+    "command_environment": {
+      "LEAN_NUM_THREADS": "2"
+    },
+    "direct_commands": [
+      {
+        "command": "lake env lean AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMoment.lean",
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "lake env lean AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedHessianUpper.lean",
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "lake env lean Tests/GibbsCovarianceLower.lean",
+        "exit_code": 0,
+        "stdout_sha256": "9f70cfe44b172961f25e3d73b85c34563fce8a3387118edf59a5a726a005425b",
+        "warnings": "Two unused simp arguments potential/Pi.add_apply in the curvature example; no production warnings."
+      },
+      {
+        "command": "lake env lean Tests/GibbsGradientMoment.lean",
+        "exit_code": 0,
+        "stdout_sha256": "2c6673fcd8f674fe4e049d242344f0fb2742363db7a6881305c3fa0ae13c8f73"
+      }
+    ],
+    "stdin_auxiliary": {
+      "command": "lake env lean --stdin",
+      "exit_code": 0,
+      "scope": "Two explicit Fin 0 Euclidean instances for constant potential 7: generic actual Gibbs covariance and actual smoothed source bound at eta=2; no saved Lean file."
+    },
+    "printed_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "fake_closure_scan": "Neither current candidate production module has sorry, admit, an axiom declaration, Prop := True, or := trivial closure.",
+    "reused_from_original_review_run_sha256": "b926c4d1d8c60c076d43fc9dcbf4d04246a21722362ba29e5c95eb3b19c6da6f",
+    "rerun_for_this_reconciliation": false
+  },
+  "publication_provenance": {
+    "authored_statement_and_all_six_formula_steps_checked": true,
+    "actual_ASTIS_and_Mathlib_dependency_lists_checked_against_calls": true,
+    "formula_encoding": "Parsed formula characters contain no actual double-backslash sequences; formulas are mathematically consistent with the checked proof.",
+    "binding_and_review_context_recomputed_from_current_selected_metadata": true,
+    "scope_credit": "One scoped consumer/prerequisite only; prior-gradient refresh grants no new mathematics."
+  },
+  "review_timing": {
+    "original_full_review_timing": {
+      "first_focused_compiler_checkpoint_utc": "2026-10-05 22:48:40 UTC",
+      "receipt_generated_utc": "2026-10-05 22:58:04 UTC",
+      "timing_scope": "Compiler checkpoint follows the initial complete module/proof read; not claimed to timestamp the earlier independent primary preread."
+    },
+    "administrative_receipt_generated_utc": "2026-10-05 23:07:01 UTC"
+  },
+  "matching_parent_freeze_reuse": {
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianConvolutionRegularity.lean",
+    "raw_sha256": "25394020514aba3d497bd91b498c06155e2e84675dc077c96466677c4860feb5",
+    "lf_sha256": "37fac669ee54535870e2b7e46cb5a848966a2e02100b90cb168db5a11bf9f043",
+    "basis": "Parent enters the shared current Test and auxiliary actual-source instance. Earlier complete independent mathematical inspection of this exact parent, followed by current hash equality; no prior verdict used and no new parent credit."
+  },
+  "original_full_review_run_sha256": "b926c4d1d8c60c076d43fc9dcbf4d04246a21722362ba29e5c95eb3b19c6da6f",
+  "original_full_review_receipt": {
+    "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-review.prior-gradient.result.json",
+    "raw_sha256": "f502b142c9694e46e74e898c5ff84e5edb1bbc5fa703e860449d2e572f1af69c",
+    "sha256": "f502b142c9694e46e74e898c5ff84e5edb1bbc5fa703e860449d2e572f1af69c",
+    "byte_length": 69097,
+    "exact_case_checked": true,
+    "lf_sha256": "a4b9d690cb5f8ad1f8423d1810cc814658c7e5290781149c34e355e86bad1cd0",
+    "sha256_lf": "a4b9d690cb5f8ad1f8423d1810cc814658c7e5290781149c34e355e86bad1cd0",
+    "hash_normalization": "LF means raw bytes with CRLF replaced by LF only"
+  },
+  "source_contributor_reconciliation": {
+    "path": "runs/20261006-companion-priority/gibbs-covariance-lower/source-contributor-reconciliation.json",
+    "raw_sha256": "0b7c082d9dee784e73abb7272b08d23445f0e12b7e8309f6e5ee3e307053dd70",
+    "lf_sha256": "56618fdfe9a5521ef606ebe6ea716755e223aa937826b70dbf8a5547b9c62fd0",
+    "review_run_sha256": "55568f416f59804638010ba95e977791c48f6c515b1a55fc7d49e77f0bed81fe"
+  },
+  "review_basis": "Administrative source-contributor reconciliation with explicit reuse of original full independent review under unchanged code, source, lesson, publication context and anonymous decoder freeze. No fresh full-proof review or recompilation is claimed.",
+  "mathematical_credit_added": false,
+  "source_equivalence_credit_added": false,
+  "full_proof_recompiled": false,
+  "review_run_sha256": "82d17c9c08ec2d075385ab53319d3d0b6a0458706e41eceb5588e95e83ab5991"
+}

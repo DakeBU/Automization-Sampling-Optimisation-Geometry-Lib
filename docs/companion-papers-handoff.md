@@ -28,11 +28,16 @@ review pass. The anonymous input was unchanged by local docstring sign
 clarification; prior module/packet lineage is preserved. No theorem/source
 premise or metadata formula was repaired; only standard3 foundations.
 
-Shared ExampleCases/Tests imports are prepared in the existing sole root
-STABILIZING/PR313 lane, Registry470 unchanged. Canonical aggregate and bounded
-reader/graph admission remain a separate pending checkpoint. Previous1ad9505f
-remote Lean/contributor/site CI all PASS,deploy skipped; this new kinetic edge
-is excluded from that prior-head CI. Main merge/live deployment remain separate.
+Shared ExampleCases/Tests integrate at `279d76f5` in the existing sole root
+STABILIZING/PR313 lane; Registry470 unchanged. Canonical ASTIS root9090/Tests9328,
+139 related regressions,publication140,semantic195/8,frontier203 and contributor18/18
+PASS. Full static site and bounded graph coverage PASS; declaration ownership
+and two actual imports inspected,796modules/4173declarations/929folded disclosures.
+Receipt: `runs/20261005-companion-priority/kinetic-dissipation.integration.json`.
+Previous1ad9505f remote Lean/contributor/site CI all PASS,deploy skipped; this new
+kinetic edge needs its own final-head CI. Main merge/live deployment remain separate.
+Post-admission scalar-coercivity mirror discovery is raw/unvalidated; no formal
+transport edge. Next weight source boundary: `proof-obligations/SPHMC-clenshaw-curtis-weights.md`.
 
 **Next genuine paper dependencies:** actual uniform Lebesgue Clenshaw-Curtis
 integral momentum weights must be nonnegative for the true averaged H. Pinned

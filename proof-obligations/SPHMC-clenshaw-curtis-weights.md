@@ -1,0 +1,14 @@
+# SPHMC actual Clenshaw-Curtis weight boundary
+
+Retrieval checkpoint 2026-10-05; no admitted theorem or new SAU completion.
+Consumer: source arXiv:2609.06906v1 §4.3 Lemma4.6 and Proposition4.7. The real averaged Hessian uses actual integral b_j>=0 and sum b_j=h. ChebyshevLobattoQuadrature already compiles actual nodes, cardinal basis, and sum b_j=h; ChebyshevLobattoMomentum supplies only sum|b_j|<=h Lambda. No positivity is inferred from that absolute bound.
+
+Primary background: Jorg Waldvogel, Fast Construction of the Fejer and Clenshaw-Curtis Quadrature Rules, ETH Research Report2008-07, May2008, §2 equations(2.1),(2.4)-(2.6), printed p.2-3 (PDF p.4-5). Author/institution source: https://www.sam.math.ethz.ch/sam_reports/reports_final/reports2008/2008-07.pdf . Current browser text consulted, no local raw-byte pin or Lean certificate yet. This is supplemental background; SPHMC cites Trefethen2019 Extended edition for the separate logarithmic Lebesgue bound. Do not silently replace that citation or certify its bound from this report.
+
+The report's x_k=cos(k*pi/n), k=0,...,n, uniform Lebesgue integral on[-1,1], matches the source rule after n=J-1 and s=h(1-x)/2. It gives w_k=(c_k/n)[1-sum_(j=1)^floor(n/2) beta_j cos(2j*k*pi/n)/(4j^2-1)], n>=2, with c_k=1 at k=0,n and2 otherwise; beta_j=1 when2j=n and2 when2j<n. Parity and endpoint factors must remain exact. Source b_k should equal (h/2)w_k; the actual cardinal-integral identity and affine substitution are still unproved locally.
+
+Potential positivity reduction, conditional on proving that identity: for m=floor(n/2), positive denominators and beta_j<=2 imply the bracket is at least 1-sum_(j=1)^m 2/(4j^2-1)=1/(2m+1)>0. The telescoping identity uses 2/(4j^2-1)=1/(2j-1)-1/(2j+1). Then positive c_k/n and h/2 preserve positivity. The n=1 (J=2) cardinal weights are h/2 each and need a separate faithful base case, not a replacement for all J.
+
+Remaining mathematical adapters: derive finite cosine/cardinal polynomial identity for all nodes including endpoints and both parities; prove polynomial uniform-integral formula; bind affine order reversal/orientation and h scaling to the exact existing Lagrange basis; prove finite coefficient positivity/telescoping in Lean. Search pinned Mathlib Lagrange/Chebyshev/DCT or finite cosine sum APIs before implementation. No supplied positive-weight assumption, closed-form certificate hypothesis or synthetic consumer may close this boundary.
+
+Retired reuse route: pinned Mathlib ChebyshevGauss uses zeros cos((2i+1)pi/(2n)) and weight1/sqrt(1-x^2). Its rule/measure/weights are different. ATLAS Chebyshev results concern tail inequalities; no selected external port. B2 Genocchi-Hermite Banach-valued interpolation error and the Trefethen logarithmic Lambda bound remain distinct open dependencies. This note makes no algorithm/main, discrete contraction, expected-history-cost or composition claim.

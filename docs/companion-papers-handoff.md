@@ -23,7 +23,8 @@ checks, anonymous decoder and two fresh anti-anchored source reviews PASS;
 standard3 axioms only. Exact independently VERIFIED proof `dcc54d0f5054384a4db273aaf157685e867be124`:
 `runs/20261006-companion-priority/gaussian-convolution-derivatives/verified.json`. Original sole root stabilization/PR313 lane;
 Tests import only, no new Measure/ExampleCases aggregate change.
-Shared aggregate/reader/graph checks pending. Goal remains active.
+Exact proof dcc54d0f5054384a4db273aaf157685e867be124 independently VERIFIED; shared integration c846cf14b41807a8985aa43b63d79c02bb30e6d7. Full ASTIS gate PASS (9099 root / 9346 Tests), publication153, semantic212/8, frontier216, contributor35/31. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original reader static source/formula/proof/folded-Lean/Test/residual and two affected actual import/ownership graph branches checked; full site and official graph freshness/contributor checks PASS. Graph814 modules/599 public declarations; Registry472 unchanged. Rendered visual and metadata copy/download acceptance remain open.
+`runs/20261006-companion-priority/gaussian-convolution-derivatives/integration.json`. Goal remains active.
 
 Next dependency: genuine directional covariance lower bound from upper
 Hessian and actual full-space integration by parts, separately from the

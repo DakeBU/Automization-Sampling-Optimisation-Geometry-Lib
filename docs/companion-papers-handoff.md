@@ -1,5 +1,45 @@
 # Companion-paper formalization handoff
 
+## Actual numerical M_kappa contraction — 2026-10-06
+
+`ASTIS-SA-20261006-SPHMCActualContraction` proves the actual source numerical
+phase's synchronous M_kappa norm contraction with simultaneous explicit
+universal c=1/65536: actual h Lambda_J<=c/kappa implies normDelta1_M<=
+(1-c h/kappa)normDelta0_M. The actual Phi/cardinal integrals/shared two-vector
+noise, genuine averaged H and C8 remainder come from FirstOrderDifference;
+genuine KineticDissipation controls the signed linear term. The unchanged
+existing exact Q and two comparisons are public callable APIs, with no
+wrapper, duplicate proof or separate progress credit. The perturbation
+coefficient162+1152+1152=2466 is absorbed explicitly. The final sqrt proof
+never divides by Q, covering zero input difference and dimension zero.
+
+Actual global normalized C2 curvature remains an explicit interface;
+production of f=V_eta is independently open. This is not full instantiated
+Proposition4.7 or either main result. The ordinary transport comparison
+still uses the product max norm, separately from the true L2 proof and
+source M_kappa form. No Euclidean transport contraction is inferred.
+
+Focused3667 and independent whole production/Test/PhaseMetric mathematics
+PASS, standard3 only. Eight distinct source-blind reconstructions and
+anti-anchored binding/source reviews cover the new consumer, three unchanged
+source API promotions and all four old public PhaseMetric bindings afresh;
+old artifact-backed audit history is retained. Independently VERIFIED exact
+proof `60091bca9954875a9d8f33ebfbad825108043e4a`; `runs/20261006-companion-priority/actual-contraction/verified.json`.
+Root serializes only ExampleCases/Tests imports in the original sole PR313
+lane; Registry472 remains unchanged. Aggregate/reader/graph checks pending.
+Previous pushed14e505e9 required remote Lean/site/contributor CI all PASS;
+new current-head CI is separate, draft/open/unmerged, no live deployment.
+
+Next bounded consumer: actual Lemma4.8 synchronous increment, reusing the
+actual expansion and now callable exact Q comparisons. Derive the real
+increment norm_M<=12 h normDelta0_M under the same source c-step condition;
+no supplied increment certificate. Actual V_eta smoothing/C2/curvature,
+logLambda/B2, Khat/Kbar local errors, invariant law/phase history/expected
+query cost, Wp/proxy-warmness/initialization, PBPS reflection/invariance/
+nonexplosion/hypocoercivity/implementation/cost and both main/composition
+remain independent open boundaries. Goal active; all older source targets,
+frontiers and cycles preserved. Rendered visual and copy/download delivery open.
+
 ## Actual Picard numerical phase and first-order difference — 2026-10-06
 
 `ASTIS-SA-20261005-SPHMCFirstOrderDifference` joins the actual cardinal-integral,

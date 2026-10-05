@@ -26,7 +26,9 @@ source API promotions and all four old public PhaseMetric bindings afresh;
 old artifact-backed audit history is retained. Independently VERIFIED exact
 proof `60091bca9954875a9d8f33ebfbad825108043e4a`; `runs/20261006-companion-priority/actual-contraction/verified.json`.
 Root serializes only ExampleCases/Tests imports in the original sole PR313
-lane; Registry472 remains unchanged. Aggregate/reader/graph checks pending.
+lane; Registry472 remains unchanged.
+Independent exact proof 60091bca9954875a9d8f33ebfbad825108043e4a; shared integration 8a92ba88a5d7310f51eb71e276b5de87d1f1af19. Full ASTIS gate PASS (9094 root / 9336 Tests), 95 relevant regression tests PASS. Publication 147, semantic 206/8, frontier 210 and contributor 29/25 PASS. Full reader generation and static formulas/folded Lean checked; six import/ownership edges and three existing API ownership nodes checked. Official bounded graph freshness and complete site/contributor PASS. Registry472 unchanged. Rendered visual QA and metadata copy/download delivery remain open.
+`runs/20261006-companion-priority/actual-contraction/integration.json`.
 Previous pushed14e505e9 required remote Lean/site/contributor CI all PASS;
 new current-head CI is separate, draft/open/unmerged, no live deployment.
 

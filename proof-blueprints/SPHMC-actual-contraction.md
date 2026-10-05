@@ -24,3 +24,5 @@ Root is sole Lean writer. Actual V_eta production remains independently open.
 No supplied contraction, oracle replacement, TV cost transfer or main theorem.
 Khat/Kbar, smoothing, increment, logLambda/B2, history/local errors, PBPS and
 actual-input expected-cost composition remain distinct open dependencies.
+
+Integrated closeout (2026-10-06): Independent exact proof 60091bca9954875a9d8f33ebfbad825108043e4a; shared integration 8a92ba88a5d7310f51eb71e276b5de87d1f1af19. Full ASTIS gate PASS (9094 root / 9336 Tests), 95 relevant regression tests PASS. Publication 147, semantic 206/8, frontier 210 and contributor 29/25 PASS. Full reader generation and static formulas/folded Lean checked; six import/ownership edges and three existing API ownership nodes checked. Official bounded graph freshness and complete site/contributor PASS. Registry472 unchanged. Rendered visual QA and metadata copy/download delivery remain open. Both main results and composition remain unfinished.

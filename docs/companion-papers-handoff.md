@@ -24,7 +24,13 @@ Independent mathematics, blind reconstruction and anti-anchored whole-module
 source review pass. Independently VERIFIED exact proof `866deafe2389150a61f1f802c0ad9a2f3f1eed66`:
 `runs/20261005-companion-priority/first-order-difference/verified.json`.
 Root serializes only ExampleCases/Tests imports in the original sole PR313 lane;
-Registry472 stays at the shared-leaf count. Aggregate/reader/graph checks pending.
+Registry472 stays at the shared-leaf count. Aggregate9093/root and9334/Tests,
+95 meaningful regression tests, publication143, semantic198/8, frontier206
+and contributor21/21 all PASS. Full reader generation and static source/formula/
+folded-Lean inspection pass; the five structural graph edges preserve import/
+ownership semantics. Official bounded graph refresh and full site/contributor
+checks also PASS after compact metadata. Rendered visual QA remains open.
+`runs/20261005-companion-priority/first-order-difference/integration.json`.
 Previous pushed10ebc535 required remote Lean/site/contributor CI all PASS:
 `runs/20261005-companion-priority/hessian-secant-operator/remote-ci.json`.
 Draft/open/unmerged and deployment remain separate.

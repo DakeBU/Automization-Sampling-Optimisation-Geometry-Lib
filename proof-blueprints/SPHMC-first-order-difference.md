@@ -43,3 +43,11 @@ sampling error/history, stochastic actual-query cost, PBPS and both complete mai
 results/composition remain open. Compiled exact-gradient K semantics do not prove
 the full sampler. Conceptual-mirror audit and publication are required before
 PROVED_LOCAL; no new graph/citation feature blocks this mathematics.
+
+Integrated closeout (2026-10-06): exact proof866deafe independently VERIFIED;
+shared integration2dbff280, root9093/Tests9334 and95 relevant regression tests
+PASS. Publication143, semantic198/8, frontier206, contributor21/21, full site
+and fresh bounded graph coverage pass. Registry472 unchanged. Five structural
+import/ownership edges; source and intended consumers remain nonformal overlays.
+Static companion source/formula/folded Lean checked; actual rendered visual QA
+and metadata copy/download delivery remain open. Main results/composition open.

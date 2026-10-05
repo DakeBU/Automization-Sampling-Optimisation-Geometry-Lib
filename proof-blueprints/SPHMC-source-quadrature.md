@@ -62,4 +62,4 @@ The input law is nu times all four independent Gaussian innovation factors; arit
 
 $$\mu=\nu\otimes[(\gamma_E\otimes\gamma_E)\otimes(\gamma_E^{\operatorname{Fin}J}\otimes\gamma_E^{\operatorname{Fin}J})].$$
 
-Status: independently VERIFIED at a43877dc022a238e2e9846d3761a4299cae3fb1a; math, final blind decoding and whole-module source review pass; focused PASS3671, standard3 foundations. Shared integration and aggregate/site/graph admission are separate.
+Status: independently VERIFIED at a43877dc022a238e2e9846d3761a4299cae3fb1a; math, final blind decoding and whole-module source review pass; focused PASS3671, standard3 foundations. Shared integration d6b7c29e passes canonical ASTIS root9085/Tests9320, reader/site, and both bounded graph gates. Integration receipt records exact scopes; both main results and remaining proof/delivery obligations remain open.

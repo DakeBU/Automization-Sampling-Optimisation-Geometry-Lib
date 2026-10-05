@@ -17,8 +17,7 @@ Lean tests use actual distinct J2,h1/2 nodes in positive dimension and only the
 standard3 foundations. Verifier receipt:
 `runs/20261005-companion-priority/source-quadrature.verified.json`.
 Root integrates the bounded packet in the existing sole PR313 stabilization lane.
-Shared root/Tests/Registry integration prepared; aggregate/site/graph admission
-is a separate pending checkpoint. Prior5603aa22 remote Lean/reader/contributor
+Shared root/Tests/Registry integration `d6b7c29e` passes canonical root9085/Tests9320, contributor12/12, publication135, semantic190/8, frontier198, reader/site and both bounded graph gates.116 related regression tests pass. Receipt: `runs/20261005-companion-priority/source-quadrature.integration.json`. Prior5603aa22 remote Lean/reader/contributor
 checks all passed. Main merge, rendered acceptance and live deployment separate.
 
 **Next source dependency:** logarithmic Lebesgue bound and nonnegative

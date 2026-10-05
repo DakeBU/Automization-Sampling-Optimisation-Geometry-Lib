@@ -1,5 +1,37 @@
 # Companion-paper formalization handoff
 
+## Actual Gaussian smoothing density and C2 regularity — 2026-10-06
+
+`ASTIS-SA-20261006-GaussianConvolutionRegularity` derives the actual Gaussian
+add-noise law's volume density, positive normalizer and globally C2 normalized
+negative-log density, for arbitrary probability input and eta>0, including
+singular inputs, no finite moments and dimension zero. Explicit Gaussian first
+and second derivative bounds are probability-integrable; actual parametric
+integral differentiation twice and dominated continuity establish C2.
+The exact existing PBPS augmentation density and nonnegative Fubini identify
+the actual marginal law. The backward conditional-kernel Test is genuine.
+
+Focused3694, complete independent mathematics/zero-dimension checks, anonymous
+reconstruction and distinct anti-anchored source review PASS, standard3 only.
+Exact independently VERIFIED proof `6e84711c8f472be61bf3791bb0f73f201d4167d8`:
+`runs/20261006-companion-priority/gaussian-convolution-regularity/verified.json`.
+Immutable mathematics/source footprints and independent bounded display/path
+reconciliations remain separate from later lifecycle/integration metadata.
+Root alone adds the Test aggregator import; original sole STABILIZING/PR313
+lane, Measure.lean, old frontiers, source inventories and cycles remain.
+Shared aggregate/reader/graph checks pending. Goal remains active.
+
+Normalization is explicit: Section3.1 defines unnormalized exp(-V_eta).
+For source Gibbs input exp(-V)/Z_V, this theorem's normalized U_eta equals
+V_eta+log Z_V. The formal source Gibbs specialization, partition preservation
+and exact smoothed Gibbs-law identification are the next bounded dependency.
+Equation4.1 score/covariance, posterior moments, Brascamp-Lieb/Cramer-Rao,
+Hessian bounds, higher regularity and actual f=V_eta curvature producer remain
+open, as do invariance/bias/stochastic errors/history/query costs,
+PBPS process and both complete main results/composition. TV never transfers
+unbounded expected cost. Reader rendered/copy/download acceptance remains open.
+
+
 ## Actual Gaussian numerical kernel transport — 2026-10-06
 
 `ASTIS-SA-20261006-SPHMCActualKernelTransport` joins the actual all-input

@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-3d089993a8659651",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261005",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-source-quadrature-work",
+    "anchor": "3.6, B1/B2 coefficient definitions and row/constant proof, HTML1684-1713; actual Algorithm3.1 consumer",
+    "original_text": "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the source node count is natural J>=2 and index Fin J.\nV is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.\n0<eta<=c<1, eps>0, 0<h<=1 and M>=0. The incoming probability law nu on(X,P) has integrable ||X-xstar||^2+||P||^2 with mean<=M. No source node, coefficient, Lambda or row-budget hypothesis.\nUsing exactly the source t,ell,Lambda,omega,b arrays above, set positionWeight_j=omega_{J-1,j} (the final node is h), momentumWeight_j=b_j and S=h^2 Lambda/2. Under mu=nu product ((Gaussian product Gaussian) product (Gaussian Fin-J array product Gaussian Fin-J array)), set d=finrank(E), a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)], L1=C[1+log(1+sqrt(4MR+2S^2B)/eps)]. There exist measurable p,q,N with exact proximal equation, ||q(y)-p(y)||<=eps and successful proximalQuery from y with fuel N(y)+1 returning (q(y),N(y)+1) for every y. P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Phi=(X+hP0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). The same Phi is measurable and defines the Gaussian pushforward Markov kernel. The count T=2*J+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)] is measurable. For every driving input w, phaseQuery with fuel(y)=N(y)+1 returns exactly some(Phi(w),T(w)); the real cast of T is integrable under mu and E_mu T<=J*(2+L0+L1). The node range and row budget needed by the compiled producer are derived from the coefficient certificate; the Fin J cardinal count is exactly J.",
+    "text_sha256": "a8f77389d14cc01478a46ded81486b5cf4c7f56c0744476bf72db857611bb9a8"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SourceQuadratureWork.source_quadrature_phase_work",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SourceQuadratureWork.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n{J : ℕ} (hJ : 2 ≤ J) {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M : ℝ} (hh : 0 < h) (hh1 : h ≤ 1) (hM : 0 ≤ M)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n:\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Lambda := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Set.Icc 0 h)\n    let omega := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let positionWeight := omega ⟨J-1,by omega⟩\n    let momentumWeight := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let S := h^2/2*Lambda\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : Fin J => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    let L0 := C*(1+Real.log (1+Real.sqrt (2*MR)/eps))\n    let L1 := C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((Fin J → E) × (Fin J → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      let T := fun w => 2*J+∑ i, ((N (Y0 i w)+1)+(N (Y1 i w)+1))\n      Measurable Φ ∧ Measurable T ∧\n      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ w, CountedPhaseProgram.phaseQuery (gradient V) eta eps h t omega positionWeight momentumWeight\n        (fun y => N y+1) w = some (Φ w,T w)) ∧\n      Integrable (fun w => (T w : ℝ)) μ ∧\n      (∫ w, (T w : ℝ) ∂μ) ≤ (J : ℝ)*(2+L0+L1)",
+    "statement_sha256": "ef343d115b0010b15d417192546017db0e1332300793b2c2dc5f119fba00a688",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space equipped with its Borel measurable structure, and let J be any natural number with J>=2. Let V:E->R be C^2 and let kappa be a nonnegative real with 1<=kappa. Suppose, for every x,v in E,\n  kappa^(-1)||v||^2 <= D^2 V(x)[v,v] <= ||v||^2.\nLet eta,c,epsilon be real with 0<eta<=c<1 and epsilon>0. Let nu be a probability measure on E x E, and let xstar in E satisfy grad V(xstar)=0. Fix real h,M with 0<h<=1 and M>=0. Assume (X,P)->||X-xstar||^2+||P||^2 is Bochner integrable under nu with integral at most M.\nFor i,j in Fin(J)={0,...,J-1}, define exactly\n  t_i=(h/2)(1-cos((i/(J-1))pi)),\n  ell_j(X)=product_{k in Fin(J), k!=j} (X-t_k)/(t_j-t_k),\n  Lambda=sup_{s in [0,h]} sum_j |ell_j(s)|,\n  omega_ij=integral_0^{t_i} (t_i-s)ell_j(s) ds,\n  b_j=omega_{J-1,j},\n  d_j=integral_0^h ell_j(s) ds,\n  S=(h^2/2)Lambda.\nHere i,J are cast to reals in the quotient, ell denotes the real Lagrange polynomial product using inverse denominators, b denotes positionWeight and d momentumWeight; the supremum is the conditionally complete real supremum and integrals are oriented Lebesgue interval integrals. These arrays and S are fixed by J,h, rather than supplied freely.\nPut D=dim_R E, a=exp(-h/2), sigma=sqrt(1-exp(-h)). Let G be the centered identity-covariance Gaussian probability law on E, gi=product_{Fin(J)} G, gamma=(G x G) x (gi x gi), and mu=nu x gamma. Thus an incoming state of law nu is independent of all noise coordinates; the two Gaussian vectors and two finite Gaussian arrays are mutually independent, with independent coordinates within each array. Define the exact constants\n  MR=M+(1-exp(-h))D,\n  B=6 MR+3 epsilon^2+3 eta D,\n  C=2+(1+log((1-c)^(-1)))/(-log c),\n  L0=C[1+log(1+sqrt(2 MR)/epsilon)],\n  L1=C[1+log(1+sqrt(4 MR+2 S^2 B)/epsilon)].\nThen there exist single global measurable functions p,q:E->E and N:E->N such that for every y in E,\n  p(y)+eta grad V(p(y))=y,\n  ||q(y)-p(y)||<=epsilon,\n  proximalQuery(grad V,eta,epsilon,y,N(y)+1,y)=some(q(y),N(y)+1).\nThe approved definition identifies proximalQuery with run. This exact-real recursive interpreter returns none at zero fuel. With positive fuel it evaluates g(x), sets next=y-eta g(x), returns (x,1) if ||next-x||<=(1-eta)epsilon, and otherwise recurses from next with one less fuel, adding one to a successful returned count. Counts include the final successful test.\nFor these witnesses and full input w=((X,P),((zeta0,zeta1),(G0,G1))) in (E x E) x ((E x E) x ((Fin(J)->E) x (Fin(J)->E))), define\n  P0(w)=a P+sigma zeta0,\n  Y0_i(w)=X+t_i P0(w),\n  Z0_j(w)=grad V(q(Y0_j(w))+sqrt(eta)G0_j),\n  Y1_i(w)=Y0_i(w)-sum_j omega_ij Z0_j(w),\n  Z1_j(w)=grad V(q(Y1_j(w))+sqrt(eta)G1_j),\n  Phi(w)=(X+h P0(w)-sum_j b_j Z1_j(w),\n          a(P0(w)-sum_j d_j Z1_j(w))+sigma zeta1),\n  T(w)=2J+sum_i[(N(Y0_i(w))+1)+(N(Y1_i(w))+1)] in N.\nBoth Phi and T are measurable. There exists a Markov kernel K from E x E to E x E satisfying, for every incoming state s,\n  K(s)=(z -> Phi(s,z))_* gamma.\nFor every full input w one also has the exact successful execution identity\n  phaseQuery(grad V,eta,epsilon,h,t,omega,b,d,(y -> N(y)+1),w)\n    =some(Phi(w),T(w)).\nHere phaseQuery is explicitly defined in the approved context: form P0,Y0; sequentially collect J calls to the same proximalQuery at Y0_i with anchor and initial iterate Y0_i and supplied fuel; map each successful returned point/count (r,k) to (g(r+sqrt(eta)G0_i),k+1). Form Y1 with that first collected array. Sequentially collect the corresponding J second-stage calls, mapping each success to (g(r+sqrt(eta)G1_i),k+1). Return the displayed two-stage final state and sum of collected counts. The collector orders the actual Fin(J) nodes, adds their counts, and propagates any failure as none. Thus T counts every interpreter gradient evaluation including terminal tests, plus one shifted-gradient evaluation per actual node in each of two stages, with overhead exactly 2J. The success identity is pointwise for every w, not only almost surely.\nFinally w->(T(w):R) is Bochner integrable under mu and\n  integral (T(w):R) dmu(w) <= (J:R)(2+L0+L1).\nAll sums use the J actual nodes. The theorem asserts these witnesses, approximation and measurability conditions, a probability transition kernel, successful counted exact-real execution with the fixed coefficient arrays, and the displayed expected count bound. It does not assert an invariant law, sampler convergence, final-state moment bound, numerical bias, machine-precision behavior, a quantitative growth bound for Lambda, or elapsed-time complexity.",
+    "text_sha256": "48f81a315d6a7d6b8ac5a7d305573e6f04db124857bbfa8b41fceab4eee03b86",
+    "decoder": "anonymous_decoder_20261005",
+    "decoder_packet_sha256": "72e82d804674cbf58cf5f93d95be0684021274e62c8c89b99c7eaefaf244b14d",
+    "decoder_run_sha256": "3083a80e0491e5d2b556d1f7a94c8cf21057a76aa30eac65501b6ff5d774ab1c",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "b79d0c089b6ca4910fd5ec09970955fe3b43290ba435dd9ff5f1c4595dd9428c",
+  "candidate_publication_context": {
+    "file": "81ecb460c154aec57e011f515a4ddc71a1ea4c0a18badf1f82869b2a1cbe63db",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram\n\n/-! Actual3.6/B1 quadrature arrays in Algorithm3.1's certified gradient-only\nphase. No supplied node/row assumptions or silent m/J adapter. Logarithmic\nLebesgue bound, nonnegative weights and all run-wide/main claims remain open. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped NNReal BigOperators\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SourceQuadratureWork\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- The source Chebyshev-Lobatto nodes and integral weights instantiate the\nactual counted Gaussian phase, deriving the row budget from its true Lebesgue\nsupremum. All successful proximal/direct counts use the same full phase law. -/\ntheorem source_quadrature_phase_work {J : ℕ} (hJ : 2 ≤ J) {V : E → ℝ} {κ : ℝ≥0}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (κ : ℝ)⁻¹ * ‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)\n    {eta c eps : ℝ} (heta : 0 < eta) (hec : eta ≤ c) (hc : c < 1) (heps : 0 < eps)\n    (ν : Measure (E × E)) [IsProbabilityMeasure ν]\n    (xstar : E) (hstar : gradient V xstar = 0)\n    {h M : ℝ} (hh : 0 < h) (hh1 : h ≤ 1) (hM : 0 ≤ M)\n    (hstateI : Integrable (fun s : E × E => ‖s.1-xstar‖^2 + ‖s.2‖^2) ν)\n    (hstate : (∫ s : E × E, ‖s.1-xstar‖^2 + ‖s.2‖^2 ∂ν) ≤ M)\n:\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Lambda := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Set.Icc 0 h)\n    let omega := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let positionWeight := omega ⟨J-1,by omega⟩\n    let momentumWeight := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let S := h^2/2*Lambda\n    let a := Real.exp (-h/2)\n    let sigma := Real.sqrt (1-Real.exp (-h))\n    let gi := Measure.pi (fun _ : Fin J => stdGaussian E)\n    let γ := ((stdGaussian E).prod (stdGaussian E)).prod (gi.prod gi)\n    let μ := ν.prod γ\n    let MR := M + (1-Real.exp (-h)) * (Module.finrank ℝ E : ℝ)\n    let B := 6*MR + 3*eps^2 + 3*eta*(Module.finrank ℝ E : ℝ)\n    let C := 2 + (1+Real.log ((1-c)⁻¹))/(-Real.log c)\n    let L0 := C*(1+Real.log (1+Real.sqrt (2*MR)/eps))\n    let L1 := C*(1+Real.log (1+Real.sqrt (4*MR+2*S^2*B)/eps))\n    ∃ p q : E → E, ∃ N : E → ℕ,\n      Measurable p ∧ Measurable q ∧ Measurable N ∧\n      (∀ y, p y + eta • gradient V (p y) = y ∧ ‖q y-p y‖ ≤ eps ∧\n        ApproximateProximalExecution.proximalQuery (gradient V) eta eps y (N y+1) y =\n          some (q y,N y+1)) ∧\n      let P0 := fun w : (E × E) × ((E × E) × ((Fin J → E) × (Fin J → E))) =>\n        a • w.1.2 + sigma • w.2.1.1\n      let Y0 := fun i w => w.1.1 + t i • P0 w\n      let Z0 := fun j w => gradient V (q (Y0 j w) + Real.sqrt eta • w.2.2.1 j)\n      let Y1 := fun i w => Y0 i w - ∑ j, omega i j • Z0 j w\n      let Z1 := fun j w => gradient V (q (Y1 j w) + Real.sqrt eta • w.2.2.2 j)\n      let Φ := fun w => (w.1.1 + h • P0 w - ∑ j, positionWeight j • Z1 j w,\n        a • (P0 w - ∑ j, momentumWeight j • Z1 j w) + sigma • w.2.1.2)\n      let T := fun w => 2*J+∑ i, ((N (Y0 i w)+1)+(N (Y1 i w)+1))\n      Measurable Φ ∧ Measurable T ∧\n      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧\n        ∀ s, K s = γ.map (fun z => Φ (s,z))) ∧\n      (∀ w, CountedPhaseProgram.phaseQuery (gradient V) eta eps h t omega positionWeight momentumWeight\n        (fun y => N y+1) w = some (Φ w,T w)) ∧\n      Integrable (fun w => (T w : ℝ)) μ ∧\n      (∫ w, (T w : ℝ) ∂μ) ≤ (J : ℝ)*(2+L0+L1) := by\n  classical\n  dsimp only\n  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n  let Lambda := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Set.Icc 0 h)\n  let omega := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n  let S := h^2/2*Lambda\n  obtain ⟨ht,hinj,hlast,hcard,hpart,hLambda,hrow,hmom⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh\n  have ht' (i : Fin J) : |t i| ≤ 1 := by\n    apply abs_le.mpr\n    have hti : 0 ≤ t i := (ht i).1\n    exact ⟨(by norm_num : (-1 : ℝ) ≤ 0).trans hti,(ht i).2.trans hh1⟩\n  have hS : 0 ≤ S := by\n    dsimp [S]\n    exact mul_nonneg (by positivity) (by linarith : 0 ≤ Lambda)\n  exact CountedPhaseProgram.implemented_phase_expected_query_work hκ hV hH heta hec hc heps\n    ν xstar hstar hh.le hM hS hstateI hstate t ht' omega (fun i => (hrow i).2)\n    (omega ⟨J-1,by omega⟩) (fun j => ∫ s in 0..h, (ell j).eval s)\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SourceQuadratureWork\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A2.SS1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "3.6, B1/B2 coefficient definitions and row/constant proof, HTML1684-1713; actual Algorithm3.1 consumer",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; exact bounded ASTIS coefficient and actual phase component, not complete B1/D4/main result."
+    },
+    "statement": "Using exactly the source t,ell,Lambda,omega,b arrays above, set positionWeight_j=omega_{J-1,j} (the final node is h), momentumWeight_j=b_j and S=h^2 Lambda/2. Under mu=nu product ((Gaussian product Gaussian) product (Gaussian Fin-J array product Gaussian Fin-J array)), set d=finrank(E), a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)], L1=C[1+log(1+sqrt(4MR+2S^2B)/eps)]. There exist measurable p,q,N with exact proximal equation, ||q(y)-p(y)||<=eps and successful proximalQuery from y with fuel N(y)+1 returning (q(y),N(y)+1) for every y. P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Phi=(X+hP0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). The same Phi is measurable and defines the Gaussian pushforward Markov kernel. The count T=2*J+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)] is measurable. For every driving input w, phaseQuery with fuel(y)=N(y)+1 returns exactly some(Phi(w),T(w)); the real cast of T is integrable under mu and E_mu T<=J*(2+L0+L1). The node range and row budget needed by the compiled producer are derived from the coefficient certificate; the Fin J cardinal count is exactly J.",
+    "formulae": [
+      {
+        "label": "Actual source component",
+        "tex": "S=\\frac{h^2}2\\Lambda_J,\\quad T=2J+\\sum_{i=0}^{J-1}[N(Y_i^0)+1+N(Y_i^1)+1],\\quad\\mathbb E_\\mu T\\le J(2+L_0+L_1)."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the source node count is natural J>=2 and index Fin J.",
+      "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+      "0<eta<=c<1, eps>0, 0<h<=1 and M>=0. The incoming probability law nu on(X,P) has integrable ||X-xstar||^2+||P||^2 with mean<=M. No source node, coefficient, Lambda or row-budget hypothesis."
+    ],
+    "obligations": [
+      {
+        "id": "source-quadrature-actual-phase-work",
+        "label": "Actual source quadrature and full phase work"
+      },
+      {
+        "id": "remaining-lebesgue-and-positive-weights",
+        "label": "Classical logarithmic Lebesgue bound and nonnegative momentum weights (remaining)"
+      },
+      {
+        "id": "remaining-global-main",
+        "label": "Run-wideD7/D8, Wq/proxy-warmness and main results (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SourceQuadratureWork.source_quadrature_phase_work",
+      "title": "Actual source quadrature and full phase work",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A2.SS1",
+          "label": "SPHMC3.6 and B1 coefficient proof",
+          "scope": "Actual Algorithm3.1 source quadrature arrays in one gradient-only full Gaussian phase, with a supplied incoming state L2 budget and explicit0<h<=1. All successful counts and the bound use the same actual driving law. Finite fuel is a noncomputable execution certificate, not runtime N-precomputation or a cost premise; no failed-path cost claim. Logarithmic Lebesgue bound/nonnegative weights/B2/globalD7/numericalD8/Wq/proxy-warmness/initialization/PBPS/composition and both main results remain open. No TV-to-unbounded-cost transfer."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCSourceQuadrature"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the source node count is natural J>=2 and index Fin J.",
+        "V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar.",
+        "0<eta<=c<1, eps>0, 0<h<=1 and M>=0. The incoming probability law nu on(X,P) has integrable ||X-xstar||^2+||P||^2 with mean<=M. No source node, coefficient, Lambda or row-budget hypothesis."
+      ],
+      "statement": "Using exactly the source t,ell,Lambda,omega,b arrays above, set positionWeight_j=omega_{J-1,j} (the final node is h), momentumWeight_j=b_j and S=h^2 Lambda/2. Under mu=nu product ((Gaussian product Gaussian) product (Gaussian Fin-J array product Gaussian Fin-J array)), set d=finrank(E), a=exp(-h/2), sigma=sqrt(1-exp(-h)), MR=M+(1-exp(-h))*d, B=6MR+3eps^2+3eta*d, C=2+(1+log((1-c)^(-1)))/(-log c), L0=C[1+log(1+sqrt(2MR)/eps)], L1=C[1+log(1+sqrt(4MR+2S^2B)/eps)]. There exist measurable p,q,N with exact proximal equation, ||q(y)-p(y)||<=eps and successful proximalQuery from y with fuel N(y)+1 returning (q(y),N(y)+1) for every y. P0=aP+sigma zeta0, Y0_i=X+t_i P0, Z0_j=grad V(q(Y0_j)+sqrt(eta)G0_j), Y1_i=Y0_i-sum_j omega_ij Z0_j, Z1_j=grad V(q(Y1_j)+sqrt(eta)G1_j), Phi=(X+hP0-sum_j positionWeight_j Z1_j, a(P0-sum_j momentumWeight_j Z1_j)+sigma zeta1). The same Phi is measurable and defines the Gaussian pushforward Markov kernel. The count T=2*J+sum_i[(N(Y0_i)+1)+(N(Y1_i)+1)] is measurable. For every driving input w, phaseQuery with fuel(y)=N(y)+1 returns exactly some(Phi(w),T(w)); the real cast of T is integrable under mu and E_mu T<=J*(2+L0+L1). The node range and row budget needed by the compiled producer are derived from the coefficient certificate; the Fin J cardinal count is exactly J.",
+      "formula": "S=\\frac{h^2}2\\Lambda_J,\\quad T=2J+\\sum_{i=0}^{J-1}[N(Y_i^0)+1+N(Y_i^1)+1],\\quad\\mathbb E_\\mu T\\le J(2+L_0+L_1).",
+      "steps": [
+        {
+          "title": "Instantiate the source node and coefficient certificate",
+          "text": "Apply the independently reviewable coefficient leaf to the actual zero-based Chebyshev-Lobatto nodes. Set both stochastic-gradient-array indices to Fin J, the position weights to the final coefficient row and the momentum weights to the actual ell_j integrals. The final node equals h, so that row has exactly the source endpoint integration limit.",
+          "formula": "t_i=\\frac h2\\{1-\\cos(i\\pi/(J-1))\\},\\quad\\Lambda_J=\\sup_{s\\in[0,h]}\\sum_j|\\ell_j(s)|,\\quad\\sum_j|\\omega_{ij}|\\le\\frac{t_i^2}2\\Lambda_J\\le\\frac{h^2}2\\Lambda_J,\\quad\\sum_j b_j=h.",
+          "lean": "ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients"
+        },
+        {
+          "title": "Derive the moment-producer inputs",
+          "text": "From 0<=t_i<=h<=1 obtain |t_i|<=1. Lambda>=1 gives S=h^2 Lambda/2>=0, and each actual integrated row has l1 norm<=S. These were formerly supplied interface assumptions; here they follow from the true source arrays, with the factor1/2 retained. The h<=1 restriction is explicit and belongs to the existing moment interface, not a hidden theorem assumption.",
+          "formula": "|t_i|\\le1,\\quad S\\ge0,\\quad\\sum_j|\\omega_{ij}|\\le S.",
+          "lean": "abs_le; node range; mul_nonneg; coefficient row bound"
+        },
+        {
+          "title": "Execute and bound the same actual Gaussian phase",
+          "text": "Apply the existing actual counted-phase theorem with these derived inputs. It supplies measurable exact/approximate stopped proximal witnesses and the same full pushforward Markov kernel. The actual interpreter executes the first array, uses its returned gradients in the second centers, executes the second array and returns the exact complete update and count. The count includes every terminal residual test and precisely2J direct gradients. Its full-law integrability and expected-work bound are derived from incoming-state moments; there is no count or center-moment assumption.",
+          "formula": "S=\\frac{h^2}2\\Lambda_J,\\quad T=2J+\\sum_{i=0}^{J-1}[N(Y_i^0)+1+N(Y_i^1)+1],\\quad\\mathbb E_\\mu T\\le J(2+L_0+L_1).",
+          "lean": "CountedPhaseProgram.implemented_phase_expected_query_work; CountedPhaseProgram.phaseQuery"
+        },
+        {
+          "title": "Keep all accuracy and source complexity boundaries explicit",
+          "text": "The input law is nu times all four independent Gaussian innovation factors; arithmetic is exact real arithmetic. The query certificate is not a runtime computation of N. The numerical L0/L1 coefficients use the actual Lambda and S; replacing Lambda by its classical logarithmic estimate and proving uniform state history/parameter complexity still require separate proofs. No target-law cost transfer or full theorem claim is made.",
+          "formula": "\\mu=\\nu\\otimes[(\\gamma_E\\otimes\\gamma_E)\\otimes(\\gamma_E^{\\operatorname{Fin}J}\\otimes\\gamma_E^{\\operatorname{Fin}J})].",
+          "lean": "SourceQuadratureWork.source_quadrature_phase_work"
+        }
+      ],
+      "lean_statement": "Exact source Fin J nodes, Mathlib Lagrange basis, actual compact supremum and coefficient integrals are explicit. Consumer retains all Gaussian factors and actual output/count.",
+      "lean_proof": "The formula proof covers the entire current module including private node-range/injectivity/endpoint helpers for the coefficient leaf.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.CountedPhaseProgram.implemented_phase_expected_query_work"
+      ],
+      "mathlib_dependencies": [
+        "abs_le",
+        "mul_nonneg"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SourceQuadratureWork.source_quadrature_phase_work",
+      "role": "proof-edge",
+      "supports": [
+        "source-quadrature-actual-phase-work"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source indices j=1,...,J and positive integration step h.",
+        "lean": "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the source node count is natural J>=2 and index Fin J."
+      },
+      {
+        "source": "B1 also states nonnegative weights and logarithmic Lambda; main results need run-wide approximation and costs.",
+        "lean": "Actual Algorithm3.1 source quadrature arrays in one gradient-only full Gaussian phase, with a supplied incoming state L2 budget and explicit0<h<=1. All successful counts and the bound use the same actual driving law. Finite fuel is a noncomputable execution certificate, not runtime N-precomputation or a cost premise; no failed-path cost claim. Logarithmic Lebesgue bound/nonnegative weights/B2/globalD7/numericalD8/Wq/proxy-warmness/initialization/PBPS/composition and both main results remain open. No TV-to-unbounded-cost transfer."
+      },
+      {
+        "source": "Actual source Algorithm3.1 has Chebyshev-Lobatto coefficients; query-center interface uses unit-bounded times.",
+        "lean": "0<eta<=c<1, eps>0, 0<h<=1 and M>=0. The incoming probability law nu on(X,P) has integrable ||X-xstar||^2+||P||^2 with mean<=M. No source node, coefficient, Lambda or row-budget hypothesis."
+      },
+      {
+        "source": "Source theorem is Euclidean and ultimately proves a run-uniform state moment.",
+        "lean": "E is a complete finite-dimensional real inner-product space with Borel sigma-algebra; the source node count is natural J>=2 and index Fin J. V is C2, kappa>=1, and kappa^(-1)||v||^2 <= D2V(x)[v,v] <= ||v||^2 for all x,v. Its actual gradient vanishes at the supplied xstar."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "8c20e98aa19910b1df366e5f910ea7fcc850cf3175657036961a0c9380167935"
+}

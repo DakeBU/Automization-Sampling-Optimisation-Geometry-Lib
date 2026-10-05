@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-28deca74567a1c07",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261005",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-chebyshev-lobatto-coefficients",
+    "anchor": "3.6, B1/B2 coefficient definitions and row/constant proof, HTML1684-1713; actual Algorithm3.1 consumer",
+    "original_text": "Natural J>=2, real h>0. Fin J is zero-based i=0,...,J-1, corresponding to source j=i+1.\nAll nodes, real Lagrange polynomials, compact Lebesgue supremum and integral coefficients are constructed explicitly. The measure is real Lebesgue measure on the displayed closed-endpoint interval integral. Continuity and interval integrability are conclusions of polynomial regularity, not supplied extra assumptions.\nFor natural J>=2 and real h>0, enumerate i=0,...,J-1 with Fin J and set t_i=h/2[1-cos(i*pi/(J-1))], ell_j=Lagrange.basis(univ,t,j), Lambda=sup_{s in[0,h]} sum_j |ell_j(s)|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s) ds and b_j=integral_0^h ell_j(s) ds. Each node is in[0,h], the node map is injective, and t_{J-1}=h. The cardinal identity ell_i(t_j)=1_{i=j} and the constant partition sum_j ell_j(s)=1 hold for every real s. The actual compact supremum satisfies Lambda>=1. For each i, sum_j|omega_ij|<=t_i^2*Lambda/2<=h^2*Lambda/2, and sum_j b_j=h.",
+    "text_sha256": "5efbf26e8ca5c63dd1a1dfa12243be08da32bdfc2b4bb8f6d28f5bdda4d2b3c0"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ChebyshevLobattoQuadrature.lean",
+    "statement": "{J : ℕ} (hJ : 2 ≤ J) {h : ℝ} (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Lambda := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let omega := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let momentumWeight := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    (∀ i, t i ∈ Icc 0 h) ∧ Function.Injective t ∧\n    t ⟨J-1,by omega⟩ = h ∧\n    (∀ i j, (ell i).eval (t j) = if i=j then 1 else 0) ∧\n    (∀ s : ℝ, ∑ j : Fin J, (ell j).eval s = 1) ∧\n    1 ≤ Lambda ∧\n    (∀ i, (∑ j : Fin J, |omega i j|) ≤ (t i)^2/2*Lambda ∧\n      (∑ j : Fin J, |omega i j|) ≤ h^2/2*Lambda) ∧\n    (∑ j : Fin J, momentumWeight j) = h",
+    "statement_sha256": "f88d685191f4b9f5662b3bbbca53c1ba72c142b3f1b0223624062c3efd1fbb5c",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every natural J>=2 and real h>0, index the J nodes by i in Fin(J)={0,...,J-1} and define\n  t_i=(h/2)(1-cos((i/(J-1))pi)),\nwhere i and J are cast to real numbers in the real quotient. Define the real Lagrange basis polynomial\n  ell_j(X)=product_{k in Fin(J), k!=j} (X-t_k)/(t_j-t_k).\nEquivalently, before injectivity is established, each denominator is interpreted using real inversion in the polynomial product specified by the context. Define\n  Lambda=sup_{s in [0,h]} sum_{j in Fin(J)} |ell_j(s)|,\n  omega_ij=integral_0^{t_i} (t_i-s)ell_j(s) ds,\n  v_j=integral_0^h ell_j(s) ds.\nThen all of the following hold:\n  t_i belongs to [0,h] for every i;\n  i -> t_i is injective;\n  t_{J-1}=h;\n  ell_i(t_j)=1 if i=j and 0 otherwise, for every i,j;\n  sum_j ell_j(s)=1 for every real s, including outside [0,h];\n  1<=Lambda;\n  sum_j |omega_ij| <= (t_i^2/2)Lambda for every i;\n  sum_j |omega_ij| <= (h^2/2)Lambda for every i;\n  sum_j v_j=h.\nThe supremum is the conditionally complete real supremum of the displayed image of the closed interval. Integrals are oriented Lebesgue interval integrals; the node conclusion ensures their displayed endpoints are in nonnegative increasing order. All sums and products use the J actual indices. The theorem gives these interpolation, normalization and absolute-row-bound properties; it asserts no upper asymptotic bound on Lambda, positivity of individual integral weights, general polynomial quadrature exactness, probability kernel, or sampling convergence property.",
+    "text_sha256": "3eca7901a7df161a24ef96d9cda577c1dba5fe8becefb71a1abd521b9784cdfb",
+    "decoder": "anonymous_decoder_20261005",
+    "decoder_packet_sha256": "25d054d1dcca9294313c3860921d406c88d0b4328e5853ea0dcc10ffa26641d8",
+    "decoder_run_sha256": "5e8f875d3093f18e512b4a7a995bb30374a2e938b7ec86c27a77fb422ea6c5f8",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "b18cb87c0f957df108959186f183f78172123a569c11034b6e9b97c3d6009b47",
+  "candidate_publication_context": {
+    "file": "5eb36302e86e26cc7ba7b61c4f17bb4f40093a0cbcb9b58b61f706cc523f69b3",
+    "current_lean_module": "import Mathlib.LinearAlgebra.Lagrange\nimport Mathlib.Topology.Algebra.Polynomial\nimport Mathlib.Topology.Order.Compact\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic\nimport Mathlib.Analysis.SpecialFunctions.Integrals.Basic\nimport Mathlib.Tactic\n\n/-! SPHMC3.6/B1: actual source coefficients. No logarithmic Lebesgue bound,\nnonnegative Clenshaw-Curtis weights or interpolation remainder is asserted. -/\nnoncomputable section\nopen Set MeasureTheory Polynomial\nopen scoped BigOperators\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature\n\nprivate def nodes (J : ℕ) (h : ℝ) (i : Fin J) : ℝ :=\n  h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n\nprivate theorem nodes_mem {J : ℕ} {h : ℝ} (hh : 0 ≤ h) (i : Fin J) :\n    nodes J h i ∈ Icc 0 h := by\n  dsimp [nodes]\n  constructor\n  · exact mul_nonneg (by positivity) (sub_nonneg.mpr (Real.cos_le_one _))\n  · have hc := Real.neg_one_le_cos ((i : ℝ)/(J-1 : ℝ)*Real.pi)\n    nlinarith\n\nprivate theorem nodes_injective {J : ℕ} (hJ : 2 ≤ J) {h : ℝ} (hh : 0 < h) :\n    Function.Injective (nodes J h) := by\n  have hJr : (2 : ℝ) ≤ J := by exact_mod_cast hJ\n  have hd : (0 : ℝ) < J-1 := by linarith\n  have harg (i : Fin J) : (i : ℝ)/(J-1 : ℝ)*Real.pi ∈ Icc 0 Real.pi := by\n    constructor\n    · positivity\n    · have hi' : (i : ℝ)+1 ≤ J := by\n        exact_mod_cast (show (i : ℕ)+1 ≤ J from by omega)\n      have hi : (i : ℝ) ≤ J-1 := by linarith\n      have hr : (i : ℝ)/(J-1 : ℝ) ≤ 1 := (div_le_one hd).mpr hi\n      nlinarith [Real.pi_pos]\n  intro i j hij\n  have he : Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi) =\n      Real.cos ((j : ℝ)/(J-1 : ℝ)*Real.pi) := by\n    dsimp [nodes] at hij\n    nlinarith\n  have ha := Real.injOn_cos (harg i) (harg j) he\n  have hd0 := ne_of_gt hd\n  have hp0 := ne_of_gt Real.pi_pos\n  have heq : (i : ℝ) = j := by\n    apply (div_left_inj' hd0).mp\n    exact (mul_left_inj' hp0).mp ha\n  exact Fin.ext (by exact_mod_cast heq)\n\nprivate theorem nodes_last {J : ℕ} (hJ : 2 ≤ J) (h : ℝ) :\n    nodes J h ⟨J-1,by omega⟩ = h := by\n  have hJr : (2 : ℝ) ≤ J := by exact_mod_cast hJ\n  have hd : (J : ℝ)-1 ≠ 0 := by linarith\n  simp only [nodes, Nat.cast_sub (by omega : 1 ≤ J), Nat.cast_one]\n  rw [div_self hd, one_mul, Real.cos_pi]\n  ring\n\n\n/-- Exact source nodes and coefficient integrals, with cardinal/constant\ninterpolation and the sharp1/2 integrated row bound. The source logarithmic\nLebesgue estimate, momentum-weight positivity and B2 error stay independent. -/\ntheorem chebyshev_lobatto_coefficients {J : ℕ} (hJ : 2 ≤ J) {h : ℝ} (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Lambda := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let omega := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let momentumWeight := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    (∀ i, t i ∈ Icc 0 h) ∧ Function.Injective t ∧\n    t ⟨J-1,by omega⟩ = h ∧\n    (∀ i j, (ell i).eval (t j) = if i=j then 1 else 0) ∧\n    (∀ s : ℝ, ∑ j : Fin J, (ell j).eval s = 1) ∧\n    1 ≤ Lambda ∧\n    (∀ i, (∑ j : Fin J, |omega i j|) ≤ (t i)^2/2*Lambda ∧\n      (∑ j : Fin J, |omega i j|) ≤ h^2/2*Lambda) ∧\n    (∑ j : Fin J, momentumWeight j) = h := by\n  classical\n  dsimp only\n  let t := nodes J h\n  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n  let F := fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|\n  let Lambda := sSup (F '' Icc 0 h)\n  have ht (i : Fin J) : t i ∈ Icc 0 h := nodes_mem hh.le i\n  have hinj : Function.Injective t := nodes_injective hJ hh\n  have hcard (i j : Fin J) : (ell i).eval (t j) = if i=j then 1 else 0 := by\n    by_cases he : i=j\n    · subst j\n      simpa [ell] using Lagrange.eval_basis_self (s := Finset.univ) hinj.injOn\n        (Finset.mem_univ i)\n    · simpa [ell,he] using Lagrange.eval_basis_of_ne (s := Finset.univ) (v := t) he\n        (Finset.mem_univ j)\n  have hpart (s : ℝ) : ∑ j : Fin J, (ell j).eval s = 1 := by\n    have he : (∑ j : Fin J, ell j) = 1 :=\n      Lagrange.sum_basis hinj.injOn ⟨⟨0,by omega⟩,Finset.mem_univ _⟩\n    simpa only [Polynomial.eval_finsetSum, Polynomial.eval_one] using\n      congrArg (fun p : ℝ[X] => p.eval s) he\n  have hF : Continuous F := by\n    apply continuous_finsetSum\n    intro j _\n    exact (ell j).continuous.abs\n  have hbound : BddAbove (F '' Icc 0 h) := isCompact_Icc.bddAbove_image hF.continuousOn\n  have hLeb (s : ℝ) (hs : s ∈ Icc 0 h) : F s ≤ Lambda :=\n    le_csSup hbound (mem_image_of_mem F hs)\n  have hLambda : 1 ≤ Lambda := by\n    let i0 : Fin J := ⟨0,by omega⟩\n    have hval : F (t i0) = 1 := by\n      simp only [F,hcard]\n      simp_rw [apply_ite abs,abs_one,abs_zero]\n      simp\n    exact hval ▸ hLeb (t i0) (ht i0)\n  have hw (i : Fin J) : (∑ j : Fin J, |∫ s in 0..t i, (t i-s)*(ell j).eval s|) ≤\n      (t i)^2/2*Lambda := by\n    have hf (j : Fin J) : Continuous (fun s : ℝ => (t i-s)*(ell j).eval s) :=\n      (continuous_const.sub continuous_id).mul (ell j).continuous\n    have hfa (j : Fin J) : Continuous (fun s : ℝ => |(t i-s)*(ell j).eval s|) := (hf j).abs\n    calc\n      _ ≤ ∑ j : Fin J, ∫ s in 0..t i, |(t i-s)*(ell j).eval s| := by\n        apply Finset.sum_le_sum\n        intro j _\n        simpa only [Real.norm_eq_abs] using\n          intervalIntegral.norm_integral_le_integral_norm (f := fun s => (t i-s)*(ell j).eval s)\n            (ht i).1\n      _ = ∫ s in 0..t i, ∑ j : Fin J, |(t i-s)*(ell j).eval s| :=\n        (intervalIntegral.integral_finsetSum (fun j _ => (hfa j).intervalIntegrable _ _)).symm\n      _ ≤ ∫ s in 0..t i, (t i-s)*Lambda := by\n        apply intervalIntegral.integral_mono_on (ht i).1\n          ((continuous_finsetSum Finset.univ (fun j _ => hfa j)).intervalIntegrable _ _)\n          (((continuous_const.sub continuous_id).mul continuous_const).intervalIntegrable _ _)\n        intro s hs\n        have hnon : 0 ≤ t i-s := sub_nonneg.mpr hs.2\n        have hs' : s ∈ Icc 0 h := ⟨hs.1,hs.2.trans (ht i).2⟩\n        calc\n          _ = (t i-s)*F s := by\n            simp only [abs_mul,abs_of_nonneg hnon,F,Finset.mul_sum]\n          _ ≤ _ := mul_le_mul_of_nonneg_left (hLeb s hs') hnon\n      _ = (t i)^2/2*Lambda := by\n        rw [intervalIntegral.integral_mul_const,\n          intervalIntegral.integral_sub (f := fun _ : ℝ => t i) (g := fun s : ℝ => s)\n            (continuous_const.intervalIntegrable _ _)\n            (continuous_id.intervalIntegrable _ _),intervalIntegral.integral_const,\n          integral_id]\n        simp only [sub_zero]\n        ring\n  refine ⟨ht,hinj,nodes_last hJ h,hcard,hpart,hLambda,?_,?_⟩\n  · intro i\n    refine ⟨hw i,(hw i).trans ?_⟩\n    have hsq : (t i)^2 ≤ h^2 := sq_le_sq₀ (ht i).1 hh.le |>.mpr (ht i).2\n    exact mul_le_mul_of_nonneg_right (by linarith : (t i)^2/2 ≤ h^2/2)\n      (by linarith : 0 ≤ Lambda)\n  · change (∑ j : Fin J, ∫ s in 0..h, (ell j).eval s) = h\n    rw [← intervalIntegral.integral_finsetSum (s := Finset.univ)\n      (f := fun j s => (ell j).eval s)\n      (fun j _ => (ell j).continuous.intervalIntegrable 0 h)]\n    simp only [hpart,intervalIntegral.integral_const]\n    simp\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#A2.SS1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "3.6, B1/B2 coefficient definitions and row/constant proof, HTML1684-1713; actual Algorithm3.1 consumer",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; exact bounded ASTIS coefficient and actual phase component, not complete B1/D4/main result."
+    },
+    "statement": "For natural J>=2 and real h>0, enumerate i=0,...,J-1 with Fin J and set t_i=h/2[1-cos(i*pi/(J-1))], ell_j=Lagrange.basis(univ,t,j), Lambda=sup_{s in[0,h]} sum_j |ell_j(s)|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s) ds and b_j=integral_0^h ell_j(s) ds. Each node is in[0,h], the node map is injective, and t_{J-1}=h. The cardinal identity ell_i(t_j)=1_{i=j} and the constant partition sum_j ell_j(s)=1 hold for every real s. The actual compact supremum satisfies Lambda>=1. For each i, sum_j|omega_ij|<=t_i^2*Lambda/2<=h^2*Lambda/2, and sum_j b_j=h.",
+    "formulae": [
+      {
+        "label": "Actual source component",
+        "tex": "t_i=\\frac h2\\{1-\\cos(i\\pi/(J-1))\\},\\quad\\Lambda_J=\\sup_{s\\in[0,h]}\\sum_j|\\ell_j(s)|,\\quad\\sum_j|\\omega_{ij}|\\le\\frac{t_i^2}2\\Lambda_J\\le\\frac{h^2}2\\Lambda_J,\\quad\\sum_j b_j=h."
+      }
+    ],
+    "assumptions": [
+      "Natural J>=2, real h>0. Fin J is zero-based i=0,...,J-1, corresponding to source j=i+1.",
+      "All nodes, real Lagrange polynomials, compact Lebesgue supremum and integral coefficients are constructed explicitly. The measure is real Lebesgue measure on the displayed closed-endpoint interval integral. Continuity and interval integrability are conclusions of polynomial regularity, not supplied extra assumptions."
+    ],
+    "obligations": [
+      {
+        "id": "source-node-coefficient-row-and-constant-integral",
+        "label": "Chebyshev-Lobatto nodes and integrated coefficient certificate"
+      },
+      {
+        "id": "remaining-lebesgue-and-positive-weights",
+        "label": "Classical logarithmic Lebesgue bound and nonnegative momentum weights (remaining)"
+      },
+      {
+        "id": "remaining-global-main",
+        "label": "Run-wideD7/D8, Wq/proxy-warmness and main results (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+      "title": "Chebyshev-Lobatto nodes and integrated coefficient certificate",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A2.SS1",
+          "label": "SPHMC3.6 and B1 coefficient proof",
+          "scope": "Exact source coefficient construction and the row/momentum-total components of B1. No input row/Lebesgue envelope. Lambda is the actual compact supremum. Nonnegative Clenshaw-Curtis momentum weights, logarithmic Lambda<=2/pi*log J+1, polynomial remainder B2, run-wide accuracy/work and main results remain independent obligations; not complete B1."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCSourceQuadrature"
+      ],
+      "assumptions": [
+        "Natural J>=2, real h>0. Fin J is zero-based i=0,...,J-1, corresponding to source j=i+1.",
+        "All nodes, real Lagrange polynomials, compact Lebesgue supremum and integral coefficients are constructed explicitly. The measure is real Lebesgue measure on the displayed closed-endpoint interval integral. Continuity and interval integrability are conclusions of polynomial regularity, not supplied extra assumptions."
+      ],
+      "statement": "For natural J>=2 and real h>0, enumerate i=0,...,J-1 with Fin J and set t_i=h/2[1-cos(i*pi/(J-1))], ell_j=Lagrange.basis(univ,t,j), Lambda=sup_{s in[0,h]} sum_j |ell_j(s)|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s) ds and b_j=integral_0^h ell_j(s) ds. Each node is in[0,h], the node map is injective, and t_{J-1}=h. The cardinal identity ell_i(t_j)=1_{i=j} and the constant partition sum_j ell_j(s)=1 hold for every real s. The actual compact supremum satisfies Lambda>=1. For each i, sum_j|omega_ij|<=t_i^2*Lambda/2<=h^2*Lambda/2, and sum_j b_j=h.",
+      "formula": "t_i=\\frac h2\\{1-\\cos(i\\pi/(J-1))\\},\\quad\\Lambda_J=\\sup_{s\\in[0,h]}\\sum_j|\\ell_j(s)|,\\quad\\sum_j|\\omega_{ij}|\\le\\frac{t_i^2}2\\Lambda_J\\le\\frac{h^2}2\\Lambda_J,\\quad\\sum_j b_j=h.",
+      "steps": [
+        {
+          "title": "Construct distinct source nodes",
+          "text": "Fin J index i corresponds to the paper index j=i+1. Cosine lies between minus one and one, giving 0<=t_i<=h. All cosine arguments lie in[0,pi]; cosine is injective there. Since h>0 and J-1>0, equality of nodes implies equality of arguments and indices. At the final index the argument is pi and t_{J-1}=h.",
+          "formula": "0\\le t_i\\le h,\\quad t_{J-1}=h,\\quad t_i=t_j\\Longrightarrow i=j.",
+          "lean": "nodes_mem; nodes_injective; nodes_last; Real.injOn_cos"
+        },
+        {
+          "title": "Reuse actual Lagrange cardinal and constant identities",
+          "text": "Use Mathlib Lagrange.basis at these distinct nodes. The basis equals one at its own node and zero at every other node. Mathlib sum_basis gives polynomial sum equal to one; evaluating at any real s gives the constant partition. No interpolation basis or coefficient array is supplied as a hypothesis.",
+          "formula": "\\ell_i(t_j)=\\mathbf1_{i=j},\\qquad\\sum_j\\ell_j(s)=1.",
+          "lean": "Lagrange.eval_basis_self; Lagrange.eval_basis_of_ne; Lagrange.sum_basis; Polynomial.eval_finsetSum"
+        },
+        {
+          "title": "Make the actual supremum and regularity explicit",
+          "text": "Each basis polynomial is continuous. The finite sum of its absolute evaluations is continuous, hence bounded above on the compact interval[0,h]. le_csSup gives the pointwise Lebesgue bound. At an actual node the absolute cardinal sum is one, yielding Lambda>=1. All subsequent coefficient integrands and absolute integrands are continuous, so their interval integrability is derived.",
+          "formula": "\\sum_j|\\ell_j(s)|\\le\\Lambda_J\\quad(s\\in[0,h]),\\qquad1\\le\\Lambda_J<\\infty.",
+          "lean": "Polynomial.continuous; continuous_finsetSum; IsCompact.bddAbove_image; le_csSup; Continuous.intervalIntegrable"
+        },
+        {
+          "title": "Integrate the sharp row bound",
+          "text": "For every i, the norm of each defining coefficient integral is at most the integral of its norm. Move the finite sum under the integral using proved interval integrability. On[0,t_i], t_i-s is nonnegative, so the absolute sum factors as (t_i-s) sum_j|ell_j(s)| and is bounded by (t_i-s)Lambda. Integrate the latter exactly to t_i^2 Lambda/2. Node range and nonnegative Lambda give the final h^2 Lambda/2 bound.",
+          "formula": "\\sum_j|\\omega_{ij}|\\le\\int_0^{t_i}(t_i-s)\\sum_j|\\ell_j(s)|\\,ds\\le\\frac{t_i^2}2\\Lambda_J\\le\\frac{h^2}2\\Lambda_J.",
+          "lean": "intervalIntegral.norm_integral_le_integral_norm; integral_finsetSum; integral_mono_on; integral_mul_const; integral_sub; integral_id; sq_le_sq_0"
+        },
+        {
+          "title": "Integrate the constant partition",
+          "text": "Sum the actual b_j integrals using polynomial interval integrability. The partition identity turns the integrand into one, whose integral on[0,h] is h. This proves the total momentum weight exactly but does not prove every weight nonnegative.",
+          "formula": "\\sum_j b_j=\\int_0^h\\sum_j\\ell_j(s)\\,ds=\\int_0^h1\\,ds=h.",
+          "lean": "intervalIntegral.integral_finsetSum; intervalIntegral.integral_const"
+        }
+      ],
+      "lean_statement": "Exact source Fin J nodes, Mathlib Lagrange basis, actual compact supremum and coefficient integrals are explicit. Consumer retains all Gaussian factors and actual output/count.",
+      "lean_proof": "The formula proof covers the entire current module including private node-range/injectivity/endpoint helpers for the coefficient leaf.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Lagrange.eval_basis_self",
+        "Lagrange.eval_basis_of_ne",
+        "Lagrange.sum_basis",
+        "Real.injOn_cos",
+        "IsCompact.bddAbove_image",
+        "le_csSup",
+        "intervalIntegral.integral_finsetSum",
+        "intervalIntegral.integral_mono_on",
+        "intervalIntegral.norm_integral_le_integral_norm",
+        "integral_id"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+      "role": "proof-edge",
+      "supports": [
+        "source-node-coefficient-row-and-constant-integral"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source indices j=1,...,J and positive integration step h.",
+        "lean": "Natural J>=2, real h>0. Fin J is zero-based i=0,...,J-1, corresponding to source j=i+1."
+      },
+      {
+        "source": "B1 also states nonnegative weights and logarithmic Lambda; main results need run-wide approximation and costs.",
+        "lean": "Exact source coefficient construction and the row/momentum-total components of B1. No input row/Lebesgue envelope. Lambda is the actual compact supremum. Nonnegative Clenshaw-Curtis momentum weights, logarithmic Lambda<=2/pi*log J+1, polynomial remainder B2, run-wide accuracy/work and main results remain independent obligations; not complete B1."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "2cb3ce536505a4e61a8ca3e215a083ed708bd5295b736a1ea9ea1353489728d2"
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+      "title": "Chebyshev-Lobatto nodes and integrated coefficient certificate",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#A2.SS1",
+          "label": "SPHMC3.6 and B1 coefficient proof",
+          "scope": "Exact source coefficient construction and the row/momentum-total components of B1. No input row/Lebesgue envelope. Lambda is the actual compact supremum. Nonnegative Clenshaw-Curtis momentum weights, logarithmic Lambda<=2/pi*log J+1, polynomial remainder B2, run-wide accuracy/work and main results remain independent obligations; not complete B1."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCSourceQuadrature"
+      ],
+      "assumptions": [
+        "Natural J>=2, real h>0. Fin J is zero-based i=0,...,J-1, corresponding to source j=i+1.",
+        "All nodes, real Lagrange polynomials, compact Lebesgue supremum and integral coefficients are constructed explicitly. The measure is real Lebesgue measure on the displayed closed-endpoint interval integral. Continuity and interval integrability are conclusions of polynomial regularity, not supplied extra assumptions."
+      ],
+      "statement": "For natural J>=2 and real h>0, enumerate i=0,...,J-1 with Fin J and set t_i=h/2[1-cos(i*pi/(J-1))], ell_j=Lagrange.basis(univ,t,j), Lambda=sup_{s in[0,h]} sum_j |ell_j(s)|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s) ds and b_j=integral_0^h ell_j(s) ds. Each node is in[0,h], the node map is injective, and t_{J-1}=h. The cardinal identity ell_i(t_j)=1_{i=j} and the constant partition sum_j ell_j(s)=1 hold for every real s. The actual compact supremum satisfies Lambda>=1. For each i, sum_j|omega_ij|<=t_i^2*Lambda/2<=h^2*Lambda/2, and sum_j b_j=h.",
+      "formula": "t_i=\\frac h2\\{1-\\cos(i\\pi/(J-1))\\},\\quad\\Lambda_J=\\sup_{s\\in[0,h]}\\sum_j|\\ell_j(s)|,\\quad\\sum_j|\\omega_{ij}|\\le\\frac{t_i^2}2\\Lambda_J\\le\\frac{h^2}2\\Lambda_J,\\quad\\sum_j b_j=h.",
+      "boundary": "Exact source coefficient construction and the row/momentum-total components of B1. No input row/Lebesgue envelope. Lambda is the actual compact supremum. Nonnegative Clenshaw-Curtis momentum weights, logarithmic Lambda<=2/pi*log J+1, polynomial remainder B2, run-wide accuracy/work and main results remain independent obligations; not complete B1.",
+      "steps": [
+        {
+          "title": "Construct distinct source nodes",
+          "text": "Fin J index i corresponds to the paper index j=i+1. Cosine lies between minus one and one, giving 0<=t_i<=h. All cosine arguments lie in[0,pi]; cosine is injective there. Since h>0 and J-1>0, equality of nodes implies equality of arguments and indices. At the final index the argument is pi and t_{J-1}=h.",
+          "formula": "0\\le t_i\\le h,\\quad t_{J-1}=h,\\quad t_i=t_j\\Longrightarrow i=j.",
+          "lean": "nodes_mem; nodes_injective; nodes_last; Real.injOn_cos"
+        },
+        {
+          "title": "Reuse actual Lagrange cardinal and constant identities",
+          "text": "Use Mathlib Lagrange.basis at these distinct nodes. The basis equals one at its own node and zero at every other node. Mathlib sum_basis gives polynomial sum equal to one; evaluating at any real s gives the constant partition. No interpolation basis or coefficient array is supplied as a hypothesis.",
+          "formula": "\\ell_i(t_j)=\\mathbf1_{i=j},\\qquad\\sum_j\\ell_j(s)=1.",
+          "lean": "Lagrange.eval_basis_self; Lagrange.eval_basis_of_ne; Lagrange.sum_basis; Polynomial.eval_finsetSum"
+        },
+        {
+          "title": "Make the actual supremum and regularity explicit",
+          "text": "Each basis polynomial is continuous. The finite sum of its absolute evaluations is continuous, hence bounded above on the compact interval[0,h]. le_csSup gives the pointwise Lebesgue bound. At an actual node the absolute cardinal sum is one, yielding Lambda>=1. All subsequent coefficient integrands and absolute integrands are continuous, so their interval integrability is derived.",
+          "formula": "\\sum_j|\\ell_j(s)|\\le\\Lambda_J\\quad(s\\in[0,h]),\\qquad1\\le\\Lambda_J<\\infty.",
+          "lean": "Polynomial.continuous; continuous_finsetSum; IsCompact.bddAbove_image; le_csSup; Continuous.intervalIntegrable"
+        },
+        {
+          "title": "Integrate the sharp row bound",
+          "text": "For every i, the norm of each defining coefficient integral is at most the integral of its norm. Move the finite sum under the integral using proved interval integrability. On[0,t_i], t_i-s is nonnegative, so the absolute sum factors as (t_i-s) sum_j|ell_j(s)| and is bounded by (t_i-s)Lambda. Integrate the latter exactly to t_i^2 Lambda/2. Node range and nonnegative Lambda give the final h^2 Lambda/2 bound.",
+          "formula": "\\sum_j|\\omega_{ij}|\\le\\int_0^{t_i}(t_i-s)\\sum_j|\\ell_j(s)|\\,ds\\le\\frac{t_i^2}2\\Lambda_J\\le\\frac{h^2}2\\Lambda_J.",
+          "lean": "intervalIntegral.norm_integral_le_integral_norm; integral_finsetSum; integral_mono_on; integral_mul_const; integral_sub; integral_id; sq_le_sq_0"
+        },
+        {
+          "title": "Integrate the constant partition",
+          "text": "Sum the actual b_j integrals using polynomial interval integrability. The partition identity turns the integrand into one, whose integral on[0,h] is h. This proves the total momentum weight exactly but does not prove every weight nonnegative.",
+          "formula": "\\sum_j b_j=\\int_0^h\\sum_j\\ell_j(s)\\,ds=\\int_0^h1\\,ds=h.",
+          "lean": "intervalIntegral.integral_finsetSum; intervalIntegral.integral_const"
+        }
+      ],
+      "lean_statement": "Exact source Fin J nodes, Mathlib Lagrange basis, actual compact supremum and coefficient integrals are explicit. Consumer retains all Gaussian factors and actual output/count.",
+      "lean_proof": "The formula proof covers the entire current module including private node-range/injectivity/endpoint helpers for the coefficient leaf.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Lagrange.eval_basis_self",
+        "Lagrange.eval_basis_of_ne",
+        "Lagrange.sum_basis",
+        "Real.injOn_cos",
+        "IsCompact.bddAbove_image",
+        "le_csSup",
+        "intervalIntegral.integral_finsetSum",
+        "intervalIntegral.integral_mono_on",
+        "intervalIntegral.norm_integral_le_integral_norm",
+        "integral_id"
+      ]
+    }
+  ]
+}

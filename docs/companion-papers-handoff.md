@@ -26,7 +26,8 @@ sequence/three limits. Standard3/fake21 scan, separate blind reconstruction and
 anti-anchored primary-source review passed with immutable raw/LF footprints and
 bounded administrative reconciliation. Exact independently VERIFIED proof
 `0a563a9124e51578aea3dbf7d1d0e68606c80bd0`: `runs/20261006-companion-priority/compact-poisson-smooth-graph/verified.json`. Original sole root
-stabilization/PR313 lane. Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+stabilization/PR313 lane. Exact proof 0a563a9124e51578aea3dbf7d1d0e68606c80bd0 independently VERIFIED; shared integration 9966a01ddd866f78b3b6157a514f1ec159117239. Full ASTIS gate PASS (9111 root / 9364 Tests), publication166, semantic226/8, frontier229, contributor49/45. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and two actual import/declaration branches checked, full site and official graph freshness/contributor PASS. Graph832 modules/612 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/compact-poisson-smooth-graph/integration.json`. Goal remains active.
 
 Next bounded dependency is actual compact weighted transfer and same original
 D.closure membership. Raw `Weighted_compact_coercivity_from_graph_route.md`

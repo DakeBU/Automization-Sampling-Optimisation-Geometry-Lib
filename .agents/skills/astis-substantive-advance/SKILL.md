@@ -98,9 +98,17 @@ learning_contract:
   cross_route_blind_spot_audit:
     required: false
     status: not-applicable | pending | accepted
+    evidence:
+    canonical_route:
+    selection_reason:
   reader_backpressure:
     purification_status: pending | purified | not-applicable
     exposition_seal_status: pending | accepted | not-applicable
+    exposition_evidence:
+    source_expansion_nodes: []
+    lean_expansion_nodes: []
+    assumptions_preserved: false
+    boundary_preserved: false
 owned_files: []
 forbidden_shared_files:
   - AutoSamplingTheory/TechnicalLemmas/Analysis.lean
@@ -209,9 +217,17 @@ learning_contract:
   cross_route_blind_spot_audit:
     required: false
     status: not-applicable | pending | accepted
+    evidence:
+    canonical_route:
+    selection_reason:
   reader_backpressure:
     purification_status: pending | purified | not-applicable
     exposition_seal_status: pending | accepted | not-applicable
+    exposition_evidence:
+    source_expansion_nodes: []
+    lean_expansion_nodes: []
+    assumptions_preserved: false
+    boundary_preserved: false
 focused_checks:
   - command:
     result:

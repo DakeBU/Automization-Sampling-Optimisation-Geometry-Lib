@@ -1,0 +1,897 @@
+{
+  "schema_version": 1,
+  "advance_id": "ASTIS-SA-20261006-CenteredPoincare",
+  "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance.conditional_centered_domain_and_score_variance",
+  "reviewer": "phase_source_reviewer_20261005",
+  "formalizer": "root-samplinglib-writer",
+  "blind_decoder": "anonymous_decoder_20261006",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "f235025bcb4b01cd4495cf0f96d2ceca25ce81f450cfdf179632840eb67cded5",
+  "publication_binding_sha256": "06b723eaa7bf17a810a8fd36cbc21d5a1edfdbda351903fee837455a8bfd517b",
+  "source_text_sha256": "99f3c77ff03f22097206eb43ba4bb397d97023e34c18cc78a1bee5e7ac5b9bf7",
+  "lean_statement_sha256": "e2f61b96c18836ea5e4f8c5b88fc5f396df68e5fc8a297d973e657e094f5e039",
+  "reconstruction_text_sha256": "494db84179f3113b86f2562d2c27b41a2a043c05f5b6a6b5837f3b9103b08377",
+  "decoder_packet_sha256": "c16f2c29b0480226effd088dd49d0b55f9c3cf990ff7bac308ea3874ddf736a6",
+  "decoder_run_sha256": "7499f9b8c2eaba6f234ccef63f047493c4b2ef5fb11c1bc157d6f94165faf179",
+  "review_context": {
+    "file": "3918607c5f262bedd1227837a6cb3a7c869be7f6a877dfe8b73daab10e01cceb",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreClosedDomain\n/-! Actual common Gaussian J/R/S, true reflected conditional W_y and SAME original D_y before ALL centered z/score directions. Source C2 alpha-beta/eta cap/positive partitions yield both exact quarter curvatures, true original-domain Poincare and actual normalized variance of the unnormalized parameter-y directional score with source constant. No R2=R/alternateD/jointselector/normalized-density derivative/marginal Poincare/sampler/main/composition claim. -/\nset_option autoImplicit false\nnoncomputable section\nopen Filter InnerProductSpace MeasureTheory\nopen scoped Topology RealInnerProductSpace ContDiff\nopen ProbabilityTheory\nopen scoped NNReal\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance\ntheorem conditional_centered_domain_and_score_variance\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E, (α:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧\n      fderiv ℝ (fderiv ℝ V) x a a ≤ (β:ℝ)*‖a‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u))+‖u-y‖^2/(8*η)\n    let s := fun y u : E => -(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -\n      (1/(4*η)) • innerSL ℝ (y-u)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y=(R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y=(volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < ∫ u, Real.exp (-W y u) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (a : Lp ℝ 2 (S y)) (G : Lp E 2 (S y)), (a,G) ∈ D.graph ↔\n            ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n              a =ᵐ[S y] φ ∧ G =ᵐ[S y] gradient φ) ∧\n          (∀ z : D.closure.domain, (∫ x, (z : Lp ℝ 2 (S y)) x ∂S y)=0 →\n            (((α:ℝ)+1/η)/4)*‖(z : Lp ℝ 2 (S y))‖^2 ≤ ‖D.closure z‖^2) ∧\n          ∀ a : E,\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.Admissible\n              (S y) (fun u => s y u a) ∧\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n              (S y) (fun u => s y u a) ≤\n                (1/η-(α:ℝ))^2/(4*((α:ℝ)+1/η))*‖a‖^2 := by\n  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreClosedDomain.conditional_score_closed_gradient_domain\n      hα hαβ hV hH hη hβη\n  obtain ⟨R2,S2,_,_,_,_,hfiber2⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain\n      hα hαβ hV hH hη hβη\n  dsimp only\n  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩\n  intro y\n  obtain ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph,_,_,hscore⟩ := hfiber y\n  obtain ⟨_,_,_,hderiv,hlower,_,_⟩ := hfiber2 y\n  have hupper : ∀ x a : E,\n      fderiv ℝ (fderiv ℝ (fun u => V ((1/2:ℝ) • (y+u))+‖u-y‖^2/(8*η))) x a a\n        ≤ (((β:ℝ)+1/η)/4)*‖a‖^2 := by\n    intro x a\n    rw [(hderiv x a a).1,real_inner_self_eq_norm_sq]\n    have hv := (hH ((1/2:ℝ) • (y+x)) a).2\n    have hc : (1:ℝ)/(4*η)=(1/η)/4 := by ring\n    rw [hc]\n    nlinarith\n  have hm : 0 < ((α:ℝ)+1/η)/4 := by positivity\n  have hmM : ((α:ℝ)+1/η)/4 ≤ ((β:ℝ)+1/η)/4 := by\n    have hab : (α:ℝ) ≤ (β:ℝ) := NNReal.coe_le_coe.mpr hαβ\n    linarith\n  refine ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph,?_,?_⟩\n  · have hg := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare.gibbs_centered_domain_poincare _ hW hI hZ\n      (((α:ℝ)+1/η)/4) (((β:ℝ)+1/η)/4) hm hmM hlower hupper\n    rw [← hSy] at hg\n    exact hg D hD hgraph\n  · let : IsMarkovKernel S := hS\n    intro a\n    obtain ⟨hqa,hga,hp,hq,_⟩ := hscore a\n    have hi := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare.gibbs_c1_variance_poincare _ hW hI hZ\n      (((α:ℝ)+1/η)/4) (((β:ℝ)+1/η)/4) hm hmM hlower hupper\n    rw [← hSy] at hi\n    obtain ⟨had,hvar⟩ := hi _ hqa hp hq\n    refine ⟨had,?_⟩\n    have hab : (α:ℝ) ≤ (β:ℝ) := NNReal.coe_le_coe.mpr hαβ\n    have hαη : (α:ℝ)*η ≤ 1 :=\n      (mul_le_mul_of_nonneg_right hab hη.le).trans hβη\n    have hc : 0 ≤ (1/η-(α:ℝ))/4 := by\n      have ha : (α:ℝ) ≤ 1/η := (le_div_iff₀ hη).mpr hαη\n      linarith\n    have hener : AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.dirichletEnergy\n        (S y) (fun u =>\n          (-(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -\n            (1/(4*η)) • innerSL ℝ (y-u)) a)\n        ≤ (((1/η-(α:ℝ))/4)*‖a‖)^2 := by\n      unfold AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.dirichletEnergy\n      have hpoint (u:E) :=\n        (sq_le_sq₀ (norm_nonneg _) (mul_nonneg hc (norm_nonneg a))).mpr (hga u)\n      have hint := integral_mono_ae had.2.2\n        (integrable_const ((((1/η-(α:ℝ))/4)*‖a‖)^2)) (Eventually.of_forall hpoint)\n      simpa [integral_const,measureReal_def] using hint\n    have hv : AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n        (S y) (fun u =>\n          (-(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -\n            (1/(4*η)) • innerSL ℝ (y-u)) a) ≤\n        (((1/η-(α:ℝ))/4)*‖a‖)^2 / (((α:ℝ)+1/η)/4) :=\n      (le_div_iff₀ hm).mpr (by rw [mul_comm]; exact hvar.trans hener)\n    convert hv using 1\n    have hden : (α:ℝ)+1/η ≠ 0 := ne_of_gt (by positivity : (0:ℝ)<(α:ℝ)+1/η)\n    field_simp [hden,hη.ne']\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv2609.06905v1 global source assumptions HTML98-100, Section2.2 HTML168-212, AppendixC1 HTML1197-1237 and background D6/D9 HTML1601-1630; actual reflected conditional score variance. SPHMC2609.06906v1 Section4.1 HTML403-430 has a separate future unreflected covariance consumer. Independent primary-first Centered_Poincare_source_preread.md.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Actual PBPS AppendixC1 reflected conditional Poincare/unnormalized parameter-score variance, with authored background proof."
+    },
+    "statement": "Construct actual common source J/R/S and original D_y before all centered z/score a; derive quarter-curvature centered-domain Poincare and true variance of the unnormalized parameter-y directional score bounded by (eta^-1-alpha)^2*norma^2/[4*(alpha+eta^-1)].",
+    "formulae": [
+      {
+        "label": "Actual reflected conditional Poincare and parameter-score variance",
+        "tex": "m_y=\\frac{\\alpha+\\eta^{-1}}4,\\quad s_y(u)[a]=-\\frac12DV((y+u)/2)[a]-\\frac{\\langle y-u,a\\rangle}{4\\eta},\\quad\\operatorname{Var}_{S_y}(s_y[a])\\le\\frac{(\\eta^{-1}-\\alpha)^2}{4(\\alpha+\\eta^{-1})}\\|a\\|^2."
+      }
+    ],
+    "assumptions": [
+      "Source V C2 and allpoint/allvector0<alpha<=beta curvature; eta>0 and beta*eta<=1. Real finite-dimensional Hilbert/Borel full E including0.",
+      "Actual Gaussian joint J, Markov disintegrating R and reflected S_y=(2x-y)#R_y are produced, with true normalized density W_y=V((y+u)/2)+norm(u-y)^2/(8eta), positive integrable partition and original dense closable exact compact-smooth D_y BEFORE ALL centered z/score directions.",
+      "Unnormalized PARAMETER-y score s_y(u)[a]=-DV((y+u)/2)[a]/2-inner(y-u,a)/(4eta). No normalized conditional-density derivative, marginal Poincare or jointly measurable resolvent selector is claimed."
+    ],
+    "obligations": [
+      {
+        "id": "centered-poincare",
+        "label": "Actual original-domain Poincare and variance"
+      },
+      {
+        "id": "poincare-bl",
+        "label": "Normalized-score/marginal/BL remaining"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expectedcost composition remaining"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance.conditional_centered_domain_and_score_variance",
+      "title": "Actual reflected conditional Poincare and parameter-score variance",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS reflected score variance and explicitly bounded canonical background",
+          "scope": "Finite-dimensional real Hilbert/Borel full E including0, genuine C2 W with actual exponential integrability/positive partition, normalized tilted probability, BOTH global mI<=HessW<=MI and0<m<=M. SAME original exact compact-smooth closable weighted gradient D BEFORE all truly mean-zero domain z. Actual positiveepsilon variational solutions from residual/globalcoercivity producers are identified by SAME D/epsilon/forcing uniqueness, then tested against z; strong scaled residual limit and genuine scalar Cauchy-Schwarz/zero-norm branch give m*normz^2<=normDclosurez^2. No uniform unscaled solution bound, centered resolvent, epsilon0 solution, core/range/adjoint certificate or input Poincare. Actual C1 scalar/gradientL2 pairs and centered function are admitted to a genuine original graph, actual probability/AE quotient identities and real integrability produce Admissible and m*Var<=DirichletEnergy. Actual common Gaussian J/R/S, sourceC2 alpha-beta eta cap, reflected W_y, positive partitions and one original D_y precede allcentered z/score directions; actual unnormalized parameter-y score variance <=(eta^-1-alpha)^2*norma^2/(4*(alpha+eta^-1)), with exact reflected m=(alpha+eta^-1)/4 and source-derived upper M=(beta+eta^-1)/4. Auxiliary normalized density equality only; no R2=R/alternateD identification/jointselector or normalized conditional density derivative. BOTH-curvature generic statement is narrower than lower-only source D6 and is disclosed; source companion models supply the upper bound. Anisotropic BL, unreflected linear moments/covariance-upper and SPHMC Hessian lower, outer-y/marginal Poincare, PBPS sampler/reflection/invariance/nonexplosion/hypocoercivity/implementation/cost, SPHMC complete algorithm/Wp/proxywarmness, main results/composition/expectedcost remainopen. TV does not transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.CenteredPoincare"
+      ],
+      "assumptions": [
+        "Source V C2 and allpoint/allvector0<alpha<=beta curvature; eta>0 and beta*eta<=1. Real finite-dimensional Hilbert/Borel full E including0.",
+        "Actual Gaussian joint J, Markov disintegrating R and reflected S_y=(2x-y)#R_y are produced, with true normalized density W_y=V((y+u)/2)+norm(u-y)^2/(8eta), positive integrable partition and original dense closable exact compact-smooth D_y BEFORE ALL centered z/score directions.",
+        "Unnormalized PARAMETER-y score s_y(u)[a]=-DV((y+u)/2)[a]/2-inner(y-u,a)/(4eta). No normalized conditional-density derivative, marginal Poincare or jointly measurable resolvent selector is claimed."
+      ],
+      "statement": "Construct actual common source J/R/S and original D_y before all centered z/score a; derive quarter-curvature centered-domain Poincare and true variance of the unnormalized parameter-y directional score bounded by (eta^-1-alpha)^2*norma^2/[4*(alpha+eta^-1)].",
+      "formula": "m_y=\\frac{\\alpha+\\eta^{-1}}4,\\quad s_y(u)[a]=-\\frac12DV((y+u)/2)[a]-\\frac{\\langle y-u,a\\rangle}{4\\eta},\\quad\\operatorname{Var}_{S_y}(s_y[a])\\le\\frac{(\\eta^{-1}-\\alpha)^2}{4(\\alpha+\\eta^{-1})}\\|a\\|^2.",
+      "steps": [
+        {
+          "title": "Retain the genuine common law and domain order",
+          "text": "Accepted conditional score domain constructs source Gaussian J, Markov R/S, actual disintegration/reflection, positive integrable W_y partition and original D_y before all centered z and score directions. R/S remain existential witnesses.",
+          "formula": "S_y=(2x-y)_\\#R_y=Z_y^{-1}e^{-W_y}du.",
+          "lean": "ConditionalScoreClosedDomain.conditional_score_closed_gradient_domain"
+        },
+        {
+          "title": "Derive BOTH exact reflected curvatures",
+          "text": "The actual reflected Hessian formula gives lower m_y and upper M_y=(beta+eta^-1)/4 from source alpha/beta. Auxiliary conditional versions supply pointwise formulas only; no R2=R or alternate-D identification is made.",
+          "formula": "D^2W_y=\\tfrac14D^2V((y+u)/2)+\\tfrac1{4\\eta}I,\\quad m_yI\\preceq D^2W_y\\preceq M_yI.",
+          "lean": "ConditionalScoreDomain.conditional_curvature_and_score_domain"
+        },
+        {
+          "title": "Produce original-domain Poincare",
+          "text": "Literal actual S_y density equality transports the generic law prerequisites to SAME D_y. Apply the new centered-domain theorem before all centered z.",
+          "formula": "m_y\\|z\\|_{L^2(S_y)}^2\\le\\|\\overline D_yz\\|^2\\quad(\\int z\\,dS_y=0).",
+          "lean": "CenteredDomainPoincare.gibbs_centered_domain_poincare"
+        },
+        {
+          "title": "Use actual C1 score and gradient moments",
+          "text": "The accepted true score producer gives C1, genuine scalar/gradientL2 and pointwise gradient bound. New actual C1 Poincare derives Admissible and variance; no score estimate is supplied as a premise.",
+          "formula": "m_y\\operatorname{Var}_{S_y}(s_y[a])\\le\\int\\|\\nabla_us_y[a]\\|^2\\,dS_y.",
+          "lean": "GibbsC1Poincare.gibbs_c1_variance_poincare"
+        },
+        {
+          "title": "Integrate the source pointwise bound",
+          "text": "Alpha<=beta and beta*eta<=1 give c=(eta^-1-alpha)/4>=0. Square the actual norm bound, integrate with genuine integrability and S_y mass1.",
+          "formula": "\\|\\nabla_us_y[a]\\|\\le c\\|a\\|\\Longrightarrow\\int\\|\\nabla_us_y[a]\\|^2dS_y\\le c^2\\|a\\|^2.",
+          "lean": "integral_mono_ae; IsMarkovKernel; ConditionalScoreClosedDomain"
+        },
+        {
+          "title": "Keep the exact source constant and boundary",
+          "text": "Divide by positive m_y and simplify c^2/m_y. This is the unnormalized PARAMETER-y score variance only; normalized derivative, outer-y/marginal Poincare, BL and samplers/main/composition still require separate proofs.",
+          "formula": "c^2/m_y=\\frac{(\\eta^{-1}-\\alpha)^2}{4(\\alpha+\\eta^{-1})}.",
+          "lean": "conditional_centered_domain_and_score_variance; field_simp"
+        }
+      ],
+      "lean_statement": "Construct actual common source J/R/S and original D_y before all centered z/score a; derive quarter-curvature centered-domain Poincare and true variance of the unnormalized parameter-y directional score bounded by (eta^-1-alpha)^2*norma^2/[4*(alpha+eta^-1)].",
+      "lean_proof": "Retain the genuine common law and domain order; Derive BOTH exact reflected curvatures; Produce original-domain Poincare; Use actual C1 score and gradient moments; Integrate the source pointwise bound; Keep the exact source constant and boundary",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare.gibbs_centered_domain_poincare",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare.gibbs_c1_variance_poincare",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreClosedDomain.conditional_score_closed_gradient_domain",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain"
+      ],
+      "mathlib_dependencies": [
+        "integral_mono_ae",
+        "le_div_iff₀",
+        "measureReal_def"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance.conditional_centered_domain_and_score_variance",
+      "role": "prerequisite",
+      "supports": [
+        "centered-poincare"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Actual source C2 alpha-beta reflected law invokes lower-curvature Poincare background D6.",
+        "lean": "Source V C2 and allpoint/allvector0<alpha<=beta curvature; eta>0 and beta*eta<=1. Real finite-dimensional Hilbert/Borel full E including0.\nActual Gaussian joint J, Markov disintegrating R and reflected S_y=(2x-y)#R_y are produced, with true normalized density W_y=V((y+u)/2)+norm(u-y)^2/(8eta), positive integrable partition and original dense closable exact compact-smooth D_y BEFORE ALL centered z/score directions.\nUnnormalized PARAMETER-y score s_y(u)[a]=-DV((y+u)/2)[a]/2-inner(y-u,a)/(4eta). No normalized conditional-density derivative, marginal Poincare or jointly measurable resolvent selector is claimed."
+      },
+      {
+        "source": "Source uses Bakry-Emery/background Poincare.",
+        "lean": "Construct actual common source J/R/S and original D_y before all centered z/score a; derive quarter-curvature centered-domain Poincare and true variance of the unnormalized parameter-y directional score bounded by (eta^-1-alpha)^2*norma^2/[4*(alpha+eta^-1)]."
+      },
+      {
+        "source": "Normalized conditional density differentiation/marginal Poincare/sampler/main/composition.",
+        "lean": "Finite-dimensional real Hilbert/Borel full E including0, genuine C2 W with actual exponential integrability/positive partition, normalized tilted probability, BOTH global mI<=HessW<=MI and0<m<=M. SAME original exact compact-smooth closable weighted gradient D BEFORE all truly mean-zero domain z. Actual positiveepsilon variational solutions from residual/globalcoercivity producers are identified by SAME D/epsilon/forcing uniqueness, then tested against z; strong scaled residual limit and genuine scalar Cauchy-Schwarz/zero-norm branch give m*normz^2<=normDclosurez^2. No uniform unscaled solution bound, centered resolvent, epsilon0 solution, core/range/adjoint certificate or input Poincare. Actual C1 scalar/gradientL2 pairs and centered function are admitted to a genuine original graph, actual probability/AE quotient identities and real integrability produce Admissible and m*Var<=DirichletEnergy. Actual common Gaussian J/R/S, sourceC2 alpha-beta eta cap, reflected W_y, positive partitions and one original D_y precede allcentered z/score directions; actual unnormalized parameter-y score variance <=(eta^-1-alpha)^2*norma^2/(4*(alpha+eta^-1)), with exact reflected m=(alpha+eta^-1)/4 and source-derived upper M=(beta+eta^-1)/4. Auxiliary normalized density equality only; no R2=R/alternateD identification/jointselector or normalized conditional density derivative. BOTH-curvature generic statement is narrower than lower-only source D6 and is disclosed; source companion models supply the upper bound. Anisotropic BL, unreflected linear moments/covariance-upper and SPHMC Hessian lower, outer-y/marginal Poincare, PBPS sampler/reflection/invariance/nonexplosion/hypocoercivity/implementation/cost, SPHMC complete algorithm/Wp/proxywarmness, main results/composition/expectedcost remainopen. TV does not transfer unbounded cost."
+      }
+    ]
+  },
+  "review_context_sha256": "7624464cd05f5f8bc17c3f1e6564f8ef5489447f9534d4e0b556c171f28c30dd",
+  "whole_module_file_sha256": "3918607c5f262bedd1227837a6cb3a7c869be7f6a877dfe8b73daab10e01cceb",
+  "whole_module_raw_sha256": "b9bf424beacffd938ead6aec28bf89986459fd9715e55b651ef81b0bd886dd2f",
+  "whole_module_lf_sha256": "3918607c5f262bedd1227837a6cb3a7c869be7f6a877dfe8b73daab10e01cceb",
+  "whole_module_review": {
+    "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalScoreVariance.lean",
+    "raw_sha256": "b9bf424beacffd938ead6aec28bf89986459fd9715e55b651ef81b0bd886dd2f",
+    "lf_sha256": "3918607c5f262bedd1227837a6cb3a7c869be7f6a877dfe8b73daab10e01cceb",
+    "bytes": 6450,
+    "whole_module_covered": true,
+    "all_private_helpers_covered": true,
+    "private_helper_count": 0
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual source Gaussian joint J, existential common disintegrating R and reflected S; W_y(u)=V((y+u)/2)+||u-y||^2/(8eta); original D_y; unnormalized parameter-y directional score.",
+      "reconstructed": "Same J/R/S/reflection/actual tilted law, exact original graph, actual centered domain z and q_a(u)=-DV(mid)[a]/2-<y-u,a>/(4eta).",
+      "relation": "equivalent",
+      "evidence": "PBPS §2.2/C1 original convention independently read; q is not negative-u-gradient or normalized conditional-density derivative."
+    },
+    "domains": {
+      "original": "Source Euclidean generalized explicitly to finite real Hilbert/Borel incl0; true Sy probability, scalar/vector Sy-L2 classes, C2 fiber W and original fullspace gradient closure.",
+      "reconstructed": "Same domains and AE graph representatives; actual integrability and positive partition produced as outputs.",
+      "relation": "explicit-elaboration",
+      "evidence": "Reflected affine pushforward scale2 has Hessian quarter factor; unreflected RGO potential/curvature and kernel versions are not identified."
+    },
+    "quantifiers": {
+      "original": "Source C2 V/allvector alpha-beta/eta cap => ONE common R,S before ALL y; each original D_y before ALL centered z and ALL a.",
+      "reconstructed": "Same existential common R/S and for everyy fiberD; no universal identification of all conditional versions and no joint measurable D/solution selector.",
+      "relation": "equivalent",
+      "evidence": "Returned D_y used in centered-domain clause. Operator-free score Var/energy uses internally another actual original graph on SAME Sy, with no equality assertion between operator choices."
+    },
+    "assumptions": {
+      "original": "0<alpha<=beta, V C2, BOTH allpoint Hessian bounds,eta>0,beta eta<=1; no supplied normalizer/score moments/PI estimate.",
+      "reconstructed": "Same source inputs,NNReal alpha/beta elaboration; positive partitions/actual score L2/gradient bounds derived through actual parents.",
+      "relation": "equivalent",
+      "evidence": "Upper reflected M=(beta+eta^-1)/4 supplies canonical BOTH-bound prerequisite; beta eta cap genuinely supplies nonnegative c=(eta^-1-alpha)/4."
+    },
+    "conclusion": {
+      "original": "Actual J conditional R/reflected S and exact fibers/original D; m_y centered-domain PI AND every score direction real Admissible plus Var bound.",
+      "reconstructed": "Full printed conjunction retained: probability kernels, reflection, exact tilted fiber,C2,L1/positiveZ,denseclosableclosed original graph,centered inequality and directional score variance.",
+      "relation": "equivalent",
+      "evidence": "Independent source exact score constant; no normalized score meanzero asserted; Admissible facts genuinely proved and variance centers actual score mean."
+    },
+    "scopes": {
+      "original": "SourceAnchor bounded C1 score-variance subedge plus authored original-domain analytic dependency; not whole source C1 proof/normalized derivative/marginal or D9/BL/main.",
+      "reconstructed": "Same source slice; no R2=R,S2=Sy global kernel identity, alternativeD identity, sampler cost or composition.",
+      "relation": "explicit-elaboration",
+      "evidence": "Auxiliary hessian producer used ONLY fiberwise actual W derivative formulas. Source author PI route and Samplinglib sufficient OR route explicitly separated."
+    },
+    "constant_dependencies": {
+      "original": "m_y=(alpha+eta^-1)/4; M_y=(beta+eta^-1)/4; c=(eta^-1-alpha)/4>=0; Var<=c^2/m_y ||a||^2=(eta^-1-alpha)^2/[4(alpha+eta^-1)]||a||^2.",
+      "reconstructed": "Same exact quarter curvatures and score variance constant, normalized Sy mass1, arbitrary a incl0 and finite dimension0.",
+      "relation": "equivalent",
+      "evidence": "True norm bound squared only after c>=0; integration uses genuine L1 and Markov mass1; positive m_y divided once; nonquadratic eta1/2 test m5/8/coef9/40."
+    }
+  },
+  "verdict": "equivalent-after-elaboration",
+  "blocking": false,
+  "deltas": [],
+  "repairs": [],
+  "primary_source_evidence": {
+    "edition": "arXiv:2609.06905v1",
+    "retrieved_date": "2026-10-06",
+    "raw_primary": {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.primary.pbps-v1.raw.html",
+      "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "lf_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "bytes": 1482128
+    },
+    "contract": {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.primary-first.contract.json",
+      "raw_sha256": "cb80f56e34f512e311a197243cf3d0716ed4f0c9122f4c504d1d7df552c4c000",
+      "lf_sha256": "cb80f56e34f512e311a197243cf3d0716ed4f0c9122f4c504d1d7df552c4c000",
+      "bytes": 4797
+    },
+    "anchors": [
+      {
+        "url": "https://arxiv.org/html/2609.06905v1#S2.SS2",
+        "lines": "98-100 standing;168-212 actual joint/unreflected/reflection"
+      },
+      {
+        "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+        "lines": "1197-1226 compact domain/reflected W/unnormalized parameter score/PI variance"
+      },
+      {
+        "url": "https://arxiv.org/html/2609.06905v1#A4.SS2",
+        "lines": "1601-1630 lower-only backgroundD6/covarianceD9 boundary"
+      }
+    ],
+    "source_gaps": "Full background Bakry-Emery proof is cited not printed in this source. Current BOTH-bound canonical resolvent route is authored sufficient OR route. BGL14 book was not independently reread in this current task; no full BGL/D6 credit claimed."
+  },
+  "exposure_and_independence": {
+    "prior_whole_mathematics_review_by_this_actor": true,
+    "prior_statement_seal_and_source_only_graph_extraction": true,
+    "prior_primary_source_API_prereads": true,
+    "prior_signature_keyword_exposure_in_BL_search": true,
+    "current_primary_first_before_current_review_packets": true,
+    "never_seen_candidate_claim": false,
+    "root_ignored_prototypes_read": false,
+    "current_other_math_verdict_or_old_source_verdict_used_as_fidelity_evidence": false,
+    "formalizer": "root-samplinglib-writer",
+    "decoder": "anonymous_decoder_20261006",
+    "basis": "Fresh current source contract before packets, independently evaluated complete current proof/18 reader steps, and exact matching own prior whole-proof dependency freezes; compilation success is not source evidence."
+  },
+  "review_evidence": "Complete current ConditionalScoreVariance108 lines: actual common source law/domain, auxiliary only fiber Hessian formula, true score L2/C1, nonnegative pointwise bound and normalized integration/division. No hidden operator identity. Complete source contract and anonymous reconstruction compared in all seven slots; full current three-module bundle and136-line true nonquadratic/0D Test and all18 reader steps checked, including exact called ASTIS/Mathlib provenance. All three publication bindings independently recomputed from live full module, toolchain/manifest, actual item/full binding and full lesson. Six admin diffs individually checked; all remaining frozen input bytes unchanged. No compiler in this source task. Scoped canonical B/B and genuine conditional SourceAnchor accepted; not full lower-only D6, normalized conditional derivative, marginal PI, anisotropic BL, unreflected covariance/SPHMC Hessian consumer or main/composition acceptance.",
+  "whole_bundle_review": {
+    "modules_lines": [
+      100,
+      68,
+      108
+    ],
+    "production_private_helpers_total": 2,
+    "test_lines": 136,
+    "reader_steps": [
+      6,
+      6,
+      6
+    ],
+    "all_direct_math_parents_and_needed_pinned_mathlib_full_proofs_previously_independently_read_with_exact_current_matching_freeze": true,
+    "matching_parent_mathlib_inputs": 19,
+    "fresh_compilation_in_source_task": false,
+    "prior_compilation_not_used_to_infer_fidelity": true,
+    "current_publication_binding_checks": [
+      {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare.gibbs_centered_domain_poincare",
+        "independently_recomputed_publication_binding_sha256": "a573991d2ec9d09ce5e89384fe24ba1636b23a6e264173148ca645f8792b4982",
+        "candidate_context_sha256": "97d054c8824f6a3aa68ae2ff1ba2a4bb504b8c752cd474cf26915f48114a60e7",
+        "full_module_current_exact": true,
+        "all_six_reader_steps_current_exact": true
+      },
+      {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare.gibbs_c1_variance_poincare",
+        "independently_recomputed_publication_binding_sha256": "e96719f490e64213a8116a7376e99e3f1154e0be4019acc18655d0e2a14e6cf7",
+        "candidate_context_sha256": "f91604d670e5f3e058bc377527594cb0ed0a035d808e194e59319f2e5cd37331",
+        "full_module_current_exact": true,
+        "all_six_reader_steps_current_exact": true
+      },
+      {
+        "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance.conditional_centered_domain_and_score_variance",
+        "independently_recomputed_publication_binding_sha256": "06b723eaa7bf17a810a8fd36cbc21d5a1edfdbda351903fee837455a8bfd517b",
+        "candidate_context_sha256": "7624464cd05f5f8bc17c3f1e6564f8ef5489447f9534d4e0b556c171f28c30dd",
+        "full_module_current_exact": true,
+        "all_six_reader_steps_current_exact": true
+      }
+    ]
+  },
+  "source_proof_graph_boundary": {
+    "initial_statement_seals_respected": true,
+    "source_author_topology_not_derived_from_Lean": true,
+    "source_graph_prior_independent_topology_review_not_revalidated_by_creator": true,
+    "authored_sufficient_OR_route_explicit": true,
+    "source_scope_not_whole_background_theorem": true
+  },
+  "lifecycle_reconciliation": {
+    "path": "runs/20261006-companion-priority/centered-poincare/source-review.lifecycle-reconciliation.json",
+    "raw_sha256": "c83a6404824e605d83e4b66621a354849424bcf6fb6cbe8b53c83f00daa00fd8",
+    "lf_sha256": "5b5fe460f4c6bcf6c27bd5d2c8733f4f2563dca6a4853a4e34be656bbdcee7e0",
+    "bytes": 42443
+  },
+  "input_inventory": {
+    "path": "runs/20261006-companion-priority/centered-poincare/source-review.inventory.json",
+    "raw_sha256": "1ba97f8a6ab8d5a41630a6e50279c2937d904e62a78a06c11e2dbdd94e399e36",
+    "lf_sha256": "94def0ef0a432ef4cc011a21ecb800c61ff3d0da67413693bb3db3d522ddf679",
+    "bytes": 35392
+  },
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CenteredDomainPoincare.lean",
+      "raw_sha256": "1b5e3dc4e34b0415c60b75b5fd76dca51337ea31b586618c918f9f670e54ea65",
+      "lf_sha256": "ff8c4ce3a3d62ed92243f772d7c6dc55b0e2e00b66c936ae079bf8bef6e28134",
+      "bytes": 6325,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.00.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GibbsC1Poincare.lean",
+      "raw_sha256": "67cdbf294fa53d3a4d34767cd62c9d1409e104b8a05bff6783a2e0233c1bdb3e",
+      "lf_sha256": "390e456ba2aac407fb9c95ae5622ad5b24625cf9a8dd5accb5b9c23827607397",
+      "bytes": 4180,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.01.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalScoreVariance.lean",
+      "raw_sha256": "b9bf424beacffd938ead6aec28bf89986459fd9715e55b651ef81b0bd886dd2f",
+      "lf_sha256": "3918607c5f262bedd1227837a6cb3a7c869be7f6a877dfe8b73daab10e01cceb",
+      "bytes": 6450,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.02.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "Tests/CenteredPoincare.lean",
+      "raw_sha256": "8a98ef6af74bcaebb32ddee54318dcfb5fe38aaf152e1eeba07edeb369395a3d",
+      "lf_sha256": "74eb214f32aec3bfeeea13bd925de181a7a349f1c0fd9e7f8a6421863ed2c1da",
+      "bytes": 7245,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.03.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "proof-blueprints/centered-poincare.md",
+      "raw_sha256": "f5dc11c3b00144a897024ce9e35f13386fb3060d672e1c8a589dbd53b2a8a516",
+      "lf_sha256": "44c18c9041df03838ef591864f718452e8cde382ee99de9fd4dbe900547305b4",
+      "bytes": 5016,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.04.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/cited-results/Centered_Poincare_source_preread.md",
+      "raw_sha256": "9a1bf6e66cf7e10ab4482cf1a901087833310a631cea340b317a970806f48631",
+      "lf_sha256": "9a1bf6e66cf7e10ab4482cf1a901087833310a631cea340b317a970806f48631",
+      "bytes": 9521,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.05.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-centered-domain-poincare.json",
+      "raw_sha256": "34cde07cbb71d788fecf969dda127c905f582c4c004a45d5951a6bd3f1512cb8",
+      "lf_sha256": "c19b5e6d8fab4461f83c71ea8296e11c9adb521fddcadfa03711a64a35981bad",
+      "bytes": 90414,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.06.raw.snapshot",
+      "matches_math_freeze": false,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-gibbs-c1-poincare.json",
+      "raw_sha256": "60b6215a964271a6bd89a4d3eddbe5ee31ca88ae11d7c99a34efc0186a01d864",
+      "lf_sha256": "f2a362db742b4e4b9ca3cc039ca97ef171717bb58b733bd3ab41c5100dc4e2cd",
+      "bytes": 90541,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.07.raw.snapshot",
+      "matches_math_freeze": false,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-conditional-score-variance.json",
+      "raw_sha256": "bbc9b4c7c7d6959e1ee3dd30648e062e290c0f45fe2cae7077b1d5a4626fd330",
+      "lf_sha256": "0199b4e5d48248fa195666f4e7714d7233181ddf12b4b0a343408e01b88eb957",
+      "bytes": 90385,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.08.raw.snapshot",
+      "matches_math_freeze": false,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "website/content/publications/centered-domain-poincare.json",
+      "raw_sha256": "d660060b7d136c37ef09c8871ae03c656ed065ad9acd106d2e3278021a586a80",
+      "lf_sha256": "29eb7ebf67531950c034d9c356e4d1e5d5c8a902c3e19fc1f0dec65e4d507463",
+      "bytes": 89546,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.09.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "website/content/publications/gibbs-c1-poincare.json",
+      "raw_sha256": "d4c5182bec420b480dc2e52445177e503ba07055f6c2b4acef1a35580298e8eb",
+      "lf_sha256": "de7355c13730afc1f3c30089fcc918e0d15917949394b806ee2cf7063382eeb7",
+      "bytes": 89200,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.10.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "website/content/publications/pbps-conditional-score-variance.json",
+      "raw_sha256": "6b89f2f291a9a63f8615b05a1a97509a520b28f9de3475b0fb76bc0a2cd1fe0b",
+      "lf_sha256": "b231f22f3c303c53cee81c5eff45dfd2df28dbc7b2c6e50efee9a9e6619efed1",
+      "bytes": 89982,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.11.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "website/content/declaration_lessons/centered-domain-poincare.json",
+      "raw_sha256": "c5a9c1e5da7f07b8917e1ebade7a8218b5e972642c99801e5a336eab908bb68f",
+      "lf_sha256": "47ef8f0098591b1ba9775a882b244c6020096a1c0c27dbbdf634a0bdc4d296dc",
+      "bytes": 9303,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.12.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "website/content/declaration_lessons/gibbs-c1-poincare.json",
+      "raw_sha256": "049e686cca0718e5ce5d17e1b6ccfeb127a8f92e13bee7efd96cacf8534b33c1",
+      "lf_sha256": "3571173ab4596b43fdcf66817a6b7f03199789a9619826f191ae49b5eda93c50",
+      "bytes": 9034,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.13.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "website/content/declaration_lessons/pbps-conditional-score-variance.json",
+      "raw_sha256": "b5e8c9c7b35ab32a9887f9ee3e462366be83ac8bd9d9c5bfd83dd2065a9e2b29",
+      "lf_sha256": "4758cae84ff20d80fec2890202f351a81223f0a944e66b5b18e943db1980deb3",
+      "bytes": 9644,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.14.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-CenteredDomainPoincare.json",
+      "raw_sha256": "de97b54708d2f0c46d63cb088af60d3174ea506ca42d3bd366d0ac0795793be7",
+      "lf_sha256": "2b1a85ddccb1351c92af28a855373d3529ddc0b1d8fe909af9908333f05a7138",
+      "bytes": 28504,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.15.raw.snapshot",
+      "matches_math_freeze": false,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-GibbsC1Poincare.json",
+      "raw_sha256": "04f30adea6c6270a83c6fd14c2275417feb4c7028b17b8ba045392a9d887db48",
+      "lf_sha256": "f81602e2fca1ea03e6662358306f4353779824e42df1e2ecdb4b3c83b2060f44",
+      "bytes": 26662,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.16.raw.snapshot",
+      "matches_math_freeze": false,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-PBPSConditionalScoreVariance.json",
+      "raw_sha256": "2e549e1e9d387ea56defcbed63093e14201c14fa6026ddfb57f7c75aeea45842",
+      "lf_sha256": "abdf122633ad904ba4111379736c8351e208727d7b07382391e649605eb07f1c",
+      "bytes": 33142,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.17.raw.snapshot",
+      "matches_math_freeze": false,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/anonymous.0.decoder.json",
+      "raw_sha256": "6f17283b77258345f905b6c955b132800a2f8babf6d75095542304ede72ad75d",
+      "lf_sha256": "e50528454e3d184557b7796b8c6aa7ec7f2404f9faf11cb30d590df289adfc46",
+      "bytes": 3593,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.18.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/anonymous.1.decoder.json",
+      "raw_sha256": "9bb9c2ed0756a454a98f4691b42bbce7921dc076aff065d5a4897d29357b4c97",
+      "lf_sha256": "bd91a1a1d1acd8eb90246ee1405cacfa5076972b587fa5a0a23df7c94d783524",
+      "bytes": 4297,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.19.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/anonymous.2.decoder.json",
+      "raw_sha256": "0429a3e3499dad3bdc814991d65ab41888a03c5adf829146f523b8fc72783c2b",
+      "lf_sha256": "5998f374591f053a8c4bb08550c868515d23ee7f8a2de57b6d202d4f9f00d2f4",
+      "bytes": 5481,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.20.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/focused.log",
+      "raw_sha256": "508d8e6c12cd61de4851c956deccea219b41d918d4031ccee15034dca0b34a02",
+      "lf_sha256": "e5716a0084f4edc88c85cb93e521a0cf2d96f0c0cf361a7b557c596498b174af",
+      "bytes": 10459,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.21.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/independent-topology-inventory.attempt1.json",
+      "raw_sha256": "18e16d392c179bb1f7714c46567abc99307e42a8137cf3179b5689f191b1b4d3",
+      "lf_sha256": "18e16d392c179bb1f7714c46567abc99307e42a8137cf3179b5689f191b1b4d3",
+      "bytes": 89594,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.22.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/independent-topology-inventory.final.json",
+      "raw_sha256": "4d3bebb4c8f2ac657096890441a8591428beeaf15feb5042dcb381e2d82b7995",
+      "lf_sha256": "4d3bebb4c8f2ac657096890441a8591428beeaf15feb5042dcb381e2d82b7995",
+      "bytes": 77659,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.23.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/independent-topology-primary-reconstruction.json",
+      "raw_sha256": "3e1863f557d64ef6713c267d68586076111146367c688de7f58247d29b6a25bd",
+      "lf_sha256": "3e1863f557d64ef6713c267d68586076111146367c688de7f58247d29b6a25bd",
+      "bytes": 2881,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.24.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-primary.contract.json",
+      "raw_sha256": "e499f07bbfa19ca42079a22cea50a5dcd052f99e255750b47c840d69c360b6be",
+      "lf_sha256": "e499f07bbfa19ca42079a22cea50a5dcd052f99e255750b47c840d69c360b6be",
+      "bytes": 3638,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.25.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-primary.pbps-v1.retrieval.json",
+      "raw_sha256": "4dee7fe5e625f46c8ce6abe0e6fe6835080bf177277db8d5c1e7234bcdb6bb93",
+      "lf_sha256": "4dee7fe5e625f46c8ce6abe0e6fe6835080bf177277db8d5c1e7234bcdb6bb93",
+      "bytes": 454,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.26.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-proof-graph.draft.json",
+      "raw_sha256": "95dd8d9dbe493065bb3b79745490414ea9f9f8f3bafd73cd75f17d7039509469",
+      "lf_sha256": "95dd8d9dbe493065bb3b79745490414ea9f9f8f3bafd73cd75f17d7039509469",
+      "bytes": 71690,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.27.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-proof-graph.revised.json",
+      "raw_sha256": "7c3c99506c4370cd2f759e8992b52fe667eb02d521d6421fed1539ae90943ec8",
+      "lf_sha256": "7c3c99506c4370cd2f759e8992b52fe667eb02d521d6421fed1539ae90943ec8",
+      "bytes": 96955,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.28.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-topology-repair.element-spans.json",
+      "raw_sha256": "75c29ee3c72f82fcb92b40fde0ec65b17fc1a1a7939e2c26e74bb4f94cc2a37a",
+      "lf_sha256": "75c29ee3c72f82fcb92b40fde0ec65b17fc1a1a7939e2c26e74bb4f94cc2a37a",
+      "bytes": 31051,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.29.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-topology-repair.json",
+      "raw_sha256": "cf039c573215735b6e7e84de5234f595d58bb10f3ad6c6cd71f1dbca1f579a6d",
+      "lf_sha256": "cf039c573215735b6e7e84de5234f595d58bb10f3ad6c6cd71f1dbca1f579a6d",
+      "bytes": 13449,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.30.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-topology-review.attempt1.json",
+      "raw_sha256": "44ad340f8a84d2e623a6283b3bb2c0102b41856b3face62bfad46cc30ab88a72",
+      "lf_sha256": "44ad340f8a84d2e623a6283b3bb2c0102b41856b3face62bfad46cc30ab88a72",
+      "bytes": 70262,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.31.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-topology-review.before-explicit-graph-path.snapshot.json",
+      "raw_sha256": "a56aa842553e9286f0e9b7127df2216c39d251b78dece76fe1f80804151d11d3",
+      "lf_sha256": "a56aa842553e9286f0e9b7127df2216c39d251b78dece76fe1f80804151d11d3",
+      "bytes": 87430,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.32.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-topology-review.explicit-graph-binding-reconciliation.json",
+      "raw_sha256": "908f55add285eff22b587f65c20f750805d6e9cacee799b31f819e9534ae7dad",
+      "lf_sha256": "908f55add285eff22b587f65c20f750805d6e9cacee799b31f819e9534ae7dad",
+      "bytes": 764,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.33.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/source-topology-review.json",
+      "raw_sha256": "874ac63823f2674ba6fd6ef48834fb258c01f3a8b7950d4709b026bfb22c3efc",
+      "lf_sha256": "874ac63823f2674ba6fd6ef48834fb258c01f3a8b7950d4709b026bfb22c3efc",
+      "bytes": 87649,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.34.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/statement-review.inventory.json",
+      "raw_sha256": "e791e2b785d8c4d94120c7bda929f7918073731b576b5b91787a5e931b98b13a",
+      "lf_sha256": "e791e2b785d8c4d94120c7bda929f7918073731b576b5b91787a5e931b98b13a",
+      "bytes": 12632,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.35.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/statement-review.json",
+      "raw_sha256": "0591861e09bd98793697e5b2251eb6ab815411cdfc42e0ca4f3325cdbc48a9f5",
+      "lf_sha256": "0591861e09bd98793697e5b2251eb6ab815411cdfc42e0ca4f3325cdbc48a9f5",
+      "bytes": 29702,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.36.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/statement-review.lease.json",
+      "raw_sha256": "cb51af744f483f0584864cb6c334b936617cd501bfdf28bc59842bf770047001",
+      "lf_sha256": "cb51af744f483f0584864cb6c334b936617cd501bfdf28bc59842bf770047001",
+      "bytes": 1573,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.37.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/statement-seals.accepted.json",
+      "raw_sha256": "661143dba1bb54bbd632a19ab873df5dcca2cd73635f98340f37c4529ed937f9",
+      "lf_sha256": "e1d1a07c600c8c8f172562add72569e08913b9b90e1d6d3aa043a6e8e07c9360",
+      "bytes": 8547,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.38.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/preproof/statement-seals.draft.json",
+      "raw_sha256": "934d027f879063bdb810306acb50a2edb2b83814ba213d15cfe61bf1d64188a1",
+      "lf_sha256": "f5b1d93456cdb627ab815b0d236f85feb0efd4da56d572d3e742ffae2d6ba09f",
+      "bytes": 8121,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.input.39.raw.snapshot",
+      "matches_math_freeze": true,
+      "exact_git_case": "new_untracked_exact_current_path"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CenteredGibbsResolventLimit.lean",
+      "raw_sha256": "beef1f689c57ff05bd99ab8b9ec1a15bbf6212e3d380fb53b7b57ee5b786e678",
+      "lf_sha256": "431eae4cc29024e1dc0c6400c5dca0a9b49d3a7f320c7649b2060038e9e63a46",
+      "bytes": 4184,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.00.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/ScaledClosedGraphResolvent.lean",
+      "raw_sha256": "95a09de8997f9a43108eeeb33b888ca497194f0c212a7e195bfa3aa149aecf41",
+      "lf_sha256": "fe20da633230d693a8a4c93c6524d3d6d2c9b5ff652d6d26098dd9bd0fabe9ad",
+      "bytes": 8090,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.01.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/ClosedGraphResolvent.lean",
+      "raw_sha256": "1ab1ae53e9251ae4fc210fc3b5b938f3f503419dc817df8771817e2dd2821c98",
+      "lf_sha256": "32ed6c367cdd5f52578366b83a448f96619f362b05d05e25963c3efbf870e022",
+      "bytes": 5258,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.02.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GlobalWeightedResolventCoercivity.lean",
+      "raw_sha256": "92088f14f259907e2453235331f403884fa03611f2649ff956ce2bf927a8a69a",
+      "lf_sha256": "3d95dae993c65f225c68650a4842207ce2440c64679862a8d10e57e20c4494a8",
+      "bytes": 30844,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.03.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedC1GradientDomain.lean",
+      "raw_sha256": "0e33f2bafdde1e003be4066a33c74b3ce201072f4b87b8546b5ac437c92696cc",
+      "lf_sha256": "c22f94f2542190fb22c76c00612ba50b59c096290bc373d86a6884230bfea496",
+      "bytes": 14035,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.04.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradient.lean",
+      "raw_sha256": "c2495b6ab8a4c82cadf0d86b910d663e0e4f65f6b96bc4b449149112756d4690",
+      "lf_sha256": "5bd3402124330f69d7875e9bbfc6eb31760b70528850ac841d1ff7c84ab72149",
+      "bytes": 14800,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.05.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedResolvent.lean",
+      "raw_sha256": "34e3d1772e756ff0e59155590877b47bd36fb0c76ed58119810ec16d7c6fa044",
+      "lf_sha256": "21108f9c99d5f944e97e3c4721d1f9e5f9e2a68afa6122916ba3a16606e1edd3",
+      "bytes": 6092,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.06.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GibbsGradientKernel.lean",
+      "raw_sha256": "f3ddb126edb925e6507321ac5b7c8b8cddb1d73689496a7c8e5e535e06d5de13",
+      "lf_sha256": "a078403a10e4a00f60f56752e487dae09ea19ee6170c5ebe045f93a811c0be9c",
+      "bytes": 2671,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.07.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GibbsGradientKernelEquality.lean",
+      "raw_sha256": "5e2a00c7f04137ebddc8ddd3769c3f3fffdac85345bda365fda4b863ad82deb3",
+      "lf_sha256": "724bb79614fdef39e0ed12ce9ced5e08160aed8a0354f99360c97c042589a538",
+      "bytes": 2205,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.08.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/Poincare.lean",
+      "raw_sha256": "2ed9867990f70b138c247ade00d39b410ed0b7ee361075f32bb55407461a8409",
+      "lf_sha256": "e1a01d38ce2c418273d805cc7ade34ba1ec4114b647d6e787a6f5bd6ddb27af3",
+      "bytes": 3912,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.09.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalScoreClosedDomain.lean",
+      "raw_sha256": "5e95a71d74123c0ce846e7b88131e268c58e40df214b02653f2d59aa11d169b7",
+      "lf_sha256": "a0208a8eb364a97e0b4e0437770e00de0de2d917d6aac7f589e8991a179ef672",
+      "bytes": 4967,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.10.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalScoreDomain.lean",
+      "raw_sha256": "88675897290ba5b11ab1fb96b13fa3170da5c1fff41926b59771bf88c26ec419",
+      "lf_sha256": "45d838a1ea0acd078db24d38323be39db4b7485d596adb828179f46f9d9f24e4",
+      "bytes": 21911,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.11.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientKernel.lean",
+      "raw_sha256": "00576bc3e674590dc60da6f0cd2b6f33f658c055cec3ce52229757819335e5aa",
+      "lf_sha256": "964e1698824181ce599dab8cd47c1c0e0380e7bf885ad8a1b33982f58e7864b5",
+      "bytes": 3009,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.parent.12.raw.snapshot",
+      "role": "additional_actual_parent_inputs"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Function/L2Space.lean",
+      "raw_sha256": "b27eb9c9823a58a229a17f69860c5bcf3defb433c23ff3bab335f864676df3b5",
+      "lf_sha256": "7dd0542490f2841e8a91d2258a903d328383d7305915375d99d589fae40de399",
+      "bytes": 14200,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.mathlib.00.raw.snapshot",
+      "role": "needed_pinned_mathlib_inputs"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Function/L1Space/Integrable.lean",
+      "raw_sha256": "39efd7fe6d47d6218c95fc9be2ea2b4e48cfc42593961fbffe2f432b10148dbd",
+      "lf_sha256": "86008d68eeb9281c5a382f49c21ed58246c5f9a5f0d5268f8eeadb050b50e70f",
+      "bytes": 58920,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.mathlib.01.raw.snapshot",
+      "role": "needed_pinned_mathlib_inputs"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Add.lean",
+      "raw_sha256": "7ceeeb360c64fae6b6ab85b1fb2693bb881583543e3d2bc8f983d4ad7c2b0974",
+      "lf_sha256": "51930d73c6e80a0dbb3db0fcb6b09e4d72363266c2493aec136ed40311474c13",
+      "bytes": 39509,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.mathlib.02.raw.snapshot",
+      "role": "needed_pinned_mathlib_inputs"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Normed/Module/WeakDual.lean",
+      "raw_sha256": "950f00b90360bcc2b02971f7ff129a0757c52565e8a8c78eba8af6392683ccc6",
+      "lf_sha256": "9351a861215e238c39d5cf93aa050a3909108a8b6305d6be6d6afc8ff16e2783",
+      "bytes": 21535,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.mathlib.03.raw.snapshot",
+      "role": "needed_pinned_mathlib_inputs"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Projection/Submodule.lean",
+      "raw_sha256": "e106dbcaf4df1bd68c6657e78779d0ea6529117df84f46a7a643c653c2704b6c",
+      "lf_sha256": "a217247c8f6957bd34ef8ecb008eadf392a8f4653604c7c7478b96b2dcbb26c0",
+      "bytes": 10535,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.mathlib.04.raw.snapshot",
+      "role": "needed_pinned_mathlib_inputs"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Topology/Algebra/Module/LinearPMap.lean",
+      "raw_sha256": "8b034650fd42dd1eb87719892c80cc46f8d0d627fd386fe3e5aa5a6a0a451936",
+      "lf_sha256": "0f09b4171438d914fb2326706eea68be85b1423d1e9340cdd07afa6fc87e4360",
+      "bytes": 9614,
+      "matching_prior_own_full_proof_freeze": true,
+      "prior_snapshot": "runs/20261006-companion-priority/centered-poincare/math-review.mathlib.05.raw.snapshot",
+      "role": "needed_pinned_mathlib_inputs"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.primary-first.contract.json",
+      "raw_sha256": "cb80f56e34f512e311a197243cf3d0716ed4f0c9122f4c504d1d7df552c4c000",
+      "lf_sha256": "cb80f56e34f512e311a197243cf3d0716ed4f0c9122f4c504d1d7df552c4c000",
+      "bytes": 4797
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.primary.pbps-v1.raw.html",
+      "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "lf_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "bytes": 1482128
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.0.json",
+      "raw_sha256": "db788b1c20a841916270c094ee069aeb9439f1fb1cf9c35948e4b851db583878",
+      "lf_sha256": "156893114d2dd5f67ba3e517527e03ba07b1132a25b1ce6da80f1a196cdc8357",
+      "bytes": 29883,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.packet.0.raw.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.1.json",
+      "raw_sha256": "e7d0c04852828cdb61818aa3addaf296ea0103efe5e67a6470a66aee8dc55d50",
+      "lf_sha256": "f46f99350b0976510eb405c271cb754c78cafcf258f600550527b19a7a5e015f",
+      "bytes": 27312,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.packet.1.raw.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/centered-poincare/source-review.2.json",
+      "raw_sha256": "13f02732eeb3238712a235f2f6989bc8877645d4934984d236e6eb1ace45c226",
+      "lf_sha256": "ea83e6b31442ee07ca79c7a2f965f87324b789602226dc5c096a317911748c11",
+      "bytes": 33779,
+      "snapshot": "runs/20261006-companion-priority/centered-poincare/source-review.packet.2.raw.snapshot"
+    }
+  ],
+  "checked_scope": "Current pinned scoped statement and exact complete module/publication; final source approval only, no VERIFIED transition or paper-wide completion.",
+  "review_completed_utc": "2026-10-06T09:58:38.812447+00:00",
+  "review_run_sha256": "88c86cc04680d70c92e5dccb25577a57f3f5237d89e7624eafd7cde5540be4d5"
+}

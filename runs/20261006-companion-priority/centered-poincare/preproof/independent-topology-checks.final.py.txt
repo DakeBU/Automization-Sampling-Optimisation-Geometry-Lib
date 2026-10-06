@@ -1,0 +1,111 @@
+from html.parser import HTMLParser
+class N:
+ def __init__(self,tag='',attrs=None,parent=None):self.tag=tag;self.attrs=dict(attrs or []);self.parent=parent;self.children=[]
+ def text(self):
+  if self.tag=='math':return self.attrs.get('alttext','')
+  if self.tag in ['script','style','annotation']:return ''
+  return ' '.join(c.text() if isinstance(c,N) else c for c in self.children)
+ def descendants(self):
+  for c in self.children:
+   if isinstance(c,N):yield c;yield from c.descendants()
+class P(HTMLParser):
+ def __init__(self):super().__init__(convert_charrefs=True);self.root=N('root');self.stack=[self.root];self.raw='';self.offsets=[]
+ def handle_starttag(self,tag,attrs):
+  n=N(tag,attrs,self.stack[-1]);self.stack[-1].children.append(n)
+  line,col=self.getpos();n.start=self.offsets[line-1]+col
+  if tag not in ['meta','link','br','img','hr','input','source','wbr','area','base','embed','param','track','col']:self.stack.append(n)
+ def handle_endtag(self,tag):
+  for i in range(len(self.stack)-1,0,-1):
+   if self.stack[i].tag==tag:
+    line,col=self.getpos();self.stack[i].end=self.offsets[line-1]+col+len('</'+tag+'>');self.stack=self.stack[:i];break
+ def handle_data(self,data):self.stack[-1].children.append(data)
+
+from pathlib import Path
+import json,hashlib,re,datetime,sys
+sys.path.insert(0,'tools')
+from astis_semantic_roundtrip_core import sha256_json
+R=Path('runs/20261006-companion-priority/centered-poincare/preproof')
+def sh(b):return hashlib.sha256(b).hexdigest()
+def fr(p):
+ p=Path(p);b=p.read_bytes();return {'path':str(p).replace(chr(92),'/'),'raw_sha256':sh(b),'lf_sha256':sh(b.replace(b'\r\n',b'\n')),'bytes':len(b)}
+def rd(p):return json.loads(Path(p).read_bytes())
+specs=[('source-primary.pbps-v1.raw.html','d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760'),('source-proof-graph.draft.json','95dd8d9dbe493065bb3b79745490414ea9f9f8f3bafd73cd75f17d7039509469'),('source-proof-graph.revised.json','7c3c99506c4370cd2f759e8992b52fe667eb02d521d6421fed1539ae90943ec8'),('statement-seals.accepted.json','661143dba1bb54bbd632a19ab873df5dcca2cd73635f98340f37c4529ed937f9'),('statement-review.json','0591861e09bd98793697e5b2251eb6ab815411cdfc42e0ca4f3325cdbc48a9f5'),('source-topology-repair.json','cf039c573215735b6e7e84de5234f595d58bb10f3ad6c6cd71f1dbca1f579a6d'),('source-topology-repair.element-spans.json','75c29ee3c72f82fcb92b40fde0ec65b17fc1a1a7939e2c26e74bb4f94cc2a37a')]
+inputs=[]
+for name,digest in specs:
+ q=fr(R/name);assert q['raw_sha256']==digest
+ p=R/('topology-review.final.'+name+'.snapshot');assert not p.exists();p.write_bytes((R/name).read_bytes());q['snapshot']=fr(p);inputs.append(q)
+old=rd(R/'source-proof-graph.draft.json');g=rd(R/'source-proof-graph.revised.json');repair=rd(R/'source-topology-repair.json');spans=rd(R/'source-topology-repair.element-spans.json');seals=rd(R/'statement-seals.accepted.json')
+for o in [old,g,repair,spans]:
+ assert sha256_json({k:v for k,v in o.items() if k!='review_run_sha256'})==o['review_run_sha256']
+assert g['review_run_sha256']=='e7b762ef0c74787e747faf6e411bdca68500edf6d7cd71bf8fb46e009bc51039'
+assert repair['review_run_sha256']=='7da1191e12dc552a21ca20708cbf2d58ee9c48cbbfe621c05a3a58b84e93db63'
+for k in ['nodes','source_gaps','alternative_routes','coverage_boundary','downstream_consumer_use_sites_explicitly_excluded','target_statement_seal','target_signature_sha256']:assert old[k]==g[k],k
+assert g['author_consumer_use_edges'][:14]==old['author_consumer_use_edges'] and len(g['author_consumer_use_edges'])==16
+expected_new={('PBPS-BGL-CITATION','PBPS-D6','https://arxiv.org/html/2609.06905v1#A4.SS2.p1.3'),('PBPS-CONDITIONAL-HESS','PBPS-UNREFLECTED-PI','https://arxiv.org/html/2609.06905v1#S2.SS2.p3.1')}
+assert {(e['prerequisite'],e['consumer'],e['consumer_use_site']) for e in g['author_consumer_use_edges'][14:]}==expected_new
+assert g['author_consumer_use_edges'][14:]==repair['added_author_use_edges']
+assert not g['coverage_verified'] and not g['proof_admission'] and not repair['self_coverage_approval']
+raw_b=(R/'source-primary.pbps-v1.raw.html').read_bytes();raw=raw_b.decode()
+p=P();p.offsets=[0]+[m.end() for m in re.finditer('\n',raw)];p.feed(raw);ns=list(p.root.descendants());byid={z.attrs.get('id'):z for z in ns if z.attrs.get('id')}
+expected=set()
+for id in ['S2.SS2','A3.SS1','A4.SS2']:
+ for n in byid[id].descendants():
+  nid=n.attrs.get('id');classes=n.attrs.get('class','')
+  if nid and (n.tag in ['p','table'] or ('ltx_theorem' in classes and 'ltx_proof' not in classes)):expected.add(nid)
+  if n.tag=='a' and n.attrs.get('href','').startswith('#bib.'):expected.add(n.attrs['href'][1:])
+expected|={'S1.p1.1','S1.E1'}
+inv={x['source_item_id']:x for x in g['inventory']};oi={x['source_item_id']:x for x in old['inventory']};si={x['source_item_id']:x for x in spans['items']}
+assert len(inv)==len(g['inventory'])==len(expected)==116 and expected==set(inv)==set(oi)==set(si)
+items=[];changed=[]
+for id,x in inv.items():
+ z=byid[id];a=len(raw[:z.start].encode());b=len(raw[:z.end].encode());digest=sh(raw_b[a:b])
+ assert digest==x['raw_fragment_sha256']==si[id]['raw_sha256'],id
+ assert a==x['raw_fragment_byte_start_inclusive']==si[id]['byte_start_inclusive']
+ assert b==x['raw_fragment_byte_end_exclusive']==si[id]['byte_end_exclusive']
+ assert x['raw_fragment_scope']=='complete-canonical-source-item-outer-HTML-raw-UTF8'
+ for k in ['source_item_id','kind','source_anchor','disposition','node_id','reason']:assert x.get(k)==oi[id].get(k),(id,k)
+ if x['raw_fragment_sha256']!=oi[id]['raw_fragment_sha256']:
+  changed.append(id);assert x['legacy_extraction_fragment_sha256']==oi[id]['raw_fragment_sha256']
+ y={'source_item_id':id,'kind':x['kind'],'disposition':x['disposition'],'node_id':x.get('node_id'),'reason':x.get('reason'),'raw_byte_start_inclusive':a,'raw_byte_end_exclusive':b,'full_outer_raw_sha256':digest,'primary_text':' '.join(z.text().split()),'independently_checked':True}
+ items.append(y)
+assert len(changed)==10
+assert {x['source_item_id'] for x in repair['exact_fragment_footprint_repairs']}==set(changed)
+for x in repair['exact_fragment_footprint_repairs']:
+ before=raw_b[x['before_fragment_byte_start_inclusive']:x['before_fragment_byte_end_exclusive']]
+ after=raw_b[x['after_fragment_byte_start_inclusive']:x['after_fragment_byte_end_exclusive']]
+ assert sh(before)==x['before_raw_fragment_sha256']==oi[x['source_item_id']]['raw_fragment_sha256']
+ assert sh(after)==x['after_full_outer_raw_sha256']==inv[x['source_item_id']]['raw_fragment_sha256']
+ assert not x['mathematical_or_disposition_change']
+ if x['source_item_id'].startswith('bib.'):assert before.startswith(b'<cite') and before.endswith(b'</cite>')
+ else:assert before.startswith(b'<div') and before.endswith(b'"') and b'class=' in before and not before.endswith(b'>')
+assert len(g['nodes'])==14 and len(g['source_gaps'])==5
+nodeids={x['id'] for x in g['nodes']}
+for x in g['inventory']:
+ if x['disposition']=='NODE':assert x['node_id'] in nodeids
+ else:assert x['disposition']=='EXCLUDED' and x['reason']
+for edge in g['author_consumer_use_edges']:
+ assert edge['prerequisite'] in nodeids and edge['consumer'] in nodeids
+ site=edge['consumer_use_site'].split('#')[-1];assert site in byid and edge['conditional_premises_discharge'] and edge['not_a_Lean_dependency']
+# Check graph is acyclic and the sealed score target really reaches both new producer inputs.
+pred={id:[] for id in nodeids}
+for e in g['author_consumer_use_edges']:pred[e['consumer']].append(e['prerequisite'])
+def closure(id,active=None):
+ active=set(active or []);assert id not in active;active.add(id);s={id}
+ for parent in pred[id]:s|=closure(parent,active)
+ return s
+target_closure=closure('PBPS-SCORE-VARIANCE')
+assert {'PBPS-BGL-CITATION','PBPS-D6','PBPS-REFLECTED-HESS','PBPS-PARAMETER-SCORE','PBPS-SCORE-DERIVATIVE-BOUND'}<=target_closure
+assert {'PBPS-CONDITIONAL-HESS','PBPS-D6','PBPS-STANDING'}<=closure('PBPS-UNREFLECTED-PI')
+assert ' OR ' in g['alternative_routes']['semantics'] and len(g['alternative_routes']['routes'])==2
+assert [x['provenance'] for x in g['alternative_routes']['routes']]==['raw-v1-author','authored-sufficient-proposed-OR-route-not-author-topology']
+for s in seals['items']:assert sh(s['signature'].encode())==s['signature_sha256']
+assert [x['declaration_level'] for x in seals['items']]==['canonical-library-node','canonical-library-node','source-anchor']
+assert g['target_statement_seal']==seals['items'][2]['seal_id'] and g['target_signature_sha256']==seals['items'][2]['signature_sha256']
+assert 'm M' in seals['items'][0]['signature'] and 'hupper' in seals['items'][1]['signature']
+for q in [R/'source-topology-review.attempt1.json',R/'independent-topology-primary-reconstruction.json']:assert q.exists()
+attempt=fr(R/'source-topology-review.attempt1.json');assert attempt['raw_sha256']=='44ad340f8a84d2e623a6283b3bb2c0102b41856b3face62bfad46cc30ab88a72'
+iv=R/'independent-topology-inventory.final.json';assert not iv.exists();iv.write_bytes((json.dumps(items,ensure_ascii=False,indent=2)+'\n').encode())
+out={'schema_version':1,'reviewer':'picard_commit_verifier_20261005','reviewer_id':'picard_commit_verifier_20261005','role':'independent-preproof-source-topology-reviewer','status':'accepted','review_scope':'PREPROOF source-topology coverage ONLY for exact3 statement heads B/B/A and pointwise-y reflected conditional Poincare + unnormalized parameter-y directional score variance through A3.Ex6. Not mathematical proof/source-anchor approval, no Lean body/compiler/VERIFIED.','reviewed_nodes':g['nodes'],'excluded_with_reason':[x for x in g['inventory'] if x['disposition']=='EXCLUDED'],'source_gaps':g['source_gaps'],'alternative_routes':g['alternative_routes'],'raw_source_digest':inputs[0],'raw_draft_graph_digest':inputs[1],'reviewed_revised_graph_digest':inputs[2],'statement_seal_digest':inputs[3],'statement_review_digest':inputs[4],'source_topology_repair_digest':inputs[5],'canonical_span_inventory_digest':inputs[6],'input_artifacts':inputs,'protocol':fr('docs/proof-digestion-protocol.md'),'independent_primary_reconstruction':fr(R/'independent-topology-primary-reconstruction.json'),'independent_coverage_inventory':fr(iv),'prior_rejected_attempt_preserved':attempt,'scope_coverage_check':{'independent_raw_primary_item_count':116,'graph_inventory_count':116,'NODE_items':33,'EXCLUDED_items':83,'reviewed_node_count':14,'source_gap_count':5,'author_use_edges':16,'missing_or_duplicate_inventory_items':[],'all116_full_canonical_outer_raw_UTF8_hashes_and_byte_spans_match':True,'original106_fragment_hashes_unchanged':True,'legacy10_exact_fragments_independently_reproduced':True,'legacy10_semantics':'4 opening div/class prefixes excluded final >; 6 first cite-use elements. Complete canonical elements now bound without changing source/disposition/math.','complete_region_inventory_is_not_complete_region_formalization':True,'source_regions':['S1.p1.1/S1.E1','complete Section2.2','complete AppendixC1','complete AppendixD2'],'all_dispositions_semantically_reviewed':True},'independent_edge_check':{'added_two_use_edges':g['author_consumer_use_edges'][14:],'old14_edges_unchanged':True,'all16_consumer_sites_present_in_raw_primary':True,'conditional_premises_checked':'Actual unreflected Hessian(2.10) discharges positive m0=alpha+eta^-1 for(2.11). Actual reflected quarter Hessian discharges m_y=(alpha+eta^-1)/4 for score Poincare; source C2/BOTH bounds/eta cap discharge true Jacobian spectral bound. Normalization, score C1/L2/domain and actual conditional representative bridges remain explicit SOURCE_GAP.','sealed_score_target_backward_closure':sorted(target_closure),'unreflected_Poincare_backward_closure':sorted(closure('PBPS-UNREFLECTED-PI')),'source_graph_acyclic':True,'no_external_citation_hidden_in_author_closure':True,'source_edges_are_not_Lean_dependency_certificates':True},'independent_mathematical_source_scope_check':['B/B canonical BOTH-curvature plus integrable exp/positive partition contracts are explicitly narrower than full lower-only D.6; no D.6 full-source completion claim.','A retains actual common Gaussian augmentation J, conditional R, reflected S, source C2 alpha-beta eta-cap, same original D before all centered z/directions. No supplied final Poincare/score estimate binder.','Reflected quarter curvature yields4/(alpha+eta^-1); true parameter-y unnormalized s has u-Jacobian(eta^-1 I-HessV(mid))/4. Thus directional variance bound(eta^-1-alpha)^2/[4(alpha+eta^-1)] for unit a, homogeneous norm-square extension to all a.','Normalized-density differentiation C.1, covariance Cauchy-Schwarz/outer-y integration/B.13, marginal Gaussian/spectral arguments, C.8/C.9/continuity and full section/paper lie outside sealed slice; explicit EXCLUDED reasons preserve these unresolved regions.','Source author Bakry-Emery OR authored same-D resolvent remains two sufficient routes, never false flattened AND. Authored route is proposed, not author topology or admitted proof.','No new scalar score/hypothesis, reflected-vs-RGO identity, complete lower-only curvature theorem, normalized score derivative, joint fiber selector, main or cost-composition claim is approved.'],'independence':{'distinct_from_extractor':True,'extractor':g['extractor'],'distinct_from_formalizer':True,'formalizer':seals['formalizer'],'raw_primary_read_before_source_graph':True,'own_primary_only_reconstruction_frozen_before_graph':True,'implementation_Lean_used_to_decide_author_topology':False,'future24_body_exposure':False,'future_ignored_prototypes_scripts_private_extractor_rationale_read':False,'prior_exposure':'Independent verifier of previous23 canonical/resolvent/weighted-gradient parent packets. That history is disclosed, but no future24 body, root ignored prototype, produce/claim script or private extractor rationale read. Only exact sealed signatures/source-only artifacts used after primary-only reconstruction.'},'blocking_findings':[],'source_anchor_mathematical_approval':False,'future_proof_approval':False,'external_book_theorem_admission':False,'compiler':'NOT_RUN','VERIFIED_transition':False,'lifecycle_or_production_mutation':False,'remaining_boundary':'Topology reviewed only. Statement heads already separately accepted-statement-only. All actual proof/private providers/Lean source-fidelity/axioms/proof-seal/publication/purification and full-paper/main/composition remain later independent stages. SOURCE_GAP entries are not discharged by this receipt.','all_compiler_and_write_leases_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+out['review_run_sha256']=sha256_json(out)
+target=R/'source-topology-review.json';assert not target.exists();target.write_bytes((json.dumps(out,ensure_ascii=False,indent=2)+'\n').encode())
+print(json.dumps({'status':'accepted','receipt':fr(target),'review_run_sha256':out['review_run_sha256'],'inventory':116,'nodes':14,'excluded':83,'gaps':5,'author_edges':16,'compiler_write_CLOSED':True}))

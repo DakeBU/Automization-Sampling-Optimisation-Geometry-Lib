@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-e2f61b96c18836ea",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E, (α:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧\n      fderiv ℝ (fderiv ℝ V) x a a ≤ (β:ℝ)*‖a‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u))+‖u-y‖^2/(8*η)\n    let s := fun y u : E => -(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -\n      (1/(4*η)) • innerSL ℝ (y-u)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y=(R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y=(volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < ∫ u, Real.exp (-W y u) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (a : Lp ℝ 2 (S y)) (G : Lp E 2 (S y)), (a,G) ∈ D.graph ↔\n            ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n              a =ᵐ[S y] φ ∧ G =ᵐ[S y] gradient φ) ∧\n          (∀ z : D.closure.domain, (∫ x, (z : Lp ℝ 2 (S y)) x ∂S y)=0 →\n            (((α:ℝ)+1/η)/4)*‖(z : Lp ℝ 2 (S y))‖^2 ≤ ‖D.closure z‖^2) ∧\n          ∀ a : E,\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.Admissible\n              (S y) (fun u => s y u a) ∧\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n              (S y) (fun u => s y u a) ≤\n                (1/η-(α:ℝ))^2/(4*((α:ℝ)+1/η))*‖a‖^2",
+    "statement_sha256": "e2f61b96c18836ea5e4f8c5b88fc5f396df68e5fc8a297d973e657e094f5e039",
+    "compiled": true,
+    "approved_definition_context": [
+      "Actual original compact-smooth weighted-gradient closure, finite-dimensional real Hilbert/Borel fullspace including0. BOTH C2 m/M curvature, exp(-W) integrability/positive partition explicit in canonical nodes; not full lower-only source D6.",
+      "Same-D/epsilon/forcing actual variational witnesses are identified by genuine uniqueness before transferring global gradient bound; strong scaled residual tested against centered z proves Poincare after zero-norm split. No supplied Poincare/coercivity/limit certificate or centered/unscaled resolvent/epsilon0 premise.",
+      "Actual C1 scalar+gradientL2 centering produces original graph pair; derive real Admissible integrability and AE L2 norm/variance/Dirichlet identities.",
+      "Source C2 alpha-beta eta cap actual commonJRS/reflected W_y/positive partitions/originalD beforeALLcentered z/score a. Exact quarter m_y=(alpha+eta^-1)/4, M_y=(beta+eta^-1)/4 and unnormalized PARAMETER-y score variance constant (eta^-1-alpha)^2/[4*(alpha+eta^-1)].",
+      "R/S existential common-law witnesses, not project-owned canonical chosen definitions. Auxiliary versions only pointwise formulas/literal density equality; no R2=R/alternateD/jointselector. No normalized score differentiation, marginal Poincare, anisotropicBL/main/composition; TV nevertransfers unboundedcost.",
+      "Exact existing compiled API definitions (same actual measure; no energy prefactor):\nnoncomputable def variance (μ : Measure E) (f : E → ℝ) : ℝ :=\n  ∫ x, (f x - ∫ y, f y ∂μ) ^ 2 ∂μ\n\nnoncomputable def dirichletEnergy (μ : Measure E) (f : E → ℝ) : ℝ :=\n  ∫ x, ‖gradient f x‖ ^ 2 ∂μ\n\ndef Admissible (μ : Measure E) (f : E → ℝ) : Prop :=\n  Integrable f μ ∧\n    Integrable (fun x => (f x - ∫ y, f y ∂μ) ^ 2) μ ∧\n    Integrable (fun x => ‖gradient f x‖ ^ 2) μ\nExact real Hilbert gradient: gradient f x = (InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f x). This is the actual Riesz representative; C1 assumptions ensure genuine derivatives in the public consumers."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "c16f2c29b0480226effd088dd49d0b55f9c3cf990ff7bac308ea3874ddf736a6"
+}

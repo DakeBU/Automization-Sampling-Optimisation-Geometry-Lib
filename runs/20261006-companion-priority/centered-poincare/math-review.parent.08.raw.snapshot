@@ -1,0 +1,32 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel
+/-! Actual SAME-original normalized Gibbs closed-gradient kernel equality combines genuine finite-weight constant-domain production with independently accepted zero-gradient AE constancy. No Poincare/BL/range/epsilon0/core follows. -/
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory Filter InnerProductSpace
+open scoped Topology RealInnerProductSpace ContDiff
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernelEquality
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+theorem closed_gradient_zero_iff_ae_constant
+    (W : E → ℝ) (hW : ContDiff ℝ 1 W)
+    (hI : Integrable (fun x => Real.exp (-W x)))
+    (D : Lp ℝ 2 ((volume : Measure E).tilted (fun x => -W x)) →ₗ.[ℝ]
+      Lp E 2 ((volume : Measure E).tilted (fun x => -W x))) (hD : D.IsClosable)
+    (hgraph : ∀ (a : Lp ℝ 2 ((volume : Measure E).tilted (fun x => -W x)))
+      (H : Lp E 2 ((volume : Measure E).tilted (fun x => -W x))), (a,H) ∈ D.graph ↔
+      ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+        a =ᵐ[(volume : Measure E).tilted (fun x => -W x)] φ ∧
+        H =ᵐ[(volume : Measure E).tilted (fun x => -W x)] gradient φ)
+    (u : D.closure.domain) :
+    D.closure u=0 ↔ ∃ c : ℝ, (u : Lp ℝ 2 ((volume : Measure E).tilted (fun x => -W x)))
+      =ᵐ[(volume : Measure E).tilted (fun x => -W x)] (fun _ => c) := by
+  constructor
+  · exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel.closed_gradient_zero_ae_constant
+      W hW hI D hD hgraph u
+  · rintro ⟨c,hc⟩
+    obtain ⟨v,hv,hvz⟩ := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain.constants_in_closed_gradient _ D hD hgraph c
+    have he : u=v := Subtype.ext (Lp.ext (hc.trans hv.symm))
+    rwa [he]
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernelEquality

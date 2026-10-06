@@ -1,0 +1,63 @@
+from html.parser import HTMLParser
+class N:
+ def __init__(self,tag='',attrs=None,parent=None):self.tag=tag;self.attrs=dict(attrs or []);self.parent=parent;self.children=[]
+ def text(self):
+  if self.tag=='math':return self.attrs.get('alttext','')
+  if self.tag in ['script','style','annotation']:return ''
+  return ' '.join(c.text() if isinstance(c,N) else c for c in self.children)
+ def descendants(self):
+  for c in self.children:
+   if isinstance(c,N):yield c;yield from c.descendants()
+class P(HTMLParser):
+ def __init__(self):super().__init__(convert_charrefs=True);self.root=N('root');self.stack=[self.root];self.raw='';self.offsets=[]
+ def handle_starttag(self,tag,attrs):
+  n=N(tag,attrs,self.stack[-1]);self.stack[-1].children.append(n)
+  line,col=self.getpos();n.start=self.offsets[line-1]+col
+  if tag not in ['meta','link','br','img','hr','input','source','wbr','area','base','embed','param','track','col']:self.stack.append(n)
+ def handle_endtag(self,tag):
+  for i in range(len(self.stack)-1,0,-1):
+   if self.stack[i].tag==tag:
+    line,col=self.getpos();self.stack[i].end=self.offsets[line-1]+col+len('</'+tag+'>');self.stack=self.stack[:i];break
+ def handle_data(self,data):self.stack[-1].children.append(data)
+
+from pathlib import Path
+import json,hashlib,re,datetime
+R=Path('runs/20261006-companion-priority/centered-poincare/preproof')
+def sh(b):return hashlib.sha256(b).hexdigest()
+def footprint(p):
+ p=Path(p);b=p.read_bytes();return {'path':str(p).replace(chr(92),'/'),'raw_sha256':sh(b),'lf_sha256':sh(b.replace(b'\r\n',b'\n')),'bytes':len(b)}
+inputs=[]
+for name,expected in [('source-primary.pbps-v1.raw.html','d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760'),('source-proof-graph.draft.json','95dd8d9dbe493065bb3b79745490414ea9f9f8f3bafd73cd75f17d7039509469'),('statement-seals.accepted.json','661143dba1bb54bbd632a19ab873df5dcca2cd73635f98340f37c4529ed937f9'),('statement-review.json','0591861e09bd98793697e5b2251eb6ab815411cdfc42e0ca4f3325cdbc48a9f5')]:
+ f=footprint(R/name);assert f['raw_sha256']==expected
+ dest=R/('topology-review.attempt1.'+name+'.snapshot');assert not dest.exists();dest.write_bytes((R/name).read_bytes());f['snapshot']=footprint(dest);inputs.append(f)
+raw=(R/'source-primary.pbps-v1.raw.html').read_text(encoding='utf-8')
+parser=P();parser.offsets=[0]+[m.end() for m in re.finditer('\n',raw)];parser.feed(raw)
+nodes=list(parser.root.descendants());byid={x.attrs.get('id'):x for x in nodes if x.attrs.get('id')}
+graph=json.loads((R/'source-proof-graph.draft.json').read_bytes());seals=json.loads((R/'statement-seals.accepted.json').read_bytes())
+expected=set()
+for id in ['S2.SS2','A3.SS1','A4.SS2']:
+ for n in byid[id].descendants():
+  nid=n.attrs.get('id');classes=n.attrs.get('class','')
+  if nid and (n.tag in ['p','table'] or ('ltx_theorem' in classes and 'ltx_proof' not in classes)):expected.add(nid)
+  if n.tag=='a' and n.attrs.get('href','').startswith('#bib.'):expected.add(n.attrs['href'][1:])
+expected|={'S1.p1.1','S1.E1'}
+inv={x['source_item_id']:x for x in graph['inventory']}
+assert len(inv)==len(graph['inventory'])==len(expected)==116 and expected==set(inv)
+node_ids={x['id'] for x in graph['nodes']};evidence=[];hash_differences=[]
+for id,x in inv.items():
+ n=byid[id];full=raw[n.start:n.end].encode();digest=sh(full)
+ y={'source_item_id':id,'disposition':x['disposition'],'kind':x['kind'],'node_id':x.get('node_id'),'reason':x.get('reason'),'independent_outer_HTML_sha256':digest,'draft_fragment_sha256':x['raw_fragment_sha256'],'fragment_matches_full_canonical_element':digest==x['raw_fragment_sha256'],'raw_start_char':n.start,'raw_end_char':n.end,'primary_text':' '.join(n.text().split())}
+ if x['disposition']=='NODE':assert x['node_id'] in node_ids
+ else:assert x['disposition']=='EXCLUDED' and x.get('reason')
+ evidence.append(y)
+ if digest!=x['raw_fragment_sha256']:hash_differences.append(y)
+assert len(hash_differences)==10
+for item in seals['items']:assert sh(item['signature'].encode())==item['signature_sha256']
+edges={(x['prerequisite'],x['consumer']) for x in graph['author_consumer_use_edges']}
+missing=[{'prerequisite':'PBPS-BGL-CITATION','consumer':'PBPS-D6','consumer_use_site':'https://arxiv.org/html/2609.06905v1#A4.SS2.p1.3','reason':'Actual author explicitly invokes Bakry-Emery reference3 for D.6; retained citation node has no use-edge to background result, so backward closure hides that external input.'},{'prerequisite':'PBPS-CONDITIONAL-HESS','consumer':'PBPS-UNREFLECTED-PI','consumer_use_site':'https://arxiv.org/html/2609.06905v1#S2.SS2.p3.1','reason':'Apply D.6 with m=alpha+eta^-1 requires the actual conditional Hessian(2.10); D6 edge prose mentions specialization but the required producer node is disconnected from(2.11).'}]
+assert all((x['prerequisite'],x['consumer']) not in edges for x in missing)
+p=R/'source-topology-review.attempt1.json';assert not p.exists()
+out={'schema_version':1,'reviewer':'picard_commit_verifier_20261005','role':'independent-preproof-source-topology-reviewer','status':'rejected','reviewed_graph':inputs[1],'raw_source':inputs[0],'statement_seals':inputs[2],'statement_review':inputs[3],'protocol':footprint('docs/proof-digestion-protocol.md'),'reviewed_nodes':graph['nodes'],'excluded_with_reason':[x for x in graph['inventory'] if x['disposition']=='EXCLUDED'],'source_gaps':graph['source_gaps'],'alternative_routes':graph['alternative_routes'],'independent_primary_reconstruction':footprint(R/'independent-topology-primary-reconstruction.json'),'coverage_check':{'independently_enumerated_raw_primary_items':116,'draft_inventory_items':116,'NODE':33,'EXCLUDED':83,'missing_items':[],'duplicate_dispositions':[],'all_dispositions_reasoned':True,'enumeration':'All p/table/numbered theorem containers and actual bibliography references in complete S2.SS2,A3.SS1,A4.SS2, plus S1.p1.1/E1; subitem overlap carries composite theorem excluded separately.','scope':'Sealed pointwise-y reflected conditional original-domain Poincare and unnormalized parameter-y directional score variance through A3.Ex6; includes adjacent whole-region inventory ONLY for coverage, never complete-section formalization.'},'blocking_findings':missing,'footprint_convention_findings':{'full_element_matches':106,'ten_fragment_scope_differences':hash_differences,'interpretation':'Extractor clarifies legacy container/citation fragment scopes; independently require explicit scope or revised full-canonical-element digests. This is metadata/footprint scope, not a mathematical source defect.'},'independent_scope_math_checks':['B/B canonical BOTH Hessian contract is narrower than lower-only source D.6; no fullD6 completion claim.','A true common J/R/S and reflected W_y has quarter lower curvature; s_y is unnormalized parameter-y score, not u-gradient or normalized score.','Author D.6/reflected-curvature route gives factor4/(alpha+eta^-1), actual ds_y/du spectral bound gives (eta^-1-alpha)/4; variance exact(eta^-1-alpha)^2/[4(alpha+eta^-1)].','Unit-a source bound extends homogeneously to all a with norm-square; zero a/dimension add no invented analytic premise.','C.1 density differentiation, conditional Cauchy-Schwarz, outer-y integration/B.13, marginal/Gaussian/spectral steps and C.8/C.9 extension are explicitly outside sealed slice.','Author Bakry-Emery and authored resolvent are OR routes; required actual domain/variance/regularity/normalization bridges remain visible SOURCE_GAP, not source public binders or admitted theorems.'],'independence':{'distinct_from_extractor':True,'extractor':graph['extractor'],'distinct_from_formalizer':True,'formalizer':seals['formalizer'],'primary_read_before_graph':True,'no_future_body_exposure':True,'ignored_prototypes_scripts_private_rationale_read':False,'prior_exposure':'Independent reviewer of previous23 canonical/resolvent/weighted-gradient leaves; preserved entiremath exposure disclosed. No future24 production body or root ignored prototypes read. Statement heads only seen after own primary-only skeleton freeze.','not_complete_blind_candidate_claim':True},'future_math_proof_approval':False,'source_anchor_math_approval':False,'compiler':'NOT_RUN','lifecycle_mutation':False,'repair_required':'Add two real primary use edges; retain original draft and issue new revised source-only graph/typed metadata repair. Independently review revised graph before topology accepted.','inventory_evidence':str(R/'independent-topology-inventory.attempt1.json').replace(chr(92),'/'),'all_compiler_and_write_leases_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+(R/'independent-topology-inventory.attempt1.json').write_bytes((json.dumps(evidence,ensure_ascii=False,indent=2)+'\n').encode())
+p.write_bytes((json.dumps(out,ensure_ascii=False,indent=2)+'\n').encode())
+print(json.dumps({'status':'rejected','receipt':footprint(p),'inventory':116,'missing_edges':2,'fragment_scope_differences':10,'compiler_write_CLOSED':True}))

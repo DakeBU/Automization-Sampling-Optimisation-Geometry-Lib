@@ -25,7 +25,8 @@ distinct blind reconstructions and independent anti-anchored source reviews
 passed with raw/LF footprints and bounded administrative reconciliation.
 Exact independently VERIFIED proof `aa98ddc2d35bc3679517f247e337f7074255638e`:
 `runs/20261006-companion-priority/compact-weak-poisson-sobolev/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof aa98ddc2d35bc3679517f247e337f7074255638e independently VERIFIED; shared integration a2ed8bc63fb0302836cede4d3750b6b8381225a8. Full ASTIS gate PASS (9109 root / 9361 Tests), publication164, semantic224/8, frontier227, contributor47/43. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and two actual import/declaration branches checked, full site and official graph freshness/contributor PASS. Graph829 modules/610 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/compact-weak-poisson-sobolev/integration.json`. Goal remains active.
 
 This is complex Bessel-Sobolev regularity. Real mixed second representatives,
 ordinary Hessian assembly, localized membership in original weighted D,

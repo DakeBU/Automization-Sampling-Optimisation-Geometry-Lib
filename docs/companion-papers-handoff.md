@@ -1,5 +1,49 @@
 # Companion-paper formalization handoff
 
+## Actual common compact smooth Poisson graph — 2026-10-06
+
+`ASTIS-SA-20261006-CompactPoissonSmoothGraph` derives one actual real smooth
+Schwartz sequence with one common outer compact support and simultaneous true
+ordinary-volume L2 function/gradient/Laplacian limits from actual compact v/G/F
+and all-C1/all-C2 weak equations with legal L1 products. Actual Bessel witness,
+chosen norm-controlled continuous L2 spectral multipliers, original real-gradient
+identification, finite basis and fixed plateau are proved. No final approximation,
+rough Hessian or weighted core certificate is assumed. Public outer Kprime need
+not contain original K; later compact-weight transfer uses their compact union.
+
+The genuine reflected source consumer keeps the SAME original D_y before all
+positive epsilon/f and ONE actual u before ALL C2 compact chi. Actual localized
+v=chi*u, Gchi=chi*D.closure(u)+u*gradchi and Fchi retain all accepted properties;
+actual vL/FL/gradL return with three AE links, one compact/sequence and all three
+ordinary L2 limits. Original Gaussian/Gibbs J/R/S, reflected law/potential,
+C2 curvature/eta cap/positive partitions are preserved. Reflected/RGO Hessian
+quarter and Dirichlet fourfold scales remain distinct.
+
+Focused3864/full independent721/all37private +source109/Test133/13readersteps
+PASS. Independent eta1/2 nonquadratic/C2 cutoff and E0 constant7 true Gibbs
+original-D stress explicitly exercise AE three classes/common compact/same
+sequence/three limits. Standard3/fake21 scan, separate blind reconstruction and
+anti-anchored primary-source review passed with immutable raw/LF footprints and
+bounded administrative reconciliation. Exact independently VERIFIED proof
+`0a563a9124e51578aea3dbf7d1d0e68606c80bd0`: `runs/20261006-companion-priority/compact-poisson-smooth-graph/verified.json`. Original sole root
+stabilization/PR313 lane. Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+Next bounded dependency is actual compact weighted transfer and same original
+D.closure membership. Raw `Weighted_compact_coercivity_from_graph_route.md`
+records a narrower scalar-coercivity route: use true compact weighted generator/
+gradient norm limits and the already compiled compact Bochner inequality,
+without first requiring rough Hessian convergence or full adjoint/core identity.
+This proposal is independently unvalidated and has no formal truth credit.
+Weighted domain/core/operator identity, global cutoff/tails/Bochner, noncompact
+linear domains, centered epsilon-zero/kernel/range, Poincare/BL, SPHMC lower
+smoothed Hessian/full4.1, both complete main results and actual-input precision/
+expected-cost composition remain open. No joint measurable fiber selector is
+inferred. TV never transfers unbounded cost. Previous30ad four remote workflows
+are terminalSUCCESS in a separate receipt; this new final head needs own CI.
+Draft/open/unmerged. Rendered visual/copy/download acceptance remains open due
+to unavailable browser-service bootstrap; static generated artifacts are checked.
+
+
 ## Actual compact weak-Poisson Sobolev regularity — 2026-10-06
 
 `ASTIS-SA-20261006-CompactWeakPoissonSobolev` derives actual complex volume-L2

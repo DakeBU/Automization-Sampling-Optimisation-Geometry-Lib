@@ -1,0 +1,154 @@
+import sys,pathlib,json,hashlib,subprocess,datetime,re
+sys.path.insert(0,str(pathlib.Path('tools').resolve()));sys.stdout.reconfigure(encoding='utf-8')
+import astis,astis_publication as pub,astis_advance as adv
+from astis_semantic_roundtrip_core import sha256_json
+R=pathlib.Path('runs/20261006-companion-priority/compact-poisson-smooth-graph')
+C='0a563a9124e51578aea3dbf7d1d0e68606c80bd0';V='picard_commit_verifier_20261005'
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+initial_status=subprocess.check_output(['git','status','--porcelain']).decode().splitlines()
+assert all(z.startswith('?? runs/20261006-companion-priority/compact-poisson-smooth-graph/picard-0a563a91-') for z in initial_status),initial_status
+def read(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def sha(b):return hashlib.sha256(b).hexdigest()
+def lf(b):return b.replace(b'\r\n',b'\n')
+gitpaths=set(subprocess.check_output(['git','ls-tree','-r','--name-only',C]).decode().splitlines())
+def freeze(p,git=True):
+ p=str(p).replace('\\','/');f=pathlib.Path(p);b=f.read_bytes()
+ parts=f.parts;cur=pathlib.Path('.')
+ for part in parts:
+  assert part in [z.name for z in cur.iterdir()],('case',p,part)
+  cur/=part
+ q={'path':p,'raw_sha256':sha(b),'lf_sha256':sha(lf(b)),'bytes':len(b),'exact_case_path_checked':True}
+ if git and not p.startswith('.lake/'):
+  assert p in gitpaths,('not committed',p)
+  g=subprocess.check_output(['git','show',C+':'+p]);q.update(git_commit=C,git_raw_sha256=sha(g),git_lf_sha256=sha(lf(g)),git_raw_equals_worktree=g==b,git_lf_equals_worktree=lf(g)==lf(b));assert q['git_lf_equals_worktree'],('git differs',p)
+ return q
+def same(x):
+ q=freeze(x['path']);assert q['raw_sha256']==x.get('raw_sha256',x.get('sha256')),('raw differs',x['path'])
+ assert q['lf_sha256']==x.get('lf_sha256',x.get('sha256_lf',x.get('normalized_sha256'))),('LF differs',x['path'])
+ return q
+def dif(a,b,p=''):
+ if type(a)!=type(b):return[p]
+ if isinstance(a,dict):return sum([dif(a.get(k),b.get(k),p+'/'+k) for k in sorted(set(a)|set(b))],[])
+ return[] if a==b else[p]
+m=read(R/'math-review.json');pl=read(R/'proved-local.json');assert m['verification_status']=='passed-scoped'
+stable=[same(x) for x in m['frozen_inputs']]
+contexts=[]
+allowedcell={'/status','/evidence/proof_review','/evidence/development_boundary'}
+allowedaudit={'/reconstruction','/state','/semantic_slots','/deltas','/verdict','/source_review/state','/source_review/reviewer','/source_review/independent_from_decoder','/source_review/independent_from_formalizer','/source_review/evidence','/source_review/review_run_sha256','/source_review/reviewer_packet_sha256','/source_review/run_artifact'}
+for x in m['immutable_metadata_snapshots']:
+ snap=same(x['snapshot']);current=freeze(x['original']['path']);d=dif(read(x['snapshot']['path']),read(x['original']['path']))
+ allowed=allowedcell if '/frontier-cells/' in x['original']['path'] else allowedaudit
+ assert set(d)<=allowed,(x['original']['path'],d)
+ contexts.append({'original_snapshot':snap,'current':current,'actual_allowed_changed_paths':d,'math_source_statement_assumption_binding_unchanged':True})
+oldlogs=[same(x) for x in m['raw_compiler_evidence']]
+# Every committed receipt/log/stdin snapshot in this unit is bound to exact Git raw bytes.
+immutable=[]
+for f in sorted(R.iterdir()):
+ if f.is_file() and True and f.name!='verified.json' and not f.name.startswith('picard-'):
+  q=freeze(f);assert q['git_raw_equals_worktree'],('immutable raw Git',str(f));immutable.append(q)
+source=[];source_union={}
+expected=['16942383b637ad0a142bbce864a6b0f0c94eb1ec7e37bee2d179e0080c9a71fb','2e2990c3d41bc0b7b59211cda28a03fe55de01d9239ac8b763305fd35cde126f']
+auditids=['ASTIS-RT-20261006-CompactPoissonSmoothGraph','ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph']
+for i,aid in enumerate(auditids):
+ ap='research-wiki/semantic-roundtrip/audits/'+aid+'.json';a=read(ap)
+ p=read(R/f'source-review.{i}.json');r=read(R/f'source-review.{i}.result.json')
+ b=read(R/f'anonymous.{i}.decoder.json');d=read(R/f'anonymous.{i}.reconstruction.json')
+ for obj,key in [(p,'packet_sha256'),(r,'review_run_sha256'),(b,'packet_sha256'),(d,'decoder_run_sha256')]:
+  assert sha256_json({k:v for k,v in obj.items() if k!=key})==obj[key],(aid,key)
+ assert p['packet_sha256']==['e01e9c8c6ac33673db0209c20905cfc04d085ce5cb5e5ff188ba104b5b416a47','eaae58e9158456634baca6077a88e39c2d0c997c0bc94ceba9f5d8e8cbd592df'][i]
+ assert r['review_run_sha256']==expected[i]==a['source_review']['review_run_sha256']
+ assert a['state']=='accepted' and a['source_review']['state']=='accepted' and a['verdict']=='equivalent-after-elaboration'
+ assert a['repairs']==r['repairs']==[] and r['deltas']==[] and r['blocking']==False
+ assert r['reviewer']==a['source_review']['reviewer'] and r['reviewer'] not in [V,p['roles']['formalizer'],p['roles']['blind_decoder']]
+ assert r['independent_from_formalizer'] and r['independent_from_decoder']
+ assert not d['source_text_visible'] and not d['source_consulted'] and not d['blocking']
+ assert d['decoder']==p['roles']['blind_decoder']==a['reconstruction']['decoder']
+ assert r['decoder_run_sha256']==d['decoder_run_sha256']==a['reconstruction']['decoder_run_sha256']
+ assert r['decoder_packet_sha256']==b['packet_sha256']==d['decoder_packet_sha256']==a['reconstruction']['decoder_packet_sha256']
+ assert a['source_review']['reviewer_packet_sha256']==p['packet_sha256']==r['reviewer_packet_sha256']
+ assert p['publication_binding_sha256']==a['publication_binding_sha256']==r['publication_binding_sha256']
+ assert p['candidate_publication_context']==a['publication_context']==r['review_context']
+ assert r['review_context_sha256']==sha256_json(r['review_context'])
+ assert r['whole_module_reviewed'] and set(r['semantic_slots'])=={'objects','domains','quantifiers','assumptions','conclusion','scopes','constant_dependencies'}
+ assert r['semantic_slots']==a['semantic_slots'] and all(x['relation'] in ['equivalent','explicit-elaboration','same'] for x in r['semantic_slots'].values())
+ assert r['source_text_sha256']==a['source']['text_sha256']==sha(a['source']['original_text'].encode())
+ assert r['lean_statement_sha256']==a['lean']['statement_sha256']==b['lean']['statement_sha256']
+ assert r['reconstructed_text_sha256']==a['reconstruction']['text_sha256']==d['reconstructed_text_sha256']==sha(d['reconstructed_theorem_text'].encode())
+ mod=freeze(a['lean']['file'])
+ assert mod['raw_sha256']==r['whole_module_raw_sha256'] and mod['lf_sha256']==r['whole_module_lf_sha256']==r['whole_module_file_sha256']==p['candidate_publication_context']['file']
+ assert pathlib.Path(a['lean']['file']).read_text(encoding='utf-8')==p['candidate_publication_context']['current_lean_module']
+ footprint=[]
+ for x in r['input_artifacts']:
+  if '/semantic-roundtrip/audits/' in x['path']:
+   alias=R/(pathlib.Path(x['path']).stem+'.source-reviewed.current.snapshot.json')
+   q=same(dict(x,path=str(alias)));q['original_mutable_audit_path']=x['path'];q['current_accepted_audit']=freeze(x['path'])
+  else:q=same(x)
+  footprint.append(q)
+ for x in footprint:source_union[x['path']]=x
+ sr_snap=read(R/f'{aid}.source-reviewed.current.snapshot.json');accept=dif(sr_snap,a)
+ assert set(accept)<=allowedaudit-{'/reconstruction'}
+ cell=read('research-wiki/frontier-cells/'+m['cell_ids'][i]+'.json');assert cell==read(R/f"{m['cell_ids'][i]}.source-reviewed.current.snapshot.json") and cell['status']=='proved_locally'
+ assert r['independent_elaboration']['run']==False
+ assert r['approved_definition_context_sha256']==d['approved_definition_context_sha256']==sha256_json(b['lean']['approved_definition_context'])
+ assert r['review_packet_raw_sha256']==freeze(R/f'source-review.{i}.json')['raw_sha256']
+ source.append({'audit_id':aid,'current_audit':freeze(ap),'source_packet':freeze(R/f'source-review.{i}.json'),'source_result':freeze(R/f'source-review.{i}.result.json'),'source_run_sha256':r['review_run_sha256'],'decoder_packet':freeze(R/f'anonymous.{i}.decoder.json'),'decoder_result':freeze(R/f'anonymous.{i}.reconstruction.json'),'publication_binding_sha256':a['publication_binding_sha256'],'reviewer_packet_sha256':p['packet_sha256'],'decoder_run_sha256':d['decoder_run_sha256'],'decoder_packet_sha256':b['packet_sha256'],'source_actor':r['reviewer'],'decoder_actor':d['decoder'],'whole_module':mod,'all_seven_slots_checked':True,'accepted_fields_delta':accept,'full_source_input_footprints':footprint,'anti_anchoring_disclosure':r['anti_anchoring_evidence'],'own_reconstructions_separate_from_math_review':True})
+assert set(pl['lean_declarations'])==set(pl['publication_declarations'])==set(m['reviewed_declarations'])
+pub.check_advance(pl['publication_declarations'],reviewed=True)
+hits=[]
+for f in m['fake_closure_scan']['files']:
+ text=astis.strip_lean_comments_and_strings(pathlib.Path(f).read_text(encoding='utf-8'))
+ for n,line in enumerate(text.splitlines(),1):
+  if astis.FORBIDDEN_REGEX.search(line):hits.append({'path':f,'line':n,'text':line})
+assert hits==[]
+scan={'status':'passed','files':m['fake_closure_scan']['files'],'file_count':len(m['fake_closure_scan']['files']),'matches':hits,'method':'Canonical astis strip_lean_comments_and_strings/FORBIDDEN_REGEX; failed historical verifier stdin excluded as explicitly failed diagnostics.'}
+focused=(R/'picard-0a563a91-focused.log').read_text(encoding='utf-8')
+assert 'Build completed successfully (3864 jobs).' in focused and 'sorryAx' not in focused
+for name in pl['lean_declarations']+['Tests.CompactPoissonSmoothGraph.actual_c2_cutoff_smooth_graph']:
+ assert name in focused
+assert all(z in focused for z in m['standard_axioms'])
+state=adv.current_advances();item=state[m['advance_id']]
+assert item['state']=='PROVED_LOCAL' and item['owner_id']!=V
+assert set(item['publication_declarations'])==set(pl['publication_declarations'])
+owners=[{'advance_id':k,'owner_id':x.get('owner_id'),'state':x['state'],'latest_evidence':x.get('latest_evidence')} for k,x in state.items() if x['state']=='STABILIZING']
+assert len(owners)==1 and owners[0]['advance_id']=='ASTIS-SA-20261005-SPHMCImplementedPhaseKernel'
+gatefiles=[R/f'picard-0a563a91-gate-{i}.log' for i in range(4)]
+assert 'Publication PASS: 166' in gatefiles[0].read_text()
+assert '226 audits, 8 repair proposals' in gatefiles[1].read_text()
+assert '229 registered cells' in gatefiles[2].read_text()
+assert 'affected declarations=49; changed cells=45' in gatefiles[3].read_text() and 'contract PASS' in gatefiles[3].read_text()
+out={'schema_version':1,'excluded_other_actor_future_planning_status':initial_status,'reviewer_id':V,'role':'independent_exact_admission_verifier','verification_status':'passed-scoped','verified_commit':C,'math_review':str(R/'math-review.json'),'stable_inputs':stable,'stable_raw_lf_unchanged_count':len(stable),'metadata_reconciliations':contexts,'immutable_raw_git_evidence':immutable,'previous_direct_stress_compiler_evidence_reused':oldlogs,'stress_stdin_exact': [same(x) for x in m['stress_stdin']],'source_audits':source,'source_union_raw_lf_exact':list(source_union.values()),'source_union_count':len(source_union),'reviewed_publication_actual_check_advance':True,'fresh_focused_jobs':3864,'fake_closure_scan':scan,'standard_axioms':m['standard_axioms'],'sole_existing_stabilization_owner':owners,'raw_logs':[freeze(str(z),False) for z in gatefiles]+[freeze(R/'picard-0a563a91-focused.log',False)],'code_parent_boundaries':m['source_boundary'],'remaining_boundary':'Actual ordinary-volume common-compact real smooth function/gradient/Laplacian triple graph limits and actual AE-linked same original D/u before all cutoffs only. Weighted original-domain/generator graph/operator core/global cutoff/Bochner/BL/Poincare/epsilon0/fiber selector/main/composition remain open. Serialized shared integration/root gate/site/graph/current remoteCI belongs root next. Ignored future weight-transfer prototype is excluded.'}
+
+inv=read(R/'source-prereview.inventory.json')
+assert sha256_json({k:v for k,v in inv.items() if k!='prereview_run_sha256'})==inv['prereview_run_sha256']
+lc=read(R/'source-lifecycle-reconciliation.json')
+assert sha256_json({k:v for k,v in lc.items() if k!='review_run_sha256'})==lc['review_run_sha256']
+assert lc['prior_prereview_run_sha256']==inv['prereview_run_sha256']
+assert lc['mathematics_or_source_changes']==False and lc['unchanged_inputs']==16 and lc['administratively_changed_inputs']==4
+prereview_chain=[]
+for x in inv['input_artifacts']:
+ snap=freeze(x['immutable_snapshot'])
+ assert snap['raw_sha256']==x['raw_sha256']==x['snapshot_raw_sha256']
+ assert snap['lf_sha256']==x['lf_sha256']==x['snapshot_lf_sha256']
+ prereview_chain.append(snap)
+for i in range(2):
+ r=read(R/f'source-review.{i}.result.json')
+ assert r['anti_anchoring_evidence']['primary_first'] and r['anti_anchoring_evidence']['prereview_run_sha256']==inv['prereview_run_sha256']
+ assert r['lifecycle_reconciliation']['review_run_sha256']==lc['review_run_sha256']
+ for n in [f'source-review.{i}.json',f'anonymous.{i}.decoder.json',f'anonymous.{i}.reconstruction.json']:
+  assert pathlib.Path(R/n).read_bytes()==pathlib.Path(R/(n+'.source-reviewed.snapshot')).read_bytes()
+ dd=read(R/f'anonymous.{i}.reconstruction.json')
+ assert dd['input_artifacts']==['lean-statement','approved-definition-context']
+ for x in dd['input_packet_artifacts']:
+  qp=pathlib.PureWindowsPath(x['path']).as_posix()
+  assert qp==('E:/Samplinglib/'+str(R/f'anonymous.{i}.decoder.json').replace('\\','/'))
+  fq=freeze(R/f'anonymous.{i}.decoder.json')
+  assert fq['raw_sha256']==x['sha256'] and fq['bytes']==x['byte_count']
+
+out['prereview_snapshot_chain']=prereview_chain
+out['source_lifecycle_reconciliation']=freeze(R/'source-lifecycle-reconciliation.json')
+out['source_pre_review_inventory']=freeze(R/'source-prereview.inventory.json')
+out['all_committed_unit_raw_files_checked_without_reading_ignored_prototype_content']=True
+out['reused_entire_mathematics_scope']={'lines':[721,109,133],'private_helpers':37,'reader_steps':[7,6],'actual_nonquadratic_half_and_constant7_E0_AE_triple_common_support_three_limits':True,'no_math_repeat_credit':True}
+
+target=R/'exact-admission-reconciliation.json';assert not target.exists();target.write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+print(json.dumps({'status':'passed-scoped','commit':C,'stable':len(stable),'immutable_raw_git_evidence':len(immutable),'source_union':len(source_union),'focused_jobs':3864,'publication':166,'semantic':[226,8],'frontier':229,'contributor':[49,45],'reconciliation':str(target)}))

@@ -200,6 +200,7 @@ import Tests.CompactC1GradientDomain
 import Tests.OrdinaryWeakResolvent
 import Tests.LocalizedWeakResolvent
 import Tests.CompactWeakPoissonSobolev
+import Tests.CompactPoissonSmoothGraph
 import Tests.SmoothedPicardHMCTruncation
 import Tests.SmoothedPicardHMCGaussianPowerMoment
 import Tests.SmoothedPicardHMCGaussianMixture

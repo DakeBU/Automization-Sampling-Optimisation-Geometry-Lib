@@ -888,11 +888,25 @@ def local_declaration_status(declaration: SourceDeclaration, gate: GateEvidence)
     return "Compiled" if gate.passed else "Partial"
 
 
-def source_commit_link_error(url: str, commit: str, web_root: str) -> str | None:
-    """Local source uses this checkout; external libraries use their own pins."""
+def source_commit_link_error(
+    url: str,
+    commit: str,
+    web_root: str,
+    *,
+    require_current_local: bool = True,
+) -> str | None:
+    """Validate immutable blob links while distinguishing source from provenance.
+
+    Exact generated declaration-source links must name this checkout. Historical
+    provenance/review links may intentionally name an older immutable commit in
+    the same repository, but they must still use a full 40-hex SHA.
+    """
     root = web_root.rstrip("/") or "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
     if url.startswith(root + "/blob/"):
-        if commit and f"/blob/{commit}/" not in url:
+        match = re.search(r"/blob/([0-9a-f]{40})/", url)
+        if not match:
+            return f"local repository blob link is not pinned to an immutable commit: {url}"
+        if require_current_local and commit and match.group(1) != commit:
             return f"source link is not pinned to the generated commit: {url}"
     elif not re.search(r"/blob/[0-9a-f]{40}/", url):
         return f"external source link is not pinned to an immutable commit: {url}"
@@ -3733,11 +3747,37 @@ def validate_site(
     if re.search(r"github\.com/DakeBU/Auto-Sampling-Theory-In-Sleep/blob/main/", generated_text):
         errors.append("source links incorrectly assume files exist on main")
     commit = str(site_data["git"].get("commit", ""))
-    for source_link in re.findall(
+    web_root = str(site_data["git"].get("web_root", ""))
+
+    # Every GitHub blob link, including historical provenance, must be immutable.
+    # Historical same-repository review links may legitimately point to an older
+    # commit and therefore are not required to match this generated checkout.
+    for blob_link in re.findall(
         r'href="(https://github\.com/[^"]+/blob/[^"]+)"',
         generated_text,
     ):
-        pin_error = source_commit_link_error(source_link, commit, str(site_data["git"].get("web_root", "")))
+        pin_error = source_commit_link_error(
+            blob_link,
+            commit,
+            web_root,
+            require_current_local=False,
+        )
+        if pin_error:
+            errors.append(pin_error)
+            break
+
+    # Links explicitly rendered as the exact local declaration source are
+    # stronger: they must point to this generated checkout, never an older pin.
+    for source_link in re.findall(
+        r'class="source-links"[^>]*>\s*<a href="(https://github\.com/[^"]+/blob/[^"]+)"',
+        generated_text,
+    ):
+        pin_error = source_commit_link_error(
+            source_link,
+            commit,
+            web_root,
+            require_current_local=True,
+        )
         if pin_error:
             errors.append(pin_error)
             break

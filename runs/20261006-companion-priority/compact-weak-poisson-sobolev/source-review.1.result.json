@@ -1,0 +1,869 @@
+{
+  "schema_version": 1,
+  "review_kind": "independent-anti-anchored-source-fidelity",
+  "reviewer": "phase_source_reviewer_20261005",
+  "formalizer": "root-samplinglib-writer",
+  "blind_decoder": "anonymous_decoder_20261006",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "6f615823753ea29562fa9928a693b724d11a5c0f050beb05e24f98b8d96180a5",
+  "review_packet_raw_sha256": "2a519b39506249a09a32f6d7542b06ecb904eb45db8dfc7534bfbfb8dbccfbea",
+  "publication_binding_sha256": "7ed017ba918c19f6f4780cb8de6727bba1ea4f44843fce59a53d2389de35706a",
+  "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedSobolev.conditional_localized_sobolev",
+  "source_id": "companion:pbps-conditional-localized-sobolev",
+  "source_anchor": "PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 compact-gradient density/closedness analytic prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL dependency only. This authored compact-Schwartz-Sobolev prerequisite is not a quoted numbered source theorem.",
+  "source_text_sha256": "da16c9652aeafd96d22d9660467333b2c69fca5610eb714d6841ac9c15a19018",
+  "lean_statement_sha256": "7aede7993ef8c9b6dc6be6c35b2cc330a4c9baaf65aef603ac06f3799923ed47",
+  "reconstructed_text_sha256": "ff2c2172d07e623e039ebb478a37bd7f4a93f4366ff3c6f94e1354839f365903",
+  "decoder_packet_sha256": "22a57978bc9dce9169fdc1288a5a826a6d83a3498f281b3b240cb973ebdfffae",
+  "decoder_run_sha256": "978e30e737180d84a479568f76c3cc89a62cac571dade239bc558fc298e93dae",
+  "approved_definition_context_sha256": "c2328ac7eeac922992c3090454a66bfb80bf72be06ccdc1c6c7d202acf478ed3",
+  "review_context": {
+    "file": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent\n\nset_option autoImplicit false\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen TemperedDistribution\nopen scoped SchwartzMap ContDiff NNReal RealInnerProductSpace Topology\nnoncomputable section\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedSobolev\n\ntheorem conditional_localized_sobolev {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧\n      Integrable (fun x => Fχ x * φ x) ∧\n      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x) ∧\n    ∃ vc Fc : Lp ℂ 2 (volume : Measure E),\n      vc =ᵐ[volume] (fun x => (v x : ℂ)) ∧\n      Fc =ᵐ[volume] (fun x => (Fχ x : ℂ)) ∧\n      (∀ ψ : SchwartzMap E ℂ,\n        Integrable (fun x => (Laplacian.laplacian ψ) x * (v x : ℂ)) volume ∧\n        Integrable (fun x => ψ x * (Fχ x : ℂ)) volume ∧\n        (∫ x, (Laplacian.laplacian ψ) x * (v x : ℂ)) = ∫ x, ψ x * (Fχ x : ℂ)) ∧\n      Laplacian.laplacian (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc ∧\n      MemSobolev 2 2 (Lp.toTemperedDistribution vc) := by\n  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent hα hαβ hV hH hη hβη\n  dsimp only\n  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩\n  intro y\n  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hsolve⟩ := hfiber y\n  refine ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,?_⟩\n  intro ε hε f\n  obtain ⟨u,hu,huL,hGL,hd,hr2,hl,hp,hcut⟩ := hsolve ε hε f\n  refine ⟨u,hu,huL,hGL,hd,hr2,hl,hp,?_⟩\n  intro χ hχ hc\n  obtain ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond⟩ := hcut χ hχ hc\n  refine ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond,?_⟩\n  exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev\n    _ _ (tsupport χ) hc hvs hfs hv hf hsecond\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedSobolev\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 compact-gradient density/closedness analytic prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL dependency only. This authored compact-Schwartz-Sobolev prerequisite is not a quoted numbered source theorem.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib explicit compact-Schwartz/TD/Bessel-Sobolev analytic prerequisite to Chen, Chewi, Lu and Zhang AppendixC.1; not a quoted numbered theorem, conditional Poincare or completed source result."
+    },
+    "statement": "Construct genuine common R/S and original fiber D_y before epsilon/f; choose ONE actual u before ALL C2 compact cutoffs. Retain all-domain variational identity, ordinary locally integrable u/G, all C1 compact directional weak-gradient tests, locally integrable squared r=epsilon*u+inner(grad W_y,G)-f, compact-volume L2 of u/G/r and all original C2 compact distribution tests. For every C2 compact chi retain v=chi*u, Gchi=chi*G+u*grad chi, Fchi=chi*r+2 inner(grad chi,G)+u Delta chi, all three global-volume L2/support inclusions, all C1 localized weak-gradient and C2 localized PDE identities with legal products. For each cutoff, Construct actual vc,Fc in complex L2(volume), with vc=volume-a.e. ofReal(v) and Fc=volume-a.e. ofReal(Fchi). For every complex Schwartz psi, both (Delta psi)*ofReal(v) and psi*ofReal(Fchi) are L1 and their integrals equal. For T_v=Lp.toTemperedDistribution(vc) and T_F=Lp.toTemperedDistribution(Fc), derive Delta T_v=T_F and MemSobolev 2 2 T_v. The latter uses B2 T=T-(2pi)^(-2) Delta T and a genuine complex L2 witness, not a supplied regularity result. Reflected/RGO laws/operators/quarter Hessian and Dirichlet scales remain distinct.",
+    "formulae": [
+      {
+        "label": "Actual PBPS reflected resolvent: localized complex Sobolev",
+        "tex": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2\\ \\exists v_C,F_C:\\quad v=\\chi u,\\ F_\\chi=\\chi r+2\\langle\\nabla\\chi,G\\rangle+u\\Delta\\chi,\\quad\\Delta T_v=T_{F_\\chi},\\quad\\mathrm{MemSobolev}\\ 2\\ 2\\ T_v."
+      }
+    ],
+    "assumptions": [
+      "E has the same finite real Hilbert/Borel/full-space structure including dimension zero. V is C2 with alpha,beta NNReal, 0<alpha<=beta, all-point/all-vector alpha I<=Hess V<=beta I; eta>0 and beta eta<=1.",
+      "Construct the true Gaussian/Gibbs augmentation J, common Markov/disintegrating R/S, exact reflected S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), C2 and positive integrable partition.",
+      "For every fiber fix original dense closable exact compact-smooth gradient D_y with closed closure before epsilon/forcing. For each epsilon>0/f in L2(S_y), one actual u/G/r serves all C2 compact chi. Derive all local/global volume facts and PDE inputs from the accepted actual conditional localization. No measurable joint fiberwise solution/class selector, unreflected RGO identity or localized weighted-domain membership is assumed."
+    ],
+    "obligations": [
+      {
+        "id": "compact-sobolev",
+        "label": "Actual compact real PDE to complex Schwartz/L2TD/Sobolev"
+      },
+      {
+        "id": "elliptic-core",
+        "label": "Real mixed-second representatives and original weighted core/Bochner (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "Poincare/BL, full main results/actual-input expected-cost composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedSobolev.conditional_localized_sobolev",
+      "title": "Actual PBPS reflected resolvent: localized complex Sobolev",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS AppendixC.1 authored analytic prerequisite",
+          "scope": "Derive actual all-complex-Schwartz tested PDE with both products L1, genuine complex volume-L2 classes/AE embeddings, actual TD Laplacian and MemSobolev2 using B2=I-(2pi)^-2 Delta. Genuine conditional same originalD before epsilon/f, one actualu before allC2 compactcutoffs; retain parent properties. No real mixed-second representatives/Hessian, original weighted localized-domain membership/core/Bochner, BL/Poincare/epsilon0/measurable fiber selector/full4.1/main/composition. Reflected/RGO laws/operators/scales distinct; TV does not transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.CompactWeakPoissonSobolev"
+      ],
+      "assumptions": [
+        "E has the same finite real Hilbert/Borel/full-space structure including dimension zero. V is C2 with alpha,beta NNReal, 0<alpha<=beta, all-point/all-vector alpha I<=Hess V<=beta I; eta>0 and beta eta<=1.",
+        "Construct the true Gaussian/Gibbs augmentation J, common Markov/disintegrating R/S, exact reflected S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), C2 and positive integrable partition.",
+        "For every fiber fix original dense closable exact compact-smooth gradient D_y with closed closure before epsilon/forcing. For each epsilon>0/f in L2(S_y), one actual u/G/r serves all C2 compact chi. Derive all local/global volume facts and PDE inputs from the accepted actual conditional localization. No measurable joint fiberwise solution/class selector, unreflected RGO identity or localized weighted-domain membership is assumed."
+      ],
+      "statement": "Construct genuine common R/S and original fiber D_y before epsilon/f; choose ONE actual u before ALL C2 compact cutoffs. Retain all-domain variational identity, ordinary locally integrable u/G, all C1 compact directional weak-gradient tests, locally integrable squared r=epsilon*u+inner(grad W_y,G)-f, compact-volume L2 of u/G/r and all original C2 compact distribution tests. For every C2 compact chi retain v=chi*u, Gchi=chi*G+u*grad chi, Fchi=chi*r+2 inner(grad chi,G)+u Delta chi, all three global-volume L2/support inclusions, all C1 localized weak-gradient and C2 localized PDE identities with legal products. For each cutoff, Construct actual vc,Fc in complex L2(volume), with vc=volume-a.e. ofReal(v) and Fc=volume-a.e. ofReal(Fchi). For every complex Schwartz psi, both (Delta psi)*ofReal(v) and psi*ofReal(Fchi) are L1 and their integrals equal. For T_v=Lp.toTemperedDistribution(vc) and T_F=Lp.toTemperedDistribution(Fc), derive Delta T_v=T_F and MemSobolev 2 2 T_v. The latter uses B2 T=T-(2pi)^(-2) Delta T and a genuine complex L2 witness, not a supplied regularity result. Reflected/RGO laws/operators/quarter Hessian and Dirichlet scales remain distinct.",
+      "formula": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2\\ \\exists v_C,F_C:\\quad v=\\chi u,\\ F_\\chi=\\chi r+2\\langle\\nabla\\chi,G\\rangle+u\\Delta\\chi,\\quad\\Delta T_v=T_{F_\\chi},\\quad\\mathrm{MemSobolev}\\ 2\\ 2\\ T_v.",
+      "steps": [
+        {
+          "title": "Consume the genuine common reflected conditional localization",
+          "text": "Call the accepted actual ConditionalLocalizedResolvent producer with source C2 V and exact curvature/eta cap. Retain common Markov R/S, true augmentation disintegration, reflection and actual positive reflected density; no unreflected RGO operator substitution.",
+          "formula": "J=(x,x+\\sqrt\\eta\\xi)_\\#(\\mu\\otimes\\gamma),\\quad S_y=(2x-y)_\\#R_y=Z_y^{-1}e^{-W_y}dz.",
+          "lean": "ConditionalLocalizedResolvent.conditional_localized_resolvent"
+        },
+        {
+          "title": "Keep the original D and choose one u before all cutoffs",
+          "text": "For each y keep original dense closable exact compact-smooth D_y and closed closure before epsilon/f. The accepted producer returns one actual u with all-domain variational equation, ordinary weak gradient/PDE and local squared/compact L2 facts before every cutoff.",
+          "formula": "\\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2.",
+          "lean": "hsolve; hDense,hClose,hClosed,hgraph; hu,huL,hGL,hd,hr2,hl,hp"
+        },
+        {
+          "title": "Derive the actual volume L2/support/PDE inputs for each cutoff",
+          "text": "Extract formula-defined v/Gchi/Fchi, all three global volume L2/support inclusions and genuine all-C1 first/all-C2 second weak equations from this same u. Keep every property; no Schwartz validity, final TD identity or regularity/core certificate is a new source assumption.",
+          "formula": "v=\\chi u,\\quad G_\\chi=\\chi G+u\\nabla\\chi,\\quad F_\\chi=\\chi r+2\\langle\\nabla\\chi,G\\rangle+u\\Delta\\chi.",
+          "lean": "hcut; hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond"
+        },
+        {
+          "title": "Apply the real-test to complex Sobolev producer",
+          "text": "Use K=tsupport chi and actual compactness/support/L2/PDE conclusions to apply the new shared leaf. It constructs actual complex volume classes after each cutoff, every legal complex Schwartz identity, true TD Laplacian and Bessel-Sobolev membership. Fiberwise existences do not assert jointly measurable selectors.",
+          "formula": "\\forall\\chi\\ \\exists v_C,F_C\\ \\forall\\psi\\in\\mathcal S:\\quad\\int(\\Delta\\psi)v=\\int\\psi F_\\chi,\\quad\\Delta T_v=T_{F_\\chi},\\quad\\mathrm{MemSobolev}\\ 2\\ 2\\ T_v.",
+          "lean": "CompactWeakPoissonSobolev.compact_weak_poisson_sobolev"
+        },
+        {
+          "title": "Exercise actual nonquadratic source and compact cutoff",
+          "text": "The Test uses V(x)=3x^2/8+sin(x)/8 with genuine curvature[1/2,1], eta in(0,1], an ordinary bump chi with rIn1/rOut2, actual C2 phi=rho(x)(x^2)^(5/2), all true source fibers/epsilon/forcing and originalD. It retains the particular gradient/PDE tests and extracts actual complex classes, all Schwartz integrabilities/equalities, TD equation and Sobolev result for the same cutoff u.",
+          "formula": "\\chi=\\operatorname{bump}_{1,2},\\quad\\phi=\\rho(x)(x^2)^{5/2},\\quad\\Delta T_{\\chi u}=T_{F_\\chi}.",
+          "lean": "Tests.CompactWeakPoissonSobolev.actual_nonconstant_cutoff_sobolev"
+        },
+        {
+          "title": "Preserve source scaling and remaining obligations",
+          "text": "The reflected potential remains V((y+z)/2)+norm(z-y)^2/(8eta), with quarter Hessian and distinct Dirichlet/epsilon scale from unreflected RGO. This complex regularity prerequisite does not establish real Hessian reps, weighted core/Bochner, BL/Poincare, joint fiber selection, main sampling guarantees or actual-input expected-cost composition.",
+          "formula": "\\text{complex localized Sobolev prerequisite};\\quad\\text{weighted core/BL/main/composition remain open}.",
+          "lean": "conditional_localized_sobolev"
+        }
+      ],
+      "lean_statement": "Construct genuine common R/S and original fiber D_y before epsilon/f; choose ONE actual u before ALL C2 compact cutoffs. Retain all-domain variational identity, ordinary locally integrable u/G, all C1 compact directional weak-gradient tests, locally integrable squared r=epsilon*u+inner(grad W_y,G)-f, compact-volume L2 of u/G/r and all original C2 compact distribution tests. For every C2 compact chi retain v=chi*u, Gchi=chi*G+u*grad chi, Fchi=chi*r+2 inner(grad chi,G)+u Delta chi, all three global-volume L2/support inclusions, all C1 localized weak-gradient and C2 localized PDE identities with legal products. For each cutoff, Construct actual vc,Fc in complex L2(volume), with vc=volume-a.e. ofReal(v) and Fc=volume-a.e. ofReal(Fchi). For every complex Schwartz psi, both (Delta psi)*ofReal(v) and psi*ofReal(Fchi) are L1 and their integrals equal. For T_v=Lp.toTemperedDistribution(vc) and T_F=Lp.toTemperedDistribution(Fc), derive Delta T_v=T_F and MemSobolev 2 2 T_v. The latter uses B2 T=T-(2pi)^(-2) Delta T and a genuine complex L2 witness, not a supplied regularity result. Reflected/RGO laws/operators/quarter Hessian and Dirichlet scales remain distinct.",
+      "lean_proof": "Consume the genuine common reflected conditional localization; Keep the original D and choose one u before all cutoffs; Derive the actual volume L2/support/PDE inputs for each cutoff; Apply the real-test to complex Sobolev producer; Exercise actual nonquadratic source and compact cutoff; Preserve source scaling and remaining obligations",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev"
+      ],
+      "mathlib_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedSobolev.conditional_localized_sobolev",
+      "role": "prerequisite",
+      "supports": [
+        "compact-sobolev"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source Euclidean C2 positive-curvature reflected conditional route.",
+        "lean": "E has the same finite real Hilbert/Borel/full-space structure including dimension zero. V is C2 with alpha,beta NNReal, 0<alpha<=beta, all-point/all-vector alpha I<=Hess V<=beta I; eta>0 and beta eta<=1.\nConstruct the true Gaussian/Gibbs augmentation J, common Markov/disintegrating R/S, exact reflected S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), C2 and positive integrable partition.\nFor every fiber fix original dense closable exact compact-smooth gradient D_y with closed closure before epsilon/forcing. For each epsilon>0/f in L2(S_y), one actual u/G/r serves all C2 compact chi. Derive all local/global volume facts and PDE inputs from the accepted actual conditional localization. No measurable joint fiberwise solution/class selector, unreflected RGO identity or localized weighted-domain membership is assumed."
+      },
+      {
+        "source": "AppendixC.1 domain extension omits this real-test/Schwartz/Sobolev adapter.",
+        "lean": "Construct genuine common R/S and original fiber D_y before epsilon/f; choose ONE actual u before ALL C2 compact cutoffs. Retain all-domain variational identity, ordinary locally integrable u/G, all C1 compact directional weak-gradient tests, locally integrable squared r=epsilon*u+inner(grad W_y,G)-f, compact-volume L2 of u/G/r and all original C2 compact distribution tests. For every C2 compact chi retain v=chi*u, Gchi=chi*G+u*grad chi, Fchi=chi*r+2 inner(grad chi,G)+u Delta chi, all three global-volume L2/support inclusions, all C1 localized weak-gradient and C2 localized PDE identities with legal products. For each cutoff, Construct actual vc,Fc in complex L2(volume), with vc=volume-a.e. ofReal(v) and Fc=volume-a.e. ofReal(Fchi). For every complex Schwartz psi, both (Delta psi)*ofReal(v) and psi*ofReal(Fchi) are L1 and their integrals equal. For T_v=Lp.toTemperedDistribution(vc) and T_F=Lp.toTemperedDistribution(Fc), derive Delta T_v=T_F and MemSobolev 2 2 T_v. The latter uses B2 T=T-(2pi)^(-2) Delta T and a genuine complex L2 witness, not a supplied regularity result. Reflected/RGO laws/operators/quarter Hessian and Dirichlet scales remain distinct."
+      },
+      {
+        "source": "Source Poincare/macroscopic extension and SPHMC4.1 BL covariance bound.",
+        "lean": "Derive actual all-complex-Schwartz tested PDE with both products L1, genuine complex volume-L2 classes/AE embeddings, actual TD Laplacian and MemSobolev2 using B2=I-(2pi)^-2 Delta. Genuine conditional same originalD before epsilon/f, one actualu before allC2 compactcutoffs; retain parent properties. No real mixed-second representatives/Hessian, original weighted localized-domain membership/core/Bochner, BL/Poincare/epsilon0/measurable fiber selector/full4.1/main/composition. Reflected/RGO laws/operators/scales distinct; TV does not transfer unbounded cost."
+      }
+    ]
+  },
+  "review_context_sha256": "91da3fffb1ec3ef3f73ba1368e45affba2244202aa01c8856f6655c77361a43e",
+  "whole_module_file_sha256": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+  "whole_module_raw_sha256": "28df027149ea11fc514f834e25130e08d6288a2ba940df6846906a962ae46e5e",
+  "whole_module_lf_sha256": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+  "whole_module_reviewed": true,
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual Gibbs/Gaussian J, common R/S, reflected W_y, original compact-smooth D_y, actual u/G/r and localized v/Gchi/Fchi, true complex L2/TD.",
+      "reconstructed": "Same constructed kernels, true tilted S_y, exact graph/closure D, same u, actual cutoff formulas and derived complex classes.",
+      "relation": "equivalent",
+      "evidence": "Full98-line consumer read; only actual conditional_localized_resolvent then new shared theorem called, with exact extracted inputs."
+    },
+    "domains": {
+      "original": "Finite real Hilbert/Borel incl0D, C2 V, weighted L2(S_y) vs ordinary-volume local/L2/distributions; C1 gradient tests/C2 PDE-cutoffs.",
+      "reconstructed": "Exactly these measures/test classes; arbitrary real C2 compact chi without range/positivity requirement; complex real-Frechet Schwartz.",
+      "relation": "explicit-elaboration",
+      "evidence": "All98+134 Test lines read; ambient0D generalized explicitly. Weighted L2 representatives are not differentiated classically."
+    },
+    "quantifiers": {
+      "original": "One R/S forall y; per y one original D before epsilon/f; one u per epsilon/f before ALLchi; per chi one vc/Fc before ALLpsi.",
+      "reconstructed": "Same exact nested order; all retained parent conclusions simultaneously for same u. No joint measurable fiber selector.",
+      "relation": "equivalent",
+      "evidence": "Proof calls hsolve once, retains parent tuples, introduces chi only afterwards then extracts localized premises and constructs vc/Fc."
+    },
+    "assumptions": {
+      "original": "C2 V, positive alpha<=beta NNReal all-point/all-vector curvature, eta>0 beta eta<=1; genuine normalized reflected law and no supplied D/u/PDE/Sobolev certificate.",
+      "reconstructed": "Same source-family curvature/cap with derived positive integrable partitions, true disintegration and exact compact-smooth operator graph.",
+      "relation": "explicit-elaboration",
+      "evidence": "Previous full parent code reading reused only at exact matching LF freeze; all shared globalL2/support/L1 PDE premises derived by actual parent, not newly assumed."
+    },
+    "conclusion": {
+      "original": "Retain same-D variational/localL2/weak-gradient/PDE/localization; perchi derive complex L1 allSchwartz, actual AE classes, TD equation and Bessel2.",
+      "reconstructed": "Same full conjunction with Gchi=chiG+u gradchi, Fchi=chir+2<gradchi,G>+uDeltachi.",
+      "relation": "equivalent",
+      "evidence": "No dropped conjunction; extraction preserves all old properties and obtains added shared conclusions for exact v=chiu,Fchi."
+    },
+    "scopes": {
+      "original": "Fiberwise reflected conditional analytic prerequisite, not full source Poincare, weighted core, BL/Hessian/epsilon0/main or RGO adapter.",
+      "reconstructed": "Exact scoped prerequisite; no localized weighted-D membership or global/measurable choices; no real Hessian representatives.",
+      "relation": "equivalent",
+      "evidence": "Source/restatement/formulas/6-step proof and public docstring explicitly retain these boundaries. BL/main remain independent."
+    },
+    "constant_dependencies": {
+      "original": "Wref=V((y+z)/2)+norm(z-y)^2/(8eta), alpha/beta NNReal cap; quarter Hessian, reflected Dirichlet scaling; localized product coefficient2; Bessel(2pi)^-2.",
+      "reconstructed": "Same W,J actual reflection2x-y, same coefficient2 and Fourier coefficient; no transferred RGO constants.",
+      "relation": "equivalent",
+      "evidence": "True reflected pushforward has Jacobian2^-d and Hess Wref=(HessV+eta^-1I)/4; Dirichlet reflection scaling4. Code consumes actual reflected parent, not identified unreflected law."
+    }
+  },
+  "deltas": [],
+  "blocking": false,
+  "repairs": [],
+  "verdict": "equivalent-after-elaboration",
+  "review_evidence": "Primary contracts reconstructed before judging this fresh candidate; all194 shared lines including six private helpers, all98 conditional lines and all134 Test lines independently read, along with all12 authored mathematical steps and current source/assumption/binding contexts. Every semantic slot compared to current distinct anonymous reconstruction. Actual proof inspected independently; compilation is auxiliary evidence only. No material source/statement/reader-context gap found for the explicitly scoped authored prerequisite.",
+  "source_read_evidence": [
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#S2.SS2",
+      "edition": "arXiv2609.06905v1",
+      "location": "Section2.2 HTML168-211, eq2.6-2.14",
+      "read": "Actual normalized Gibbs law, Gaussian augmentation J, unreflected RGO and reflection 2x-y."
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv2609.06905v1",
+      "location": "AppendixC.1 HTML1197-1234 (fresh fetch); compact-density/gradient closedness argument and reflected conditional law",
+      "read": "Primary reconstructed before inspecting new candidate. Compact smooth closure motivates authored analytic prerequisite, not a quoted numbered Sobolev theorem."
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "edition": "arXiv2609.06906v1",
+      "location": "Section4.1 HTML403-430, eq4.1 and Lemma4.1",
+      "read": "Unreflected RGO score/covariance; BL covariance-upper and CR covariance-lower are separate. No new curvature/covariance conclusion follows from this leaf."
+    }
+  ],
+  "full_proof_evidence": {
+    "shared_module_lines": 194,
+    "shared_private_helpers": [
+      {
+        "name": "outer_cutoff",
+        "lines": "12-20",
+        "checked": "Actual smooth compact bump equals1 on open neighborhood of compact K; works with zero dimension, no Nontrivial premise."
+      },
+      {
+        "name": "real_schwartz_component",
+        "lines": "25-60",
+        "checked": "Real-linear complex component times plateau gives genuine C2 compact test; local Laplacian identity on K, actual zero outside supports; input L1/equality applies."
+      },
+      {
+        "name": "complex_schwartz_pde",
+        "lines": "62-91",
+        "checked": "Schwartz L2 and actual MemLp casts imply complex product L1 before Re/Im integral splitting; bilinear no conjugation; both components imply true complex equality."
+      },
+      {
+        "name": "actual_tempered_laplacian",
+        "lines": "93-120",
+        "checked": "Actual toLp volume-AE casts, true TD pairing and positive distribution-Laplacian test action; AE representatives transferred under integral."
+      },
+      {
+        "name": "bessel_two_identity",
+        "lines": "122-139",
+        "checked": "Bessel2 multiplier1+norm²; actual Fourier Laplacian -(2pi)²; inverse coefficient cancellation with pi nonzero yields B2T=T-(2pi)^-2 DeltaT."
+      },
+      {
+        "name": "sobolev_of_compact_pde",
+        "lines": "141-163",
+        "checked": "Actual complex L2 vc,Fc; derived DeltaTv=TF. MemSobolev0 closure and exact Bessel composition give MemSobolev2 with concrete vc-(2pi)^-2 Fc witness."
+      }
+    ],
+    "conditional_module_lines": 98,
+    "conditional_private_helpers": [],
+    "conditional_application": "True existing same-D/u/G/r/localized parent is destructured once; global L2/support/real weak PDE inputs passed exactly to shared theorem.",
+    "reader_steps_reviewed": {
+      "shared": 6,
+      "conditional": 6
+    },
+    "Test_lines": 134,
+    "Test": "Actual nonquadratic V=3x²/8+sin(x)/8, Hessian 3/4-sin(x)/8 satisfies stated1/2..1 bounds; eta0..1, smooth compact chi and genuine C2 compact normalized-bump*(x²)^(5/2) test. Retains C1 gradient/C2 PDE/L1 and true allSchwartz/TD/Sobolev conclusions. No dimension-zero Test run claimed."
+  },
+  "provenance_check": {
+    "astis_dependencies": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev"
+    ],
+    "mathlib_dependencies": [],
+    "all_named_dependencies_actually_called": true,
+    "additional_contracts_checked": [
+      "Lp.toTemperedDistribution_apply: integral psi*representative, no conjugation",
+      "memSobolev_besselPotential_iff: order r+s",
+      "TemperedDistribution.smulLeftCLM_add with true temperate growth",
+      "actual signed Fourier Laplacian coefficient"
+    ],
+    "binding_and_current_lesson_projection_recomputed": true,
+    "parsed_formula_literal_double_backslashes": 0
+  },
+  "law_scaling_check": "Reflected PBPS law W_y(z)=V((y+z)/2)+||z-y||²/(8eta), pushforward2x-y/Jacobian2^-d, quarter Hessian and Dirichlet reflection scaling4; distinct from SPHMC RGO V(x)+||x-y||²/(2eta). No identity of laws/operators/constants without true adapter.",
+  "source_boundary": "This is an authored compact real weak-PDE -> complex Schwartz/TD/Bessel-Sobolev2 prerequisite. It proves no real mixed-second or Hessian representatives, localized weighted-D membership/core/global Bochner, Poincare/BL, epsilon-zero, measurable fiber selector, full source numbered result or main/composition.",
+  "anti_anchoring_evidence": {
+    "source_first": true,
+    "own_preread_path": "research-wiki/cited-results/Weighted_compact_Schwartz_source_preread.md",
+    "own_preread_raw_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+    "honest_prior_exposure": "Earlier independent full localization parent/API reviews and own primary-first Schwartz preread. Earlier bounded BL search exposed covariance candidate keywords/signatures/matching lines; no claim of complete historical candidate blindness. This search is not current proof-correctness evidence.",
+    "not_read": [
+      "root ignored prototypes",
+      "current mathematics review verdict",
+      "old source verdicts/slots/deltas",
+      "planner classification or blueprint text"
+    ],
+    "blueprint_and_other_dependency_note": "Only byte hashes preserved for exact14 freeze; their text not read as semantic/planning evidence.",
+    "current_candidate_read": "Only current source packet plus exact current modules/Test/lesson/publication and required pinned parent/Mathlib contracts. Decoder semantic text read after independent source reconstruction."
+  },
+  "matching_parent_freeze_reuse": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LocalizedWeakResolvent.lean",
+      "current_lf_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "matches_previously_independently_read_whole_code": true,
+      "reuse_scope": "Exact parent full-proof/API reading reused; no old verdict reused. Consumer application inspected fresh."
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedResolvent.lean",
+      "current_lf_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "matches_previously_independently_read_whole_code": true,
+      "reuse_scope": "Exact parent full-proof/API reading reused; no old verdict reused. Consumer application inspected fresh."
+    }
+  ],
+  "lifecycle_reconciliation": {
+    "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-lifecycle-reconciliation.json",
+    "review_run_sha256": "3021dbf22ec2f330fb381f080bc06d73991f259957946eccc319b5a72f5cea5a",
+    "adds_no_mathematical_credit": true
+  },
+  "fake_closure_scan": {
+    "files": [
+      {
+        "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeakPoissonSobolev.lean",
+        "matches": []
+      },
+      {
+        "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedSobolev.lean",
+        "matches": []
+      },
+      {
+        "file": "Tests/CompactWeakPoissonSobolev.lean",
+        "matches": []
+      }
+    ],
+    "result": "no fake proof closure matches"
+  },
+  "lean_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "independent_elaboration": {
+    "owner": "phase_source_reviewer_20261005",
+    "LEAN_NUM_THREADS": "2",
+    "session_id": 73686,
+    "closed": true,
+    "checks": [
+      {
+        "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeakPoissonSobolev.lean",
+        "exit_code": 0,
+        "stdout_sha256": "dbe80bb93c02a04be7b6d1863f994801e48b3583a65a1ded242d31b6c16b234c",
+        "warnings": [
+          "unused section variables MeasurableSpace E/BorelSpace E in private outer_cutoff"
+        ],
+        "command": "lake env lean AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeakPoissonSobolev.lean",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedSobolev.lean",
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "warnings": [],
+        "command": "lake env lean AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedSobolev.lean",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "Tests/CompactWeakPoissonSobolev.lean",
+        "exit_code": 0,
+        "stdout_sha256": "ff7d9b952a7adf41238e1abfa2462c931a646234225a8301326a574b6c804a69",
+        "warnings": [
+          "unused simp arguments potential and Pi.add_apply at line19"
+        ],
+        "command": "lake env lean Tests/CompactWeakPoissonSobolev.lean",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "full_repository_gate_run": false
+  },
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeakPoissonSobolev.lean",
+      "raw_sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "lf_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "bytes": 10579,
+      "sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "sha256_lf": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "normalized_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.00.snapshot",
+      "raw_sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "lf_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "bytes": 10579,
+      "sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "sha256_lf": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "normalized_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedSobolev.lean",
+      "raw_sha256": "28df027149ea11fc514f834e25130e08d6288a2ba940df6846906a962ae46e5e",
+      "lf_sha256": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+      "bytes": 6325,
+      "sha256": "28df027149ea11fc514f834e25130e08d6288a2ba940df6846906a962ae46e5e",
+      "sha256_lf": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+      "normalized_sha256": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.01.snapshot",
+      "raw_sha256": "28df027149ea11fc514f834e25130e08d6288a2ba940df6846906a962ae46e5e",
+      "lf_sha256": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+      "bytes": 6325,
+      "sha256": "28df027149ea11fc514f834e25130e08d6288a2ba940df6846906a962ae46e5e",
+      "sha256_lf": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+      "normalized_sha256": "265545a7b3f04c58fb07ff34f6e5f9c14e3328b3e259146d1a061ca000ba9342",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "Tests/CompactWeakPoissonSobolev.lean",
+      "raw_sha256": "686ad7b132ab6be3aa71e591df0536f38f249f92b74e06d90ab23b43968035ca",
+      "lf_sha256": "d2d61eb09e1bed997fd9b6e6b36f9c2b3096eadb38d563aa63ba50cf771b1424",
+      "bytes": 8087,
+      "sha256": "686ad7b132ab6be3aa71e591df0536f38f249f92b74e06d90ab23b43968035ca",
+      "sha256_lf": "d2d61eb09e1bed997fd9b6e6b36f9c2b3096eadb38d563aa63ba50cf771b1424",
+      "normalized_sha256": "d2d61eb09e1bed997fd9b6e6b36f9c2b3096eadb38d563aa63ba50cf771b1424",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.02.snapshot",
+      "raw_sha256": "686ad7b132ab6be3aa71e591df0536f38f249f92b74e06d90ab23b43968035ca",
+      "lf_sha256": "d2d61eb09e1bed997fd9b6e6b36f9c2b3096eadb38d563aa63ba50cf771b1424",
+      "bytes": 8087,
+      "sha256": "686ad7b132ab6be3aa71e591df0536f38f249f92b74e06d90ab23b43968035ca",
+      "sha256_lf": "d2d61eb09e1bed997fd9b6e6b36f9c2b3096eadb38d563aa63ba50cf771b1424",
+      "normalized_sha256": "d2d61eb09e1bed997fd9b6e6b36f9c2b3096eadb38d563aa63ba50cf771b1424",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "proof-blueprints/compact-weak-poisson-sobolev.md",
+      "raw_sha256": "795128ac2b420d8fc273e2d5445364e18b2d10d596338a3035b1c068853e2153",
+      "lf_sha256": "cd731e71b6c3e711413e5db9b8d3268a852a7f67dd7ab7808fc722504b6c85b6",
+      "bytes": 3352,
+      "sha256": "795128ac2b420d8fc273e2d5445364e18b2d10d596338a3035b1c068853e2153",
+      "sha256_lf": "cd731e71b6c3e711413e5db9b8d3268a852a7f67dd7ab7808fc722504b6c85b6",
+      "normalized_sha256": "cd731e71b6c3e711413e5db9b8d3268a852a7f67dd7ab7808fc722504b6c85b6",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "footprint-only-not-read-as-planning-evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.03.snapshot",
+      "raw_sha256": "795128ac2b420d8fc273e2d5445364e18b2d10d596338a3035b1c068853e2153",
+      "lf_sha256": "cd731e71b6c3e711413e5db9b8d3268a852a7f67dd7ab7808fc722504b6c85b6",
+      "bytes": 3352,
+      "sha256": "795128ac2b420d8fc273e2d5445364e18b2d10d596338a3035b1c068853e2153",
+      "sha256_lf": "cd731e71b6c3e711413e5db9b8d3268a852a7f67dd7ab7808fc722504b6c85b6",
+      "normalized_sha256": "cd731e71b6c3e711413e5db9b8d3268a852a7f67dd7ab7808fc722504b6c85b6",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_Schwartz_source_preread.md",
+      "raw_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "lf_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "bytes": 10676,
+      "sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "sha256_lf": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "normalized_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.04.snapshot",
+      "raw_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "lf_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "bytes": 10676,
+      "sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "sha256_lf": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "normalized_sha256": "e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_Schwartz_tempered_dependency_audit.md",
+      "raw_sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "lf_sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "bytes": 12238,
+      "sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "sha256_lf": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "normalized_sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "footprint-only-not-read-as-planning-evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.05.snapshot",
+      "raw_sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "lf_sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "bytes": 12238,
+      "sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "sha256_lf": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "normalized_sha256": "225205786ce54fa370e2ff7610d77ff0ebf865e888ca8eb7455b06869673d23a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "website/content/publications/compact-weak-poisson-sobolev.json",
+      "raw_sha256": "5cc862d0501f38fe5eed6b514b84cbb4132b8e0af392e2195f5bf47634cdc29c",
+      "lf_sha256": "83302afa36aab7ba8312f813d0d09323a4e0b72e2498939b85191d60689d0d29",
+      "bytes": 7873,
+      "sha256": "5cc862d0501f38fe5eed6b514b84cbb4132b8e0af392e2195f5bf47634cdc29c",
+      "sha256_lf": "83302afa36aab7ba8312f813d0d09323a4e0b72e2498939b85191d60689d0d29",
+      "normalized_sha256": "83302afa36aab7ba8312f813d0d09323a4e0b72e2498939b85191d60689d0d29",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.06.snapshot",
+      "raw_sha256": "5cc862d0501f38fe5eed6b514b84cbb4132b8e0af392e2195f5bf47634cdc29c",
+      "lf_sha256": "83302afa36aab7ba8312f813d0d09323a4e0b72e2498939b85191d60689d0d29",
+      "bytes": 7873,
+      "sha256": "5cc862d0501f38fe5eed6b514b84cbb4132b8e0af392e2195f5bf47634cdc29c",
+      "sha256_lf": "83302afa36aab7ba8312f813d0d09323a4e0b72e2498939b85191d60689d0d29",
+      "normalized_sha256": "83302afa36aab7ba8312f813d0d09323a4e0b72e2498939b85191d60689d0d29",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "website/content/publications/pbps-conditional-localized-sobolev.json",
+      "raw_sha256": "69d05707e3cae166ce417693f318bd8fc6cca8ae99c781bbbb8314104fe7c081",
+      "lf_sha256": "50a315774e0aee89b78f405c1330c76a7abe68e14454219db9c4c060889d7809",
+      "bytes": 9032,
+      "sha256": "69d05707e3cae166ce417693f318bd8fc6cca8ae99c781bbbb8314104fe7c081",
+      "sha256_lf": "50a315774e0aee89b78f405c1330c76a7abe68e14454219db9c4c060889d7809",
+      "normalized_sha256": "50a315774e0aee89b78f405c1330c76a7abe68e14454219db9c4c060889d7809",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.07.snapshot",
+      "raw_sha256": "69d05707e3cae166ce417693f318bd8fc6cca8ae99c781bbbb8314104fe7c081",
+      "lf_sha256": "50a315774e0aee89b78f405c1330c76a7abe68e14454219db9c4c060889d7809",
+      "bytes": 9032,
+      "sha256": "69d05707e3cae166ce417693f318bd8fc6cca8ae99c781bbbb8314104fe7c081",
+      "sha256_lf": "50a315774e0aee89b78f405c1330c76a7abe68e14454219db9c4c060889d7809",
+      "normalized_sha256": "50a315774e0aee89b78f405c1330c76a7abe68e14454219db9c4c060889d7809",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/compact-weak-poisson-sobolev.json",
+      "raw_sha256": "313016ad2f51bef429e98841f8ef8c2c81851ae2a91544dcb7cdc59aa88916fd",
+      "lf_sha256": "55bbcac56acc84b8488c1a26f1692086d0f9a6d2da5dc620a517cdd6bf5f43e2",
+      "bytes": 9408,
+      "sha256": "313016ad2f51bef429e98841f8ef8c2c81851ae2a91544dcb7cdc59aa88916fd",
+      "sha256_lf": "55bbcac56acc84b8488c1a26f1692086d0f9a6d2da5dc620a517cdd6bf5f43e2",
+      "normalized_sha256": "55bbcac56acc84b8488c1a26f1692086d0f9a6d2da5dc620a517cdd6bf5f43e2",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.08.snapshot",
+      "raw_sha256": "313016ad2f51bef429e98841f8ef8c2c81851ae2a91544dcb7cdc59aa88916fd",
+      "lf_sha256": "55bbcac56acc84b8488c1a26f1692086d0f9a6d2da5dc620a517cdd6bf5f43e2",
+      "bytes": 9408,
+      "sha256": "313016ad2f51bef429e98841f8ef8c2c81851ae2a91544dcb7cdc59aa88916fd",
+      "sha256_lf": "55bbcac56acc84b8488c1a26f1692086d0f9a6d2da5dc620a517cdd6bf5f43e2",
+      "normalized_sha256": "55bbcac56acc84b8488c1a26f1692086d0f9a6d2da5dc620a517cdd6bf5f43e2",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/pbps-conditional-localized-sobolev.json",
+      "raw_sha256": "7dfaac0cdb645aabbee66efadd214c839636d104b2edaa9d98dc8d0ebeb0fe81",
+      "lf_sha256": "38f7bf9cd76e90be10d0cfd48e68d83b6bca820e04b272a11a5f55c61e6c07f2",
+      "bytes": 9930,
+      "sha256": "7dfaac0cdb645aabbee66efadd214c839636d104b2edaa9d98dc8d0ebeb0fe81",
+      "sha256_lf": "38f7bf9cd76e90be10d0cfd48e68d83b6bca820e04b272a11a5f55c61e6c07f2",
+      "normalized_sha256": "38f7bf9cd76e90be10d0cfd48e68d83b6bca820e04b272a11a5f55c61e6c07f2",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "semantic-proof-source-input"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-input.09.snapshot",
+      "raw_sha256": "7dfaac0cdb645aabbee66efadd214c839636d104b2edaa9d98dc8d0ebeb0fe81",
+      "lf_sha256": "38f7bf9cd76e90be10d0cfd48e68d83b6bca820e04b272a11a5f55c61e6c07f2",
+      "bytes": 9930,
+      "sha256": "7dfaac0cdb645aabbee66efadd214c839636d104b2edaa9d98dc8d0ebeb0fe81",
+      "sha256_lf": "38f7bf9cd76e90be10d0cfd48e68d83b6bca820e04b272a11a5f55c61e6c07f2",
+      "normalized_sha256": "38f7bf9cd76e90be10d0cfd48e68d83b6bca820e04b272a11a5f55c61e6c07f2",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-review-snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-SHARED-compact-weak-poisson-sobolev.math-reviewed.snapshot.json",
+      "raw_sha256": "0960d9abf6cef7b2b27b6164fdb70e8e76051c399648b958895052de2a3f30de",
+      "lf_sha256": "4bcaf4a8e83b913a2f798de68233c546dc83696ec9358e04c8a71f63f244a253",
+      "bytes": 9535,
+      "sha256": "0960d9abf6cef7b2b27b6164fdb70e8e76051c399648b958895052de2a3f30de",
+      "sha256_lf": "4bcaf4a8e83b913a2f798de68233c546dc83696ec9358e04c8a71f63f244a253",
+      "normalized_sha256": "4bcaf4a8e83b913a2f798de68233c546dc83696ec9358e04c8a71f63f244a253",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-math-footprint-only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-SHARED-compact-weak-poisson-sobolev.source-current.snapshot.json",
+      "raw_sha256": "4eb310dc6f105cda1fcccb20401e24b04a2c58f4af8f1b3ee498682a9496a095",
+      "lf_sha256": "4c17b12d42f73ba72ca0714ca7fe39447ad90c1e87814e2f5b88ac227ccf70c0",
+      "bytes": 9779,
+      "sha256": "4eb310dc6f105cda1fcccb20401e24b04a2c58f4af8f1b3ee498682a9496a095",
+      "sha256_lf": "4c17b12d42f73ba72ca0714ca7fe39447ad90c1e87814e2f5b88ac227ccf70c0",
+      "normalized_sha256": "4c17b12d42f73ba72ca0714ca7fe39447ad90c1e87814e2f5b88ac227ccf70c0",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-current-administration"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-SW-PBPS-conditional-localized-sobolev.math-reviewed.snapshot.json",
+      "raw_sha256": "05214bdf4c8d46aac4824889c25f4880019fe43bf26d91420bc14b86537391cd",
+      "lf_sha256": "a2ef6312b048466d887f8e4b06b2808403ac1df1700d71aa078500eea94354a2",
+      "bytes": 9444,
+      "sha256": "05214bdf4c8d46aac4824889c25f4880019fe43bf26d91420bc14b86537391cd",
+      "sha256_lf": "a2ef6312b048466d887f8e4b06b2808403ac1df1700d71aa078500eea94354a2",
+      "normalized_sha256": "a2ef6312b048466d887f8e4b06b2808403ac1df1700d71aa078500eea94354a2",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-math-footprint-only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-SW-PBPS-conditional-localized-sobolev.source-current.snapshot.json",
+      "raw_sha256": "5ed0b452441c91fff5e564dc5808b61c07d3800636643a89aa0d4a15207ba7b9",
+      "lf_sha256": "4ce9db2cc24c3faac9588fff27c89b335bc4f20ccd89d265803ea89ceec4cc56",
+      "bytes": 9688,
+      "sha256": "5ed0b452441c91fff5e564dc5808b61c07d3800636643a89aa0d4a15207ba7b9",
+      "sha256_lf": "4ce9db2cc24c3faac9588fff27c89b335bc4f20ccd89d265803ea89ceec4cc56",
+      "normalized_sha256": "4ce9db2cc24c3faac9588fff27c89b335bc4f20ccd89d265803ea89ceec4cc56",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-current-administration"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-RT-20261006-CompactWeakPoissonSobolev.math-reviewed.snapshot.json",
+      "raw_sha256": "2f9fe2da02710fd2ac3d0d30b90da15896ca960182eb01cb0b41d7338e4001ea",
+      "lf_sha256": "d778fa0f7e6864f0064fe4413e6ebc012c8e462ada89bf5fc8e1cc0a8d24d275",
+      "bytes": 32388,
+      "sha256": "2f9fe2da02710fd2ac3d0d30b90da15896ca960182eb01cb0b41d7338e4001ea",
+      "sha256_lf": "d778fa0f7e6864f0064fe4413e6ebc012c8e462ada89bf5fc8e1cc0a8d24d275",
+      "normalized_sha256": "d778fa0f7e6864f0064fe4413e6ebc012c8e462ada89bf5fc8e1cc0a8d24d275",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-math-footprint-only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-RT-20261006-CompactWeakPoissonSobolev.source-current.snapshot.json",
+      "raw_sha256": "807f8de616ee2e798be97c187ebf766b33960eda89cac3e08664245a1d6cb9dd",
+      "lf_sha256": "d32e77d515148b02644d0f98a29f1f26d408f2bc8350df55d96644c944b9b559",
+      "bytes": 36023,
+      "sha256": "807f8de616ee2e798be97c187ebf766b33960eda89cac3e08664245a1d6cb9dd",
+      "sha256_lf": "d32e77d515148b02644d0f98a29f1f26d408f2bc8350df55d96644c944b9b559",
+      "normalized_sha256": "d32e77d515148b02644d0f98a29f1f26d408f2bc8350df55d96644c944b9b559",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-current-administration"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-RT-20261006-PBPSConditionalLocalizedSobolev.math-reviewed.snapshot.json",
+      "raw_sha256": "59b08ebd9035dd96349e7eaa29b9b3ee9fcf699ae9b209aac9ef803c47e631ad",
+      "lf_sha256": "6db64790d217fbfa18f7b3498f1137dd04a5108e2a75be273a65de436df60933",
+      "bytes": 34358,
+      "sha256": "59b08ebd9035dd96349e7eaa29b9b3ee9fcf699ae9b209aac9ef803c47e631ad",
+      "sha256_lf": "6db64790d217fbfa18f7b3498f1137dd04a5108e2a75be273a65de436df60933",
+      "normalized_sha256": "6db64790d217fbfa18f7b3498f1137dd04a5108e2a75be273a65de436df60933",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-math-footprint-only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/ASTIS-RT-20261006-PBPSConditionalLocalizedSobolev.source-current.snapshot.json",
+      "raw_sha256": "e2b63668725612f39727c0548b698938cb37580132fc08ef0a84f6fea644e2a6",
+      "lf_sha256": "2518f77f70e26c6a928d0c8d688e0d2ae3f7d645c77a64191fde65da2d7b307a",
+      "bytes": 41639,
+      "sha256": "e2b63668725612f39727c0548b698938cb37580132fc08ef0a84f6fea644e2a6",
+      "sha256_lf": "2518f77f70e26c6a928d0c8d688e0d2ae3f7d645c77a64191fde65da2d7b307a",
+      "normalized_sha256": "2518f77f70e26c6a928d0c8d688e0d2ae3f7d645c77a64191fde65da2d7b307a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "immutable-current-administration"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LocalizedWeakResolvent.lean",
+      "raw_sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "lf_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "bytes": 26952,
+      "sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "sha256_lf": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "normalized_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "matching-freeze-current-parent"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedResolvent.lean",
+      "raw_sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "lf_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "bytes": 5607,
+      "sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "sha256_lf": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "normalized_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "matching-freeze-current-parent"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Distribution/Sobolev.lean",
+      "raw_sha256": "184b88dc0a706e5284ad55f34fc3c8be72942a3ee120dd4340035dd201eab8d1",
+      "lf_sha256": "626efa98f46bc13e7ef8770bc29e778357c713d15373846f1e49252a7ac1df3e",
+      "bytes": 14521,
+      "sha256": "184b88dc0a706e5284ad55f34fc3c8be72942a3ee120dd4340035dd201eab8d1",
+      "sha256_lf": "626efa98f46bc13e7ef8770bc29e778357c713d15373846f1e49252a7ac1df3e",
+      "normalized_sha256": "626efa98f46bc13e7ef8770bc29e778357c713d15373846f1e49252a7ac1df3e",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "pinned-mathlib-contract"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Distribution/TemperedDistribution.lean",
+      "raw_sha256": "ec9b7e902081e0de7621532824f434c29bc4a9b18aae02fdd8a7a2d0b783ef87",
+      "lf_sha256": "989c6b5a41beaf88018701f17fa14f8b8f37da4ce07218cb9e9bdfd2a147035f",
+      "bytes": 24932,
+      "sha256": "ec9b7e902081e0de7621532824f434c29bc4a9b18aae02fdd8a7a2d0b783ef87",
+      "sha256_lf": "989c6b5a41beaf88018701f17fa14f8b8f37da4ce07218cb9e9bdfd2a147035f",
+      "normalized_sha256": "989c6b5a41beaf88018701f17fa14f8b8f37da4ce07218cb9e9bdfd2a147035f",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "pinned-mathlib-contract"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Distribution/FourierMultiplier.lean",
+      "raw_sha256": "4a348ce7af8c57fb98a72cccc7397cd333962c55ca20dd1512e4979fcbe45e0a",
+      "lf_sha256": "22f9fad5a18b2e677fbb861a21f12c78275bffe0fa67c97495b8aa996011f067",
+      "bytes": 9150,
+      "sha256": "4a348ce7af8c57fb98a72cccc7397cd333962c55ca20dd1512e4979fcbe45e0a",
+      "sha256_lf": "22f9fad5a18b2e677fbb861a21f12c78275bffe0fa67c97495b8aa996011f067",
+      "normalized_sha256": "22f9fad5a18b2e677fbb861a21f12c78275bffe0fa67c97495b8aa996011f067",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "pinned-mathlib-contract"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-review.1.json",
+      "raw_sha256": "2a519b39506249a09a32f6d7542b06ecb904eb45db8dfc7534bfbfb8dbccfbea",
+      "lf_sha256": "4db0007fc49f765bfb21c86435abe62fa1beb4e25ee4029d5aca74ac7edcfe54",
+      "bytes": 41906,
+      "sha256": "2a519b39506249a09a32f6d7542b06ecb904eb45db8dfc7534bfbfb8dbccfbea",
+      "sha256_lf": "4db0007fc49f765bfb21c86435abe62fa1beb4e25ee4029d5aca74ac7edcfe54",
+      "normalized_sha256": "4db0007fc49f765bfb21c86435abe62fa1beb4e25ee4029d5aca74ac7edcfe54",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "current-review-packet"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/anonymous.1.decoder.json",
+      "raw_sha256": "a1fdb48c5e162d2edea170630e4f84dea14e6eabdee1b684e1aff903e09ce160",
+      "lf_sha256": "ad30889624e90fb0c119d999029acb11ea3479267a707fb66a89e3f3ca7f8ca8",
+      "bytes": 8611,
+      "sha256": "a1fdb48c5e162d2edea170630e4f84dea14e6eabdee1b684e1aff903e09ce160",
+      "sha256_lf": "ad30889624e90fb0c119d999029acb11ea3479267a707fb66a89e3f3ca7f8ca8",
+      "normalized_sha256": "ad30889624e90fb0c119d999029acb11ea3479267a707fb66a89e3f3ca7f8ca8",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "current-independent-decoder-packet"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/anonymous.1.reconstruction.json",
+      "raw_sha256": "62e09b00a546091167056e47a337b75317b54ea85cc36f420c9441b63608834c",
+      "lf_sha256": "62e09b00a546091167056e47a337b75317b54ea85cc36f420c9441b63608834c",
+      "bytes": 14539,
+      "sha256": "62e09b00a546091167056e47a337b75317b54ea85cc36f420c9441b63608834c",
+      "sha256_lf": "62e09b00a546091167056e47a337b75317b54ea85cc36f420c9441b63608834c",
+      "normalized_sha256": "62e09b00a546091167056e47a337b75317b54ea85cc36f420c9441b63608834c",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "current-independent-blind-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weak-poisson-sobolev/source-lifecycle-reconciliation.json",
+      "raw_sha256": "7b8f8d14ff622a4f82e97b82250b5f3ef51f82b62c87cd0a2d09817f6f3b4ba3",
+      "lf_sha256": "7b8f8d14ff622a4f82e97b82250b5f3ef51f82b62c87cd0a2d09817f6f3b4ba3",
+      "bytes": 23707,
+      "sha256": "7b8f8d14ff622a4f82e97b82250b5f3ef51f82b62c87cd0a2d09817f6f3b4ba3",
+      "sha256_lf": "7b8f8d14ff622a4f82e97b82250b5f3ef51f82b62c87cd0a2d09817f6f3b4ba3",
+      "normalized_sha256": "7b8f8d14ff622a4f82e97b82250b5f3ef51f82b62c87cd0a2d09817f6f3b4ba3",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact on-disk component spelling checked; Git-tracked spelling checked when tracked. New files may be untracked.",
+      "scope": "own-lifecycle-reconciliation"
+    }
+  ],
+  "hash_conventions": {
+    "raw": "Exact original bytes; CRLF kept.",
+    "lf": "Replace CRLF bytes with LF only; no JSON reserialization.",
+    "review_run": "Canonical UTF8 JSON ensure_ascii=False sort_keys=True separators=(comma,colon), excluding review_run_sha256.",
+    "whole_module_file_sha256": "LF-normalized module text, with raw hash separately bound."
+  },
+  "completed_at_utc": "2026-10-06T02:55:25.012581+00:00",
+  "timing_evidence": "Fresh primary-source web reads preceded current candidate judgment; full code/source/reader reconstruction preceded final auxiliary elaboration acceptance. Direct3checks completed with sole compiler owner and exit0.",
+  "admission_scope": "Independent scoped source review only; no canonical audit/cell/ledger edits or VERIFIED transition.",
+  "review_run_sha256": "98e37bcba8ed41d579150dc8e92d5df1bde2ea76f3a838c8ce569e4568642502"
+}

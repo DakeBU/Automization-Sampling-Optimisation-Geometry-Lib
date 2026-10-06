@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-7aede7993ef8c9b6",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧\n      Integrable (fun x => Fχ x * φ x) ∧\n      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x) ∧\n    ∃ vc Fc : Lp ℂ 2 (volume : Measure E),\n      vc =ᵐ[volume] (fun x => (v x : ℂ)) ∧\n      Fc =ᵐ[volume] (fun x => (Fχ x : ℂ)) ∧\n      (∀ ψ : SchwartzMap E ℂ,\n        Integrable (fun x => (Laplacian.laplacian ψ) x * (v x : ℂ)) volume ∧\n        Integrable (fun x => ψ x * (Fχ x : ℂ)) volume ∧\n        (∫ x, (Laplacian.laplacian ψ) x * (v x : ℂ)) = ∫ x, ψ x * (Fχ x : ℂ)) ∧\n      Laplacian.laplacian (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc ∧\n      MemSobolev 2 2 (Lp.toTemperedDistribution vc)",
+    "statement_sha256": "7aede7993ef8c9b6dc6be6c35b2cc330a4c9baaf65aef603ac06f3799923ed47",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is finite-dimensional real Hilbert with Borel measurable structure and canonical ordinary Lebesgue volume, including dimension zero. All section instances remain part of the contract. NNReal denotes nonnegative real scalars.",
+      "MemLp f2volume means actual volume-a.e. strong measurability and finite L2 norm. Lp F2mu is the genuine L2 quotient with selected standard measurable representative; the statement explicitly binds vc/Fc to the real pointwise inputs via volume-AE ofReal identities. No support equality of selected complex quotient representatives is asserted.",
+      "SchwartzMap E complex is the genuine smooth rapidly decreasing test function on real E. Its derivatives are real Frechet derivatives. Laplacian.laplacian is the actual finite-basis trace on smooth test functions, and the true distribution Laplacian on tempered distributions. The rough scalar v/u is not given pointwise classical derivatives.",
+      "Lp.toTemperedDistribution at exponent2 and volume is the genuine complex tempered distribution embedding, evaluated on psi by integral psi(x)*vc(x), with no complex conjugation. Real/imaginary CLMs are real-linear; the LpTD and multiplier linearity are complex-linear.",
+      "MemSobolev s p T means an actual Lp(volume) witness fprime with besselPotential E complex s T=LpTD(fprime). besselPotential is Fourier multiplier (1+norm(x)^2)^(s/2). The fixed Fourier convention yields Delta T=-(2pi)^2 FM(norm^2)T. Order2 membership here is this exact Bessel-Sobolev statement, not an asserted real Hessian representative or weighted-core theorem.",
+      "LinearPMap is the original real-linear partial gradient on a submodule domain; D.graph is actual graph, D.IsClosable its single-valued graph closure and D.closure that same closed operator. The source D is fixed before epsilon/f; u before all chi; complex classes after each chi and before all Schwartz psi.",
+      "Measure.tilted h is exp(h)/integral exp(h) times the original measure, requiring the stated integrability/positive normalization facts; Kernel IsMarkovKernel and IsCondKernel denote actual measurable probability transition and joint disintegration, Measure.map/prod actual pushforward/product and stdGaussian the genuine standard finite real Hilbert Gaussian. ContDiff1/2/infinity and compact topological support have their usual exact Lean meanings."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "22a57978bc9dce9169fdc1288a5a826a6d83a3498f281b3b240cb973ebdfffae"
+}

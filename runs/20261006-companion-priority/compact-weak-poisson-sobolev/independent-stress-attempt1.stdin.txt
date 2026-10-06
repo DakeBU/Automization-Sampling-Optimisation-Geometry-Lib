@@ -1,0 +1,82 @@
+import Tests.CompactWeakPoissonSobolev
+import Mathlib.Analysis.InnerProductSpace.PiL2
+open MeasureTheory ProbabilityTheory InnerProductSpace TemperedDistribution
+open scoped NNReal ContDiff RealInnerProductSpace Topology SchwartzMap Laplacian
+set_option maxHeartbeats 1000000
+noncomputable section
+namespace IndependentCompactSobolevStress
+
+def bump : ContDiffBump (0:ℝ) := {rIn:=1,rOut:=2,rIn_pos:=by norm_num,rIn_lt_rOut:=by norm_num}
+def complexTest : SchwartzMap ℝ ℂ :=
+  (1+Complex.I) • ((bump.hasCompactSupport.toSchwartzMap bump.contDiff).postcompCLM Complex.ofRealCLM)
+def W : ℝ → ℝ → ℝ := fun y z =>
+  (3/8)*((1/2:ℝ)*(y+z))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+z))+‖z-y‖^2/(8*(1/2:ℝ))
+
+theorem actual_nonquadratic_half_complex_test : ∃ S : Kernel ℝ ℝ, IsMarkovKernel S ∧
+    ∀ y, ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp ℝ 2 (S y), D.IsClosable ∧
+    ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 (S y),
+    ∃ u : D.closure.domain,
+    let v := fun x => bump x * (u : Lp ℝ 2 (S y)) x
+    let Fχ := fun x => bump x * (ε * (u : Lp ℝ 2 (S y)) x +
+      inner ℝ (gradient (W y) x) (D.closure u x) - f x) +
+      2 * inner ℝ (gradient (fun z => bump z) x) (D.closure u x) +
+      (u : Lp ℝ 2 (S y)) x * Δ (fun z => bump z) x
+    ∃ vc Fc : Lp ℂ 2 (volume : Measure ℝ),
+      vc =ᵐ[volume] (fun x => (v x : ℂ)) ∧
+      Fc =ᵐ[volume] (fun x => (Fχ x : ℂ)) ∧
+      Integrable (fun x => Δ complexTest x * (v x : ℂ)) ∧
+      Integrable (fun x => complexTest x * (Fχ x : ℂ)) ∧
+      (∫ x, Δ complexTest x * (v x : ℂ)) = ∫ x, complexTest x * (Fχ x : ℂ) ∧
+      Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc ∧
+      MemSobolev 2 2 (Lp.toTemperedDistribution vc) := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    Tests.CompactWeakPoissonSobolev.actual_nonconstant_cutoff_sobolev
+      (η:=1/2) (by norm_num) (by norm_num)
+  refine ⟨S,hS,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hsolve⟩ := hfiber y
+  refine ⟨D,hClose,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hr2,hlocal,hvm,hgm,hfm,hvs,hgs,hfs,hg,hp,
+    vc,Fc,hvc,hFc,hsch,hTD,hSob⟩ := hsolve ε hε f
+  have hc := hsch complexTest
+  exact ⟨u,vc,Fc,hvc,hFc,hc.1,hc.2.1,hc.2.2,hTD,hSob⟩
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+theorem actual_zero_dim_original_gibbs_sobolev :
+    let μ := (volume : Measure E0).tilted (fun _ => -(7:ℝ))
+    ∃ D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ, D.IsClosable ∧
+      ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+      ∃ vc Fc : Lp ℂ 2 (volume : Measure E0),
+        vc =ᵐ[volume] (fun x => ((2:ℝ)*(u : Lp ℝ 2 μ) x : ℂ)) ∧
+        Fc =ᵐ[volume] (fun x => ((2:ℝ)*(ε*(u : Lp ℝ 2 μ) x-f x) : ℂ)) ∧
+        (∀ ψ : SchwartzMap E0 ℂ,
+          Integrable (fun x => Δ ψ x * ((2:ℝ)*(u : Lp ℝ 2 μ) x : ℂ)) ∧
+          Integrable (fun x => ψ x * ((2:ℝ)*(ε*(u : Lp ℝ 2 μ) x-f x) : ℂ)) ∧
+          (∫ x, Δ ψ x * ((2:ℝ)*(u : Lp ℝ 2 μ) x : ℂ)) =
+            ∫ x, ψ x * ((2:ℝ)*(ε*(u : Lp ℝ 2 μ) x-f x) : ℂ)) ∧
+        Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc ∧
+        MemSobolev 2 2 (Lp.toTemperedDistribution vc) := by
+  have hI : Integrable (fun _ : E0 => Real.exp (-(7:ℝ))) := integrable_const _
+  obtain ⟨D,hDense,hD,hClosed,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI
+  refine ⟨D,hD,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hd,hr2,hl,hp,hcut⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent.localized_weak_resolvent
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI D hD hgraph ε hε f
+  have hc : HasCompactSupport (fun _ : E0 => (2:ℝ)) :=
+    HasCompactSupport.of_support_subset_isCompact isCompact_univ (Set.subset_univ _)
+  obtain ⟨hvm,hgm,hfm,hvs,hgs,hfs,hfirst,hsecond⟩ :=
+    hcut (fun _ => (2:ℝ)) contDiff_const hc
+  obtain ⟨vc,Fc,hvc,hFc,hsch,hTD,hSob⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev
+      _ _ (tsupport (fun _ : E0 => (2:ℝ))) hc hvs hfs hvm hfm hsecond
+  refine ⟨u,vc,Fc,hvc,?_,?_,hTD,hSob⟩
+  · simpa using hFc
+  · simpa using hsch
+#print axioms actual_nonquadratic_half_complex_test
+#print axioms actual_zero_dim_original_gibbs_sobolev
+end IndependentCompactSobolevStress

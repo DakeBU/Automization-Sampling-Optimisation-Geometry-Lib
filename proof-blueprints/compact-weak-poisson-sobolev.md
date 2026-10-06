@@ -1,0 +1,19 @@
+# Actual compact weak-Poisson Sobolev interface
+
+PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 compact-gradient density/closedness analytic prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL dependency only. This authored compact-Schwartz-Sobolev prerequisite is not a quoted numbered source theorem.
+
+For actual real v,F with global volumeL2 and tsupport contained in one compactK, derive all complex Schwartz PDE, AE-linked actual complex L2classes, their TD Laplacian and MemSobolev2 from all real C2 compact PDE tests with legal products. Neither Schwartz validity nor final TD/Sobolev certificate is assumed.
+
+From genuine source C2 V/alpha beta/eta cap and original reflected R/S law, original dense closableD before epsilon/f and one trueu before allC2 compactchi, derive actual complex Schwartz/L2TD/Sobolev outputs for the formula-defined v=chi*u and Fchi from the accepted localization producer.
+
+Samplinglib FunctionalInequalities module card, technical README and live CompactC1GradientDomain/OrdinaryWeakResolvent/LocalizedWeakResolvent/ConditionalLocalizedResolvent; earlier Probability/SDE shared search. No existing compact real-test -> complex Schwartz -> LpTD/MemSob2 producer. Generic leaf needs no ASTIS mathematical parent; genuine consumer directly calls accepted conditional localization and new leaf.
+
+Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d: bounded compact strict ball, ContDiffBump unnormalized plateau/no Nontrivial, real-linear Re/Im Laplacian, Schwartz L2, Holder2/2/1 bilinear products, explicit MemLp.toLp AE, LpTD pairing, Fourier Laplacian -(2pi)^2 multiplier, Bessel potential and actual Sobolev witness. No supplied H2/core or external SLT/ATLAS port.
+
+Independent primary-first Weighted_compact_Schwartz_source_preread.md SHA e6b9e88b87ade73f2b5d72a766916caf0f7fa32be6a0982751bc0290e86c8d3f and independent Weighted_compact_Schwartz_tempered_dependency_audit.md, exact pinned original APIs read. Generic C2 cutoff, finiteHilbert/Borel0, originalD/u quantifiers and reflected/RGO scales explicit. Ignored prototype PASS standard3 is exploratory only.
+
+Route (six steps): fixed outer smooth unnormalized plateau; real-linear Re/Im actual compact tests/Laplacian locality; Holder legal complex bilinear products; AE-linked complex volumeL2 TD Laplacian; actual Fourier-normalized Bessel witness; genuine same-D/u/all-cutoffs conditional consumer.
+
+Derive actual all-complex-Schwartz tested PDE with both products L1, genuine complex volume-L2 classes/AE embeddings, actual TD Laplacian and MemSobolev2 using B2=I-(2pi)^-2 Delta. Genuine conditional same originalD before epsilon/f, one actualu before allC2 compactcutoffs; retain parent properties. No real mixed-second representatives/Hessian, original weighted localized-domain membership/core/Bochner, BL/Poincare/epsilon0/measurable fiber selector/full4.1/main/composition. Reflected/RGO laws/operators/scales distinct; TV does not transfer unbounded cost.
+
+Failure policy: retain diagnostics and narrow API/cast/representative issue; after repeated unchanged failures diagnose before retry. Never assume Schwartz validity or final Sobolev/core certificate. Minimal imports Mathlib.Analysis.Distribution.Sobolev and Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension.

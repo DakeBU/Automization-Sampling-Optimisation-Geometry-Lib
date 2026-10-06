@@ -1,6 +1,6 @@
 # Samplinglib contributor and Codex contract
 
-This contract applies to every contributor, including `jicheng9617`, `andyjm3`, `hudsonchen`, and automated coding agents acting for them. It complements `AGENTS.md`, `.agents/skills/astis-substantive-advance/SKILL.md`, `docs/theorem-publication-protocol.md`, and `docs/proof-digestion-protocol.md`.
+This contract applies to every contributor, including `jicheng9617`, `andyjm3`, `hudsonchen`, and automated coding agents acting for them. It complements `AGENTS.md`, `.agents/skills/astis-substantive-advance/SKILL.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, and `docs/evidence-routed-memory-protocol.md`.
 
 ## 1. Plan for a shared Lean graph before proving locally
 
@@ -55,7 +55,7 @@ The formalizer, blind decoder, and source reviewer must be distinct actors. Sour
 
 ## 4. Four mathematical graph views, plus Overview navigation
 
-Every source-facing Anchor follows the four-view proof-digestion stack from `docs/proof-digestion-protocol.md`; the existing `graph_contribution` Frontier-Cell fields remain the machine-readable integration contract during schema migration.
+Every source-facing Anchor follows the four-view proof-digestion stack from `docs/proof-digestion-protocol.md` and the evidence-routed learning contract from `docs/evidence-routed-memory-protocol.md`; the existing `graph_contribution` Frontier-Cell fields remain the machine-readable integration contract during schema migration.
 
 ### Source Proof Graph
 
@@ -146,4 +146,4 @@ The PR must state the graph delta, remaining mathematical boundary, reuse decisi
 
 A contributor can start Codex with:
 
-> Read `AGENTS.md`, `docs/contributor-codex-contract.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, and `.agents/skills/astis-substantive-advance/SKILL.md` before planning. Treat Chapter 1.3 as the reader-quality reference. Reuse and generalize canonical shared Lean lemmas before adding route-local copies; record actual and planned consumers. Complete the encoder–denoiser audit. Publish the exact Lean/Overview/Functor graph delta using canonical colour and solid/dashed edge semantics. Do not merge or claim completion until the current-main publication, semantic, graph, site, root Tests, and ASTIS gates pass.
+> Read `AGENTS.md`, `docs/contributor-codex-contract.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, `docs/evidence-routed-memory-protocol.md`, and `.agents/skills/astis-substantive-advance/SKILL.md` before planning. Treat Chapter 1.3 as the reader-quality reference. Reuse and generalize canonical shared Lean lemmas before adding route-local copies; record actual and planned consumers. Complete the encoder–denoiser audit. Publish the exact Lean/Overview/Functor graph delta using canonical colour and solid/dashed edge semantics. Do not merge or claim completion until the current-main publication, semantic, graph, site, root Tests, and ASTIS gates pass.

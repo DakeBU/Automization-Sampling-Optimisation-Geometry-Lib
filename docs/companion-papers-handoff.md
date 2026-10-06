@@ -1,5 +1,46 @@
 # Companion-paper formalization handoff
 
+## Actual same-solution compact localization — 2026-10-06
+
+`ASTIS-SA-20261006-LocalizedWeakResolvent` keeps the original dense closable exact
+compact-smooth gradient D fixed before epsilon/forcing and constructs ONE true
+positive-epsilon solution u before ALL C2 compact cutoffs chi. With G=D.closure u
+and r=epsilon*u+inner(gradient W,G)-f, it proves actual global ordinary-volume L2
+and support contained in tsupport chi for v=chi*u, Gchi=chi*G+u*gradient chi,
+Fchi=chi*r+2 inner(gradient chi,G)+u*Delta chi. All C1 compact directional
+weak-gradient tests and all C2 compact distribution-Laplacian tests hold with
+each tested product L1. Actual product differentiation, finite orthonormal-basis
+trace, cross-term integration and global L2/support transfer are proved; neither
+the localized equation nor a regularity/core certificate is assumed.
+
+The genuine PBPS source consumer uses the true Gaussian/Gibbs augmentation,
+original R/S disintegration and S_y=(2x-y)#R_y, reflected potential
+W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta), source C2 curvature/eta cap and original
+D_y before epsilon/input. One u works for all cutoffs. No joint measurable
+fiber choice or unreflected RGO operator identification is claimed. Finite
+Hilbert/Borel/zero-dimension and generic C1 W/C2-cutoff boundaries are explicit.
+
+Focused3308 and full independent499-line generic/all17 private proofs,87-line
+conditional module,124-line actual nonquadratic bump/C2 Test PASS. Independent
+eta1/2 and actual zero-dimensional constant7 Gibbs original-D localized tests
+PASS, standard3/fake scan. Two distinct blind reconstructions and two independent
+anti-anchored source reviews passed; raw/LF evidence and lifecycle snapshots
+retained. Exact independent proof VERIFIED `d0dfa1207402a5ac75423424994a743e51aa3d91`:
+`runs/20261006-companion-priority/localized-weak-resolvent/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+Localized v membership in the original weighted closed-gradient domain is NOT
+asserted. Compact-to-Schwartz/complex/tempered adapter, real local H2, global
+weighted generator core/Bochner, noncompact domains, centered epsilon-zero
+limit, conditional Poincare/BL, SPHMC Hessian lower/full4.1 and both complete
+main results/composition remain open. Reflected/RGO law/operator and quarter
+Hessian/Dirichlet scales remain distinct. TV never transfers unbounded cost.
+The raw weighted cutoff/core route in Discovery Ledger is planning only.
+Preceding exact612dc ordinary PDE head passed all four remote workflows; this
+head needs separate CI. Draft/open/unmerged; browser-service.mjs unavailable,
+rendered visual and metadata copy/download UI acceptance remain open.
+
+
 ## Actual ordinary weak Laplacian and conditional local L2 — 2026-10-06
 
 `ASTIS-SA-20261006-OrdinaryWeakResolvent` retains the same actual positive-epsilon

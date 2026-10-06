@@ -1,0 +1,1087 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "independent-source-fidelity-review",
+  "reviewer": "phase_source_reviewer_20261005",
+  "formalizer": "root-samplinglib-writer",
+  "decoder": "/root/blind_statement_decoder_28; independent source-blind mathematical statement decoder",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "604be753a6ad8480524cd12a81b71e9133091a51ee21fceed36ffe25fe51f45f",
+  "packet_raw_sha256": "090ba71ec473bbe8c29617ba6c178f6fc858d2c6d8d0c781a1c2bcc8be32fa56",
+  "packet_lf_sha256": "a7616b3192a94106770c484b80a58e269b23e75e98f2ab5e61a79964783960e7",
+  "source_text_sha256": "f4f080bb0d0df3de4dba6fb5b9a8310baa0d35ce22d4cabed22141b70460b266",
+  "lean_statement_sha256": "ff4ad0255139bc1b70e3e4b024e287a92392595a580f896c874de37c7feb5f42",
+  "reconstructed_text_sha256": "1f5f498f12f0fdee1eb245608eb253e0ca638e7cf697fb01c8bc778eefda0b23",
+  "decoder_packet_sha256": "1fa7e2ae8b55bdc1bfb624ddc10408c52f0469679ae08c3833308965b467de3e",
+  "decoder_run_sha256": "db8561169f11d360e38c9f98942b333550fd12efe35f106dcabc12fe80925d86",
+  "publication_binding_sha256": "751e3cc75cbc58173c0f6aa8107e050e7e4174175ec3b44634b0646738ab812a",
+  "review_context": {
+    "file": "434838bbe7c6e1a5f0de80a82d75285b54cd667d43c3bd82c23711faeb431713",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction\nimport Mathlib.Topology.MetricSpace.Contracting\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable\nimport AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing\nimport Mathlib.Tactic\n\n/-!\n# Actual source-range proximal Gaussian oracle\n\nSPHMC arXiv:2609.06906v1, (2.1), (3.2), and only Lemma 4.2 (4.4)-(4.5).\nThe exact source signature and source-only topology were independently sealed\nbefore this implementation. The numerical oracle's separate eta<=1/(2 beta)\ncall/cost boundary does not become a full-range implementation guarantee.\n\nThe Gaussian gradient-output law is distinct from the RGO posterior and HMC\ntransition. Bias, MGF, standardized posterior transport, Wp, histories, numerical\nqueries, main results and composition remain separate obligations.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace Filter Topology\nopen scoped RealInnerProductSpace NNReal ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle\n\nprivate theorem actual_gradient_bounds\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n    {V : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) :\n    LipschitzWith 1 (gradient V) ∧\n      LipschitzWith 1 (fun x => x-gradient V x) ∧\n      StrongConvexOn Set.univ κ⁻¹ V ∧\n      ∀ x z, 0 ≤ inner ℝ (gradient V x-gradient V z) (x-z) := by\n  have hκ0 : 0 < κ := lt_of_lt_of_le zero_lt_one hκ\n  have hα : 0 ≤ κ⁻¹ := (inv_pos.mpr hκ0).le\n  have hH' : ∀ x v : E,\n      ((Real.toNNReal κ⁻¹ : ℝ≥0) : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (1 : ℝ≥0)*‖v‖^2 := by\n    simpa only [Real.coe_toNNReal _ hα, NNReal.coe_one, one_mul] using hH\n  have hLip : LipschitzWith 1 (gradient V) := by\n    simpa using (QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := 0) hV hH' (0:E)).2\n  have hsc : StrongConvexOn Set.univ κ⁻¹ V :=\n    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x v => (hH x v).1)\n  have hsc0 : StrongConvexOn Set.univ 0 V :=\n    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (by\n        intro x v\n        simpa only [zero_mul] using\n          (mul_nonneg hα (sq_nonneg ‖v‖)).trans (hH x v).1)\n  have hu : ∀ x z, V z ≤ V x+inner ℝ (gradient V x) (z-x)+1/2*‖z-x‖^2 :=\n    (SmoothnessEquivalences.upper_model_iff_fderiv2_upper hV).mpr (by\n        intro x v\n        simpa only [one_mul] using (hH x v).2)\n  have hMinus : LipschitzWith 1 (fun x => x-gradient V x) := by\n    apply LipschitzWith.of_dist_le_mul\n    intro x z\n    have h := GradientDescentContraction.gradient_step_contraction (h := 1)\n      (hV.of_le (by norm_num)) hsc0\n        (by norm_num) (by norm_num) (by norm_num) (by norm_num) hu z x\n    simpa only [one_smul, zero_mul, sub_zero, Real.sqrt_one,\n      NNReal.coe_one, one_mul, dist_eq_norm] using h\n  refine ⟨hLip,hMinus,hsc,fun x z => ?_⟩\n  have h := StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn\n    (x := z) (y := x) hsc\n      (fun w _ => (hV.differentiable (by norm_num) w).hasGradientAt)\n      (Set.mem_univ z) (Set.mem_univ x)\n  exact (mul_nonneg hα (sq_nonneg ‖x-z‖)).trans h\n\nprivate theorem parameterized_damped_point\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {g : E → E}\n    (hg : LipschitzWith 1 (fun x => x-g x))\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧ ∀ s, p s+eta s • g (p s)=y s := by\n  let f : S → E → E := fun s x => (1+eta s)⁻¹ • (y s+eta s • (x-g x))\n  have hsum (s : S) : 0 < 1+eta s := by linarith [hpos s]\n  let c : S → ℝ≥0 := fun s => ⟨(1+eta s)⁻¹*eta s,\n    mul_nonneg (inv_pos.mpr (hsum s)).le (hpos s).le⟩\n  have hc (s : S) : ContractingWith (c s) (f s) := by\n    refine ⟨?_,LipschitzWith.of_dist_le_mul fun x z => ?_⟩\n    · change (1+eta s)⁻¹*eta s < 1\n      rw [← div_eq_inv_mul]\n      apply (div_lt_iff₀ (hsum s)).mpr\n      linarith\n    · have h := hg.dist_le_mul x z\n      simp only [NNReal.coe_one,one_mul,dist_eq_norm] at h\n      have hid : f s x-f s z = (1+eta s)⁻¹ •\n          (eta s • ((x-g x)-(z-g z))) := by\n        dsimp only [f]\n        rw [← smul_sub]\n        congr 1\n        module\n      rw [dist_eq_norm,hid,norm_smul,norm_smul,Real.norm_eq_abs,Real.norm_eq_abs,\n        abs_of_pos (inv_pos.mpr (hsum s)),abs_of_pos (hpos s)]\n      simp only [dist_eq_norm]\n      change (1+eta s)⁻¹*(eta s*‖(x-g x)-(z-g z)‖) ≤\n        ((1+eta s)⁻¹*eta s)*‖x-z‖\n      calc\n        (1+eta s)⁻¹*(eta s*‖(x-g x)-(z-g z)‖) =\n            ((1+eta s)⁻¹*eta s)*‖(x-g x)-(z-g z)‖ := by ring\n        _ ≤ ((1+eta s)⁻¹*eta s)*‖x-z‖ :=\n          mul_le_mul_of_nonneg_left h (mul_nonneg (inv_pos.mpr (hsum s)).le (hpos s).le)\n  let p : S → E := fun s => (hc s).fixedPoint (f s)\n  have hit (n : ℕ) : Measurable (fun s => (f s)^[n] (0 : E)) := by\n    induction n with\n    | zero => simpa only [Function.iterate_zero,id_eq] using\n        (measurable_const : Measurable (fun _ : S => (0:E)))\n    | succ n ih =>\n      simp only [Function.iterate_succ_apply']\n      exact (measurable_const.add heta).inv.smul\n        (hy.add (heta.smul (hg.continuous.measurable.comp ih)))\n  have hp : Measurable p := measurable_of_tendsto_metrizable hit\n    (tendsto_pi_nhds.mpr (fun s => (hc s).tendsto_iterate_fixedPoint 0))\n  refine ⟨p,hp,fun s => ?_⟩\n  have heq : f s (p s)=p s := (hc s).fixedPoint_isFixedPt\n  have hs := congrArg (fun x : E => (1+eta s) • x) heq\n  simp only [f,smul_smul,mul_inv_cancel₀ (ne_of_gt (hsum s)),one_smul] at hs\n  calc\n    p s+eta s • g (p s) = (1+eta s) • p s-eta s • (p s-g (p s)) := by module\n    _ = y s := by rw [← hs]; module\n\nprivate theorem actual_quadratic_minimum\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n    {V : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y p : S → E} (hpos : ∀ s, 0 < eta s)\n    (heq : ∀ s, p s+eta s • gradient V (p s)=y s) :\n    let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2\n    ∀ s z, F s (p s)+(κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n      (F s z ≤ F s (p s) ↔ z=p s) := by\n  let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2\n  have hα : 0 ≤ κ⁻¹ := (inv_pos.mpr (lt_of_lt_of_le zero_lt_one hκ)).le\n  have hH' : ∀ x v : E,\n      ((Real.toNNReal κ⁻¹ : ℝ≥0) : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (1 : ℝ≥0)*‖v‖^2 := by\n    simpa only [Real.coe_toNNReal _ hα,NNReal.coe_one,one_mul] using hH\n  change ∀ s z, F s (p s)+(κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n    (F s z ≤ F s (p s) ↔ z=p s)\n  intro s z\n  have hd : Differentiable ℝ V := hV.differentiable (by norm_num)\n  have hq (x : E) : HasFDerivAt (fun w => (eta s)⁻¹/2*‖w-y s‖^2)\n      ((eta s)⁻¹ • innerSL ℝ (x-y s)) x := by\n    convert (((hasFDerivAt_id x).sub_const (y s)).norm_sq).const_mul ((eta s)⁻¹/2)\n      using 1 <;> first | rfl | (ext v; simp; ring)\n  have hFd (x : E) : DifferentiableAt ℝ (F s) x :=\n    (hd x).add (hq x).differentiableAt\n  have hg (x : E) : gradient (F s) x = gradient V x+(eta s)⁻¹ • (x-y s) := by\n    apply HasGradientAt.gradient\n    rw [hasGradientAt_iff_hasFDerivAt]\n    change HasFDerivAt (fun w => V w+(eta s)⁻¹/2*‖w-y s‖^2)\n      ((toDual ℝ E) (gradient V x+(eta s)⁻¹ • (x-y s))) x\n    convert! (hd x).hasGradientAt.hasFDerivAt.add (hq x) using 1\n    simp only [map_add,map_smul]\n    rfl\n  have hz : gradient (F s) (p s)=0 := by\n    rw [hg]\n    have hs : p s-y s=-(eta s • gradient V (p s)) := by rw [← heq s]; abel\n    rw [hs,smul_neg,smul_smul,inv_mul_cancel₀ (ne_of_gt (hpos s)),one_smul,add_neg_cancel]\n  have hsc : StrongConvexOn Set.univ (κ⁻¹+(eta s)⁻¹) (F s) := by\n    have hb := QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := Real.toNNReal ((eta s)⁻¹)) hV hH' (y s)\n    simpa [F,Real.coe_toNNReal _ hα,Real.coe_toNNReal _ (inv_nonneg.mpr (hpos s).le)] using hb.1\n  have hbound := StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hsc\n    (fun x _ => (hFd x).hasGradientAt) (x := p s) (y := z)\n    (Set.mem_univ _) (Set.mem_univ _)\n  rw [hz,inner_zero_left,add_zero] at hbound\n  refine ⟨hbound,⟨fun hle => ?_,fun he => by rw [he]⟩⟩\n  have ha : 0 < (κ⁻¹+(eta s)⁻¹)/2 :=\n    div_pos (add_pos_of_nonneg_of_pos hα (inv_pos.mpr (hpos s))) (by norm_num)\n  have hnonpos : (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ 0 := by linarith\n  have hn : ‖z-p s‖^2=0 :=\n    le_antisymm (nonpos_of_mul_nonpos_right hnonpos ha) (sq_nonneg _)\n  exact sub_eq_zero.mp (norm_eq_zero.mp (sq_eq_zero_iff.mp hn))\n\nset_option maxHeartbeats 800000 in\ntheorem full_range_proximal_gaussian_oracle\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s + eta s • gradient V (p s) = y s) ∧\n      (∀ s z, F s (p s) + (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n        (F s z ≤ F s (p s) ↔ z=p s)) ∧\n      (∀ s t, eta s = eta t → ‖p s-p t‖ ≤ ‖y s-y t‖) ∧\n      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n      Measurable G ∧\n      (∀ s t z w, eta s = eta t →\n        ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧\n      ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧\n        ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z)) := by\n  let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2\n  obtain ⟨hLip,hMinus,_hsc,hmono⟩ := actual_gradient_bounds hκ hV hH\n  obtain ⟨p,hp,heq⟩ := parameterized_damped_point hMinus heta hy hpos\n  have hmin := actual_quadratic_minimum hκ hV hH hpos heq\n  have hnexp : ∀ s t, eta s=eta t → ‖p s-p t‖ ≤ ‖y s-y t‖ := by\n    intro s t ht\n    have hsub : y s-y t=(p s-p t)+eta s • (gradient V (p s)-gradient V (p t)) := by\n      rw [← heq s,← heq t,← ht]\n      module\n    have hpair : ‖p s-p t‖^2 ≤ inner ℝ (y s-y t) (p s-p t) := by\n      calc\n        _ ≤ ‖p s-p t‖^2+eta s*inner ℝ (gradient V (p s)-gradient V (p t)) (p s-p t) :=\n          le_add_of_nonneg_right (mul_nonneg (hpos s).le (hmono (p s) (p t)))\n        _ = _ := by\n          rw [hsub,inner_add_left,real_inner_smul_left,real_inner_self_eq_norm_sq]\n    have hb := hpair.trans (real_inner_le_norm (y s-y t) (p s-p t))\n    by_cases hz : ‖p s-p t‖=0\n    · simpa only [hz] using norm_nonneg (y s-y t)\n    · have hpositive : 0 < ‖p s-p t‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hz)\n      nlinarith\n  refine ⟨p,hp,heq,hmin,hnexp,?_⟩\n  let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n  have hG : Measurable G := hLip.continuous.measurable.comp\n    ((hp.comp measurable_fst).add ((heta.comp measurable_fst).sqrt.smul measurable_snd))\n  have hGLip : ∀ s t z w, eta s=eta t →\n      ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖ := by\n    intro s t z w ht\n    have h := hLip.dist_le_mul (p s+Real.sqrt (eta s) • z) (p t+Real.sqrt (eta t) • w)\n    simp only [NNReal.coe_one,one_mul,dist_eq_norm] at h\n    have hdiff : (p s+Real.sqrt (eta s) • z)-(p t+Real.sqrt (eta t) • w) =\n        (p s-p t)+Real.sqrt (eta s) • (z-w) := by rw [← ht]; module\n    calc\n      _ ≤ ‖(p s+Real.sqrt (eta s) • z)-(p t+Real.sqrt (eta t) • w)‖ := h\n      _ = ‖(p s-p t)+Real.sqrt (eta s) • (z-w)‖ := by rw [hdiff]\n      _ ≤ ‖p s-p t‖+‖Real.sqrt (eta s) • (z-w)‖ := norm_add_le _ _\n      _ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖ := by\n        rw [norm_smul,Real.norm_eq_abs,abs_of_nonneg (Real.sqrt_nonneg _)]\n        exact add_le_add (hnexp s t ht) le_rfl\n  let K := (Kernel.id ×ₖ Kernel.const S (stdGaussian E)).map G\n  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hG\n  have hKs (s : S) : K s=(stdGaussian E).map (fun z => G (s,z)) := by\n    dsimp only [K]\n    rw [Kernel.map_apply _ hG,Kernel.prod_apply,Kernel.id_apply,Kernel.const_apply,\n      Measure.dirac_prod,Measure.map_map hG (by fun_prop)]\n    rfl\n  exact ⟨hG,hGLip,K,hK,hKs⟩\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle\nend\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "SPHMC arXiv2609.06906v1 S3.SS1.p1.1 eta>0, S2.E1/S3.E2/S4.Ex3 proximal and Gaussian evaluator, S4.E4/E5, Ex8/p4.1/p4.2/p4.3/E6 only lastTWO comparisons. NeighborLemma4.1 eta<=1 excluded; numericaleta<=1/(2beta) cost separate.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; exact proximal/evaluator and only Lemma4.2 input/noise components."
+    },
+    "statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
+    "formulae": [
+      {
+        "label": "Actual full-range proximal Gaussian oracle",
+        "tex": "F_s(x)=V(x)+\\|x-y_s\\|^2/(2\\eta_s),\\quad p_s+\\eta_s\\nabla V(p_s)=y_s,\\quad G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad K_s=G(s,\\cdot)_\\#\\gamma."
+      }
+    ],
+    "assumptions": [
+      "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.",
+      "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with eta(s)>0 for every s. These coordinate-free/parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.",
+      "No supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
+    ],
+    "obligations": [
+      {
+        "id": "actual-oracle-input-noise",
+        "label": "Actual source-range proximal Gaussian evaluator and input/noise components"
+      },
+      {
+        "id": "posterior-bias-mgf",
+        "label": "Standardized posterior transport, bias/MGF and higher regularity remaining"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expected-cost composition remaining"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+      "title": "Allpositive-step actual proximal Gaussian oracle",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem2",
+          "label": "SPHMC (2.1), (3.2), only (4.4)-(4.5)",
+          "scope": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.FullRangeProximalGaussianOracle"
+      ],
+      "assumptions": [
+        "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.",
+        "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with eta(s)>0 for every s. These coordinate-free/parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.",
+        "No supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
+      ],
+      "statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
+      "formula": "F_s(x)=V(x)+\\|x-y_s\\|^2/(2\\eta_s),\\quad p_s+\\eta_s\\nabla V(p_s)=y_s,\\quad G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad K_s=G(s,\\cdot)_\\#\\gamma.",
+      "steps": [
+        {
+          "title": "Derive the real gradient estimates",
+          "text": "Reuse the actual C2 Hessian-to-gradient and strong-convexity APIs. The source upper bound supplies gradientV Lipschitz1. The convex gradient-step theorem supplies id-gradientV Lipschitz1, and convexity supplies monotonicity. None is a theorem premise.",
+          "formula": "\\operatorname{Lip}(\\nabla V)\\le1,\\quad\\operatorname{Lip}(I-\\nabla V)\\le1,\\quad\\langle\\nabla V(x)-\\nabla V(z),x-z\\rangle\\ge0.",
+          "lean": "actual_gradient_bounds; QuadraticRegularization; SmoothnessEquivalences; GradientDescentContraction; StrongConvexFirstOrder"
+        },
+        {
+          "title": "Construct the actual pointwise damped map",
+          "text": "For each actual positive eta, T_s contracts with its own coefficient eta_s/(1+eta_s)<1. The coefficients may approach one over the parameter space. Banach fixed-point construction is pointwise and makes no uniform-parameter contraction or runtime assumption.",
+          "formula": "T_s(x)=(1+\\eta_s)^{-1}[y_s+\\eta_s(x-\\nabla V(x))],\\quad c_s=\\eta_s/(1+\\eta_s)<1.",
+          "lean": "parameterized_damped_point; ContractingWith"
+        },
+        {
+          "title": "Obtain joint measurability from actual iterates",
+          "text": "Every iterate T_s^n(0) is measurable in s from actual measurable eta/y and the continuous id-minus-gradient map. Pointwise Banach convergence with the actual c_s and measurable-limit theorem give a measurable p. Uniform convergence and an upper eta cap are unnecessary; no measurable selector is supplied.",
+          "formula": "p_s=\\lim_{n\\to\\infty}T_s^n(0),\\quad s\\mapsto p_s\\text{ measurable, even when }\\sup_s c_s=1.",
+          "lean": "ContractingWith.fixedPoint; tendsto_iterate_fixedPoint; measurable_of_tendsto_metrizable"
+        },
+        {
+          "title": "Recover the exact source equation",
+          "text": "Multiply the actual fixed-point equation by positive 1+eta and cancel the scalar inverse. The resulting equality is the literal proximal first-order condition for the source quadratic potential.",
+          "formula": "p_s+\\eta_s\\nabla V(p_s)=y_s.",
+          "lean": "ContractingWith.fixedPoint_isFixedPt; smul_smul; mul_inv_cancel₀"
+        },
+        {
+          "title": "Prove the genuine minimum and uniqueness",
+          "text": "Differentiate the true quadratic regularization. Its gradient vanishes at the constructed p. Existing strong-convexity and first-order bounds give the exact coefficient (kappa^-1+eta^-1)/2. Positivity forces norm(z-p)^2=0 for any competing lower point.",
+          "formula": "F_s(p_s)+\\tfrac12(\\kappa^{-1}+\\eta_s^{-1})\\|z-p_s\\|^2\\le F_s(z),\\quad F_s(z)\\le F_s(p_s)\\iff z=p_s.",
+          "lean": "actual_quadratic_minimum; HasFDerivAt.norm_sq; QuadraticRegularization; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+        },
+        {
+          "title": "Keep nonexpansivity at fixed eta",
+          "text": "Subtract the two literal proximal equations only when eta_s=eta_t. Monotonicity bounds the inner product below by the squared proximal distance. Cauchy-Schwarz and positive-norm cancellation give nonexpansivity; a zero-distance branch is handled separately.",
+          "formula": "\\eta_s=\\eta_t\\Longrightarrow\\|p_s-p_t\\|^2\\le\\langle y_s-y_t,p_s-p_t\\rangle\\Longrightarrow\\|p_s-p_t\\|\\le\\|y_s-y_t\\|.",
+          "lean": "gradient_inner_lower_bound_of_strongConvexOn; real_inner_le_norm; norm_nonneg"
+        },
+        {
+          "title": "Use the literal Gaussian gradient evaluator",
+          "text": "The actual measurable p, eta square root and noise coordinate give a jointly measurable input to the continuous gradient. No posterior identification or oracle witness is used.",
+          "formula": "G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad G\\text{ measurable on }S\\times E.",
+          "lean": "Measurable.comp; Measurable.sqrt; Measurable.smul; LipschitzWith.continuous"
+        },
+        {
+          "title": "Prove the exact input and noise constants",
+          "text": "Apply the true gradient Lipschitz bound, split the input difference with the triangle inequality and use proximal nonexpansivity at equal eta. The literal square-root coefficient stays outside the noise norm. This supplies both source inequalities (4.4)-(4.5).",
+          "formula": "\\eta_s=\\eta_t\\Longrightarrow\\|G(s,z)-G(t,w)\\|\\le\\|y_s-y_t\\|+\\sqrt{\\eta_s}\\|z-w\\|.",
+          "lean": "LipschitzWith.dist_le_mul; norm_add_le; norm_smul; Real.sqrt_nonneg"
+        },
+        {
+          "title": "Realize the actual Markov kernel",
+          "text": "Take the product of the identity kernel and the constant standard Gaussian kernel, then map it by G. Joint measurability proves it Markov; dirac-product and map-map give the exact pointwise pushforward. This gradient-output law is distinct from the RGO posterior and HMC transitions.",
+          "formula": "K=(\\mathrm{id}\\times\\gamma).\\mathrm{map}(G),\\quad K_s=G(s,\\cdot)_\\#\\gamma,\\quad K_s(E)=1.",
+          "lean": "Kernel.id; Kernel.const; Kernel.prod; Kernel.IsMarkovKernel.map; Measure.dirac_prod; Measure.map_map"
+        }
+      ],
+      "lean_statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
+      "lean_proof": "Derive the real gradient estimates; Construct the actual pointwise damped map; Obtain joint measurability from actual iterates; Recover the exact source equation; Prove the genuine minimum and uniqueness; Keep nonexpansivity at fixed eta; Use the literal Gaussian gradient evaluator; Prove the exact input and noise constants; Realize the actual Markov kernel",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences.upper_model_iff_fderiv2_upper",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_step_contraction",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "ContractingWith.fixedPoint",
+        "ContractingWith.tendsto_iterate_fixedPoint",
+        "measurable_of_tendsto_metrizable",
+        "real_inner_le_norm",
+        "HasFDerivAt.norm_sq",
+        "Kernel.id",
+        "Kernel.const",
+        "Kernel.prod",
+        "Kernel.IsMarkovKernel.map",
+        "Measure.dirac_prod",
+        "Measure.map_map"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+      "role": "proof-edge",
+      "supports": [
+        "actual-oracle-input-noise"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean d-dimensional source beta1/alpha=kappa^-1 and eta>0; exact argmin and Gaussian gradient definition.",
+        "lean": "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.\nFinite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with eta(s)>0 for every s. These coordinate-free/parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.\nNo supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
+      },
+      {
+        "source": "Actual proximal existence/uniqueness/optimality are implicit and source uses fixed-eta nonexpansivity.",
+        "lean": "The constructed pointwise damped fixed point supplies measurable selector, true equation and unique quadratic minimum internally."
+      },
+      {
+        "source": "Gaussian estimator (3.2), only input Lipschitz (4.4) and noise Lipschitz (4.5).",
+        "lean": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim."
+      },
+      {
+        "source": "Separate bias/MGF, posterior standardized law, Wp, warmness, numerical implementation, both main theorems and composition.",
+        "lean": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost."
+      },
+      {
+        "source": "Section3.1 eta>0 and Lemma4.2 have no upper eta bound; neighboring Lemma4.1 alone requires eta<=1.",
+        "lean": "All eta(s)>0, with no hsmall cap; every other sealed binder and output is unchanged."
+      }
+    ]
+  },
+  "review_context_sha256": "3e4c0561b66d57c749f2506d0d54409ada8e4a0f438d58783d1c7372187eb48f",
+  "whole_module_file_sha256": "434838bbe7c6e1a5f0de80a82d75285b54cd667d43c3bd82c23711faeb431713",
+  "whole_module_raw_sha256": "4f5aee65b52f44bf7da304f694da733a322c9a53768e701566dfe92bcc064c6d",
+  "whole_module_lf_sha256": "434838bbe7c6e1a5f0de80a82d75285b54cd667d43c3bd82c23711faeb431713",
+  "whole_module_reviewed": true,
+  "whole_module_lines": 252,
+  "private_declarations_reviewed": [
+    "actual_gradient_bounds",
+    "parameterized_damped_point",
+    "actual_quadratic_minimum"
+  ],
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual prox of V+||x-y||²/(2eta), and literal Gaussian-gradient evaluator (3.2).",
+      "reconstructed": "One constructed measp solves its actual minimization/equation; G(s,z)=gradV(p_s+sqrteta_s z), K_s=G(s,-)#stdGaussian.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source Ex3/3.2; complete3 private proofs, actual K product/map realization and decoder0."
+    },
+    "domains": {
+      "original": "Source full R^d, ordinary Euclidean norm and standardGaussian.",
+      "reconstructed": "Finite real complete inner-product/Borel E including0D, arbitrary measurable S; no S topology/measure/nonemptiness.",
+      "relation": "explicit-elaboration",
+      "evidence": "Disclosed coordinate-free and parameter-family elaboration;0D and varying/unbounded-eta Tests."
+    },
+    "quantifiers": {
+      "original": "Every eta>0 and all y,yprime/z,zprime at same eta.",
+      "reconstructed": "One measp and one actual MarkovK for entire measurable eta/y family; all minimization points and equal-eta input/noise pairs universally quantified.",
+      "relation": "equivalent",
+      "evidence": "No hsmall; pointwise c_s<1 before measurable limit; source Section3.1 contrasted with neighborLemma4.1."
+    },
+    "assumptions": {
+      "original": "Standing beta1, alpha=kappa^-1, kappa>=1 and genuine global C2 Hessian bounds; eta>0.",
+      "reconstructed": "Exactly those curvature/regularity/positive-step premises plus explicit measurable-family typing; no supplied point, Lipschitz/kernel/normalizer certificate.",
+      "relation": "explicit-elaboration",
+      "evidence": "Actual gradient, monotonicity, convexity and id-grad nonexpansivity derived internally; recursive binder classification found no EXCESS."
+    },
+    "conclusion": {
+      "original": "Actual evaluator and source (4.4) inputLip1/(4.5) noiseLip sqrteta.",
+      "reconstructed": "Combined coefficient1/sqrteta bound implies each source component; actual growth/unique minimum/measurability and Markov output supply omitted analytic details.",
+      "relation": "explicit-elaboration",
+      "evidence": "Full252-line module,9 lesson steps, actual quadratic varying/unbounded-eta Gaussian-output law and moments."
+    },
+    "scopes": {
+      "original": "Bounded actual analytic evaluator component; numerical queries/bias/MGF/fullLemma/main outside.",
+      "reconstructed": "No posterior identity or HMC kernel in this theorem; no uniform iteration/cost guarantee at unbounded eta.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source S2.p2.2 cap1/(2beta) distinct; FIRST4.6/W2/bias/MGF/fullLemma/work boundaries retained."
+    },
+    "constant_dependencies": {
+      "original": "Prox precision1/eta; input coefficient1 and noise sqrteta with normalized beta1.",
+      "reconstructed": "Growth(kappa^-1+eta^-1)/2; pair bound1/sqrteta; pointwise damping eta/(1+eta)<1 with no uniform gap.",
+      "relation": "equivalent",
+      "evidence": "Literal fixed-point algebra, actual quadratic Hessian, monotonicity and exactGaussian coefficients checked."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "blocking": false,
+  "blocking_flags": [],
+  "repairs": [],
+  "review_evidence": "Fresh primary-first contract and21 literal source anchors; complete current production modules including all5 private proofs, both full Tests, all19 lesson steps, actual needed parent and pinned Mathlib contracts. Current packet/hash and live publication/context independently recomputed. Bounded canonical projection changes only labels/preserved observations/attestation and no mathematical bytes. Detailed immutable evidence source.review.evidence.json and source.review.normalization-api.json. No compiler or whole-math-review verdict used; no self-admission/VERIFIED.",
+  "review_evidence_artifacts": [
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.evidence.json",
+      "raw_sha256": "756385b58f3848f74bdefcfa8d25a5b72bf05803de5a87d192d3a9fdae02080e",
+      "lf_sha256": "756385b58f3848f74bdefcfa8d25a5b72bf05803de5a87d192d3a9fdae02080e",
+      "review_run_sha256": "ba4a0f7257c88324c3f4da9ed9a5d44ed51a9dd33c7b12d9fad427021c19c4bf"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.normalization-api.json",
+      "raw_sha256": "a411c58a44d8bd0d794fd9cd40903bbbc82e2d9b7f4da4c617627a2b56a95690",
+      "lf_sha256": "a411c58a44d8bd0d794fd9cd40903bbbc82e2d9b7f4da4c617627a2b56a95690",
+      "review_run_sha256": "6f5e9e4ae2aa57e83c0ed9c5320e9c223ccfdc3c7056915c6424c75b78725dc4"
+    }
+  ],
+  "fresh_primary": {
+    "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final-contract.json",
+    "raw_sha256": "e0b9b793583a8a3ae9999b18eee465cdd73846764f5871772d9a55c088e94098",
+    "review_run_sha256": "74243f3769cd31633e8eece891614aa6e81af47e9e993901835f421a9fbe3777",
+    "literal_read_completed_at_utc": "2026-10-06T16:44:00.230988+00:00",
+    "sealed_at_utc": "2026-10-06T16:45:32.550086+00:00",
+    "primary_before_current_candidate": true,
+    "source_raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+    "edition": "arXiv:2609.06906v1"
+  },
+  "exposure_attestation": "Historical26/27 source/math/preproof exposures and28 preproof statement/topology are known. Fresh28 final primary contract was sealed before current implementation/reconstructions. This final review reads complete current code, both Tests, all19 lessons and fresh blind reconstructions. Current whole-math-review verdict and ignored prototypes were not read; math artifact is footprint-only. No all-history-blindness claim.",
+  "source_boundary": "Only all-positive-step source (3.2)/(4.4)/(4.5), actual normalized standardized RGO law and last TWO (4.6) comparisons; FIRST W2/Talagrand/LSI, (4.2) bias, (4.3) MGF, full Lemma4.2, joint posterior Markov family, HMC/Picard/main/work/composition remain open. Neighbor Lemma4.1 eta<=1 and numerical-prox eta<=1/(2beta) are distinct.",
+  "binders_and_hidden_assumptions": {
+    "SOURCE/STANDING": "kappa>=1/global genuine C2 Hessian kappa^-1..1 and every eta>0",
+    "TYPING": "finite real inner-product/Borel/full-space representation including0D; CompleteSpace for two actual analytic consumers; arbitrary measurable S and actual measurable eta/y",
+    "RULED/DERIVED": "actual measp, real minimizer/equation/growth, true normalization/probability/partition, rho/Q calculus/mode, actual L2 moments and Markov pushforward are outputs/internal dependencies",
+    "EXCESS": []
+  },
+  "actual_proof_review": "All3 private proofs and public proof checked: actual gradV and id-gradV Lip1/monotonicity from genuine C2 Hessian; damped T_s=(y_s+eta_s(id-gradV))/(1+eta_s) is pointwise contracting with c_s=eta_s/(1+eta_s)<1 for every eta_s>0. Measurable iterates converge pointwise to one measurable p; no uniform gap/cap/finite runtime. Fixed-point equation, actual quadratic growth/uniqueness, zero-distance/equal-eta nonexpansivity and joint-measurable actual Gaussian-output Markov construction follow.",
+  "publication_and_reader_provenance": "All9+7+3 reader steps and live ASTIS/Mathlib dependency lists checked against actual calls. Generic affine leaf has no IBP dependency; IBP appears only in its actual standardized source consumer. Actual reflected PBPS laws/quarter scaling are not identified here.",
+  "canonical_projection_reconciliation": {
+    "audit_path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-PositiveStepProximalGaussianOracle.json",
+    "exact_changed_fields": [
+      "/reconstruction/administrative_schema_projection",
+      "/reconstruction/input_artifacts",
+      "/reconstruction/observed_input_artifacts"
+    ],
+    "changes": [
+      {
+        "path": "/reconstruction/administrative_schema_projection",
+        "before": null,
+        "after": "Canonical materials labels come verbatim from the same originally observed anonymous packet; actual byte-observation descriptors and portable independent decoder results remain separately preserved. No mathematical reconstruction, decoder identity/run/statement/source visibility changed."
+      },
+      {
+        "path": "/reconstruction/input_artifacts",
+        "before": [
+          {
+            "path": "E:\\Samplinglib\\.astis\\decoder-28\\packet0.json",
+            "kind": "anonymous-canonical-packet",
+            "raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+            "lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+            "sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+            "immutable_raw_snapshot": {
+              "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet0.raw.snapshot.json",
+              "raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+              "lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+              "bytes": 3648
+            },
+            "immutable_raw_snapshot_path": "runs/20261007-companion-priority/anonymous-decoder-28/packet0.raw.snapshot.json",
+            "immutable_raw_snapshot_raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+            "immutable_raw_snapshot_lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+            "immutable_raw_snapshot_bytes": 3648
+          }
+        ],
+        "after": [
+          "lean-statement",
+          "approved-definition-context"
+        ]
+      },
+      {
+        "path": "/reconstruction/observed_input_artifacts",
+        "before": null,
+        "after": [
+          {
+            "path": "E:\\Samplinglib\\.astis\\decoder-28\\packet0.json",
+            "kind": "anonymous-canonical-packet",
+            "raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+            "lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+            "sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+            "immutable_raw_snapshot": {
+              "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet0.raw.snapshot.json",
+              "raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+              "lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+              "bytes": 3648
+            },
+            "immutable_raw_snapshot_path": "runs/20261007-companion-priority/anonymous-decoder-28/packet0.raw.snapshot.json",
+            "immutable_raw_snapshot_raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+            "immutable_raw_snapshot_lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+            "immutable_raw_snapshot_bytes": 3648
+          }
+        ]
+      }
+    ],
+    "observed_descriptors_preserved": true,
+    "decoder_labels_match_canonical_packet": true,
+    "reviewer_packet_raw_bytes_unchanged": true,
+    "mathematical_reconstruction_and_run_unchanged": true
+  },
+  "administrative_revision": 2,
+  "input_artifacts": [
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-PositiveStepProximalGaussianOracle.json",
+      "raw_sha256": "ed15c842ac6ea5bdfeecdc396a73e98720313fe8b54440cce1dbf3fdcf908889",
+      "lf_sha256": "f779af7b00082fde3a93531d7629fd0526a49f93d3a48858345c7070f63f199a",
+      "bytes": 39488,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.000.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.0.reviewer-packet.json",
+      "raw_sha256": "090ba71ec473bbe8c29617ba6c178f6fc858d2c6d8d0c781a1c2bcc8be32fa56",
+      "lf_sha256": "a7616b3192a94106770c484b80a58e269b23e75e98f2ab5e61a79964783960e7",
+      "bytes": 39591,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.001.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/canonical-projection-before.0.raw.snapshot.audit.json",
+      "raw_sha256": "b9e1b818dd87a241b02f002e4bd54e0bfa8b9a0c14f15ebdd10c860641f02175",
+      "lf_sha256": "9d733827ff2ad0a857e86b0ee086d2b97d0641a720bf45aeb6d9111b90edf6e2",
+      "bytes": 39050,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.002.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.0.reviewer-packet.before-canonical-projection.raw.snapshot.json",
+      "raw_sha256": "090ba71ec473bbe8c29617ba6c178f6fc858d2c6d8d0c781a1c2bcc8be32fa56",
+      "lf_sha256": "a7616b3192a94106770c484b80a58e269b23e75e98f2ab5e61a79964783960e7",
+      "bytes": 39591,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.003.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-PositiveStepStandardizedRGO.json",
+      "raw_sha256": "e1506c3cb0e919f0bb62841d17dd2e44cecdc81ca9af27a2503f8c5a07dd8877",
+      "lf_sha256": "c0221138307151b58a7d25f454d7607455448004fbfd4d42341ddfc8a120a2ae",
+      "bytes": 42582,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.004.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.1.reviewer-packet.json",
+      "raw_sha256": "914091c1ec4f5fbf1f906468bd2269c7f3df91192f30cd2cee583ce3e34d3360",
+      "lf_sha256": "9bb2aded3a8afb4a20da58d55ef21f6905707acb71e6f586b4d36bacbfa8b576",
+      "bytes": 42497,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.005.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/canonical-projection-before.1.raw.snapshot.audit.json",
+      "raw_sha256": "51e463b45ca0cf1fb50a1988d9098d5d1f2676329c59d8a44e8c804f0150f4cc",
+      "lf_sha256": "53bbbc16e682bd0abf1dfe9b08251ba784bd963d5aac3655477430468920001f",
+      "bytes": 42144,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.006.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.1.reviewer-packet.before-canonical-projection.raw.snapshot.json",
+      "raw_sha256": "914091c1ec4f5fbf1f906468bd2269c7f3df91192f30cd2cee583ce3e34d3360",
+      "lf_sha256": "9bb2aded3a8afb4a20da58d55ef21f6905707acb71e6f586b4d36bacbfa8b576",
+      "bytes": 42497,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.007.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-AffineGibbsReaderRange.json",
+      "raw_sha256": "c40a4f2700ccb0445707e2a85c4532b0c1a57d66b14186c243e5ded71d0f2694",
+      "lf_sha256": "6c4e91362898185a7387757e2c4fa0961a7bf377782aa071e5d5c0bb11be38d5",
+      "bytes": 19072,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.008.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.2.reviewer-packet.json",
+      "raw_sha256": "2a4b2a0ed1345732218d6015aa62a8ad8e763e026a8dd7e1125b95ccd9fb4d90",
+      "lf_sha256": "d65c7ac4a245546a2a9d33b0fd112fbed2986cf8903699bc00e1a77bc7f70e76",
+      "bytes": 18618,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.009.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/canonical-projection-before.2.raw.snapshot.audit.json",
+      "raw_sha256": "ba2790620074e84604d35137c685276015ad0a45d91750ab3aae7da96615986e",
+      "lf_sha256": "b95968e44e6e63efc8063913af58cbe40f36007213cd8f57211168eab5c7d778",
+      "bytes": 18634,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.010.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.2.reviewer-packet.before-canonical-projection.raw.snapshot.json",
+      "raw_sha256": "2a4b2a0ed1345732218d6015aa62a8ad8e763e026a8dd7e1125b95ccd9fb4d90",
+      "lf_sha256": "d65c7ac4a245546a2a9d33b0fd112fbed2986cf8903699bc00e1a77bc7f70e76",
+      "bytes": 18618,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.011.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/lease.json",
+      "raw_sha256": "693a2a834e251ff36075c2761fee20626773f51fd32afa807ee9161e31193613",
+      "lf_sha256": "693a2a834e251ff36075c2761fee20626773f51fd32afa807ee9161e31193613",
+      "bytes": 14118,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.012.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/original-result0.raw.snapshot.json",
+      "raw_sha256": "f836da5e47f09890618180868c691b44d0f7862b78177918fa893f90315b5cb7",
+      "lf_sha256": "f836da5e47f09890618180868c691b44d0f7862b78177918fa893f90315b5cb7",
+      "bytes": 8524,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.013.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/original-result1.raw.snapshot.json",
+      "raw_sha256": "4f35c520062e3faa4de551f605723b8b02baefd44959aea0b8bc40539b2f24b7",
+      "lf_sha256": "4f35c520062e3faa4de551f605723b8b02baefd44959aea0b8bc40539b2f24b7",
+      "bytes": 10680,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.014.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/original-result2.raw.snapshot.json",
+      "raw_sha256": "75e6c3224f5a884c8958cd693ef5728076709858b6d8485e02cc42cdcd9b92de",
+      "lf_sha256": "75e6c3224f5a884c8958cd693ef5728076709858b6d8485e02cc42cdcd9b92de",
+      "bytes": 6154,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.015.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet0.raw.snapshot.json",
+      "raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+      "lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+      "bytes": 3648,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.016.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet1.raw.snapshot.json",
+      "raw_sha256": "9d3a45d335f22ece6e0aa629a7bf617792575ebe9bb3524a4af953d8ce483e3a",
+      "lf_sha256": "6cd825bbcf7a8e145ff407c3d3c28427768844b5e51a4dc08006a72fd9000fa0",
+      "bytes": 4606,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.017.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet2.raw.snapshot.json",
+      "raw_sha256": "0f7122af638ce88a864cd6c70c9206deeb9926eed37b6711697a07b1e2789228",
+      "lf_sha256": "9a481d3f4276beb5cbe866c152338aa885cc4c2e0889ee68b5b95ab7707e0126",
+      "bytes": 3185,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.018.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/result0.json",
+      "raw_sha256": "3cdc5a86806c06ff6bdf3754faf4c4a92c6ec0cc191bad142f9271e27d902b09",
+      "lf_sha256": "3cdc5a86806c06ff6bdf3754faf4c4a92c6ec0cc191bad142f9271e27d902b09",
+      "bytes": 10519,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.019.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/result1.json",
+      "raw_sha256": "e01643f609f7fe556747c2c50deceda0e2e83a4f484a5df5534a311a47946373",
+      "lf_sha256": "e01643f609f7fe556747c2c50deceda0e2e83a4f484a5df5534a311a47946373",
+      "bytes": 12676,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.020.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-28/result2.json",
+      "raw_sha256": "08619f6b2839eb1d96189ae9c6b2cc73d40d9bf0d1c531517d5599a692494940",
+      "lf_sha256": "08619f6b2839eb1d96189ae9c6b2cc73d40d9bf0d1c531517d5599a692494940",
+      "bytes": 8149,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.021.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/whole-math-review.json",
+      "raw_sha256": "4a07bfc07ceccf8dd7424c5efae68d40c56081546b5135c8a281994f40e5b74e",
+      "lf_sha256": "4a07bfc07ceccf8dd7424c5efae68d40c56081546b5135c8a281994f40e5b74e",
+      "bytes": 58079,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.022.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final-contract.json",
+      "raw_sha256": "e0b9b793583a8a3ae9999b18eee465cdd73846764f5871772d9a55c088e94098",
+      "lf_sha256": "e0b9b793583a8a3ae9999b18eee465cdd73846764f5871772d9a55c088e94098",
+      "bytes": 27815,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.023.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final-lease.json",
+      "raw_sha256": "1a24ac777abd7558b0ff3e957399cb9106d7a0b9b47485e33a8857d17b056ad1",
+      "lf_sha256": "1a24ac777abd7558b0ff3e957399cb9106d7a0b9b47485e33a8857d17b056ad1",
+      "bytes": 1005,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.024.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/FullRangeProximalGaussianOracle.lean",
+      "raw_sha256": "4f5aee65b52f44bf7da304f694da733a322c9a53768e701566dfe92bcc064c6d",
+      "lf_sha256": "434838bbe7c6e1a5f0de80a82d75285b54cd667d43c3bd82c23711faeb431713",
+      "bytes": 13909,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.025.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/StandardizedRGOPositionFisher.lean",
+      "raw_sha256": "f07424a62738d86d804b4fb1aa00727263a5c422f6de6bd06733787b3e8528a7",
+      "lf_sha256": "d120124daae320690e6721378c413dddff7ceee11804bba77f1a7e271276e0d4",
+      "bytes": 16486,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.026.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "Tests/FullRangeProximalGaussianOracle.lean",
+      "raw_sha256": "64e5253d2c08871c86362e0ceadede698dcb31f630e4b91395fc4543721f5978",
+      "lf_sha256": "f2df7d407c0b4829ebad387d48ef7587b0cc76d2493bfba0970d4f1e379b9d88",
+      "bytes": 6131,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.027.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "Tests/StandardizedRGOPositionFisher.lean",
+      "raw_sha256": "75e04efdbbf84d6a4b4b6781cf107f20c6d5cbdd70e5558002f87bb4463128e6",
+      "lf_sha256": "a82741b90f140dbf5217719f085befe4436f70e7377934b04ca9eac5a4fc0e43",
+      "bytes": 11321,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.028.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "proof-blueprints/positive-step-proximal-rgo.md",
+      "raw_sha256": "999687af1af37344daf8b09f5cdd5914cdbe177fd3f263af995c1dea4aed5c44",
+      "lf_sha256": "926eb5be26262434ad8de3bd9df52627848cbea45c98f5bc2c02ebeb91c9d7d9",
+      "bytes": 2057,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.029.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-SPHMC-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "a6c4484eb521fd9f449327caf51417dfb6fb128861400b13658628abcd0fc65e",
+      "lf_sha256": "f87d16e7a6ecd19573f38ff7a852a59ad68af7b94ae1eb1b8f8f0ac875e947d4",
+      "bytes": 22567,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.030.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-SPHMC-standardized-rgo-position-fisher.json",
+      "raw_sha256": "f8a9beddab08de3f843e1de4f8c0921deca47f322efe1b301403e59bd30c6bf9",
+      "lf_sha256": "ddc2bdf7516f430bdff6737eaa5b4fc79d959047bc306dd605fad57ea6149f84",
+      "bytes": 21842,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.031.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "website/content/publications/sphmc-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "44a8b8eff3cd3583bd9454a176c7c9b88772bd76ac4ee0477547c7477050d6d6",
+      "lf_sha256": "baa87a59a4d6c90f02742a08f4a7880f1715147e8f3d38715b7e9a9cd3b502ac",
+      "bytes": 19123,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.032.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "website/content/publications/sphmc-standardized-rgo-position-fisher.json",
+      "raw_sha256": "a4edb57499ae9328a132b6987b526046e326de7b43cf976fd8ec966fcc9617d4",
+      "lf_sha256": "a098498d65a8b327de1d486d7c1edbb4dd4211dd3bb897bf1677eb423580be1a",
+      "bytes": 17974,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.033.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "website/content/publications/affine-gibbs.json",
+      "raw_sha256": "f566fe904c80ccebdaa13518aa096562d7f9ffe577cc75ca0d2410a1f2745163",
+      "lf_sha256": "5034361cfb50041178a8590599c317d4bf18819496c175c250128c1cebad6d9d",
+      "bytes": 14575,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.034.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "website/content/declaration_lessons/sphmc-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "35727ce82b89f8e4435fea76f4f44a1ec2b7b8f5514366be1b8678ef18cc07b2",
+      "lf_sha256": "ad303caf7d7c6a1f60711008956f2fe6401741286798771e8dfc6268fc75cdbf",
+      "bytes": 10208,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.035.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "website/content/declaration_lessons/sphmc-standardized-rgo-position-fisher.json",
+      "raw_sha256": "e425d26550b70a2e9903723f8f42facdac4cbfa37595fe45c6716ccc0ca881bb",
+      "lf_sha256": "427cf4e958d6106def209517707b1b24979e9d75898e30f5d929a96a7d5e9c26",
+      "bytes": 9154,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.036.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "website/content/declaration_lessons/affine-gibbs.json",
+      "raw_sha256": "28b0770a300cfcd91947b42516353167fe5f9e62e470c3fc29ea4dd482624bca",
+      "lf_sha256": "014ed16408bff590cda844cf4daf5c82dc8a39f8f668081556e1f92f773e078f",
+      "bytes": 4490,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.037.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/anonymous.0.decoder.json",
+      "raw_sha256": "f36758f1fa780f528950b362780e3097e219c72fae97ba4ee13f327f6c14654c",
+      "lf_sha256": "1ffadc500eb75a07debd379cb150c0edbbc4db5e25aef1bd65cfbc175022c6d3",
+      "bytes": 3648,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.038.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/anonymous.1.decoder.json",
+      "raw_sha256": "9d3a45d335f22ece6e0aa629a7bf617792575ebe9bb3524a4af953d8ce483e3a",
+      "lf_sha256": "6cd825bbcf7a8e145ff407c3d3c28427768844b5e51a4dc08006a72fd9000fa0",
+      "bytes": 4606,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.039.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/anonymous.2.decoder.json",
+      "raw_sha256": "0f7122af638ce88a864cd6c70c9206deeb9926eed37b6711697a07b1e2789228",
+      "lf_sha256": "9a481d3f4276beb5cbe866c152338aa885cc4c2e0889ee68b5b95ab7707e0126",
+      "bytes": 3185,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.040.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/focused.2.log",
+      "raw_sha256": "666385049ed6849f659fbff457057ec201ed05b28aff6876c2d5ea99afbea993",
+      "lf_sha256": "e80ed9e966a75048aae3e8c0d9574ed916936cf6c10bdc51b1a9b92f749d12ca",
+      "bytes": 12480,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.041.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/statement-seals.accepted.json",
+      "raw_sha256": "fd905a22af1ceffb8544af5e33ad9299756be1619ea886ed619e0953e86008c4",
+      "lf_sha256": "ce0cf8cb2ff883c2506efaa06786831aa59c6e637b00178bc29b7dbd42db0f07",
+      "bytes": 6408,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.042.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/statement-proposal.json",
+      "raw_sha256": "dc42d54c45e1335b072f5cef6fc3298ac22fe025ba5c06c7a4be4e6d017b7820",
+      "lf_sha256": "c03ce4353eea844d1d0b2e300610f030011c1d65ac69edfeae049c62dc135854",
+      "bytes": 8859,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.043.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/statement-review.json",
+      "raw_sha256": "74c8236b7c037da1cb702764af6639ad869d7803e15d7b33f3bb489ece075c96",
+      "lf_sha256": "74c8236b7c037da1cb702764af6639ad869d7803e15d7b33f3bb489ece075c96",
+      "bytes": 20029,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.044.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/source-proof-graph.revised.json",
+      "raw_sha256": "506f35c9b90e1d60a66dc236b60d79d8bddfd8a52dfd018c3a5af4199bd8d9e0",
+      "lf_sha256": "03bb931ff8258a57041e2933be00f3e9bc78f6ceb1eaf2e3f6f960df28bf0beb",
+      "bytes": 117443,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.045.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/source-topology-review.revised.json",
+      "raw_sha256": "e49796bd741178910b1678c384580b43ff3c3cae4da7ad06405e59fa32b1a072",
+      "lf_sha256": "e49796bd741178910b1678c384580b43ff3c3cae4da7ad06405e59fa32b1a072",
+      "bytes": 149231,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.046.raw.snapshot",
+      "observation_scope": "checked bytes and immutable footprint only; not a source-fidelity verdict premise"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/source-primary.contract.json",
+      "raw_sha256": "487e1925cd215e1e32ba5ae327bbee8da9908232d6e7c82d64a93236b5adb83e",
+      "lf_sha256": "487e1925cd215e1e32ba5ae327bbee8da9908232d6e7c82d64a93236b5adb83e",
+      "bytes": 5726,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.047.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/preproof/review.lease.json",
+      "raw_sha256": "7e8c0213c2714a03a7fdece0fdb7eccd7a0eaaa386378812bf7bc891a2e93b0f",
+      "lf_sha256": "7e8c0213c2714a03a7fdece0fdb7eccd7a0eaaa386378812bf7bc891a2e93b0f",
+      "bytes": 11614,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.048.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Measure/AffineGibbs.lean",
+      "raw_sha256": "8847b628e189fb29a41b99448389aa1976ebf88d013e4ccd223c38bc8cddb9b4",
+      "lf_sha256": "8847b628e189fb29a41b99448389aa1976ebf88d013e4ccd223c38bc8cddb9b4",
+      "bytes": 2726,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.049.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/GibbsPositionMoment.lean",
+      "raw_sha256": "7db8778b7f9cd123a0bd7f4e60a810b741bf420bf3d7f28577edd50481018109",
+      "lf_sha256": "471726c9d88fe78ba4e5217cc488f3ec59eacc7b480c81014a8df337c0eef7fc",
+      "bytes": 12331,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.050.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexGibbsIntegrability.lean",
+      "raw_sha256": "d1f328e72bc871acc27d936e985b75f4ffc45ef6126d364b60e01c45cf835ee5",
+      "lf_sha256": "6497a5901e6fa898524821007f053d8c7396cd4d72d12ee647379d8bfa3dacf1",
+      "bytes": 2802,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.051.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HessianStrongConvexity.lean",
+      "raw_sha256": "78dcbca82db4c1aaaf2fb5ab59e2df74b23f2e48c805e41cde07f33d9f72ad30",
+      "lf_sha256": "2274e86f3affb400c4de8c94c1796bb103d4b77c980a530ff23bd4c344e0bb62",
+      "bytes": 4021,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.052.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "raw_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "lf_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "bytes": 5800,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.053.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentContraction.lean",
+      "raw_sha256": "47bd30cb5073a27d9ff1ef8a7b77a8fdbd229438b9c6f5bc8d5c1042e604baf7",
+      "lf_sha256": "d12a1ad0e67ba09a5696850fb8be4e01345363c52f5960745d5e0f3630293177",
+      "bytes": 5282,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.054.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothnessEquivalences.lean",
+      "raw_sha256": "c6e04ae6243722537732de0e4e4120512912645491710382714f56ff20302123",
+      "lf_sha256": "60c0b4a1afaa83b0e19d18a6c7923be8335f1e1eb53243d59372e45464d2fbbd",
+      "bytes": 3199,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.055.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.056.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.057.raw.snapshot",
+      "observation_scope": "current binding/input observation; mathematical source claims independently checked"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMoment.lean",
+      "raw_sha256": "b04ba946e2051b2e1fc6eb5cb14cb67e82fa3ebd2e049dd8b469e3d1540c01a7",
+      "lf_sha256": "14edaf4edde91c9d4e01c66deccab7302b2d6bd428e054cf77f3e4b834cf951d",
+      "bytes": 29341,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.058.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "raw_sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "lf_sha256": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "bytes": 4880,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.059.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "tools/astis_publication.py",
+      "raw_sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+      "lf_sha256": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5",
+      "bytes": 25431,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.060.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "tools/astis_semantic_roundtrip_core.py",
+      "raw_sha256": "a3e92a6e161944031fdee813838d6a4729e0e76a4c6abdd84c300cb5b2f0b229",
+      "lf_sha256": "90049b13ea83ccc41876f9267fd2e1a8052acac42e89a1063f97ac5619d39058",
+      "bytes": 43547,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.061.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Topology/MetricSpace/Contracting.lean",
+      "raw_sha256": "2890b8b4cae55021d78f625febebbd8b9c6a949f3c2876cb586c3abcff28adfd",
+      "lf_sha256": "cc579c4ca94d07166e161387d3f181877fdfd92ddd89ca6956c96c8fcfdf9a92",
+      "bytes": 16219,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.062.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Metrizable.lean",
+      "raw_sha256": "519e3fe8fc3ad185b7cda5a55d1b0cc1d99a6fc04a4e9a4350043272fa8c08d5",
+      "lf_sha256": "d5c654e62ce51498d7ae10c3e8c0f56d20e0b566122798c0e338659e26bb4a2d",
+      "bytes": 7643,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.063.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Tilted.lean",
+      "raw_sha256": "53cc37610d1b21725a178c7d8064c59bb28629625d844b02430a30714ecd0c3e",
+      "lf_sha256": "355cce542b03dd9130d9511f80ae803cc11a12ba9e6a947e68402b124be2165f",
+      "bytes": 17366,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.064.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/LineDeriv/IntegrationByParts.lean",
+      "raw_sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "lf_sha256": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962",
+      "bytes": 13259,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.065.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Kernel/Composition/MapComap.lean",
+      "raw_sha256": "e482e12dab16954f6d56da642c90d50881441b68c386b9bf77949912d1fb8b86",
+      "lf_sha256": "0dcdca1e7ed06827dc4295414354f81a1def7f1fc12fd51d409fb793fd242266",
+      "bytes": 29160,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.066.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261006-companion-priority/smoothed-hessian-lower-preread/source-primary.sphmc-v1.raw.html",
+      "raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "lf_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "bytes": 1858750,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.067.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.raw.snapshot.html",
+      "raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "lf_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "bytes": 1858750,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.068.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S1.p1.1.raw.snapshot.html",
+      "raw_sha256": "f75aa384eb98ace175b61ecde0369c677d4f6f9e80ab40808c292540dbfc631a",
+      "lf_sha256": "f75aa384eb98ace175b61ecde0369c677d4f6f9e80ab40808c292540dbfc631a",
+      "bytes": 1467,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.069.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S1.E1.raw.snapshot.html",
+      "raw_sha256": "1cb6ad517e12a49253464a96c67403a25e6252160438bf2ad7354473daf4f80e",
+      "lf_sha256": "1cb6ad517e12a49253464a96c67403a25e6252160438bf2ad7354473daf4f80e",
+      "bytes": 1506,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.070.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S2.p1.1.raw.snapshot.html",
+      "raw_sha256": "21a3a2dc263725d211232048eb131531a1039238540a4a9cfd50beacfa9346f6",
+      "lf_sha256": "21a3a2dc263725d211232048eb131531a1039238540a4a9cfd50beacfa9346f6",
+      "bytes": 2179,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.071.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S2.E1.raw.snapshot.html",
+      "raw_sha256": "d47a8246d0901e2dec57a00a05e14bda7a811b37cd0148a77d77717650419719",
+      "lf_sha256": "d47a8246d0901e2dec57a00a05e14bda7a811b37cd0148a77d77717650419719",
+      "bytes": 1760,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.072.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S2.p2.2.raw.snapshot.html",
+      "raw_sha256": "c9d9622440f00faebd3b9be07cc44c47413a046cfe4c8bef789d03779375b386",
+      "lf_sha256": "c9d9622440f00faebd3b9be07cc44c47413a046cfe4c8bef789d03779375b386",
+      "bytes": 1428,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.073.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S2.Ex1.raw.snapshot.html",
+      "raw_sha256": "e2d4954f608d621384062233109155f31edee85a7f8a0828077c8734e1561a48",
+      "lf_sha256": "e2d4954f608d621384062233109155f31edee85a7f8a0828077c8734e1561a48",
+      "bytes": 1603,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.074.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S3.SS1.p1.1.raw.snapshot.html",
+      "raw_sha256": "c25e389d6dde377023266654b5517f22acf02e42392b0a862c153b11959ce9c9",
+      "lf_sha256": "c25e389d6dde377023266654b5517f22acf02e42392b0a862c153b11959ce9c9",
+      "bytes": 306,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.075.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S3.SS1.p2.1.raw.snapshot.html",
+      "raw_sha256": "5156fdfd1be6d59310d83cef6fafce4b439f42339904cebdfe4df1111270e60a",
+      "lf_sha256": "5156fdfd1be6d59310d83cef6fafce4b439f42339904cebdfe4df1111270e60a",
+      "bytes": 1000,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.076.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S3.E2.raw.snapshot.html",
+      "raw_sha256": "f6974ff1dae9d92d4e4bc235018bb79f69680e8e86506f49dd748f4b61ad9530",
+      "lf_sha256": "f6974ff1dae9d92d4e4bc235018bb79f69680e8e86506f49dd748f4b61ad9530",
+      "bytes": 1916,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.077.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.Ex3.raw.snapshot.html",
+      "raw_sha256": "1107894881c1a6a104f7bf4361164f11d456f9626aaf8214aa3c131e7ae37adf",
+      "lf_sha256": "1107894881c1a6a104f7bf4361164f11d456f9626aaf8214aa3c131e7ae37adf",
+      "bytes": 883,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.078.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.Thmtheorem1.p1.1.raw.snapshot.html",
+      "raw_sha256": "a8e60df5284254fd8bb16d1cd4da2a65e7d9061d6d0bc2aba4e0b77d0f4c8269",
+      "lf_sha256": "a8e60df5284254fd8bb16d1cd4da2a65e7d9061d6d0bc2aba4e0b77d0f4c8269",
+      "bytes": 412,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.079.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.Thmtheorem2.raw.snapshot.html",
+      "raw_sha256": "a68957870cbe348c33405c2931cdf281da681abaf392c0ca779287e2e020ec33",
+      "lf_sha256": "a68957870cbe348c33405c2931cdf281da681abaf392c0ca779287e2e020ec33",
+      "bytes": 10115,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.080.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.E4.raw.snapshot.html",
+      "raw_sha256": "87be6a999ee89535b1daa8f696c23889898e004d44d49a730951479076fbdff3",
+      "lf_sha256": "87be6a999ee89535b1daa8f696c23889898e004d44d49a730951479076fbdff3",
+      "bytes": 1917,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.081.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.E5.raw.snapshot.html",
+      "raw_sha256": "6dbc339bf6c625097ed223002a0caf0a003ad6c73108592b68d7d518c8cd0f36",
+      "lf_sha256": "6dbc339bf6c625097ed223002a0caf0a003ad6c73108592b68d7d518c8cd0f36",
+      "bytes": 2005,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.082.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.Ex8.raw.snapshot.html",
+      "raw_sha256": "23d12fb9b403c0d49a54342dc2fa78cf6771b89ad9fc94d867f3d3c33d4a02be",
+      "lf_sha256": "23d12fb9b403c0d49a54342dc2fa78cf6771b89ad9fc94d867f3d3c33d4a02be",
+      "bytes": 1767,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.083.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.SS1.p4.1.raw.snapshot.html",
+      "raw_sha256": "a6b7f7ae1cec2ee808e359e811238d94adb7435c393527da1aec0d9e40a1c997",
+      "lf_sha256": "a6b7f7ae1cec2ee808e359e811238d94adb7435c393527da1aec0d9e40a1c997",
+      "bytes": 795,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.084.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.SS1.p4.2.raw.snapshot.html",
+      "raw_sha256": "4c61d3646e7e8c09e3a92ce53b2e01bde97f3469323a440543abe255ecc0a1fd",
+      "lf_sha256": "4c61d3646e7e8c09e3a92ce53b2e01bde97f3469323a440543abe255ecc0a1fd",
+      "bytes": 2217,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.085.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.E6.raw.snapshot.html",
+      "raw_sha256": "601c07c36f592ec891b13b22cb0574c21a0c6df7e60c7b4fe9d8139c3c9cf822",
+      "lf_sha256": "601c07c36f592ec891b13b22cb0574c21a0c6df7e60c7b4fe9d8139c3c9cf822",
+      "bytes": 2384,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.086.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.SS1.p4.3.raw.snapshot.html",
+      "raw_sha256": "31e5b0a24c6d8b3055713cd2c48ae293a859cc209b5df82150162f4b9a471fa6",
+      "lf_sha256": "31e5b0a24c6d8b3055713cd2c48ae293a859cc209b5df82150162f4b9a471fa6",
+      "bytes": 1870,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.087.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.Ex9.raw.snapshot.html",
+      "raw_sha256": "69a78a8dbd61729260ce990bf6a863afe539e00dda9536bb352f04099ea36966",
+      "lf_sha256": "69a78a8dbd61729260ce990bf6a863afe539e00dda9536bb352f04099ea36966",
+      "bytes": 2073,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.088.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": "runs/20261007-companion-priority/positive-step-proximal-rgo/source-primary.final.S4.SS1.p5.2.raw.snapshot.html",
+      "raw_sha256": "4e146389fa919dacb424b61d5c37c0cce0e0e2d0a54a7e2a99ae2a282358eb3a",
+      "lf_sha256": "4e146389fa919dacb424b61d5c37c0cce0e0e2d0a54a7e2a99ae2a282358eb3a",
+      "bytes": 3462,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.input.089.raw.snapshot",
+      "observation_scope": "fresh bounded actual parent/API/source read; historical unrelated declarations in parent are outside selected claim"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Haar/NormedSpace.lean",
+      "raw_sha256": "d0857e8f99c58a2a390d4c9e433131f9b93376752df91baaf8fd14084e123eaf",
+      "lf_sha256": "79104a4158481873c83b8e0d715e052edecbefc8cf69910bdbcc35607bc8b596",
+      "bytes": 12201,
+      "raw_snapshot": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.review.version2.haar-api.raw.snapshot.lean",
+      "observation_scope": "Actual integral_comp_smul signed scale/0D/totalized Bochner contract read at lines86-113"
+    }
+  ],
+  "matching_freeze_reuse": "Historical affine54-line code matches unchanged raw/LF and was freshly read. Historical source-only graph/preproof/range contracts preserve original source boundary but do not substitute whole-current-proof review. Current whole-math-review is opaque footprint only.",
+  "no_new_credit_for_unchanged_shared_leaf": false,
+  "compiler_started": false,
+  "review_completed_utc": "2026-10-06T17:03:39.502705+00:00",
+  "writes_closed": true,
+  "review_run_sha256": "66948ee637b33994a18446ba7d1ef4a4bb744a8a105a1f6dcee3f181bc6f02bc"
+}

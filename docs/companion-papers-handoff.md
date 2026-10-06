@@ -33,9 +33,16 @@ Evidence: `runs/20261007-companion-priority/positive-step-proximal-rgo/verified.
 The initial artifact-label registration mismatch was administrative; original
 decoder bytes, schema-v1 pause and canonical-label projection are retained.
 
-Existing root/Test imports are reused. Shared metadata/reader/graph acceptance,
-repository ProofSeal, ExpositionSeal/purification, rendered copy/download QA,
-new remote CI and merge/publication remain separate pending checks here.
+Existing root/Test imports are reused. Shared integration c2909e15 passes the
+whole ASTIS gate (9132 root / 9394 Tests), publication188, semantic251/8,
+frontier251, static site and affected graph checks. Independent repository
+review retained its exact stale graph blocker: cell integration evidence had
+changed after the first graph generation. The bounded administrative refresh
+now passes both graph checks without changing mathematical nodes or edges;
+a fresh repository ProofSeal remains required. Independent static Exposition
+review accepts the scoped mathematics and full folded Lean, while actual
+Copy/Download controls are still missing. Their implementation, rendered QA,
+post-merge purification, new remote CI and merge/publication remain pending.
 Older26/27 bounded results and their original receipts remain historical.
 
 FIRST4.6 GaussianT2/LSI/W2, actual bias/MGF/fullLemma4.2, posterior joint kernel

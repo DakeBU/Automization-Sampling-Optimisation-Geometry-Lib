@@ -15,6 +15,8 @@ mandatory encoder–denoiser evidence, and generated chapter/graph status.
 
 Every substantive formalization advance is one theorem-sized **Frontier Cell** with:
 
+New source-facing cells should use schema 3 and follow `docs/evidence-routed-memory-protocol.md`; historical schema-1/2 cells remain valid. Schema 3 makes failure typing, salvage, process-memory consultation, parallel-direction admission, common-blind-spot review, and reader-backpressure state machine-checkable.
+
 - one exact source anchor;
 - one exact mathematical target;
 - known parents and intended consumers;

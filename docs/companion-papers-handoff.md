@@ -29,8 +29,8 @@ anti-anchored source reviews agree, with no deltas or repairs. Six administrativ
 lifecycle/reconstruction bindings were independently reconciled; all
 mathematical inputs remained frozen. Exact independently VERIFIED proof
 `801d524eabb5da16169f377d59721e7dc0d75d05`: `runs/20261006-companion-priority/weak-gradient-zero-kernel/verified.json`.
-Original sole root stabilization/PR313 lane. Shared aggregate/reader/graph
-checks pending for this packet. Goal remains active.
+Original sole root stabilization/PR313 lane. Exact proof 801d524eabb5da16169f377d59721e7dc0d75d05 independently VERIFIED; shared integration 523767084f21a9413b77af8e673ff83e37296193. Full ASTIS gate PASS (9118 root/9374 Tests), publication173, semantic233/8, frontier236, contributor56/52. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun. Three actual branch/static source/formula/proof/folded Lean/Test/residual views, full site/official graph freshness/contributor PASS. Graph842 modules/619 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open because browser-service bootstrap unavailable.
+`runs/20261006-companion-priority/weak-gradient-zero-kernel/integration.json`. Goal remains active.
 
 Next bounded route is actual weighted C1 L2 function/gradient membership in
 the SAME original gradient closure graph via true compact cutoffs and weighted

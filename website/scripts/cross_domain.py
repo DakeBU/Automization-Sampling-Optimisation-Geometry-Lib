@@ -265,7 +265,10 @@ def add_to_graph(builder) -> dict[str, Any]:
     for edge in model['hyperedges']:
         details = [{'label':'Evidence boundary','value':'Literature/structural correspondence; no Lean-certified functor or theorem transfer.'}]
         if edge.get('review'):
-            details += [{'label':'Review status','value':edge['review']['status']}, {'label':'Review boundary','value':'A candidate awaits independent source review. Source review does not certify a Lean transport.'}]
+            review_boundary = ('Independent source review is recorded. Source review does not certify a Lean transport.'
+                               if edge['review']['status'] == 'independently-reviewed'
+                               else 'A candidate awaits independent source review. Source review does not certify a Lean transport.')
+            details += [{'label':'Review status','value':edge['review']['status']}, {'label':'Review boundary','value':review_boundary}]
         if edge.get('family_ids'):
             details += [{'label':'Conceptual families','value':', '.join(edge['family_ids'])}]
         details += [{'label':k.replace('_',' ').title(),'value':edge[k]} for k in ['mechanism','hypothesis_map','conclusion_map','failure_boundary']]

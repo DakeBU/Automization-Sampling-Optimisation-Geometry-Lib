@@ -830,6 +830,16 @@ def analysisMemory : List LemmaMemoryEntry := [
 
 def gaussianMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.lipschitz.sharp-standard-mgf"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz"
+    upstreamDecl := "IsGaussian.map_rotation_eq_self / actual weighted Stein / Herbst / same-L bump approximation"
+    upstreamFile := "Mathlib.Probability.Distributions.Gaussian.Fernique; ASTIS authored concentration route"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["gaussian", "Lipschitz", "sharp-concentration", "signed", "SPHMC"]
+    saldUse := "Actual SPHMC Gaussian gradient-output own-mean Laplace bound4.3 with coefficient eta*norm(a)^2/2"
+    note := "Finite real Hilbert stdGaussian, nonsmooth observables, all signed t, L0 and dimension0. Independent exact commit2f4e0ba9. No Gaussian LSI/T2, posterior score mean identity/bias, full Lemma4.2, main or cost/composition credit."
+  },
+  {
     key := "gaussian.lipschitz.signed-exponential-domain"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz"
     upstreamDecl := "IsGaussian.integrable_id / exists_integrable_exp_sq / Young domination"

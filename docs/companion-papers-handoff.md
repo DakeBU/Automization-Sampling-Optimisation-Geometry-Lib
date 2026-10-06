@@ -1,5 +1,42 @@
 # Companion-paper formalization handoff
 
+## Sharp Gaussian-output concentration 2026-10-07
+
+`ASTIS-SA-20261007-GaussianSharpConcentration` is independently VERIFIED at
+`2f4e0ba92d7233f07e93822897d2d275da46799e`. The canonical finite real Hilbert
+standard-Gaussian Lipschitz theorem proves the exact signed centered MGF bound
+`E exp(t(f-Ef)) <= exp(L^2*t^2/2)`, including nonsmooth f, L=0 and dimension0.
+The same actual positive-step proximal Gaussian-gradient-output producer now
+consumes it to prove source (4.3) with coefficient `eta*norm(a)^2/2` around the
+actual own output mean. Source (4.4)-(4.5), genuine vector first moments and all
+signed exponential domains remain retained. No new public C1, LSI, regularity,
+integrability, minimizer, supplied mean or concentration-certificate premise.
+
+Independent whole mathematical review checked the rotation/Stein/covariance,
+actual signed Herbst integrating factor and exact-L bump approximation route.
+Fresh blind decoder30 and independent primary-first source reviewer accepted
+the two actual targets and conservatively metadata-revalidated unchanged old
+Gaussian domain. Original source BLOCKED records are retained; separate accepted
+R0 global dependency labels, R1 comment-only header and R2 leaf-scope explanation
+overlay changes no imports, declarations or mathematical proof bytes.
+The independently reviewed Gaussian symmetry mirror is conceptual only; its
+candidate substrate links are dashed, not Lean implication/functor certificates.
+
+Evidence: `runs/20261007-companion-priority/gaussian-sharp-concentration/verified.json`.
+Current30 serialized aggregate9133/9396, publication190, semantic256/8, frontier253,
+contributor73/69, process memory, site474/864/4544 and both affected graph-checks pass.
+Independent repository ProofSeal/static ExpositionSeal and own-head remote CI remain pending. Copy/Download control implementation and
+rendered QA/postmerge purification remain open; draftPR313 is unmerged.
+Next dependency: literal unnumbered primary `S4.Ex9` true smoothed-score/true RGO
+posterior expected-gradient identity. Numbered `S4.E9`/(4.9) is a distinct Hessian
+Hilbert-Schmidt bound. Exact next statement/topology must be source-sealed before
+proof search; primary-only preread is not a new compiled SAU.
+Bias (4.2), FIRST Wasserstein/Fisher inequality in (4.6), Gaussian LSI/T2,
+full Lemma4.2, smoothing/Picard/Wp/proxy-warmness and initialization remain open.
+PBPS process invariance/nonexplosion/hypocoercivity/implementation/work, both
+main results and actual-input precision/expected-query-cost composition remain
+independent open boundaries. TV proximity never transfers unbounded cost.
+
 ## Genuine Gaussian-output Laplace domain 2026-10-07
 
 `ASTIS-SA-20261007-GaussianLaplaceDomain` is independently VERIFIED at
@@ -41,7 +78,7 @@ that exact frozen shared commit; current graph2091/5470 and its015cda20 digest
 are independently checked and raw-snapshotted before the nextcell version.
 Original failed aggregate from the stale Registry count472 is retained; actual
 newleaf count473 focused and complete rerun pass. No mathematical/source change.
-Remote f4be544d CI, merge, renderedQA and postmerge purification remain pending. Copy/Download control implementation and renderedQA still open.
+Remote f4be544d now has all four required Lean/site/two contributor jobs passing; deploy skipped. Exact29 receipt: `runs/20261007-companion-priority/gaussian-laplace-domain/remote-ci.f4be544d.json`. This excludes current30. Merge, Copy/Download control implementation, renderedQA and postmerge purification remain pending.
 Original28 exact published a7f567dc remote Lean/site/two contributor jobs pass;
 deploy was skipped, draftPR313 stays unmerged, and that CI excludes this29packet.
 

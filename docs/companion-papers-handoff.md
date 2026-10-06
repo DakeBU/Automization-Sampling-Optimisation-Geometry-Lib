@@ -33,7 +33,8 @@ anti-anchored full source reviews PASS. Original14 freeze and the sole displayed
 rho formula correction plus all raw/LF reviews and metadata snapshots are preserved.
 Exact independent proof VERIFIED `e15c75690beb0c54c4ae3507b92696836a0201c5`:
 `runs/20261006-companion-priority/ordinary-weak-resolvent/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof e15c75690beb0c54c4ae3507b92696836a0201c5 independently VERIFIED; shared integration 2661a8bd2d8260f9fc39f7ccc9245863409895ed. Full ASTIS gate PASS (9105 root / 9355 Tests), publication160, semantic220/8, frontier223, contributor43/39. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and two actual module/declaration branches checked, full site and official graph freshness/contributor PASS. Graph823 modules/606 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/ordinary-weak-resolvent/integration.json`. Goal remains active.
 
 Local H2, global generator core/Bochner, noncompact constant/linear domains,
 centered epsilon-zero limit, conditional Poincare/BL, SPHMC Hessian lower/full4.1,

@@ -1,5 +1,54 @@
 # Companion-paper formalization handoff
 
+## Actual compact weighted Poisson coercivity 2026-10-06
+
+`ASTIS-SA-20261006-CompactWeightedPoissonCoercivity` derives actual normalized
+Gibbs MemLp2 and AE-linked vW/GW/AW classes from genuine compact ordinary weak
+data, with A=inner(gradientW,G)-F. It constructs weighted same-sequence limits
+on K union Kprime using true finite density domination and compact drift bounds,
+then proves membership in the SAME original D.closure graph and arbitrary-real
+m scalar coercivity m*normGW^2<=normAW^2. The genuine compact Bochner inequality
+is divided by positive Z exactly once; its L=-A sign is removed only by squaring.
+No final weighted convergence/domain/coercivity or rough Hessian/core certificate
+is supplied. The generic original exact graph and closability are structural
+inputs; actual closure membership is an output. Zero dimension is retained.
+
+The actual reflected PBPS consumer preserves original common J/R/S and source
+C2 curvature/eta cap/positive partitions, the SAME original D_y before all
+epsilon/f and ONE actual u before ALL C2 compact chi. It retains all original
+variational/local/ordinary weak and cutoff facts and returns actual weighted
+classes, same-D closure membership and exact ((alpha+eta^-1)/4) scalar inequality.
+Only the explicit W_y Hessian bound is extracted from the accepted curvature
+parent; its auxiliary kernels are not identified with the resolvent kernels.
+Reflected/RGO quarter Hessian and fourfold Dirichlet scales remain distinct.
+
+Focused3865, complete independent336/all12private +source107/Test128/12reader
+steps, true nonquadratic eta1/2 same-D/u/C2cutoff weighted AE/graph/scalar stress
+and actual E0 constant7 Gibbs original-D stress passed. Standard axioms/fake
+closure scan, distinct blind reconstructions and primary-first source reviews
+passed with immutable raw/LF artifacts. The single blueprint status sentence
+and Windows CRCRLF mechanical repair have an explicit original/intermediate/
+final byte chain; mathematical Lean/Test/lessons remained unchanged.
+Exact independently VERIFIED proof `88aa4d29f029da3a315234ae78f09397b68df0bc`:
+`runs/20261006-companion-priority/compact-weighted-poisson-coercivity/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+Next bounded dependency is actual global cutoff commutator/tail convergence and
+same-u positive-epsilon scalar coercivity. The independent source/API preread
+`Weighted_global_cutoff_coercivity_source_preread.md` and typed discovery record
+this as proposal-only: both Hessian bounds imply linear drift; weighted u/G L2
+tails can control the scaled annulus residual without an extra norm(x)*u moment.
+No rough Hessian/core identity is needed for the narrower scalar consequence;
+zero dimension needs a separate adapter. Full rough/global Bochner/adjoint/core,
+epsilon-zero/constant-kernel/range/Poincare/BL, SPHMC smoothed Hessian lower/full4.1,
+both complete main results and actual-input precision/expected-cost composition
+remain OPEN. No jointly measurable fiber choice is inferred. TV never transfers
+unbounded cost. Previous bd9fa249 four workflows are terminalSUCCESS in its own
+frozen receipt; this new final head requires own CI. Draft/open/unmerged.
+Rendered visual/copy/download acceptance remains open; static artifacts are
+checked and browser-service bootstrap is unavailable.
+
+
 ## Actual common compact smooth Poisson graph — 2026-10-06
 
 `ASTIS-SA-20261006-CompactPoissonSmoothGraph` derives one actual real smooth

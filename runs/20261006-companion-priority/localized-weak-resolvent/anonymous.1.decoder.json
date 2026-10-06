@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-33c0860672aef9d8",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧\n      Integrable (fun x => Fχ x * φ x) ∧\n      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x",
+    "statement_sha256": "33c0860672aef9d8ee408cc1e11758c75c68f60e5cd8b06b6d741eaf22a9315c",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a finite-dimensional real inner-product space with Borel measurable space and canonical Lebesgue volume, including dimension zero. All section ambient instances remain part of the contract. NNReal means nonnegative real scalars.",
+      "Lp F 2 mu is the true L2 quotient and its coercion selects the standard measurable representative. MemLp is actual a.e. strong measurability and finite L2 norm. All compact restrictions in the statement use volume.restrict K, and all unannotated local integrability/integrals use canonical volume.",
+      "gradient is the Riesz representative of actual Frechet derivative; fderiv is total Lean derivative. Laplacian.laplacian phi is the actual test-function finite-basis trace. The theorem only tests arbitrary L2 u against this smooth-test Laplacian, and does not assert pointwise total laplacian u.",
+      "LinearPMap is a real-linear partial operator on its submodule domain, with actual graph. IsClosable means its topological graph closure is single-valued. D.closure is that same closed operator. Its L2 output is the actual G representative; the localized Gchi is explicitly chi*G+u*gradient chi, without any weighted-domain assertion.",
+      "Measure.tilted h means exp(h)/integral exp(h) times the original measure; it does not build in positive normalization. Kernel IsMarkovKernel means genuine measurable probability transitions. IsCondKernel is true disintegration of the stated joint measure. Measure.map/prod mean actual pushforward/independent product. stdGaussian is the genuine standard real Hilbert Gaussian. ContDiff 1/2/infinity means C1/C2/smooth; HasCompactSupport is compact topological support."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "039aa1043bde1b493efea53d026739c1b39dafee87e0f0b8e384fddd008d9973"
+}

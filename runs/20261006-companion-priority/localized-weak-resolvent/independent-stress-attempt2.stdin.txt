@@ -1,0 +1,85 @@
+import Tests.LocalizedWeakResolvent
+import Mathlib.Analysis.InnerProductSpace.PiL2
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ContDiff RealInnerProductSpace Topology
+set_option maxHeartbeats 1000000
+noncomputable section
+namespace IndependentLocalizedStress
+def bump : ContDiffBump (0:ℝ) := {rIn:=1,rOut:=2,rIn_pos:=by norm_num,rIn_lt_rOut:=by norm_num}
+def observable : ℝ → ℝ := fun x => bump.normed (volume : Measure ℝ) x * (x^2)^(5/2:ℝ)
+def W : ℝ → ℝ → ℝ := fun y z =>
+  (3/8)*((1/2:ℝ)*(y+z))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+z))+‖z-y‖^2/(8*(1/2:ℝ))
+theorem actual_nonquadratic_cutoff : ∃ S : Kernel ℝ ℝ, IsMarkovKernel S ∧
+    ∀ y, ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp ℝ 2 (S y), D.IsClosable ∧
+      ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 (S y),
+      ∃ u : D.closure.domain,
+      let v := fun x => bump x * (u : Lp ℝ 2 (S y)) x
+      let Gχ := fun x => bump x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient (fun z => bump z) x
+      let Fχ := fun x => bump x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) +
+        2 * inner ℝ (gradient (fun z => bump z) x) (D.closure u x) +
+        (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian (fun z => bump z) x
+      MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧
+      (Integrable (fun x => observable x * inner ℝ (Gχ x) (1:ℝ)) ∧
+        Integrable (fun x => v x * fderiv ℝ observable x (1:ℝ)) ∧
+        (∫ x, observable x * inner ℝ (Gχ x) (1:ℝ)) = -∫ x, v x * fderiv ℝ observable x (1:ℝ)) ∧
+      Integrable (fun x => v x * Laplacian.laplacian observable x) ∧
+      Integrable (fun x => Fχ x * observable x) ∧
+      (∫ x, v x * Laplacian.laplacian observable x) = ∫ x, Fχ x * observable x := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    Tests.LocalizedWeakResolvent.actual_nonconstant_cutoff_c2_pde (η:=1/2) (by norm_num) (by norm_num)
+  refine ⟨S,hS,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hsolve⟩ := hfiber y
+  refine ⟨D,hClose,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hr2,hlocal,hvm,hgm,hfm,hvs,hgs,hfs,hg,hp⟩ := hsolve ε hε f
+  exact ⟨u,hvm,hgm,hfm,hg,hp⟩
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+theorem actual_zero_dim_original_domain :
+    let μ := (volume : Measure E0).tilted (fun _ => -(7:ℝ))
+    ∃ D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ, D.IsClosable ∧
+      ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+      MemLp (fun x => (2:ℝ) * (u : Lp ℝ 2 μ) x) 2 volume ∧
+      MemLp (fun _ : E0 => (0:E0)) 2 volume ∧
+      MemLp (fun x => (2:ℝ) * (ε * (u : Lp ℝ 2 μ) x - f x)) 2 volume ∧
+      (∀ ψ : E0 → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E0,
+        Integrable (fun _ : E0 => (0:ℝ)) ∧
+        Integrable (fun x => (2 * (u : Lp ℝ 2 μ) x) * fderiv ℝ ψ x a) ∧
+        (∫ x, (2 * (u : Lp ℝ 2 μ) x) * fderiv ℝ ψ x a) = 0) ∧
+      Integrable (fun x => (2:ℝ) * (ε * (u : Lp ℝ 2 μ) x - f x)) ∧
+      (∫ x, (2:ℝ) * (ε * (u : Lp ℝ 2 μ) x - f x)) = 0 := by
+  have hI : Integrable (fun _ : E0 => Real.exp (-(7:ℝ))) := integrable_const _
+  obtain ⟨D,hDense,hD,hClosed,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI
+  refine ⟨D,hD,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hr2,hlocal,hpde,hloc⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent.localized_weak_resolvent
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI D hD hgraph ε hε f
+  have hc : HasCompactSupport (fun _ : E0 => (2:ℝ)) :=
+    HasCompactSupport.of_support_subset_isCompact isCompact_univ (Set.subset_univ _)
+  have hc1 : HasCompactSupport (fun _ : E0 => (1:ℝ)) :=
+    HasCompactSupport.of_support_subset_isCompact isCompact_univ (Set.subset_univ _)
+  obtain ⟨hvm,hgm,hfm,hvs,hgs,hfs,hg,hp⟩ := hloc (fun _ => (2:ℝ)) contDiff_const hc
+  have hzero (x : E0) : D.closure u x = 0 := Subsingleton.elim _ _
+  have hgm0 : MemLp (fun _ : E0 => (0:E0)) 2 volume := by
+    simpa [hzero] using hgm
+  have hfm0 : MemLp (fun x => (2:ℝ) * (ε * (u : Lp ℝ 2 _) x - f x)) 2 volume := by
+    simpa using hfm
+  have hP := hp (fun _ => (1:ℝ)) contDiff_const hc1
+  refine ⟨u,hvm,hgm0,hfm0,?_,?_,?_⟩
+  · intro ψ hψ hψc a
+    have h := hg ψ hψ hψc a
+    have h1 : Integrable (fun _ : E0 => (0:ℝ)) := integrable_zero E0 ℝ volume
+    have h2 : Integrable (fun x => (2 * (u : Lp ℝ 2 _) x) * fderiv ℝ ψ x a) := h.2.1
+    refine ⟨h1,h2,?_⟩
+    have he := h.2.2
+    simpa [hzero] using he.symm
+  · simpa using hP.2.1
+  · simpa using hP.2.2.symm
+#print axioms actual_nonquadratic_cutoff
+#print axioms actual_zero_dim_original_domain
+end IndependentLocalizedStress

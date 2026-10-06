@@ -56,13 +56,13 @@ merely to manufacture handoff artifacts.
 Every new/changed Lean declaration also follows
 `docs/theorem-publication-protocol.md`. Every new or materially changed
 **source-facing** theorem/definition additionally follows
-`docs/proof-digestion-protocol.md`: seal the exact statement before proof search,
+`docs/proof-digestion-protocol.md` and `docs/evidence-routed-memory-protocol.md`: seal the exact statement before proof search,
 classify/expand binders, audit definition semantics, reconstruct the Source Proof
 Graph independently of implementation Lean, require exhaustive source coverage,
 and run post-merge purification before calling the result human-facing complete.
 The central invariant is `proof ingredient = dependency edge` and
 `source hypothesis = theorem binder`; a producer theorem never legalizes an
-extra public premise. Start with the bounded
+extra public premise. Failed routes are typed before they influence scheduling; verified fragments are salvaged before dead-code deletion; control-plane standing instructions are evidence-bound and process-only; parallelism requires distinct uncertainty; and a PURIFIED source result also requires an Exposition Seal. Start with the bounded
 `python3 tools/astis_publication.py packet --cell CELL_ID`, not a whole-site scan.
 Author mathematical statement/formula proof once in declaration lessons; bind
 source obligations and explicit assumption differences in publication metadata.

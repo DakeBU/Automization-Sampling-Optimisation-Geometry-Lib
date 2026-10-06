@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-6e0509cc9273c9f8",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 2 ψ → HasCompactSupport ψ →\n      Integrable (fun x => v x * Laplacian.laplacian ψ x) ∧\n      Integrable (fun x => Fχ x * ψ x) ∧\n      (∫ x, v x * Laplacian.laplacian ψ x) = ∫ x, Fχ x * ψ x) ∧\n    ∃ vL FL : Lp ℝ 2 (volume : Measure E), ∃ gradL : Lp E 2 (volume : Measure E),\n      vL =ᵐ[volume] v ∧ FL =ᵐ[volume] Fχ ∧ gradL =ᵐ[volume] Gχ ∧\n      ∃ K' : Set E, IsCompact K' ∧ ∃ φ : ℕ → SchwartzMap E ℝ,\n        (∀ n : ℕ, tsupport (φ n) ⊆ K') ∧\n        Filter.Tendsto (fun n : ℕ => (φ n).toLp 2 volume) Filter.atTop (𝓝 vL) ∧\n        ∃ hφG : ∀ n : ℕ, MemLp (gradient (φ n : E → ℝ)) 2 volume,\n          Filter.Tendsto (fun n : ℕ => (hφG n).toLp (gradient (φ n : E → ℝ)))\n            Filter.atTop (𝓝 gradL) ∧\n          Filter.Tendsto (fun n : ℕ => (Laplacian.laplacian (φ n)).toLp 2 volume)\n            Filter.atTop (𝓝 FL)",
+    "statement_sha256": "6e0509cc9273c9f87dbee0260cb74484a0d7740ea30a8dba8baf289ac0b5be25",
+    "compiled": true,
+    "approved_definition_context": [
+      "Finite-dimensional real Hilbert E with Borel measurable structure and canonical ordinary volume, including dimension zero. NNReal denotes nonnegative reals. All section instances belong to the contract.",
+      "MemLp f2volume means actual AE strong measurability and finite L2 norm. MemLp.toLp f is the actual L2 quotient with AE link to f. Lp F2mu is the true quotient; Filter.Tendsto atTop(nhds target) here means convergence in its norm topology, not pointwise/local convergence.",
+      "SchwartzMap E real is actual C-infinity rapidly decreasing real function on real E. Classical gradient/fderiv and Laplacian act on these smooth approximants; tsupport is topological support. The conclusion adds one common compact support Kprime and one sequence before all n/three limits. The explicit hphiG witnesses MemLp2 of the actual gradient, binding its quotient class.",
+      "The generic inputs are compact-supported pointwise real v,F/vectorG with actual volumeL2, all-real-C1 compact weak-gradient tests and all-real-C2 compact weakPoisson tests, both legal L1 products and exact integral equalities. No Sobolev/core/sequence certificate is an input. E0 is retained.",
+      "LinearPMap is the original real-linear partial gradient on its actual domain; exact D.graph characterizes C-infinity compact functions/gradients in weighted L2, IsClosable/closure/IsClosed have their actual meanings. The source fixes D before epsilon/f and one actual u before all chi.",
+      "Measure.tilted is actual exp(h)/integral(exp(h)) weighted normalized law with stated integrability/positiveZ. Kernel Markov/CondKernel and Measure.map/prod denote genuine measurable transition/disintegration/pushforward/product; stdGaussian is actual standard finite real Hilbert Gaussian. Reflected W_y=V((y+z)/2)+norm(z-y)^2/(8eta).",
+      "Generic MemLp proofs and source AE-linked vL/FL/gradL add no mathematical assumption; every limit uses the actual localized functions from the same u. Fiberwise choice of solutions/sequences is not a joint measurable selection. Ordinary volume graph approximation does not by itself certify weighted domain/core/BL/main/composition."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "44ead7747222f0bfcf68543d6fa69dafd131f1e8f0dbe96bf3f26650a1b592a9"
+}

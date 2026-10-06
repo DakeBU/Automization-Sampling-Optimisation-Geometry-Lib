@@ -1,0 +1,17 @@
+# Actual compact weak-Poisson smooth graph approximation
+
+PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 omitted analytic gradient-domain prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL prerequisite only. Authored compact ordinary-volume smooth graph approximation, not a quoted numbered theorem.
+
+From actual compact-supported volumeL2 v/g/F, allC1 compact weak-gradient identities and allC2 compact weakPoisson identities, derive an actual real C-infinity sequence with common outer compact support and simultaneous volumeL2 limits of function, gradient and Laplacian. Derive actual complex Bessel witness using accepted compactPoissonSobolev; bounded L2 multiplier continuity selects a genuine graph-convergent sequence, followed by actual real-gradient identification and fixed plateau.
+
+For the true source V C2/curvature/eta-cap/original J/R/S/D, preserve ONE positive-epsilon resolvent solution u before ALL C2 compact chi and instantiate the generic approximation at the actual localized v/g/F; retain original parent properties.
+
+Samplinglib FunctionalInequalities card/technical README and Probability/SDE/shared nodes previously inspected; actual CompactWeakPoissonSobolev and LocalizedWeakResolvent supply actual inputs. No existing actual simultaneous compact smooth function/gradient/Laplacian approximation found in bounded shared-node search.
+
+Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d: SchwartzMap.denseRange_toLpCLM, genuine L2 Fourier isometries, Holder infinity/2/2 bilinear CLM, actual Lp/TD injectivity and multiplier compatibility, Bessel inversion, compact-test uniqueness, fixed compact plateau and product rules. Plain L2 density alone does not control derivatives.
+
+Independent Weighted_compact_Sobolev_smooth_core_route_audit.md and fresh primary-first Weighted_compact_smooth_graph_source_preread.md SHA d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297. Real mixed coefficient prototype is unnecessary for this graph target and remains exploratory/unadmitted. Early ignored bounded multiplier interface compiled standard axioms only; not independent admission.
+
+Derive one real smooth sequence with common outer compact support and simultaneous actual ordinary-volume L2 function/gradient/Laplacian limits for v=chi*u, g=chi*G+u*gradientchi, F=chi*r+2inner(gradientchi,G)+u*laplacianchi. Same original D before epsilon/f, same u before ALL cutoffs. No supplied graph-density/approximation/mixedHessian/core certificate, no classical rough derivatives, no weighted-domain/operator-core/globalcutoff/Bochner/BL/Poincare/jointmeasurablechoice/main/composition claim. Reflected/RGO quarter Hessian and fourfold energy kept distinct; TV never transfers unbounded cost.
+
+Failure policy: distinguish actual missing API adapters from mathematical assumptions; preserve all failed attempts and freeze repeated unchanged routes. No final density/core certificate is supplied.

@@ -1,0 +1,1350 @@
+{
+  "schema_version": 1,
+  "review_kind": "independent-anti-anchored-source-fidelity",
+  "reviewer": "phase_source_reviewer_20261005",
+  "formalizer": "root-samplinglib-writer",
+  "blind_decoder": "anonymous_decoder_20261006",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "e01e9c8c6ac33673db0209c20905cfc04d085ce5cb5e5ff188ba104b5b416a47",
+  "review_packet_raw_sha256": "b3ed393a508f28422f5698c193875156295ef40bbf55fecedac4e8e2de330379",
+  "publication_binding_sha256": "157ca33412e214fbf11ccd57de8f3823885e7877d08149098b6e19e52d21e7fd",
+  "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation",
+  "source_id": "companion:compact-poisson-smooth-graph",
+  "source_anchor": "PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 omitted analytic gradient-domain prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL prerequisite only. Authored compact ordinary-volume smooth graph approximation, not a quoted numbered theorem.",
+  "source_text_sha256": "2391440c1d59b0a882cc0b6036abdad8ee817730b9fe8e61897d21fe69faa2e6",
+  "lean_statement_sha256": "b4df4896d862faa4c4a2a978dc7d4d783694da62f9d1188074fa24e33af28652",
+  "reconstructed_text_sha256": "bcba4e8f3584ef2cc8f38b1bdf6ad684e9563ebb4a5401660e1663904e730826",
+  "decoder_packet_sha256": "680df63101e6ce111e304fa8971f919eaf226e0a0a4c321b357c371476d2049e",
+  "decoder_run_sha256": "3c6c35e97f6a8ea31f16be0e4a2df3b9fa31def25a6f33eed5dd831209c21472",
+  "approved_definition_context_sha256": "565c54aa995c700601f54aca3052ed14b9b37f4ef233f072017f49f020b574fc",
+  "review_context": {
+    "file": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra\n\nset_option autoImplicit false\nnoncomputable section\nopen ENNReal MeasureTheory FourierTransform TemperedDistribution\nopen scoped SchwartzMap BoundedContinuousFunction\nopen scoped Topology Laplacian LineDeriv\nopen InnerProductSpace LineDeriv\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\nprivate def actualMul (g : Lp ℂ ∞ (volume : Measure E)) :\n    Lp ℂ 2 (volume : Measure E) →L[ℂ] Lp ℂ 2 (volume : Measure E) :=\n  ((ContinuousLinearMap.lsmul ℂ ℂ).holderL volume ∞ 2 2) g\n\nprivate theorem actualMul_eq (g : Lp ℂ ∞ (volume : Measure E))\n    (f : Lp ℂ 2 (volume : Measure E)) : actualMul g f = g • f := by\n  apply Lp.ext\n  filter_upwards [((ContinuousLinearMap.lsmul ℂ ℂ).coeFn_holder (r := 2) g f),\n    Lp.coeFn_lpSMul (r := 2) g f] with x hx hy\n  exact hx.trans hy.symm\n\nprivate theorem lp_td_injective : Function.Injective\n    (Lp.toTemperedDistribution : Lp ℂ 2 (volume : Measure E) → 𝓢'(E,ℂ)) := by\n  exact LinearMap.ker_eq_bot.mp (Lp.ker_toTemperedDistributionCLM_eq_bot\n    (F := ℂ) (μ := volume) (p := 2))\n\nprivate theorem actual_bounded_multiplier_norm (g : E → ℂ) (hg : g.HasTemperateGrowth)\n    (C : ℝ) (hC : ∀ x, ‖g x‖ ≤ C) :\n    ∃ A : Lp ℂ 2 (volume : Measure E) →L[ℂ] Lp ℂ 2 (volume : Measure E),\n      (∀ f, ‖A f‖ ≤ C * ‖f‖) ∧\n      (∀ f, Lp.toTemperedDistribution (A f) =\n        TemperedDistribution.fourierMultiplierCLM ℂ g (Lp.toTemperedDistribution f)) ∧\n      ∀ φ : SchwartzMap E ℂ, A (φ.toLp 2) =\n        (SchwartzMap.fourierMultiplierCLM ℂ g φ).toLp 2 := by\n  let gc : E →ᵇ ℂ := BoundedContinuousFunction.ofNormedAddCommGroup g hg.1.continuous C hC\n  let gl : Lp ℂ ∞ (volume : Measure E) := gc.memLp_top.toLp g (μ := volume)\n  let A : Lp ℂ 2 (volume : Measure E) →L[ℂ] Lp ℂ 2 (volume : Measure E) :=\n    fourierInvCLM ℂ _ ∘L actualMul gl ∘L fourierCLM ℂ _\n  have hA : ∀ f, Lp.toTemperedDistribution (A f) =\n      TemperedDistribution.fourierMultiplierCLM ℂ g (Lp.toTemperedDistribution f) := by\n    intro f\n    change Lp.toTemperedDistribution (𝓕⁻ (actualMul gl (𝓕 f))) = _\n    rw [actualMul_eq, ← Lp.fourierInv_toTemperedDistribution_eq,\n      Lp.toTemperedDistribution_smul_eq hg gc.memLp_top,\n      ← Lp.fourier_toTemperedDistribution_eq]\n    rfl\n  refine ⟨A,?_,hA,?_⟩\n  · intro f\n    have hC0 : 0 ≤ C := (norm_nonneg (g 0)).trans (hC 0)\n    have hgl : ‖gl‖ ≤ C := by\n      change ‖gc.memLp_top.toLp g (μ := volume)‖ ≤ C\n      rw [Lp.norm_toLp (μ := (volume : Measure E)) g gc.memLp_top]\n      exact (ENNReal.toReal_mono (by finiteness)\n        (eLpNormEssSup_le_of_ae_bound (Filter.Eventually.of_forall hC))).trans_eq\n        (ENNReal.toReal_ofReal hC0)\n    change ‖𝓕⁻ (actualMul gl (𝓕 f))‖ ≤ _\n    have hn : ‖𝓕⁻ (actualMul gl (𝓕 f))‖ = ‖actualMul gl (𝓕 f)‖ := by\n      simpa using (Lp.norm_fourier_eq (𝓕⁻ (actualMul gl (𝓕 f)))).symm\n    rw [hn,actualMul_eq]\n    exact (Lp.norm_smul_le (r := 2) gl (𝓕 f)).trans\n      (by simpa using mul_le_mul_of_nonneg_right hgl (norm_nonneg (𝓕 f)))\n  · intro φ\n    apply lp_td_injective\n    rw [hA,Lp.toTemperedDistribution_toLp_eq,\n      TemperedDistribution.fourierMultiplierCLM_toTemperedDistributionCLM_eq hg,\n      Lp.toTemperedDistribution_toLp_eq]\n\nprivate def mzero (x : E) : ℂ := ((1+‖x‖^2)^(-1:ℝ) : ℝ)\nprivate def mlap (x : E) : ℂ := (‖x‖^2 * (1+‖x‖^2)^(-1:ℝ) : ℝ)\nprivate def mdir (a : E) (x : E) : ℂ := (inner ℝ x a * (1+‖x‖^2)^(-1:ℝ) : ℝ)\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem mzero_growth : (mzero : E → ℂ).HasTemperateGrowth := by\n  unfold mzero; fun_prop\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem mlap_growth : (mlap : E → ℂ).HasTemperateGrowth := by\n  unfold mlap; fun_prop\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem mdir_growth (a : E) : (mdir a).HasTemperateGrowth := by\n  unfold mdir; fun_prop\nomit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem mzero_bound (x : E) : ‖mzero x‖ ≤ 1 := by\n  simp only [mzero,Real.rpow_neg_one,Complex.norm_real,Real.norm_eq_abs,\n    abs_of_nonneg (by positivity : 0 ≤ (1+‖x‖^2)⁻¹)]\n  exact (inv_le_one₀ (by positivity)).mpr (by nlinarith [sq_nonneg ‖x‖])\nomit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem mlap_bound (x : E) : ‖mlap x‖ ≤ 1 := by\n  simp only [mlap,Real.rpow_neg_one,Complex.norm_real,Real.norm_eq_abs,\n    abs_of_nonneg (by positivity : 0 ≤ ‖x‖^2*(1+‖x‖^2)⁻¹)]\n  rw [mul_inv_le_iff₀ (by positivity)]\n  linarith\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem mdir_bound (a x : E) : ‖mdir a x‖ ≤ ‖a‖ := by\n  simp only [mdir,Real.rpow_neg_one,Complex.norm_real,Real.norm_eq_abs,\n    abs_mul,abs_of_nonneg (by positivity : 0 ≤ (1+‖x‖^2)⁻¹)]\n  rw [mul_inv_le_iff₀ (by positivity)]\n  have h : ‖x‖ ≤ 1+‖x‖^2 := by nlinarith [sq_nonneg (‖x‖-1)]\n  exact (abs_real_inner_le_norm x a).trans (by nlinarith [norm_nonneg a])\n\nprivate theorem inverse_lap (t : 𝓢'(E,ℂ)) :\n    Δ (TemperedDistribution.fourierMultiplierCLM ℂ (mzero : E → ℂ) t) =\n      ((-(2*Real.pi)^2 : ℝ) : ℂ) • TemperedDistribution.fourierMultiplierCLM ℂ mlap t := by\n  rw [TemperedDistribution.laplacian_eq_fourierMultiplierCLM,\n    TemperedDistribution.fourierMultiplierCLM_fourierMultiplierCLM_apply\n      mzero_growth (by fun_prop)]\n  have hm : (mzero * fun x : E => ((‖x‖^2 : ℝ) : ℂ)) = mlap := by\n    funext x; simp [mzero,mlap,mul_comm]\n  rw [hm,Complex.coe_smul]\n\nprivate theorem inverse_dir (a : E) (t : 𝓢'(E,ℂ)) :\n    ∂_{a} (TemperedDistribution.fourierMultiplierCLM ℂ (mzero : E → ℂ) t) =\n      (2*Real.pi*Complex.I) • TemperedDistribution.fourierMultiplierCLM ℂ (mdir a) t := by\n  rw [TemperedDistribution.lineDeriv_eq_fourierMultiplierCLM,\n    TemperedDistribution.fourierMultiplierCLM_fourierMultiplierCLM_apply\n      mzero_growth (by fun_prop)]\n  have hm : (mzero * fun x : E => (inner ℝ x a : ℂ)) = mdir a := by\n    funext x; simp [mzero,mdir,mul_comm]\n  rw [hm]\n\nprivate theorem schwartz_approx (w : Lp ℂ 2 (volume : Measure E)) :\n    ∃ q : ℕ → SchwartzMap E ℂ,\n      Filter.Tendsto (fun n => (q n).toLp 2 volume) Filter.atTop (𝓝 w) := by\n  have hd := SchwartzMap.denseRange_toLpCLM (F := ℂ) (p := 2)\n    (μ := (volume : Measure E)) ENNReal.ofNat_ne_top\n  obtain ⟨r,hr,ht⟩ := mem_closure_iff_seq_limit.mp (hd w)\n  choose q hq using hr\n  refine ⟨q,?_⟩\n  have hrq : r = fun n => (q n).toLp 2 volume := by\n    funext n; exact (hq n).symm\n  simpa only [hrq] using ht\n\nprivate theorem spectral_graph (vc Fc : Lp ℂ 2 (volume : Measure E))\n    (hs : MemSobolev 2 2 (Lp.toTemperedDistribution vc))\n    (hl : Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc) :\n    ∃ s : ℕ → SchwartzMap E ℂ,\n      Filter.Tendsto (fun n => (s n).toLp 2 volume) Filter.atTop (𝓝 vc) ∧\n      Filter.Tendsto (fun n => (Δ (s n)).toLp 2 volume) Filter.atTop (𝓝 Fc) ∧\n      ∀ a : E, ∃ ga : Lp ℂ 2 (volume : Measure E),\n        Lp.toTemperedDistribution ga = ∂_{a} (Lp.toTemperedDistribution vc) ∧\n        Filter.Tendsto (fun n => (∂_{a} (s n)).toLp 2 volume)\n          Filter.atTop (𝓝 ga) := by\n  obtain ⟨w,hw⟩ := hs\n  obtain ⟨A0,h0norm,h0td,h0s⟩ :=\n    actual_bounded_multiplier_norm (E := E) mzero mzero_growth 1 mzero_bound\n  have hz : Lp.toTemperedDistribution (A0 w) = Lp.toTemperedDistribution vc := by\n    rw [h0td]\n    have hb := (besselPotential_neg_apply_eq_iff 2 (Lp.toTemperedDistribution w)\n      (Lp.toTemperedDistribution vc)).mpr hw\n    change (TemperedDistribution.fourierMultiplierCLM ℂ\n      (fun x : E => (((1+‖x‖^2)^(-1:ℝ) : ℝ) : ℂ)))\n      (Lp.toTemperedDistribution w) = _\n    simpa only [besselPotential,show (-(2:ℝ))/2 = -1 by norm_num] using hb\n  have hv : A0 w = vc := lp_td_injective hz\n  obtain ⟨AL,hLnorm,hLtd,hLs⟩ :=\n    actual_bounded_multiplier_norm (E := E) mlap mlap_growth 1 mlap_bound\n  have hLF : ((-(2*Real.pi)^2 : ℝ) : ℂ) • AL w = Fc := by\n    apply lp_td_injective\n    rw [← hl, ← hz, h0td, inverse_lap]\n    change (Lp.toTemperedDistributionCLM ℂ volume 2)\n      (((-(2*Real.pi)^2 : ℝ) : ℂ) • AL w) = _\n    rw [map_smul,Lp.toTemperedDistributionCLM_apply,hLtd]\n  obtain ⟨q,hq⟩ := schwartz_approx w\n  let s : ℕ → SchwartzMap E ℂ := fun n => SchwartzMap.fourierMultiplierCLM ℂ mzero (q n)\n  have hs0 : ∀ n, (s n).toLp 2 volume = A0 ((q n).toLp 2 volume) := by\n    intro n; exact (h0s (q n)).symm\n  have hsL : ∀ n, (Δ (s n)).toLp 2 volume =\n      ((-(2*Real.pi)^2 : ℝ) : ℂ) • AL ((q n).toLp 2 volume) := by\n    intro n\n    apply lp_td_injective\n    rw [Lp.toTemperedDistribution_toLp_eq,\n      ← TemperedDistribution.laplacian_toTemperedDistributionCLM_eq]\n    rw [← Lp.toTemperedDistribution_toLp_eq (p := 2) (s n)]\n    rw [hs0,h0td,inverse_lap]\n    change _ = (Lp.toTemperedDistributionCLM ℂ volume 2)\n      (((-(2*Real.pi)^2 : ℝ) : ℂ) • AL ((q n).toLp 2 volume))\n    rw [map_smul,Lp.toTemperedDistributionCLM_apply,hLtd]\n  refine ⟨s,?_,?_,?_⟩\n  · simpa only [hs0,hv,Function.comp_def] using A0.continuous.continuousAt.tendsto.comp hq\n  · rw [← hLF]\n    simpa only [hsL,Function.comp_def] using\n      (AL.continuous.continuousAt.tendsto.comp hq).const_smul ((-(2*Real.pi)^2 : ℝ) : ℂ)\n  · intro a\n    obtain ⟨AD,hDnorm,hDtd,hDs⟩ :=\n      actual_bounded_multiplier_norm (mdir a) (mdir_growth a) ‖a‖ (mdir_bound a)\n    let ga := (2*Real.pi*Complex.I) • AD w\n    have hg : Lp.toTemperedDistribution ga = ∂_{a} (Lp.toTemperedDistribution vc) := by\n      rw [← hz,h0td,inverse_dir]\n      change (Lp.toTemperedDistributionCLM ℂ volume 2)\n        ((2*Real.pi*Complex.I) • AD w) = _\n      rw [map_smul,Lp.toTemperedDistributionCLM_apply,hDtd]\n    have hsD : ∀ n, (∂_{a} (s n)).toLp 2 volume =\n        (2*Real.pi*Complex.I) • AD ((q n).toLp 2 volume) := by\n      intro n\n      apply lp_td_injective\n      rw [Lp.toTemperedDistribution_toLp_eq,\n        ← TemperedDistribution.lineDerivOp_toTemperedDistributionCLM_eq]\n      rw [← Lp.toTemperedDistribution_toLp_eq (p := 2) (s n)]\n      rw [hs0,h0td,inverse_dir]\n      change _ = (Lp.toTemperedDistributionCLM ℂ volume 2)\n        ((2*Real.pi*Complex.I) • AD ((q n).toLp 2 volume))\n      rw [map_smul,Lp.toTemperedDistributionCLM_apply,hDtd]\n    refine ⟨ga,hg,?_⟩\n    simpa only [hsD,ga,Function.comp_def] using\n      (AD.continuous.continuousAt.tendsto.comp hq).const_smul (2*Real.pi*Complex.I)\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem real_postcomp_derivative (ψ : SchwartzMap E ℝ) (a : E) :\n    ∂_{a} (ψ.postcompCLM Complex.ofRealCLM) =\n      (∂_{a} ψ).postcompCLM Complex.ofRealCLM := by\n  ext x\n  simp only [SchwartzMap.lineDerivOp_apply_eq_fderiv, SchwartzMap.postcompCLM_apply]\n  change (fderiv ℝ (Complex.ofRealCLM ∘ (ψ : E → ℝ)) x) a =\n    Complex.ofRealCLM ((fderiv ℝ (ψ : E → ℝ) x) a)\n  exact congrArg (fun L : E →L[ℝ] ℂ => L a)\n    ((Complex.ofRealCLM.hasFDerivAt.comp x (ψ.hasFDerivAt x)).fderiv)\n\nprivate theorem identify_real_gradient (v : E → ℝ) (G : E → E)\n    (hG : MemLp G 2 volume)\n    (vc ga : Lp ℂ 2 (volume : Measure E))\n    (hvc : vc =ᵐ[volume] (fun x => (v x : ℂ))) (a : E)\n    (hga : Lp.toTemperedDistribution ga = ∂_{a} (Lp.toTemperedDistribution vc))\n    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ →\n      Integrable (fun x => ψ x * inner ℝ (G x) a) volume ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) volume ∧\n      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, v x * fderiv ℝ ψ x a) :\n    (fun x => (ga x).re) =ᵐ[volume] (fun x => inner ℝ (G x) a) := by\n  have hreal : MemLp (fun x => (ga x).re) 2 volume :=\n    (Lp.memLp ga).continuousLinearMap_comp Complex.reCLM\n  have hinner : MemLp (fun x => inner ℝ (G x) a) 2 volume := by\n    simpa only [innerSL_apply_apply,real_inner_comm] using\n      hG.continuousLinearMap_comp (innerSL ℝ a)\n  apply ae_eq_of_integral_contDiff_smul_eq\n    (hreal.locallyIntegrable (by norm_num)) (hinner.locallyIntegrable (by norm_num))\n  intro φ hφ hc\n  let ψ : SchwartzMap E ℝ := hc.toSchwartzMap hφ\n  let ψC : SchwartzMap E ℂ := ψ.postcompCLM Complex.ofRealCLM\n  have hψ : (ψ : E → ℝ) = φ := rfl\n  have hweak := hd φ (contDiff_infty.mp hφ 1) hc\n  have hcomplex : Integrable (fun x => ψC x * ga x) volume :=\n    (ψC.memLp 2 volume).integrable_mul (Lp.memLp ga)\n  have hpair := congrArg (fun T : 𝓢'(E,ℂ) => T ψC) hga\n  rw [TemperedDistribution.lineDerivOp_apply_apply,\n    Lp.toTemperedDistribution_apply,Lp.toTemperedDistribution_apply] at hpair\n  have hder : ∂_{a} ψC = (∂_{a} ψ).postcompCLM Complex.ofRealCLM :=\n    real_postcomp_derivative ψ a\n  have hright : (∫ x, (-∂_{a} ψC) x • vc x) =\n      -((∫ x, v x * fderiv ℝ φ x a : ℝ) : ℂ) := by\n    simp only [neg_apply,neg_smul,integral_neg]\n    congr 1\n    calc\n      _ = ∫ x, ((∂_{a} ψ) x : ℂ) * (v x : ℂ) := by\n        apply integral_congr_ae\n        filter_upwards [hvc] with x hx\n        simp only [hder,hx,SchwartzMap.postcompCLM_apply,\n          Complex.ofRealCLM_apply,smul_eq_mul]\n      _ = _ := by\n        simp only [SchwartzMap.lineDerivOp_apply_eq_fderiv,hψ,\n          ← Complex.ofReal_mul,mul_comm]\n        exact integral_ofReal\n  rw [hright] at hpair\n  have hh := congrArg Complex.re hpair\n  rw [show (fun x => ψC x • ga x) = (fun x => ψC x * ga x) from rfl] at hh\n  have hre := integral_re hcomplex\n  simp only [RCLike.re_to_complex] at hre\n  rw [← hre] at hh\n  have heq : (∫ x, φ x * (ga x).re) = -∫ x, v x * fderiv ℝ φ x a := by\n    simpa only [Complex.ofReal_re,Complex.neg_re,SchwartzMap.postcompCLM_apply,\n      Complex.ofRealCLM_apply,Complex.mul_re,Complex.ofReal_im,zero_mul,sub_zero,\n      ψC,hψ] using hh\n  simpa only [smul_eq_mul] using heq.trans hweak.2.2.symm\n\n\nprivate theorem real_projection_toLp (ψ : SchwartzMap E ℂ) :\n    Complex.reCLM.compLpL 2 volume (ψ.toLp 2 volume) =\n      (ψ.postcompCLM Complex.reCLM).toLp 2 volume := by\n  apply Lp.ext\n  filter_upwards [Complex.reCLM.coeFn_compLpL (ψ.toLp 2 volume),\n    ψ.coeFn_toLp 2 volume,(ψ.postcompCLM Complex.reCLM).coeFn_toLp 2 volume]\n    with x hx hy hz\n  simp only [SchwartzMap.postcompCLM_apply] at hz\n  exact hx.trans ((congrArg Complex.reCLM hy).trans hz.symm)\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem real_projection_line (ψ : SchwartzMap E ℂ) (a : E) :\n    ∂_{a} (ψ.postcompCLM Complex.reCLM) =\n      (∂_{a} ψ).postcompCLM Complex.reCLM := by\n  ext x\n  simp only [SchwartzMap.lineDerivOp_apply_eq_fderiv,SchwartzMap.postcompCLM_apply]\n  change (fderiv ℝ (Complex.reCLM ∘ (ψ : E → ℂ)) x) a =\n    Complex.reCLM ((fderiv ℝ (ψ : E → ℂ) x) a)\n  exact congrArg (fun L : E →L[ℝ] ℝ => L a)\n    ((Complex.reCLM.hasFDerivAt.comp x (ψ.hasFDerivAt x)).fderiv)\n\nomit [MeasurableSpace E] [BorelSpace E] in\nprivate theorem real_projection_lap (ψ : SchwartzMap E ℂ) :\n    Δ (ψ.postcompCLM Complex.reCLM) = (Δ ψ).postcompCLM Complex.reCLM := by\n  ext x\n  simp only [SchwartzMap.laplacian_apply,SchwartzMap.postcompCLM_apply]\n  change Laplacian.laplacian (Complex.reCLM ∘ (ψ : E → ℂ)) x =\n    Complex.reCLM (Laplacian.laplacian (ψ : E → ℂ) x)\n  exact (ψ.contDiffAt 2).laplacian_CLM_comp_left (l := Complex.reCLM)\n\nprivate def schwartz_gradient (ψ : SchwartzMap E ℝ) : SchwartzMap E E :=\n  (SchwartzMap.fderivCLM ℝ E ℝ ψ).postcompCLM\n    (toDual ℝ E).symm.toContinuousLinearEquiv.toContinuousLinearMap\n\nomit [MeasurableSpace E] [BorelSpace E] in\nprivate theorem schwartz_gradient_apply (ψ : SchwartzMap E ℝ) (x : E) :\n    schwartz_gradient ψ x = gradient (ψ : E → ℝ) x := rfl\n\nprivate theorem real_projection_class (v : E → ℝ) (hv : MemLp v 2 volume)\n    (vc : Lp ℂ 2 (volume : Measure E))\n    (hvc : vc =ᵐ[volume] (fun x => (v x : ℂ))) :\n    Complex.reCLM.compLpL 2 volume vc = hv.toLp v := by\n  apply Lp.ext\n  filter_upwards [Complex.reCLM.coeFn_compLpL vc,hvc,hv.coeFn_toLp] with x hx hy hz\n  calc\n    _ = Complex.reCLM (vc x) := hx\n    _ = v x := by simp only [hy,Complex.reCLM_apply,Complex.ofReal_re]\n    _ = _ := hz.symm\n\nprivate theorem finite_gradient_reconstruction (ψ : SchwartzMap E ℝ) :\n    (schwartz_gradient ψ).toLp 2 volume =\n      ∑ i, ((ContinuousLinearMap.toSpanSingleton ℝ ((stdOrthonormalBasis ℝ E) i)).compLpL\n        2 volume) ((∂_{(stdOrthonormalBasis ℝ E) i} ψ).toLp 2 volume) := by\n  let b := stdOrthonormalBasis ℝ E\n  have hg : ∀ x, schwartz_gradient ψ x = ∑ i, fderiv ℝ (ψ : E → ℝ) x (b i) • b i := by\n    intro x\n    rw [schwartz_gradient_apply]\n    simpa only [inner_gradient_right,conj_trivial,← inner_gradient_left] using\n      (b.sum_repr' (gradient (ψ : E → ℝ) x)).symm\n  apply Lp.ext\n  have hsum := Lp.coeFn_fun_finsetSum Finset.univ\n    (fun i => ((ContinuousLinearMap.toSpanSingleton ℝ (b i)).compLpL\n      2 volume) ((∂_{b i} ψ).toLp 2 volume))\n  have hzall : ∀ᵐ x ∂(volume : Measure E), ∀ i,\n      ((ContinuousLinearMap.toSpanSingleton ℝ (b i)).compLpL 2 volume\n        ((∂_{b i} ψ).toLp 2 volume)) x =\n          (ContinuousLinearMap.toSpanSingleton ℝ (b i)) (((∂_{b i} ψ).toLp 2 volume) x) :=\n    Filter.eventually_all.mpr (fun i => by\n      exact ContinuousLinearMap.coeFn_compLpL\n        (ContinuousLinearMap.toSpanSingleton ℝ (b i))\n        ((∂_{b i} ψ).toLp 2 (volume : Measure E)))\n  have htall : ∀ᵐ x ∂(volume : Measure E), ∀ i,\n      ((∂_{b i} ψ).toLp 2 volume) x = (∂_{b i} ψ) x :=\n    Filter.eventually_all.mpr (fun i => (∂_{b i} ψ).coeFn_toLp 2 volume)\n  filter_upwards [(schwartz_gradient ψ).coeFn_toLp 2 volume,hsum,\n    hzall,htall] with x hx hy hz ht\n  rw [hx,hg,hy]\n  apply Finset.sum_congr rfl\n  intro i _\n  simpa only [ht i,SchwartzMap.lineDerivOp_apply_eq_fderiv,\n    ContinuousLinearMap.toSpanSingleton_apply] using (hz i).symm\n\nprivate theorem real_schwartz_graph (v F : E → ℝ) (G : E → E)\n    (hv : MemLp v 2 volume) (hF : MemLp F 2 volume) (hG : MemLp G 2 volume)\n    (vc Fc : Lp ℂ 2 (volume : Measure E))\n    (hvc : vc =ᵐ[volume] (fun x => (v x : ℂ)))\n    (hFc : Fc =ᵐ[volume] (fun x => (F x : ℂ)))\n    (hs : MemSobolev 2 2 (Lp.toTemperedDistribution vc))\n    (hl : Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc)\n    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (G x) a) volume ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) volume ∧\n      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, v x * fderiv ℝ ψ x a) :\n    ∃ r : ℕ → SchwartzMap E ℝ,\n      Filter.Tendsto (fun n => (r n).toLp 2 volume) Filter.atTop (𝓝 (hv.toLp v)) ∧\n      Filter.Tendsto (fun n => (schwartz_gradient (r n)).toLp 2 volume)\n        Filter.atTop (𝓝 (hG.toLp G)) ∧\n      Filter.Tendsto (fun n => (Δ (r n)).toLp 2 volume)\n        Filter.atTop (𝓝 (hF.toLp F)) := by\n  obtain ⟨s,hsv,hsF,hsG⟩ := spectral_graph vc Fc hs hl\n  let R : Lp ℂ 2 (volume : Measure E) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=\n    Complex.reCLM.compLpL 2 volume\n  let r : ℕ → SchwartzMap E ℝ := fun n => (s n).postcompCLM Complex.reCLM\n  let b := stdOrthonormalBasis ℝ E\n  choose ga hga hgat using (fun i : Fin (Module.finrank ℝ E) => hsG (b i))\n  have hreal (i : Fin (Module.finrank ℝ E)) :\n      (R (ga i) : E → ℝ) =ᵐ[volume] fun x => inner ℝ (G x) (b i) := by\n    have hi := identify_real_gradient v G hG vc (ga i) hvc (b i) (hga i)\n      (fun ψ hψ hc => hd ψ hψ hc (b i))\n    exact (Complex.reCLM.coeFn_compLpL (ga i)).trans hi\n  have hdir (i : Fin (Module.finrank ℝ E)) :\n      Filter.Tendsto (fun n => (∂_{b i} (r n)).toLp 2 volume)\n        Filter.atTop (𝓝 (R (ga i))) := by\n    simpa only [R,Function.comp_def,real_projection_toLp,← real_projection_line,r] using\n      R.continuous.continuousAt.tendsto.comp (hgat i)\n  have hsumG : (∑ i, ((ContinuousLinearMap.toSpanSingleton ℝ (b i)).compLpL 2 volume)\n      (R (ga i))) = hG.toLp G := by\n    apply Lp.ext\n    have hsum := Lp.coeFn_fun_finsetSum Finset.univ\n      (fun i => ((ContinuousLinearMap.toSpanSingleton ℝ (b i)).compLpL 2 volume) (R (ga i)))\n    have hmaps : ∀ᵐ x ∂(volume : Measure E), ∀ i,\n        (((ContinuousLinearMap.toSpanSingleton ℝ (b i)).compLpL 2 volume)\n          (R (ga i))) x = (R (ga i) x) • b i :=\n      Filter.eventually_all.mpr (fun i => by\n        filter_upwards [(ContinuousLinearMap.toSpanSingleton ℝ (b i)).coeFn_compLpL\n          (R (ga i))] with x hx\n        exact hx)\n    filter_upwards [hsum,hmaps,Filter.eventually_all.mpr hreal,hG.coeFn_toLp]\n      with x hx hy hz ht\n    rw [hx,ht]\n    calc\n      _ = ∑ i, inner ℝ (G x) (b i) • b i := by\n        apply Finset.sum_congr rfl\n        intro i _; rw [hy i,hz i]\n      _ = G x := by simpa only [real_inner_comm] using b.sum_repr' (G x)\n  refine ⟨r,?_,?_,?_⟩\n  · rw [← real_projection_class v hv vc hvc]\n    simpa only [R,Function.comp_def,real_projection_toLp,r] using\n      R.continuous.continuousAt.tendsto.comp hsv\n  · rw [← hsumG]\n    have ht := tendsto_finsetSum Finset.univ (fun i _ =>\n      ((ContinuousLinearMap.toSpanSingleton ℝ (b i)).compLpL 2 volume).continuous.continuousAt.tendsto.comp\n        (hdir i))\n    simpa only [Function.comp_def,← finite_gradient_reconstruction,b] using ht\n  · rw [← real_projection_class F hF Fc hFc]\n    simpa only [R,Function.comp_def,real_projection_toLp,← real_projection_lap,r] using\n      R.continuous.continuousAt.tendsto.comp hsF\n\n\n/- The source-localization module has no public Laplacian product API.\nThese private C2 trace identities reuse its audited proof route; no new public\nbackground node or graph-density assumption is introduced. -/\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem directional_second (f : E → ℝ) (hf : ContDiff ℝ 2 f) (x v : E) :\n    fderiv ℝ (fun z => fderiv ℝ f z v) x v = fderiv ℝ (fderiv ℝ f) x v v := by\n  have hd := ((hf.fderiv_right (m := 1) (by norm_num)).differentiable one_ne_zero x).hasFDerivAt\n  simpa using congrArg (fun T : E →L[ℝ] ℝ => T v)\n    (hd.clm_apply (hasFDerivAt_const v x)).fderiv\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem first_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 1 χ)\n    (hφ : ContDiff ℝ 1 φ) (x v : E) :\n    fderiv ℝ (fun z => χ z * φ z) x v =\n      χ x * fderiv ℝ φ x v + φ x * fderiv ℝ χ x v := by\n  have hd := (hχ.differentiable one_ne_zero x).hasFDerivAt.mul\n    (hφ.differentiable one_ne_zero x).hasFDerivAt\n  rw [show fderiv ℝ (fun z => χ z * φ z) x = _ from hd.fderiv]\n  simp only [add_apply, smul_apply, smul_eq_mul]\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem second_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ)\n    (hφ : ContDiff ℝ 2 φ) (x v : E) :\n    fderiv ℝ (fderiv ℝ (fun z => χ z * φ z)) x v v =\n      χ x * fderiv ℝ (fderiv ℝ φ) x v v +\n      2 * (fderiv ℝ χ x v * fderiv ℝ φ x v) +\n      φ x * fderiv ℝ (fderiv ℝ χ) x v v := by\n  have hχ1 : ContDiff ℝ 1 χ := hχ.of_le (by norm_num)\n  have hφ1 : ContDiff ℝ 1 φ := hφ.of_le (by norm_num)\n  have hχd : ContDiff ℝ 1 (fun z => fderiv ℝ χ z v) :=\n    (hχ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const\n  have hφd : ContDiff ℝ 1 (fun z => fderiv ℝ φ z v) :=\n    (hφ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const\n  have he : (fun z => fderiv ℝ (fun w => χ w * φ w) z v) =\n      fun z => χ z * fderiv ℝ φ z v + φ z * fderiv ℝ χ z v := by\n    funext z; exact first_product χ φ hχ1 hφ1 z v\n  rw [← directional_second _ (hχ.mul hφ), he]\n  have hd := ((hχ1.differentiable one_ne_zero x).hasFDerivAt.mul\n    (hφd.differentiable one_ne_zero x).hasFDerivAt).add\n    ((hφ1.differentiable one_ne_zero x).hasFDerivAt.mul\n      (hχd.differentiable one_ne_zero x).hasFDerivAt)\n  rw [show fderiv ℝ (fun z => χ z * fderiv ℝ φ z v + φ z * fderiv ℝ χ z v) x = _ from hd.fderiv]\n  simp only [add_apply, smul_apply, smul_eq_mul]\n  rw [directional_second _ hφ, directional_second _ hχ]\n  ring\n\nomit [MeasurableSpace E] [BorelSpace E] in\nprivate theorem laplacian_trace (f : E → ℝ) (x : E) :\n    Laplacian.laplacian f x = ∑ i, fderiv ℝ (fderiv ℝ f) x\n      ((stdOrthonormalBasis ℝ E) i) ((stdOrthonormalBasis ℝ E) i) := by\n  rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]\n  apply Finset.sum_congr rfl\n  intro i _\n  rw [iteratedFDeriv_two_apply]\n  rfl\n\nomit [MeasurableSpace E] [BorelSpace E] in\nprivate theorem laplacian_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ)\n    (hφ : ContDiff ℝ 2 φ) (x : E) :\n    Laplacian.laplacian (fun z => χ z * φ z) x =\n      χ x * Laplacian.laplacian φ x +\n      2 * inner ℝ (gradient χ x) (gradient φ x) +\n      φ x * Laplacian.laplacian χ x := by\n  have hi : inner ℝ (gradient χ x) (gradient φ x) =\n      ∑ i, fderiv ℝ χ x ((stdOrthonormalBasis ℝ E) i) *\n        fderiv ℝ φ x ((stdOrthonormalBasis ℝ E) i) := by\n    rw [← (stdOrthonormalBasis ℝ E).sum_inner_mul_inner (gradient χ x) (gradient φ x)]\n    simp only [inner_gradient_left, inner_gradient_right, conj_trivial]\n  rw [laplacian_trace, laplacian_trace, laplacian_trace, hi]\n  simp_rw [second_product χ φ hχ hφ]\n  simp only [Finset.sum_add_distrib, ← Finset.mul_sum]\n\n\n\nomit [MeasurableSpace E] [BorelSpace E] in\nprivate theorem outer_plateau (K : Set E) (hK : IsCompact K) :\n    ∃ θ : SchwartzMap E ℝ, HasCompactSupport (θ : E → ℝ) ∧\n      ∀ x ∈ K, (θ : E → ℝ) =ᶠ[𝓝 x] (fun _ => 1) := by\n  obtain ⟨R,hR,hKR⟩ := hK.isBounded.subset_ball_lt 0 (0:E)\n  let b : ContDiffBump (0:E) :=\n    {rIn := R,rOut := R+1,rIn_pos := hR,rIn_lt_rOut := by linarith}\n  let θ : SchwartzMap E ℝ := b.hasCompactSupport.toSchwartzMap b.contDiff\n  refine ⟨θ,b.hasCompactSupport,?_⟩\n  intro x hx\n  exact b.eventuallyEq_one_of_mem_ball (hKR hx)\n\nprivate theorem coeff_holder_ae {F H O : Type*}\n    [NormedAddCommGroup F] [NormedSpace ℝ F]\n    [NormedAddCommGroup H] [NormedSpace ℝ H]\n    [NormedAddCommGroup O] [NormedSpace ℝ O]\n    (B : F →L[ℝ] H →L[ℝ] O) (u : SchwartzMap E F)\n    (f : Lp H 2 (volume : Measure E)) :\n    ((B.holderL volume ∞ 2 2) (u.toLp ∞ volume) f : E → O) =ᵐ[volume]\n      fun x => B (u x) (f x) := by\n  change (B.holder 2 (u.toLp ∞ volume) f : E → O) =ᵐ[volume] _\n  filter_upwards [B.coeFn_holder (r := 2) (u.toLp ∞ volume) f,\n    u.coeFn_toLp ∞ volume] with x hx hu\n  exact hx.trans (by rw [hu])\n\nomit [MeasurableSpace E] [BorelSpace E] in\nprivate theorem plateau_point_identities (v F : E → ℝ) (G : E → E) (K : Set E)\n    (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K) (hG : tsupport G ⊆ K)\n    (θ : SchwartzMap E ℝ)\n    (hθ : ∀ x ∈ K, (θ : E → ℝ) =ᶠ[𝓝 x] (fun _ => 1)) (x : E) :\n    θ x * v x = v x ∧ θ x • G x = G x ∧ θ x * F x = F x ∧\n      v x • schwartz_gradient θ x = 0 ∧\n      inner ℝ (schwartz_gradient θ x) (G x) = 0 ∧ (Δ θ) x * v x = 0 := by\n  by_cases hx : x ∈ K\n  · have hone : θ x = 1 := (hθ x hx).eq_of_nhds\n    have hgrad : schwartz_gradient θ x = 0 := by\n      rw [schwartz_gradient_apply,(hθ x hx).gradient_eq]\n      simp [gradient]\n    have hlap : (Δ θ) x = 0 := by\n      rw [SchwartzMap.laplacian_apply,(laplacian_congr_nhds (hθ x hx)).eq_of_nhds]\n      simp\n    simp [hone,hgrad,hlap]\n  · have hvx : v x = 0 := image_eq_zero_of_notMem_tsupport (fun hh => hx (hv hh))\n    have hFx : F x = 0 := image_eq_zero_of_notMem_tsupport (fun hh => hx (hF hh))\n    have hGx : G x = 0 := image_eq_zero_of_notMem_tsupport (fun hh => hx (hG hh))\n    simp [hvx,hFx,hGx]\n\nprivate theorem coeff_holder_class {F H O : Type*}\n    [NormedAddCommGroup F] [NormedSpace ℝ F]\n    [NormedAddCommGroup H] [NormedSpace ℝ H]\n    [NormedAddCommGroup O] [NormedSpace ℝ O]\n    (B : F →L[ℝ] H →L[ℝ] O) (u : SchwartzMap E F)\n    (f : E → H) (k : E → O) (hf : MemLp f 2 volume) (hk : MemLp k 2 volume)\n    (heq : ∀ x, B (u x) (f x) = k x) :\n    (B.holderL volume ∞ 2 2) (u.toLp ∞ volume) (hf.toLp f) = hk.toLp k := by\n  apply Lp.ext\n  filter_upwards [coeff_holder_ae B u (hf.toLp f),hf.coeFn_toLp,hk.coeFn_toLp]\n    with x hx hy hz\n  calc\n    _ = B (u x) ((hf.toLp f) x) := hx\n    _ = B (u x) (f x) := congrArg (B (u x)) hy\n    _ = k x := heq x\n    _ = _ := hz.symm\n\nprivate theorem cutoff_schwartz_graph (v F : E → ℝ) (G : E → E) (K : Set E)\n    (hK : IsCompact K) (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K)\n    (hG : tsupport G ⊆ K) (hv2 : MemLp v 2 volume)\n    (hF2 : MemLp F 2 volume) (hG2 : MemLp G 2 volume)\n    (r : ℕ → SchwartzMap E ℝ)\n    (hrv : Filter.Tendsto (fun n => (r n).toLp 2 volume) Filter.atTop (𝓝 (hv2.toLp v)))\n    (hrG : Filter.Tendsto (fun n => (schwartz_gradient (r n)).toLp 2 volume)\n      Filter.atTop (𝓝 (hG2.toLp G)))\n    (hrF : Filter.Tendsto (fun n => (Δ (r n)).toLp 2 volume)\n      Filter.atTop (𝓝 (hF2.toLp F))) :\n    ∃ K' : Set E, IsCompact K' ∧ ∃ q : ℕ → SchwartzMap E ℝ,\n      (∀ n, tsupport (q n) ⊆ K') ∧\n      Filter.Tendsto (fun n => (q n).toLp 2 volume) Filter.atTop (𝓝 (hv2.toLp v)) ∧\n      Filter.Tendsto (fun n => (schwartz_gradient (q n)).toLp 2 volume)\n        Filter.atTop (𝓝 (hG2.toLp G)) ∧\n      Filter.Tendsto (fun n => (Δ (q n)).toLp 2 volume)\n        Filter.atTop (𝓝 (hF2.toLp F)) := by\n  obtain ⟨θ,hθc,hθone⟩ := outer_plateau K hK\n  let q : ℕ → SchwartzMap E ℝ := fun n =>\n    (hθc.mul_right : HasCompactSupport (fun x => θ x * r n x)).toSchwartzMap\n      ((θ.smooth ⊤).mul ((r n).smooth ⊤))\n  have hq (n : ℕ) : (q n : E → ℝ) = fun x => θ x * r n x := rfl\n  let MV : Lp ℝ 2 (volume : Measure E) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=\n    (ContinuousLinearMap.lsmul ℝ ℝ).holderL volume ∞ 2 2 (θ.toLp ∞ volume)\n  let MG : Lp E 2 (volume : Measure E) →L[ℝ] Lp E 2 (volume : Measure E) :=\n    (ContinuousLinearMap.lsmul ℝ ℝ (E := E)).holderL volume ∞ 2 2 (θ.toLp ∞ volume)\n  let C : Lp ℝ 2 (volume : Measure E) →L[ℝ] Lp E 2 (volume : Measure E) :=\n    (ContinuousLinearMap.lsmul ℝ ℝ (E := E)).flip.holderL volume ∞ 2 2\n      ((schwartz_gradient θ).toLp ∞ volume)\n  let I : Lp E 2 (volume : Measure E) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=\n    (innerSL ℝ).holderL volume ∞ 2 2 ((schwartz_gradient θ).toLp ∞ volume)\n  let L : Lp ℝ 2 (volume : Measure E) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=\n    (ContinuousLinearMap.lsmul ℝ ℝ).holderL volume ∞ 2 2 ((Δ θ).toLp ∞ volume)\n  have hi := plateau_point_identities v F G K hv hF hG θ hθone\n  have hMV : MV (hv2.toLp v) = hv2.toLp v :=\n    coeff_holder_class (ContinuousLinearMap.lsmul ℝ ℝ) θ v v hv2 hv2 (fun x => (hi x).1)\n  have hMF : MV (hF2.toLp F) = hF2.toLp F :=\n    coeff_holder_class (ContinuousLinearMap.lsmul ℝ ℝ) θ F F hF2 hF2 (fun x => (hi x).2.2.1)\n  have hMG : MG (hG2.toLp G) = hG2.toLp G :=\n    coeff_holder_class (ContinuousLinearMap.lsmul ℝ ℝ (E := E)) θ G G hG2 hG2 (fun x => (hi x).2.1)\n  have hC : C (hv2.toLp v) = 0 := by\n    exact (coeff_holder_class (ContinuousLinearMap.lsmul ℝ ℝ (E := E)).flip (schwartz_gradient θ)\n      v (fun _ : E => (0 : E)) hv2 MemLp.zero (fun x => (hi x).2.2.2.1)).trans (MemLp.toLp_zero _)\n  have hI : I (hG2.toLp G) = 0 := by\n    exact (coeff_holder_class (innerSL ℝ) (schwartz_gradient θ)\n      G (fun _ : E => (0 : ℝ)) hG2 MemLp.zero (fun x => (hi x).2.2.2.2.1)).trans (MemLp.toLp_zero _)\n  have hL : L (hv2.toLp v) = 0 := by\n    exact (coeff_holder_class (ContinuousLinearMap.lsmul ℝ ℝ) (Δ θ)\n      v (fun _ : E => (0 : ℝ)) hv2 MemLp.zero (fun x => (hi x).2.2.2.2.2)).trans (MemLp.toLp_zero _)\n  have hqV (n : ℕ) : (q n).toLp 2 volume = MV ((r n).toLp 2 volume) := by\n    apply Lp.ext\n    filter_upwards [(q n).coeFn_toLp 2 volume,\n      coeff_holder_ae (ContinuousLinearMap.lsmul ℝ ℝ) θ ((r n).toLp 2 volume),\n      (r n).coeFn_toLp 2 volume] with x hx hy hz\n    rw [hz] at hy\n    exact hx.trans hy.symm\n  have hqG (n : ℕ) : (schwartz_gradient (q n)).toLp 2 volume =\n      MG ((schwartz_gradient (r n)).toLp 2 volume) + C ((r n).toLp 2 volume) := by\n    apply Lp.ext\n    filter_upwards [(schwartz_gradient (q n)).coeFn_toLp 2 volume,\n      Lp.coeFn_add (MG ((schwartz_gradient (r n)).toLp 2 volume)) (C ((r n).toLp 2 volume)),\n      coeff_holder_ae (ContinuousLinearMap.lsmul ℝ ℝ (E := E)) θ ((schwartz_gradient (r n)).toLp 2 volume),\n      coeff_holder_ae (ContinuousLinearMap.lsmul ℝ ℝ (E := E)).flip (schwartz_gradient θ) ((r n).toLp 2 volume),\n      (schwartz_gradient (r n)).coeFn_toLp 2 volume,(r n).coeFn_toLp 2 volume]\n      with x hx hy hz ht hu hw\n    rw [hx,hy]\n    simp only [Pi.add_apply]\n    rw [hz,ht,hu,hw,schwartz_gradient_apply,schwartz_gradient_apply,\n      schwartz_gradient_apply]\n    change gradient (q n : E → ℝ) x =\n      θ x • gradient (r n : E → ℝ) x + r n x • gradient (θ : E → ℝ) x\n    rw [hq]\n    exact AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra.gradient_mul_eq_of_differentiableAt\n      θ.differentiableAt (r n).differentiableAt\n  have hqF (n : ℕ) : (Δ (q n)).toLp 2 volume = MV ((Δ (r n)).toLp 2 volume) +\n      (2:ℝ) • I ((schwartz_gradient (r n)).toLp 2 volume) + L ((r n).toLp 2 volume) := by\n    apply Lp.ext\n    filter_upwards [(Δ (q n)).coeFn_toLp 2 volume,\n      Lp.coeFn_add (MV ((Δ (r n)).toLp 2 volume) + (2:ℝ) • I ((schwartz_gradient (r n)).toLp 2 volume))\n        (L ((r n).toLp 2 volume)),\n      Lp.coeFn_add (MV ((Δ (r n)).toLp 2 volume)) ((2:ℝ) • I ((schwartz_gradient (r n)).toLp 2 volume)),\n      Lp.coeFn_smul (2:ℝ) (I ((schwartz_gradient (r n)).toLp 2 volume)),\n      coeff_holder_ae (ContinuousLinearMap.lsmul ℝ ℝ) θ ((Δ (r n)).toLp 2 volume),\n      coeff_holder_ae (innerSL ℝ) (schwartz_gradient θ) ((schwartz_gradient (r n)).toLp 2 volume),\n      coeff_holder_ae (ContinuousLinearMap.lsmul ℝ ℝ) (Δ θ) ((r n).toLp 2 volume),\n      (Δ (r n)).coeFn_toLp 2 volume,(schwartz_gradient (r n)).coeFn_toLp 2 volume,\n      (r n).coeFn_toLp 2 volume] with x hx hy hz ht hu hw hA hB hC hD\n    rw [hx,hy]\n    simp only [Pi.add_apply]\n    rw [hz]\n    simp only [Pi.add_apply]\n    rw [ht]\n    simp only [Pi.smul_apply]\n    rw [hu,hw,hA,hB,hC,hD]\n    have heinner : ((innerSL ℝ) (schwartz_gradient θ x)) (schwartz_gradient (r n) x) =\n        inner ℝ (schwartz_gradient θ x) (schwartz_gradient (r n) x) := rfl\n    rw [heinner]\n    simp only [SchwartzMap.laplacian_apply,schwartz_gradient_apply,\n      ContinuousLinearMap.lsmul_apply,smul_eq_mul]\n    change Laplacian.laplacian (q n : E → ℝ) x =\n      θ x * Laplacian.laplacian (r n : E → ℝ) x +\n      2 * inner ℝ (gradient (θ : E → ℝ) x) (gradient (r n : E → ℝ) x) +\n      Laplacian.laplacian (θ : E → ℝ) x * r n x\n    rw [hq]\n    simpa only [mul_comm] using\n      laplacian_product (θ : E → ℝ) (r n : E → ℝ) (θ.smooth 2) ((r n).smooth 2) x\n  refine ⟨tsupport θ,hθc,q,?_,?_,?_,?_⟩\n  · intro n\n    rw [hq]\n    exact tsupport_mul_subset_left\n  · rw [← hMV]\n    simpa only [hqV,Function.comp_def] using MV.continuous.continuousAt.tendsto.comp hrv\n  · have ht := (MG.continuous.continuousAt.tendsto.comp hrG).add\n      (C.continuous.continuousAt.tendsto.comp hrv)\n    simpa only [hqG,Function.comp_def,hMG,hC,add_zero] using ht\n  · have ht := ((MV.continuous.continuousAt.tendsto.comp hrF).add\n      ((I.continuous.continuousAt.tendsto.comp hrG).const_smul (2:ℝ))).add\n      (L.continuous.continuousAt.tendsto.comp hrv)\n    simpa only [hqF,Function.comp_def,hMF,hI,hL,smul_zero,add_zero] using ht\n\ntheorem compact_weak_poisson_smooth_graph_approximation\n    (v F : E → ℝ) (G : E → E) (K : Set E) (hK : IsCompact K)\n    (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K) (hG : tsupport G ⊆ K)\n    (hv2 : MemLp v 2 volume) (hF2 : MemLp F 2 volume) (hG2 : MemLp G 2 volume)\n    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (G x) a) volume ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) volume ∧\n      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, v x * fderiv ℝ ψ x a)\n    (hweak : ∀ ψ : E → ℝ, ContDiff ℝ 2 ψ → HasCompactSupport ψ →\n      Integrable (fun x => v x * (Δ ψ) x) volume ∧\n      Integrable (fun x => F x * ψ x) volume ∧\n      (∫ x, v x * (Δ ψ) x) = ∫ x, F x * ψ x) :\n    ∃ K' : Set E, IsCompact K' ∧ ∃ φ : ℕ → SchwartzMap E ℝ,\n      (∀ n, tsupport (φ n) ⊆ K') ∧\n      Filter.Tendsto (fun n => (φ n).toLp 2 volume) Filter.atTop (𝓝 (hv2.toLp v)) ∧\n      ∃ hφG : ∀ n, MemLp (gradient (φ n : E → ℝ)) 2 volume,\n        Filter.Tendsto (fun n => (hφG n).toLp (gradient (φ n : E → ℝ)))\n          Filter.atTop (𝓝 (hG2.toLp G)) ∧\n        Filter.Tendsto (fun n => (Δ (φ n)).toLp 2 volume)\n          Filter.atTop (𝓝 (hF2.toLp F)) := by\n  obtain ⟨vc,Fc,hvc,hFc,_,hl,hs⟩ :=\n    CompactWeakPoissonSobolev.compact_weak_poisson_sobolev v F K hK hv hF hv2 hF2 hweak\n  obtain ⟨r,hrv,hrG,hrF⟩ := real_schwartz_graph v F G hv2 hF2 hG2 vc Fc hvc hFc hs hl hd\n  obtain ⟨K',hK',φ,hφs,hφv,hφG,hφF⟩ :=\n    cutoff_schwartz_graph v F G K hK hv hF hG hv2 hF2 hG2 r hrv hrG hrF\n  have hφgrad (n : ℕ) : MemLp (gradient (φ n : E → ℝ)) 2 volume := by\n    have he : (schwartz_gradient (φ n) : E → E) = gradient (φ n : E → ℝ) := by\n      funext x; exact schwartz_gradient_apply (φ n) x\n    rw [← he]\n    exact (schwartz_gradient (φ n)).memLp 2 volume\n  have heq (n : ℕ) : (hφgrad n).toLp (gradient (φ n : E → ℝ)) =\n      (schwartz_gradient (φ n)).toLp 2 volume := by\n    apply Lp.ext\n    filter_upwards [(hφgrad n).coeFn_toLp,(schwartz_gradient (φ n)).coeFn_toLp 2 volume]\n      with x hx hy\n    rw [hx,hy,schwartz_gradient_apply]\n  exact ⟨K',hK',φ,hφs,hφv,hφgrad,by simpa only [heq] using hφG,hφF⟩\n\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 omitted analytic gradient-domain prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL prerequisite only. Authored compact ordinary-volume smooth graph approximation, not a quoted numbered theorem.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib authored actual compact ordinary smooth graph prerequisite to Chen, Chewi, Lu and Zhang AppendixC.1/SPHMC4.1 covariance-upper route; not a quoted numbered theorem or weighted core/BL/main result."
+    },
+    "statement": "From the exact compact-supported volumeL2 and original weak-gradient/PDE inputs, Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the original G; actual Laplacian(phi_n) classes converge to F. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed.",
+    "formulae": [
+      {
+        "label": "Actual compact weak Poisson: one smooth function/gradient/Laplacian sequence",
+        "tex": "\\int\\psi\\langle G,a\\rangle=-\\int vD_a\\psi,\\quad\\int v\\Delta\\psi=\\int F\\psi\\ \\Longrightarrow\\ \\exists K\\prime,\\varphi_n\\in C_c^\\infty(K\\prime):\\quad\\varphi_n\\to v,\\ \\nabla\\varphi_n\\to G,\\ \\Delta\\varphi_n\\to F\\ \\text{in }L^2(dx)."
+      }
+    ],
+    "assumptions": [
+      "Finite-dimensional real Hilbert/Borel space E with canonical ordinary full-space volume, including dimension zero. Real pointwise v,F and vector G are genuinely global volumeL2; their topological supports lie in the same compact K.",
+      "Every real C1 compact test psi and every a satisfies both L1 products and integral psi*inner(G,a)=-integral v*D_a psi. Every real C2 compact psi has both L1 products and integral v*Delta psi=integral F*psi. These actual weak equations, measurability/L2 and supports are inputs; graph density, Sobolev membership, smooth sequence, real mixed Hessian and weighted core are not supplied.",
+      "The rough v/G/F representatives are differentiated only in the actual weak/distributional sense. Classical gradients and Laplacians in the conclusion belong to actual smooth approximants. SchwartzMap E real is genuinely C-infinity/rapidly decaying; common compact support is additionally derived. No positive dimension, jointly measurable selector, source C-infinity potential or normalized plateau is assumed."
+    ],
+    "obligations": [
+      {
+        "id": "compact-smooth-graph",
+        "label": "Actual common compact smooth function/gradient/Laplacian approximation"
+      },
+      {
+        "id": "weighted-core",
+        "label": "Original weighted domain/core/global Bochner (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "BL/Poincare, full main results/actual-input expected-cost composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation",
+      "title": "Actual compact weak Poisson: one smooth function/gradient/Laplacian sequence",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS AppendixC.1 authored analytic prerequisite",
+          "scope": "Derive one real smooth sequence with common outer compact support and simultaneous actual ordinary-volume L2 function/gradient/Laplacian limits for v=chi*u, g=chi*G+u*gradientchi, F=chi*r+2inner(gradientchi,G)+u*laplacianchi. Same original D before epsilon/f, same u before ALL cutoffs. No supplied graph-density/approximation/mixedHessian/core certificate, no classical rough derivatives, no weighted-domain/operator-core/globalcutoff/Bochner/BL/Poincare/jointmeasurablechoice/main/composition claim. Reflected/RGO quarter Hessian and fourfold energy kept distinct; TV never transfers unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.CompactPoissonSmoothGraph"
+      ],
+      "assumptions": [
+        "Finite-dimensional real Hilbert/Borel space E with canonical ordinary full-space volume, including dimension zero. Real pointwise v,F and vector G are genuinely global volumeL2; their topological supports lie in the same compact K.",
+        "Every real C1 compact test psi and every a satisfies both L1 products and integral psi*inner(G,a)=-integral v*D_a psi. Every real C2 compact psi has both L1 products and integral v*Delta psi=integral F*psi. These actual weak equations, measurability/L2 and supports are inputs; graph density, Sobolev membership, smooth sequence, real mixed Hessian and weighted core are not supplied.",
+        "The rough v/G/F representatives are differentiated only in the actual weak/distributional sense. Classical gradients and Laplacians in the conclusion belong to actual smooth approximants. SchwartzMap E real is genuinely C-infinity/rapidly decaying; common compact support is additionally derived. No positive dimension, jointly measurable selector, source C-infinity potential or normalized plateau is assumed."
+      ],
+      "statement": "From the exact compact-supported volumeL2 and original weak-gradient/PDE inputs, Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the original G; actual Laplacian(phi_n) classes converge to F. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed.",
+      "formula": "\\int\\psi\\langle G,a\\rangle=-\\int vD_a\\psi,\\quad\\int v\\Delta\\psi=\\int F\\psi\\ \\Longrightarrow\\ \\exists K\\prime,\\varphi_n\\in C_c^\\infty(K\\prime):\\quad\\varphi_n\\to v,\\ \\nabla\\varphi_n\\to G,\\ \\Delta\\varphi_n\\to F\\ \\text{in }L^2(dx).",
+      "steps": [
+        {
+          "title": "Derive the actual Bessel-L2 witness from the original compact PDE",
+          "text": "Call the accepted real compact-test producer with actual supports and L2 data. It constructs AE-linked complex classes vc/Fc, the true TD Laplacian and Sobolev2. Choose the genuine order2 L2 witness w and invert Bessel; plain L2 approximation of v would not control derivatives.",
+          "formula": "B_2T_v=T_w,\\quad B_2=I-(2\\pi)^{-2}\\Delta,\\quad B_{-2}T_w=T_v.",
+          "lean": "CompactWeakPoissonSobolev.compact_weak_poisson_sobolev; spectral_graph"
+        },
+        {
+          "title": "Construct chosen norm-controlled continuous L2 spectral maps",
+          "text": "For each actual bounded temperate complex symbol g, use its genuine Linfinity class, Holder infinity/2/2 bilinear CLM and forward/inverse L2 Fourier isometries to construct A_g. Prove norm(A_g f)<=C norm(f), true Lp/TD compatibility and equality with Schwartz multipliers by LpTD injectivity. The symbols m0, inner(x,a)*m0 and norm(x)^2*m0 have bounds1,norm(a),1; attach exact2pi i and -(2pi)^2 scalars to derivatives.",
+          "formula": "A_g=\\mathcal F^{-1}(g\\,\\mathcal F\\cdot),\\quad\\|A_gf\\|_2\\le C\\|f\\|_2;\\quad m_0=(1+\\|\\xi\\|^2)^{-1}.",
+          "lean": "actualMul; actual_bounded_multiplier_norm; mzero_bound; mdir_bound; mlap_bound; inverse_dir; inverse_lap"
+        },
+        {
+          "title": "Use one Schwartz approximation of w for every graph component",
+          "text": "Actual L2 density and sequential closure choose q_n.toLp -> w. Define s_n=FM(m0)q_n. Continuity of the chosen fixed maps gives same-sequence function, Laplacian and every direction derivative limits. Identify function with vc through true Bessel inversion, and Laplacian with Fc through the actual TD PDE/injectivity. Preserve exact complex casts/Fourier normalization.",
+          "formula": "s_n=A_{m_0}q_n,\\quad s_n\\to v_C,\\quad\\Delta s_n\\to F_C,\\quad D_as_n\\to g_a.",
+          "lean": "schwartz_approx; spectral_graph; besselPotential_neg_apply_eq_iff; lp_td_injective"
+        },
+        {
+          "title": "Identify the original real gradient, not a newly chosen derivative",
+          "text": "The actual spectral limit satisfies T_ga=D_a T_vc. Test it with ofReal of each genuine real compact smooth test, use actual HolderL1 before integral_re, and compare with the original all-C1 weak gradient. Locally integrable compact-test uniqueness identifies Re ga=inner(G,a) AE. Continuous real projection and finite orthonormal-basis reconstruction give the actual full vector-gradient limit; dimension0 has an empty basis.",
+          "formula": "\\operatorname{Re}g_a=_{dx\\text{-ae}}\\langle G,a\\rangle,\\quad\\operatorname{Re}s_n\\to v,\\quad\\nabla\\operatorname{Re}s_n\\to G,\\quad\\Delta\\operatorname{Re}s_n\\to F.",
+          "lean": "identify_real_gradient; real_projection_class; finite_gradient_reconstruction; real_schwartz_graph"
+        },
+        {
+          "title": "Construct one fixed outer plateau and all bounded coefficient maps",
+          "text": "Choose an actual unnormalized smooth compact theta equal1 near K. Its genuine Schwartz function, gradient and Laplacian supply actual Linfinity coefficients; Holder gives continuous maps on real/vectorL2. Neighborhood locality makes gradtheta/Deltatheta zero on K, while actual v/G/F vanish outsideK. Derive exact limiting identities and zero cross terms without weighted tails or extra position moments.",
+          "formula": "\\theta=1\\text{ near }K,\\quad\\nabla\\theta=\\Delta\\theta=0\\text{ on }K,\\quad K\\prime=\\operatorname{tsupp}\\theta.",
+          "lean": "outer_plateau; coeff_holder_ae; coeff_holder_class; plateau_point_identities"
+        },
+        {
+          "title": "Apply actual product rules to the same sequence",
+          "text": "Set phi_n=theta*Re s_n, a genuine smooth compact function with common supportKprime. Reuse the existing ASTIS public gradient product rule; the existing localization Laplacian product API is private, so repeat only its bounded private C2 trace proof, with no new public background node. Actual quotient/AE products and continuous bounded coefficient maps pass all three product identities to the limit.",
+          "formula": "\\nabla(\\theta r_n)=\\theta\\nabla r_n+r_n\\nabla\\theta;\\quad\\Delta(\\theta r_n)=\\theta\\Delta r_n+2\\langle\\nabla\\theta,\\nabla r_n\\rangle+r_n\\Delta\\theta.",
+          "lean": "GradientAlgebra.gradient_mul_eq_of_differentiableAt; laplacian_product; cutoff_schwartz_graph"
+        },
+        {
+          "title": "Return actual compact graph convergence and stop before weighted core",
+          "text": "Expose real Schwartz approximants/common compact support, actual gradient MemLp witnesses and true function/gradient/Laplacian quotient convergence from input L2 proofs. Weighted transfer, original localized D-domain membership, adjoint/generator identification, global cutoff removal/Bochner/Poincare/BL and source main guarantees remain distinct producers.",
+          "formula": "\\varphi_n\\to v,\\quad\\nabla\\varphi_n\\to G,\\quad\\Delta\\varphi_n\\to F\\text{ in }L^2(dx);\\quad\\text{weighted core remains open}.",
+          "lean": "compact_weak_poisson_smooth_graph_approximation"
+        }
+      ],
+      "lean_statement": "From the exact compact-supported volumeL2 and original weak-gradient/PDE inputs, Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the original G; actual Laplacian(phi_n) classes converge to F. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed.",
+      "lean_proof": "Derive the actual Bessel-L2 witness from the original compact PDE; Construct chosen norm-controlled continuous L2 spectral maps; Use one Schwartz approximation of w for every graph component; Identify the original real gradient, not a newly chosen derivative; Construct one fixed outer plateau and all bounded coefficient maps; Apply actual product rules to the same sequence; Return actual compact graph convergence and stop before weighted core",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra.gradient_mul_eq_of_differentiableAt"
+      ],
+      "mathlib_dependencies": [
+        "SchwartzMap.denseRange_toLpCLM",
+        "Lp.fourierTransformₗᵢ",
+        "Lp.toTemperedDistribution_smul_eq",
+        "Lp.ker_toTemperedDistributionCLM_eq_bot",
+        "ContinuousLinearMap.holderL",
+        "SchwartzMap.fourierMultiplierCLM",
+        "besselPotential_neg_apply_eq_iff",
+        "ae_eq_of_integral_contDiff_smul_eq",
+        "ContinuousLinearMap.compLpL",
+        "ContDiffBump.eventuallyEq_one_of_mem_ball"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation",
+      "role": "prerequisite",
+      "supports": [
+        "compact-smooth-graph"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source C2 curvature-bounded reflected conditional route.",
+        "lean": "Finite-dimensional real Hilbert/Borel space E with canonical ordinary full-space volume, including dimension zero. Real pointwise v,F and vector G are genuinely global volumeL2; their topological supports lie in the same compact K.\nEvery real C1 compact test psi and every a satisfies both L1 products and integral psi*inner(G,a)=-integral v*D_a psi. Every real C2 compact psi has both L1 products and integral v*Delta psi=integral F*psi. These actual weak equations, measurability/L2 and supports are inputs; graph density, Sobolev membership, smooth sequence, real mixed Hessian and weighted core are not supplied.\nThe rough v/G/F representatives are differentiated only in the actual weak/distributional sense. Classical gradients and Laplacians in the conclusion belong to actual smooth approximants. SchwartzMap E real is genuinely C-infinity/rapidly decaying; common compact support is additionally derived. No positive dimension, jointly measurable selector, source C-infinity potential or normalized plateau is assumed."
+      },
+      {
+        "source": "Smooth-test/density analytic details omitted in AppendixC.1; no Laplacian graph sequence supplied.",
+        "lean": "From the exact compact-supported volumeL2 and original weak-gradient/PDE inputs, Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the original G; actual Laplacian(phi_n) classes converge to F. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed."
+      },
+      {
+        "source": "Poincare/macroscopic extension and SPHMC4.1 BL covariance bound.",
+        "lean": "Derive one real smooth sequence with common outer compact support and simultaneous actual ordinary-volume L2 function/gradient/Laplacian limits for v=chi*u, g=chi*G+u*gradientchi, F=chi*r+2inner(gradientchi,G)+u*laplacianchi. Same original D before epsilon/f, same u before ALL cutoffs. No supplied graph-density/approximation/mixedHessian/core certificate, no classical rough derivatives, no weighted-domain/operator-core/globalcutoff/Bochner/BL/Poincare/jointmeasurablechoice/main/composition claim. Reflected/RGO quarter Hessian and fourfold energy kept distinct; TV never transfers unbounded cost."
+      }
+    ]
+  },
+  "review_context_sha256": "d741f03e719798dab31d1865997d7fa00b48dfaf66fcd443a3aacbee7550854a",
+  "whole_module_file_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+  "whole_module_raw_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+  "whole_module_lf_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+  "whole_module_reviewed": true,
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual real pointwise v,F/vectorG supported in compactK; true global volumeL2 and actual first/second weak equations.",
+      "reconstructed": "Same v,F,G,K and actual MemLp targets; actual real Schwartz sequence and gradient/Laplacian operators; no final certificates.",
+      "relation": "equivalent",
+      "evidence": "Full721 lines and37 private declarations read independently before decoder; construction uses genuine Bessel witness/continuous spectral maps, identifies originalG from actual compact tests."
+    },
+    "domains": {
+      "original": "Finite real Hilbert/Borel with canonical full-space ordinary volume incl0D. C1 compact gradient tests and C2 compact PDE tests; real smooth compact approximants.",
+      "reconstructed": "Same ambient approved instances and measure/test domains; output SchwartzMap E real with an extra common compact support conclusion.",
+      "relation": "explicit-elaboration",
+      "evidence": "No Nontrivial/positive-dimensional or rough classical derivative premise. L2 norm-topology quotient convergence distinct from pointwise/local/weighted convergence."
+    },
+    "quantifiers": {
+      "original": "Fixed actual v/F/G/K/weak data -> oneKprime and one real sequence before alln and all3limits.",
+      "reconstructed": "One compactKprime/phi, alln support; actual family gradientMemLp witnesses; SAMEphi gives simultaneous function/gradient/Laplacian normlimits.",
+      "relation": "equivalent",
+      "evidence": "Public683-719 and cutoff563-681 use samephi and one outertheta. No independent sequences, moving support or rate; no relation Kprime containingK is promised."
+    },
+    "assumptions": {
+      "original": "True compact support all3, true global volumeMemLp2 all3; everyC1compactdirectiontest/everyC2compactPDE, both productsL1 and equality.",
+      "reconstructed": "Exactlythese input assumptions; AE strongmeasurability/finite norm explicit; no assumedSobolev/density/smoothsequence/realHessian/core.",
+      "relation": "explicit-elaboration",
+      "evidence": "Shared first derives actualSobolev2 viaCompactWeakPoissonSobolev; all spectral/Holder/Schwartz/plateau properties produced internally, no certificaterestatement."
+    },
+    "conclusion": {
+      "original": "Actual one real C-infinity sequence, commonoutercompact, real function/classicalgradient/Laplacian genuine quotient limits to originalv/G/F.",
+      "reconstructed": "Same explicitclass targets hv2/hG2/hF2.toLp withAElinks; gradientMemLp witness; all3same-sequence TendstoatTop(nhds target).",
+      "relation": "equivalent",
+      "evidence": "Re projection does not assumecomplexclassrealness; compacttestuniqueness derives actualG, finitebasis assemblesvector limit. Actual productmaps/AElinks carryplateau limits."
+    },
+    "scopes": {
+      "original": "Authored omittedanalyticprerequisite; generic scope disclosed, sourceconsumer genuine; no numberedsource theorem/core/BL/main.",
+      "reconstructed": "Compact ordinaryvolume triplegraphapproximation only; no roughclassicalLaplacian/Hessian, weights/core, quantitativetrate/furtherfunctional inequality.",
+      "relation": "equivalent",
+      "evidence": "PrimaryPBPSC.1 offerscompactgradientdensity/closedness context, not exactLaplaciangraph theorem. All7shared readersteps/currentbinding retainopenweighted/global boundaries."
+    },
+    "constant_dependencies": {
+      "original": "ExactBessel inverse-(2pi)^-2 relation, Fourierdir2pii/Lapnegative(2pi)^2; no newsourcecomplexity constant.",
+      "reconstructed": "No quantitativeconstant claimed in public; standardgradient/Laplacian operators matchapprovedcontext.",
+      "relation": "equivalent",
+      "evidence": "Private71-207 symbolsbounded1,1,norm(a), scalarfactors attached exactly. Finitebasis convergence only, no dimension-freeestimate/maincredit."
+    }
+  },
+  "deltas": [],
+  "blocking": false,
+  "repairs": [],
+  "verdict": "equivalent-after-elaboration",
+  "review_evidence": "Independent primary-first contract and full frozen721 shared/37private proofs,109 actualconsumer/133 Test andall13readersteps audited before anonymous reconstruction was issued. Fresh currentpost-PROVED_LOCAL packet/source/statement/wholemodule/publicationbinding/definitioncontext and both distinctblind reconstructions checkedagainst that independent contract. No materialgap for the authored scoped component; no sourceverdict inferredfrom compilation/mathreview/root goal.",
+  "source_read_evidence": [
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#S2.SS2",
+      "edition": "arXiv2609.06905v1",
+      "html_lines": "168-211",
+      "scope": "ActualGibbs/Gaussianaugmentation and distinct ordinaryRGO/reflection law"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv2609.06905v1",
+      "html_lines": "1197-1234,1276-1310",
+      "scope": "Source compact-smooth gradientdensity/closedness/H1extension; no claimed numberedLaplaciangraphcore"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "edition": "arXiv2609.06906v1",
+      "html_lines": "403-430",
+      "scope": "Actual ordinaryRGO covariance/score and independentBL/CR boundaries"
+    }
+  ],
+  "full_proof_evidence": {
+    "whole_module_coverage": {
+      "shared_lines": 721,
+      "private_declarations_count": 37,
+      "private_def_count": 5,
+      "private_theorem_count": 32,
+      "all_private_declarations": [
+        {
+          "line": 14,
+          "kind": "def",
+          "name": "actualMul"
+        },
+        {
+          "line": 18,
+          "kind": "theorem",
+          "name": "actualMul_eq"
+        },
+        {
+          "line": 25,
+          "kind": "theorem",
+          "name": "lp_td_injective"
+        },
+        {
+          "line": 30,
+          "kind": "theorem",
+          "name": "actual_bounded_multiplier_norm"
+        },
+        {
+          "line": 71,
+          "kind": "def",
+          "name": "mzero"
+        },
+        {
+          "line": 72,
+          "kind": "def",
+          "name": "mlap"
+        },
+        {
+          "line": 73,
+          "kind": "def",
+          "name": "mdir"
+        },
+        {
+          "line": 76,
+          "kind": "theorem",
+          "name": "mzero_growth"
+        },
+        {
+          "line": 79,
+          "kind": "theorem",
+          "name": "mlap_growth"
+        },
+        {
+          "line": 82,
+          "kind": "theorem",
+          "name": "mdir_growth"
+        },
+        {
+          "line": 85,
+          "kind": "theorem",
+          "name": "mzero_bound"
+        },
+        {
+          "line": 90,
+          "kind": "theorem",
+          "name": "mlap_bound"
+        },
+        {
+          "line": 96,
+          "kind": "theorem",
+          "name": "mdir_bound"
+        },
+        {
+          "line": 103,
+          "kind": "theorem",
+          "name": "inverse_lap"
+        },
+        {
+          "line": 113,
+          "kind": "theorem",
+          "name": "inverse_dir"
+        },
+        {
+          "line": 123,
+          "kind": "theorem",
+          "name": "schwartz_approx"
+        },
+        {
+          "line": 135,
+          "kind": "theorem",
+          "name": "spectral_graph"
+        },
+        {
+          "line": 210,
+          "kind": "theorem",
+          "name": "real_postcomp_derivative"
+        },
+        {
+          "line": 220,
+          "kind": "theorem",
+          "name": "identify_real_gradient"
+        },
+        {
+          "line": 276,
+          "kind": "theorem",
+          "name": "real_projection_toLp"
+        },
+        {
+          "line": 287,
+          "kind": "theorem",
+          "name": "real_projection_line"
+        },
+        {
+          "line": 298,
+          "kind": "theorem",
+          "name": "real_projection_lap"
+        },
+        {
+          "line": 306,
+          "kind": "def",
+          "name": "schwartz_gradient"
+        },
+        {
+          "line": 311,
+          "kind": "theorem",
+          "name": "schwartz_gradient_apply"
+        },
+        {
+          "line": 314,
+          "kind": "theorem",
+          "name": "real_projection_class"
+        },
+        {
+          "line": 325,
+          "kind": "theorem",
+          "name": "finite_gradient_reconstruction"
+        },
+        {
+          "line": 358,
+          "kind": "theorem",
+          "name": "real_schwartz_graph"
+        },
+        {
+          "line": 429,
+          "kind": "theorem",
+          "name": "directional_second"
+        },
+        {
+          "line": 436,
+          "kind": "theorem",
+          "name": "first_product"
+        },
+        {
+          "line": 446,
+          "kind": "theorem",
+          "name": "second_product"
+        },
+        {
+          "line": 472,
+          "kind": "theorem",
+          "name": "laplacian_trace"
+        },
+        {
+          "line": 482,
+          "kind": "theorem",
+          "name": "laplacian_product"
+        },
+        {
+          "line": 500,
+          "kind": "theorem",
+          "name": "outer_plateau"
+        },
+        {
+          "line": 511,
+          "kind": "theorem",
+          "name": "coeff_holder_ae"
+        },
+        {
+          "line": 525,
+          "kind": "theorem",
+          "name": "plateau_point_identities"
+        },
+        {
+          "line": 546,
+          "kind": "theorem",
+          "name": "coeff_holder_class"
+        },
+        {
+          "line": 563,
+          "kind": "theorem",
+          "name": "cutoff_schwartz_graph"
+        }
+      ],
+      "consumer_lines": 109,
+      "Test_lines": 133,
+      "all_current_proofs_read": true
+    },
+    "full_private_and_public_proof_notes": [
+      {
+        "lines": "14-69",
+        "check": "actual infinityL2 multiplication CLM, AE scalar multiplication, LpTD injectivity; actual bounded multiplier constructed FourierInv o multiply o Fourier with genuine norm bound and both TD/Schwartz compatibility."
+      },
+      {
+        "lines": "71-121",
+        "check": "Actual symbols and temperate growth/bounds; inverseLaplacian factor negative(2pi)^2, inverse directional2piI, actual symbol products."
+      },
+      {
+        "lines": "123-207",
+        "check": "Actual Schwartz density constructs one qsequence from one Bessel witness; sameinverseBessel sequence for function/Laplacian/everydirection. LpTD injectivity identifies truevc/Fc, no extra regularity assumption."
+      },
+      {
+        "lines": "210-422",
+        "check": "RealCLM derivative compatibility; actual complexHolderL1 before integral_re, weak compactC1 gradient uniqueness -> Rega=actualinnerG. Genuine realLp projection/AElinks and finitebasis reconstruct actual vectorG; emptybasis0D remains allowed."
+      },
+      {
+        "lines": "429-495",
+        "check": "Private actual C2 trace product derivative proof including correct crossfactor2; smooth approximants differentiated classically, rough inputs never classically differentiated. Public GradientAlgebra reused for gradient product."
+      },
+      {
+        "lines": "500-681",
+        "check": "One genuine unnormalized compact plateau=1nearK; actualsupports imply truepointwisezerooffK, plateauderivativeszeroonK. FixedinfinityL2coefficientCLMs, legal quotientAEproduct rules, simultaneous three limits for SAMEq withKprime=tsupporttheta."
+      },
+      {
+        "lines": "683-719",
+        "check": "Public theorem consumes actualweakPDE/gradient then derivesSobolev, realgraph, outerplateau. Actual gradientMemLp witness and toLpAE equality alignclassicalgradient. No supplied finalconclusioncertificate."
+      },
+      {
+        "lines": "conditional1-109",
+        "check": "Entire genuine consumer destructuresactual parent commonR/S; fixesDybeforeinputs andoneubeforeallchi; derivesexactv/Gchi/Fchi data, appliesgeneric withK=tsupportchi, returnsactualthreeAE-linkedrealclasses andallpriorconjuncts."
+      },
+      {
+        "lines": "Test1-133",
+        "check": "Entire Test actual V=3x²/8+sinx/8, Hessian3/4-sinx/8 withinadvertised1/2..1; eta0..1. True originalconditionalparent + C2compact cutoffnormedbump*(x²)^(5/2), no C-infinitycutoffpremise. Test exposesactualvL/FL/gradLAElinks/samesequence3limits. No compile run by this reviewer."
+      }
+    ],
+    "reader_review": [
+      {
+        "slug": "compact-poisson-smooth-graph",
+        "steps": 7,
+        "all_steps_read": true,
+        "astis_dependencies": [
+          "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra.gradient_mul_eq_of_differentiableAt"
+        ],
+        "mathlib_dependencies": [
+          "SchwartzMap.denseRange_toLpCLM",
+          "Lp.fourierTransformₗᵢ",
+          "Lp.toTemperedDistribution_smul_eq",
+          "Lp.ker_toTemperedDistributionCLM_eq_bot",
+          "ContinuousLinearMap.holderL",
+          "SchwartzMap.fourierMultiplierCLM",
+          "besselPotential_neg_apply_eq_iff",
+          "ae_eq_of_integral_contDiff_smul_eq",
+          "ContinuousLinearMap.compLpL",
+          "ContDiffBump.eventuallyEq_one_of_mem_ball"
+        ],
+        "provenance": "ASTIS directcalls match currentcode. Lp.fourierTransform_li is underlying Fourier/inverse-isometry instance used via fourierCLM/fourierInvCLM/norm_fourier_eq, not falsely described as a literal directcall. Other listednamedMathlib contracts used directly. Consumer list[]Mathlib matches actualASTISwrapper-onlyproof."
+      },
+      {
+        "slug": "pbps-conditional-compact-smooth-graph",
+        "steps": 6,
+        "all_steps_read": true,
+        "astis_dependencies": [
+          "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+          "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation"
+        ],
+        "mathlib_dependencies": [],
+        "provenance": "ASTIS directcalls match currentcode. Lp.fourierTransform_li is underlying Fourier/inverse-isometry instance used via fourierCLM/fourierInvCLM/norm_fourier_eq, not falsely described as a literal directcall. Other listednamedMathlib contracts used directly. Consumer list[]Mathlib matches actualASTISwrapper-onlyproof."
+      }
+    ],
+    "reader_steps_total": 13,
+    "all_current_proofs_and_reader_steps_reviewed": true,
+    "compiler_run_in_this_source_stage": false
+  },
+  "provenance_check": {
+    "selected_astis_dependencies": [
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev",
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra.gradient_mul_eq_of_differentiableAt"
+    ],
+    "selected_mathlib_dependencies": [
+      "SchwartzMap.denseRange_toLpCLM",
+      "Lp.fourierTransformₗᵢ",
+      "Lp.toTemperedDistribution_smul_eq",
+      "Lp.ker_toTemperedDistributionCLM_eq_bot",
+      "ContinuousLinearMap.holderL",
+      "SchwartzMap.fourierMultiplierCLM",
+      "besselPotential_neg_apply_eq_iff",
+      "ae_eq_of_integral_contDiff_smul_eq",
+      "ContinuousLinearMap.compLpL",
+      "ContDiffBump.eventuallyEq_one_of_mem_ball"
+    ],
+    "ASTIS_actualdirect_calls_checked": true,
+    "Mathlib_actualdirect_or_underlying_instance_calls_checked": true,
+    "underlying_instance_note": "Lp.fourierTransformₗᵢ supplies Fourier/inverse isometry instances used via FourierCLM/FourierInvCLM/norm_fourier_eq; not falsely claimed literal direct invocation.",
+    "current_publication_binding_payload_recomputed": true,
+    "current_review_context_recomputed_and_equal": true,
+    "current_embedded_module_exact_LF_match": true,
+    "parsed_formula_literal_double_backslashes": 0,
+    "private_laplacian_product_ownership": "Existing parentLaplacian productproof private/unavailable; complete boundedC2 trace privateproof readfresh, no duplicatepublic background result."
+  },
+  "source_boundary": "Authored compact ordinary-volume smooth graph approximation prerequisite: sameone realphi/commonoutercompact/all3trueL2limits. No newrealHessian/mixedfield, weightedDdomain/core, globalBochner/BL/Poincare/epsilon0/quantitativecomplexity/fiberselector/main/composition claim. Source finiteEuclidean tofiniteHilbert/Borel0 andgenericweakinterface generalization explicitlydisclosed and actualconsumer retained.",
+  "law_scaling_check": "TrueJ/Gibbs/Gaussian/normalized conditionalS_y fromactualparent; Wref=V((y+z)/2)+norm(z-y)^2/(8eta), inverseJacobian2^-d, quarterHessian/fourfoldcorrespondingDirichlet distinctfrom ordinaryRGO=V(x)+norm(x-y)^2/(2eta). Nofalseoperator/law/constant adapter.",
+  "anti_anchoring_evidence": {
+    "independent_primary_contract_path": "research-wiki/cited-results/Weighted_compact_smooth_graph_source_preread.md",
+    "independent_primary_contract_raw_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+    "frozen_pre_decoder_full_review_inventory": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview.inventory.json",
+    "prereview_run_sha256": "8ce638cbae2a60a18d7bb193d7e9eb517f839001bdefdf8e5ea40ff4ff441c21",
+    "primary_first": true,
+    "honest_exposure": {
+      "prior": "Ownprimaryfirstsmoothgraphpreread + matching earlierfull acceptedparent/source/API reviews; earlierBLsearchcovariancekeywords/signatures/matchinglines disclosed.",
+      "current": "Complete currentcandidate721/109/133code,13readersteps,2publications/2cells and draftaudit source/Lean/context projections read afterprimary. Currentcells compilerstatus/prototype-summary text visible as administrativecontext; not used as correctness evidence. Draftaudit approved-definition-context field visible, but no anonymouspacket/input/reconstruction opened.",
+      "excluded": [
+        "root ignored prototypes/diagnostics",
+        "current math-review verdict",
+        "anonymous decoder packets/reconstructions",
+        "old source verdicts/slots/deltas",
+        "blueprint text and currentotherworker route text"
+      ],
+      "freeze_manifest": "Locator/bytefreeze only; no math/rootverdict used."
+    },
+    "final_stage_exposure": "Fresh current reviewerpkt0/1 and independent anonymousinput/definitioncontext/reconstruction first opened at this stage, after primary-first own full-code contract frozen. No mathreviewverdict or ignoredprototype read.",
+    "prior_verdicts_used": false,
+    "formalizer_decoder_identities_distinct_from_reviewer": true
+  },
+  "matching_freeze_reuse": {
+    "current_target_and_reader_bytes": "Exactraw/LF unchanged from own fullprereview20freeze. Wholecode/candidateproof reading reused onlywithmatchingbytes; final7slot comparison freshagainst newdecoder.",
+    "parent_code": "ExactCompactWeakPoissonSobolev/GradientAlgebra/ConditionalLocalizedResolvent/LocalizedWeakResolvent currentfreeze; sourcecontracts and actualcalls inspected. Oldacceptedverdicts not used."
+  },
+  "lifecycle_reconciliation": {
+    "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-lifecycle-reconciliation.json",
+    "review_run_sha256": "1d5dcc699ab3556374157465b63e19d351c9b169d081af293837f1ff3036a41b",
+    "adds_no_mathematical_credit": true,
+    "current_live_admin_footprints_bound": true,
+    "old_raw_footprints_retained": true
+  },
+  "fake_closure_scan": {
+    "files": [
+      {
+        "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactPoissonSmoothGraph.lean",
+        "matches": []
+      },
+      {
+        "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalCompactSmoothGraph.lean",
+        "matches": []
+      },
+      {
+        "path": "Tests/CompactPoissonSmoothGraph.lean",
+        "matches": []
+      }
+    ],
+    "result": "No axiom/sorry/admit/PropTrue/trivial mathematical closure matches in current3modules/Test."
+  },
+  "independent_elaboration": {
+    "run": false,
+    "reason": "Source-onlytask explicitly forbids compiler; root/picard owns compiler. Compiledstatus/mathematicsverdict isnot independent sourceevidence.",
+    "compiler_sessions_started": [],
+    "all_closed": true
+  },
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactPoissonSmoothGraph.lean",
+      "raw_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "lf_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "bytes": 39015,
+      "sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "sha256_lf": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "normalized_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.00.snapshot",
+      "raw_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "lf_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "bytes": 39015,
+      "sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "sha256_lf": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "normalized_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalCompactSmoothGraph.lean",
+      "raw_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "lf_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "bytes": 6995,
+      "sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "sha256_lf": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "normalized_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.01.snapshot",
+      "raw_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "lf_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "bytes": 6995,
+      "sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "sha256_lf": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "normalized_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "Tests/CompactPoissonSmoothGraph.lean",
+      "raw_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "lf_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "bytes": 8052,
+      "sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "sha256_lf": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "normalized_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.02.snapshot",
+      "raw_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "lf_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "bytes": 8052,
+      "sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "sha256_lf": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "normalized_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "proof-blueprints/compact-poisson-smooth-graph.md",
+      "raw_sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "lf_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "bytes": 3001,
+      "sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "sha256_lf": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "normalized_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "hash-and-preserve-only-not-semantic-planning-evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.03.snapshot",
+      "raw_sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "lf_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "bytes": 3001,
+      "sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "sha256_lf": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "normalized_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_Sobolev_smooth_core_route_audit.md",
+      "raw_sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "lf_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "bytes": 16937,
+      "sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "sha256_lf": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "normalized_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "hash-and-preserve-only-not-semantic-planning-evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.04.snapshot",
+      "raw_sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "lf_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "bytes": 16937,
+      "sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "sha256_lf": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "normalized_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_smooth_graph_source_preread.md",
+      "raw_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "lf_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "bytes": 12822,
+      "sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "sha256_lf": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "normalized_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.05.snapshot",
+      "raw_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "lf_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "bytes": 12822,
+      "sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "sha256_lf": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "normalized_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeakPoissonSobolev.lean",
+      "raw_sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "lf_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "bytes": 10579,
+      "sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "sha256_lf": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "normalized_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.06.snapshot",
+      "raw_sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "lf_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "bytes": 10579,
+      "sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "sha256_lf": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "normalized_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/GradientAlgebra.lean",
+      "raw_sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "lf_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "bytes": 5993,
+      "sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "sha256_lf": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "normalized_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.07.snapshot",
+      "raw_sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "lf_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "bytes": 5993,
+      "sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "sha256_lf": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "normalized_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedResolvent.lean",
+      "raw_sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "lf_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "bytes": 5607,
+      "sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "sha256_lf": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "normalized_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.08.snapshot",
+      "raw_sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "lf_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "bytes": 5607,
+      "sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "sha256_lf": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "normalized_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LocalizedWeakResolvent.lean",
+      "raw_sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "lf_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "bytes": 26952,
+      "sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "sha256_lf": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "normalized_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.09.snapshot",
+      "raw_sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "lf_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "bytes": 26952,
+      "sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "sha256_lf": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "normalized_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "sha256_lf": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "normalized_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.10.snapshot",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "sha256_lf": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "normalized_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "sha256_lf": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "normalized_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.11.snapshot",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "sha256_lf": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "normalized_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/publications/compact-poisson-smooth-graph.json",
+      "raw_sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "lf_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "bytes": 8489,
+      "sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "sha256_lf": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "normalized_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.12.snapshot",
+      "raw_sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "lf_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "bytes": 8489,
+      "sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "sha256_lf": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "normalized_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/compact-poisson-smooth-graph.json",
+      "raw_sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "lf_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "bytes": 11234,
+      "sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "sha256_lf": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "normalized_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.13.snapshot",
+      "raw_sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "lf_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "bytes": 11234,
+      "sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "sha256_lf": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "normalized_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/publications/pbps-conditional-compact-smooth-graph.json",
+      "raw_sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "lf_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "bytes": 9570,
+      "sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "sha256_lf": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "normalized_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.14.snapshot",
+      "raw_sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "lf_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "bytes": 9570,
+      "sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "sha256_lf": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "normalized_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/pbps-conditional-compact-smooth-graph.json",
+      "raw_sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "lf_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "bytes": 9923,
+      "sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "sha256_lf": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "normalized_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.15.snapshot",
+      "raw_sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "lf_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "bytes": 9923,
+      "sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "sha256_lf": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "normalized_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-compact-poisson-smooth-graph.json",
+      "raw_sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "lf_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "bytes": 10140,
+      "sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "sha256_lf": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "normalized_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SHARED-compact-poisson-smooth-graph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "lf_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "bytes": 10140,
+      "sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "sha256_lf": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "normalized_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.16.snapshot",
+      "raw_sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "lf_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "bytes": 9896,
+      "sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "sha256_lf": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "normalized_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SHARED-compact-poisson-smooth-graph.math-reviewed.snapshot.json",
+      "raw_sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "lf_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "bytes": 9896,
+      "sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "sha256_lf": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "normalized_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-conditional-compact-smooth-graph.json",
+      "raw_sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "lf_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "bytes": 9342,
+      "sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "sha256_lf": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "normalized_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SW-PBPS-conditional-compact-smooth-graph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "lf_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "bytes": 9342,
+      "sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "sha256_lf": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "normalized_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.17.snapshot",
+      "raw_sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "lf_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "bytes": 9098,
+      "sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "sha256_lf": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "normalized_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SW-PBPS-conditional-compact-smooth-graph.math-reviewed.snapshot.json",
+      "raw_sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "lf_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "bytes": 9098,
+      "sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "sha256_lf": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "normalized_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-CompactPoissonSmoothGraph.json",
+      "raw_sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "lf_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "bytes": 67603,
+      "sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "sha256_lf": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "normalized_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-CompactPoissonSmoothGraph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "lf_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "bytes": 67603,
+      "sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "sha256_lf": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "normalized_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.18.snapshot",
+      "raw_sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "lf_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "bytes": 64335,
+      "sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "sha256_lf": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "normalized_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-CompactPoissonSmoothGraph.math-reviewed.snapshot.json",
+      "raw_sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "lf_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "bytes": 64335,
+      "sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "sha256_lf": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "normalized_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph.json",
+      "raw_sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "lf_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "bytes": 42645,
+      "sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "sha256_lf": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "normalized_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "lf_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "bytes": 42645,
+      "sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "sha256_lf": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "normalized_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.19.snapshot",
+      "raw_sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "lf_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "bytes": 35779,
+      "sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "sha256_lf": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "normalized_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph.math-reviewed.snapshot.json",
+      "raw_sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "lf_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "bytes": 35779,
+      "sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "sha256_lf": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "normalized_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-review.0.json",
+      "raw_sha256": "b3ed393a508f28422f5698c193875156295ef40bbf55fecedac4e8e2de330379",
+      "lf_sha256": "92b04f801eff5dbb49f6cacaff118cb1b76518c671c5bc55d262a9772becaf80",
+      "bytes": 68101,
+      "sha256": "b3ed393a508f28422f5698c193875156295ef40bbf55fecedac4e8e2de330379",
+      "sha256_lf": "92b04f801eff5dbb49f6cacaff118cb1b76518c671c5bc55d262a9772becaf80",
+      "normalized_sha256": "92b04f801eff5dbb49f6cacaff118cb1b76518c671c5bc55d262a9772becaf80",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-review.0.json.source-reviewed.snapshot",
+      "raw_sha256": "b3ed393a508f28422f5698c193875156295ef40bbf55fecedac4e8e2de330379",
+      "lf_sha256": "92b04f801eff5dbb49f6cacaff118cb1b76518c671c5bc55d262a9772becaf80",
+      "bytes": 68101,
+      "sha256": "b3ed393a508f28422f5698c193875156295ef40bbf55fecedac4e8e2de330379",
+      "sha256_lf": "92b04f801eff5dbb49f6cacaff118cb1b76518c671c5bc55d262a9772becaf80",
+      "normalized_sha256": "92b04f801eff5dbb49f6cacaff118cb1b76518c671c5bc55d262a9772becaf80",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.0.decoder.json",
+      "raw_sha256": "b8bac932a91882912cafcc86f3e286b47e08ee63137b7e8d7e5e0d00a95ae92c",
+      "lf_sha256": "83ede1dce189078e5507d9a170a013787b812fc7bacefd5637a023682226bbb3",
+      "bytes": 4772,
+      "sha256": "b8bac932a91882912cafcc86f3e286b47e08ee63137b7e8d7e5e0d00a95ae92c",
+      "sha256_lf": "83ede1dce189078e5507d9a170a013787b812fc7bacefd5637a023682226bbb3",
+      "normalized_sha256": "83ede1dce189078e5507d9a170a013787b812fc7bacefd5637a023682226bbb3",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.0.decoder.json.source-reviewed.snapshot",
+      "raw_sha256": "b8bac932a91882912cafcc86f3e286b47e08ee63137b7e8d7e5e0d00a95ae92c",
+      "lf_sha256": "83ede1dce189078e5507d9a170a013787b812fc7bacefd5637a023682226bbb3",
+      "bytes": 4772,
+      "sha256": "b8bac932a91882912cafcc86f3e286b47e08ee63137b7e8d7e5e0d00a95ae92c",
+      "sha256_lf": "83ede1dce189078e5507d9a170a013787b812fc7bacefd5637a023682226bbb3",
+      "normalized_sha256": "83ede1dce189078e5507d9a170a013787b812fc7bacefd5637a023682226bbb3",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.0.reconstruction.json",
+      "raw_sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "lf_sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "bytes": 8953,
+      "sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "sha256_lf": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "normalized_sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.0.reconstruction.json.source-reviewed.snapshot",
+      "raw_sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "lf_sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "bytes": 8953,
+      "sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "sha256_lf": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "normalized_sha256": "6db57d626e05ee74a493614f5476a3d7712ce49a1c8875c3dd594468c4fc642a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview.inventory.json",
+      "raw_sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "lf_sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "bytes": 28435,
+      "sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "sha256_lf": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "normalized_sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "own-independent-pre-decoder-full-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/math-freeze.json",
+      "raw_sha256": "44554a0c25c7ee4983fa20a904b9e4788c5dbb5aefde4053ae61c67f8fd80714",
+      "lf_sha256": "d781a0aaa7b88e79e7dbefbca9ffe6f01ef7b2958e31234d899dce625445b2b1",
+      "bytes": 8098,
+      "sha256": "44554a0c25c7ee4983fa20a904b9e4788c5dbb5aefde4053ae61c67f8fd80714",
+      "sha256_lf": "d781a0aaa7b88e79e7dbefbca9ffe6f01ef7b2958e31234d899dce625445b2b1",
+      "normalized_sha256": "d781a0aaa7b88e79e7dbefbca9ffe6f01ef7b2958e31234d899dce625445b2b1",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "input-locator-and-byte-freeze-only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-lifecycle-reconciliation.json",
+      "raw_sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "lf_sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "bytes": 27211,
+      "sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "sha256_lf": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "normalized_sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "own-current-lifecycle-reconciliation"
+    }
+  ],
+  "hash_conventions": {
+    "raw": "Exact original bytes retainCRLF",
+    "lf": "ReplaceCRLFwithLFonly; noJSONreserialization",
+    "review_run": "CanonicalUTF8 JSON ensure_asciiFalse sort_keysTrue separatorscomma/colon excludingreview_run_sha256",
+    "whole_module_file_sha256": "LFnormalizedmoduletext; rawseparatelybound"
+  },
+  "completed_at_utc": "2026-10-06T04:23:49.138751+00:00",
+  "timing_evidence": "Fresh primary source reread before newcandidate721/109/133/13steps; immutable own prereview preparedbeforeanonymousdecode/currentsourcepackets. Final comparison freshonlyaftertwoexactnewpackets; no compile.",
+  "admission_scope": "Independent scoped source-fidelity receipt only; no sourceaudits/cells/ledger/shared edits, no self-VERIFIED or numberedpaper/maincredit.",
+  "review_run_sha256": "16942383b637ad0a142bbce864a6b0f0c94eb1ec7e37bee2d179e0080c9a71fb"
+}

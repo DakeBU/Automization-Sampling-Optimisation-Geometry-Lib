@@ -1,0 +1,193 @@
+.astis/ConditionalSmoothTailDiagnostic.lean:65:2: error: signature-only diagnostic: no theorem admission
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+⊢ let μ := ℙ.tilted fun x => -V x;
+  let J := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E));
+  let W := fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η);
+  ∃ R S,
+    IsMarkovKernel R ∧
+      IsMarkovKernel S ∧
+        (Measure.map Prod.swap J).IsCondKernel R ∧
+          (∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)) ∧
+            ∀ (y : E),
+              (S y = ℙ.tilted fun u => -W y u) ∧
+                ContDiff ℝ 2 (W y) ∧
+                  Integrable (fun u => Real.exp (-W y u)) ℙ ∧
+                    0 < ∫ (u : E), Real.exp (-W y u) ∧
+                      ∃ D,
+                        Dense ↑D.domain ∧
+                          D.IsClosable ∧
+                            D.closure.IsClosed ∧
+                              (∀ (u : ↥(Lp ℝ 2 (S y))) (v : ↥(Lp E 2 (S y))),
+                                  (u, v) ∈ D.graph ↔
+                                    ∃ f,
+                                      ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧ ↑↑u =ᵐ[S y] f ∧ ↑↑v =ᵐ[S y] gradient f) ∧
+                                ∀ (ε : ℝ),
+                                  0 < ε →
+                                    ∀ (f : ↥(Lp ℝ 2 (S y))),
+                                      ∃ u,
+                                        (∀ (v : ↥D.closure.domain),
+                                            ε * ⟪↑u, ↑v⟫ + ⟪↑D.closure u, ↑D.closure v⟫ = ⟪f, ↑v⟫) ∧
+                                          LocallyIntegrable (fun x => ↑↑↑u x) ℙ ∧
+                                            LocallyIntegrable (fun x => ↑↑(↑D.closure u) x) ℙ ∧
+                                              (∀ (ψ : E → ℝ),
+                                                  ContDiff ℝ 1 ψ →
+                                                    HasCompactSupport ψ →
+                                                      ∀ (v : E),
+                                                        Integrable (fun x => ψ x * ⟪↑↑(↑D.closure u) x, v⟫) ℙ ∧
+                                                          Integrable (fun x => ↑↑↑u x * (fderiv ℝ ψ x) v) ℙ ∧
+                                                            ∫ (x : E), ψ x * ⟪↑↑(↑D.closure u) x, v⟫ =
+                                                              -∫ (x : E), ↑↑↑u x * (fderiv ℝ ψ x) v) ∧
+                                                LocallyIntegrable
+                                                    (fun x =>
+                                                      ‖ε * ↑↑↑u x + ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ - ↑↑f x‖ ^ 2)
+                                                    ℙ ∧
+                                                  (∀ (K : Set E),
+                                                      IsCompact K →
+                                                        MemLp (fun x => ↑↑↑u x) 2 (ℙ.restrict K) ∧
+                                                          MemLp (fun x => ↑↑(↑D.closure u) x) 2 (ℙ.restrict K) ∧
+                                                            MemLp
+                                                              (fun x =>
+                                                                ε * ↑↑↑u x + ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                  ↑↑f x)
+                                                              2 (ℙ.restrict K)) ∧
+                                                    (∀ (φ : E → ℝ),
+                                                        ContDiff ℝ 2 φ →
+                                                          HasCompactSupport φ →
+                                                            Integrable (fun x => ↑↑↑u x * Laplacian.laplacian φ x) ℙ ∧
+                                                              Integrable
+                                                                  (fun x =>
+                                                                    (ε * ↑↑↑u x +
+                                                                          ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                        ↑↑f x) *
+                                                                      φ x)
+                                                                  ℙ ∧
+                                                                ∫ (x : E), ↑↑↑u x * Laplacian.laplacian φ x =
+                                                                  ∫ (x : E),
+                                                                    (ε * ↑↑↑u x +
+                                                                          ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                        ↑↑f x) *
+                                                                      φ x) ∧
+                                                      ∀ (χ : E → ℝ),
+                                                        ContDiff ℝ 2 χ →
+                                                          HasCompactSupport χ →
+                                                            let v := fun x => χ x * ↑↑↑u x;
+                                                            let Gχ := fun x =>
+                                                              χ x • ↑↑(↑D.closure u) x + ↑↑↑u x • gradient χ x;
+                                                            let Fχ := fun x =>
+                                                              χ x *
+                                                                    (ε * ↑↑↑u x +
+                                                                        ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                      ↑↑f x) +
+                                                                  2 * ⟪gradient χ x, ↑↑(↑D.closure u) x⟫ +
+                                                                ↑↑↑u x * Laplacian.laplacian χ x;
+                                                            ∃ K', IsCompact K'
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+⊢ let μ := ℙ.tilted fun x => -V x;
+  let J := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E));
+  let W := fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η);
+  ∃ R S,
+    IsMarkovKernel R ∧
+      IsMarkovKernel S ∧
+        (Measure.map Prod.swap J).IsCondKernel R ∧
+          (∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)) ∧
+            ∀ (y : E),
+              (S y = ℙ.tilted fun u => -W y u) ∧
+                ContDiff ℝ 2 (W y) ∧
+                  Integrable (fun u => Real.exp (-W y u)) ℙ ∧
+                    0 < ∫ (u : E), Real.exp (-W y u) ∧
+                      ∃ D,
+                        Dense ↑D.domain ∧
+                          D.IsClosable ∧
+                            D.closure.IsClosed ∧
+                              (∀ (u : ↥(Lp ℝ 2 (S y))) (v : ↥(Lp E 2 (S y))),
+                                  (u, v) ∈ D.graph ↔
+                                    ∃ f,
+                                      ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧ ↑↑u =ᵐ[S y] f ∧ ↑↑v =ᵐ[S y] gradient f) ∧
+                                ∀ (ε : ℝ),
+                                  0 < ε →
+                                    ∀ (f : ↥(Lp ℝ 2 (S y))),
+                                      ∃ u,
+                                        (∀ (v : ↥D.closure.domain),
+                                            ε * ⟪↑u, ↑v⟫ + ⟪↑D.closure u, ↑D.closure v⟫ = ⟪f, ↑v⟫) ∧
+                                          LocallyIntegrable (fun x => ↑↑↑u x) ℙ ∧
+                                            LocallyIntegrable (fun x => ↑↑(↑D.closure u) x) ℙ ∧
+                                              (∀ (ψ : E → ℝ),
+                                                  ContDiff ℝ 1 ψ →
+                                                    HasCompactSupport ψ →
+                                                      ∀ (v : E),
+                                                        Integrable (fun x => ψ x * ⟪↑↑(↑D.closure u) x, v⟫) ℙ ∧
+                                                          Integrable (fun x => ↑↑↑u x * (fderiv ℝ ψ x) v) ℙ ∧
+                                                            ∫ (x : E), ψ x * ⟪↑↑(↑D.closure u) x, v⟫ =
+                                                              -∫ (x : E), ↑↑↑u x * (fderiv ℝ ψ x) v) ∧
+                                                LocallyIntegrable
+                                                    (fun x =>
+                                                      ‖ε * ↑↑↑u x + ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ - ↑↑f x‖ ^ 2)
+                                                    ℙ ∧
+                                                  (∀ (K : Set E),
+                                                      IsCompact K →
+                                                        MemLp (fun x => ↑↑↑u x) 2 (ℙ.restrict K) ∧
+                                                          MemLp (fun x => ↑↑(↑D.closure u) x) 2 (ℙ.restrict K) ∧
+                                                            MemLp
+                                                              (fun x =>
+                                                                ε * ↑↑↑u x + ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                  ↑↑f x)
+                                                              2 (ℙ.restrict K)) ∧
+                                                    (∀ (φ : E → ℝ),
+                                                        ContDiff ℝ 2 φ →
+                                                          HasCompactSupport φ →
+                                                            Integrable (fun x => ↑↑↑u x * Laplacian.laplacian φ x) ℙ ∧
+                                                              Integrable
+                                                                  (fun x =>
+                                                                    (ε * ↑↑↑u x +
+                                                                          ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                        ↑↑f x) *
+                                                                      φ x)
+                                                                  ℙ ∧
+                                                                ∫ (x : E), ↑↑↑u x * Laplacian.laplacian φ x =
+                                                                  ∫ (x : E),
+                                                                    (ε * ↑↑↑u x +
+                                                                          ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                        ↑↑f x) *
+                                                                      φ x) ∧
+                                                      ∀ (χ : E → ℝ),
+                                                        ContDiff ℝ 2 χ →
+                                                          HasCompactSupport χ →
+                                                            let v := fun x => χ x * ↑↑↑u x;
+                                                            let Gχ := fun x =>
+                                                              χ x • ↑↑(↑D.closure u) x + ↑↑↑u x • gradient χ x;
+                                                            let Fχ := fun x =>
+                                                              χ x *
+                                                                    (ε * ↑↑↑u x +
+                                                                        ⟪gradient (W y) x, ↑↑(↑D.closure u) x⟫ -
+                                                                      ↑↑f x) +
+                                                                  2 * ⟪gradient χ x, ↑↑(↑D.closure u) x⟫ +
+                                                                ↑↑↑u x * Laplacian.laplacian χ x;
+                                                            ∃ K', IsCompact K'

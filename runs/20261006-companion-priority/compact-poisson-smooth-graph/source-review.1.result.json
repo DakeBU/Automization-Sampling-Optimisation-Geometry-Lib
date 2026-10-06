@@ -1,0 +1,1322 @@
+{
+  "schema_version": 1,
+  "review_kind": "independent-anti-anchored-source-fidelity",
+  "reviewer": "phase_source_reviewer_20261005",
+  "formalizer": "root-samplinglib-writer",
+  "blind_decoder": "anonymous_decoder_20261006",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "eaae58e9158456634baca6077a88e39c2d0c997c0bc94ceba9f5d8e8cbd592df",
+  "review_packet_raw_sha256": "eac1c79ee1d8ac8d812f59a82021f2ed3cb9ee9ac0b196462f41d3c9cb670c93",
+  "publication_binding_sha256": "0dd9089e5d2228f7a7480ba4414f9e6c8236509b56a3aa3023d9ab5c40764168",
+  "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactSmoothGraph.conditional_compact_smooth_graph",
+  "source_id": "companion:pbps-conditional-compact-smooth-graph",
+  "source_anchor": "PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 omitted analytic gradient-domain prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL prerequisite only. Authored compact ordinary-volume smooth graph approximation, not a quoted numbered theorem.",
+  "source_text_sha256": "e6dbde3e72ef77a4370dae7ffbeb2bade33a16697ae1019fe99e66e3512ad5e0",
+  "lean_statement_sha256": "6e0509cc9273c9f87dbee0260cb74484a0d7740ea30a8dba8baf289ac0b5be25",
+  "reconstructed_text_sha256": "e38fd57018a90598ca5df747b85f4d51b1fbe3e4519696d2e3f2f0d72a26e1ac",
+  "decoder_packet_sha256": "44ead7747222f0bfcf68543d6fa69dafd131f1e8f0dbe96bf3f26650a1b592a9",
+  "decoder_run_sha256": "6a2417c24f24f474f6cf5ba51a88bfff551259618bef674380d45202f68befd3",
+  "approved_definition_context_sha256": "565c54aa995c700601f54aca3052ed14b9b37f4ef233f072017f49f020b574fc",
+  "review_context": {
+    "file": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent\n\nset_option autoImplicit false\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen TemperedDistribution\nopen scoped SchwartzMap ContDiff NNReal RealInnerProductSpace Topology\nnoncomputable section\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactSmoothGraph\n\ntheorem conditional_compact_smooth_graph {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 2 ψ → HasCompactSupport ψ →\n      Integrable (fun x => v x * Laplacian.laplacian ψ x) ∧\n      Integrable (fun x => Fχ x * ψ x) ∧\n      (∫ x, v x * Laplacian.laplacian ψ x) = ∫ x, Fχ x * ψ x) ∧\n    ∃ vL FL : Lp ℝ 2 (volume : Measure E), ∃ gradL : Lp E 2 (volume : Measure E),\n      vL =ᵐ[volume] v ∧ FL =ᵐ[volume] Fχ ∧ gradL =ᵐ[volume] Gχ ∧\n      ∃ K' : Set E, IsCompact K' ∧ ∃ φ : ℕ → SchwartzMap E ℝ,\n        (∀ n : ℕ, tsupport (φ n) ⊆ K') ∧\n        Filter.Tendsto (fun n : ℕ => (φ n).toLp 2 volume) Filter.atTop (𝓝 vL) ∧\n        ∃ hφG : ∀ n : ℕ, MemLp (gradient (φ n : E → ℝ)) 2 volume,\n          Filter.Tendsto (fun n : ℕ => (hφG n).toLp (gradient (φ n : E → ℝ)))\n            Filter.atTop (𝓝 gradL) ∧\n          Filter.Tendsto (fun n : ℕ => (Laplacian.laplacian (φ n)).toLp 2 volume)\n            Filter.atTop (𝓝 FL) := by\n  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent hα hαβ hV hH hη hβη\n  dsimp only\n  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩\n  intro y\n  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hsolve⟩ := hfiber y\n  refine ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,?_⟩\n  intro ε hε f\n  obtain ⟨u,hu,huL,hgradL,hd,hr2,hl,hp,hcut⟩ := hsolve ε hε f\n  refine ⟨u,hu,huL,hgradL,hd,hr2,hl,hp,?_⟩\n  intro χ hχ hc\n  obtain ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond⟩ := hcut χ hχ hc\n  refine ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond,?_⟩\n  obtain ⟨K',hK',φ,hφs,hφv,hφG,hφgrad,hφF⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation\n    (fun x => χ x * (u : Lp ℝ 2 (S y)) x)\n    (fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x +\n      inner ℝ (gradient (fun z => V ((1/2:ℝ) • (y+z)) + ‖z-y‖^2/(8*η)) x)\n        (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x)\n    (fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x)\n    (tsupport χ) hc hvs hfs hgs hv hf hg hfirst hsecond\n\n  exact ⟨hv.toLp _,hf.toLp _,hg.toLp _,hv.coeFn_toLp,hf.coeFn_toLp,hg.coeFn_toLp,\n    K',hK',φ,hφs,hφv,hφG,hφgrad,hφF⟩\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactSmoothGraph\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv:2609.06905v1 Section2.2 actual reflected conditional law and AppendixC.1 omitted analytic gradient-domain prerequisite; SPHMC arXiv:2609.06906v1 Section4.1 covariance-upper/BL prerequisite only. Authored compact ordinary-volume smooth graph approximation, not a quoted numbered theorem.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib authored actual compact ordinary smooth graph prerequisite to Chen, Chewi, Lu and Zhang AppendixC.1/SPHMC4.1 covariance-upper route; not a quoted numbered theorem or weighted core/BL/main result."
+    },
+    "statement": "Construct common R/S; for each y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain original exact D graph, dense/closable/closed properties, all-domain positive-epsilon variational identity, ordinary locally integrable u/G, all-C1 compact directional weak-gradient identities, local squared-r integrability, compact-volumeL2 of u/G/r, original all-C2 PDE, and all actual localized volumeL2/support/first/second weak identities. The actual volumeL2 properties are retained; actual vL/FL/gradL quotient classes are returned with all three AE links and bind the simultaneous limits. For each cutoff apply the shared actual producer: Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the actual Gchi; actual Laplacian(phi_n) classes converge to Fchi. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed.",
+    "formulae": [
+      {
+        "label": "Actual PBPS reflected resolvent: common compact smooth graph",
+        "tex": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2\\ \\exists K\\prime,(\\varphi_n):\\quad(\\varphi_n,\\nabla\\varphi_n,\\Delta\\varphi_n)\\to(\\chi u,\\chi G+u\\nabla\\chi,F_\\chi)\\ \\text{in ordinary }L^2."
+      }
+    ],
+    "assumptions": [
+      "Same finite real Hilbert/Borel/canonical-volume structure including dimension zero. V is C2, alpha/beta NNReal, 0<alpha<=beta, all-point/all-vector alpha I<=Hess V<=beta I; eta>0 and beta*eta<=1.",
+      "True augmentation J=(x,x+sqrt(eta)*xi)#(mu*standardGaussian), common actual disintegrating probability kernels R/S, S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), and actual positive integrable partitions are derived from accepted parents. Reflected/RGO laws/operators and quarter Hessian/fourfold Dirichlet scaling remain distinct.",
+      "Original dense closable compact-smooth gradient D_y with closed closure is fixed before epsilon/forcing. For every epsilon>0 and f in L2(S_y), choose ONE actual u before ALL C2 compact cutoffs chi. Derive the actual v=chi*u, Gchi=chi*D.closure(u)+u*gradientchi and Fchi=chi*r+2inner(gradientchi,D.closure(u))+u*Deltachi, r=epsilon*u+inner(gradientW,D.closure(u))-f; all required volumeL2/support/weak equations are genuine parent conclusions."
+    ],
+    "obligations": [
+      {
+        "id": "compact-smooth-graph",
+        "label": "Actual common compact smooth function/gradient/Laplacian approximation"
+      },
+      {
+        "id": "weighted-core",
+        "label": "Original weighted domain/core/global Bochner (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "BL/Poincare, full main results/actual-input expected-cost composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactSmoothGraph.conditional_compact_smooth_graph",
+      "title": "Actual PBPS reflected resolvent: common compact smooth graph",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS AppendixC.1 authored analytic prerequisite",
+          "scope": "Derive one real smooth sequence with common outer compact support and simultaneous actual ordinary-volume L2 function/gradient/Laplacian limits for v=chi*u, g=chi*G+u*gradientchi, F=chi*r+2inner(gradientchi,G)+u*laplacianchi. Same original D before epsilon/f, same u before ALL cutoffs. No supplied graph-density/approximation/mixedHessian/core certificate, no classical rough derivatives, no weighted-domain/operator-core/globalcutoff/Bochner/BL/Poincare/jointmeasurablechoice/main/composition claim. Reflected/RGO quarter Hessian and fourfold energy kept distinct; TV never transfers unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.CompactPoissonSmoothGraph"
+      ],
+      "assumptions": [
+        "Same finite real Hilbert/Borel/canonical-volume structure including dimension zero. V is C2, alpha/beta NNReal, 0<alpha<=beta, all-point/all-vector alpha I<=Hess V<=beta I; eta>0 and beta*eta<=1.",
+        "True augmentation J=(x,x+sqrt(eta)*xi)#(mu*standardGaussian), common actual disintegrating probability kernels R/S, S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), and actual positive integrable partitions are derived from accepted parents. Reflected/RGO laws/operators and quarter Hessian/fourfold Dirichlet scaling remain distinct.",
+        "Original dense closable compact-smooth gradient D_y with closed closure is fixed before epsilon/forcing. For every epsilon>0 and f in L2(S_y), choose ONE actual u before ALL C2 compact cutoffs chi. Derive the actual v=chi*u, Gchi=chi*D.closure(u)+u*gradientchi and Fchi=chi*r+2inner(gradientchi,D.closure(u))+u*Deltachi, r=epsilon*u+inner(gradientW,D.closure(u))-f; all required volumeL2/support/weak equations are genuine parent conclusions."
+      ],
+      "statement": "Construct common R/S; for each y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain original exact D graph, dense/closable/closed properties, all-domain positive-epsilon variational identity, ordinary locally integrable u/G, all-C1 compact directional weak-gradient identities, local squared-r integrability, compact-volumeL2 of u/G/r, original all-C2 PDE, and all actual localized volumeL2/support/first/second weak identities. The actual volumeL2 properties are retained; actual vL/FL/gradL quotient classes are returned with all three AE links and bind the simultaneous limits. For each cutoff apply the shared actual producer: Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the actual Gchi; actual Laplacian(phi_n) classes converge to Fchi. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed.",
+      "formula": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2\\ \\exists K\\prime,(\\varphi_n):\\quad(\\varphi_n,\\nabla\\varphi_n,\\Delta\\varphi_n)\\to(\\chi u,\\chi G+u\\nabla\\chi,F_\\chi)\\ \\text{in ordinary }L^2.",
+      "steps": [
+        {
+          "title": "Keep true augmentation and reflected source law",
+          "text": "Consume ConditionalLocalizedResolvent with exact C2 curvature/eta-cap inputs. Retain actual common Markov/disintegrating kernels, reflection, C2 reflected potential and positive integrable partition; no RGO operator substitution.",
+          "formula": "S_y=(2x-y)_\\#R_y=Z_y^{-1}e^{-W_y}dz.",
+          "lean": "ConditionalLocalizedResolvent.conditional_localized_resolvent"
+        },
+        {
+          "title": "Keep original D before epsilon/f and one u before all chi",
+          "text": "Preserve the actual dense closable original compact-smooth graph and closed closure. Extract ONE actual positive-epsilon resolvent u with all-domain variational and original ordinary weak/local facts before ALL real C2 compact cutoffs.",
+          "formula": "\\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2.",
+          "lean": "hsolve; hu,huL,hGL,hd,hr2,hl,hp"
+        },
+        {
+          "title": "Derive the real localized graph inputs from this same u",
+          "text": "Extract all three true volumeL2 proofs and support inclusions plus all-C1 weak-gradient and all-C2 weakPoisson identities for actual v/Gchi/Fchi. Actual vL/FL/gradL quotient classes with AE links bind the limits; they add no mathematical premise.",
+          "formula": "v=\\chi u,\\quad G_\\chi=\\chi G+u\\nabla\\chi,\\quad F_\\chi=\\chi r+2\\langle\\nabla\\chi,G\\rangle+u\\Delta\\chi.",
+          "lean": "hcut; hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond; vL/FL/gradL with AE links"
+        },
+        {
+          "title": "Construct the actual common compact smooth sequence",
+          "text": "Apply the new shared producer at K=tsupport chi and every genuinely derived input. It constructs one real smooth sequence/common outer compact and all three ordinary-volume limits; source does not supply a graph-density or final approximation certificate.",
+          "formula": "\\exists K\\prime,(\\varphi_n)\\quad(\\varphi_n,\\nabla\\varphi_n,\\Delta\\varphi_n)\\to(v,G_\\chi,F_\\chi).",
+          "lean": "CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation"
+        },
+        {
+          "title": "Exercise source consumer with a nonquadratic potential and non-smooth-all-orders cutoff",
+          "text": "The Test uses V(x)=3x^2/8+sin(x)/8, curvature[1/2,1], eta in(0,1], true commonR/S/originalD/all epsilon/f. Its compact cutoff rho(x)*(x^2)^(5/2) is certified C2 and need not be C-infinity; extract the actual same-u localized equations and all three same-sequence limits from this consumer.",
+          "formula": "\\chi(x)=\\rho(x)(x^2)^{5/2},\\quad\\varphi_n\\in C_c^\\infty(K\\prime),\\quad\\nabla\\varphi_n\\to G_\\chi.",
+          "lean": "Tests.CompactPoissonSmoothGraph.actual_c2_cutoff_smooth_graph"
+        },
+        {
+          "title": "Keep the original truth boundary",
+          "text": "Approximation is ordinary volume on each fixed compact localization. No jointly measurable fiberwise sequence selector, weighted original D-domain/core, unlocalized generator/Bochner, BL/Poincare or full main/composition is inferred. TV proximity does not transfer unbounded expected cost.",
+          "formula": "\\text{actual compact ordinary graph prerequisite};\\quad\\text{weighted core/BL/main/composition open}.",
+          "lean": "conditional_compact_smooth_graph"
+        }
+      ],
+      "lean_statement": "Construct common R/S; for each y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain original exact D graph, dense/closable/closed properties, all-domain positive-epsilon variational identity, ordinary locally integrable u/G, all-C1 compact directional weak-gradient identities, local squared-r integrability, compact-volumeL2 of u/G/r, original all-C2 PDE, and all actual localized volumeL2/support/first/second weak identities. The actual volumeL2 properties are retained; actual vL/FL/gradL quotient classes are returned with all three AE links and bind the simultaneous limits. For each cutoff apply the shared actual producer: Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the actual Gchi; actual Laplacian(phi_n) classes converge to Fchi. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed.",
+      "lean_proof": "Keep true augmentation and reflected source law; Keep original D before epsilon/f and one u before all chi; Derive the real localized graph inputs from this same u; Construct the actual common compact smooth sequence; Exercise source consumer with a nonquadratic potential and non-smooth-all-orders cutoff; Keep the original truth boundary",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation"
+      ],
+      "mathlib_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactSmoothGraph.conditional_compact_smooth_graph",
+      "role": "prerequisite",
+      "supports": [
+        "compact-smooth-graph"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source C2 curvature-bounded reflected conditional route.",
+        "lean": "Same finite real Hilbert/Borel/canonical-volume structure including dimension zero. V is C2, alpha/beta NNReal, 0<alpha<=beta, all-point/all-vector alpha I<=Hess V<=beta I; eta>0 and beta*eta<=1.\nTrue augmentation J=(x,x+sqrt(eta)*xi)#(mu*standardGaussian), common actual disintegrating probability kernels R/S, S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), and actual positive integrable partitions are derived from accepted parents. Reflected/RGO laws/operators and quarter Hessian/fourfold Dirichlet scaling remain distinct.\nOriginal dense closable compact-smooth gradient D_y with closed closure is fixed before epsilon/forcing. For every epsilon>0 and f in L2(S_y), choose ONE actual u before ALL C2 compact cutoffs chi. Derive the actual v=chi*u, Gchi=chi*D.closure(u)+u*gradientchi and Fchi=chi*r+2inner(gradientchi,D.closure(u))+u*Deltachi, r=epsilon*u+inner(gradientW,D.closure(u))-f; all required volumeL2/support/weak equations are genuine parent conclusions."
+      },
+      {
+        "source": "Smooth-test/density analytic details omitted in AppendixC.1; no Laplacian graph sequence supplied.",
+        "lean": "Construct common R/S; for each y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain original exact D graph, dense/closable/closed properties, all-domain positive-epsilon variational identity, ordinary locally integrable u/G, all-C1 compact directional weak-gradient identities, local squared-r integrability, compact-volumeL2 of u/G/r, original all-C2 PDE, and all actual localized volumeL2/support/first/second weak identities. The actual volumeL2 properties are retained; actual vL/FL/gradL quotient classes are returned with all three AE links and bind the simultaneous limits. For each cutoff apply the shared actual producer: Derive one real Schwartz sequence phi_n with one common outer compact Kprime containing every tsupport(phi_n), chosen before all n and all three limits. Actual volumeL2 classes of phi_n converge to v; actual classical gradient(phi_n) is MemLp2 and its class converges to the actual Gchi; actual Laplacian(phi_n) classes converge to Fchi. Every phi_n is C-infinity and compactly supported. The same sequence realizes all limits. Kprime need not equal K. No classical derivatives of rough v, real Hessian family, quantitative source complexity constant or weighted operator core is claimed."
+      },
+      {
+        "source": "Poincare/macroscopic extension and SPHMC4.1 BL covariance bound.",
+        "lean": "Derive one real smooth sequence with common outer compact support and simultaneous actual ordinary-volume L2 function/gradient/Laplacian limits for v=chi*u, g=chi*G+u*gradientchi, F=chi*r+2inner(gradientchi,G)+u*laplacianchi. Same original D before epsilon/f, same u before ALL cutoffs. No supplied graph-density/approximation/mixedHessian/core certificate, no classical rough derivatives, no weighted-domain/operator-core/globalcutoff/Bochner/BL/Poincare/jointmeasurablechoice/main/composition claim. Reflected/RGO quarter Hessian and fourfold energy kept distinct; TV never transfers unbounded cost."
+      }
+    ]
+  },
+  "review_context_sha256": "b63e413be0db587298d498576a22d7c56422bae821de765e42fee6c59b9d2492",
+  "whole_module_file_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+  "whole_module_raw_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+  "whole_module_lf_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+  "whole_module_reviewed": true,
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual normalizedmu/GaussianJ/commonR,S, reflectedW_y/originalD_y/oneu/G/r; actual v/Gchi/Fchi; AE-linked real vL/FL/gradL then realphi.",
+      "reconstructed": "Same genuine constructedmeasures/kernels/operatorclasses/functions and actualAE-linkedvolumequotient targets; nofloatinglimit objects.",
+      "relation": "equivalent",
+      "evidence": "Entire109-lineconsumer and133-lineTest read; sourceactual parent called once, all3data/exactweak/supportinputs suppliedto newshared producer."
+    },
+    "domains": {
+      "original": "Finite real Hilbert/Borel/ordinaryvolume incl0D. C2 sourceV; weighted L2(S_y) variationaldomain vsordinarylocal/PDE/globalL2 limits; C2compactchi, realC-infinityphi.",
+      "reconstructed": "Same exact domains; cutoffno positivity/range/plateau premise; quotientidentities volumeAE, notpointwise classsupport claims.",
+      "relation": "explicit-elaboration",
+      "evidence": "True sourceC2 lower/uppercurvature/eta interface retained; Test nonquadV and actualnormedbump*(x²)^2.5 C2cutoff exercisesabsenceofC-infinitychi assumption."
+    },
+    "quantifiers": {
+      "original": "One commonR/S before all y; per y one originalD beforeepsilon/f; oneu beforeallchi; eachchi oneAE-linked class triple/Kprime/phi beforealln/3limits.",
+      "reconstructed": "Same nestingandconjunctions; sequence/Kprime maydependon fiber/input/cutoff; no measurable jointselector or common Kprime acrosscutoffs.",
+      "relation": "equivalent",
+      "evidence": "Consumer83-107: hsolve extractedonce beforeintrochi, retains originalDgraph/closure/variational/localweak data; constructs classes from exact localizedMemLp proofs."
+    },
+    "assumptions": {
+      "original": "C2V,NNReal alpha/beta 0<alpha<=beta,allpoint/allvector bounds;eta>0,betaeta<=1. ActualJ/R/S reflectedlaw/positiveZ/originalgraph/weakdata derived.",
+      "reconstructed": "Same explicit V/curvature/cap; true tilt/Markovdisintegration/reflection and actualoriginalD properties areconclusions, not supplied assumptions.",
+      "relation": "explicit-elaboration",
+      "evidence": "Exactparent freeze/current fullcontract supplieseachshared hypothesis; no inputnormalizer/Sobolev/sequence/corecertificate or silently addedC-infinity potential."
+    },
+    "conclusion": {
+      "original": "Retainoriginal same-D/u variational/localintegrability/restrictedL2/allweakPDE plus localizedL2/support/gradient/PDE; add trueAE-linked realclasses/onecommoncompactphi withsimultaneous3volumeL2limits.",
+      "reconstructed": "Same fullretainedconjunctions andexact v=chiu,Gchi=chiG+ugradchi,Fchi=chir+2inner(gradchi,G)+uDeltachi; actuallimits bindvL/gradL/FL.",
+      "relation": "equivalent",
+      "evidence": "No droppedparent conclusion or changedlocalizedgradient. Code106 uses hv/hf/hg.toLp +coeFn_toLp; same sharedphi/hashfreeze."
+    },
+    "scopes": {
+      "original": "Actualreflectedconditional authoredanalyticprerequisite only; fiberwise/sourcegeneralizationvisible; no weightedcore/BL/main/composition.",
+      "reconstructed": "Same source/density/operator scope; no totalroughuLaplacian/jointmeasurablechoices/weighted-domain certification; noexplicitSobolevclaim addedto publicoutput.",
+      "relation": "equivalent",
+      "evidence": "All6source readersteps sourceassumptionledger/currentbinding compared to full codeandprimary. KeptS_yreflectedlaw, notordinaryRGO operator."
+    },
+    "constant_dependencies": {
+      "original": "Wref=V((y+z)/2)+norm(z-y)^2/(8eta); reflection2x-y/Jacobian2^-d/quarterHessian/fourfold correspondingDirichlet; localizedcrossfactor2; spectral2pi constants.",
+      "reconstructed": "Same W,J/reflection/eta/curvature andlocalizedcoefficient2; publicnoquantitativerate/estimateconstant.",
+      "relation": "equivalent",
+      "evidence": "Actual source exactlaw adapter inheritedfromparent. No RGOconstant transfer: unreflectedW=V(x)+norm(x-y)^2/(2eta) remains distinct; source genericHilbert0 extension explicit."
+    }
+  },
+  "deltas": [],
+  "blocking": false,
+  "repairs": [],
+  "verdict": "equivalent-after-elaboration",
+  "review_evidence": "Independent primary-first contract and full frozen721 shared/37private proofs,109 actualconsumer/133 Test andall13readersteps audited before anonymous reconstruction was issued. Fresh currentpost-PROVED_LOCAL packet/source/statement/wholemodule/publicationbinding/definitioncontext and both distinctblind reconstructions checkedagainst that independent contract. No materialgap for the authored scoped component; no sourceverdict inferredfrom compilation/mathreview/root goal.",
+  "source_read_evidence": [
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#S2.SS2",
+      "edition": "arXiv2609.06905v1",
+      "html_lines": "168-211",
+      "scope": "ActualGibbs/Gaussianaugmentation and distinct ordinaryRGO/reflection law"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv2609.06905v1",
+      "html_lines": "1197-1234,1276-1310",
+      "scope": "Source compact-smooth gradientdensity/closedness/H1extension; no claimed numberedLaplaciangraphcore"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "edition": "arXiv2609.06906v1",
+      "html_lines": "403-430",
+      "scope": "Actual ordinaryRGO covariance/score and independentBL/CR boundaries"
+    }
+  ],
+  "full_proof_evidence": {
+    "whole_module_coverage": {
+      "shared_lines": 721,
+      "private_declarations_count": 37,
+      "private_def_count": 5,
+      "private_theorem_count": 32,
+      "all_private_declarations": [
+        {
+          "line": 14,
+          "kind": "def",
+          "name": "actualMul"
+        },
+        {
+          "line": 18,
+          "kind": "theorem",
+          "name": "actualMul_eq"
+        },
+        {
+          "line": 25,
+          "kind": "theorem",
+          "name": "lp_td_injective"
+        },
+        {
+          "line": 30,
+          "kind": "theorem",
+          "name": "actual_bounded_multiplier_norm"
+        },
+        {
+          "line": 71,
+          "kind": "def",
+          "name": "mzero"
+        },
+        {
+          "line": 72,
+          "kind": "def",
+          "name": "mlap"
+        },
+        {
+          "line": 73,
+          "kind": "def",
+          "name": "mdir"
+        },
+        {
+          "line": 76,
+          "kind": "theorem",
+          "name": "mzero_growth"
+        },
+        {
+          "line": 79,
+          "kind": "theorem",
+          "name": "mlap_growth"
+        },
+        {
+          "line": 82,
+          "kind": "theorem",
+          "name": "mdir_growth"
+        },
+        {
+          "line": 85,
+          "kind": "theorem",
+          "name": "mzero_bound"
+        },
+        {
+          "line": 90,
+          "kind": "theorem",
+          "name": "mlap_bound"
+        },
+        {
+          "line": 96,
+          "kind": "theorem",
+          "name": "mdir_bound"
+        },
+        {
+          "line": 103,
+          "kind": "theorem",
+          "name": "inverse_lap"
+        },
+        {
+          "line": 113,
+          "kind": "theorem",
+          "name": "inverse_dir"
+        },
+        {
+          "line": 123,
+          "kind": "theorem",
+          "name": "schwartz_approx"
+        },
+        {
+          "line": 135,
+          "kind": "theorem",
+          "name": "spectral_graph"
+        },
+        {
+          "line": 210,
+          "kind": "theorem",
+          "name": "real_postcomp_derivative"
+        },
+        {
+          "line": 220,
+          "kind": "theorem",
+          "name": "identify_real_gradient"
+        },
+        {
+          "line": 276,
+          "kind": "theorem",
+          "name": "real_projection_toLp"
+        },
+        {
+          "line": 287,
+          "kind": "theorem",
+          "name": "real_projection_line"
+        },
+        {
+          "line": 298,
+          "kind": "theorem",
+          "name": "real_projection_lap"
+        },
+        {
+          "line": 306,
+          "kind": "def",
+          "name": "schwartz_gradient"
+        },
+        {
+          "line": 311,
+          "kind": "theorem",
+          "name": "schwartz_gradient_apply"
+        },
+        {
+          "line": 314,
+          "kind": "theorem",
+          "name": "real_projection_class"
+        },
+        {
+          "line": 325,
+          "kind": "theorem",
+          "name": "finite_gradient_reconstruction"
+        },
+        {
+          "line": 358,
+          "kind": "theorem",
+          "name": "real_schwartz_graph"
+        },
+        {
+          "line": 429,
+          "kind": "theorem",
+          "name": "directional_second"
+        },
+        {
+          "line": 436,
+          "kind": "theorem",
+          "name": "first_product"
+        },
+        {
+          "line": 446,
+          "kind": "theorem",
+          "name": "second_product"
+        },
+        {
+          "line": 472,
+          "kind": "theorem",
+          "name": "laplacian_trace"
+        },
+        {
+          "line": 482,
+          "kind": "theorem",
+          "name": "laplacian_product"
+        },
+        {
+          "line": 500,
+          "kind": "theorem",
+          "name": "outer_plateau"
+        },
+        {
+          "line": 511,
+          "kind": "theorem",
+          "name": "coeff_holder_ae"
+        },
+        {
+          "line": 525,
+          "kind": "theorem",
+          "name": "plateau_point_identities"
+        },
+        {
+          "line": 546,
+          "kind": "theorem",
+          "name": "coeff_holder_class"
+        },
+        {
+          "line": 563,
+          "kind": "theorem",
+          "name": "cutoff_schwartz_graph"
+        }
+      ],
+      "consumer_lines": 109,
+      "Test_lines": 133,
+      "all_current_proofs_read": true
+    },
+    "full_private_and_public_proof_notes": [
+      {
+        "lines": "14-69",
+        "check": "actual infinityL2 multiplication CLM, AE scalar multiplication, LpTD injectivity; actual bounded multiplier constructed FourierInv o multiply o Fourier with genuine norm bound and both TD/Schwartz compatibility."
+      },
+      {
+        "lines": "71-121",
+        "check": "Actual symbols and temperate growth/bounds; inverseLaplacian factor negative(2pi)^2, inverse directional2piI, actual symbol products."
+      },
+      {
+        "lines": "123-207",
+        "check": "Actual Schwartz density constructs one qsequence from one Bessel witness; sameinverseBessel sequence for function/Laplacian/everydirection. LpTD injectivity identifies truevc/Fc, no extra regularity assumption."
+      },
+      {
+        "lines": "210-422",
+        "check": "RealCLM derivative compatibility; actual complexHolderL1 before integral_re, weak compactC1 gradient uniqueness -> Rega=actualinnerG. Genuine realLp projection/AElinks and finitebasis reconstruct actual vectorG; emptybasis0D remains allowed."
+      },
+      {
+        "lines": "429-495",
+        "check": "Private actual C2 trace product derivative proof including correct crossfactor2; smooth approximants differentiated classically, rough inputs never classically differentiated. Public GradientAlgebra reused for gradient product."
+      },
+      {
+        "lines": "500-681",
+        "check": "One genuine unnormalized compact plateau=1nearK; actualsupports imply truepointwisezerooffK, plateauderivativeszeroonK. FixedinfinityL2coefficientCLMs, legal quotientAEproduct rules, simultaneous three limits for SAMEq withKprime=tsupporttheta."
+      },
+      {
+        "lines": "683-719",
+        "check": "Public theorem consumes actualweakPDE/gradient then derivesSobolev, realgraph, outerplateau. Actual gradientMemLp witness and toLpAE equality alignclassicalgradient. No supplied finalconclusioncertificate."
+      },
+      {
+        "lines": "conditional1-109",
+        "check": "Entire genuine consumer destructuresactual parent commonR/S; fixesDybeforeinputs andoneubeforeallchi; derivesexactv/Gchi/Fchi data, appliesgeneric withK=tsupportchi, returnsactualthreeAE-linkedrealclasses andallpriorconjuncts."
+      },
+      {
+        "lines": "Test1-133",
+        "check": "Entire Test actual V=3x²/8+sinx/8, Hessian3/4-sinx/8 withinadvertised1/2..1; eta0..1. True originalconditionalparent + C2compact cutoffnormedbump*(x²)^(5/2), no C-infinitycutoffpremise. Test exposesactualvL/FL/gradLAElinks/samesequence3limits. No compile run by this reviewer."
+      }
+    ],
+    "reader_review": [
+      {
+        "slug": "compact-poisson-smooth-graph",
+        "steps": 7,
+        "all_steps_read": true,
+        "astis_dependencies": [
+          "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev.compact_weak_poisson_sobolev",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra.gradient_mul_eq_of_differentiableAt"
+        ],
+        "mathlib_dependencies": [
+          "SchwartzMap.denseRange_toLpCLM",
+          "Lp.fourierTransformₗᵢ",
+          "Lp.toTemperedDistribution_smul_eq",
+          "Lp.ker_toTemperedDistributionCLM_eq_bot",
+          "ContinuousLinearMap.holderL",
+          "SchwartzMap.fourierMultiplierCLM",
+          "besselPotential_neg_apply_eq_iff",
+          "ae_eq_of_integral_contDiff_smul_eq",
+          "ContinuousLinearMap.compLpL",
+          "ContDiffBump.eventuallyEq_one_of_mem_ball"
+        ],
+        "provenance": "ASTIS directcalls match currentcode. Lp.fourierTransform_li is underlying Fourier/inverse-isometry instance used via fourierCLM/fourierInvCLM/norm_fourier_eq, not falsely described as a literal directcall. Other listednamedMathlib contracts used directly. Consumer list[]Mathlib matches actualASTISwrapper-onlyproof."
+      },
+      {
+        "slug": "pbps-conditional-compact-smooth-graph",
+        "steps": 6,
+        "all_steps_read": true,
+        "astis_dependencies": [
+          "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+          "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation"
+        ],
+        "mathlib_dependencies": [],
+        "provenance": "ASTIS directcalls match currentcode. Lp.fourierTransform_li is underlying Fourier/inverse-isometry instance used via fourierCLM/fourierInvCLM/norm_fourier_eq, not falsely described as a literal directcall. Other listednamedMathlib contracts used directly. Consumer list[]Mathlib matches actualASTISwrapper-onlyproof."
+      }
+    ],
+    "reader_steps_total": 13,
+    "all_current_proofs_and_reader_steps_reviewed": true,
+    "compiler_run_in_this_source_stage": false
+  },
+  "provenance_check": {
+    "selected_astis_dependencies": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation"
+    ],
+    "selected_mathlib_dependencies": [],
+    "ASTIS_actualdirect_calls_checked": true,
+    "Mathlib_actualdirect_or_underlying_instance_calls_checked": true,
+    "underlying_instance_note": "Lp.fourierTransformₗᵢ supplies Fourier/inverse isometry instances used via FourierCLM/FourierInvCLM/norm_fourier_eq; not falsely claimed literal direct invocation.",
+    "current_publication_binding_payload_recomputed": true,
+    "current_review_context_recomputed_and_equal": true,
+    "current_embedded_module_exact_LF_match": true,
+    "parsed_formula_literal_double_backslashes": 0,
+    "private_laplacian_product_ownership": "Existing parentLaplacian productproof private/unavailable; complete boundedC2 trace privateproof readfresh, no duplicatepublic background result."
+  },
+  "source_boundary": "Authored compact ordinary-volume smooth graph approximation prerequisite: sameone realphi/commonoutercompact/all3trueL2limits. No newrealHessian/mixedfield, weightedDdomain/core, globalBochner/BL/Poincare/epsilon0/quantitativecomplexity/fiberselector/main/composition claim. Source finiteEuclidean tofiniteHilbert/Borel0 andgenericweakinterface generalization explicitlydisclosed and actualconsumer retained.",
+  "law_scaling_check": "TrueJ/Gibbs/Gaussian/normalized conditionalS_y fromactualparent; Wref=V((y+z)/2)+norm(z-y)^2/(8eta), inverseJacobian2^-d, quarterHessian/fourfoldcorrespondingDirichlet distinctfrom ordinaryRGO=V(x)+norm(x-y)^2/(2eta). Nofalseoperator/law/constant adapter.",
+  "anti_anchoring_evidence": {
+    "independent_primary_contract_path": "research-wiki/cited-results/Weighted_compact_smooth_graph_source_preread.md",
+    "independent_primary_contract_raw_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+    "frozen_pre_decoder_full_review_inventory": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview.inventory.json",
+    "prereview_run_sha256": "8ce638cbae2a60a18d7bb193d7e9eb517f839001bdefdf8e5ea40ff4ff441c21",
+    "primary_first": true,
+    "honest_exposure": {
+      "prior": "Ownprimaryfirstsmoothgraphpreread + matching earlierfull acceptedparent/source/API reviews; earlierBLsearchcovariancekeywords/signatures/matchinglines disclosed.",
+      "current": "Complete currentcandidate721/109/133code,13readersteps,2publications/2cells and draftaudit source/Lean/context projections read afterprimary. Currentcells compilerstatus/prototype-summary text visible as administrativecontext; not used as correctness evidence. Draftaudit approved-definition-context field visible, but no anonymouspacket/input/reconstruction opened.",
+      "excluded": [
+        "root ignored prototypes/diagnostics",
+        "current math-review verdict",
+        "anonymous decoder packets/reconstructions",
+        "old source verdicts/slots/deltas",
+        "blueprint text and currentotherworker route text"
+      ],
+      "freeze_manifest": "Locator/bytefreeze only; no math/rootverdict used."
+    },
+    "final_stage_exposure": "Fresh current reviewerpkt0/1 and independent anonymousinput/definitioncontext/reconstruction first opened at this stage, after primary-first own full-code contract frozen. No mathreviewverdict or ignoredprototype read.",
+    "prior_verdicts_used": false,
+    "formalizer_decoder_identities_distinct_from_reviewer": true
+  },
+  "matching_freeze_reuse": {
+    "current_target_and_reader_bytes": "Exactraw/LF unchanged from own fullprereview20freeze. Wholecode/candidateproof reading reused onlywithmatchingbytes; final7slot comparison freshagainst newdecoder.",
+    "parent_code": "ExactCompactWeakPoissonSobolev/GradientAlgebra/ConditionalLocalizedResolvent/LocalizedWeakResolvent currentfreeze; sourcecontracts and actualcalls inspected. Oldacceptedverdicts not used."
+  },
+  "lifecycle_reconciliation": {
+    "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-lifecycle-reconciliation.json",
+    "review_run_sha256": "1d5dcc699ab3556374157465b63e19d351c9b169d081af293837f1ff3036a41b",
+    "adds_no_mathematical_credit": true,
+    "current_live_admin_footprints_bound": true,
+    "old_raw_footprints_retained": true
+  },
+  "fake_closure_scan": {
+    "files": [
+      {
+        "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactPoissonSmoothGraph.lean",
+        "matches": []
+      },
+      {
+        "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalCompactSmoothGraph.lean",
+        "matches": []
+      },
+      {
+        "path": "Tests/CompactPoissonSmoothGraph.lean",
+        "matches": []
+      }
+    ],
+    "result": "No axiom/sorry/admit/PropTrue/trivial mathematical closure matches in current3modules/Test."
+  },
+  "independent_elaboration": {
+    "run": false,
+    "reason": "Source-onlytask explicitly forbids compiler; root/picard owns compiler. Compiledstatus/mathematicsverdict isnot independent sourceevidence.",
+    "compiler_sessions_started": [],
+    "all_closed": true
+  },
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactPoissonSmoothGraph.lean",
+      "raw_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "lf_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "bytes": 39015,
+      "sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "sha256_lf": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "normalized_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.00.snapshot",
+      "raw_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "lf_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "bytes": 39015,
+      "sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "sha256_lf": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "normalized_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalCompactSmoothGraph.lean",
+      "raw_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "lf_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "bytes": 6995,
+      "sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "sha256_lf": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "normalized_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.01.snapshot",
+      "raw_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "lf_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "bytes": 6995,
+      "sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "sha256_lf": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "normalized_sha256": "60d9cdf5e0b7eb0db80fb7664b916adcbe4833cad57aeae809d0a362a8a91287",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "Tests/CompactPoissonSmoothGraph.lean",
+      "raw_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "lf_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "bytes": 8052,
+      "sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "sha256_lf": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "normalized_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.02.snapshot",
+      "raw_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "lf_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "bytes": 8052,
+      "sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "sha256_lf": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "normalized_sha256": "0f01443f8ab11b2818b8a2e06997eb2a4d5438807cc68d044a6091458ed649e7",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "proof-blueprints/compact-poisson-smooth-graph.md",
+      "raw_sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "lf_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "bytes": 3001,
+      "sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "sha256_lf": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "normalized_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "hash-and-preserve-only-not-semantic-planning-evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.03.snapshot",
+      "raw_sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "lf_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "bytes": 3001,
+      "sha256": "bdb5bfe9b08be391b3605843daa984d040171c339f4ef758b196eec1bedffa24",
+      "sha256_lf": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "normalized_sha256": "d98de13cc01ce71c52aa60b9f7a885edebb11808bee535e25c28a9e5d843e57b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_Sobolev_smooth_core_route_audit.md",
+      "raw_sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "lf_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "bytes": 16937,
+      "sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "sha256_lf": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "normalized_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "hash-and-preserve-only-not-semantic-planning-evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.04.snapshot",
+      "raw_sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "lf_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "bytes": 16937,
+      "sha256": "f4c5b2e321d36f2795a4e6ce88594dabb780d0548bb4499c7f403956df5f3af1",
+      "sha256_lf": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "normalized_sha256": "d35c483b90a5f013ffa1e32fd355b890a665dd05d5d063153678400309c3a387",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_smooth_graph_source_preread.md",
+      "raw_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "lf_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "bytes": 12822,
+      "sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "sha256_lf": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "normalized_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.05.snapshot",
+      "raw_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "lf_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "bytes": 12822,
+      "sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "sha256_lf": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "normalized_sha256": "d45dca381f8405be777fd1050433fe5150e5d31907a4c54537f6d328c1739297",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeakPoissonSobolev.lean",
+      "raw_sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "lf_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "bytes": 10579,
+      "sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "sha256_lf": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "normalized_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.06.snapshot",
+      "raw_sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "lf_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "bytes": 10579,
+      "sha256": "9572c7f988d24f93b70e70323c2b51afe5c0ae515294022f3d46fcf1745dafc7",
+      "sha256_lf": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "normalized_sha256": "019f3577b1eb5ff4d7db00a484bbbf206362a1466d84c6bafbdb5e4e315c5676",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/GradientAlgebra.lean",
+      "raw_sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "lf_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "bytes": 5993,
+      "sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "sha256_lf": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "normalized_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.07.snapshot",
+      "raw_sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "lf_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "bytes": 5993,
+      "sha256": "a6c474e62370e3ba2baf1eb35918d839082dffa06990158e7736654daa32c5a7",
+      "sha256_lf": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "normalized_sha256": "b250cbeadefcde5ee883796a6755967a0cfbf791abc13ba680bd4b6e741d572c",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedResolvent.lean",
+      "raw_sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "lf_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "bytes": 5607,
+      "sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "sha256_lf": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "normalized_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.08.snapshot",
+      "raw_sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "lf_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "bytes": 5607,
+      "sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "sha256_lf": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "normalized_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LocalizedWeakResolvent.lean",
+      "raw_sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "lf_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "bytes": 26952,
+      "sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "sha256_lf": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "normalized_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.09.snapshot",
+      "raw_sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "lf_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "bytes": 26952,
+      "sha256": "2e35799ed7d7beef354caa22e32d1a6e75d3bed9c50217eda599c8e6fd8b3114",
+      "sha256_lf": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "normalized_sha256": "5fb157f3bfd725cddd571178f52cd244b4949386a2db6dd6e41efbde835e7c8d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "sha256_lf": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "normalized_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.10.snapshot",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "sha256_lf": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "normalized_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "sha256_lf": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "normalized_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "exact_case_checked": true,
+      "tracked_in_root_git": true,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.11.snapshot",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "sha256_lf": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "normalized_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/publications/compact-poisson-smooth-graph.json",
+      "raw_sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "lf_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "bytes": 8489,
+      "sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "sha256_lf": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "normalized_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.12.snapshot",
+      "raw_sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "lf_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "bytes": 8489,
+      "sha256": "11f34d97b6b9f534518f25d834a9f04cafecca3432c74038a2c5ec57dd46e275",
+      "sha256_lf": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "normalized_sha256": "e3598b28e5bd4cf6e6e8d0d4238c520974b14ea88da421b53f1e2caa15f8c831",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/compact-poisson-smooth-graph.json",
+      "raw_sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "lf_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "bytes": 11234,
+      "sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "sha256_lf": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "normalized_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.13.snapshot",
+      "raw_sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "lf_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "bytes": 11234,
+      "sha256": "af57dd225e1e04b7f3257e48eb1c5f16cc68c85c6d2dfca500003ad8577d393c",
+      "sha256_lf": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "normalized_sha256": "56a4d1013eeafdee5be4f0aa707b1c50ecbf7cc395d8ef21373176705ae3792d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/publications/pbps-conditional-compact-smooth-graph.json",
+      "raw_sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "lf_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "bytes": 9570,
+      "sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "sha256_lf": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "normalized_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.14.snapshot",
+      "raw_sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "lf_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "bytes": 9570,
+      "sha256": "61e68b2a43d579930f63892c9b9bb588834ced265e4b8236300004a2693bab86",
+      "sha256_lf": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "normalized_sha256": "514f7e4fe84c015044713b979a8548d3348c2b025d5ccbe93233145cf5840733",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/pbps-conditional-compact-smooth-graph.json",
+      "raw_sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "lf_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "bytes": 9923,
+      "sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "sha256_lf": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "normalized_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-source/code/reader/contract-footprint"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.15.snapshot",
+      "raw_sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "lf_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "bytes": 9923,
+      "sha256": "0694aacad6e8d7178b935f274ef6a2ca559f4ab77c2adc048bd9b2691e2da040",
+      "sha256_lf": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "normalized_sha256": "c6c0349743baa13e4be78c054b1b4146f76026d199a6c24e18c427f29a6af0be",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-snapshot"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-compact-poisson-smooth-graph.json",
+      "raw_sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "lf_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "bytes": 10140,
+      "sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "sha256_lf": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "normalized_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SHARED-compact-poisson-smooth-graph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "lf_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "bytes": 10140,
+      "sha256": "50899521eacfe8bba1f3736f4b0b221244a65a8810ca6e3b2c2657a994a22e2e",
+      "sha256_lf": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "normalized_sha256": "033e225d9e5141ecf409ca2a8a714a28cdcceb66d0e2f6539158a7e778e2fd86",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.16.snapshot",
+      "raw_sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "lf_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "bytes": 9896,
+      "sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "sha256_lf": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "normalized_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SHARED-compact-poisson-smooth-graph.math-reviewed.snapshot.json",
+      "raw_sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "lf_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "bytes": 9896,
+      "sha256": "e8858a748c58b26b1d50c8d31ecc51ef0efbea55f8100fd3aea206321ba68770",
+      "sha256_lf": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "normalized_sha256": "79dfcea4dca64275d27f3ba1ffe8327fefa13f72e8b54ecdd43a2777199a0fef",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-conditional-compact-smooth-graph.json",
+      "raw_sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "lf_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "bytes": 9342,
+      "sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "sha256_lf": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "normalized_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SW-PBPS-conditional-compact-smooth-graph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "lf_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "bytes": 9342,
+      "sha256": "f879debd1383eeb937feaa0ccbecd7abcceb3b35ae1273f416e5dbe7e39fbe18",
+      "sha256_lf": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "normalized_sha256": "7854dc3996dfbbd92f90a98d1d10ee609f949f7aaed2199ac0cdac8078f4921b",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.17.snapshot",
+      "raw_sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "lf_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "bytes": 9098,
+      "sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "sha256_lf": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "normalized_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-SW-PBPS-conditional-compact-smooth-graph.math-reviewed.snapshot.json",
+      "raw_sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "lf_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "bytes": 9098,
+      "sha256": "b86906344e5b5675aa74cae2594d9ded08da8831b0de7d23eb1efb1f107626f4",
+      "sha256_lf": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "normalized_sha256": "29460a99bf34e28781203394ea02c9aba91aba5fbe6ea581df5bef0a99679866",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-CompactPoissonSmoothGraph.json",
+      "raw_sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "lf_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "bytes": 67603,
+      "sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "sha256_lf": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "normalized_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-CompactPoissonSmoothGraph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "lf_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "bytes": 67603,
+      "sha256": "106a147c8824d1bb657b8a9770e228491cc6eb9f4817a7602601f093d31306ea",
+      "sha256_lf": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "normalized_sha256": "34f1eb0399f41c7ffdb0f4e4a8aff76887d4cc965d6f51532cec0b70f46e904d",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.18.snapshot",
+      "raw_sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "lf_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "bytes": 64335,
+      "sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "sha256_lf": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "normalized_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-CompactPoissonSmoothGraph.math-reviewed.snapshot.json",
+      "raw_sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "lf_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "bytes": 64335,
+      "sha256": "5b75b3b4fab8496424ef51df8218ee4c057fafa533be6e117e29c472b1833323",
+      "sha256_lf": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "normalized_sha256": "c5dc6aeba660f6ccf9d91e0c202bb1c902ee67a1cfaf724f000e36663d9268b0",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph.json",
+      "raw_sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "lf_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "bytes": 42645,
+      "sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "sha256_lf": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "normalized_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "live-current-admin-at-source-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph.source-reviewed.current.snapshot.json",
+      "raw_sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "lf_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "bytes": 42645,
+      "sha256": "1813259126ecaaeab81349743ec925c6b3d06ed6d11f1e60813e858f787befe0",
+      "sha256_lf": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "normalized_sha256": "20a3c562eb7e138166ff960ed4d95013d24bc3ad0769c95c3c2ff8d89adced11",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-source-reviewed-current-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview-input.19.snapshot",
+      "raw_sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "lf_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "bytes": 35779,
+      "sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "sha256_lf": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "normalized_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-pre-review-admin"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/ASTIS-RT-20261006-PBPSConditionalCompactSmoothGraph.math-reviewed.snapshot.json",
+      "raw_sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "lf_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "bytes": 35779,
+      "sha256": "c1afc52ba69540e180139a8db568883aefb6592986c1b2dad6c4931249c8c61a",
+      "sha256_lf": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "normalized_sha256": "d9225430e760128ddf94a924c94af296bb281472e60123bcb92ee069cafb63ac",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "byte-footprint-only-no-math-verdict-read"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-review.1.json",
+      "raw_sha256": "eac1c79ee1d8ac8d812f59a82021f2ed3cb9ee9ac0b196462f41d3c9cb670c93",
+      "lf_sha256": "cba329185d8f3a3d5e22b73d1915cef39bab91f3d1b345113a00c3995b1f646a",
+      "bytes": 43135,
+      "sha256": "eac1c79ee1d8ac8d812f59a82021f2ed3cb9ee9ac0b196462f41d3c9cb670c93",
+      "sha256_lf": "cba329185d8f3a3d5e22b73d1915cef39bab91f3d1b345113a00c3995b1f646a",
+      "normalized_sha256": "cba329185d8f3a3d5e22b73d1915cef39bab91f3d1b345113a00c3995b1f646a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-review.1.json.source-reviewed.snapshot",
+      "raw_sha256": "eac1c79ee1d8ac8d812f59a82021f2ed3cb9ee9ac0b196462f41d3c9cb670c93",
+      "lf_sha256": "cba329185d8f3a3d5e22b73d1915cef39bab91f3d1b345113a00c3995b1f646a",
+      "bytes": 43135,
+      "sha256": "eac1c79ee1d8ac8d812f59a82021f2ed3cb9ee9ac0b196462f41d3c9cb670c93",
+      "sha256_lf": "cba329185d8f3a3d5e22b73d1915cef39bab91f3d1b345113a00c3995b1f646a",
+      "normalized_sha256": "cba329185d8f3a3d5e22b73d1915cef39bab91f3d1b345113a00c3995b1f646a",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.1.decoder.json",
+      "raw_sha256": "33cce083886eafed5ddb8f3f22d7ae8d97b750b0af8f15e9f1e4dee7dc34a6de",
+      "lf_sha256": "07db9359630d48d75c3020253a59f93395e5c53831ebae2361cb391153ba8b48",
+      "bytes": 8547,
+      "sha256": "33cce083886eafed5ddb8f3f22d7ae8d97b750b0af8f15e9f1e4dee7dc34a6de",
+      "sha256_lf": "07db9359630d48d75c3020253a59f93395e5c53831ebae2361cb391153ba8b48",
+      "normalized_sha256": "07db9359630d48d75c3020253a59f93395e5c53831ebae2361cb391153ba8b48",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.1.decoder.json.source-reviewed.snapshot",
+      "raw_sha256": "33cce083886eafed5ddb8f3f22d7ae8d97b750b0af8f15e9f1e4dee7dc34a6de",
+      "lf_sha256": "07db9359630d48d75c3020253a59f93395e5c53831ebae2361cb391153ba8b48",
+      "bytes": 8547,
+      "sha256": "33cce083886eafed5ddb8f3f22d7ae8d97b750b0af8f15e9f1e4dee7dc34a6de",
+      "sha256_lf": "07db9359630d48d75c3020253a59f93395e5c53831ebae2361cb391153ba8b48",
+      "normalized_sha256": "07db9359630d48d75c3020253a59f93395e5c53831ebae2361cb391153ba8b48",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.1.reconstruction.json",
+      "raw_sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "lf_sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "bytes": 14103,
+      "sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "sha256_lf": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "normalized_sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/anonymous.1.reconstruction.json.source-reviewed.snapshot",
+      "raw_sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "lf_sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "bytes": 14103,
+      "sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "sha256_lf": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "normalized_sha256": "16357ad94c562757d74cec3bd76362c75fcfc51907288afb90016c03311f45dd",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "immutable-current-packet-decoder-reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-prereview.inventory.json",
+      "raw_sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "lf_sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "bytes": 28435,
+      "sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "sha256_lf": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "normalized_sha256": "ccfa7c15105e8580d38d0a25c8c418c9d3ddbdab99152642583086dc2b822334",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "own-independent-pre-decoder-full-review"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/math-freeze.json",
+      "raw_sha256": "44554a0c25c7ee4983fa20a904b9e4788c5dbb5aefde4053ae61c67f8fd80714",
+      "lf_sha256": "d781a0aaa7b88e79e7dbefbca9ffe6f01ef7b2958e31234d899dce625445b2b1",
+      "bytes": 8098,
+      "sha256": "44554a0c25c7ee4983fa20a904b9e4788c5dbb5aefde4053ae61c67f8fd80714",
+      "sha256_lf": "d781a0aaa7b88e79e7dbefbca9ffe6f01ef7b2958e31234d899dce625445b2b1",
+      "normalized_sha256": "d781a0aaa7b88e79e7dbefbca9ffe6f01ef7b2958e31234d899dce625445b2b1",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "input-locator-and-byte-freeze-only"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-poisson-smooth-graph/source-lifecycle-reconciliation.json",
+      "raw_sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "lf_sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "bytes": 27211,
+      "sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "sha256_lf": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "normalized_sha256": "b88f46c69e1c22ebc6f52d69ab4f0f0ebcf04e1701edad940bea6ee26377c77f",
+      "exact_case_checked": true,
+      "tracked_in_root_git": false,
+      "case_evidence": "Exact filesystem spelling and tracked spelling when applicable checked; untracked new files are not falsely described as Git tracked.",
+      "scope": "own-current-lifecycle-reconciliation"
+    }
+  ],
+  "hash_conventions": {
+    "raw": "Exact original bytes retainCRLF",
+    "lf": "ReplaceCRLFwithLFonly; noJSONreserialization",
+    "review_run": "CanonicalUTF8 JSON ensure_asciiFalse sort_keysTrue separatorscomma/colon excludingreview_run_sha256",
+    "whole_module_file_sha256": "LFnormalizedmoduletext; rawseparatelybound"
+  },
+  "completed_at_utc": "2026-10-06T04:23:49.168639+00:00",
+  "timing_evidence": "Fresh primary source reread before newcandidate721/109/133/13steps; immutable own prereview preparedbeforeanonymousdecode/currentsourcepackets. Final comparison freshonlyaftertwoexactnewpackets; no compile.",
+  "admission_scope": "Independent scoped source-fidelity receipt only; no sourceaudits/cells/ledger/shared edits, no self-VERIFIED or numberedpaper/maincredit.",
+  "review_run_sha256": "2e2990c3d41bc0b7b59211cda28a03fe55de01d9239ac8b763305fd35cde126f"
+}

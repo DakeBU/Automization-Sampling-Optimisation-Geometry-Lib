@@ -1,0 +1,499 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent
+import Mathlib.MeasureTheory.Function.LpSeminorm.Indicator
+
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory InnerProductSpace
+open scoped ContDiff RealInnerProductSpace Topology
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent
+variable {E F : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+private theorem compact_smul_memLp (u : E → F) (χ : E → ℝ)
+    (hχ : Continuous χ) (hc : HasCompactSupport χ)
+    (hu : ∀ K : Set E, IsCompact K → MemLp u 2 (volume.restrict K)) :
+    MemLp (fun x => χ x • u x) 2 volume := by
+  let K := tsupport χ
+  have hK : IsCompact K := hc
+  have huK := hu K hK
+  obtain ⟨C,hC⟩ := hK.bddAbove_image hχ.norm.continuousOn
+  have hp : MemLp (fun x => χ x • u x) 2 (volume.restrict K) := by
+    apply huK.of_le_mul (c := C) (hχ.aestronglyMeasurable.restrict.smul huK.aestronglyMeasurable)
+    filter_upwards [ae_restrict_mem hK.measurableSet] with x hx
+    change ‖χ x • u x‖ ≤ C * ‖u x‖
+    rw [norm_smul]
+    exact mul_le_mul_of_nonneg_right (hC (Set.mem_image_of_mem _ hx)) (norm_nonneg _)
+  have hi := (memLp_indicator_iff_restrict hK.measurableSet).2 hp
+  have he : K.indicator (fun x => χ x • u x) = fun x => χ x • u x := by
+    funext x
+    by_cases hx : x ∈ K
+    · simp [hx]
+    · simp [hx, image_eq_zero_of_notMem_tsupport hx]
+  rwa [he] at hi
+
+private theorem directional_second (f : E → ℝ) (hf : ContDiff ℝ 2 f) (x v : E) :
+    fderiv ℝ (fun z => fderiv ℝ f z v) x v = fderiv ℝ (fderiv ℝ f) x v v := by
+  have hd := ((hf.fderiv_right (m := 1) (by norm_num)).differentiable one_ne_zero x).hasFDerivAt
+  simpa using congrArg (fun T : E →L[ℝ] ℝ => T v)
+    (hd.clm_apply (hasFDerivAt_const v x)).fderiv
+
+private theorem first_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 1 χ)
+    (hφ : ContDiff ℝ 1 φ) (x v : E) :
+    fderiv ℝ (fun z => χ z * φ z) x v =
+      χ x * fderiv ℝ φ x v + φ x * fderiv ℝ χ x v := by
+  have hd := (hχ.differentiable one_ne_zero x).hasFDerivAt.mul
+    (hφ.differentiable one_ne_zero x).hasFDerivAt
+  rw [show fderiv ℝ (fun z => χ z * φ z) x = _ from hd.fderiv]
+  simp only [add_apply, smul_apply, smul_eq_mul]
+
+private theorem second_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ)
+    (hφ : ContDiff ℝ 2 φ) (x v : E) :
+    fderiv ℝ (fderiv ℝ (fun z => χ z * φ z)) x v v =
+      χ x * fderiv ℝ (fderiv ℝ φ) x v v +
+      2 * (fderiv ℝ χ x v * fderiv ℝ φ x v) +
+      φ x * fderiv ℝ (fderiv ℝ χ) x v v := by
+  have hχ1 : ContDiff ℝ 1 χ := hχ.of_le (by norm_num)
+  have hφ1 : ContDiff ℝ 1 φ := hφ.of_le (by norm_num)
+  have hχd : ContDiff ℝ 1 (fun z => fderiv ℝ χ z v) :=
+    (hχ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+  have hφd : ContDiff ℝ 1 (fun z => fderiv ℝ φ z v) :=
+    (hφ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+  have he : (fun z => fderiv ℝ (fun w => χ w * φ w) z v) =
+      fun z => χ z * fderiv ℝ φ z v + φ z * fderiv ℝ χ z v := by
+    funext z; exact first_product χ φ hχ1 hφ1 z v
+  rw [← directional_second _ (hχ.mul hφ), he]
+  have hd := ((hχ1.differentiable one_ne_zero x).hasFDerivAt.mul
+    (hφd.differentiable one_ne_zero x).hasFDerivAt).add
+    ((hφ1.differentiable one_ne_zero x).hasFDerivAt.mul
+      (hχd.differentiable one_ne_zero x).hasFDerivAt)
+  rw [show fderiv ℝ (fun z => χ z * fderiv ℝ φ z v + φ z * fderiv ℝ χ z v) x = _ from hd.fderiv]
+  simp only [add_apply, smul_apply, smul_eq_mul]
+  rw [directional_second _ hφ, directional_second _ hχ]
+  ring
+
+private theorem laplacian_trace (f : E → ℝ) (x : E) :
+    Laplacian.laplacian f x = ∑ i, fderiv ℝ (fderiv ℝ f) x
+      ((stdOrthonormalBasis ℝ E) i) ((stdOrthonormalBasis ℝ E) i) := by
+  rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]
+  apply Finset.sum_congr rfl
+  intro i _
+  rw [iteratedFDeriv_two_apply]
+  rfl
+
+private theorem laplacian_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ)
+    (hφ : ContDiff ℝ 2 φ) (x : E) :
+    Laplacian.laplacian (fun z => χ z * φ z) x =
+      χ x * Laplacian.laplacian φ x +
+      2 * inner ℝ (gradient χ x) (gradient φ x) +
+      φ x * Laplacian.laplacian χ x := by
+  have hi : inner ℝ (gradient χ x) (gradient φ x) =
+      ∑ i, fderiv ℝ χ x ((stdOrthonormalBasis ℝ E) i) *
+        fderiv ℝ φ x ((stdOrthonormalBasis ℝ E) i) := by
+    rw [← (stdOrthonormalBasis ℝ E).sum_inner_mul_inner (gradient χ x) (gradient φ x)]
+    simp only [inner_gradient_left, inner_gradient_right, conj_trivial]
+  rw [laplacian_trace, laplacian_trace, laplacian_trace, hi]
+  simp_rw [second_product χ φ hχ hφ]
+  simp only [Finset.sum_add_distrib, ← Finset.mul_sum]
+
+
+private theorem compact_inner_memLp (G B : E → E)
+    (hB : Continuous B) (hc : HasCompactSupport B)
+    (hG : ∀ K : Set E, IsCompact K → MemLp G 2 (volume.restrict K)) :
+    MemLp (fun x => inner ℝ (B x) (G x)) 2 volume := by
+  let K := tsupport B
+  have hK : IsCompact K := hc
+  have hGK := hG K hK
+  obtain ⟨C,hC⟩ := hK.bddAbove_image hB.norm.continuousOn
+  have hp : MemLp (fun x => inner ℝ (B x) (G x)) 2 (volume.restrict K) := by
+    apply hGK.of_le_mul (c := C) (hB.aestronglyMeasurable.restrict.inner hGK.aestronglyMeasurable)
+    filter_upwards [ae_restrict_mem hK.measurableSet] with x hx
+    exact (norm_inner_le_norm _ _).trans
+      (mul_le_mul_of_nonneg_right (hC (Set.mem_image_of_mem _ hx)) (norm_nonneg _))
+  have hi := (memLp_indicator_iff_restrict hK.measurableSet).2 hp
+  have he : K.indicator (fun x => inner ℝ (B x) (G x)) = fun x => inner ℝ (B x) (G x) := by
+    funext x
+    by_cases hx : x ∈ K
+    · simp [hx]
+    · simp [hx, image_eq_zero_of_notMem_tsupport hx]
+  rwa [he] at hi
+
+private theorem gradient_compact (χ : E → ℝ) (hc : HasCompactSupport χ) :
+    HasCompactSupport (gradient χ) := by
+  refine HasCompactSupport.of_support_subset_isCompact hc.isCompact ?_
+  intro x hx
+  by_contra hn
+  apply hx
+  simp only [gradient, fderiv_of_notMem_tsupport ℝ hn, map_zero]
+
+private theorem laplacian_continuous (χ : E → ℝ) (hχ : ContDiff ℝ 2 χ) :
+    Continuous (Laplacian.laplacian χ) := by
+  have hfd := (hχ.fderiv_right (m := 1) (by norm_num)).continuous_fderiv one_ne_zero
+  have he : Laplacian.laplacian χ = fun x => ∑ i, fderiv ℝ (fderiv ℝ χ) x
+      ((stdOrthonormalBasis ℝ E) i) ((stdOrthonormalBasis ℝ E) i) := funext (laplacian_trace χ)
+  rw [he]
+  fun_prop
+
+private theorem laplacian_compact (χ : E → ℝ) (hc : HasCompactSupport χ) :
+    HasCompactSupport (Laplacian.laplacian χ) := by
+  refine HasCompactSupport.of_support_subset_isCompact hc.isCompact ?_
+  intro x hx
+  by_contra hn
+  apply hx
+  have hfd : x ∉ tsupport (fderiv ℝ χ) := fun h => hn (tsupport_fderiv_subset ℝ h)
+  rw [laplacian_trace, fderiv_of_notMem_tsupport ℝ hfd]
+  simp
+
+private theorem cutoff_rhs_memLp (u r : E → ℝ) (G : E → E)
+    (hl : ∀ K : Set E, IsCompact K →
+      MemLp u 2 (volume.restrict K) ∧ MemLp G 2 (volume.restrict K) ∧
+      MemLp r 2 (volume.restrict K))
+    (χ : E → ℝ) (hχ : ContDiff ℝ 2 χ) (hc : HasCompactSupport χ) :
+    MemLp (fun x => χ x * u x) 2 volume ∧
+    MemLp (fun x => χ x * r x + 2 * inner ℝ (gradient χ x) (G x) +
+      u x * Laplacian.laplacian χ x) 2 volume := by
+  have hg : Continuous (gradient χ) :=
+    (toDual ℝ E).symm.continuous.comp ((hχ.of_le (by norm_num) : ContDiff ℝ 1 χ).continuous_fderiv one_ne_zero)
+  have hu := compact_smul_memLp u χ hχ.continuous hc (fun K hK => (hl K hK).1)
+  have hr := compact_smul_memLp r χ hχ.continuous hc (fun K hK => (hl K hK).2.2)
+  have hB := compact_inner_memLp G (gradient χ) hg (gradient_compact χ hc)
+    (fun K hK => (hl K hK).2.1)
+  have hU := compact_smul_memLp u (Laplacian.laplacian χ)
+    (laplacian_continuous χ hχ) (laplacian_compact χ hc) (fun K hK => (hl K hK).1)
+  refine ⟨by simpa only [smul_eq_mul] using hu, ?_⟩
+  convert (hr.add (hB.const_smul (2:ℝ))).add hU using 1
+  funext x
+  simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+  ring
+
+
+private theorem cutoff_weak_gradient (u : E → ℝ) (G : E → E)
+    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (G x) a) ∧
+      Integrable (fun x => u x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, u x * fderiv ℝ ψ x a)
+    (χ ψ : E → ℝ) (hχ : ContDiff ℝ 1 χ) (hc : HasCompactSupport χ)
+    (hψ : ContDiff ℝ 1 ψ) (hψc : HasCompactSupport ψ) (a : E) :
+    Integrable (fun x => ψ x * inner ℝ (χ x • G x + u x • gradient χ x) a) ∧
+    Integrable (fun x => (χ x * u x) * fderiv ℝ ψ x a) ∧
+    (∫ x, ψ x * inner ℝ (χ x • G x + u x • gradient χ x) a) =
+      -∫ x, (χ x * u x) * fderiv ℝ ψ x a := by
+  have hA := (hd ψ hψ hψc a).2.1.mul_of_top_right
+    (hχ.continuous.memLp_top_of_hasCompactSupport hc volume)
+  have hB := (hd χ hχ hc a).2.1.mul_of_top_right
+    (hψ.continuous.memLp_top_of_hasCompactSupport hψc volume)
+  have hD := hd (fun x => χ x * ψ x) (hχ.mul hψ) (hc.mul_right) a
+  let A := fun x => χ x * (u x * fderiv ℝ ψ x a)
+  let B := fun x => ψ x * (u x * fderiv ℝ χ x a)
+  let J := fun x => (χ x * ψ x) * inner ℝ (G x) a
+  have hAi : Integrable A := hA
+  have hBi : Integrable B := hB
+  have hJi : Integrable J := hD.1
+  have hfirst : (fun x => ψ x * inner ℝ (χ x • G x + u x • gradient χ x) a) =
+      fun x => J x + B x := by
+    funext x
+    dsimp [J,B]
+    simp only [inner_add_left, inner_smul_left, inner_gradient_left, conj_trivial]
+    ring
+  have hsecond : (fun x => (χ x * u x) * fderiv ℝ ψ x a) = A := by
+    funext x; dsimp [A]; ring
+  have hprod : (fun x => u x * fderiv ℝ (fun z => χ z * ψ z) x a) =
+      fun x => A x + B x := by
+    funext x
+    rw [first_product χ ψ hχ hψ]
+    dsimp [A,B]; ring
+  rw [hprod, integral_add hAi hBi] at hD
+  rw [hfirst, hsecond]
+  refine ⟨hJi.add hBi, hAi, ?_⟩
+  rw [integral_add hJi hBi]
+  linarith [hD.2.2]
+
+
+private theorem cutoff_cross_identity (u : E → ℝ) (G : E → E)
+    (hu : LocallyIntegrable u)
+    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (G x) a) ∧
+      Integrable (fun x => u x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, u x * fderiv ℝ ψ x a)
+    (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ) (hc : HasCompactSupport χ)
+    (hφ : ContDiff ℝ 2 φ) (hφc : HasCompactSupport φ) :
+    Integrable (fun x => φ x * inner ℝ (gradient χ x) (G x)) ∧
+    Integrable (fun x => u x * inner ℝ (gradient χ x) (gradient φ x)) ∧
+    Integrable (fun x => u x * φ x * Laplacian.laplacian χ x) ∧
+    (∫ x, φ x * inner ℝ (gradient χ x) (G x)) =
+      -(∫ x, u x * inner ℝ (gradient χ x) (gradient φ x)) -
+      ∫ x, u x * φ x * Laplacian.laplacian χ x := by
+  let b := stdOrthonormalBasis ℝ E
+  let dχ := fun i x => fderiv ℝ χ x (b i)
+  let dφ := fun i x => fderiv ℝ φ x (b i)
+  let ddχ := fun i x => fderiv ℝ (fderiv ℝ χ) x (b i) (b i)
+  have hχ1 : ContDiff ℝ 1 χ := hχ.of_le (by norm_num)
+  have hφ1 : ContDiff ℝ 1 φ := hφ.of_le (by norm_num)
+  have hdc (i) : ContDiff ℝ 1 (dχ i) :=
+    (hχ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+  have hdpc (i) : ContDiff ℝ 1 (dφ i) :=
+    (hφ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+  have hddc (i) : Continuous (ddχ i) := by
+    have ht := (hχ.fderiv_right (m := 1) (by norm_num)).continuous_fderiv one_ne_zero
+    dsimp [ddχ]; fun_prop
+  let A := fun i x => u x * (dφ i x * dχ i x)
+  let B := fun i x => u x * (φ x * ddχ i x)
+  let J := fun i x => (φ x * dχ i x) * inner ℝ (G x) (b i)
+  have hAi (i) : Integrable (A i) := by
+    simpa only [smul_eq_mul, Pi.mul_apply, A, B] using hu.integrable_smul_right_of_hasCompactSupport
+      ((hdpc i).continuous.mul (hdc i).continuous) ((hc.fderiv_apply ℝ (b i)).mul_left)
+  have hBi (i) : Integrable (B i) := by
+    simpa only [smul_eq_mul, Pi.mul_apply, A, B] using hu.integrable_smul_right_of_hasCompactSupport
+      (hφ.continuous.mul (hddc i)) hφc.mul_right
+  have hDi (i) := hd (fun x => φ x * dχ i x) (hφ1.mul (hdc i)) hφc.mul_right (b i)
+  have hJi (i) : Integrable (J i) := (hDi i).1
+  have hEq (i) : (∫ x, J i x) = -(∫ x, A i x) - ∫ x, B i x := by
+    have he : (fun x => u x * fderiv ℝ (fun z => φ z * dχ i z) x (b i)) =
+        fun x => A i x + B i x := by
+      funext x
+      rw [first_product φ (dχ i) hφ1 (hdc i)]
+      dsimp [dχ,dφ,ddχ,A,B]
+      rw [directional_second χ hχ]
+      ring
+    have hh := (hDi i).2.2
+    rw [he, integral_add (hAi i) (hBi i)] at hh
+    dsimp only [J] at ⊢
+    linarith [hh]
+  have heJ (x : E) : φ x * inner ℝ (gradient χ x) (G x) = ∑ i, J i x := by
+    rw [← b.sum_inner_mul_inner (gradient χ x) (G x), Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro i _
+    dsimp [J,dχ]
+    simp only [inner_gradient_left, real_inner_comm]
+    ring
+  have heA (x : E) : u x * inner ℝ (gradient χ x) (gradient φ x) = ∑ i, A i x := by
+    rw [← b.sum_inner_mul_inner (gradient χ x) (gradient φ x), Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro i _
+    dsimp [A,dχ,dφ]
+    simp only [inner_gradient_left, inner_gradient_right, conj_trivial]
+    ring
+  have heB (x : E) : u x * φ x * Laplacian.laplacian χ x = ∑ i, B i x := by
+    rw [laplacian_trace, Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro i _
+    dsimp [B,ddχ,b]; ring
+  simp_rw [heJ,heA,heB]
+  refine ⟨integrable_finsetSum _ (fun i _ => hJi i),
+    integrable_finsetSum _ (fun i _ => hAi i),
+    integrable_finsetSum _ (fun i _ => hBi i), ?_⟩
+  rw [integral_finsetSum _ (fun i _ => hJi i), integral_finsetSum _ (fun i _ => hAi i),
+    integral_finsetSum _ (fun i _ => hBi i)]
+  calc
+    _ = ∑ i, (-(∫ x, A i x) - ∫ x, B i x) := Finset.sum_congr rfl (fun i _ => hEq i)
+    _ = _ := by simp only [Finset.sum_sub_distrib, Finset.sum_neg_distrib]
+
+
+private theorem cutoff_weak_pde (u r : E → ℝ) (G : E → E)
+    (hu : LocallyIntegrable u) (hr : LocallyIntegrable r)
+    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (G x) a) ∧
+      Integrable (fun x => u x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, u x * fderiv ℝ ψ x a)
+    (hp : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => u x * Laplacian.laplacian φ x) ∧
+      Integrable (fun x => r x * φ x) ∧
+      (∫ x, u x * Laplacian.laplacian φ x) = ∫ x, r x * φ x)
+    (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ) (hc : HasCompactSupport χ)
+    (hφ : ContDiff ℝ 2 φ) (hφc : HasCompactSupport φ) :
+    Integrable (fun x => (χ x * u x) * Laplacian.laplacian φ x) ∧
+    Integrable (fun x => (χ x * r x + 2 * inner ℝ (gradient χ x) (G x) +
+      u x * Laplacian.laplacian χ x) * φ x) ∧
+    (∫ x, (χ x * u x) * Laplacian.laplacian φ x) =
+      ∫ x, (χ x * r x + 2 * inner ℝ (gradient χ x) (G x) +
+        u x * Laplacian.laplacian χ x) * φ x := by
+  borelize E
+  obtain ⟨hJ,hC,hB,hcross⟩ := cutoff_cross_identity u G hu hd χ φ hχ hc hφ hφc
+  let A := fun x => (χ x * u x) * Laplacian.laplacian φ x
+  let C := fun x => u x * inner ℝ (gradient χ x) (gradient φ x)
+  let B := fun x => u x * φ x * Laplacian.laplacian χ x
+  let J := fun x => φ x * inner ℝ (gradient χ x) (G x)
+  let R := fun x => χ x * r x * φ x
+  have hAi : Integrable A (volume : Measure E) := by
+    have hh := hu.integrable_smul_right_of_hasCompactSupport
+      (hχ.continuous.mul (laplacian_continuous φ hφ)) hc.mul_right
+    simpa only [A, Pi.mul_apply, smul_eq_mul, mul_assoc, mul_comm, mul_left_comm] using hh
+  have hRi : Integrable R (volume : Measure E) := by
+    have hh := hr.integrable_smul_right_of_hasCompactSupport
+      (hχ.continuous.mul hφ.continuous) hc.mul_right
+    simpa only [R, Pi.mul_apply, smul_eq_mul, mul_assoc, mul_comm, mul_left_comm] using hh
+  have hCi : Integrable C := hC
+  have hBi : Integrable B := hB
+  have hJi : Integrable J := hJ
+  have hpχ := (hp (fun x => χ x * φ x) (hχ.mul hφ) hc.mul_right).2.2
+  have hprod : (fun x => u x * Laplacian.laplacian (fun z => χ z * φ z) x) =
+      fun x => A x + 2 * C x + B x := by
+    funext x
+    rw [laplacian_product χ φ hχ hφ]
+    dsimp [A,C,B]; ring
+  have hright : (fun x => r x * (χ x * φ x)) = R := by
+    funext x; dsimp [R]; ring
+  have hAiC : Integrable (fun x => A x + 2 * C x) := hAi.add (hCi.const_mul 2)
+  rw [hprod, hright, integral_add hAiC hBi,
+    integral_add hAi (hCi.const_mul 2), integral_const_mul] at hpχ
+  have hfinal : (fun x => (χ x * r x + 2 * inner ℝ (gradient χ x) (G x) +
+      u x * Laplacian.laplacian χ x) * φ x) = fun x => R x + 2 * J x + B x := by
+    funext x; dsimp [R,J,B]; ring
+  rw [hfinal]
+  refine ⟨hAi,(hRi.add (hJi.const_mul 2)).add hBi,?_⟩
+  have hRiJ : Integrable (fun x => R x + 2 * J x) := hRi.add (hJi.const_mul 2)
+  rw [integral_add hRiJ hBi,
+    integral_add hRi (hJi.const_mul 2), integral_const_mul]
+  dsimp only [J,C,B] at ⊢
+  dsimp only [A,R,C,B] at hpχ
+  linarith [hcross]
+
+private theorem compact_smul_right_memLp (u : E → ℝ) (B : E → E)
+    (hB : Continuous B) (hc : HasCompactSupport B)
+    (hu : ∀ K : Set E, IsCompact K → MemLp u 2 (volume.restrict K)) :
+    MemLp (fun x => u x • B x) 2 volume := by
+  let K := tsupport B
+  have hK : IsCompact K := hc
+  have huK := hu K hK
+  obtain ⟨C,hC⟩ := hK.bddAbove_image hB.norm.continuousOn
+  have hp : MemLp (fun x => u x • B x) 2 (volume.restrict K) := by
+    apply huK.of_le_mul (c := C) (huK.aestronglyMeasurable.smul hB.aestronglyMeasurable.restrict)
+    filter_upwards [ae_restrict_mem hK.measurableSet] with x hx
+    change ‖u x • B x‖ ≤ C * ‖u x‖
+    rw [norm_smul, mul_comm]
+    exact mul_le_mul_of_nonneg_right (hC (Set.mem_image_of_mem _ hx)) (norm_nonneg _)
+  have hi := (memLp_indicator_iff_restrict hK.measurableSet).2 hp
+  have he : K.indicator (fun x => u x • B x) = fun x => u x • B x := by
+    funext x
+    by_cases hx : x ∈ K
+    · simp [hx]
+    · simp [hx, image_eq_zero_of_notMem_tsupport hx]
+  rwa [he] at hi
+
+
+private theorem cutoff_supports (u r : E → ℝ) (G : E → E) (χ : E → ℝ) :
+    tsupport (fun x => χ x * u x) ⊆ tsupport χ ∧
+    tsupport (fun x => χ x • G x + u x • gradient χ x) ⊆ tsupport χ ∧
+    tsupport (fun x => χ x * r x + 2 * inner ℝ (gradient χ x) (G x) +
+      u x * Laplacian.laplacian χ x) ⊆ tsupport χ := by
+  have hzero (x : E) (hx : x ∉ tsupport χ) :
+      χ x = 0 ∧ gradient χ x = 0 ∧ Laplacian.laplacian χ x = 0 := by
+    have hfd : x ∉ tsupport (fderiv ℝ χ) := fun h => hx (tsupport_fderiv_subset ℝ h)
+    refine ⟨image_eq_zero_of_notMem_tsupport hx, ?_, ?_⟩
+    · simp only [gradient, fderiv_of_notMem_tsupport ℝ hx, map_zero]
+    · rw [laplacian_trace, fderiv_of_notMem_tsupport ℝ hfd]; simp
+  refine ⟨closure_minimal ?_ (isClosed_tsupport _),
+    closure_minimal ?_ (isClosed_tsupport _), closure_minimal ?_ (isClosed_tsupport _)⟩ <;>
+    intro x hx <;> by_contra hn
+  · exact hx (by simp [(hzero x hn).1])
+  · exact hx (by simp [(hzero x hn).1,(hzero x hn).2.1])
+  · exact hx (by simp [(hzero x hn).1,(hzero x hn).2.1,(hzero x hn).2.2])
+
+private theorem localize_weak_poisson (u r : E → ℝ) (G : E → E)
+    (hu : LocallyIntegrable u)
+    (hl : ∀ K : Set E, IsCompact K →
+      MemLp u 2 (volume.restrict K) ∧ MemLp G 2 (volume.restrict K) ∧
+      MemLp r 2 (volume.restrict K))
+    (hd : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (G x) a) ∧
+      Integrable (fun x => u x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (G x) a) = -∫ x, u x * fderiv ℝ ψ x a)
+    (hp : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => u x * Laplacian.laplacian φ x) ∧
+      Integrable (fun x => r x * φ x) ∧
+      (∫ x, u x * Laplacian.laplacian φ x) = ∫ x, r x * φ x)
+    (χ : E → ℝ) (hχ : ContDiff ℝ 2 χ) (hc : HasCompactSupport χ) :
+    let v := fun x => χ x * u x
+    let Gχ := fun x => χ x • G x + u x • gradient χ x
+    let Fχ := fun x => χ x * r x + 2 * inner ℝ (gradient χ x) (G x) +
+      u x * Laplacian.laplacian χ x
+    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧
+    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧
+    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧
+      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧
+    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧
+      Integrable (fun x => Fχ x * φ x) ∧
+      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x := by
+  have hg : Continuous (gradient χ) :=
+    (toDual ℝ E).symm.continuous.comp ((hχ.of_le (by norm_num) : ContDiff ℝ 1 χ).continuous_fderiv one_ne_zero)
+  have hG := compact_smul_memLp G χ hχ.continuous hc (fun K hK => (hl K hK).2.1)
+  have hU := compact_smul_right_memLp u (gradient χ) hg (gradient_compact χ hc)
+    (fun K hK => (hl K hK).1)
+  have hr : LocallyIntegrable r := by
+    rw [locallyIntegrable_iff]
+    intro K hK
+    let : IsFiniteMeasure (volume.restrict K) := isFiniteMeasure_restrict.mpr hK.measure_lt_top.ne
+    exact ((hl K hK).2.2).integrable (by norm_num)
+  have hs := cutoff_supports u r G χ
+  have hm := cutoff_rhs_memLp u r G hl χ hχ hc
+  dsimp only
+  refine ⟨hm.1, ?_, hm.2, hs.1,hs.2.1,hs.2.2, ?_, ?_⟩
+  · convert hG.add hU using 1 <;> rfl
+  · intro ψ hψ hψc a
+    exact cutoff_weak_gradient u G hd χ ψ (hχ.of_le (by norm_num)) hc hψ hψc a
+  · intro φ hφ hφc
+    exact cutoff_weak_pde u r G hu hr hd hp χ φ hχ hc hφ hφc
+
+theorem localized_weak_resolvent (W : E → ℝ) (hW : ContDiff ℝ 1 W)
+    (hI : Integrable (fun x => Real.exp (-W x))) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔
+        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ) →
+      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+        (∀ v : D.closure.domain,
+          ε * ⟪(u : Lp ℝ 2 μ), (v : Lp ℝ 2 μ)⟫ +
+            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 μ)⟫) ∧
+        LocallyIntegrable (fun x => (u : Lp ℝ 2 μ) x) ∧
+        LocallyIntegrable (fun x => D.closure u x) ∧
+        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,
+          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧
+          Integrable (fun x => (u : Lp ℝ 2 μ) x * fderiv ℝ ψ x v) ∧
+          (∫ x, ψ x * inner ℝ (D.closure u x) v) =
+            - ∫ x, (u : Lp ℝ 2 μ) x * fderiv ℝ ψ x v) ∧
+        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 μ) x +
+          inner ℝ (gradient W x) (D.closure u x) - f x‖ ^ 2) ∧
+        (∀ K : Set E, IsCompact K →
+          MemLp (fun x => (u : Lp ℝ 2 μ) x) 2 (volume.restrict K) ∧
+          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧
+          MemLp (fun x => ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient W x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧
+        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+          Integrable (fun x => (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) ∧
+          Integrable (fun x => (ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient W x) (D.closure u x) - f x) * φ x) ∧
+          (∫ x, (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) =
+            ∫ x, (ε * (u : Lp ℝ 2 μ) x +
+              inner ℝ (gradient W x) (D.closure u x) - f x) * φ x) ∧
+        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →
+    let v := fun x => χ x * (u : Lp ℝ 2 μ) x
+    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 μ) x • gradient χ x
+    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 μ) x + inner ℝ (gradient W x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +
+      (u : Lp ℝ 2 μ) x * Laplacian.laplacian χ x
+    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧
+    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧
+    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧
+      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧
+    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧
+      Integrable (fun x => Fχ x * φ x) ∧
+      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x := by
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  dsimp only
+  intro D hD hgraph ε hε f
+  obtain ⟨u,hu,huL,hGL,hd,hr2,hl,hp⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent.weak_resolvent_laplacian W hW hI D hD hgraph ε hε f
+  refine ⟨u,hu,huL,hGL,hd,hr2,hl,hp,?_⟩
+  intro χ hχ hc
+  exact localize_weak_poisson (fun x => (u : Lp ℝ 2 μ) x)
+    (fun x => ε * (u : Lp ℝ 2 μ) x + inner ℝ (gradient W x) (D.closure u x) - f x)
+    (fun x => D.closure u x) huL hl hd hp χ hχ hc
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent

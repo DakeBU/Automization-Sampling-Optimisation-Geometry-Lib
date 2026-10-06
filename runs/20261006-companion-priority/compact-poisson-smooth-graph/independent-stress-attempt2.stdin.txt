@@ -1,0 +1,75 @@
+import Tests.CompactPoissonSmoothGraph
+import Mathlib.Analysis.InnerProductSpace.PiL2
+open MeasureTheory ProbabilityTheory InnerProductSpace TemperedDistribution
+open scoped NNReal ContDiff RealInnerProductSpace Topology SchwartzMap Laplacian
+set_option maxHeartbeats 1500000
+noncomputable section
+namespace IndependentCompactSmoothGraphStress
+def bump : ContDiffBump (0:ℝ) := {rIn:=1,rOut:=2,rIn_pos:=by norm_num,rIn_lt_rOut:=by norm_num}
+def chi (x:ℝ) := bump.normed (volume:Measure ℝ) x * (x^2)^(5/2:ℝ)
+def W : ℝ → ℝ → ℝ := fun y z =>
+  (3/8)*((1/2:ℝ)*(y+z))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+z))+‖z-y‖^2/(8*(1/2:ℝ))
+def Graph {E:Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (v F:E→ℝ) (G:E→E) : Prop :=
+  ∃ vL FL : Lp ℝ 2 (volume:Measure E), ∃ gradL:Lp E 2 (volume:Measure E),
+    vL =ᵐ[volume] v ∧ FL =ᵐ[volume] F ∧ gradL =ᵐ[volume] G ∧
+    ∃ K:Set E, IsCompact K ∧ ∃ φ:ℕ→SchwartzMap E ℝ,
+      (∀ n,tsupport (φ n) ⊆ K) ∧
+      Filter.Tendsto (fun n=>(φ n).toLp 2 volume) Filter.atTop (𝓝 vL) ∧
+      ∃ hφG:∀ n,MemLp (gradient (φ n:E→ℝ)) 2 volume,
+        Filter.Tendsto (fun n=>(hφG n).toLp (gradient (φ n:E→ℝ))) Filter.atTop (𝓝 gradL) ∧
+        Filter.Tendsto (fun n=>(Δ (φ n)).toLp 2 volume) Filter.atTop (𝓝 FL)
+
+theorem actual_nonquadratic_half_three_limits : ∃ S:Kernel ℝ ℝ, IsMarkovKernel S ∧
+    ∀ y, ∃ D:Lp ℝ 2 (S y) →ₗ.[ℝ] Lp ℝ 2 (S y), D.IsClosable ∧
+    ∀ ε:ℝ,0<ε → ∀ f:Lp ℝ 2 (S y), ∃ u:D.closure.domain,
+      Graph (fun x=>chi x*(u:Lp ℝ 2 (S y)) x)
+        (fun x=>chi x*(ε*(u:Lp ℝ 2 (S y)) x+
+          inner ℝ (gradient (W y) x) (D.closure u x)-f x)+
+          2*inner ℝ (gradient chi x) (D.closure u x)+(u:Lp ℝ 2 (S y)) x*Δ chi x)
+        (fun x=>chi x • D.closure u x+(u:Lp ℝ 2 (S y)) x • gradient chi x) := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    Tests.CompactPoissonSmoothGraph.actual_c2_cutoff_smooth_graph
+      (η:=1/2) (by norm_num) (by norm_num)
+  refine ⟨S,hS,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hsolve⟩ := hfiber y
+  refine ⟨D,hClose,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hr2,hlocal,hvm,hgm,hfm,hvs,hgs,hfs,hg,hp,
+    vL,FL,gL,hvL,hFL,hgL,K,hK,φ,hs,hv,hφG,hgrad,hF⟩ := hsolve ε hε f
+  exact ⟨u,vL,FL,gL,hvL,hFL,hgL,K,hK,φ,hs,hv,hφG,hgrad,hF⟩
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+theorem actual_zero_dim_constant7_three_limits :
+    let μ := (volume:Measure E0).tilted (fun _=>-(7:ℝ))
+    ∃ D:Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ, D.IsClosable ∧
+      ∀ ε:ℝ,0<ε → ∀ f:Lp ℝ 2 μ, ∃ u:D.closure.domain,
+        Graph (fun x=>(2:ℝ)*(u:Lp ℝ 2 μ) x)
+          (fun x=>(2:ℝ)*(ε*(u:Lp ℝ 2 μ) x-f x))
+          (fun _=> (0:E0)) := by
+  have hI:Integrable (fun _:E0=>Real.exp (-(7:ℝ))) := integrable_const _
+  obtain ⟨D,hDense,hD,hClosed,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      (fun _:E0=>(7:ℝ)) contDiff_const hI
+  refine ⟨D,hD,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hd,hr2,hl,hp,hcut⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent.localized_weak_resolvent
+      (fun _:E0=>(7:ℝ)) contDiff_const hI D hD hgraph ε hε f
+  have hc:HasCompactSupport (fun _:E0=>(2:ℝ)) :=
+    HasCompactSupport.of_support_subset_isCompact isCompact_univ (Set.subset_univ _)
+  obtain ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond⟩ := hcut (fun _=>(2:ℝ)) contDiff_const hc
+  obtain ⟨K,hK,φ,hs,hvφ,hφG,hgrad,hF⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation
+      _ _ _ (tsupport (fun _:E0=>(2:ℝ))) hc hvs hfs hgs hv hf hg hfirst hsecond
+  refine ⟨u,hv.toLp _,hf.toLp _,hg.toLp _,?_,?_,?_,K,hK,φ,hs,hvφ,hφG,hgrad,hF⟩
+  · simpa using hv.coeFn_toLp
+  · simpa using hf.coeFn_toLp
+  · filter_upwards [] with x
+    exact Subsingleton.elim _ _
+
+#print axioms actual_nonquadratic_half_three_limits
+#print axioms actual_zero_dim_constant7_three_limits
+end IndependentCompactSmoothGraphStress

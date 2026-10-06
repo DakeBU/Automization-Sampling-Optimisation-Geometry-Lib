@@ -1,5 +1,46 @@
 # Companion-paper formalization handoff
 
+## Actual centered original-domain Poincare and score variance 2026-10-06
+
+`ASTIS-SA-20261006-CenteredPoincare` proves genuine centered-domain Poincare
+on the SAME original compact-smooth weighted gradient closure for a normalized
+C2 Gibbs law with BOTH Hessian bounds mI<=HessW<=MI and0<m<=M. Actual
+residual/coercivity solutions are identified by SAME D/epsilon/forcing variational
+uniqueness, tested against centered z, and the true scaled residual limit passed;
+zero norm is split before cancellation. No input Poincare/coercivity/limit
+certificate, centered/unscaled resolvent or epsilon0 solution is supplied. This
+is a canonical BOTH-curvature node, not the full lower-only source D6.
+
+A genuine C1 scalar/gradientL2 adapter constructs original D before ALL f,
+centers by the actual mean, derives all three real Admissible integrability
+facts and original closed-graph pair, and identifies AE quotient norms with
+actual variance/Dirichlet integrals (no energy prefactor). The PBPS consumer
+constructs true common Gaussian/disintegrating/reflected J/R/S and original D_y
+before all centered z/score directions. Actual reflected m_y=(alpha+eta^-1)/4
+and M_y=(beta+eta^-1)/4 yield original-domain Poincare; true unnormalized
+PARAMETER-y directional score variance is bounded by
+(eta^-1-alpha)^2*norma^2/[4*(alpha+eta^-1)]. R/S are existential law witnesses.
+Pointwise formulas from auxiliary versions do not identify R2/R or operators.
+The C1 variance adapter constructs its own genuine graph on the same law;
+no equality of operator choices is asserted or needed for the integral inequality.
+
+Exact version1 signatures, independent source-only graph topology and statement
+audits precede production. Complete production/2private/Test/6+6+6 math reader,
+three sourceblind decodes with exact API definitions, final primary-first source
+reviews and fixed proof commit were independently checked; see
+`runs/20261006-companion-priority/centered-poincare/verified.json`. Actual
+nonquadratic eta1/2 gives m5/8 and variance9/40; actual0D constant7 probability
+and original-domain noncentered failure preserve the centering boundary.
+
+Shared integration, full aggregate/static-reader/graph acceptance, purification
+and independent Exposition Seal are pending in this integration checkpoint.
+Next mathematical edge is actual unreflected RGO linear-observable covariance
+upper using already compiled actual posterior positionL2 and the exact law
+normalization adapter, then actual SPHMC smoothed Hessian lower. Normalized
+conditional score differentiation/marginal Poincare/anisotropicBL, both complete
+algorithms/main results and actual-input expectedcost composition remain OPEN.
+TV never transfers unbounded cost; K/Khat/Kbar stay distinct.
+
 ## Upstream protocol synchronization 2026-10-06
 
 Upstream main `84f0a9fc` was merged without changing accepted mathematics at

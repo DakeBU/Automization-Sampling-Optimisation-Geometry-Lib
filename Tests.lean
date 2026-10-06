@@ -1,3 +1,4 @@
+import Tests.CenteredPoincare
 import Tests.Shared.UniformRegularization
 import Tests.WeightedLocalL2
 import Tests.SmoothedPicardHMCApproximateProximalExecution

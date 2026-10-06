@@ -1,0 +1,52 @@
+AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeightedPoissonCoercivity.lean:241:6: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  fun x => (⟪gradient W x, gradient f x⟫ - Laplacian.laplacian f x) ^ 2
+in the target expression
+  m * ((∫ (x : E), Real.exp (-W x))⁻¹ * ∫ (x : E), Real.exp (-W x) * ‖gradient f x‖ ^ 2) ≤
+    (∫ (x : E), Real.exp (-W x))⁻¹ *
+      ∫ (x : E), Real.exp (-W x) * ‖⟪gradient W x, gradient f x⟫ - Laplacian.laplacian f x‖ ^ 2
+
+E : Type u_1
+inst✝⁴ : MeasurableSpace E
+inst✝³ : NormedAddCommGroup E
+inst✝² : InnerProductSpace ℝ E
+inst✝¹ : FiniteDimensional ℝ E
+inst✝ : BorelSpace E
+W f : E → ℝ
+hW : ContDiff ℝ 2 W
+hI : Integrable (fun x => Real.exp (-W x)) volume
+hZ : 0 < ∫ (x : E), Real.exp (-W x)
+hf : ContDiff ℝ ∞ f
+hc : HasCompactSupport f
+m : ℝ
+hl : ∀ (x a : E), m * ‖a‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ W) x) a) a
+hG : MemLp (gradient f) 2 (volume.tilted fun x => -W x)
+hA : MemLp (fun x => ⟪gradient W x, gradient f x⟫ - Laplacian.laplacian f x) 2 (volume.tilted fun x => -W x)
+left✝⁴ :
+  Integrable (fun x => Real.exp (-W x) * (fun x => Laplacian.laplacian f x - ⟪gradient W x, gradient f x⟫) x ^ 2) volume
+left✝³ : Integrable (fun x => Real.exp (-W x) * ‖gradient f x‖ ^ 2) volume
+left✝² :
+  Integrable
+    (fun x =>
+      Real.exp (-W x) * (fun x => ∑ i, ‖gradient (fun z => (fderiv ℝ f z) ((stdOrthonormalBasis ℝ E) i)) x‖ ^ 2) x)
+    volume
+left✝¹ :
+  Integrable (fun x => Real.exp (-W x) * (fun x => ((fderiv ℝ (fderiv ℝ W) x) (gradient f x)) (gradient f x)) x) volume
+left✝ :
+  ∫ (x : E), Real.exp (-W x) * (fun x => Laplacian.laplacian f x - ⟪gradient W x, gradient f x⟫) x ^ 2 =
+    (∫ (x : E),
+        Real.exp (-W x) * (fun x => ∑ i, ‖gradient (fun z => (fderiv ℝ f z) ((stdOrthonormalBasis ℝ E) i)) x‖ ^ 2) x) +
+      ∫ (x : E), Real.exp (-W x) * (fun x => ((fderiv ℝ (fderiv ℝ W) x) (gradient f x)) (gradient f x)) x
+hb :
+  ∀ (m : ℝ),
+    (∀ (x v : E), m * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ W) x) v) v) →
+      m * ∫ (x : E), Real.exp (-W x) * ‖gradient f x‖ ^ 2 ≤
+        ∫ (x : E), Real.exp (-W x) * (fun x => Laplacian.laplacian f x - ⟪gradient W x, gradient f x⟫) x ^ 2
+htilt :
+  ∀ (g : E → ℝ),
+    (∫ (x : E), g x ∂volume.tilted fun x => -W x) = (∫ (x : E), Real.exp (-W x))⁻¹ * ∫ (x : E), Real.exp (-W x) * g x
+he :
+  (fun x => (⟪gradient W x, gradient f x⟫ - Laplacian.laplacian f x) ^ 2) = fun x =>
+    (Laplacian.laplacian f x - ⟪gradient W x, gradient f x⟫) ^ 2
+⊢ m * ((∫ (x : E), Real.exp (-W x))⁻¹ * ∫ (x : E), Real.exp (-W x) * ‖gradient f x‖ ^ 2) ≤
+    (∫ (x : E), Real.exp (-W x))⁻¹ *
+      ∫ (x : E), Real.exp (-W x) * ‖⟪gradient W x, gradient f x⟫ - Laplacian.laplacian f x‖ ^ 2

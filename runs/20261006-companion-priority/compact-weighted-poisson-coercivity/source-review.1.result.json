@@ -1,0 +1,653 @@
+{
+  "schema_version": 1,
+  "task": "independent anti-anchored source-fidelity review",
+  "reviewer": "phase_source_reviewer_20261005",
+  "created_at_utc": "2026-10-06T05:15:05.790352+00:00",
+  "formalizer": "root-samplinglib-writer",
+  "blind_decoder": "anonymous_decoder_20261006",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "fa22cefafa035583f6370d2df434a2d08cfcd482a47ab05c775d2150b0b40acc",
+  "packet_id": "ASTIS-REVIEW-9eeab2199b9e4258",
+  "source_id": "companion:pbps-conditional-compact-coercivity",
+  "source_text_sha256": "4d2f9e4b636b9b2802fa4ea0a993a58f7eb6f0fcf3cf2a6a7f89cbcd9cbaed61",
+  "lean_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactCoercivity.conditional_compact_coercivity",
+  "lean_statement_sha256": "fd78f4428d832249132b914ba210909bc109d90be1a5b599aa07dc12729bf9b8",
+  "reconstruction_text_sha256": "38cc7fa84e4b650c745065f35d3c16537b8e65f944fe6651a47ff6a2b6ece903",
+  "decoder_packet_sha256": "3a8e8a2f96a7ab2af3e583e3db2eb594152a3623b4c0795ae9a4982608920a46",
+  "decoder_run_sha256": "beb86175e321cac1117fdb54b156265f50127eea782a78288c9a5ec2bb00e9e6",
+  "publication_binding_sha256": "7b845cf4f37039b5ac9e87cf3751a61b9f3d8e57afb0351549079e8366343663",
+  "publication_context": {
+    "file": "6416e252b575d0fcd272715d776b78c68961032a834fe5b8669286bcf11904d9",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent\n\nset_option autoImplicit false\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen TemperedDistribution\nopen scoped SchwartzMap ContDiff NNReal RealInnerProductSpace Topology\nnoncomputable section\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactCoercivity\n\ntheorem conditional_compact_coercivity {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 2 ψ → HasCompactSupport ψ →\n      Integrable (fun x => v x * Laplacian.laplacian ψ x) ∧\n      Integrable (fun x => Fχ x * ψ x) ∧\n      (∫ x, v x * Laplacian.laplacian ψ x) = ∫ x, Fχ x * ψ x) ∧\n    let Aχ := fun x => inner ℝ (gradient (W y) x) (Gχ x)-Fχ x\n    MemLp v 2 (S y) ∧ MemLp Gχ 2 (S y) ∧ MemLp Aχ 2 (S y) ∧\n    ∃ vW AW : Lp ℝ 2 (S y), ∃ GW : Lp E 2 (S y),\n      vW =ᵐ[S y] v ∧ AW =ᵐ[S y] Aχ ∧ GW =ᵐ[S y] Gχ ∧\n      (vW,GW) ∈ D.closure.graph ∧ (((α:ℝ)+1/η)/4) * ‖GW‖^2 ≤ ‖AW‖^2 := by\n  obtain ⟨_R2,_S2,_hR2,_hS2,_hcond2,_hSR2,hcurv⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain\n      hα hαβ hV hH hη hβη\n  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent hα hαβ hV hH hη hβη\n  dsimp only\n  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩\n  intro y\n  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hsolve⟩ := hfiber y\n  obtain ⟨_,_,_,_,hlower,_,_⟩ := hcurv y\n  refine ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,?_⟩\n  intro ε hε f\n  obtain ⟨u,hu,huL,hgradL,hd,hr2,hl,hp,hcut⟩ := hsolve ε hε f\n  refine ⟨u,hu,huL,hgradL,hd,hr2,hl,hp,?_⟩\n  intro χ hχ hc\n  obtain ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond⟩ := hcut χ hχ hc\n  refine ⟨hv,hg,hf,hvs,hgs,hfs,hfirst,hsecond,?_⟩\n  exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity.compact_weak_poisson_weighted_coercivity\n    (fun z => V ((1/2:ℝ) • (y+z)) + ‖z-y‖^2/(8*η)) hW hI hZ\n    (((α:ℝ)+1/η)/4) hlower (S y) hSy D hClose hgraph\n    (fun x => χ x * (u : Lp ℝ 2 (S y)) x)\n    (fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x +\n      inner ℝ (gradient (fun z => V ((1/2:ℝ) • (y+z)) + ‖z-y‖^2/(8*η)) x)\n        (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x)\n    (fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x)\n    (tsupport χ) hc hvs hfs hgs hv hf hg hfirst hsecond\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactCoercivity\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv2609.06905v1 Section2.2 reflected conditional law and AppendixC.1 omitted analytic gradient-domain/coercivity prerequisite; SPHMC arXiv2609.06906v1 Section4.1 BL covariance-upper prerequisite. Authored compact weighted scalar coercivity and same original gradient-domain membership, not a numbered theorem/global core/Poincare/BL.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib authored compact weighted analytic prerequisite for Chen, Chewi, Lu and Zhang PBPS AppendixC.1/SPHMC4.1 covariance-upper route; not a quoted numbered theorem or full Poincare/BL/main result."
+    },
+    "statement": "Construct genuine common R/S; for every y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain actual R/S/reflection/positive partitions, the same original D graph/density/closability/closed closure, ONE u and all-domain variational identity, original local u/G/r square integrability, every original C1 weak-gradient test/C2 weak PDE, and every cutoff volumeL2/support/weak identity. For each cutoff produce actual weighted classes vW,AW,GW linked to v=chi*u, Gchi and Achi=inner(gradientW,Gchi)-Fchi, original (vW,GW) in D_y.closure.graph and ((alpha+eta^-1)/4)*norm(GW)^2<=norm(AW)^2.",
+    "formulae": [
+      {
+        "label": "Actual PBPS reflected resolvent: compact weighted coercivity",
+        "tex": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2:\\quad(v_W,G_W)\\in\\operatorname{graph}\\overline D_y,\\quad\\frac{\\alpha+\\eta^{-1}}4\\|G_W\\|_{L^2(S_y)}^2\\le\\|A_W\\|_{L^2(S_y)}^2."
+      }
+    ],
+    "assumptions": [
+      "Same finite-dimensional real Hilbert/Borel structure including dimension zero. Source V is C2; alpha,beta are NNReal with 0<alpha<=beta, actual all-point/all-vector alpha I<=Hess V<=beta I, eta>0 and beta*eta<=1.",
+      "Actual augmentation J=(x,x+sqrt(eta)*xi)#(mu*standardGaussian), common probability/disintegrating R/S, S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), C2 W_y and positive integrable partition are genuine parent conclusions. The accepted curvature parent yields HessW_y >= ((alpha+eta^-1)/4)I for this same explicit W, without equating its auxiliary kernels with the resolvent kernels.",
+      "Original dense closable exact compact-smooth gradient D_y and closed closure are fixed before epsilon/f. For every epsilon>0 and f in actual L2(S_y), ONE actual u precedes ALL real C2 compact cutoffs chi. Parent all-domain variational identity, original ordinary weak/local facts and actual localized v=chi*u, Gchi=chi*D.closure(u)+u*gradientchi, Fchi=chi*r+2inner(gradientchi,D.closure(u))+u*Deltachi, r=epsilon*u+inner(gradientW,D.closure(u))-f, are retained."
+    ],
+    "obligations": [
+      {
+        "id": "compact-weighted-coercivity",
+        "label": "Actual compact weighted classes, original gradient closure and scalar inequality"
+      },
+      {
+        "id": "global-poincare",
+        "label": "Global cutoff/tails, epsilon-zero/kernel/range/Poincare/BL (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both full main results and actual-input expected-cost composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactCoercivity.conditional_compact_coercivity",
+      "title": "Actual PBPS reflected resolvent: compact weighted coercivity",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS AppendixC.1 authored analytic prerequisite",
+          "scope": "Derive genuine compact weighted L2/AE classes vW/GW/AW for actual v/G/(innergradWG-F), same original D.closure graph membership and lambda*normGW^2<=normAW^2 via actual same ordinary-to-weighted smooth sequence. Source fixes originalD before epsilon/f and ONEu before ALLC2chi. No supplied weighted domain/core/convergence/coercivity certificate; no rough classical Hessian or full adjoint/generator-core identity, globalcutoff/tail/Bochner,epsilon0/kernel/range/noncompactlinear/Poincare/BL/jointmeasurablechoice/main/composition. Reflected quarter/fourfold constants exact. TV never transfers unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.CompactWeightedPoissonCoercivity"
+      ],
+      "assumptions": [
+        "Same finite-dimensional real Hilbert/Borel structure including dimension zero. Source V is C2; alpha,beta are NNReal with 0<alpha<=beta, actual all-point/all-vector alpha I<=Hess V<=beta I, eta>0 and beta*eta<=1.",
+        "Actual augmentation J=(x,x+sqrt(eta)*xi)#(mu*standardGaussian), common probability/disintegrating R/S, S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), C2 W_y and positive integrable partition are genuine parent conclusions. The accepted curvature parent yields HessW_y >= ((alpha+eta^-1)/4)I for this same explicit W, without equating its auxiliary kernels with the resolvent kernels.",
+        "Original dense closable exact compact-smooth gradient D_y and closed closure are fixed before epsilon/f. For every epsilon>0 and f in actual L2(S_y), ONE actual u precedes ALL real C2 compact cutoffs chi. Parent all-domain variational identity, original ordinary weak/local facts and actual localized v=chi*u, Gchi=chi*D.closure(u)+u*gradientchi, Fchi=chi*r+2inner(gradientchi,D.closure(u))+u*Deltachi, r=epsilon*u+inner(gradientW,D.closure(u))-f, are retained."
+      ],
+      "statement": "Construct genuine common R/S; for every y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain actual R/S/reflection/positive partitions, the same original D graph/density/closability/closed closure, ONE u and all-domain variational identity, original local u/G/r square integrability, every original C1 weak-gradient test/C2 weak PDE, and every cutoff volumeL2/support/weak identity. For each cutoff produce actual weighted classes vW,AW,GW linked to v=chi*u, Gchi and Achi=inner(gradientW,Gchi)-Fchi, original (vW,GW) in D_y.closure.graph and ((alpha+eta^-1)/4)*norm(GW)^2<=norm(AW)^2.",
+      "formula": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u\\ \\forall\\chi\\in C_c^2:\\quad(v_W,G_W)\\in\\operatorname{graph}\\overline D_y,\\quad\\frac{\\alpha+\\eta^{-1}}4\\|G_W\\|_{L^2(S_y)}^2\\le\\|A_W\\|_{L^2(S_y)}^2.",
+      "steps": [
+        {
+          "title": "Keep genuine source kernels, reflected potential and original resolvent",
+          "text": "Consume ConditionalLocalizedResolvent with exact source curvature/eta inputs. Retain its same J/R/S and true reflected density, positive partitions, original D before epsilon/f and ONE u before ALL C2 compact cutoffs. All original local/weak/volumeL2 identities remain visible.",
+          "formula": "W_y(z)=V((y+z)/2)+\\|z-y\\|^2/(8\\eta),\\quad S_y=Z_y^{-1}e^{-W_y}dz.",
+          "lean": "ConditionalLocalizedResolvent.conditional_localized_resolvent"
+        },
+        {
+          "title": "Reuse the exact quarter-scale Hessian lower bound",
+          "text": "The accepted ConditionalScoreDomain producer proves the lower Hessian bound for this explicit W_y. Extract only that pointwise fact; do not identify its auxiliary kernels with the resolvent kernels. Reflected and RGO operators/laws remain distinct.",
+          "formula": "\\nabla^2 W_y\\succeq\\frac{\\alpha+\\eta^{-1}}4 I.",
+          "lean": "ConditionalScoreDomain.conditional_curvature_and_score_domain; hlower"
+        },
+        {
+          "title": "Apply the shared producer to the same localized weak data",
+          "text": "For each C2 cutoff extract actual volumeL2/support and every weak equation for v/Gchi/Fchi from the SAME u. Pass the true equality S_y=tilted(-W_y), original closable D/exact graph and actual lower curvature to the shared producer. It derives the actual weighted classes and same-D graph membership; the desired weighted conclusion is never a premise.",
+          "formula": "v=\\chi u,\\quad G_\\chi=\\chi G+u\\nabla\\chi,\\quad A_\\chi=\\langle\\nabla W_y,G_\\chi\\rangle-F_\\chi.",
+          "lean": "CompactWeightedPoissonCoercivity.compact_weak_poisson_weighted_coercivity"
+        },
+        {
+          "title": "Exercise a true nonquadratic source potential and C2 cutoff",
+          "text": "The focused Test uses V=3x^2/8+sin(x)/8 with curvature[1/2,1], eta in(0,1], actual R/S/D/u and cutoff rho(x)*(x^2)^(5/2), certified C2 and not required to be smooth of all orders. It extracts true weighted MemLp/AE, original graph membership and the exact quarter-constant inequality.",
+          "formula": "\\frac{1/2+\\eta^{-1}}4\\|G_W\\|_{L^2(S_y)}^2\\le\\|A_W\\|_{L^2(S_y)}^2.",
+          "lean": "Tests.CompactWeightedPoissonCoercivity.actual_c2_cutoff_weighted_coercivity"
+        },
+        {
+          "title": "Keep the scalar endpoint separate from larger paper obligations",
+          "text": "No jointly measurable fiber choice, cutoff removal, rough Hessian/global Bochner, adjoint/core identity, epsilon-zero/kernel/range/Poincare/BL or either main/composition follows from this packet. TV proximity still cannot transfer an unbounded expected cost.",
+          "formula": "\\text{compact scalar coercivity only; global/Poincare/BL/main/composition open}.",
+          "lean": "conditional_compact_coercivity"
+        }
+      ],
+      "lean_statement": "Construct genuine common R/S; for every y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain actual R/S/reflection/positive partitions, the same original D graph/density/closability/closed closure, ONE u and all-domain variational identity, original local u/G/r square integrability, every original C1 weak-gradient test/C2 weak PDE, and every cutoff volumeL2/support/weak identity. For each cutoff produce actual weighted classes vW,AW,GW linked to v=chi*u, Gchi and Achi=inner(gradientW,Gchi)-Fchi, original (vW,GW) in D_y.closure.graph and ((alpha+eta^-1)/4)*norm(GW)^2<=norm(AW)^2.",
+      "lean_proof": "Keep genuine source kernels, reflected potential and original resolvent; Reuse the exact quarter-scale Hessian lower bound; Apply the shared producer to the same localized weak data; Exercise a true nonquadratic source potential and C2 cutoff; Keep the scalar endpoint separate from larger paper obligations",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity.compact_weak_poisson_weighted_coercivity"
+      ],
+      "mathlib_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactCoercivity.conditional_compact_coercivity",
+      "role": "prerequisite",
+      "supports": [
+        "compact-weighted-coercivity"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source C2 curvature-bounded reflected conditional route.",
+        "lean": "Same finite-dimensional real Hilbert/Borel structure including dimension zero. Source V is C2; alpha,beta are NNReal with 0<alpha<=beta, actual all-point/all-vector alpha I<=Hess V<=beta I, eta>0 and beta*eta<=1.\nActual augmentation J=(x,x+sqrt(eta)*xi)#(mu*standardGaussian), common probability/disintegrating R/S, S_y=(2x-y)#R_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), C2 W_y and positive integrable partition are genuine parent conclusions. The accepted curvature parent yields HessW_y >= ((alpha+eta^-1)/4)I for this same explicit W, without equating its auxiliary kernels with the resolvent kernels.\nOriginal dense closable exact compact-smooth gradient D_y and closed closure are fixed before epsilon/f. For every epsilon>0 and f in actual L2(S_y), ONE actual u precedes ALL real C2 compact cutoffs chi. Parent all-domain variational identity, original ordinary weak/local facts and actual localized v=chi*u, Gchi=chi*D.closure(u)+u*gradientchi, Fchi=chi*r+2inner(gradientchi,D.closure(u))+u*Deltachi, r=epsilon*u+inner(gradientW,D.closure(u))-f, are retained."
+      },
+      {
+        "source": "Analytic density/closedness detail omitted in AppendixC.1.",
+        "lean": "Construct genuine common R/S; for every y fix original D_y before epsilon/f, choose ONE u before ALL C2 compact chi. Retain actual R/S/reflection/positive partitions, the same original D graph/density/closability/closed closure, ONE u and all-domain variational identity, original local u/G/r square integrability, every original C1 weak-gradient test/C2 weak PDE, and every cutoff volumeL2/support/weak identity. For each cutoff produce actual weighted classes vW,AW,GW linked to v=chi*u, Gchi and Achi=inner(gradientW,Gchi)-Fchi, original (vW,GW) in D_y.closure.graph and ((alpha+eta^-1)/4)*norm(GW)^2<=norm(AW)^2."
+      },
+      {
+        "source": "Conditional Poincare and SPHMC4.1 BL covariance-upper/main guarantees.",
+        "lean": "Derive genuine compact weighted L2/AE classes vW/GW/AW for actual v/G/(innergradWG-F), same original D.closure graph membership and lambda*normGW^2<=normAW^2 via actual same ordinary-to-weighted smooth sequence. Source fixes originalD before epsilon/f and ONEu before ALLC2chi. No supplied weighted domain/core/convergence/coercivity certificate; no rough classical Hessian or full adjoint/generator-core identity, globalcutoff/tail/Bochner,epsilon0/kernel/range/noncompactlinear/Poincare/BL/jointmeasurablechoice/main/composition. Reflected quarter/fourfold constants exact. TV never transfers unbounded cost."
+      }
+    ]
+  },
+  "review_context_sha256": "25e97b3ca44bbbca8b188e20d6d4c925269e7cffc1fd9b2209e89da0b314bc0c",
+  "whole_module_file_sha256": "6416e252b575d0fcd272715d776b78c68961032a834fe5b8669286bcf11904d9",
+  "whole_module_raw_sha256": "aa94f3f288b03141855bac624175125bd452d13100694001ad726777c79f9027",
+  "whole_module_lf_sha256": "6416e252b575d0fcd272715d776b78c68961032a834fe5b8669286bcf11904d9",
+  "whole_module_covered": true,
+  "whole_modules": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeightedPoissonCoercivity.lean",
+      "line_count": 336,
+      "private_declarations": [
+        {
+          "name": "memLp_compact_domination",
+          "line": 15
+        },
+        {
+          "name": "norm_compact_domination",
+          "line": 31
+        },
+        {
+          "name": "compact_convergence",
+          "line": 44
+        },
+        {
+          "name": "compact_weight_bound",
+          "line": 81
+        },
+        {
+          "name": "compact_drift_bound",
+          "line": 101
+        },
+        {
+          "name": "drift_memLp",
+          "line": 111
+        },
+        {
+          "name": "drift_norm_bound",
+          "line": 128
+        },
+        {
+          "name": "drift_convergence",
+          "line": 148
+        },
+        {
+          "name": "gradient_support",
+          "line": 187
+        },
+        {
+          "name": "laplacian_support",
+          "line": 194
+        },
+        {
+          "name": "norm_sq_integral",
+          "line": 208
+        },
+        {
+          "name": "compact_normalized_bochner",
+          "line": 216
+        }
+      ],
+      "whole_module_covered": true,
+      "raw_sha256": "3cc2a9563c75e2d43fa32126f2884bae6745c463fb22dec5e327ecdb9a50f005",
+      "lf_sha256": "9a603e57b54ac5641de3eef0ee4af57d5520a3914bbfe10e2ab499d913c694f6"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalCompactCoercivity.lean",
+      "line_count": 107,
+      "private_declarations": [],
+      "whole_module_covered": true,
+      "raw_sha256": "aa94f3f288b03141855bac624175125bd452d13100694001ad726777c79f9027",
+      "lf_sha256": "6416e252b575d0fcd272715d776b78c68961032a834fe5b8669286bcf11904d9"
+    },
+    {
+      "path": "Tests/CompactWeightedPoissonCoercivity.lean",
+      "line_count": 128,
+      "private_declarations": [
+        {
+          "name": "potential",
+          "line": 13
+        },
+        {
+          "name": "potential_curvature",
+          "line": 14
+        }
+      ],
+      "whole_module_covered": true,
+      "raw_sha256": "ad55e27fe823f72cbd6952c29d842d53a72964ca7bb18f7c959ce120bd08b431",
+      "lf_sha256": "0568c337c76f39c327c12a9a632f856c5b0a9591795f0327135077d7a82b4d2b"
+    }
+  ],
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual Gibbs V law, Gaussian augmentation J, common disintegrating R and reflected S, explicit W_y, original gradient D_y and same resolvent u; localized v/Gchi/Fchi and Achi.",
+      "reconstructed": "Same J from independent standard Gaussian, R/S/reflection/law and actual formula-defined W_y/u/G/r/v/Gchi/Fchi/Achi; actual AE-linked output classes.",
+      "relation": "equivalent",
+      "evidence": "Full107-line consumer, full128-line nonquadratic Test and actual parent interfaces/proofs checked. Curvature helper auxiliary R2/S2 are used only for pointwise lower Hessian of identical explicit W_y, never equated with original R/S."
+    },
+    "domains": {
+      "original": "Source finite Euclidean normalized actual reflected conditional law; authored finite real Hilbert/Borel incl0; original weighted scalar/vector L2 domain and ordinary-volume local/global localized data.",
+      "reconstructed": "Same zero-dimensional admissible finite Hilbert domain, actual S_y quotient classes and volume weak/local integrals, support under tsupport chi.",
+      "relation": "explicit-elaboration",
+      "evidence": "The prior true conditional/domain interface and all original conclusions are retained. AE class identities are under S_y; no pointwise identity/support assertion about arbitrary quotient representatives, no law identification with SPHMC unreflected RGO."
+    },
+    "quantifiers": {
+      "original": "One common R/S; forall y exists original D before epsilon/f; forall epsilon>0,f exists ONE u before ALL real C2 compact chi; returned weighted classes afterward.",
+      "reconstructed": "Exactly same order; all original variational tests, C1 directional tests/C2 PDE tests, all compact local restrictions and all cutoffs retained; no joint measurable solution/class selection.",
+      "relation": "equivalent",
+      "evidence": "Expanded full conjunction checked against source restatement, fresh reconstruction and consumer destructuring. Curvature parent is called separately without changing existing existential R/S,D,u; no cutoff-dependent rechoice of u."
+    },
+    "assumptions": {
+      "original": "C2 V, NNReal0<alpha<=beta, true two-sided Hessian bounds, eta>0 with beta eta<=1; actual normalized augmentation/reflected law, partition and original D produced by genuine parents.",
+      "reconstructed": "Identical alpha/beta/C2/Hessian/eta assumptions, no supplied solution/domain/weighted membership/coercivity certificate.",
+      "relation": "equivalent",
+      "evidence": "Exact W_y lower Hessian follows from same explicit source potential; hSy is the actual tilt-law premise to shared consumer. Cutoffs C2 compact have no range/positivity/plateau assumption. Original ordinary L1/localL2/weak facts retained."
+    },
+    "conclusion": {
+      "original": "All genuine J/R/S/W_y/D/u/resolvent/local/weak/localized conclusions; for every chi weighted MemLp2 v,Gchi,Achi; actual classes with three S_y AE links, original D.closure.graph and quarter-coercivity.",
+      "reconstructed": "Every conjunct retained, and actual scalar Achi=inner(gradientW_y,Gchi)-Fchi has genuine weighted L2 class, exact original graph and ((alpha+eta^-1)/4)||GW||^2<=||AW||^2.",
+      "relation": "equivalent",
+      "evidence": "Generic theorem applied to actual tsupport chi and actual same localized data, not an assumed approximation or domain result. Consumer5 reader steps and nonquadratic Test preserve precise formulas and integrability."
+    },
+    "scopes": {
+      "original": "Authored fiberwise compact prerequisite toward PBPS conditional Poincare and SPHMC BL analysis; not either complete paper guarantee or numbered source theorem.",
+      "reconstructed": "Fiberwise cutoff-wise domain and scalar coercivity only, no global cutoff/epsilon-zero/kernel/range/core/full-adjoint/rough-Hessian/Poincare/BL/joint-selector/main/composition.",
+      "relation": "explicit-elaboration",
+      "evidence": "Fresh primary-first contract independently reconstructed source role and omitted detail; reader/source metadata maintain it. Actual all-fiber law uses a chosen genuine version; no assertion about every possible conditional version."
+    },
+    "constant_dependencies": {
+      "original": "W_y(z)=V((y+z)/2)+||z-y||^2/(8eta); Hessian lower (alpha+eta^-1)/4; reflection2x-y has Jacobian2^-d and quarter Dirichlet scale; Fchi product coefficient2.",
+      "reconstructed": "Exact W_y and all quarter/reciprocal/coefficient2/sign constants; final quotient norms under S_y.",
+      "relation": "equivalent",
+      "evidence": "RGO W_y^R=V(x)+||x-y||^2/(2eta) has different Hessian scale. Only explicit reflected potential curvature is consumed; normalized Z is divided once by shared proof. No TV/unbounded-cost implication, noise/runtime/contraction claim."
+    }
+  },
+  "deltas": [],
+  "repairs": [],
+  "blocking": false,
+  "blocking_deltas": false,
+  "verdict": "equivalent-after-elaboration",
+  "equivalence_boundary": "Equivalent to the explicit authored scoped compact analytic prerequisite and actual source-model hypotheses, not equivalence to any complete numbered PBPS/SPHMC theorem. Finite real Hilbert/zero dimension and generic signed m are explicit disclosed generalizations.",
+  "review_evidence": "Fresh PBPSv1 Section2.2 HTML168-212 and AppendixC.1 HTML1197-1234, SPHMCv1 Section4.1 HTML403-430 were independently read FIRST and source contract frozen at2026-10-06T05:03:10Z. Shared336-line module/all12 private helpers, consumer107-line module, Test128/all2 private proofs, all7+5 reader steps and current publication/assumption ledger were independently read before fresh reconstruction. Matching complete proof freeze reused explicitly; final live raw bytes and exact selected publication/context binding independently recomputed. Each of seven slots independently compared to fresh reconstruction; scoped authored compact prerequisite accepted only. Four admin lifecycle inputs independently structurally reconciled; all17 other prior inputs raw-byte-identical. No current math-review/verifier/old verdict or ignored prototype read as fidelity evidence; no compiler run. Earlier own prereads/parent proofs and covariance keyword/signature exposure disclosed; not a claim of complete candidate blindness.",
+  "primary_source_read_evidence": [
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#S2.SS2",
+      "edition": "arXiv:2609.06905v1",
+      "html_lines": [
+        168,
+        212
+      ]
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "html_lines": [
+        1197,
+        1234
+      ]
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS1",
+      "edition": "arXiv:2609.06906v1",
+      "html_lines": [
+        403,
+        430
+      ]
+    }
+  ],
+  "source_primary_contract": {
+    "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview.primary-contract.json",
+    "prereview_run_sha256": "b3591df65699efb6583f621591c5671c2dfb8f0385a57a63c1ef46c213fefc98"
+  },
+  "whole_proof_checks": {
+    "shared_all12_private_helpers": true,
+    "shared_public_lines": [
+      248,
+      332
+    ],
+    "same_sequence_derived_not_assumed": true,
+    "compact_measure_domination_derived_from_tilt": true,
+    "density_drift_bounded_only_on_K_union_Kprime": true,
+    "actual_weighted_memlp_AE_quotient_difference_transfers": true,
+    "original_closed_graph_from_actual_pair_convergence": true,
+    "bochner_signed_m_drop_nonnegative_before_norm_limit": true,
+    "normalize_positive_Z_once": true,
+    "zero_dimension_no_nontrivial_premise": true,
+    "auxiliary_curvature_parent_public_and_exact_pointwise_derivation_checked": true,
+    "consumer_no_kernel_identity_inference": true,
+    "test_all128_lines_read": true,
+    "test_nonquadratic_V": "3x^2/8+sin(x)/8, true Hessian in[5/8,7/8], advertised source bounds[1/2,1]",
+    "test_actual_C2_compact_cutoff": "normalized bump times (x^2)^(5/2)=bump*abs(x)^5; actual C2 proof, no C-infinity input",
+    "test_no_runtime_execution_or_compilation_claim": true
+  },
+  "reader_publication_checks": [
+    {
+      "slug": "compact-weighted-poisson-coercivity",
+      "steps_fully_read": 7,
+      "selected_declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity.compact_weak_poisson_weighted_coercivity",
+      "singleton_publication_binding": true,
+      "statement_assumptions_formula_agree": true,
+      "actual_double_backslash_in_formula": false,
+      "authored_prerequisite_not_numbered_source_completion": true,
+      "listed_astis_dependencies_actually_called": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactPoissonSmoothGraph.compact_weak_poisson_smooth_graph_approximation",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedBochner.integrated_bochner_identity"
+      ],
+      "listed_mathlib_dependencies_checked_against_code": [
+        "MemLp.of_measure_le_smul",
+        "eLpNorm_le_of_measure_le_smul",
+        "eLpNorm_restrict_eq_of_support_subset",
+        "memLp_indicator_iff_restrict",
+        "IsCompact.bddAbove_image",
+        "restrict_withDensity",
+        "withDensity_mono",
+        "MemLp.of_le_mul",
+        "eLpNorm_le_mul_eLpNorm_of_ae_le_mul",
+        "LinearPMap.IsClosable.graph_closure_eq_closure_graph",
+        "integral_tilted",
+        "le_of_tendsto_of_tendsto"
+      ]
+    },
+    {
+      "slug": "pbps-conditional-compact-coercivity",
+      "steps_fully_read": 5,
+      "selected_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalCompactCoercivity.conditional_compact_coercivity",
+      "singleton_publication_binding": true,
+      "statement_assumptions_formula_agree": true,
+      "actual_double_backslash_in_formula": false,
+      "authored_prerequisite_not_numbered_source_completion": true,
+      "listed_astis_dependencies_actually_called": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity.compact_weak_poisson_weighted_coercivity"
+      ],
+      "listed_mathlib_dependencies_checked_against_code": []
+    }
+  ],
+  "independence_and_exposure": {
+    "formalizer": "root-samplinglib-writer",
+    "decoder": "anonymous_decoder_20261006",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "blind_reconstruction_read": true,
+    "math_review_verdict_read": false,
+    "verifier_verdict_read": false,
+    "ignored_prototype_read": false,
+    "prior_exposure": "Earlier own bounded compact/global-cutoff source/API prereads and exact matching accepted graph/Bochner/localized-parent proof/interface reviews; earlier covariance signatures/keywords/matching lines; raw route proposal as proposal only. Current cells expose administrative prototype/compile sentences and root blueprint reconciliation identifies a status-text complaint, neither used as fidelity evidence.",
+    "blind_reconstruction_scope": "Only fresh source-facing packets, after independently frozen primary contract and full current module/reader prereview; no separate decoder-run opened.",
+    "candidate_whole_modules_read_after_primary_contract": true,
+    "old_audit_semantic_classifications_used": false
+  },
+  "matching_freeze_reuse": {
+    "prior_prereview_run_sha256": "0ec0785f3e05be16a3a368bff77aea740f881874fe395e01ed471a9a2e73d720",
+    "all_current_modules_tests_lessons_publications_parent_bytes_identical": true,
+    "complete_independent_proof_read_reused_only_with_exact_matching_hashes": true,
+    "fresh_selected_context_and_publication_binding_recomputed": true,
+    "math_review_receipt_opened_or_used": false,
+    "compiler_run": false
+  },
+  "lifecycle_reconciliation": {
+    "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-lifecycle-reconciliation.json",
+    "raw_sha256": "4eaa15c32b66abe54c6c19501685aae8603603b47ab82ac667389f58d6ef5734",
+    "review_run_sha256": "a7cd4e6e2479f6b254ad7b0552e7720b1d3c3f3fc6180de1de2da2a065162b5d",
+    "permitted_admin_changes_only": true
+  },
+  "blueprint_reconciliation": {
+    "original_snapshot_matches_original_freeze": true,
+    "initial_raw_sha256": "fca35a2e91f1bbe2863e5313cea13a7b17264375fee4b3c7d4dd05bdf20da779",
+    "initial_lf_sha256": "1c36b09b8a333d6847b56a60162d36c466c2d89080628f2dde4be5c7f9e53109",
+    "flawed_intermediate_raw_sha256": "5ba60739b3626372787b4a63dac920a87b07aa7ebc3940be2e1fe61d5e22593e",
+    "flawed_intermediate_lf_sha256": "045a823758cc6ba925bd41a76498e407cfef7613bd4071b4ff7ef0cb1bb65ac0",
+    "final_raw_sha256": "045a823758cc6ba925bd41a76498e407cfef7613bd4071b4ff7ef0cb1bb65ac0",
+    "final_lf_sha256": "57464ee26cae145ce4392ab82dbcd3b42bbb7b09f3c45cdb489cdbb1cb36f668",
+    "independent_exact_final_equals_initial_one_sentence_byte_replacement": true,
+    "independent_flawed_equals_final_CRLF_doubled_to_CRCRLF": true,
+    "initial_and_final_CRLF_count": 17,
+    "old_sentence": "Generic finite-domination MemLp/norm prototype localPASSstandard3 only; quotient convergence/actualweightedgraph/Bochner consumer not yet compiled or independently admitted.",
+    "new_sentence": "Generic finite-domination MemLp/norm, actual weighted quotient convergence/original graph membership/Bochner scalar consequence and genuine reflected consumer compiled locally in focused3865; independent mathematics/source/exactcommit admission remains pending.",
+    "mathematical_proof_code_lesson_source_change": false,
+    "root_repair_observed_not_performed_by_reviewer": true
+  },
+  "input_artifacts": [
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactWeightedPoissonCoercivity.lean",
+      "raw_sha256": "3cc2a9563c75e2d43fa32126f2884bae6745c463fb22dec5e327ecdb9a50f005",
+      "normalized_sha256": "9a603e57b54ac5641de3eef0ee4af57d5520a3914bbfe10e2ab499d913c694f6",
+      "bytes": 18265,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.00.snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalCompactCoercivity.lean",
+      "raw_sha256": "aa94f3f288b03141855bac624175125bd452d13100694001ad726777c79f9027",
+      "normalized_sha256": "6416e252b575d0fcd272715d776b78c68961032a834fe5b8669286bcf11904d9",
+      "bytes": 7003,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.01.snapshot"
+    },
+    {
+      "path": "Tests/CompactWeightedPoissonCoercivity.lean",
+      "raw_sha256": "ad55e27fe823f72cbd6952c29d842d53a72964ca7bb18f7c959ce120bd08b431",
+      "normalized_sha256": "0568c337c76f39c327c12a9a632f856c5b0a9591795f0327135077d7a82b4d2b",
+      "bytes": 7827,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.02.snapshot"
+    },
+    {
+      "path": "proof-blueprints/compact-weighted-poisson-coercivity.md",
+      "raw_sha256": "045a823758cc6ba925bd41a76498e407cfef7613bd4071b4ff7ef0cb1bb65ac0",
+      "normalized_sha256": "57464ee26cae145ce4392ab82dbcd3b42bbb7b09f3c45cdb489cdbb1cb36f668",
+      "bytes": 3451,
+      "read_scope": "bounded original/current sentence and line-ending comparison only; no blueprint planning classification used",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.03.snapshot"
+    },
+    {
+      "path": "research-wiki/cited-results/Weighted_compact_coercivity_source_preread.md",
+      "raw_sha256": "f813e12bba62b36a01efaeefb5a1a632a41c188382fc566ac621f8625b27567a",
+      "normalized_sha256": "f813e12bba62b36a01efaeefb5a1a632a41c188382fc566ac621f8625b27567a",
+      "bytes": 12881,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.04.snapshot"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-compact-weighted-poisson-coercivity.json",
+      "raw_sha256": "ffbb9f589692138e4a41def6a193d12706c0bba92b3fce71596b87dfa6edbbad",
+      "normalized_sha256": "3cb8abd2004ca5fe9dc8611e0405fe56e31dbc3d3f068db921406fc772e9fbb0",
+      "bytes": 10589,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-admin.05.snapshot"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-conditional-compact-coercivity.json",
+      "raw_sha256": "2613cfc0e83266570c566ac4c3b7d46884e98996e7062143ca4f5714dfa9e039",
+      "normalized_sha256": "a01cfe26cb9f46a4146c90ecbe0a92ba7cfff3684e9a77f4572426bd16a4af7e",
+      "bytes": 10256,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-admin.06.snapshot"
+    },
+    {
+      "path": "website/content/publications/compact-weighted-poisson-coercivity.json",
+      "raw_sha256": "6f882e1c4b385a9d33481698048bd81e89a41cf415dd852daac0eb0470793e17",
+      "normalized_sha256": "ad0028d921d318f548dde5e6e0c3975b94dbd3050a02201ecba53373452f77eb",
+      "bytes": 8538,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.07.snapshot"
+    },
+    {
+      "path": "website/content/publications/pbps-conditional-compact-coercivity.json",
+      "raw_sha256": "9ce64280a769635e522ed1f6562570ea742464599cbbf7cf1e6daec1b4961be9",
+      "normalized_sha256": "28ffaa41c27e1ab572c86b1579f68195ddca317513ccf120c7f7924663323e9b",
+      "bytes": 8574,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.08.snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/compact-weighted-poisson-coercivity.json",
+      "raw_sha256": "f438bd1342664524c331c02b51c346d69d0bdd7dc90e42d128f820b381a74491",
+      "normalized_sha256": "05a56e88d61a9c50fcbd6601154854f03cef2f52cd90f1188ef27d36f6c6a1c9",
+      "bytes": 10968,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.09.snapshot"
+    },
+    {
+      "path": "website/content/declaration_lessons/pbps-conditional-compact-coercivity.json",
+      "raw_sha256": "675a69b2d3d16a6a0d3cdfc42c40f96d1d264c0dc9466cc18b75745a13a29565",
+      "normalized_sha256": "b10ec90a460365680b2e7003dbd1be6fc8bc24bace3096532c8bf5a8062b7f85",
+      "bytes": 8353,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.10.snapshot"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-CompactWeightedPoissonCoercivity.json",
+      "raw_sha256": "a52a1e75628c7360dff3c91855907956c7dc69756bdda9c78a064a2171d648b7",
+      "normalized_sha256": "5c3b7eb36b1d132ebf17eb23aa1179e0e4be57facce7c4435d16530babc8ec64",
+      "bytes": 46836,
+      "read_scope": "opaque byte footprint only; audit semantic content not opened",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-admin.11.snapshot"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-PBPSConditionalCompactCoercivity.json",
+      "raw_sha256": "cdc58fba989e1d09035e0406f8908ad9b1962ccaee096bf6813e0bfb8563a494",
+      "normalized_sha256": "1ac0e7641ade3c02d01a2bc683ab4bee52e8ffa4dece8f85c8c5e8c0da8e328f",
+      "bytes": 38953,
+      "read_scope": "opaque byte footprint only; audit semantic content not opened",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-admin.12.snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactPoissonSmoothGraph.lean",
+      "raw_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "normalized_sha256": "fdb744363aa54f0338f203db0da8b0ae591fee76049c95f39af46ae30da93cf5",
+      "bytes": 39015,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.13.snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedBochner.lean",
+      "raw_sha256": "d2e566989400b76d4df02f3b47280401e1737c129e4f0ebee7f0b02b0e36c956",
+      "normalized_sha256": "39b11508ddb3026e3033274a844708fd243621f460c81cc738065754b1364e9c",
+      "bytes": 30249,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.14.snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalLocalizedResolvent.lean",
+      "raw_sha256": "4351d551aca307ae01097405b3f5667906e72f792aa697a019c95ddd054b9431",
+      "normalized_sha256": "1ffa8ec3ea09aa9f52c8b80b95df6e113e60f028a5ccf1c696c0eb727d7b4d35",
+      "bytes": 5607,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.15.snapshot"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalScoreDomain.lean",
+      "raw_sha256": "88675897290ba5b11ab1fb96b13fa3170da5c1fff41926b59771bf88c26ec419",
+      "normalized_sha256": "45d838a1ea0acd078db24d38323be39db4b7485d596adb828179f46f9d9f24e4",
+      "bytes": 21911,
+      "read_scope": "current source/reader/module interface and proof read as specified; parents reused with exact binding",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.16.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/initial-blueprint.snapshot.md",
+      "raw_sha256": "fca35a2e91f1bbe2863e5313cea13a7b17264375fee4b3c7d4dd05bdf20da779",
+      "normalized_sha256": "1c36b09b8a333d6847b56a60162d36c466c2d89080628f2dde4be5c7f9e53109",
+      "bytes": 3363,
+      "read_scope": "bounded original/current sentence and line-ending comparison only; no blueprint planning classification used",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.17.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/blueprint-status-before-line-ending-repair.snapshot.md",
+      "raw_sha256": "5ba60739b3626372787b4a63dac920a87b07aa7ebc3940be2e1fe61d5e22593e",
+      "normalized_sha256": "045a823758cc6ba925bd41a76498e407cfef7613bd4071b4ff7ef0cb1bb65ac0",
+      "bytes": 3468,
+      "read_scope": "bounded original/current sentence and line-ending comparison only; no blueprint planning classification used",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.18.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/blueprint-status-first-reconciliation.snapshot.json",
+      "raw_sha256": "650129685d2cbc4a741173a40c0f85bce2a04ecb9d97b2f207739bf08c63e587",
+      "normalized_sha256": "caf03baf1d38875f44c0a77432ac5d09e881092f6adffbab7fe4d6e6a2ad5bf7",
+      "bytes": 1369,
+      "read_scope": "bounded original/current sentence and line-ending comparison only; no blueprint planning classification used",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.19.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/blueprint-status-reconciliation.json",
+      "raw_sha256": "a96d552cab18539b1474cbccc72caef5401e34d2a22abd6e2809e34c0e129260",
+      "normalized_sha256": "a96d552cab18539b1474cbccc72caef5401e34d2a22abd6e2809e34c0e129260",
+      "bytes": 1900,
+      "read_scope": "bounded original/current sentence and line-ending comparison only; no blueprint planning classification used",
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview-input.20.snapshot"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-review.0.json",
+      "raw_sha256": "caffaad2d5686578acf47a6b95b546677208efc0c06e4f996a875f8d9e1f37da",
+      "normalized_sha256": "01854e6879c0e0c7d58cc99a0e7aaf889982f210802be4f5691086f6cd6be7aa",
+      "bytes": 47330,
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-packet.0.snapshot",
+      "read_scope": "Entire current source-facing reviewer packet; no separate anonymous receipt/math review/verifier verdict read."
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-review.1.json",
+      "raw_sha256": "ff50007ae2e9b37abf345af238f9b452dabccdaa2e6f96037d5dfb4cbd5eb737",
+      "normalized_sha256": "2ca9e85375624a2afee646075a9f38a89b19b76f37154e948d64153957e7554f",
+      "bytes": 39447,
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-packet.1.snapshot",
+      "read_scope": "Entire current source-facing reviewer packet; no separate anonymous receipt/math review/verifier verdict read."
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "normalized_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-lean-toolchain.snapshot",
+      "read_scope": "Exact pinned current toolchain/dependency binding"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "normalized_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "immutable_snapshot": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-final-lake-manifest.json.snapshot",
+      "read_scope": "Exact pinned current toolchain/dependency binding"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-lifecycle-reconciliation.json",
+      "raw_sha256": "4eaa15c32b66abe54c6c19501685aae8603603b47ab82ac667389f58d6ef5734",
+      "normalized_sha256": "4eaa15c32b66abe54c6c19501685aae8603603b47ab82ac667389f58d6ef5734",
+      "bytes": 13013,
+      "read_scope": "Independent exact bounded lifecycle/byte reconciliation"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview.inventory.json",
+      "raw_sha256": "e189fe2e87a7c9cd428c0ff23799a9b0cfc271f16032befdd34875537092ae8d",
+      "normalized_sha256": "e189fe2e87a7c9cd428c0ff23799a9b0cfc271f16032befdd34875537092ae8d",
+      "bytes": 27253,
+      "read_scope": "Own independent primary-first reconstruction and full-proof prereview evidence, frozen before blind reconstruction"
+    },
+    {
+      "path": "runs/20261006-companion-priority/compact-weighted-poisson-coercivity/source-prereview.primary-contract.json",
+      "raw_sha256": "a6dbca3d9c964c6a39b3e06d8ed5b4b91b39932b70fd776b15e6637bd873bd3f",
+      "normalized_sha256": "a6dbca3d9c964c6a39b3e06d8ed5b4b91b39932b70fd776b15e6637bd873bd3f",
+      "bytes": 3526,
+      "read_scope": "Own independent primary-first reconstruction and full-proof prereview evidence, frozen before blind reconstruction"
+    }
+  ],
+  "source_boundary": [
+    "Compact scalar coercivity and original gradient closure membership only.",
+    "Full rough Hessian/Bochner identity for weak function, adjoint/operator-core equality and global cutoff removal are open.",
+    "Epsilon-zero, kernel/range, Poincare, BL covariance upper, paper main and composition not completed.",
+    "No joint measurable fiber solution or weighted-class selector."
+  ],
+  "compiler": "not-run as explicitly directed; no fresh compile or mathematical verdict inference",
+  "writes_boundary": "Only two independent source results, lifecycle reconciliation and immutable current raw evidence under this run; no Lean/Test/source/publication/cell/audit/ledger/shared changes or self-admission.",
+  "review_run_sha256": "66bd47f359f22065095d37cbe77f622181dea520dfa9f2cc1f82876a5cf5f17b"
+}

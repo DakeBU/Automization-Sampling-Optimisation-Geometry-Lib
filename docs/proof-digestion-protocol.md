@@ -449,3 +449,7 @@ workflow verbatim: production Lean remains zero-sorry, the existing
 encoder-denoiser/source review remains mandatory, and the four-view
 source/Lean/compressed/Functor proof-digestion stack plus PURIFIED reader state
 are project-specific requirements.
+
+## Evidence-routed memory and scheduling
+
+The post-proof lifecycle is coupled to [the evidence-routed research-memory protocol](evidence-routed-memory-protocol.md). A failed route is not discarded until its salvage audit runs; non-mathematical failures never become negative mathematical evidence; process standing instructions are evidence-bound and cannot invent theorem content; parallel workers require distinct direction fingerprints; and parallel serious routes trigger a common-blind-spot audit. PURIFICATION additionally carries reader-backpressure state and an Exposition Seal so compressed prose cannot silently drop hypotheses or boundaries.

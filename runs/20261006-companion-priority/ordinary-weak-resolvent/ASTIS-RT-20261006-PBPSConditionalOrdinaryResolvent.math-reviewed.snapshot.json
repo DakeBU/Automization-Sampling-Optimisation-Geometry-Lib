@@ -1,0 +1,161 @@
+{
+  "id": "ASTIS-RT-20261006-PBPSConditionalOrdinaryResolvent",
+  "state": "draft",
+  "source": {
+    "source_id": "companion:pbps-conditional-ordinary-resolvent",
+    "anchor": "PBPS arXiv:2609.06905v1 Section2.2 equations2.6-2.14 actual reflected conditional law and AppendixC.1 LemmaB.1/C.1 omitted weighted-H1 analytic prerequisite. SPHMC2609.06906v1 Section4.1 BL dependency route only; the ordinary PDE is not a quoted numbered source theorem.",
+    "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+    "original_text": "Explicit analytic prerequisite restatement:\nE has the same real finite-dimensional Hilbert/Borel/full-space structure, including dimension zero. V is C2 with all-point/all-direction alpha I<=Hess V<=beta I, alpha,beta NNReal, 0<alpha<=beta; eta>0 and beta eta<=1.\nThe Gibbs/Gaussian augmentation, common Markov R/S, disintegration R, reflection S_y=(2x-y)#R_y, and true reflected W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta) are derived. Each selected S_y is precisely volume.tilted(-W_y), with positive integrable partition and C2 W_y.\nFor every y there is one original dense closable exact compact smooth gradient D_y with closed closure, fixed before epsilon and forcing. Every epsilon>0 and genuine f in L2(S_y) has one u/G serving all ordinary tests and compact sets. Existence is fiberwise; no joint measurable solution selection in y is concluded.\nFor actual source V/alpha/beta/eta, construct genuine common augmentation R/S and exact reflected conditional laws. For every y, retain the true positive integrable C2 W_y and original dense closable compact smooth gradient D_y before epsilon/input. Every epsilon>0 and actual f in L2(S_y) has u in that same closure domain, the full variational and ordinary weak-gradient identities, genuine local volume L2 of u/G/k_y, locally integrable squared norm of k_y, and for all C2 compact phi the legal ordinary volume distribution identity integral u Delta phi = integral k_y phi, where k_y=epsilon u+inner(gradient W_y,G)-f. Reflected/RGO laws and scales remain distinct.\nSame actual D/u/G and forcing yield ordinary volume distribution Delta u=epsilon u+inner(gradient W,G)-f, all C2 compact tests with genuine L1 products, and genuine local L2 of u/G/right-hand side. Full existing variational and ordinary weak-gradient identities retained. Actual PBPS R/S/reflected law and fixed fiber D before epsilon/input. No local H2, global generator core/Bochner, Poincare/BL, centered epsilon limit, noncompact constant/linear domains, measurable y-selection, SPHMC Hessian lower/full4.1 or complete paper/main/composition. TV never transfers unbounded expected cost.",
+    "text_sha256": "3fa50dfdb18870e8e80410b363630613d407166e41239d8c34fb454d6112d209"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalOrdinaryResolvent.conditional_ordinary_resolvent",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalOrdinaryResolvent.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x",
+    "statement_sha256": "098313d6a2f3f3c8d4187e10d3f3d5d13f8090c5493bb55fcdc9cce1b6d423f6",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a finite-dimensional real inner-product space with Borel measurable space and canonical Lebesgue volume, including dimension zero. All section ambient instances remain part of the contract. NNReal means nonnegative real scalars.",
+      "Lp F 2 mu is the true L2 quotient and its coercion selects the standard measurable representative. MemLp is actual a.e. strong measurability and finite L2 norm. All compact restrictions in the statement use volume.restrict K, and all unannotated local integrability/integrals use canonical volume.",
+      "gradient is the Riesz representative of actual Frechet derivative; fderiv is total Lean derivative. Laplacian.laplacian phi is the actual test-function finite-basis trace. The theorem only tests arbitrary L2 u against this smooth-test Laplacian, and does not assert pointwise total laplacian u.",
+      "LinearPMap is a real-linear partial operator on its submodule domain, with actual graph. IsClosable means its topological graph closure is single-valued. D.closure is that same closed operator. Its L2 output is the actual G representative appearing in the ordinary distribution equation.",
+      "Measure.tilted h means exp(h)/integral exp(h) times the original measure; it does not build in positive normalization. Kernel IsMarkovKernel means genuine measurable probability transitions. IsCondKernel is true disintegration of the stated joint measure. Measure.map/prod mean actual pushforward/independent product. stdGaussian is the genuine standard real Hilbert Gaussian. ContDiff 1/2/infinity means C1/C2/smooth; HasCompactSupport is compact topological support."
+    ],
+    "compiler_evidence": "Focused genuine C2 compact PDE source extraction PASS; standard3 only. Independent complete mathematics/blind/source/exactcommit/shared integration pending."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "d5afd92ba4f24df2bf87515b1503964043a719d7f9f6e8642cffc26933f80fb9",
+  "publication_context": {
+    "file": "b07522d881ef4f6727d8dc36623be605746c6057394d713d621f9416ccb75d14",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient\n\nset_option autoImplicit false\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped ContDiff NNReal RealInnerProductSpace Topology\nnoncomputable section\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalOrdinaryResolvent\n\ntheorem conditional_ordinary_resolvent {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x := by\n  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient.conditional_gradient_closable hα hαβ hV hH hη hβη\n  dsimp only\n  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩\n  intro y\n  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph⟩ := hfiber y\n  refine ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,?_⟩\n  intro ε hε f\n  let Wy : E → ℝ := fun u => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n  have hW1 : ContDiff ℝ 1 Wy := hW.of_le (by norm_num)\n  have hwc := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent.weak_resolvent_laplacian Wy hW1 hI\n  dsimp only at hwc\n  rw [← hSy] at hwc\n  exact hwc D hClose hgraph ε hε f\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalOrdinaryResolvent\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv:2609.06905v1 Section2.2 equations2.6-2.14 actual reflected conditional law and AppendixC.1 LemmaB.1/C.1 omitted weighted-H1 analytic prerequisite. SPHMC2609.06906v1 Section4.1 BL dependency route only; the ordinary PDE is not a quoted numbered source theorem.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib explicit ordinary weak elliptic prerequisite to Chen, Chewi, Lu and Zhang AppendixC.1; not a quoted numbered theorem or complete LemmaC.1/Poincare result."
+    },
+    "statement": "For actual source V/alpha/beta/eta, construct genuine common augmentation R/S and exact reflected conditional laws. For every y, retain the true positive integrable C2 W_y and original dense closable compact smooth gradient D_y before epsilon/input. Every epsilon>0 and actual f in L2(S_y) has u in that same closure domain, the full variational and ordinary weak-gradient identities, genuine local volume L2 of u/G/k_y, locally integrable squared norm of k_y, and for all C2 compact phi the legal ordinary volume distribution identity integral u Delta phi = integral k_y phi, where k_y=epsilon u+inner(gradient W_y,G)-f. Reflected/RGO laws and scales remain distinct.",
+    "formulae": [
+      {
+        "label": "Actual PBPS reflected conditional resolvents have the ordinary weak Laplacian",
+        "tex": "S_y=(2x-y)_\\#R_y=Z_y^{-1}e^{-W_y}du,\\quad W_y(u)=V((y+u)/2)+\\|u-y\\|^2/(8\\eta);\\quad\\Delta u=\\varepsilon u+\\langle\\nabla W_y,\\overline D_yu\\rangle-f\\quad\\text{in distributions}."
+      }
+    ],
+    "assumptions": [
+      "E has the same real finite-dimensional Hilbert/Borel/full-space structure, including dimension zero. V is C2 with all-point/all-direction alpha I<=Hess V<=beta I, alpha,beta NNReal, 0<alpha<=beta; eta>0 and beta eta<=1.",
+      "The Gibbs/Gaussian augmentation, common Markov R/S, disintegration R, reflection S_y=(2x-y)#R_y, and true reflected W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta) are derived. Each selected S_y is precisely volume.tilted(-W_y), with positive integrable partition and C2 W_y.",
+      "For every y there is one original dense closable exact compact smooth gradient D_y with closed closure, fixed before epsilon and forcing. Every epsilon>0 and genuine f in L2(S_y) has one u/G serving all ordinary tests and compact sets. Existence is fiberwise; no joint measurable solution selection in y is concluded."
+    ],
+    "obligations": [
+      {
+        "id": "ordinary-weak-pde",
+        "label": "Actual same-solution ordinary distribution equation and local L2"
+      },
+      {
+        "id": "elliptic-core",
+        "label": "Local H2, global operator core and Bochner (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "Poincare/BL, main results and actual-input cost composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalOrdinaryResolvent.conditional_ordinary_resolvent",
+      "title": "Actual PBPS reflected conditional resolvents have the ordinary weak Laplacian",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS AppendixC.1 omitted analytic prerequisite",
+          "scope": "Same actual D/u/G and forcing yield ordinary volume distribution Delta u=epsilon u+inner(gradient W,G)-f, all C2 compact tests with genuine L1 products, and genuine local L2 of u/G/right-hand side. Full existing variational and ordinary weak-gradient identities retained. Actual PBPS R/S/reflected law and fixed fiber D before epsilon/input. No local H2, global generator core/Bochner, Poincare/BL, centered epsilon limit, noncompact constant/linear domains, measurable y-selection, SPHMC Hessian lower/full4.1 or complete paper/main/composition. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.OrdinaryWeakResolvent"
+      ],
+      "assumptions": [
+        "E has the same real finite-dimensional Hilbert/Borel/full-space structure, including dimension zero. V is C2 with all-point/all-direction alpha I<=Hess V<=beta I, alpha,beta NNReal, 0<alpha<=beta; eta>0 and beta eta<=1.",
+        "The Gibbs/Gaussian augmentation, common Markov R/S, disintegration R, reflection S_y=(2x-y)#R_y, and true reflected W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta) are derived. Each selected S_y is precisely volume.tilted(-W_y), with positive integrable partition and C2 W_y.",
+        "For every y there is one original dense closable exact compact smooth gradient D_y with closed closure, fixed before epsilon and forcing. Every epsilon>0 and genuine f in L2(S_y) has one u/G serving all ordinary tests and compact sets. Existence is fiberwise; no joint measurable solution selection in y is concluded."
+      ],
+      "statement": "For actual source V/alpha/beta/eta, construct genuine common augmentation R/S and exact reflected conditional laws. For every y, retain the true positive integrable C2 W_y and original dense closable compact smooth gradient D_y before epsilon/input. Every epsilon>0 and actual f in L2(S_y) has u in that same closure domain, the full variational and ordinary weak-gradient identities, genuine local volume L2 of u/G/k_y, locally integrable squared norm of k_y, and for all C2 compact phi the legal ordinary volume distribution identity integral u Delta phi = integral k_y phi, where k_y=epsilon u+inner(gradient W_y,G)-f. Reflected/RGO laws and scales remain distinct.",
+      "formula": "S_y=(2x-y)_\\#R_y=Z_y^{-1}e^{-W_y}du,\\quad W_y(u)=V((y+u)/2)+\\|u-y\\|^2/(8\\eta);\\quad\\Delta u=\\varepsilon u+\\langle\\nabla W_y,\\overline D_yu\\rangle-f\\quad\\text{in distributions}.",
+      "steps": [
+        {
+          "title": "Construct actual common augmentation and conditional kernels",
+          "text": "Use the true Gibbs/Gaussian augmentation and existing conditional gradient producer. Its common Markov R/S disintegrate the actual swapped joint law, with S_y the reflected pushforward of R_y for every selected fiber.",
+          "formula": "J=(x,x+\\sqrt\\eta\\,\\xi)_\\#(\\mu\\otimes\\gamma),\\quad S_y=(2x-y)_\\#R_y.",
+          "lean": "ConditionalGradient.conditional_gradient_closable"
+        },
+        {
+          "title": "Preserve the reflected potential and true partition",
+          "text": "Retain the exact density, C2 regularity, integrable exponential weight and positive normalizing constant. This is W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta). The unreflected RGO potential has a different law and Hessian scale; no operator/domain identity is inferred from pushforward.",
+          "formula": "S_y=Z_y^{-1}e^{-W_y}du,\\quad D^2W_y=\\tfrac14(D^2V((y+u)/2)+\\eta^{-1}I).",
+          "lean": "hSy,hW,hI,hZ; explicit Wy"
+        },
+        {
+          "title": "Fix the original operator before epsilon and forcing",
+          "text": "For each y retain the original dense closable exact compact smooth gradient D_y and its closed closure. Neither the operator nor kernels depend on epsilon or the forcing. Reduction of C2 W_y to C1 changes only the regularity interface.",
+          "formula": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0\\ \\forall f\\in L^2(S_y).",
+          "lean": "hDense,hClose,hClosed,hgraph; ContDiff.of_le"
+        },
+        {
+          "title": "Apply the canonical ordinary PDE producer to this exact fiber",
+          "text": "Rewrite only the true law equality S_y=volume.tilted(-W_y), then apply the canonical weak-Laplacian result to the same D_y. The actual u/G and drift-minus-forcing right-hand side are conclusions, not supplied certificates. The distribution identity uses ordinary volume and preserves unit epsilon/drift/Laplacian coefficients.",
+          "formula": "k_y=\\varepsilon u+\\langle\\nabla W_y,\\overline D_yu\\rangle-f,\\quad\\int u\\Delta\\phi=\\int k_y\\phi.",
+          "lean": "OrdinaryWeakResolvent.weak_resolvent_laplacian; rw [hSy]"
+        },
+        {
+          "title": "Exercise the equation at a real C2 compact observable",
+          "text": "A focused test uses the actual nonquadratic V(x)=3x^2/8+sin(x)/8, true curvature between 1/2 and 1, eta in (0,1], and phi(x)=rho(x)(x^2)^(5/2) with genuine normalized smooth compact bump rho. It extracts both integrability conclusions and the particular ordinary PDE from the true conditional solution, for every positive epsilon and actual forcing.",
+          "formula": "V(x)=\\tfrac38x^2+\\tfrac18\\sin x,\\quad\\phi(x)=\\rho(x)(x^2)^{5/2}\\in C_c^2,\\quad\\int u\\Delta\\phi=\\int k_y\\phi.",
+          "lean": "Tests.OrdinaryWeakResolvent.actual_nonconstant_c2_pde"
+        },
+        {
+          "title": "Keep subsequent analytic and full-paper obligations visible",
+          "text": "This remains a fiberwise ordinary weak-Laplacian/local-L2 prerequisite. It does not construct joint measurable resolvents or prove local H2, global core/Bochner, conditional Poincare/BL, macro H1, hypocoercivity or either full sampling/composition theorem. Noncompact constant/linear tests still require actual tail/domain arguments.",
+          "formula": "\\text{ordinary weak PDE/local }L^2\\ne\\text{local }H^2\\text{ or conditional Poincare}.",
+          "lean": "conditional_ordinary_resolvent"
+        }
+      ],
+      "lean_statement": "For actual source V/alpha/beta/eta, construct genuine common augmentation R/S and exact reflected conditional laws. For every y, retain the true positive integrable C2 W_y and original dense closable compact smooth gradient D_y before epsilon/input. Every epsilon>0 and actual f in L2(S_y) has u in that same closure domain, the full variational and ordinary weak-gradient identities, genuine local volume L2 of u/G/k_y, locally integrable squared norm of k_y, and for all C2 compact phi the legal ordinary volume distribution identity integral u Delta phi = integral k_y phi, where k_y=epsilon u+inner(gradient W_y,G)-f. Reflected/RGO laws and scales remain distinct.",
+      "lean_proof": "Construct actual common augmentation and conditional kernels; Preserve the reflected potential and true partition; Fix the original operator before epsilon and forcing; Apply the canonical ordinary PDE producer to this exact fiber; Exercise the equation at a real C2 compact observable; Keep subsequent analytic and full-paper obligations visible",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient.conditional_gradient_closable",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent.weak_resolvent_laplacian"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.of_le"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalOrdinaryResolvent.conditional_ordinary_resolvent",
+      "role": "prerequisite",
+      "supports": [
+        "ordinary-weak-pde"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source Euclidean C2 positive-curvature Gibbs conditional route.",
+        "lean": "E has the same real finite-dimensional Hilbert/Borel/full-space structure, including dimension zero. V is C2 with all-point/all-direction alpha I<=Hess V<=beta I, alpha,beta NNReal, 0<alpha<=beta; eta>0 and beta eta<=1.\nThe Gibbs/Gaussian augmentation, common Markov R/S, disintegration R, reflection S_y=(2x-y)#R_y, and true reflected W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta) are derived. Each selected S_y is precisely volume.tilted(-W_y), with positive integrable partition and C2 W_y.\nFor every y there is one original dense closable exact compact smooth gradient D_y with closed closure, fixed before epsilon and forcing. Every epsilon>0 and genuine f in L2(S_y) has one u/G serving all ordinary tests and compact sets. Existence is fiberwise; no joint measurable solution selection in y is concluded."
+      },
+      {
+        "source": "AppendixC.1 compact-to-H1 analytic details omitted; ordinary Laplace setup not a quoted numbered theorem.",
+        "lean": "For actual source V/alpha/beta/eta, construct genuine common augmentation R/S and exact reflected conditional laws. For every y, retain the true positive integrable C2 W_y and original dense closable compact smooth gradient D_y before epsilon/input. Every epsilon>0 and actual f in L2(S_y) has u in that same closure domain, the full variational and ordinary weak-gradient identities, genuine local volume L2 of u/G/k_y, locally integrable squared norm of k_y, and for all C2 compact phi the legal ordinary volume distribution identity integral u Delta phi = integral k_y phi, where k_y=epsilon u+inner(gradient W_y,G)-f. Reflected/RGO laws and scales remain distinct."
+      },
+      {
+        "source": "Source conditional Poincare/macroscopic H1 extension; SPHMC4.1 BL bound.",
+        "lean": "Same actual D/u/G and forcing yield ordinary volume distribution Delta u=epsilon u+inner(gradient W,G)-f, all C2 compact tests with genuine L1 products, and genuine local L2 of u/G/right-hand side. Full existing variational and ordinary weak-gradient identities retained. Actual PBPS R/S/reflected law and fixed fiber D before epsilon/input. No local H2, global generator core/Bochner, Poincare/BL, centered epsilon limit, noncompact constant/linear domains, measurable y-selection, SPHMC Hessian lower/full4.1 or complete paper/main/composition. TV never transfers unbounded expected cost."
+      }
+    ]
+  }
+}

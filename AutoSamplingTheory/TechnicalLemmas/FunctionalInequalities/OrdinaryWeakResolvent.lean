@@ -1,0 +1,242 @@
+/- Actual ordinary distribution equation of the same weighted weak resolvent.
+The conclusion is tested against compact C2 functions; no classical Laplacian
+of the arbitrary L2 representative or H2/domain-core certificate is assumed. -/
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedResolventC1
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2
+import Mathlib.Analysis.InnerProductSpace.Laplacian
+
+set_option autoImplicit false
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ContDiff NNReal RealInnerProductSpace Topology
+noncomputable section
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem inverseweight_gradient (W φ : E → ℝ)
+    (hW : ContDiff ℝ 1 W) (hφ : ContDiff ℝ 1 φ) (x G : E) :
+    Real.exp (-W x) * inner ℝ G (gradient (fun z => Real.exp (W z) * φ z) x) =
+      φ x * inner ℝ (gradient W x) G + inner ℝ G (gradient φ x) := by
+  rw [inner_gradient_right, inner_gradient_right]
+  simp only [conj_trivial]
+  have hd := ((hW.differentiable one_ne_zero x).hasFDerivAt.exp).mul
+    (hφ.differentiable one_ne_zero x).hasFDerivAt
+  rw [show fderiv ℝ (fun z => Real.exp (W z) * φ z) x = _ from hd.fderiv]
+  simp only [add_apply, smul_apply, smul_eq_mul]
+  simp only [inner_gradient_left]
+  have he : Real.exp (-W x) * Real.exp (W x) = 1 := by
+    rw [← Real.exp_add]; simp
+  calc
+    _ = (Real.exp (-W x) * Real.exp (W x)) *
+      (φ x * fderiv ℝ W x G + fderiv ℝ φ x G) := by ring
+    _ = _ := by rw [he, one_mul]
+
+private theorem locally_integrable_inner_const (G : E → E)
+    (hG : LocallyIntegrable G) (v : E) :
+    LocallyIntegrable (fun x => inner ℝ (G x) v) := by
+  rw [← locallyIntegrableOn_univ] at hG ⊢
+  have h := (innerSL ℝ v).locallyIntegrableOn_comp hG
+  change LocallyIntegrableOn (fun x => inner ℝ v (G x)) Set.univ volume at h
+  simpa only [real_inner_comm] using h
+
+private theorem locally_integrable_inner (G B : E → E)
+    (hG : LocallyIntegrable G) (hB : Continuous B) :
+    LocallyIntegrable (fun x => inner ℝ (G x) (B x)) := by
+  have he (x : E) := (stdOrthonormalBasis ℝ E).sum_inner_mul_inner (G x) (B x)
+  simp_rw [← he]
+  apply locallyIntegrable_finsetSum
+  intro i _
+  exact (locally_integrable_inner_const G hG _).mul_continuous
+    (continuous_const.inner hB)
+
+private theorem lp_inner_continuous_local_l2 (W : E → ℝ)
+    (hW : Continuous W) (hI : Integrable (fun x => Real.exp (-W x)))
+    (G : Lp E 2 ((volume : Measure E).tilted (fun x => -W x)))
+    (B : E → E) (hB : Continuous B) (K : Set E) (hK : IsCompact K) :
+    MemLp (fun x => inner ℝ (B x) (G x)) 2 (volume.restrict K) := by
+  have hG := (AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume W hW hI G).2 K hK
+  obtain ⟨C,hC⟩ := hK.bddAbove_image (hB.norm.continuousOn)
+  apply hG.of_le_mul (c := C) (hB.aestronglyMeasurable.restrict.inner hG.aestronglyMeasurable)
+  filter_upwards [ae_restrict_mem hK.measurableSet] with x hx
+  exact (norm_inner_le_norm _ _).trans
+    (mul_le_mul_of_nonneg_right (hC (Set.mem_image_of_mem _ hx)) (norm_nonneg _))
+
+private theorem ordinary_weak_laplacian (u : E → ℝ) (G : E → E)
+    (hderiv : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,
+      Integrable (fun x => ψ x * inner ℝ (G x) v) ∧
+      Integrable (fun x => u x * fderiv ℝ ψ x v) ∧
+      (∫ x, ψ x * inner ℝ (G x) v) = - ∫ x, u x * fderiv ℝ ψ x v)
+    (φ : E → ℝ) (hφ : ContDiff ℝ 2 φ) (hc : HasCompactSupport φ) :
+    Integrable (fun x => u x * Laplacian.laplacian φ x) ∧
+    Integrable (fun x => inner ℝ (G x) (gradient φ x)) ∧
+    (∫ x, u x * Laplacian.laplacian φ x) = - ∫ x, inner ℝ (G x) (gradient φ x) := by
+  let b := stdOrthonormalBasis ℝ E
+  have hφ2 : ContDiff ℝ 2 φ := hφ
+  let ψ := fun i x => fderiv ℝ φ x (b i)
+  have hψ (i) : ContDiff ℝ 1 (ψ i) :=
+    (hφ2.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+  have hψc (i) : HasCompactSupport (ψ i) := by
+    refine HasCompactSupport.of_support_subset_isCompact hc.isCompact ?_
+    intro x hx
+    by_contra hn
+    exact hx (by simp [ψ, fderiv_of_notMem_tsupport ℝ hn])
+  have hd (i) := hderiv (ψ i) (hψ i) (hψc i) (b i)
+  have hd2 (x v : E) :
+      fderiv ℝ (fun z => fderiv ℝ φ z v) x v = fderiv ℝ (fderiv ℝ φ) x v v := by
+    have h := ((hφ2.fderiv_right (m := 1) (by norm_num)).differentiable one_ne_zero x).hasFDerivAt
+    have he := h.clm_apply (hasFDerivAt_const v x)
+    simpa using congrArg (fun T : E →L[ℝ] ℝ => T v) he.fderiv
+  have hLap (x : E) : Laplacian.laplacian φ x = ∑ i, fderiv ℝ (ψ i) x (b i) := by
+    rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]
+    apply Finset.sum_congr rfl
+    intro i _
+    dsimp [ψ,b]
+    rw [hd2, iteratedFDeriv_two_apply]
+    rfl
+  have hInner (x : E) : inner ℝ (G x) (gradient φ x) =
+      ∑ i, ψ i x * inner ℝ (G x) (b i) := by
+    rw [← b.sum_inner_mul_inner (G x) (gradient φ x)]
+    apply Finset.sum_congr rfl
+    intro i _
+    rw [inner_gradient_right]
+    simp only [conj_trivial]
+    dsimp [ψ]
+    ring
+  have hLi : Integrable (fun x => u x * Laplacian.laplacian φ x) := by
+    simp_rw [hLap, Finset.mul_sum]
+    exact integrable_finsetSum _ (fun i _ => (hd i).2.1)
+  have hGi : Integrable (fun x => inner ℝ (G x) (gradient φ x)) := by
+    simp_rw [hInner]
+    exact integrable_finsetSum _ (fun i _ => (hd i).1)
+  refine ⟨hLi,hGi,?_⟩
+  simp_rw [hLap, Finset.mul_sum, hInner]
+  rw [integral_finsetSum _ (fun i _ => (hd i).2.1),
+      integral_finsetSum _ (fun i _ => (hd i).1)]
+  rw [← Finset.sum_neg_distrib]
+  apply Finset.sum_congr rfl
+  intro i _
+  linarith [(hd i).2.2]
+
+theorem weak_resolvent_laplacian (W : E → ℝ) (hW : ContDiff ℝ 1 W)
+    (hI : Integrable (fun x => Real.exp (-W x))) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔
+        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ) →
+      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+        (∀ v : D.closure.domain,
+          ε * ⟪(u : Lp ℝ 2 μ), (v : Lp ℝ 2 μ)⟫ +
+            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 μ)⟫) ∧
+        LocallyIntegrable (fun x => (u : Lp ℝ 2 μ) x) ∧
+        LocallyIntegrable (fun x => D.closure u x) ∧
+        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,
+          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧
+          Integrable (fun x => (u : Lp ℝ 2 μ) x * fderiv ℝ ψ x v) ∧
+          (∫ x, ψ x * inner ℝ (D.closure u x) v) =
+            - ∫ x, (u : Lp ℝ 2 μ) x * fderiv ℝ ψ x v) ∧
+        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 μ) x +
+          inner ℝ (gradient W x) (D.closure u x) - f x‖ ^ 2) ∧
+        (∀ K : Set E, IsCompact K →
+          MemLp (fun x => (u : Lp ℝ 2 μ) x) 2 (volume.restrict K) ∧
+          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧
+          MemLp (fun x => ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient W x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧
+        ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+          Integrable (fun x => (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) ∧
+          Integrable (fun x => (ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient W x) (D.closure u x) - f x) * φ x) ∧
+          (∫ x, (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) =
+            ∫ x, (ε * (u : Lp ℝ 2 μ) x +
+              inner ℝ (gradient W x) (D.closure u x) - f x) * φ x := by
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  dsimp only
+  intro D hD hgraph ε hε f
+  obtain ⟨u,hu,huL,hGL,hderiv,hweighted⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedResolventC1.weak_resolvent_c1 W hW hI D hD hgraph ε hε f
+  have hgrad : Continuous (gradient W) :=
+    (toDual ℝ E).symm.continuous.comp (hW.continuous_fderiv one_ne_zero)
+  let r := fun x => ε * (u : Lp ℝ 2 μ) x + inner ℝ (gradient W x) (D.closure u x) - f x
+  have hlocal (K : Set E) (hK : IsCompact K) :
+      MemLp (fun x => (u : Lp ℝ 2 μ) x) 2 (volume.restrict K) ∧
+      MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧
+      MemLp r 2 (volume.restrict K) := by
+    have hU := (AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume W hW.continuous hI (u : Lp ℝ 2 μ)).2 K hK
+    have hG := (AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume W hW.continuous hI (D.closure u)).2 K hK
+    have hF := (AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume W hW.continuous hI f).2 K hK
+    have hB := lp_inner_continuous_local_l2 W hW.continuous hI (D.closure u) (gradient W) hgrad K hK
+    refine ⟨hU,hG,?_⟩
+    convert ((hU.const_smul ε).add hB).sub hF using 1
+    funext x
+    rfl
+  have hr2 : LocallyIntegrable (fun x => ‖r x‖^2) := by
+    rw [locallyIntegrable_iff]
+    intro K hK
+    have hr := (hlocal K hK).2.2
+    exact (memLp_two_iff_integrable_sq_norm hr.aestronglyMeasurable).mp hr
+  have hfL : LocallyIntegrable (fun x => f x) := by
+    rw [locallyIntegrable_iff]
+    intro K hK
+    let : IsFiniteMeasure (volume.restrict K) := isFiniteMeasure_restrict.mpr hK.measure_lt_top.ne
+    have hF := (AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume W hW.continuous hI f).2 K hK
+    exact hF.integrable (by norm_num)
+  have hBLoc : LocallyIntegrable (fun x => inner ℝ (gradient W x) (D.closure u x)) := by
+    simpa only [real_inner_comm] using locally_integrable_inner _ _ hGL hgrad
+  have hrLoc : LocallyIntegrable r := by
+    convert ((huL.smul ε).add hBLoc).sub hfL using 1
+    funext x
+    rfl
+  refine ⟨u,hu,huL,hGL,hderiv,hr2,hlocal,?_⟩
+  intro φ hφ hc
+  have hφ1 : ContDiff ℝ 1 φ := hφ.of_le (by norm_num)
+  obtain ⟨hLapI,hGi,hLap⟩ := ordinary_weak_laplacian _ _ hderiv φ hφ hc
+  have hRi : Integrable (fun x => r x * φ x) := by
+    simpa only [smul_eq_mul] using hrLoc.integrable_smul_right_of_hasCompactSupport hφ1.continuous hc
+  refine ⟨hLapI,hRi,?_⟩
+  let ψ := fun x => Real.exp (W x) * φ x
+  have hψ : ContDiff ℝ 1 ψ := hW.exp.mul hφ1
+  have hψc : HasCompactSupport ψ := hc.mul_left
+  have hw := (hweighted ψ hψ hψc).2.2.2
+  have hcancel (x : E) : Real.exp (-W x) * Real.exp (W x) = 1 := by
+    rw [← Real.exp_add]; simp
+  have hfirst (a : E → ℝ) (x : E) : Real.exp (-W x) * (a x * ψ x) = a x * φ x := by
+    dsimp [ψ]
+    calc
+      _ = (Real.exp (-W x) * Real.exp (W x)) * (a x * φ x) := by ring
+      _ = _ := by rw [hcancel,one_mul]
+  have hsecond (x : E) : Real.exp (-W x) * inner ℝ (D.closure u x) (gradient ψ x) =
+      φ x * inner ℝ (gradient W x) (D.closure u x) + inner ℝ (D.closure u x) (gradient φ x) :=
+    inverseweight_gradient W φ hW hφ1 x (D.closure u x)
+  simp only [hfirst,hsecond] at hw
+  have hUi : Integrable (fun x => (u : Lp ℝ 2 μ) x * φ x) := by
+    simpa only [smul_eq_mul] using huL.integrable_smul_right_of_hasCompactSupport hφ1.continuous hc
+  have hBi : Integrable (fun x => φ x * inner ℝ (gradient W x) (D.closure u x)) := by
+    simpa only [smul_eq_mul] using hBLoc.integrable_smul_left_of_hasCompactSupport hφ1.continuous hc
+  have hFi : Integrable (fun x => f x * φ x) := by
+    simpa only [smul_eq_mul] using hfL.integrable_smul_right_of_hasCompactSupport hφ1.continuous hc
+  rw [integral_add hBi hGi] at hw
+  have he : (∫ x, r x * φ x) =
+      ε * (∫ x, (u : Lp ℝ 2 μ) x * φ x) +
+      (∫ x, φ x * inner ℝ (gradient W x) (D.closure u x)) - ∫ x, f x * φ x := by
+    have hp : (fun x => r x * φ x) = (fun x =>
+      ε * ((u : Lp ℝ 2 μ) x * φ x) + φ x * inner ℝ (gradient W x) (D.closure u x) - f x * φ x) := by
+      funext x; dsimp [r]; ring
+    have hsum : Integrable (fun x => ε * ((u : Lp ℝ 2 μ) x * φ x) + φ x * inner ℝ (gradient W x) (D.closure u x)) := by
+      convert (hUi.const_mul ε).add hBi using 1 <;> rfl
+    have hsumEq : (∫ x, ε * ((u : Lp ℝ 2 μ) x * φ x) + φ x * inner ℝ (gradient W x) (D.closure u x)) =
+        ε * (∫ x, (u : Lp ℝ 2 μ) x * φ x) + ∫ x, φ x * inner ℝ (gradient W x) (D.closure u x) := by
+      calc
+        _ = (∫ x, ε * ((u : Lp ℝ 2 μ) x * φ x)) + ∫ x, φ x * inner ℝ (gradient W x) (D.closure u x) :=
+          integral_add (hUi.const_mul ε) hBi
+        _ = _ := by rw [integral_const_mul]
+    rw [hp]
+    calc
+      _ = (∫ x, ε * ((u : Lp ℝ 2 μ) x * φ x) + φ x * inner ℝ (gradient W x) (D.closure u x)) - ∫ x, f x * φ x :=
+        integral_sub hsum hFi
+      _ = _ := by rw [hsumEq]
+  change (∫ x, (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) = ∫ x, r x * φ x
+  rw [he]
+  linarith [hLap,hw]
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent

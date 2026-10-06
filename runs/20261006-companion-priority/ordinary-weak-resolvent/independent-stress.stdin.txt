@@ -1,0 +1,57 @@
+import Tests.OrdinaryWeakResolvent
+import Mathlib.Analysis.InnerProductSpace.PiL2
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ContDiff RealInnerProductSpace Topology
+noncomputable section
+def observable : ℝ → ℝ := fun x =>
+  ({rIn:=1,rOut:=2,rIn_pos:=by norm_num,rIn_lt_rOut:=by norm_num} : ContDiffBump (0:ℝ)).normed (volume : Measure ℝ) x * (x^2)^(5/2:ℝ)
+example :
+    ∃ R S : Kernel ℝ ℝ, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      ∀ y, ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp ℝ 2 (S y),
+        ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 (S y),
+        ∃ u : D.closure.domain,
+          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian observable x) ∧
+          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +
+            inner ℝ (gradient (fun z => (3/8)*((1/2:ℝ)*(y+z))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+z))+‖z-y‖^2/(8*(1/2:ℝ))) x) (D.closure u x) - f x) * observable x) ∧
+          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian observable x) =
+            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +
+              inner ℝ (gradient (fun z => (3/8)*((1/2:ℝ)*(y+z))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+z))+‖z-y‖^2/(8*(1/2:ℝ))) x) (D.closure u x) - f x) * observable x := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    Tests.OrdinaryWeakResolvent.actual_nonconstant_c2_pde
+      (η:=1/2) (by norm_num) (by norm_num)
+  refine ⟨R,S,hR,hS,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hres⟩ := hfiber y
+  refine ⟨D,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hr2,hlocal,hpde⟩ := hres ε hε f
+  exact ⟨u,hpde⟩
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+example :
+    let μ := (volume : Measure E0).tilted (fun _ => -(7:ℝ))
+    ∃ D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ,
+      D.IsClosable ∧
+      ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+        (∀ K : Set E0, IsCompact K →
+          MemLp (fun x => (u : Lp ℝ 2 μ) x) 2 (volume.restrict K) ∧
+          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧
+          MemLp (fun x => ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient (fun _ : E0 => (7:ℝ)) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧
+        (∫ x, ε * (u : Lp ℝ 2 μ) x - f x) = 0 := by
+  have hI : Integrable (fun _ : E0 => Real.exp (-(7:ℝ))) := integrable_const _
+  obtain ⟨D,hDense,hD,hClosed,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI
+  refine ⟨D,hD,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hr2,hlocal,hpde⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.OrdinaryWeakResolvent.weak_resolvent_laplacian
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI D hD hgraph ε hε f
+  refine ⟨u,hlocal,?_⟩
+  have hc : HasCompactSupport (fun _ : E0 => (1:ℝ)) :=
+    HasCompactSupport.of_support_subset_isCompact isCompact_univ (Set.subset_univ _)
+  have he := (hpde (fun _ : E0 => (1:ℝ)) contDiff_const hc).2.2
+  simpa using he.symm
+

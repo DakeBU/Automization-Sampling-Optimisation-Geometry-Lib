@@ -1,5 +1,54 @@
 # Companion-paper formalization handoff
 
+## Actual weak-gradient-zero constant implication 2026-10-06
+
+`ASTIS-SA-20261006-WeakGradientZeroKernel` proves an actual full-space
+ordinary-volume prerequisite: a genuinely locally-integrable rough real u
+whose every legal C1 compact directional weak derivative is zero is AE ONE
+constant. Actual compact convolution differentiation, translated tests with
+the correct negative sign, genuine normalized shrinking bumps, differentiable
+mollification constancy and AE limit uniqueness supply the proof. No global
+volume L1 premise, rough classical derivative or Nontrivial E is assumed.
+
+The same-original weighted Gibbs closed-gradient graph derives the legal
+ordinary weak identity. Actual positive normalized density gives volume<<mu
+for the zero vector representative and mu<<volume for the constant conclusion.
+W C1 and genuine exp(-W) integrability suffice for this generic implication;
+no curvature/spectral gap/final kernel certificate is supplied. The PBPS
+consumer constructs true common Gaussian J/R/S and original D_y before ALL
+closure-domain u; source C2 curvature/eta cap/positive partitions and exact
+reflected law remain. This proves zero closed-gradient implies AE constant
+only; it does not put constants into the original domain or give full kernel.
+
+Focused3304, independent complete88/47/49 production +private helper/107Test
+and5+4+3 reader steps passed. The actual real constant7 test is not globally
+volume integrable yet has legal local weak derivatives. True nonquadratic
+eta1/2 common J/R/S/SAME D and actual E0 constant7 normalized Gibbs original-D
+stress passed. Three distinct source-blind reconstructions and primary-first
+anti-anchored source reviews agree, with no deltas or repairs. Six administrative
+lifecycle/reconstruction bindings were independently reconciled; all
+mathematical inputs remained frozen. Exact independently VERIFIED proof
+`801d524eabb5da16169f377d59721e7dc0d75d05`: `runs/20261006-companion-priority/weak-gradient-zero-kernel/verified.json`.
+Original sole root stabilization/PR313 lane. Shared aggregate/reader/graph
+checks pending for this packet. Goal remains active.
+
+Next bounded route is actual weighted C1 L2 function/gradient membership in
+the SAME original gradient closure graph via true compact cutoffs and weighted
+limits. Constants and real noncompact conditional scores can consume it.
+`Weighted_C1_domain_route.md`/typed discovery are proposal-only. No spatial
+moment, separately chosen operator or auxiliary R2/R kernel identification is
+supplied. Actual constants-domain/converse/full kernel, centered scaled
+epsilon*u residual/epsilon0/range/Poincare/BL/full rough Hessian/adjoint/core,
+SPHMC lower Hessian/full4.1/Wp/proxywarmness/actual algorithm accuracy and PBPS
+reflection/invariance/nonexplosion/hypocoercivity/implementation/cost, both
+complete main results and actual incoming precision/expected-query-cost
+composition remain OPEN. TV never transfers unbounded cost; no joint fiber
+selector is inferred. Previous b1 globalweighted head has four terminalSUCCESS
+workflows in its frozen receipt; current final head requires own CI.
+Draft/open/unmerged. Rendered visual/copy/download acceptance remains open
+because browser-service bootstrap is unavailable; static readers checkable.
+
+
 ## Actual global weighted resolvent coercivity 2026-10-06
 
 `ASTIS-SA-20261006-GlobalWeightedResolventCoercivity` constructs ONE actual

@@ -45,6 +45,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentValue
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights
 import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator
+import AutoSamplingTheory.TechnicalLemmas.Analysis.WeakGradientZero
 import AutoSamplingTheory.TechnicalLemmas.Analysis.MonotoneProximalMap
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoMomentum
 

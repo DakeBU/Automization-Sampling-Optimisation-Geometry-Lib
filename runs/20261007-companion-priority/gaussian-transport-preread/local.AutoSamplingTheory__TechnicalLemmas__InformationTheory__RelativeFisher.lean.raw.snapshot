@@ -1,0 +1,104 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.Tactic
+
+/-!
+# Relative Fisher information: regularity-aware density layer
+
+The frontier sampling spine needs the analytic object appearing in
+
+`KL(mu || pi)^2 <= FI(mu || pi) * W2(mu, pi)^2`
+
+and in KL dissipation.  This file deliberately separates the measure-theoretic
+Radon--Nikodym/log-ratio construction from the energy functional itself.
+
+A downstream source-facing theorem supplies a density `q` and a legitimate
+log-density ratio `r = log (d mu / d pi)` with the required differentiability.
+The reusable Fisher layer then measures
+
+`integral q(x) * ||grad r(x)||^2`.
+
+This prevents zero-density conventions or hidden regularity assumptions from
+being baked into the core definition.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace RelativeFisher
+
+open MeasureTheory
+open scoped NNReal RealInnerProductSpace
+
+noncomputable section
+
+variable {ι : Type*} [Fintype ι]
+
+abbrev State := EuclideanSpace ℝ ι
+
+/-- Pointwise relative-Fisher energy for a supplied density and a supplied
+log-density ratio. -/
+noncomputable def densityEnergy
+    (q logRatio : State (ι := ι) → ℝ) (x : State (ι := ι)) : ℝ :=
+  q x * ‖gradient logRatio x‖ ^ 2
+
+/-- Relative Fisher information with respect to an explicit base measure.
+
+For the usual Euclidean density representation the base measure will be
+Lebesgue measure and `q` will be the density of `mu`; equivalently the integral
+is `integral ||grad log(d mu / d pi)||^2 d mu` after the Radon--Nikodym bridge is
+proved. -/
+noncomputable def information
+    (base : Measure (State (ι := ι)))
+    (q logRatio : State (ι := ι) → ℝ) : ℝ :=
+  ∫ x, densityEnergy q logRatio x ∂base
+
+/-- Fisher energy density is nonnegative wherever the supplied density is
+nonnegative. -/
+theorem densityEnergy_nonneg
+    {q logRatio : State (ι := ι) → ℝ} {x : State (ι := ι)}
+    (hq : 0 ≤ q x) :
+    0 ≤ densityEnergy q logRatio x := by
+  exact mul_nonneg hq (sq_nonneg _)
+
+/-- A vanishing relative score gives zero pointwise Fisher energy. -/
+theorem densityEnergy_eq_zero_of_gradient_eq_zero
+    {q logRatio : State (ι := ι) → ℝ} {x : State (ι := ι)}
+    (hgrad : gradient logRatio x = 0) :
+    densityEnergy q logRatio x = 0 := by
+  simp [densityEnergy, hgrad]
+
+/-- If the relative score vanishes almost everywhere, then the relative Fisher
+information vanishes.  This statement needs no positivity or normalization
+assumption on `q`; those belong to the source-facing density bridge. -/
+theorem information_eq_zero_of_gradient_ae_eq_zero
+    (base : Measure (State (ι := ι)))
+    (q logRatio : State (ι := ι) → ℝ)
+    (hgrad : ∀ᵐ x ∂base, gradient logRatio x = 0) :
+    information base q logRatio = 0 := by
+  rw [information]
+  apply integral_eq_zero_of_ae
+  filter_upwards [hgrad] with x hx
+  exact densityEnergy_eq_zero_of_gradient_eq_zero hx
+
+/-- The Fisher functional is insensitive to changing the supplied log-ratio on
+an a.e. set *provided its gradients themselves agree a.e.*.  This is the exact
+representative-level congruence needed after a Sobolev/Radon--Nikodym layer has
+chosen versions. -/
+theorem information_congr_gradient_ae
+    (base : Measure (State (ι := ι)))
+    (q r s : State (ι := ι) → ℝ)
+    (hgrad : ∀ᵐ x ∂base, gradient r x = gradient s x) :
+    information base q r = information base q s := by
+  rw [information, information]
+  apply integral_congr_ae
+  filter_upwards [hgrad] with x hx
+  simp [densityEnergy, hx]
+
+end
+
+end RelativeFisher
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

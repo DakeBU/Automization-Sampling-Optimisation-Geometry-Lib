@@ -1,0 +1,40 @@
+SLT/GaussianLSI/OneDimGLSI.lean
+theorem gaussian_logSobolev_W12_real {f : ℝ → ℝ}
+    (hf : MemW12GaussianReal f (gaussianReal 0 1))
+    (hf_diff : Differentiable ℝ f) (hf_grad_cont : Continuous (fun x => fderiv ℝ f x)) :
+    LogSobolev.entropy GaussianPoincare.stdGaussianMeasure (fun x => (f x)^2) ≤
+      2 * ∫ x, ‖fderiv ℝ f x‖^2 ∂GaussianPoincare.stdGaussianMeasure 
+
+SLT/GaussianLSI/TensorizedGLSI.lean
+theorem gaussian_logSobolev_W12_pi {n : ℕ} {g : (Fin n → ℝ) → ℝ}
+    (hg : MemW12GaussianPi n g (GaussianMeasure.stdGaussianPi n))
+    (hg_diff : Differentiable ℝ g)
+    (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+    (hg_log_int :
+      Integrable (fun x => (g x)^2 * log ((g x)^2)) (GaussianMeasure.stdGaussianPi n)) :
+    LogSobolev.entropy (GaussianMeasure.stdGaussianPi n) (fun x => (g x)^2) ≤
+      2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) 
+
+SLT/GaussianLSI/TensorizedGLSI.lean
+def MemW12GaussianPi (n : ℕ) (g : (Fin n → ℝ) → ℝ) (μ : Measure (Fin n → ℝ)) : Prop :=
+  MemLp g 2 μ ∧ ∀ i : Fin n, MemLp (fun x => partialDeriv i g x) 2 μ
+
+SLT/GaussianLSI/TensorizedGLSI.lean
+noncomputable def partialDeriv {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+  fun x => fderiv ℝ g x (Pi.single i 1)
+
+SLT/GaussianLSI/TensorizedGLSI.lean
+noncomputable def gradNormSq (n : ℕ) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+  fun x => ∑ i : Fin n, (partialDeriv i g x)^2
+
+SLT/GaussianMeasure.lean
+noncomputable def stdGaussianPi (n : ℕ) : Measure (Fin n → ℝ) :=
+  Measure.pi fun _ : Fin n => gaussianReal 0 1
+
+SLT/GaussianLSI/Entropy.lean
+def entropy (μ : Measure Ω) (f : Ω → ℝ) : ℝ :=
+  ∫ ω, f ω * log (f ω) ∂μ - (∫ ω, f ω ∂μ) * log (∫ ω, f ω ∂μ)
+
+SLT/GaussianSobolevDense/Density.lean
+def MemW12GaussianReal (f : ℝ → ℝ) (γ : Measure ℝ) : Prop :=
+  MemLp f 2 γ ∧ MemLp (fun x ↦ fderiv ℝ f x) 2 γ

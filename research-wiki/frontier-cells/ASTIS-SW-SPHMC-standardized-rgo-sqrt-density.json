@@ -1,0 +1,947 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-SPHMC-standardized-rgo-sqrt-density",
+  "route": "samplewiki-route",
+  "title": "Actual standardized SPHMC RGO square-root density domains",
+  "mode": "faithfulPaper",
+  "source_anchor": "S4.Ex8 actual rho/standardized law; FIRST S4.E6 Gaussian LSI/T2 route and S4.SS1.p4.3 omitted density/energy domains",
+  "target_statement": "theorem standardized_rgo_sqrt_density_domain\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      let gamma := stdGaussian E\n      let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma\n      let q := fun s u => Real.exp (-rho s u)/Z s\n      let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)\n      ∀ s, 0 < Z s ∧ Z s ≤ 1 ∧\n        r s = gamma.tilted (fun u => -rho s u) ∧\n        r s = gamma.withDensity (fun u => ENNReal.ofReal (q s u)) ∧\n        IsProbabilityMeasure (r s) ∧\n        (∀ u, 0 < q s u ∧ f s u^2 = q s u) ∧\n        (∫ u, q s u ∂gamma) = 1 ∧\n        ContDiff ℝ 2 (f s) ∧ MemLp (f s) 2 gamma ∧\n        MemLp (gradient (f s)) 2 gamma ∧ MemLp (gradient (rho s)) 2 (r s) ∧\n        Integrable (fun u => q s u*Real.log (q s u)) gamma ∧\n        (∀ u, gradient (f s) u = -(f s u/2) • gradient (rho s) u) ∧\n        (∀ u, gradient (fun z => Real.log (q s z)) u = -gradient (rho s) u) ∧\n        (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =\n          (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s)\n",
+  "status": "proved_locally",
+  "parents": [
+    "ASTIS-SHARED-gaussian-sqrt-density-domain",
+    "ASTIS-SW-SPHMC-standardized-rgo-position-fisher"
+  ],
+  "consumers": [
+    "samplewiki-route"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib Probability.lean, SDE.lean, TechnicalLemmas README and Measure/Gibbs/StdGaussianMoment/Gradient cards searched before claim. Canonical actual Gaussian density/second moment, curvature and gradient leaves exist; no actual normalized Gaussian-Gibbs square-root/entropy/Dirichlet-Fisher domain declaration exists.",
+      "Pinned Mathlib db584cd6 actual stdGaussian, Tilted/withDensity, MemLp and gradient definitions inspected during preproof definition audit. SLT product LSI is frozen external-only; no LSI/T2 port or callable theorem claimed.",
+      "Existing ASTIS-SHARED-strong-convex-gibbs-lsi-t2 remains claimed broad backend; its owner/source/frontier are preserved. This is a smaller actual Gaussian relative-density domain prerequisite, not a second LSI/T2 owner or theorem."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity.standardized_rgo_sqrt_density_domain",
+    "canonical_shared_cell": "ASTIS-SHARED-gaussian-sqrt-density-domain"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib Probability.lean, SDE.lean, TechnicalLemmas README and Measure/Gibbs/StdGaussianMoment/Gradient cards searched before claim. Canonical actual Gaussian density/second moment, curvature and gradient leaves exist; no actual normalized Gaussian-Gibbs square-root/entropy/Dirichlet-Fisher domain declaration exists.",
+      "Pinned Mathlib db584cd6 actual stdGaussian, Tilted/withDensity, MemLp and gradient definitions inspected during preproof definition audit. SLT product LSI is frozen external-only; no LSI/T2 port or callable theorem claimed.",
+      "Existing ASTIS-SHARED-strong-convex-gibbs-lsi-t2 remains claimed broad backend; its owner/source/frontier are preserved. This is a smaller actual Gaussian relative-density domain prerequisite, not a second LSI/T2 owner or theorem."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "FIRST4.6 Gaussian LSI/T2 function-domain and entropy/Fisher adapters; existing ASTIS-SHARED-strong-convex-gibbs-lsi-t2 and its log-concave-sampling Gaussian/proximal specialization are planned only, no inequality or second compiled consumer credit."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One canonical actual Gaussian-Gibbs relative-density and square-root energy/domain theorem, genuinely instantiated on SAME actual standardized true RGO. Existing nodes supply Gaussian density/moments, curvature and real affine posterior; no LSI/T2/final-output certificate."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity.standardized_rgo_sqrt_density_domain"
+    ],
+    "visual_review": "Pending actual compiled theorem packet and affected graph checks; source-only accepted topology is not formal admission."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261007-GaussianSqrtDensityDomain",
+    "execution_boundary": "Actual positive Gaussian relative-density and classical C2/L2 square-root/entropy/log-gradient/Dirichlet=Fisher/4 domains, genuinely consumed by the source standardized true RGO. No Gaussian LSI/T2/KL weak representative/Sobolev adapter/W2/bias/fullLemma/main/work/composition credit. Independent local wholeproof, fresh blind32 reconstruction and anti-anchored source reviews accepted. Exactcommit VERIFIED/shared integration/aggregate/staticsite/ExpositionSeal/postmerge purification remain separate.",
+    "focused_checks": [
+      {
+        "command": "lake build Tests.GaussianSqrtDensityDomain Tests.StandardizedRGOSqrtDensity",
+        "result": "PASS3748 focused.3.log; E0/L0 and true eta2y3 posterior, standard3only"
+      }
+    ],
+    "statement_seal": "runs/20261007-companion-priority/gaussian-sqrt-density-domain/preproof/statement-seals.accepted.json",
+    "proof_review": "runs/20261007-companion-priority/gaussian-sqrt-density-domain/reviewer.math.review.json",
+    "source_review": [
+      "runs/20261007-companion-priority/gaussian-sqrt-density-domain/source.0.review.json",
+      "runs/20261007-companion-priority/gaussian-sqrt-density-domain/source.1.review.json"
+    ]
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "arXiv:2609.06906v1",
+    "primary_anchor": "S4.Ex8 actual rho/standardized law; FIRST S4.E6 Gaussian LSI/T2 route and S4.SS1.p4.3 omitted density/energy domains",
+    "detail_status": "omitted",
+    "fidelity_boundary": "Actual positive Gaussian relative-density and classical C2/L2 square-root/entropy/log-gradient/Dirichlet=Fisher/4 domains, genuinely consumed by the source standardized true RGO. No Gaussian LSI/T2/KL weak representative/Sobolev adapter/W2/bias/fullLemma/main/work/composition credit.",
+    "gap": "Printed Gaussian LSI/T2 invocation omits positive relative normalizer, explicit density/square-root derivatives, entropy L1 and L2/Fisher energy domains. This packet supplies only classical representative domains, not the LSI/T2 or KL/weak-Sobolev adapters.",
+    "consulted": [
+      {
+        "source": "Pinned Mathlib db584cd6 and ASTIS compiled Gaussian/curvature/true-RGO parents",
+        "anchor": "stdGaussian covarianceI, explicit canonical-volume density, actual squared-norm second moment and source normalized rho",
+        "hypothesis_adapter": "No public probability/domain/LSI/T2/normalizer/selector certificate. S/measurable-family scope is authored and Unit specialization recovers printed fixed parameters."
+      }
+    ],
+    "independent_graph": "runs/20261007-companion-priority/gaussian-transport-preread/source-proof-graph.repaired.independent.json",
+    "independent_topology_review": "runs/20261007-companion-priority/gaussian-transport-preread/reviewer.topology.repaired.review.json",
+    "source_inventory_entries": 202
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Initial independently sealed bounded target; no failed mathematical route or fragment deletion.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-gaussian-relative-density-square-root-energy-domain"
+      ],
+      "expected_information_gain": "One root implementation writer; independent preproof/proof/sourceblind/source reviewers inspect different admission uncertainties.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "explicit-function-density-gaussian-domain",
+      "selection_reason": "Printed Gaussian LSI/T2 route with actual square-root domains; independent graph preserves generator-domain OR as optional, not a mandatory premise."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain"
+    ],
+    "bookkeeping": [
+      "Actual q=exp(-rho)/Egamma exp(-rho), positive f=exp(-rho/2)/sqrtZ, r true affine posterior; exact Euclidean energy coefficient1/4; no arbitrary pointwise RN representative claim."
+    ],
+    "new_reusable": [
+      "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain"
+    ],
+    "new_topology": [
+      "Close the bounded explicit-density-domain component of DENSITY-DOMAIN-GAP, leaving actual LSI/T2/KL/weak-Sobolev/W2 and bias consumers open."
+    ]
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/gaussian-sqrt-density-domain/preproof/statement-seals.accepted.json",
+    "source_revision": "arXiv:2609.06906v1",
+    "statement_version": 1,
+    "signature_digest": "684d27de9e173512093e55b29535d59ae9de58dd5fa607c472873f4187ee7d17",
+    "binder_audit": "runs/20261007-companion-priority/gaussian-sqrt-density-domain/preproof/reviewer.statement.review.json",
+    "definition_kind": {
+      "gamma": "Actual pinned Mathlib stdGaussian E, covarianceI, not merely an IsGaussian assumption.",
+      "r": "Generic actual gamma tilt by -rho; source actual affine pushforward of the original Gibbs conditional RGO, with SAME produced stationary p.",
+      "q": "Explicit exp(-rho)/Z actual relative density. Measure withDensity equality fixes the probability law, not a pointwise arbitrary RN derivative.",
+      "f": "Explicit positive exp(-rho/2)/sqrtZ; squared density relation and all derivative-energy domains produced internally.",
+      "energy": "Euclidean Hilbert gradient. Dirichlet energy equals one-quarter actual relative Fisher integral, with exact measures and all L2 domains. Not sup-norm coordinate energy.",
+      "entropy": "Bochner L1 of explicit qlogq under gamma. It is not yet a theorem equating this to an arbitrary chosen KL API."
+    }
+  },
+  "source_proof_coverage": {
+    "inventory": "runs/20261007-companion-priority/gaussian-transport-preread/source.inventory.repaired.json",
+    "review": "runs/20261007-companion-priority/gaussian-transport-preread/reviewer.topology.repaired.review.json",
+    "reviewed_nodes": [
+      "STANDING-V",
+      "ETA-POSITIVE",
+      "TRUE-PROX",
+      "TRUE-RGO",
+      "ORACLE",
+      "SMOOTHED-SCORE",
+      "RHO",
+      "STANDARDIZED-R",
+      "W2-METRIC",
+      "DENSITY-DOMAIN-GAP",
+      "GAUSSIAN-LSI-GAP",
+      "GAUSSIAN-T2-GAP",
+      "METRIC-KL-ADAPTER-GAP",
+      "FUNCTION-LSI-ROUTE",
+      "GENERATOR-DOMAIN-GAP",
+      "GENERATOR-LSI-ROUTE",
+      "LSI-KL",
+      "T2-KL",
+      "FIRST46",
+      "IBP-MOMENT-GAP",
+      "CONTEXT46-SECOND-LAST",
+      "BIAS-IDENTITY",
+      "VECTOR-MEAN-GAP",
+      "BIAS42-LINK",
+      "SCORE-IDENTITY-GAP",
+      "ACTUAL-MEAN-DOMAIN-GAP"
+    ],
+    "excluded_with_reason": [
+      "S2.p2.1",
+      "S2.p2.2",
+      "S2.p3.1",
+      "S3.SS1",
+      "S3.SS1.p1",
+      "S3.SS1.p1.2",
+      "S3.SS1.p1.2.1",
+      "S3.SS1.p1.m2",
+      "S3.SS1.p1.m3",
+      "S3.SS1.p1.m4",
+      "S3.SS1.p1.m5",
+      "S3.SS1.p1.m6",
+      "S3.SS1.p1.m7",
+      "S3.SS1.p1.m8",
+      "S3.SS1.p2",
+      "S3.SS1.p2.2",
+      "S3.SS1.p2.m3",
+      "S3.SS1.p2.m4",
+      "S3.SS1.p2.m5",
+      "S3.SS1.p3",
+      "S3.SS1.p3.1",
+      "S3.SS1.p3.m1",
+      "S3.SS1.p3.2",
+      "S3.SS1.p3.m2",
+      "S3.SS1.p3.m3",
+      "S3.SS1.p3.m4",
+      "S3.SS1.p3.m5",
+      "S4.SS1",
+      "S4.SS1.p1",
+      "S4.SS1.p1.1",
+      "S4.SS1.p1.m1",
+      "S4.SS1.p1.2",
+      "S4.SS1.p1.3",
+      "S4.SS1.p1.m2",
+      "S4.SS1.p1.m3",
+      "S4.SS1.p1.4",
+      "S4.Thmtheorem1",
+      "S4.Thmtheorem1.2",
+      "S4.Thmtheorem1.3",
+      "S4.Thmtheorem1.4",
+      "S4.Thmtheorem1.p1",
+      "S4.Thmtheorem1.p1.1",
+      "S4.Thmtheorem1.p1.1.1",
+      "S4.Thmtheorem1.p1.m1",
+      "S4.Ex4",
+      "S4.Ex4.m1",
+      "S4.Thmtheorem1.p1.2",
+      "S4.Thmtheorem1.p1.2.1",
+      "S4.Thmtheorem1.p1.m2",
+      "S4.Thmtheorem1.p1.m3",
+      "S4.SS1.2",
+      "S4.SS1.p2",
+      "S4.SS1.p2.1",
+      "S4.SS1.p2.1.1",
+      "S4.SS1.p2.m1",
+      "S4.SS1.p2.m2",
+      "S4.Ex5",
+      "S4.Ex5.m1",
+      "S4.SS1.p2.2",
+      "S4.SS1.p2.2.1",
+      "S4.Ex6",
+      "S4.Ex6.m1",
+      "S4.SS1.p2.3",
+      "S4.SS1.p2.3.1",
+      "S4.SS1.p3",
+      "S4.SS1.p3.1",
+      "S4.Thmtheorem2",
+      "S4.Thmtheorem2.2",
+      "S4.Thmtheorem2.3",
+      "S4.Thmtheorem2.4",
+      "S4.Thmtheorem2.p1",
+      "S4.Thmtheorem2.p1.1",
+      "S4.Thmtheorem2.p1.1.1",
+      "S4.Thmtheorem2.p1.2",
+      "S4.Thmtheorem2.p1.2.1",
+      "S4.Thmtheorem2.p1.m1",
+      "S4.EGx8",
+      "S4.E3",
+      "S4.E3.m1",
+      "S4.E3.m2",
+      "S4.E4",
+      "S4.E4.m1",
+      "S4.E4.m2",
+      "S4.E5",
+      "S4.E5.m1",
+      "S4.E5.m2",
+      "S4.SS1.3",
+      "S4.SS1.p4",
+      "S4.SS1.p5",
+      "S4.SS1.p5.1",
+      "S4.SS1.p5.1.1",
+      "S4.SS1.p5.m3",
+      "S4.SS1.p5.m4",
+      "S4.SS1.p5.m5",
+      "S4.SS1.p5.m6",
+      "S4.SS1.p5.m7",
+      "S4.SS1.p6",
+      "S4.SS1.p6.1",
+      "S4.Thmtheorem3",
+      "S4.Thmtheorem3.2",
+      "S4.Thmtheorem3.3",
+      "S4.Thmtheorem3.4",
+      "S4.Thmtheorem3.p1",
+      "S4.Thmtheorem3.p1.1",
+      "S4.Thmtheorem3.p1.1.1",
+      "S4.Thmtheorem3.p1.m1",
+      "S4.EGx9",
+      "S4.E7",
+      "S4.E7.m1",
+      "S4.E7.m2",
+      "S4.E8",
+      "S4.E8.m1",
+      "S4.E8.m2",
+      "S4.Thmtheorem3.p1.2",
+      "S4.Thmtheorem3.p1.2.1",
+      "S4.E9",
+      "S4.E9.m1",
+      "S4.SS1.4",
+      "S4.SS1.p7",
+      "S4.SS1.p7.1",
+      "S4.SS1.p7.1.1",
+      "S4.SS1.p7.m1",
+      "S4.SS1.p7.m2",
+      "S4.SS1.p7.m3",
+      "S4.SS1.p7.m4",
+      "S4.SS1.p7.m5",
+      "S4.E10",
+      "S4.E10.m1",
+      "S4.SS1.p7.2",
+      "S4.SS1.p7.2.1",
+      "S4.SS1.p8",
+      "S4.SS1.p8.1",
+      "S4.SS1.p8.1.1",
+      "S4.SS1.p8.m1",
+      "S4.Ex10",
+      "S4.Ex10.m1",
+      "S4.SS1.p8.2",
+      "S4.SS1.p8.2.1",
+      "S4.SS1.p8.m2",
+      "S4.SS1.p8.m3",
+      "S4.SS1.p8.m4",
+      "S4.SS1.p8.m5",
+      "S4.SS1.p8.m6",
+      "bib.bib21",
+      "bib.bib39"
+    ],
+    "source_gaps": [
+      {
+        "id": "DENSITY-DOMAIN-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.SS1.p4.2",
+          "S4.SS1.p4.3"
+        ],
+        "formula": "Produce actual q=exp(-rho)/Zgamma, Zgamma=Egamma exp(-rho)>0 finite; r=q gamma; sqrtq C1/W12; qlogq L1; gradrho L2(r); both laws finite2; no supplied certificate",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "GAUSSIAN-LSI-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "formula": "Variance1 Gaussian LSI Ent_gamma(f²)<=2 integral||gradf||², on honest smooth/Sobolev+entropy domain; omitted analytic background",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "GAUSSIAN-T2-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "formula": "Gaussian Talagrand W2(r,gamma)²<=2 KL(r||gamma), actual probabilities/relative entropy/Euclidean metric; omitted background",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "METRIC-KL-ADAPTER-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.Ex1",
+          "S4.SS1.p4.3"
+        ],
+        "formula": "Explicit q entropy equals finite measure KL; actual Gaussian/isometric Euclidean carrier and finite ENNReal transport; no toReal infinity collapse",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "IBP-MOMENT-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "formula": "For context last4.6 internally justify fullspace IBP under Q=||u||²/2+rho, HessQ>=I,gradQ0=0 and actual decay/integrability",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "VECTOR-MEAN-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.SS1.p5.2"
+        ],
+        "formula": "Consume ACTUAL-MEAN-DOMAIN-GAP genuine Bochner means plus actual eta-Lipschitz gradrho; coupling/CauchySchwarz/infimum adapter proves norm(E_gamma gradrho-E_r gradrho)<=eta W2. This comparison is distinct from mere domain production.",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "SCORE-IDENTITY-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S3.E1",
+          "S4.Ex9"
+        ],
+        "formula": "Actual convolution derivative/normalization, actual R gradient and position L1, Gibbs score cancellation and affine expectation map justify printed Ex9 mean identity; previous source31 may supply genuine separately admitted parent, but is not a printed premise or new completion here.",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      },
+      {
+        "id": "ACTUAL-MEAN-DOMAIN-GAP",
+        "kind": "SOURCE_GAP",
+        "source_anchors": [
+          "S4.Ex7",
+          "S4.Ex9",
+          "S4.SS1.p5.2"
+        ],
+        "formula": "Internally produce actual gradrho BochnerL1 under both r and gamma, actual hatg BochnerL1 under gamma, and resulting xi/b ownmean integrability. Actual probabilities/finite2 and rho eta-Lipschitz gradient yield these domains; no public integrability/mean certificate. This vertex asserts no coupling comparison.",
+        "status": "SOURCE_RECONSTRUCTED_OPEN"
+      }
+    ],
+    "source_graph_edges": [
+      {
+        "parent": "STANDING-V",
+        "child": "TRUE-PROX",
+        "source_anchors": [
+          "S2.E1",
+          "S4.SS1.p4.1"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "ETA-POSITIVE",
+        "child": "TRUE-PROX",
+        "source_anchors": [
+          "S2.E1",
+          "S4.SS1.p4.1"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "STANDING-V",
+        "child": "TRUE-RGO",
+        "source_anchors": [
+          "S2.Ex1"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "ETA-POSITIVE",
+        "child": "TRUE-RGO",
+        "source_anchors": [
+          "S2.Ex1"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "TRUE-PROX",
+        "child": "ORACLE",
+        "source_anchors": [
+          "S3.E2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "TRUE-PROX",
+        "child": "RHO",
+        "source_anchors": [
+          "S4.Ex8"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "STANDING-V",
+        "child": "RHO",
+        "source_anchors": [
+          "S4.Ex8"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "ETA-POSITIVE",
+        "child": "RHO",
+        "source_anchors": [
+          "S4.Ex8"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "TRUE-RGO",
+        "child": "STANDARDIZED-R",
+        "source_anchors": [
+          "S4.SS1.p4.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "TRUE-PROX",
+        "child": "STANDARDIZED-R",
+        "source_anchors": [
+          "S4.SS1.p4.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "RHO",
+        "child": "STANDARDIZED-R",
+        "source_anchors": [
+          "S4.SS1.p4.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "STANDARDIZED-R",
+        "child": "DENSITY-DOMAIN-GAP",
+        "source_anchors": [
+          "S4.SS1.p4.2",
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "RHO",
+        "child": "DENSITY-DOMAIN-GAP",
+        "source_anchors": [
+          "S4.SS1.p4.2",
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "W2-METRIC",
+        "child": "METRIC-KL-ADAPTER-GAP",
+        "source_anchors": [
+          "S4.Ex1",
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "DENSITY-DOMAIN-GAP",
+        "child": "METRIC-KL-ADAPTER-GAP",
+        "source_anchors": [
+          "S4.Ex1",
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "DENSITY-DOMAIN-GAP",
+        "child": "FUNCTION-LSI-ROUTE",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "GAUSSIAN-LSI-GAP",
+        "child": "FUNCTION-LSI-ROUTE",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "METRIC-KL-ADAPTER-GAP",
+        "child": "FUNCTION-LSI-ROUTE",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "DENSITY-DOMAIN-GAP",
+        "child": "GENERATOR-DOMAIN-GAP",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "GAUSSIAN-LSI-GAP",
+        "child": "GENERATOR-LSI-ROUTE",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "GENERATOR-DOMAIN-GAP",
+        "child": "GENERATOR-LSI-ROUTE",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "GAUSSIAN-T2-GAP",
+        "child": "T2-KL",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "METRIC-KL-ADAPTER-GAP",
+        "child": "T2-KL",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "DENSITY-DOMAIN-GAP",
+        "child": "T2-KL",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "T2-KL",
+        "child": "FIRST46",
+        "source_anchors": [
+          "S4.E6"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "LSI-KL",
+        "child": "FIRST46",
+        "source_anchors": [
+          "S4.E6"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "W2-METRIC",
+        "child": "FIRST46",
+        "source_anchors": [
+          "S4.E6"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "RHO",
+        "child": "CONTEXT46-SECOND-LAST",
+        "source_anchors": [
+          "S4.E6",
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "STANDARDIZED-R",
+        "child": "IBP-MOMENT-GAP",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "RHO",
+        "child": "IBP-MOMENT-GAP",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "IBP-MOMENT-GAP",
+        "child": "CONTEXT46-SECOND-LAST",
+        "source_anchors": [
+          "S4.E6",
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "ORACLE",
+        "child": "BIAS-IDENTITY",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "SMOOTHED-SCORE",
+        "child": "BIAS-IDENTITY",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "STANDARDIZED-R",
+        "child": "BIAS-IDENTITY",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "RHO",
+        "child": "BIAS-IDENTITY",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "DENSITY-DOMAIN-GAP",
+        "child": "VECTOR-MEAN-GAP",
+        "source_anchors": [
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "RHO",
+        "child": "VECTOR-MEAN-GAP",
+        "source_anchors": [
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "W2-METRIC",
+        "child": "VECTOR-MEAN-GAP",
+        "source_anchors": [
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "BIAS-IDENTITY",
+        "child": "BIAS42-LINK",
+        "source_anchors": [
+          "S4.E2",
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "VECTOR-MEAN-GAP",
+        "child": "BIAS42-LINK",
+        "source_anchors": [
+          "S4.E2",
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "FIRST46",
+        "child": "BIAS42-LINK",
+        "source_anchors": [
+          "S4.E2",
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "CONTEXT46-SECOND-LAST",
+        "child": "BIAS42-LINK",
+        "source_anchors": [
+          "S4.E2",
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Necessary source mathematical ingredient or explicitly authored omitted adapter; never a public convenience premise"
+      },
+      {
+        "parent": "SMOOTHED-SCORE",
+        "child": "SCORE-IDENTITY-GAP",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Omitted actual score/mean analytic adapter is a dependency, not a public certificate."
+      },
+      {
+        "parent": "TRUE-RGO",
+        "child": "SCORE-IDENTITY-GAP",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Omitted actual score/mean analytic adapter is a dependency, not a public certificate."
+      },
+      {
+        "parent": "STANDARDIZED-R",
+        "child": "SCORE-IDENTITY-GAP",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Omitted actual score/mean analytic adapter is a dependency, not a public certificate."
+      },
+      {
+        "parent": "SCORE-IDENTITY-GAP",
+        "child": "BIAS-IDENTITY",
+        "source_anchors": [
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "Omitted actual score/mean analytic adapter is a dependency, not a public certificate."
+      },
+      {
+        "parent": "METRIC-KL-ADAPTER-GAP",
+        "child": "GENERATOR-LSI-ROUTE",
+        "source_anchors": [
+          "S4.SS1.p4.3"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "T4: generator alternative claiming KL consumes actual entropy-to-finite-KL adapter; remains only in that authored OR branch."
+      },
+      {
+        "parent": "DENSITY-DOMAIN-GAP",
+        "child": "ACTUAL-MEAN-DOMAIN-GAP",
+        "source_anchors": [
+          "S4.Ex7",
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "T4: genuine actual probability/finite2/Fisher L2 domains feed real Bochner mean production."
+      },
+      {
+        "parent": "RHO",
+        "child": "ACTUAL-MEAN-DOMAIN-GAP",
+        "source_anchors": [
+          "S4.Ex8",
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "T4: actual rho C2/gradient Lipschitz and zero-gradient fact derive gamma/r first moments internally."
+      },
+      {
+        "parent": "ORACLE",
+        "child": "ACTUAL-MEAN-DOMAIN-GAP",
+        "source_anchors": [
+          "S3.E2",
+          "S4.Ex7",
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "T4: actual Gaussian oracle identity is the object whose Bochner expectation must exist."
+      },
+      {
+        "parent": "ACTUAL-MEAN-DOMAIN-GAP",
+        "child": "BIAS-IDENTITY",
+        "source_anchors": [
+          "S4.Ex7",
+          "S4.Ex9"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "T4: bias/zero-mean decomposition consumes actual Gaussian/r Bochner integrability before taking expectations."
+      },
+      {
+        "parent": "ACTUAL-MEAN-DOMAIN-GAP",
+        "child": "VECTOR-MEAN-GAP",
+        "source_anchors": [
+          "S4.SS1.p5.2"
+        ],
+        "truth_contract": "source-mathematical-dependency-not-compiled",
+        "reason": "T4: coupling comparison consumes genuine means; does not serve as their definition."
+      }
+    ],
+    "route_hyperedges": [
+      {
+        "target": "LSI-KL",
+        "alternatives": [
+          [
+            "FUNCTION-LSI-ROUTE"
+          ],
+          [
+            "GENERATOR-LSI-ROUTE"
+          ]
+        ],
+        "provenance": "Both are ASTIS-authored formalization adapters to the printed Gaussian LSI, not paper-provided OR routes. Preferred function-density adapter avoids unsafe pointwise canonical RN differentiation. Neither currently closed."
+      }
+    ],
+    "coverage_status": "Independent preproof exhaustive202span topology accepted; current implementation closes only classical explicit-density domains inside DENSITY-DOMAIN-GAP. Honest weakSobolev/KL/actualLSI/T2/W2/bias/main remain OPEN."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Exact identities on the same carrier/actual measures, not a new weaker cross-domain transport; existing proximal-energy and L2-coercivity/metric-gradient-flow mirrors preserved. Independent mathematical review will separately assess."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Four locally compiled files frozen for independent proof/source review.",
+    "duplicate_semantics_audit": "New missing relative-density/entropy/gradient energy producer with real true RGO consumer; broad LSI/T2 cell preserved independently.",
+    "canonicalization": "Canonical shared Measure node and original SPHMC companion consumer.",
+    "compressed_spine_delta": "Actual standardized Gibbs posterior -> relative Gaussian sqrt-density and finite energy domains -> stillOPENGaussianLSI/T2.",
+    "reader_default_view": "Original companion formula proofs and complete folded Lean; transport/bias/work/main gaps explicit.",
+    "scope": "Actual positive Gaussian relative-density and classical C2/L2 square-root/entropy/log-gradient/Dirichlet=Fisher/4 domains, genuinely consumed by the source standardized true RGO. No Gaussian LSI/T2/KL weak representative/Sobolev adapter/W2/bias/fullLemma/main/work/composition credit. Focused3748 passed with E0/L0 and actual eta2y3 posterior tests, standard3 axioms only. Independent proof/blind/source/commit review and integration pending; postmerge purification, renderedQA and Copy/Download remain open."
+  }
+}

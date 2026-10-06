@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "status": "statement-sealed-and-source-only-topology-accepted-no-proof",
+  "source_revision": "arXiv:2609.06906v1",
+  "signatures": [
+    {
+      "full_declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain",
+      "file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianSqrtDensityDomain.lean",
+      "signature_text": "theorem gaussian_sqrt_density_domain\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {rho : E → ℝ} {L : ℝ≥0} (hrho : ContDiff ℝ 2 rho)\n    (hrho0 : rho 0 = 0) (hgrad0 : gradient rho 0 = 0)\n    (hH : ∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ rho) u v v ∧\n      fderiv ℝ (fderiv ℝ rho) u v v ≤ (L : ℝ)*‖v‖^2) :\n    let gamma := stdGaussian E\n    let Z := ∫ u, Real.exp (-rho u) ∂gamma\n    let q := fun u => Real.exp (-rho u)/Z\n    let f := fun u => Real.exp (-rho u/2)/Real.sqrt Z\n    let r := gamma.tilted (fun u => -rho u)\n    0 < Z ∧ Z ≤ 1 ∧\n      r = (volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho u)) ∧\n      r = gamma.withDensity (fun u => ENNReal.ofReal (q u)) ∧\n      IsProbabilityMeasure r ∧\n      (∀ u, 0 < q u ∧ f u^2 = q u) ∧\n      (∫ u, q u ∂gamma) = 1 ∧\n      ContDiff ℝ 2 f ∧ MemLp f 2 gamma ∧\n      MemLp (gradient f) 2 gamma ∧ MemLp (gradient rho) 2 r ∧\n      Integrable (fun u => q u*Real.log (q u)) gamma ∧\n      (∀ u, gradient f u = -(f u/2) • gradient rho u) ∧\n      (∀ u, gradient (fun z => Real.log (q z)) u = -gradient rho u) ∧\n      (∫ u, ‖gradient f u‖^2 ∂gamma) =\n        (1/4 : ℝ)*(∫ u, ‖gradient rho u‖^2 ∂r)\n",
+      "signature_lf_sha256": "b0b26aa58ee0cb133e5e3915f5c3bce97860fcab26a9a33d2105233e24b3cdff",
+      "statement_version": 1,
+      "declaration_level": "canonical-library-node"
+    },
+    {
+      "full_declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity.standardized_rgo_sqrt_density_domain",
+      "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/StandardizedRGOSqrtDensity.lean",
+      "signature_text": "theorem standardized_rgo_sqrt_density_domain\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      let gamma := stdGaussian E\n      let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma\n      let q := fun s u => Real.exp (-rho s u)/Z s\n      let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)\n      ∀ s, 0 < Z s ∧ Z s ≤ 1 ∧\n        r s = gamma.tilted (fun u => -rho s u) ∧\n        r s = gamma.withDensity (fun u => ENNReal.ofReal (q s u)) ∧\n        IsProbabilityMeasure (r s) ∧\n        (∀ u, 0 < q s u ∧ f s u^2 = q s u) ∧\n        (∫ u, q s u ∂gamma) = 1 ∧\n        ContDiff ℝ 2 (f s) ∧ MemLp (f s) 2 gamma ∧\n        MemLp (gradient (f s)) 2 gamma ∧ MemLp (gradient (rho s)) 2 (r s) ∧\n        Integrable (fun u => q s u*Real.log (q s u)) gamma ∧\n        (∀ u, gradient (f s) u = -(f s u/2) • gradient (rho s) u) ∧\n        (∀ u, gradient (fun z => Real.log (q s z)) u = -gradient (rho s) u) ∧\n        (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =\n          (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s)\n",
+      "signature_lf_sha256": "684d27de9e173512093e55b29535d59ae9de58dd5fa607c472873f4187ee7d17",
+      "statement_version": 1,
+      "declaration_level": "source-anchor"
+    }
+  ],
+  "independent_admission": {
+    "path": "runs/20261007-companion-priority/gaussian-sqrt-density-domain/preproof/reviewer.statement.review.json",
+    "raw_sha256": "c8ab328dbc7b2de4a60162cd68ac7f6f34f18d7fc7c25ac2c3a690e50c986a75",
+    "lf_sha256": "c8ab328dbc7b2de4a60162cd68ac7f6f34f18d7fc7c25ac2c3a690e50c986a75"
+  },
+  "independent_source_graph": {
+    "path": "runs/20261007-companion-priority/gaussian-transport-preread/source-proof-graph.repaired.independent.json",
+    "raw_sha256": "77af1bcf070be03b517ce1f1cc53b159ad80ba67ddf7afeca349b6b14cc71a1f",
+    "lf_sha256": "77af1bcf070be03b517ce1f1cc53b159ad80ba67ddf7afeca349b6b14cc71a1f"
+  },
+  "independent_topology_review": {
+    "path": "runs/20261007-companion-priority/gaussian-transport-preread/reviewer.topology.repaired.review.json",
+    "raw_sha256": "b1ec208e57330ff54b0789c63dd4cf6aafcc2133c324a1fe43e2090164dab01e",
+    "lf_sha256": "b1ec208e57330ff54b0789c63dd4cf6aafcc2133c324a1fe43e2090164dab01e"
+  },
+  "typecheck": {
+    "path": "runs/20261007-companion-priority/gaussian-sqrt-density-domain/preproof/typecheck.portable.json",
+    "raw_sha256": "7e40de1e5d6ea82892ba4d262d9845ab2fedb8e568bf6c420bcee56f94b2ea2a",
+    "lf_sha256": "dfbc08f34d015cfc32efa7aab576bc006141595ec13f07cc80a8190e2a3e856e"
+  },
+  "source_scope": "Necessary actual density/domain background for FIRST4.6, not first4.6 itself. S/measurable-family lifting is authored; Unit specialization recovers printed fixed parameters.",
+  "remaining_boundary": "Actual positive Gaussian relative-density and classical C2/L2 square-root/entropy/log-gradient/Dirichlet=Fisher/4 domains, genuinely consumed by the source standardized true RGO. No Gaussian LSI/T2/KL weak representative/Sobolev adapter/W2/bias/fullLemma/main/work/composition credit.",
+  "proof_search_started": false,
+  "created_utc": "2026-10-06T22:31:21.078398+00:00",
+  "elaboration_probe_policy": "Original scratch probe removed only after exact seal and independently bound portable raw copy. This is body-free type elaboration, not theorem proof."
+}

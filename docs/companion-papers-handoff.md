@@ -26,8 +26,8 @@ sourceblind reconstructions and primary-first anti-anchored reviews agree,
 with no deltas/repairs. Eight administrative bindings were independently
 reconciled; original mathematical inputs stayed frozen. Exact independent
 VERIFIED proof `d3936f55b5571098a02f7480f39b7d1895c0e351`: `runs/20261006-companion-priority/weighted-c1-gradient-domain/verified.json`.
-Original sole root stabilization/PR313 lane. Shared aggregate/reader/graph
-checks pending for this packet. Goal remains active.
+Original sole root stabilization/PR313 lane. Exact proof d3936f55b5571098a02f7480f39b7d1895c0e351 independently VERIFIED; shared integration d5845fb4476aa9b2cc926dfea420f0fb208f064d. Full ASTIS gate PASS (9121 root/9378 Tests), publication177, semantic237/8, frontier240, contributor60/56. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun. Four actual branch/static source/formula/proof/folded Lean/Test/residual views, full site/official graph freshness/contributor PASS. Graph846 modules/623 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open because browser-service bootstrap unavailable.
+`runs/20261006-companion-priority/weighted-c1-gradient-domain/integration.json`. Goal remains active.
 
 Next bounded mathematical route is actual scaled positive-epsilon resolvent
 residual limit via energy, genuine weak compactness/Riesz and SAME closed

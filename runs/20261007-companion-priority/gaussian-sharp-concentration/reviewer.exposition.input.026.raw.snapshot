@@ -1,0 +1,1289 @@
+{
+  "schema_version": 1,
+  "reviewer": "phase_source_reviewer_20261005",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewer_packet_sha256": "bc9e230d304b35ade6117528e188292200e5b64dbdaeb9e96cf381a1672468fb",
+  "publication_binding_sha256": "10e4f051ce95970bad2e48cc9f915f117050ec7f92b00b95a95085804ed362e0",
+  "source_text_sha256": "61067062c891e713e936c1ea617b9b0c5ffd02a0ac49338e624b4028574bf68b",
+  "lean_statement_sha256": "eca82156ec2499acafd23ec9f7d1b3db142b50bb01aa9f90a3c10613dddd287b",
+  "reconstructed_text_sha256": "bd40bfcfad555ef06f3edd9a2a444e831553c7d9d1c28958572a1fd5e4befa03",
+  "decoder": "blind_statement_decoder_30",
+  "decoder_packet_sha256": "40c994f3c62f63ffe732bac674b78de29b19cdf140eb2e6f9d94480270bda3cf",
+  "decoder_run_sha256": "6304ef1fc962c945207c917c6ffc5b9cd6270c3f38e12133cb95727d7d394b51",
+  "semantic_slots": {
+    "objects": {
+      "original": "Authored standard-Gaussian scalar f and its actual own mean.",
+      "reconstructed": "Same f/stdGaussian/actual centering integral.",
+      "relation": "equivalent",
+      "evidence": "Actual density/rotation/Stein pairing preserves standard Gaussian; no supplied mean."
+    },
+    "domains": {
+      "original": "Finite Euclidean Gaussian; explicitly generalized to complete finite real Hilbert/Borel including dimension0.",
+      "reconstructed": "Same standard identity-covariance law and full E including0.",
+      "relation": "explicit-elaboration",
+      "evidence": "No positive dimension/Nontrivial public binder; zero-dimensional proof branch retained."
+    },
+    "quantifiers": {
+      "original": "Every global L>=0 Lipschitz f and every signed real t including0.",
+      "reconstructed": "L:NNReal, arbitrary f/hf and signed t; ownmean fixed before t.",
+      "relation": "equivalent",
+      "evidence": "Negative t by -f; zeroL/subsingleton cases and exact quantifier order unchanged."
+    },
+    "assumptions": {
+      "original": "Only Hilbert/Borel typing plus global Lipschitzness; background theorem is authored, not printed numbered source.",
+      "reconstructed": "No C1/LSI/moment/domain/concentration certificate premise.",
+      "relation": "equivalent",
+      "evidence": "Internal same-L real bump approximation and DCT eliminate private C1 restriction; genuine domains derived."
+    },
+    "conclusion": {
+      "original": "Integral exp(t(f-Ef)) <= exp(L²t²/2).",
+      "reconstructed": "Exact sharp inequality, without a separate Integrable conjunct in this signature.",
+      "relation": "equivalent",
+      "evidence": "Actual full-space L1/Fubini Stein, MVT and Herbst produce1/2; Fernique alone is not credited."
+    },
+    "scopes": {
+      "original": "Authored sufficient Gaussian concentration background for source p5.2; separate from numerical work/main.",
+      "reconstructed": "Repaired lesson/route name actual GLOBAL IBP and parametric-integral IDs; no false MeasureTheory prefix.",
+      "relation": "explicit-elaboration",
+      "evidence": "R0 exact two replacements only. Source invokes Gaussian concentration; rotation/Stein/Herbst is disclosed authored omitted-background route, no source-authored route attribution."
+    },
+    "constant_dependencies": {
+      "original": "Identity covariance gives exactly L²t²/2, no dimension constant.",
+      "reconstructed": "Same sharp coefficient, zero/signed parameters.",
+      "relation": "equivalent",
+      "evidence": "Conditional derivative bound L² and correct -sin(theta)t sign followed by integrating factor /2."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "blocking": false,
+  "blocker_class": null,
+  "mathematical_statement_equivalence": "equivalent-after-elaboration",
+  "mathematical_statement_or_assumption_defect_found": false,
+  "EXCESS": [],
+  "source_excess": [],
+  "repairs": [],
+  "applied_repairs_reviewed": [
+    "R0",
+    "R1",
+    "R2"
+  ],
+  "approved_for_current_publication_binding": true,
+  "whole_module_file_sha256": "e46ea6518b151be180528574a4eb89d76b03aaf0b6f5e78784ffa9da7d0b1e75",
+  "whole_module_raw_sha256": "555ee4cd7d0b49abef204bc18a966e443c5051b279127d91edcae654a38b5a09",
+  "whole_module_lf_sha256": "e46ea6518b151be180528574a4eb89d76b03aaf0b6f5e78784ffa9da7d0b1e75",
+  "review_context": {
+    "file": "e46ea6518b151be180528574a4eb89d76b03aaf0b6f5e78784ffa9da7d0b1e75",
+    "current_lean_module": "import Mathlib.Probability.Distributions.Gaussian.Fernique\nimport Mathlib.Probability.Distributions.Gaussian.Multivariate\nimport AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity\nimport Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts\nimport Mathlib.Analysis.Calculus.ParametricIntegral\nimport Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv\nimport Mathlib.MeasureTheory.Integral.Prod\nimport Mathlib.Probability.Moments.MGFAnalytic\nimport Mathlib.Analysis.Calculus.BumpFunction.Convolution\nimport Mathlib.Analysis.Calculus.ContDiff.Convolution\nimport AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\nimport Mathlib.Tactic\n\n/-!\n# Gaussian exponential domains and sharp standard Gaussian concentration\n\nFernique domination gives first moments and every signed centered exponential\nmoment on a real second-countable Banach Borel space. For the actual standard\nGaussian on a finite-dimensional real Hilbert space, rotation and conditional\nStein yield the sharp coefficient 1/2; normalized smooth convolution removes\nthe internal C1 restriction without changing the Lipschitz constant. SPHMC's\nactual Gaussian output consumes these results with its own Bochner mean.\nDegenerate dimensions, zero constants and all signed parameters are included.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped NNReal ENNReal Convolution Topology\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential\n\ntheorem integrable_and_integrable_exp_centered_of_lipschitz\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    [CompleteSpace E] [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]\n    {μ : MeasureTheory.Measure E} [ProbabilityTheory.IsGaussian μ]\n    {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzWith L f) :\n    MeasureTheory.Integrable f μ ∧ ∀ t : ℝ,\n      MeasureTheory.Integrable\n        (fun x => Real.exp (t * (f x - ∫ z, f z ∂μ))) μ := by\n  have hbound (x : E) : |f x| ≤ (L : ℝ)*‖x‖+|f 0| := by\n    have hd := hf.dist_le_mul x 0\n    simp only [dist_eq_norm, sub_zero, Real.norm_eq_abs] at hd\n    calc\n      |f x| = |(f x-f 0)+f 0| := by congr 1; ring\n      _ ≤ |f x-f 0|+|f 0| := abs_add_le _ _\n      _ ≤ (L : ℝ)*‖x‖+|f 0| := add_le_add hd le_rfl\n  have hi : Integrable f μ :=\n    (((IsGaussian.integrable_id (μ := μ)).norm.const_mul (L : ℝ)).add\n      (integrable_const |f 0|)).mono' hf.continuous.aestronglyMeasurable\n        (ae_of_all _ fun x => by simpa only [Real.norm_eq_abs, Pi.add_apply, id_eq] using hbound x)\n  refine ⟨hi,fun t => ?_⟩\n  obtain ⟨C,hC,hint⟩ := IsGaussian.exists_integrable_exp_sq μ\n  let b : ℝ := |t| *(L : ℝ)\n  let D : ℝ := |t| *(|f 0|+|∫ z, f z ∂μ|)\n  have hb : 0 ≤ b := mul_nonneg (abs_nonneg _) L.coe_nonneg\n  have hdom (x : E) : t*(f x-∫ z, f z ∂μ) ≤\n      D+C⁻¹*b^2+C*‖x‖^2 := by\n    have hlin : t*(f x-∫ z, f z ∂μ) ≤ b*‖x‖+D := by\n      calc\n        _ ≤ |t*(f x-∫ z, f z ∂μ)| := le_abs_self _\n        _ = |t| *|f x-∫ z, f z ∂μ| := abs_mul _ _\n        _ ≤ |t| *(|f x|+|∫ z, f z ∂μ|) :=\n          mul_le_mul_of_nonneg_left (by simpa only [sub_zero, zero_sub, abs_neg] using\n            (abs_sub_le (f x) 0 (∫ z, f z ∂μ))) (abs_nonneg _)\n        _ ≤ |t| *((L : ℝ)*‖x‖+|f 0|+|∫ z, f z ∂μ|) :=\n          mul_le_mul_of_nonneg_left (add_le_add (hbound x) le_rfl) (abs_nonneg _)\n        _ = b*‖x‖+D := by dsimp [b,D]; ring\n    have hy : 2*‖x‖*b ≤ C*‖x‖^2+C⁻¹*b^2 := two_mul_le_add_mul_sq hC\n    have hnon : 0 ≤ b*‖x‖ := mul_nonneg hb (norm_nonneg _)\n    nlinarith\n  apply (hint.const_mul (Real.exp (D+C⁻¹*b^2))).mono'\n    (by fun_prop)\n  filter_upwards with x\n  rw [Real.norm_eq_abs,abs_of_pos (Real.exp_pos _),← Real.exp_add]\n  exact Real.exp_le_exp.mpr (hdom x)\n\n/- The zero-Lipschitz branch of the sealed sharp target is internal; this is\nnot an assertion of the remaining positive-dimensional concentration bound. -/\nprivate theorem centered_exp_integral_of_lipschitz_zero\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {f : E → ℝ} (hf : LipschitzWith 0 f) (t : ℝ) :\n    (∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E))\n      ∂stdGaussian E) = 1 := by\n  have hconst : f = fun _ => f 0 := by\n    funext x\n    have hd := hf.dist_le_mul x 0\n    simp only [NNReal.coe_zero, zero_mul] at hd\n    exact dist_eq_zero.mp (le_antisymm hd (dist_nonneg))\n  rw [hconst]\n  simp\n\nprivate theorem centered_exp_integral_of_subsingleton\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [Subsingleton E] (f : E → ℝ) (t : ℝ) :\n    (∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E))\n      ∂stdGaussian E) = 1 := by\n  have hconst : f = fun _ => f 0 := by\n    funext x\n    exact congrArg f (Subsingleton.elim x 0)\n  rw [hconst]\n  simp\n\n/- Radial domination is used on the actual product Gaussian when differentiating\nthe rotation integral. Its constants are domination constants, not the sharp\nconcentration coefficient. -/\nprivate theorem gaussian_radial_exponential_integrable\n    {H : Type*} [NormedAddCommGroup H] [NormedSpace ℝ H]\n    [CompleteSpace H] [SecondCountableTopology H] [MeasurableSpace H] [BorelSpace H]\n    {μ : Measure H} [IsGaussian μ] (a : ℝ) :\n    Integrable (fun x : H => Real.exp (a * ‖x‖)) μ := by\n  have hi := (integrable_and_integrable_exp_centered_of_lipschitz\n    (μ := μ) (lipschitzWith_one_norm : LipschitzWith 1 (norm : H → ℝ))).2 a\n  apply (hi.const_mul (Real.exp (a * ∫ x : H, ‖x‖ ∂μ))).congr\n  filter_upwards with x\n  rw [← Real.exp_add]\n  congr 1\n  ring\n\nprivate theorem gaussian_polynomial_radial_integrable\n    {H : Type*} [NormedAddCommGroup H] [NormedSpace ℝ H]\n    [CompleteSpace H] [SecondCountableTopology H] [MeasurableSpace H] [BorelSpace H]\n    {μ : Measure H} [IsGaussian μ] (a : ℝ) :\n    Integrable (fun x : H => (1 + ‖x‖)^2 * Real.exp (a * ‖x‖)) μ := by\n  apply (gaussian_radial_exponential_integrable (μ := μ) (a + 2)).mono' (by fun_prop)\n  filter_upwards with x\n  rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]\n  have hs : (1 + ‖x‖)^2 ≤ (Real.exp ‖x‖)^2 :=\n    (sq_le_sq₀ (by positivity) (Real.exp_pos _).le).2\n      (by simpa only [add_comm] using Real.add_one_le_exp ‖x‖)\n  calc\n    _ ≤ (Real.exp ‖x‖)^2 * Real.exp (a * ‖x‖) :=\n      mul_le_mul_of_nonneg_right hs (Real.exp_pos _).le\n    _ = _ := by\n      rw [pow_two, ← Real.exp_add, ← Real.exp_add]\n      congr 1\n      ring\n\nsection GaussianDensity\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\nprivate def standardWeight (x : E) : ℝ :=\n  ((Real.sqrt (2 * Real.pi))⁻¹) ^ Module.finrank ℝ E * Real.exp (-‖x‖^2 / 2)\n\nprivate theorem standardWeight_pos (x : E) : 0 < standardWeight x := by\n  dsimp [standardWeight]\n  positivity\n\nprivate theorem standardGaussian_density :\n    stdGaussian E = (volume : Measure E).withDensity\n      (fun x => ENNReal.ofReal (standardWeight x)) := by\n  have h := AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity\n    (E := E) 1 (by norm_num)\n  simpa only [Real.sqrt_one, one_smul, Measure.map_id', mul_one,\n    standardWeight] using h\n\nprivate theorem standardGaussian_weighted_integral (g : E → ℝ) :\n    (∫ x, g x ∂stdGaussian E) = ∫ x, standardWeight x * g x := by\n  rw [standardGaussian_density]\n  rw [integral_withDensity_eq_integral_toReal_smul (by unfold standardWeight; fun_prop)\n    (ae_of_all _ fun _ => ENNReal.ofReal_lt_top) g]\n  apply integral_congr_ae\n  filter_upwards with x\n  simp only [ENNReal.toReal_ofReal (standardWeight_pos x).le, smul_eq_mul]\n\nprivate theorem standardGaussian_weighted_integrable {g : E → ℝ}\n    (hg : Integrable g (stdGaussian E)) :\n    Integrable (fun x => standardWeight x * g x) (volume : Measure E) := by\n  rw [standardGaussian_density] at hg\n  have h := (integrable_withDensity_iff (by unfold standardWeight; fun_prop)\n    (ae_of_all _ fun _ => ENNReal.ofReal_lt_top)).1 hg\n  simpa only [ENNReal.toReal_ofReal (standardWeight_pos _).le, mul_comm] using h\n\nprivate theorem standardWeight_hasFDerivAt (x : E) :\n    HasFDerivAt (standardWeight : E → ℝ)\n      (-(standardWeight x) • innerSL ℝ x) x := by\n  let c : ℝ := ((Real.sqrt (2 * Real.pi))⁻¹) ^ Module.finrank ℝ E\n  have h := (((hasFDerivAt_id x).norm_sq.const_mul (-1 / 2 : ℝ)).exp).const_mul c\n  convert h using 1\n  all_goals try rfl\n  · funext y\n    dsimp only [standardWeight, c, id]\n    congr 1\n    ring\n  · ext v\n    dsimp only [standardWeight, c, id]\n    simp only [smul_apply, smul_eq_mul, innerSL_apply_apply,\n      ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply]\n    have he : (-1 / 2 : ℝ) * ‖x‖^2 = -‖x‖^2 / 2 := by ring\n    rw [he]\n    ring\n\nprivate theorem standardGaussian_stein_lipschitz_c1\n    {f : E → ℝ} {L : ℝ≥0} (hf : ContDiff ℝ 1 f)\n    (hLip : LipschitzWith L f) (v : E) :\n    (∫ x, inner ℝ x v * f x ∂stdGaussian E) =\n      ∫ x, fderiv ℝ f x v ∂stdGaussian E := by\n  have hfi := (integrable_and_integrable_exp_centered_of_lipschitz\n    (μ := stdGaussian E) hLip).1\n  have hn : Integrable (fun x : E => ‖x‖) (stdGaussian E) := IsGaussian.integrable_id.norm\n  have hsq := (StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian (E := E)).1\n  have hbound (x : E) : |f x| ≤ (L : ℝ)*‖x‖+|f 0| := by\n    have hd := hLip.dist_le_mul x 0\n    simp only [dist_eq_norm, sub_zero, Real.norm_eq_abs] at hd\n    calc\n      |f x| = |(f x-f 0)+f 0| := by congr 1; ring\n      _ ≤ |f x-f 0|+|f 0| := abs_add_le _ _\n      _ ≤ (L : ℝ)*‖x‖+|f 0| := add_le_add hd le_rfl\n  have hixf : Integrable (fun x => inner ℝ x v*f x) (stdGaussian E) := by\n    apply (((hsq.const_mul (L : ℝ)).add (hn.const_mul |f 0|)).const_mul ‖v‖).mono'\n      (by fun_prop)\n    filter_upwards with x\n    change ‖inner ℝ x v*f x‖ ≤ ‖v‖*((L : ℝ)*‖x‖^2+|f 0| * ‖x‖)\n    rw [norm_mul, Real.norm_eq_abs (f x)]\n    calc\n      ‖inner ℝ x v‖*|f x| ≤ (‖x‖*‖v‖)*((L : ℝ)*‖x‖+|f 0|) :=\n        mul_le_mul (norm_inner_le_norm x v) (hbound x) (abs_nonneg _) (by positivity)\n      _ = _ := by ring\n  have hdf : Integrable (fun x => fderiv ℝ f x v) (stdGaussian E) := by\n    apply (integrable_const ((L : ℝ)*‖v‖)).mono'\n      ((hf.continuous_fderiv (by norm_num)).clm_apply continuous_const).aestronglyMeasurable\n    filter_upwards with x\n    exact (ContinuousLinearMap.le_opNorm _ _).trans\n      (mul_le_mul_of_nonneg_right (norm_fderiv_le_of_lipschitz ℝ hLip) (norm_nonneg _))\n  have hDw (x : E) : fderiv ℝ (standardWeight : E → ℝ) x v =\n      -standardWeight x*inner ℝ x v := by\n    rw [(standardWeight_hasFDerivAt x).fderiv]\n    simp only [smul_apply, smul_eq_mul, innerSL_apply_apply]\n  have hwp := standardGaussian_weighted_integrable hfi\n  have hwdf := standardGaussian_weighted_integrable hdf\n  have hwxf := standardGaussian_weighted_integrable hixf\n  have hDwf : Integrable (fun x => fderiv ℝ (standardWeight : E → ℝ) x v*f x)\n      (volume : Measure E) := by\n    convert hwxf.neg using 1\n    ext x\n    rw [hDw]\n    simp only [Pi.neg_apply]\n    ring\n  have hparts := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hDwf hwdf hwp\n    (fun x _ => (standardWeight_hasFDerivAt x).differentiableAt)\n    (fun x _ => hf.differentiable_one x)\n  rw [standardGaussian_weighted_integral, standardGaussian_weighted_integral]\n  calc\n    (∫ x, standardWeight x*(inner ℝ x v*f x)) =\n        -(∫ x, fderiv ℝ (standardWeight : E → ℝ) x v*f x) := by\n      rw [← integral_neg]\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hDw]\n      ring\n    _ = ∫ x, standardWeight x*fderiv ℝ f x v := hparts.symm\n\n/- This uses Stein only for the affine pullback of the Lipschitz observable.\nThe exponential test function is not asserted to be globally Lipschitz. -/\nprivate theorem standardGaussian_stein_affine\n    {f : E → ℝ} {L : ℝ≥0} (hf : ContDiff ℝ 1 f)\n    (hLip : LipschitzWith L f) (c s : ℝ) (u a : E) :\n    (∫ v, inner ℝ v a * f (c • u - s • v) ∂stdGaussian E) =\n      -s * ∫ v, fderiv ℝ f (c • u - s • v) a ∂stdGaussian E := by\n  have hca : ContDiff ℝ 1 (fun v : E => c • u - s • v) := by fun_prop\n  have hla : LipschitzWith (L * Real.nnabs s) (fun v : E => f (c • u - s • v)) := by\n    apply LipschitzWith.of_dist_le_mul\n    intro x y\n    calc\n      _ ≤ (L : ℝ) * dist (c • u - s • x) (c • u - s • y) := hLip.dist_le_mul _ _\n      _ = ((L * Real.nnabs s : ℝ≥0) : ℝ) * dist x y := by\n        simp only [dist_eq_norm]\n        rw [show (c • u - s • x) - (c • u - s • y) = s • (y - x) by module]\n        rw [norm_smul, Real.norm_eq_abs, norm_sub_rev]\n        simp only [NNReal.coe_mul, Real.coe_nnabs]\n        ring\n  have hd (v : E) :\n      fderiv ℝ (fun v : E => f (c • u - s • v)) v a =\n        -s * fderiv ℝ f (c • u - s • v) a := by\n    have ha := ((hasFDerivAt_id (𝕜 := ℝ) v).const_smul s).const_sub (c • u)\n    have hh := ((hf.differentiable_one _).hasFDerivAt.comp v ha).fderiv\n    simp only [Function.comp_def, Pi.smul_apply, id_eq] at hh\n    rw [hh]\n    simp\n  rw [standardGaussian_stein_lipschitz_c1\n    (f := fun v => f (c • u - s • v)) (hf.comp hca) hla a]\n  simp_rw [hd]\n  exact integral_const_mul _ _\n\nprivate theorem standardGaussian_rotation_integral\n    (θ : ℝ) {h : E × E → ℝ} (hh : Continuous h) :\n    (∫ p, h (ContinuousLinearMap.rotation θ p)\n      ∂(stdGaussian E).prod (stdGaussian E)) =\n      ∫ p, h p ∂(stdGaussian E).prod (stdGaussian E) := by\n  have hm := IsGaussian.map_rotation_eq_self\n    (μ := stdGaussian E) (integral_id_stdGaussian (E := E)) θ\n  have hi := integral_map (μ := (stdGaussian E).prod (stdGaussian E))\n    (ContinuousLinearMap.rotation θ).continuous.measurable.aemeasurable\n    hh.aestronglyMeasurable\n  rw [hm] at hi\n  exact hi.symm\n\nprivate def rotX (θ : ℝ) (p : E × E) : E :=\n  Real.cos θ • p.1 + Real.sin θ • p.2\n\nprivate def rotY (θ : ℝ) (p : E × E) : E :=\n  -Real.sin θ • p.1 + Real.cos θ • p.2\n\nprivate theorem norm_linear_pair_le_two {c s : ℝ}\n    (hc : |c| ≤ 1) (hs : |s| ≤ 1) (p : E × E) :\n    ‖c • p.1 + s • p.2‖ ≤ 2 * ‖p‖ := by\n  calc\n    _ ≤ ‖c • p.1‖ + ‖s • p.2‖ := norm_add_le _ _\n    _ = |c| * ‖p.1‖ + |s| * ‖p.2‖ := by simp only [norm_smul, Real.norm_eq_abs]\n    _ ≤ ‖p.1‖ + ‖p.2‖ := add_le_add\n      (by simpa only [one_mul] using mul_le_mul_of_nonneg_right hc (norm_nonneg p.1))\n      (by simpa only [one_mul] using mul_le_mul_of_nonneg_right hs (norm_nonneg p.2))\n    _ ≤ 2 * ‖p‖ := by linarith [norm_fst_le p, norm_snd_le p]\n\nprivate theorem norm_rotX_le (θ : ℝ) (p : E × E) : ‖rotX θ p‖ ≤ 2 * ‖p‖ :=\n  norm_linear_pair_le_two (Real.abs_cos_le_one θ) (Real.abs_sin_le_one θ) p\n\nprivate theorem norm_rotY_le (θ : ℝ) (p : E × E) : ‖rotY θ p‖ ≤ 2 * ‖p‖ :=\n  norm_linear_pair_le_two (by simpa only [abs_neg] using Real.abs_sin_le_one θ)\n    (Real.abs_cos_le_one θ) p\n\nprivate theorem rotX_hasDerivAt (θ : ℝ) (p : E × E) :\n    HasDerivAt (fun θ => rotX θ p) (rotY θ p) θ := by\n  exact ((Real.hasDerivAt_cos θ).smul_const p.1).add\n    ((Real.hasDerivAt_sin θ).smul_const p.2)\n\nprivate theorem lipschitz_growth_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (x : E) : |f x| ≤ (L : ℝ) * ‖x‖ + |f 0| := by\n  have hd := hf.dist_le_mul x 0\n  simp only [dist_eq_norm, sub_zero, Real.norm_eq_abs] at hd\n  calc\n    |f x| = |(f x - f 0) + f 0| := by congr 1; ring\n    _ ≤ |f x - f 0| + |f 0| := abs_add_le _ _\n    _ ≤ (L : ℝ) * ‖x‖ + |f 0| := add_le_add hd le_rfl\n\nprivate theorem rotated_laplace_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (t m θ : ℝ) (p : E × E) :\n    Real.exp (t * (f (rotX θ p) - m)) ≤\n      Real.exp (|t| * (|f 0| + |m|)) * Real.exp ((2 * |t| * (L : ℝ)) * ‖p‖) := by\n  rw [← Real.exp_add]\n  apply Real.exp_le_exp.mpr\n  have hfrot : |f (rotX θ p)| ≤ (L : ℝ) * (2 * ‖p‖) + |f 0| :=\n    (lipschitz_growth_bound hf _).trans\n      (add_le_add (mul_le_mul_of_nonneg_left (norm_rotX_le θ p) L.coe_nonneg) le_rfl)\n  calc\n    _ ≤ |t * (f (rotX θ p) - m)| := le_abs_self _\n    _ = |t| * |f (rotX θ p) - m| := abs_mul _ _\n    _ ≤ |t| * (|f (rotX θ p)| + |m|) :=\n      mul_le_mul_of_nonneg_left (abs_sub _ _) (abs_nonneg _)\n    _ ≤ |t| * ((L : ℝ) * (2 * ‖p‖) + |f 0| + |m|) :=\n      mul_le_mul_of_nonneg_left (add_le_add hfrot le_rfl) (abs_nonneg _)\n    _ = _ := by ring\n\nprivate theorem rotated_laplace_value_integrable {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (t m θ : ℝ) :\n    Integrable (fun p : E × E => f p.1 * Real.exp (t * (f (rotX θ p) - m)))\n      ((stdGaussian E).prod (stdGaussian E)) := by\n  let C : ℝ := (L : ℝ) + |f 0|\n  let B : ℝ := Real.exp (|t| * (|f 0| + |m|))\n  let A : ℝ := 2 * |t| * (L : ℝ)\n  have hcont := hf.continuous\n  apply ((gaussian_polynomial_radial_integrable\n    (μ := (stdGaussian E).prod (stdGaussian E)) A).const_mul (C * B)).mono'\n    (by unfold rotX; fun_prop)\n  filter_upwards with p\n  change ‖f p.1 * Real.exp (t * (f (rotX θ p) - m))‖ ≤\n    (C * B) * ((1 + ‖p‖)^2 * Real.exp (A * ‖p‖))\n  have hc : 0 ≤ C := by dsimp [C]; positivity\n  have hg : |f p.1| ≤ C * (1 + ‖p‖) := by\n    have h := (lipschitz_growth_bound hf p.1).trans\n      (add_le_add (mul_le_mul_of_nonneg_left (norm_fst_le p) L.coe_nonneg) le_rfl)\n    dsimp [C]\n    nlinarith [norm_nonneg p, abs_nonneg (f 0)]\n  have hp : 1 + ‖p‖ ≤ (1 + ‖p‖)^2 := by nlinarith [norm_nonneg p]\n  rw [norm_mul, Real.norm_eq_abs (f p.1), Real.norm_eq_abs,\n    abs_of_pos (Real.exp_pos _)]\n  calc\n    _ ≤ (C * (1 + ‖p‖)) * (B * Real.exp (A * ‖p‖)) :=\n      mul_le_mul hg (rotated_laplace_bound hf t m θ p) (Real.exp_pos _).le\n        (mul_nonneg hc (by positivity))\n    _ = (C * B * Real.exp (A * ‖p‖)) * (1 + ‖p‖) := by ring\n    _ ≤ (C * B * Real.exp (A * ‖p‖)) * (1 + ‖p‖)^2 :=\n      mul_le_mul_of_nonneg_left hp (by dsimp [B]; positivity)\n    _ = _ := by ring\n\nprivate def rotatedLaplaceDerivative (f : E → ℝ) (t m θ : ℝ) (p : E × E) : ℝ :=\n  f p.1 * (Real.exp (t * (f (rotX θ p) - m)) * (t * fderiv ℝ f (rotX θ p) (rotY θ p)))\n\nprivate theorem rotated_laplace_hasDerivAt {f : E → ℝ}\n    (hf : ContDiff ℝ 1 f) (t m θ : ℝ) (p : E × E) :\n    HasDerivAt (fun θ => f p.1 * Real.exp (t * (f (rotX θ p) - m)))\n      (rotatedLaplaceDerivative f t m θ p) θ := by\n  have hd := (hf.differentiable_one (rotX θ p)).hasFDerivAt.comp_hasDerivAt θ\n    (rotX_hasDerivAt θ p)\n  simpa only [Function.comp_def, rotatedLaplaceDerivative] using\n    (((hd.sub_const m).const_mul t).exp.const_mul (f p.1))\n\nprivate theorem rotated_laplace_derivative_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (t m θ : ℝ) (p : E × E) :\n    ‖rotatedLaplaceDerivative f t m θ p‖ ≤\n      (2 * ((L : ℝ) + |f 0|) * Real.exp (|t| * (|f 0| + |m|)) * |t| * (L : ℝ)) *\n        ((1 + ‖p‖)^2 * Real.exp ((2 * |t| * (L : ℝ)) * ‖p‖)) := by\n  let C : ℝ := (L : ℝ) + |f 0|\n  let B : ℝ := Real.exp (|t| * (|f 0| + |m|))\n  let A : ℝ := 2 * |t| * (L : ℝ)\n  have hc : 0 ≤ C := by dsimp [C]; positivity\n  have hb : 0 < B := Real.exp_pos _\n  have hg : |f p.1| ≤ C * (1 + ‖p‖) := by\n    have h := (lipschitz_growth_bound hf p.1).trans\n      (add_le_add (mul_le_mul_of_nonneg_left (norm_fst_le p) L.coe_nonneg) le_rfl)\n    dsimp [C]\n    nlinarith [norm_nonneg p, abs_nonneg (f 0)]\n  have hd : |fderiv ℝ f (rotX θ p) (rotY θ p)| ≤ (L : ℝ) * (2 * ‖p‖) := by\n    rw [← Real.norm_eq_abs]\n    exact ((ContinuousLinearMap.le_opNorm _ _).trans\n      (mul_le_mul_of_nonneg_right (norm_fderiv_le_of_lipschitz ℝ hf) (norm_nonneg _))).trans\n        (mul_le_mul_of_nonneg_left (norm_rotY_le θ p) L.coe_nonneg)\n  change ‖f p.1 * (Real.exp (t * (f (rotX θ p) - m)) *\n    (t * fderiv ℝ f (rotX θ p) (rotY θ p)))‖ ≤\n      (2 * C * B * |t| * (L : ℝ)) * ((1 + ‖p‖)^2 * Real.exp (A * ‖p‖))\n  rw [Real.norm_eq_abs]\n  simp only [abs_mul, abs_of_pos (Real.exp_pos _)]\n  calc\n    _ ≤ (C * (1 + ‖p‖)) * ((B * Real.exp (A * ‖p‖)) *\n        (|t| * ((L : ℝ) * (2 * ‖p‖)))) := by\n      gcongr\n      exact rotated_laplace_bound hf t m θ p\n    _ = (2 * C * B * |t| * (L : ℝ) * Real.exp (A * ‖p‖)) * ((1 + ‖p‖) * ‖p‖) := by ring\n    _ ≤ (2 * C * B * |t| * (L : ℝ) * Real.exp (A * ‖p‖)) * (1 + ‖p‖)^2 :=\n      mul_le_mul_of_nonneg_left (by nlinarith [norm_nonneg p]) (by positivity)\n    _ = _ := by ring\n\nprivate theorem rotated_laplace_derivative_integrable {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t m θ : ℝ) :\n    Integrable (rotatedLaplaceDerivative f t m θ) ((stdGaussian E).prod (stdGaussian E)) := by\n  have hcf := hf.continuous\n  have hdf := hf.continuous_fderiv (by norm_num)\n  apply ((gaussian_polynomial_radial_integrable\n    (μ := (stdGaussian E).prod (stdGaussian E)) (2 * |t| * (L : ℝ))).const_mul\n      (2 * ((L : ℝ) + |f 0|) * Real.exp (|t| * (|f 0| + |m|)) * |t| * (L : ℝ))).mono'\n    (by unfold rotatedLaplaceDerivative rotX rotY; fun_prop)\n  exact ae_of_all _ (rotated_laplace_derivative_bound hLip t m θ)\n\nprivate theorem rotated_laplace_integral_hasDerivAt {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t m θ : ℝ) :\n    HasDerivAt\n      (fun θ => ∫ p : E × E, f p.1 * Real.exp (t * (f (rotX θ p) - m))\n        ∂(stdGaussian E).prod (stdGaussian E))\n      (∫ p, rotatedLaplaceDerivative f t m θ p\n        ∂(stdGaussian E).prod (stdGaussian E)) θ := by\n  have hcf := hf.continuous\n  have hdf := hf.continuous_fderiv (by norm_num)\n  have h := hasDerivAt_integral_of_dominated_loc_of_deriv_le\n    (μ := (stdGaussian E).prod (stdGaussian E))\n    (F := fun θ p => f p.1 * Real.exp (t * (f (rotX θ p) - m)))\n    (F' := fun θ => rotatedLaplaceDerivative f t m θ)\n    (s := Set.univ)\n    (bound := fun p =>\n      (2 * ((L : ℝ) + |f 0|) * Real.exp (|t| * (|f 0| + |m|)) * |t| * (L : ℝ)) *\n        ((1 + ‖p‖)^2 * Real.exp ((2 * |t| * (L : ℝ)) * ‖p‖)))\n    (by simp)\n    (Filter.Eventually.of_forall fun _ => by unfold rotX; fun_prop)\n    (rotated_laplace_value_integrable hLip t m θ)\n    (by unfold rotatedLaplaceDerivative rotX rotY; fun_prop)\n    (ae_of_all _ fun p θ _ => rotated_laplace_derivative_bound hLip t m θ p)\n    ((gaussian_polynomial_radial_integrable\n      (μ := (stdGaussian E).prod (stdGaussian E)) (2 * |t| * (L : ℝ))).const_mul _)\n    (ae_of_all _ fun p θ _ => rotated_laplace_hasDerivAt hf t m θ p)\n  exact h.2\n\nprivate theorem affine_stein_laplace_slice {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t m c s : ℝ) (u : E) :\n    (∫ v, f (c • u - s • v) *\n      (Real.exp (t * (f u - m)) * (t * fderiv ℝ f u v)) ∂stdGaussian E) =\n      -s * Real.exp (t * (f u - m)) * t *\n        ∫ v, fderiv ℝ f (c • u - s • v)\n          ((InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)) ∂stdGaussian E := by\n  let a : E := (InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)\n  have ha (v : E) : inner ℝ v a = fderiv ℝ f u v := by\n    rw [real_inner_comm]\n    exact InnerProductSpace.toDual_symm_apply\n  have he : (fun v => f (c • u - s • v) *\n      (Real.exp (t * (f u - m)) * (t * fderiv ℝ f u v))) =\n      fun v => (Real.exp (t * (f u - m)) * t) * (inner ℝ v a * f (c • u - s • v)) := by\n    funext v\n    rw [ha]\n    ring\n  rw [he, integral_const_mul, standardGaussian_stein_affine hf hLip c s u a]\n  ring\n\nprivate theorem affine_directional_derivative_integral_norm_le {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (c s : ℝ) (u : E) :\n    ‖∫ v, fderiv ℝ f (c • u - s • v)\n      ((InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)) ∂stdGaussian E‖ ≤ (L : ℝ)^2 := by\n  let a : E := (InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)\n  have hn : ‖a‖ ≤ (L : ℝ) := by\n    dsimp [a]\n    rw [LinearIsometryEquiv.norm_map]\n    exact norm_fderiv_le_of_lipschitz ℝ hLip\n  have hb (v : E) : ‖fderiv ℝ f (c • u - s • v) a‖ ≤ (L : ℝ)^2 := by\n    calc\n      _ ≤ ‖fderiv ℝ f (c • u - s • v)‖ * ‖a‖ := ContinuousLinearMap.le_opNorm _ _\n      _ ≤ (L : ℝ) * (L : ℝ) :=\n        mul_le_mul (norm_fderiv_le_of_lipschitz ℝ hLip) hn (norm_nonneg _) L.coe_nonneg\n      _ = _ := by ring\n  have h := norm_integral_le_of_norm_le_const (μ := stdGaussian E) (ae_of_all _ hb)\n  simpa [a] using h\n\nprivate theorem rotation_inverse_first (θ : ℝ) (p : E × E) :\n    Real.cos θ • rotX θ p - Real.sin θ • rotY θ p = p.1 := by\n  have hc : Real.cos θ * Real.cos θ + Real.sin θ * Real.sin θ = 1 := by\n    nlinarith [Real.sin_sq_add_cos_sq θ]\n  calc\n    _ = (Real.cos θ * Real.cos θ + Real.sin θ * Real.sin θ) • p.1 +\n        (Real.cos θ * Real.sin θ - Real.sin θ * Real.cos θ) • p.2 := by\n      dsimp [rotX, rotY]\n      module\n    _ = _ := by simp [hc, mul_comm]\n\nprivate theorem rotated_laplace_derivative_integral_identity {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t m θ : ℝ) :\n    (∫ p, rotatedLaplaceDerivative f t m θ p\n      ∂(stdGaussian E).prod (stdGaussian E)) =\n      (-Real.sin θ * t) * ∫ u, Real.exp (t * (f u - m)) *\n        (∫ v, fderiv ℝ f (Real.cos θ • u - Real.sin θ • v)\n          ((InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)) ∂stdGaussian E)\n        ∂stdGaussian E := by\n  let h : E × E → ℝ := fun p => f (Real.cos θ • p.1 - Real.sin θ • p.2) *\n    (Real.exp (t * (f p.1 - m)) * (t * fderiv ℝ f p.1 p.2))\n  have hcf := hf.continuous\n  have hdf := hf.continuous_fderiv (by norm_num)\n  have hcont : Continuous h := by dsimp [h]; fun_prop\n  have he (p : E × E) : h (ContinuousLinearMap.rotation θ p) =\n      rotatedLaplaceDerivative f t m θ p := by\n    change f (Real.cos θ • rotX θ p - Real.sin θ • rotY θ p) *\n      (Real.exp (t * (f (rotX θ p) - m)) * (t * fderiv ℝ f (rotX θ p) (rotY θ p))) = _\n    rw [rotation_inverse_first]\n    rfl\n  have hm := IsGaussian.map_rotation_eq_self\n    (μ := stdGaussian E) (integral_id_stdGaussian (E := E)) θ\n  have hi : Integrable h ((stdGaussian E).prod (stdGaussian E)) := by\n    have hic : Integrable (h ∘ ContinuousLinearMap.rotation θ)\n        ((stdGaussian E).prod (stdGaussian E)) :=\n      (rotated_laplace_derivative_integrable hf hLip t m θ).congr\n        (ae_of_all _ fun p => (he p).symm)\n    have hmap := (integrable_map_measure\n      (μ := (stdGaussian E).prod (stdGaussian E)) hcont.aestronglyMeasurable\n      (ContinuousLinearMap.rotation θ).continuous.measurable.aemeasurable).2 hic\n    rwa [hm] at hmap\n  calc\n    _ = ∫ p, h (ContinuousLinearMap.rotation θ p)\n        ∂(stdGaussian E).prod (stdGaussian E) := integral_congr_ae\n          (ae_of_all _ fun p => (he p).symm)\n    _ = ∫ p, h p ∂(stdGaussian E).prod (stdGaussian E) :=\n      standardGaussian_rotation_integral θ hcont\n    _ = ∫ u, ∫ v, h (u, v) ∂stdGaussian E ∂stdGaussian E := integral_prod _ hi\n    _ = ∫ u, -Real.sin θ * Real.exp (t * (f u - m)) * t *\n        (∫ v, fderiv ℝ f (Real.cos θ • u - Real.sin θ • v)\n          ((InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)) ∂stdGaussian E)\n        ∂stdGaussian E := by\n      apply integral_congr_ae\n      filter_upwards with u\n      exact affine_stein_laplace_slice hf hLip t m (Real.cos θ) (Real.sin θ) u\n    _ = _ := by\n      rw [← integral_const_mul]\n      apply integral_congr_ae\n      filter_upwards with u\n      ring\n\nprivate theorem rotated_laplace_derivative_integral_lower_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t m θ : ℝ)\n    (ht : 0 ≤ t) (hs : 0 ≤ Real.sin θ) :\n    (-Real.sin θ * t) * ((L : ℝ)^2 * ∫ u, Real.exp (t * (f u - m)) ∂stdGaussian E) ≤\n      ∫ p, rotatedLaplaceDerivative f t m θ p\n        ∂(stdGaussian E).prod (stdGaussian E) := by\n  let I : E → ℝ := fun u => ∫ v, fderiv ℝ f (Real.cos θ • u - Real.sin θ • v)\n    ((InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f u)) ∂stdGaussian E\n  have hdf := hf.continuous_fderiv (by norm_num)\n  have hcf := hf.continuous\n  have hI : StronglyMeasurable I := by\n    have hcont : Continuous (fun p : E × E =>\n        fderiv ℝ f (Real.cos θ • p.1 - Real.sin θ • p.2)\n          ((InnerProductSpace.toDual ℝ E).symm (fderiv ℝ f p.1))) := by fun_prop\n    exact hcont.stronglyMeasurable.integral_prod_right'\n  have hIn (u : E) : ‖I u‖ ≤ (L : ℝ)^2 :=\n    affine_directional_derivative_integral_norm_le hf hLip (Real.cos θ) (Real.sin θ) u\n  have hExp : Integrable (fun u => Real.exp (t * (f u - m))) (stdGaussian E) := by\n    have he := (integrable_and_integrable_exp_centered_of_lipschitz\n      (μ := stdGaussian E) hLip).2 t\n    apply (he.const_mul (Real.exp (t * (∫ u, f u ∂stdGaussian E - m)))).congr\n    filter_upwards with u\n    rw [← Real.exp_add]\n    congr 1\n    ring\n  have hJ : Integrable (fun u => Real.exp (t * (f u - m)) * I u) (stdGaussian E) := by\n    apply (hExp.mul_const ((L : ℝ)^2)).mono'\n      ((by fun_prop : Continuous (fun u => Real.exp (t * (f u - m)))).aestronglyMeasurable.mul\n        hI.aestronglyMeasurable)\n    filter_upwards with u\n    change ‖Real.exp (t * (f u - m)) * I u‖ ≤ Real.exp (t * (f u - m)) * (L : ℝ)^2\n    simp only [norm_mul, Real.norm_eq_abs (Real.exp _), abs_of_pos (Real.exp_pos _)]\n    exact mul_le_mul_of_nonneg_left (hIn u) (Real.exp_pos _).le\n  have hupper : (∫ u, Real.exp (t * (f u - m)) * I u ∂stdGaussian E) ≤\n      (L : ℝ)^2 * ∫ u, Real.exp (t * (f u - m)) ∂stdGaussian E := by\n    rw [← integral_const_mul]\n    apply integral_mono hJ (hExp.const_mul _)\n    intro u\n    change Real.exp (t * (f u - m)) * I u ≤ (L : ℝ)^2 * Real.exp (t * (f u - m))\n    rw [mul_comm ((L : ℝ)^2)]\n    exact mul_le_mul_of_nonneg_left\n      ((le_abs_self (I u)).trans (by simpa only [Real.norm_eq_abs] using hIn u))\n      (Real.exp_pos _).le\n  rw [rotated_laplace_derivative_integral_identity hf hLip]\n  exact mul_le_mul_of_nonpos_left hupper (mul_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr hs) ht)\n\nprivate theorem gaussian_laplace_covariance_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t m : ℝ) (ht : 0 ≤ t) :\n    (∫ x, f x * Real.exp (t * (f x - m)) ∂stdGaussian E) -\n      (∫ x, f x ∂stdGaussian E) * (∫ x, Real.exp (t * (f x - m)) ∂stdGaussian E) ≤\n        t * (L : ℝ)^2 * ∫ x, Real.exp (t * (f x - m)) ∂stdGaussian E := by\n  let F : ℝ → ℝ := fun θ => ∫ p : E × E, f p.1 * Real.exp (t * (f (rotX θ p) - m))\n    ∂(stdGaussian E).prod (stdGaussian E)\n  let M : ℝ := ∫ x, Real.exp (t * (f x - m)) ∂stdGaussian E\n  let C : ℝ := t * (L : ℝ)^2 * M\n  let H : ℝ → ℝ := fun θ => F θ - Real.cos θ * C\n  let D : ℝ → ℝ := fun θ => ∫ p, rotatedLaplaceDerivative f t m θ p\n    ∂(stdGaussian E).prod (stdGaussian E)\n  have hd (θ : ℝ) : HasDerivAt H (D θ + Real.sin θ * C) θ := by\n    simpa only [H, F, D, Pi.sub_apply, neg_mul, sub_neg_eq_add] using!\n      (rotated_laplace_integral_hasDerivAt hf hLip t m θ).sub\n        ((Real.hasDerivAt_cos θ).mul_const C)\n  have hcont : Continuous H := continuous_iff_continuousAt.2 (fun θ => (hd θ).continuousAt)\n  have hm : MonotoneOn H (Set.Icc 0 (Real.pi / 2)) := by\n    apply monotoneOn_of_hasDerivWithinAt_nonneg (convex_Icc _ _) hcont.continuousOn\n      (fun θ _ => (hd θ).hasDerivWithinAt)\n    intro θ hθ\n    have hθ' := interior_subset hθ\n    have hs : 0 ≤ Real.sin θ := Real.sin_nonneg_of_nonneg_of_le_pi hθ'.1\n      (by linarith [hθ'.2, Real.pi_pos])\n    have hb := rotated_laplace_derivative_integral_lower_bound hf hLip t m θ ht hs\n    change 0 ≤ D θ + Real.sin θ * C\n    dsimp [D, C, M]\n    nlinarith\n  have hzero : F 0 = ∫ x, f x * Real.exp (t * (f x - m)) ∂stdGaussian E := by\n    dsimp [F]\n    rw [integral_prod _ (rotated_laplace_value_integrable hLip t m 0)]\n    simp [rotX]\n  have hpi : F (Real.pi / 2) = (∫ x, f x ∂stdGaussian E) * M := by\n    dsimp [F, M]\n    rw [integral_prod _ (rotated_laplace_value_integrable hLip t m (Real.pi / 2))]\n    simp only [rotX, Real.cos_pi_div_two, Real.sin_pi_div_two, zero_smul, one_smul,\n      zero_add, integral_const_mul, integral_mul_const]\n  have hh := hm (show 0 ∈ Set.Icc 0 (Real.pi / 2) by constructor; rfl; positivity)\n    (show Real.pi / 2 ∈ Set.Icc 0 (Real.pi / 2) by constructor; positivity; rfl)\n    (by positivity)\n  simp only [H, Real.cos_zero, one_mul, Real.cos_pi_div_two, zero_mul, sub_zero,\n    hzero, hpi] at hh\n  dsimp [C, M] at hh\n  linarith\n\nprivate theorem gaussian_centered_integrableExpSet {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) :\n    integrableExpSet (fun x => f x - ∫ z, f z ∂stdGaussian E) (stdGaussian E) = Set.univ := by\n  apply Set.eq_univ_of_forall\n  intro t\n  exact (integrable_and_integrable_exp_centered_of_lipschitz (μ := stdGaussian E) hf).2 t\n\nprivate theorem gaussian_centered_laplace_hasDerivAt {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (t : ℝ) :\n    HasDerivAt\n      (fun t => ∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E)\n      (∫ x, (f x - ∫ z, f z ∂stdGaussian E) *\n        Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E) t := by\n  have ht : t ∈ interior (integrableExpSet\n      (fun x => f x - ∫ z, f z ∂stdGaussian E) (stdGaussian E)) := by\n    rw [gaussian_centered_integrableExpSet hf, interior_univ]\n    exact Set.mem_univ t\n  convert! hasDerivAt_mgf ht using 1\n\nprivate theorem gaussian_centered_laplace_derivative_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t : ℝ) (ht : 0 ≤ t) :\n    (∫ x, (f x - ∫ z, f z ∂stdGaussian E) *\n      Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E) ≤\n      t * (L : ℝ)^2 * ∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E := by\n  let m : ℝ := ∫ z, f z ∂stdGaussian E\n  have he := (integrable_and_integrable_exp_centered_of_lipschitz (μ := stdGaussian E) hLip).2 t\n  have hti : t ∈ interior (integrableExpSet (fun x => f x - m) (stdGaussian E)) := by\n    rw [gaussian_centered_integrableExpSet hLip, interior_univ]\n    exact Set.mem_univ t\n  have hp : Integrable (fun x => (f x - m) * Real.exp (t * (f x - m))) (stdGaussian E) := by\n    simpa only [pow_one] using integrable_pow_mul_exp_of_mem_interior_integrableExpSet hti 1\n  have hfp : Integrable (fun x => f x * Real.exp (t * (f x - m))) (stdGaussian E) := by\n    apply (hp.add (he.const_mul m)).congr\n    filter_upwards with x\n    change (f x - m) * Real.exp (t * (f x - m)) + m * Real.exp (t * (f x - m)) = _\n    ring\n  change (∫ x, (f x - m) * Real.exp (t * (f x - m)) ∂stdGaussian E) ≤ _\n  calc\n    _ = (∫ x, f x * Real.exp (t * (f x - m)) ∂stdGaussian E) -\n        m * (∫ x, Real.exp (t * (f x - m)) ∂stdGaussian E) := by\n      rw [← integral_const_mul, ← integral_sub hfp (he.const_mul m)]\n      apply integral_congr_ae\n      filter_upwards with x\n      ring\n    _ ≤ _ := gaussian_laplace_covariance_bound hf hLip t m ht\n\nprivate theorem gaussian_centered_laplace_bound_c1_nonneg {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t : ℝ) (ht : 0 ≤ t) :\n    (∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E) ≤\n      Real.exp ((L : ℝ)^2 * t^2 / 2) := by\n  let M : ℝ → ℝ := fun s => ∫ x, Real.exp (s * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E\n  let D : ℝ → ℝ := fun s => ∫ x, (f x - ∫ z, f z ∂stdGaussian E) *\n    Real.exp (s * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E\n  let W : ℝ → ℝ := fun s => Real.exp ((-(L : ℝ)^2 / 2) * s^2) * M s\n  have hd (s : ℝ) : HasDerivAt W\n      (Real.exp ((-(L : ℝ)^2 / 2) * s^2) * (D s - (L : ℝ)^2 * s * M s)) s := by\n    have hq : HasDerivAt (fun y : ℝ => (-(L : ℝ)^2 / 2) * y^2) (-(L : ℝ)^2 * s) s := by\n      convert! ((hasDerivAt_id s).pow 2).const_mul (-(L : ℝ)^2 / 2) using 1 <;>\n        simp only [id_eq] <;> ring\n    convert! hq.exp.mul (gaussian_centered_laplace_hasDerivAt hLip s) using 1 <;>\n      dsimp only [W, M, D] <;> ring\n  have hcont : Continuous W := continuous_iff_continuousAt.2 (fun s => (hd s).continuousAt)\n  have hm : AntitoneOn W (Set.Ici 0) := by\n    apply antitoneOn_of_hasDerivWithinAt_nonpos (convex_Ici _) hcont.continuousOn\n      (fun s _ => (hd s).hasDerivWithinAt)\n    intro s hs\n    have hs' : 0 ≤ s := interior_subset hs\n    have hb := gaussian_centered_laplace_derivative_bound hf hLip s hs'\n    apply mul_nonpos_of_nonneg_of_nonpos (Real.exp_pos _).le\n    dsimp [D, M]\n    nlinarith\n  have hw := hm (show 0 ∈ Set.Ici (0 : ℝ) by simp)\n    (show t ∈ Set.Ici (0 : ℝ) by simpa only [Set.mem_Ici] using ht) ht\n  have hw' : Real.exp ((-(L : ℝ)^2 / 2) * t^2) * M t ≤ 1 := by\n    simpa [W, M] using hw\n  change M t ≤ _\n  calc\n    M t = Real.exp ((L : ℝ)^2 * t^2 / 2) *\n        (Real.exp ((-(L : ℝ)^2 / 2) * t^2) * M t) := by\n      rw [← mul_assoc, ← Real.exp_add]\n      have hz : (L : ℝ)^2 * t^2 / 2 + (-(L : ℝ)^2 / 2) * t^2 = 0 := by ring\n      rw [hz, Real.exp_zero, one_mul]\n    _ ≤ Real.exp ((L : ℝ)^2 * t^2 / 2) * 1 :=\n      mul_le_mul_of_nonneg_left hw' (Real.exp_pos _).le\n    _ = _ := mul_one _\n\nprivate theorem gaussian_centered_laplace_bound_c1 {f : E → ℝ} {L : ℝ≥0}\n    (hf : ContDiff ℝ 1 f) (hLip : LipschitzWith L f) (t : ℝ) :\n    (∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E) ≤\n      Real.exp ((L : ℝ)^2 * t^2 / 2) := by\n  by_cases ht : 0 ≤ t\n  · exact gaussian_centered_laplace_bound_c1_nonneg hf hLip t ht\n  · have h := gaussian_centered_laplace_bound_c1_nonneg hf.neg hLip.neg (-t) (by linarith)\n    simp only [Pi.neg_apply, integral_neg] at h\n    convert! h using 1\n    · apply integral_congr_ae\n      filter_upwards with x\n      congr 1\n      ring\n    · congr 1\n      ring\n\nprivate theorem normed_bump_convolution_lipschitz {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (φ : ContDiffBump (0 : E)) :\n    LipschitzWith L (φ.normed volume ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] f) := by\n  have hc := φ.hasCompactSupport_normed (μ := (volume : Measure E))\n  have he := hc.convolutionExists_left (μ := (volume : Measure E)) (ContinuousLinearMap.lsmul ℝ ℝ)\n    φ.continuous_normed hf.continuous.locallyIntegrable\n  have hei (x : E) : Integrable (fun z => φ.normed volume z * f (x - z)) (volume : Measure E) := by\n    simpa only [ConvolutionExistsAt, ContinuousLinearMap.lsmul_apply, smul_eq_mul] using he x\n  apply LipschitzWith.of_dist_le_mul\n  intro x y\n  change ‖(∫ z, φ.normed volume z * f (x - z)) -\n    (∫ z, φ.normed volume z * f (y - z))‖ ≤ (L : ℝ) * dist x y\n  rw [← integral_sub (hei x) (hei y)]\n  calc\n    _ ≤ ∫ z, ‖φ.normed volume z * f (x - z) - φ.normed volume z * f (y - z)‖ :=\n      norm_integral_le_integral_norm _\n    _ ≤ ∫ z, φ.normed volume z * ((L : ℝ) * dist x y) := by\n      apply integral_mono ((hei x).sub (hei y)).norm\n        (φ.integrable_normed.mul_const _)\n      intro z\n      change ‖φ.normed volume z * f (x - z) - φ.normed volume z * f (y - z)‖ ≤ _\n      rw [← mul_sub, norm_mul, Real.norm_eq_abs (φ.normed volume z),\n        abs_of_nonneg (φ.nonneg_normed z)]\n      apply mul_le_mul_of_nonneg_left _ (φ.nonneg_normed z)\n      simpa only [dist_eq_norm, sub_sub_sub_cancel_right] using hf.dist_le_mul (x - z) (y - z)\n    _ = _ := by rw [integral_mul_const, φ.integral_normed, one_mul]\n\nprivate theorem normed_bump_convolution_error {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (φ : ContDiffBump (0 : E)) (x : E) :\n    |(φ.normed volume ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] f) x - f x| ≤\n      (L : ℝ) * φ.rOut := by\n  rw [← Real.norm_eq_abs, ← dist_eq_norm]\n  apply φ.dist_normed_convolution_le hf.continuous.aestronglyMeasurable\n  intro z hz\n  exact (hf.dist_le_mul z x).trans\n    (mul_le_mul_of_nonneg_left (Metric.mem_ball.mp hz).le L.coe_nonneg)\n\nprivate def approximationBump (n : ℕ) : ContDiffBump (0 : E) where\n  rIn := ((1 / 2 : ℝ)^n) / 2\n  rOut := (1 / 2 : ℝ)^n\n  rIn_pos := by positivity\n  rIn_lt_rOut := half_lt_self (by positivity)\n\nprivate def smoothApprox (f : E → ℝ) (n : ℕ) : E → ℝ :=\n  (approximationBump n).normed volume ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] f\n\nprivate theorem smoothApprox_contDiff {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (n : ℕ) : ContDiff ℝ 1 (smoothApprox f n) := by\n  exact (approximationBump n).hasCompactSupport_normed.contDiff_convolution_left\n    (ContinuousLinearMap.lsmul ℝ ℝ) (approximationBump n).contDiff_normed\n    hf.continuous.locallyIntegrable\n\nprivate theorem smoothApprox_lipschitz {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (n : ℕ) : LipschitzWith L (smoothApprox f n) :=\n  normed_bump_convolution_lipschitz hf (approximationBump n)\n\nprivate theorem smoothApprox_error {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (n : ℕ) (x : E) :\n    |smoothApprox f n x - f x| ≤ (L : ℝ) * (1 / 2 : ℝ)^n :=\n  normed_bump_convolution_error hf (approximationBump n) x\n\nprivate theorem smoothApprox_tendsto {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (x : E) :\n    Filter.Tendsto (fun n => smoothApprox f n x) Filter.atTop (𝓝 (f x)) := by\n  apply ContDiffBump.convolution_tendsto_right_of_continuous\n    (φ := fun n => approximationBump (E := E) n) (μ := (volume : Measure E)) _ hf.continuous x\n  exact tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num)\n\nprivate theorem smoothApprox_mean_error {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (n : ℕ) :\n    |(∫ x, smoothApprox f n x ∂stdGaussian E) - (∫ x, f x ∂stdGaussian E)| ≤\n      (L : ℝ) * (1 / 2 : ℝ)^n := by\n  have hi := (integrable_and_integrable_exp_centered_of_lipschitz (μ := stdGaussian E) hf).1\n  have hin := (integrable_and_integrable_exp_centered_of_lipschitz\n    (μ := stdGaussian E) (smoothApprox_lipschitz hf n)).1\n  rw [← integral_sub hin hi, ← Real.norm_eq_abs]\n  have h := norm_integral_le_of_norm_le_const (μ := stdGaussian E)\n    (f := fun x => smoothApprox f n x - f x) (C := (L : ℝ) * (1 / 2 : ℝ)^n)\n    (ae_of_all _ fun x => by simpa only [Real.norm_eq_abs] using smoothApprox_error hf n x)\n  simpa using h\n\nprivate theorem smoothApprox_mean_tendsto {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) :\n    Filter.Tendsto (fun n => ∫ x, smoothApprox f n x ∂stdGaussian E) Filter.atTop\n      (𝓝 (∫ x, f x ∂stdGaussian E)) := by\n  rw [tendsto_iff_norm_sub_tendsto_zero]\n  have he : Filter.Tendsto (fun n : ℕ => (L : ℝ) * (1 / 2 : ℝ)^n) Filter.atTop (𝓝 0) := by\n    simpa only [mul_zero] using\n      (tendsto_pow_atTop_nhds_zero_of_lt_one\n        (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num)).const_mul (L : ℝ)\n  exact squeeze_zero (fun _ => norm_nonneg _) (fun n => by\n    simpa only [Real.norm_eq_abs] using smoothApprox_mean_error hf n) he\n\nprivate theorem smoothApprox_centered_exp_bound {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (t : ℝ) (n : ℕ) (x : E) :\n    Real.exp (t * (smoothApprox f n x - ∫ z, smoothApprox f n z ∂stdGaussian E)) ≤\n      Real.exp (2 * |t| * (L : ℝ)) * Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) := by\n  let mn : ℝ := ∫ z, smoothApprox f n z ∂stdGaussian E\n  let m : ℝ := ∫ z, f z ∂stdGaussian E\n  have hrad : (L : ℝ) * (1 / 2 : ℝ)^n ≤ (L : ℝ) := by\n    simpa only [mul_one] using mul_le_mul_of_nonneg_left\n      (pow_le_one₀ (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num : (1 / 2 : ℝ) ≤ 1)) L.coe_nonneg\n  have hx : |smoothApprox f n x - f x| ≤ (L : ℝ) := (smoothApprox_error hf n x).trans hrad\n  have hm : |mn - m| ≤ (L : ℝ) := (smoothApprox_mean_error hf n).trans hrad\n  have hc : |(smoothApprox f n x - mn) - (f x - m)| ≤ 2 * (L : ℝ) := by\n    calc\n      _ = |(smoothApprox f n x - f x) - (mn - m)| := by congr 1; ring\n      _ ≤ |smoothApprox f n x - f x| + |mn - m| := abs_sub _ _\n      _ ≤ _ := by linarith\n  have hb : t * ((smoothApprox f n x - mn) - (f x - m)) ≤ 2 * |t| * (L : ℝ) := by\n    calc\n      _ ≤ |t * ((smoothApprox f n x - mn) - (f x - m))| := le_abs_self _\n      _ = |t| * |(smoothApprox f n x - mn) - (f x - m)| := abs_mul _ _\n      _ ≤ |t| * (2 * (L : ℝ)) := mul_le_mul_of_nonneg_left hc (abs_nonneg _)\n      _ = _ := by ring\n  rw [← Real.exp_add]\n  apply Real.exp_le_exp.mpr\n  change t * (smoothApprox f n x - mn) ≤ 2 * |t| * (L : ℝ) + t * (f x - m)\n  nlinarith\n\nprivate theorem smoothApprox_centered_exp_integral_tendsto {f : E → ℝ} {L : ℝ≥0}\n    (hf : LipschitzWith L f) (t : ℝ) :\n    Filter.Tendsto\n      (fun n => ∫ x, Real.exp (t * (smoothApprox f n x - ∫ z, smoothApprox f n z ∂stdGaussian E))\n        ∂stdGaussian E) Filter.atTop\n      (𝓝 (∫ x, Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)) ∂stdGaussian E)) := by\n  apply tendsto_integral_of_dominated_convergence\n    (fun x => Real.exp (2 * |t| * (L : ℝ)) * Real.exp (t * (f x - ∫ z, f z ∂stdGaussian E)))\n  · intro n\n    have hcont := (smoothApprox_lipschitz hf n).continuous\n    fun_prop\n  · exact ((integrable_and_integrable_exp_centered_of_lipschitz\n      (μ := stdGaussian E) hf).2 t).const_mul _\n  · intro n\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n    exact smoothApprox_centered_exp_bound hf t n x\n  · filter_upwards with x\n    exact Real.continuous_exp.continuousAt.tendsto.comp\n      (((smoothApprox_tendsto hf x).sub (smoothApprox_mean_tendsto hf)).const_mul t)\n\nend GaussianDensity\n\n/-- Sharp centered Laplace bound for the actual standard Gaussian, with all\ndomains and the smooth approximation produced internally. -/\ntheorem integral_exp_centered_le_stdGaussian_of_lipschitz\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzWith L f) (t : ℝ) :\n    (∫ x, Real.exp (t * (f x - ∫ z, f z ∂ProbabilityTheory.stdGaussian E))\n      ∂ProbabilityTheory.stdGaussian E) ≤ Real.exp ((L : ℝ)^2 * t^2 / 2) := by\n  by_cases hL : L = 0\n  · subst L\n    rw [centered_exp_integral_of_lipschitz_zero hf t]\n    norm_num\n  · rcases subsingleton_or_nontrivial E with hE | hE\n    · letI : Subsingleton E := hE\n      rw [centered_exp_integral_of_subsingleton f t]\n      exact Real.one_le_exp_iff.mpr (by positivity)\n    · exact le_of_tendsto' (smoothApprox_centered_exp_integral_tendsto hf t)\n        (fun n => gaussian_centered_laplace_bound_c1\n          (smoothApprox_contDiff hf n) (smoothApprox_lipschitz hf n) t)\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential\nend\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.E3",
+      "edition": "arXiv:2609.06906v1 with pinned Mathlib db584cd6 Gaussian background",
+      "anchor": "SPHMC arXiv2609.06906v1 S4.E3 centered Gaussian-gradient-output concentration with exact eta*norm(u)^2/2; S3.E2 actual evaluator/S2.E1/S4.Ex3 proximal; inherited S1.E1 genuine C2 Hessian and S3.SS1.p1.1 every eta>0.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS authored Gaussian rotation/Stein/Herbst and internal approximation background, consumed by SPHMC (4.3)."
+    },
+    "statement": "For every globally L-Lipschitz scalar observable on the stated finite real Hilbert/Borel space, its actual standard Gaussian centered exponential integral is at most exp(L^2*t^2/2) for every signed real t. Actual first moments and all exponential domains are produced by the existing shared domain theorem; the C1 restriction used inside the proof is removed internally.",
+    "formulae": [
+      {
+        "label": "Sharp standard Gaussian concentration for every Lipschitz observable",
+        "tex": "\\gamma=\\operatorname{stdGaussian}(E),\\quad m=\\int f\\,d\\gamma,\\quad\\int e^{t(f-m)}\\,d\\gamma\\le e^{L^2t^2/2}\\quad(t\\in\\mathbb R)."
+      }
+    ],
+    "assumptions": [
+      "Finite-dimensional complete real Hilbert space E with its actual inner product and Borel measurable structure, including dimension zero; gamma is the canonical covariance-identity standard Gaussian.",
+      "Actual globally L-Lipschitz f:E->R with NNReal L>=0 including zero; every signed t in R. No differentiability, boundedness, given mean, positive dimension or concentration/LSI/domain certificate."
+    ],
+    "obligations": [
+      {
+        "id": "sharp-gaussian",
+        "label": "Exact sharp centered bound and genuine Gaussian domains"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Bias/transport/full algorithms/main/work remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz",
+      "title": "Sharp standard Gaussian concentration for every Lipschitz observable",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.E3",
+          "label": "Exact Gaussian background for sharp (4.3)",
+          "scope": "Locally compiled sharp centered Gaussian-output estimate (4.3), retained exact positive-step proximal/evaluator and (4.4)-(4.5), genuine first Bochner moments and all signed exponential domains. Independent mathematics/blind/source/publication/exact-commit/integration admission pending. Bias (4.2), first W2 inequality in (4.6), LSI/T2 adapter, full Lemma4.2, higher smoothing/Picard/Wp/proxy-warmness/initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both main results and actual-input precision/expected-query-cost composition remain open. Centers are actual Gaussian output means. TV proximity does not transfer unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianLipschitzExponential"
+      ],
+      "assumptions": [
+        "Finite-dimensional complete real Hilbert space E with its actual inner product and Borel measurable structure, including dimension zero; gamma is the canonical covariance-identity standard Gaussian.",
+        "Actual globally L-Lipschitz f:E->R with NNReal L>=0 including zero; every signed t in R. No differentiability, boundedness, given mean, positive dimension or concentration/LSI/domain certificate."
+      ],
+      "statement": "For every globally L-Lipschitz scalar observable on the stated finite real Hilbert/Borel space, its actual standard Gaussian centered exponential integral is at most exp(L^2*t^2/2) for every signed real t. Actual first moments and all exponential domains are produced by the existing shared domain theorem; the C1 restriction used inside the proof is removed internally.",
+      "formula": "\\gamma=\\operatorname{stdGaussian}(E),\\quad m=\\int f\\,d\\gamma,\\quad\\int e^{t(f-m)}\\,d\\gamma\\le e^{L^2t^2/2}\\quad(t\\in\\mathbb R).",
+      "steps": [
+        {
+          "title": "Establish the actual Gaussian domains",
+          "text": "The existing Fernique-domain declaration proves first Bochner integrability and every signed centered exponential L1 from global Lipschitz growth. Shifting the center gives radial exponential domains. Polynomial factors are dominated by a larger radial exponential, also on the actual product Gaussian equipped with its Banach max norm.",
+          "formula": "m=\\int f\\,d\\gamma,\\quad e^{t(f-m)}\\in L^1(\\gamma),\\quad (1+\\|x\\|)^2e^{a\\|x\\|}\\in L^1(\\gamma).",
+          "lean": "integrable_and_integrable_exp_centered_of_lipschitz; gaussian_radial_exponential_integrable; gaussian_polynomial_radial_integrable"
+        },
+        {
+          "title": "Derive Gaussian Stein integration by parts",
+          "text": "For the temporary C1 case, the canonical ASTIS Gaussian density with respect to the given Hilbert volume has derivative -w(x) inner(x,-). Growth, the genuine Gaussian second moment and the derivative bound by L prove every Haar integration-by-parts integrability input. The resulting Stein equality has no supplied domain certificate.",
+          "formula": "w(x)=(\\sqrt{2\\pi})^{-d}e^{-\\|x\\|^2/2},\\quad Dw(x)[v]=-w(x)\\langle x,v\\rangle,\\quad\\int\\langle x,v\\rangle f(x)\\,d\\gamma=\\int Df(x)[v]\\,d\\gamma.",
+          "lean": "standardGaussian_density; standardWeight_hasFDerivAt; standardGaussian_stein_lipschitz_c1; integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable"
+        },
+        {
+          "title": "Rotate two independent standard Gaussians",
+          "text": "For X,Y independently distributed as gamma, U=cos(theta)X+sin(theta)Y and W=-sin(theta)X+cos(theta)Y have the same product law. Differentiate F(theta)=E[f(X) exp(t(f(U)-m))] using an explicit polynomial times radial-exponential domination valid for every theta. The inverse relation X=cos(theta)U-sin(theta)W is exact.",
+          "formula": "U_\\theta=cX+sY,\\ W_\\theta=-sX+cY,\\quad F^{\\prime}(\\theta)=t\\,\\mathbb E[f(X)e^{t(f(U_\\theta)-m)}Df(U_\\theta)[W_\\theta]].",
+          "lean": "standardGaussian_rotation_integral; rotX_hasDerivAt; rotated_laplace_integral_hasDerivAt; rotation_inverse_first"
+        },
+        {
+          "title": "Apply Stein only to the affine Lipschitz factor",
+          "text": "After rotation, fix U=u and let a(u) be the Riesz representative of Df(u). Apply Stein in W to the C1 Lipschitz function W->f(cu-sW). Its derivative is -s Df(cu-sW). The exponential is constant in this conditional variable; it is never asserted globally Lipschitz. Actual product L1 and Fubini justify the conditional calculation.",
+          "formula": "F^{\\prime}(\\theta)=-s t\\int e^{t(f(u)-m)}\\!\\left[\\int Df(cu-sv)[a(u)]\\,d\\gamma(v)\\right]d\\gamma(u),\\quad\\|a(u)\\|\\le L.",
+          "lean": "standardGaussian_stein_affine; affine_stein_laplace_slice; rotated_laplace_derivative_integral_identity"
+        },
+        {
+          "title": "Recover the covariance bound with correct sign",
+          "text": "The inner integral has absolute value at most L squared. On theta in [0,pi/2] and t>=0 the factor -sin(theta)t is nonpositive, so the upper bound on the inner integral gives a lower bound on F prime. For C=t L squared M, H=F-cos(theta)C is nondecreasing by the mean-value theorem. Actual derivative existence gives endpoint continuity. Endpoint independence yields the covariance inequality.",
+          "formula": "M=\\int e^{t(f-m)}d\\gamma,\\quad F^{\\prime}\\ge-\\sin\\theta\\,tL^2M,\\quad H^{\\prime}\\ge0,\\quad\\operatorname{Cov}_\\gamma(f,e^{t(f-m)})\\le tL^2M.",
+          "lean": "affine_directional_derivative_integral_norm_le; rotated_laplace_derivative_integral_lower_bound; gaussian_laplace_covariance_bound; monotoneOn_of_hasDerivWithinAt_nonneg"
+        },
+        {
+          "title": "Prove the sharp Herbst estimate and both signs",
+          "text": "All signed exponential domains give integrableExpSet=the full real line. Pinned Mathlib MGF differentiation gives the actual M prime. The covariance estimate implies M prime<=t L squared M on t>=0. The integrating factor exp(-L squared t squared/2)M is nonincreasing and equals one at zero. Apply the result to -f and -t for negative parameters.",
+          "formula": "M^{\\prime}(t)\\le tL^2M(t),\\quad\\left(e^{-L^2t^2/2}M(t)\\right)^{\\prime}\\le0,\\quad M(t)\\le e^{L^2t^2/2}\\quad(t\\in\\mathbb R).",
+          "lean": "gaussian_centered_integrableExpSet; gaussian_centered_laplace_hasDerivAt; gaussian_centered_laplace_bound_c1; hasDerivAt_mgf; antitoneOn_of_hasDerivWithinAt_nonpos"
+        },
+        {
+          "title": "Smooth internally without changing the constant",
+          "text": "Use the actual nonnegative normalized compactly supported smooth bump against canonical Hilbert volume. Its outer radius is epsilon_n=2^-n and its mass is one. The convolution f_n is C1 and remains globally L Lipschitz. The uniform error is at most L epsilon_n. This introduces no differentiability assumption on the public observable.",
+          "formula": "f_n=\\phi_n*f,\\quad\\phi_n\\ge0,\\quad\\int\\phi_n\\,dx=1,\\quad\\operatorname{Lip}(f_n)\\le L,\\quad\\|f_n-f\\|_\\infty\\le L2^{-n}.",
+          "lean": "normed_bump_convolution_lipschitz; normed_bump_convolution_error; smoothApprox_contDiff; smoothApprox_lipschitz"
+        },
+        {
+          "title": "Pass the actual center and exponential integral to the limit",
+          "text": "First-moment integrability and the uniform approximation give |m_n-m|<=L epsilon_n. The centered exponents converge pointwise, and every n is dominated by exp(2|t|L) exp(t(f-m)), whose L1 was proved before the sharp estimate. Dominated convergence passes the same sharp bound to f. Zero L and the zero-dimensional carrier are discharged directly as constant observables.",
+          "formula": "|m_n-m|\\le L2^{-n},\\quad e^{t(f_n-m_n)}\\le e^{2|t|L}e^{t(f-m)},\\quad\\int e^{t(f-m)}d\\gamma\\le e^{L^2t^2/2}.",
+          "lean": "smoothApprox_mean_error; smoothApprox_centered_exp_integral_tendsto; centered_exp_integral_of_lipschitz_zero; centered_exp_integral_of_subsingleton; integral_exp_centered_le_stdGaussian_of_lipschitz"
+        }
+      ],
+      "lean_statement": "For every globally L-Lipschitz scalar observable on the stated finite real Hilbert/Borel space, its actual standard Gaussian centered exponential integral is at most exp(L^2*t^2/2) for every signed real t. Actual first moments and all exponential domains are produced by the existing shared domain theorem; the C1 restriction used inside the proof is removed internally.",
+      "lean_proof": "Establish the actual Gaussian domains; Derive Gaussian Stein integration by parts; Rotate two independent standard Gaussians; Apply Stein only to the affine Lipschitz factor; Recover the covariance bound with correct sign; Prove the sharp Herbst estimate and both signs; Smooth internally without changing the constant; Pass the actual center and exponential integral to the limit",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.map_rotation_eq_self",
+        "integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+        "hasDerivAt_integral_of_dominated_loc_of_deriv_le",
+        "MeasureTheory.integral_prod",
+        "ProbabilityTheory.hasDerivAt_mgf",
+        "ProbabilityTheory.integrable_pow_mul_exp_of_mem_interior_integrableExpSet",
+        "monotoneOn_of_hasDerivWithinAt_nonneg",
+        "antitoneOn_of_hasDerivWithinAt_nonpos",
+        "ContDiffBump.hasCompactSupport_normed",
+        "ContDiffBump.contDiff_normed",
+        "MeasureTheory.tendsto_integral_of_dominated_convergence"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz",
+      "role": "proof-edge",
+      "supports": [
+        "sharp-gaussian"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "SPHMC (4.3) uses standard Gaussian concentration for the actual gradient observable.",
+        "lean": "Finite-dimensional complete real Hilbert space E with its actual inner product and Borel measurable structure, including dimension zero; gamma is the canonical covariance-identity standard Gaussian.\nActual globally L-Lipschitz f:E->R with NNReal L>=0 including zero; every signed t in R. No differentiability, boundedness, given mean, positive dimension or concentration/LSI/domain certificate.\nFor every globally L-Lipschitz scalar observable on the stated finite real Hilbert/Borel space, its actual standard Gaussian centered exponential integral is at most exp(L^2*t^2/2) for every signed real t. Actual first moments and all exponential domains are produced by the existing shared domain theorem; the C1 restriction used inside the proof is removed internally."
+      },
+      {
+        "source": "Primary does not detail the Gaussian concentration proof.",
+        "lean": "Actual Gaussian rotation, conditional Stein, MVT/Herbst and normalized approximation proof in pinned ASTIS/Mathlib; no LSI certificate or upstream SLT port."
+      },
+      {
+        "source": "Other source bounds and both complete papers.",
+        "lean": "Locally compiled sharp centered Gaussian-output estimate (4.3), retained exact positive-step proximal/evaluator and (4.4)-(4.5), genuine first Bochner moments and all signed exponential domains. Independent mathematics/blind/source/publication/exact-commit/integration admission pending. Bias (4.2), first W2 inequality in (4.6), LSI/T2 adapter, full Lemma4.2, higher smoothing/Picard/Wp/proxy-warmness/initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both main results and actual-input precision/expected-query-cost composition remain open. Centers are actual Gaussian output means. TV proximity does not transfer unbounded expected cost."
+      }
+    ]
+  },
+  "review_evidence": {
+    "primary_first_contract": {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.contract.json",
+      "raw_sha256": "0d9911aa6ccbea09b195317e9d8bb224b857b03335e799afd735f32a7d917c47",
+      "lf_sha256": "0d9911aa6ccbea09b195317e9d8bb224b857b03335e799afd735f32a7d917c47",
+      "bytes": 12866
+    },
+    "primary_inventory": {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.inventory.json",
+      "raw_sha256": "f8fa76c6b114c51aee6cf0bd10e717856d2f08810bd788c5868514cb4de49843",
+      "lf_sha256": "f8fa76c6b114c51aee6cf0bd10e717856d2f08810bd788c5868514cb4de49843",
+      "bytes": 98072
+    },
+    "repair_overlay": {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.overlay-review.json",
+      "raw_sha256": "3eea650d8a06775a14fd474de79e7faa3c1cfe0de9d2f8a9ccb83884817190f9",
+      "lf_sha256": "3eea650d8a06775a14fd474de79e7faa3c1cfe0de9d2f8a9ccb83884817190f9",
+      "bytes": 171255
+    },
+    "inventory": {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.inventory.json",
+      "raw_sha256": "ded7377a6e53d4aab79e00c5fd5a6c6481ae7143fc18ce8c3804b09cda291dc8",
+      "lf_sha256": "ded7377a6e53d4aab79e00c5fd5a6c6481ae7143fc18ce8c3804b09cda291dc8",
+      "bytes": 60427
+    },
+    "topology": "169 balanced primary spans,14 nodes,23 source-use edges,5 explicit gaps checked independently of graph author; all52 actual local proof nodes/edges match unchanged complete module.",
+    "full_proof_checks": "Own prior complete review of930-line generic/all50private, whole oracle/all3private,3Tests and24 reader steps explicitly reused only after matching raw proof freeze. R1 header excluded from noncomment comparison. Current corrected provenance/reader scope newly reviewed. No public C1/LSI/domain/certificate premise; genuine same-L approximation, full-space IBP/Fubini, actual own mean and all eta>0 remain.",
+    "matching_freeze_reuse": true,
+    "source_topology_author_distinct": true,
+    "mathematical_review_verdict_consulted": false,
+    "compiler_used": false,
+    "exposure": "Earlier packets28/29 whole-code/source reviews and sharp preproof statement/type/topology review are known. Current repair invocation independently checked concrete bytes, bindings, seven slots and matching unchanged complete-proof freeze against the fresh primary-first contract sealed before sharp implementation exposure. No historical-blindness claim. Root formalizer, decoders30/29 and source-graph author gaussian_domain_preproof_reviewer_29 are distinct actors. Current math-review file hash-bound only, not opened for verdict; no compiler or self-admission."
+  },
+  "input_artifacts": [
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianSharpConcentration.json",
+      "raw_sha256": "7fc0df051e5c27217dfa3f8e757067de71081b23995570d1ad900c90fd8a1b1d",
+      "lf_sha256": "882752597e7dabbbf02ce9c23838f20b8c0715b78bf7ee532a5ee93772d07761",
+      "bytes": 68358
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.0.reviewer-packet.json",
+      "raw_sha256": "67194a0aade95f599fa2c6af1bce65d0d17c5b450ec62333e05950f2b550509c",
+      "lf_sha256": "80ff9a054243d2e8dc4ff9cd36e3156aaece1831c46d99731cdcab838888e90d",
+      "bytes": 70182
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianSharpOracle.json",
+      "raw_sha256": "88069a68a2a473ab9277ac8efd8f83aa703923a1fe8bb74293e781b9840c1605",
+      "lf_sha256": "2267190267ce18bacea095adcecc83e301a6e8ed46cee9ee44784e2c3b738a73",
+      "bytes": 61387
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.1.reviewer-packet.json",
+      "raw_sha256": "ccbfe3691fae3bf6ee6a81b48cda555ec24f3b85fa00810f3ec9da2c4de0a03b",
+      "lf_sha256": "1d9752271c88537f6f710c8f1ca9a74adb6923c60ef855d6ce5a16692ef345f4",
+      "bytes": 62348
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianDomainSharpModuleRevalidation.json",
+      "raw_sha256": "bffdac0c5ccb3e4fbf22ab3d80481177f80379c17b238966e84823788bbb0df6",
+      "lf_sha256": "db6ecebf0d463788e61e1d0402a03c685921d7416eb36576af73273ccb9a2318",
+      "bytes": 64455
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.2.reviewer-packet.json",
+      "raw_sha256": "3366d420d31e800088b6650234fa9a0031130177c5a832e93c217279bde940a7",
+      "lf_sha256": "8db106aacb090e298a86ce152ff457ed043a37d685aba602c8d205b85933e437",
+      "bytes": 64845
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-30/lease.json",
+      "raw_sha256": "5cc1dba8f24b4e393635299111f9d1aa728fc8a6de677c55434a1ccd5c27f844",
+      "lf_sha256": "5cc1dba8f24b4e393635299111f9d1aa728fc8a6de677c55434a1ccd5c27f844",
+      "bytes": 2082
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-30/packet0.json",
+      "raw_sha256": "dff2bd0f4bb1b19d5f2b2fbb3fba06815fa9a6305f6558f0eb29f19fdaea9e8a",
+      "lf_sha256": "c46f417bc3210f8ee2bc93f160635e7e3eeb9842550190a664b140d6fe7648a1",
+      "bytes": 2358
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-30/packet1.json",
+      "raw_sha256": "8d3ef4170170a2a344dee5a567bbe69f6a28c438d80927a8fb5e48f8e847476c",
+      "lf_sha256": "1866fd8c2935354281546cd301c411c1a0b33d94e1e66c189a435afb08bd1571",
+      "bytes": 4325
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-30/result0.json",
+      "raw_sha256": "42685705697f4a3f893efe69c207498fdf7dcd1a4b06d33460bb6df075df04ba",
+      "lf_sha256": "42685705697f4a3f893efe69c207498fdf7dcd1a4b06d33460bb6df075df04ba",
+      "bytes": 3247
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-30/result1.json",
+      "raw_sha256": "032b2532169bfdea70d50136ee6c2a447e25ea1cb6eceb1792bf16e2cf8a8ad0",
+      "lf_sha256": "032b2532169bfdea70d50136ee6c2a447e25ea1cb6eceb1792bf16e2cf8a8ad0",
+      "bytes": 6842
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-30/run.json",
+      "raw_sha256": "6304ef1fc962c945207c917c6ffc5b9cd6270c3f38e12133cb95727d7d394b51",
+      "lf_sha256": "6304ef1fc962c945207c917c6ffc5b9cd6270c3f38e12133cb95727d7d394b51",
+      "bytes": 1445
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean",
+      "raw_sha256": "555ee4cd7d0b49abef204bc18a966e443c5051b279127d91edcae654a38b5a09",
+      "lf_sha256": "e46ea6518b151be180528574a4eb89d76b03aaf0b6f5e78784ffa9da7d0b1e75",
+      "bytes": 47718
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/FullRangeProximalGaussianOracle.lean",
+      "raw_sha256": "ffe2a2b2499a5057714deea8ede6a3094207c89ae96d7b30e7099178153f1ba4",
+      "lf_sha256": "b13c0561e4a32f9a7d1445ab1c4b1b553842ffc972a4c3c9e1e5e25f6d9ee73b",
+      "bytes": 17604
+    },
+    {
+      "path": "Tests/GaussianLipschitzExponential.lean",
+      "raw_sha256": "471009b4da4ca22a24bd2fe57205bda26286a5c08ec74626c154658d93a3fe0f",
+      "lf_sha256": "4b507b45968939ccaef7c0107b113ceea97873c5be1b94e3eed47d4c247c9a16",
+      "bytes": 3844
+    },
+    {
+      "path": "Tests/FullRangeProximalGaussianOracle.lean",
+      "raw_sha256": "35aed362394c52eb5aaa589cef15c2a84e8de2462f876522806e1718e8a81494",
+      "lf_sha256": "8fc94012e87ab95d5374e4f8c49ac7a266a1f94af118a4b4d0eb8057dc463456",
+      "bytes": 6847
+    },
+    {
+      "path": "Tests/StandardizedRGOPositionFisher.lean",
+      "raw_sha256": "75e04efdbbf84d6a4b4b6781cf107f20c6d5cbdd70e5558002f87bb4463128e6",
+      "lf_sha256": "a82741b90f140dbf5217719f085befe4436f70e7377934b04ca9eac5a4fc0e43",
+      "bytes": 11321
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.generic-sharp.0.log",
+      "raw_sha256": "244d92b37d095704ca7b748a90deae75454f25ba77c868eb12bcb1e1b789389c",
+      "lf_sha256": "244d92b37d095704ca7b748a90deae75454f25ba77c868eb12bcb1e1b789389c",
+      "bytes": 10110
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.source-sharp.0.log",
+      "raw_sha256": "317cd3c0c104f0e781b42ebf86b82ae5314cb870e6c28efe0b66e1aea2b54cfe",
+      "lf_sha256": "317cd3c0c104f0e781b42ebf86b82ae5314cb870e6c28efe0b66e1aea2b54cfe",
+      "bytes": 20103
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.standard-tests.1.log",
+      "raw_sha256": "40973210c198a1157928dd48000657b064fae44993ff0ac451c0fc59e8497fb4",
+      "lf_sha256": "40973210c198a1157928dd48000657b064fae44993ff0ac451c0fc59e8497fb4",
+      "bytes": 24880
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/claim.json",
+      "raw_sha256": "a8200759bb6d06d9a06a81e92551f94c0dcbccd89bd366af6fe0244a8b105f3b",
+      "lf_sha256": "dfb9ed82cf6c2a2324e3783a67b5f354a42de8367cd143e7be1fb3468052fee2",
+      "bytes": 5765
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/statement-seals.accepted.json",
+      "raw_sha256": "c59f6cf476d591a46ba08a0c33184395f0b4a506b568386e80fa75e6fe101b7e",
+      "lf_sha256": "a0e3a7d833f99fc94ae60833e356314e2a229a5582c34af58e91bc0fa679de19",
+      "bytes": 8088
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/reviewer.statement-seal-admission.json",
+      "raw_sha256": "440b0017785dfefaed84ed7ffdc18510892baab5202d07f9b3b1693b79f75278",
+      "lf_sha256": "440b0017785dfefaed84ed7ffdc18510892baab5202d07f9b3b1693b79f75278",
+      "bytes": 10944
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/source-proof-graph.independent.author-final.json",
+      "raw_sha256": "d2ae602d50351687bf33b3d661aeb9d7eec39a1868a7ee7806363b925227443a",
+      "lf_sha256": "d2ae602d50351687bf33b3d661aeb9d7eec39a1868a7ee7806363b925227443a",
+      "bytes": 207445
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/reviewer.source-topology-review.json",
+      "raw_sha256": "221cacf975e4054da8d8df1821559b7c9115b4e3d5c7b9507a7b751ce50cb84e",
+      "lf_sha256": "221cacf975e4054da8d8df1821559b7c9115b4e3d5c7b9507a7b751ce50cb84e",
+      "bytes": 100454
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/publication-plan.json",
+      "raw_sha256": "d68313e0daf27b9c69412d3eef9212b07c0b57bcd233db9df103292bef1161dd",
+      "lf_sha256": "3c0df6e6969b0b17fd86476fc963bcb468e21993a3dbfa78c55e2776e5ee8594",
+      "bytes": 1751
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.contract.json",
+      "raw_sha256": "0d9911aa6ccbea09b195317e9d8bb224b857b03335e799afd735f32a7d917c47",
+      "lf_sha256": "0d9911aa6ccbea09b195317e9d8bb224b857b03335e799afd735f32a7d917c47",
+      "bytes": 12866
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.lease.json",
+      "raw_sha256": "aa1012d0ccd0a9874e29fca121e8c1d24de6cafdd0612f53956f66e5d0f64628",
+      "lf_sha256": "aa1012d0ccd0a9874e29fca121e8c1d24de6cafdd0612f53956f66e5d0f64628",
+      "bytes": 7203
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/proof-digestion.route-expansion.json",
+      "raw_sha256": "78cc350847bb485d7ccda92ca5d6c3754ff6773cc1950904a2a5958f95904af9",
+      "lf_sha256": "19fcecbf948721fbd8eb38aaebd156cdd4ebc07ac0176430c63b0b3f9b02a57c",
+      "bytes": 34658
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/publication-routing-reconciliation.json",
+      "raw_sha256": "7c83ba9918fa77250eac56aac5d24695bab15ce5a72876d29e9e1f5fb2954583",
+      "lf_sha256": "5ce5a577d731f5fe2fff6f0b59c5d468f88529c9fa7ab221b245a7f87ac5f4ad",
+      "bytes": 906
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/rotation-covariance-route.proposal.json",
+      "raw_sha256": "5ba2e35f9d246ca475104b52f153797a6c8bdbf188403ba4b44cc794246a0f3d",
+      "lf_sha256": "e753f860b2f1e90b0da265e2bb8a0b8fbf94bf00129a1f2110f48c77ce3c89c5",
+      "bytes": 4426
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/rotation-comparison-route.proposal.json",
+      "raw_sha256": "8f1a83bb1800088f90ac6bce2e38226e6c424a0054dc0514d35396bece0c860d",
+      "lf_sha256": "4268317401e7aea5706e3e6ba96421100c946639875c313dc9b97244e76d6b3f",
+      "bytes": 1823
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-gaussian-sharp-concentration.json",
+      "raw_sha256": "89fb9ff223059d3853be095bd0fd955ce13dbfdabc341c5fe15f376b79408a3b",
+      "lf_sha256": "ca4eb792bd63fb2198b9695d971a6f27a300e2bc0749a27bf30db5f00f59d42f",
+      "bytes": 21391
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-SPHMC-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "2e95edff0c44a3137bde3b685dc914f8ed7ff6566b90d325611ae02f3db85708",
+      "lf_sha256": "b9b6a10fe87910a56751f7d19d5c3af3e82069e2200cb724bd9308cd85b15cd2",
+      "bytes": 26762
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-gaussian-lipschitz-exponential-domain.json",
+      "raw_sha256": "e0e2beb6514c7924d4980c94f21778d13e61249b0f3aa799c6bf855a33a3c612",
+      "lf_sha256": "557d9e90eaa62032eb005f3aaf8b30489354e2d6e3dcb07c657f96ef21c820eb",
+      "bytes": 22090
+    },
+    {
+      "path": "website/content/publications/gaussian-sharp-concentration.json",
+      "raw_sha256": "d37571637c691c50cdfc1ce1a5ceea32d01de3ca1b5c2c7520be37fbf3e163ce",
+      "lf_sha256": "e3ee68511fecb9ca817959bafd0bd3a8b55076ee2643f2b96d8698ebddd391b3",
+      "bytes": 19337
+    },
+    {
+      "path": "website/content/publications/sphmc-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "12895613909914f60f2a4cca207ea62f388aa555c55d009fb0b26740feb43ba7",
+      "lf_sha256": "624e66d754445586d7c68975b6ece1ea59617028dbce8105ec1090bc9b7038dc",
+      "bytes": 23053
+    },
+    {
+      "path": "website/content/publications/gaussian-lipschitz-exponential.json",
+      "raw_sha256": "5c9531a12c8b917ef4a308ac77a13607dc5b652d533e8b4a75110eac86332515",
+      "lf_sha256": "bc9248a7a8cf5c265d95e68ade80df96e474d8fc7cc4664445132b76470d324b",
+      "bytes": 17929
+    },
+    {
+      "path": "website/content/declaration_lessons/gaussian-sharp-concentration.json",
+      "raw_sha256": "37b657dd8f5f0f57c0169097c9e393458480aa5125f0a3b9eb5ae7e4914ff211",
+      "lf_sha256": "648e305a06907184cf89270ab93ae6493f954682710952f4cd018e57d25197c5",
+      "bytes": 11159
+    },
+    {
+      "path": "website/content/declaration_lessons/sphmc-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "f695fa37ae7fc1d25854dc9674cb404c3c8d6f3e7d6f05673dfd6360d569525e",
+      "lf_sha256": "535bb4076c9f69d6765f04d85b79eddbe273e7bb0a6e994ae83f0b03a9c1abbc",
+      "bytes": 15053
+    },
+    {
+      "path": "website/content/declaration_lessons/gaussian-lipschitz-exponential.json",
+      "raw_sha256": "8ebde62cad967d46facc3a67b870bde3b3f5ef35396c81b6201e89942883004a",
+      "lf_sha256": "ad50d14db618db0ec4b0a1a9b454c9668dda595f56759e34ee4fe1563d1bdd7b",
+      "bytes": 5470
+    },
+    {
+      "path": "proof-blueprints/gaussian-sharp-concentration.md",
+      "raw_sha256": "d9101e567fb565f751eb20f8f7c4151cb6a9295620f4395dda1d79593fac5b7f",
+      "lf_sha256": "d9101e567fb565f751eb20f8f7c4151cb6a9295620f4395dda1d79593fac5b7f",
+      "bytes": 2428
+    },
+    {
+      "path": "research-wiki/technical-lemmas/gaussian_sharp_concentration.md",
+      "raw_sha256": "b149d00145e50ca5ca9ba1641a2f39700aa7c946d21254025722f41e8e281d1e",
+      "lf_sha256": "b149d00145e50ca5ca9ba1641a2f39700aa7c946d21254025722f41e8e281d1e",
+      "bytes": 3104
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repaired.0.reviewer-packet.json",
+      "raw_sha256": "b2fb5e6a80f1f2304ab687e9787957ee7c3236837a623d2c59f6ff4cd5c9f12b",
+      "lf_sha256": "b9f9c439c6f25741c52fb3f54cab5798646bd677f9985c418f2d8787cf039c65",
+      "bytes": 70154
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repaired.1.reviewer-packet.json",
+      "raw_sha256": "b66dc06239da574e6db2000dcb43bb92e73e44c78de06ab14bf31e50c2449f68",
+      "lf_sha256": "ea5e3c6e188006f8d7474ff59c06eb117ed82cda9ce7f41685b39aa61b3bfa9e",
+      "bytes": 62429
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repaired.2.reviewer-packet.json",
+      "raw_sha256": "adfdeabae2246510b2205b6bb0f4c26a8aa8842e71bb258e9e3955d501fc0a40",
+      "lf_sha256": "c32cbc57e5f435555584314b468754e52dc16c6e35f01ff657540c8035963b15",
+      "bytes": 65395
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.0.review.json",
+      "raw_sha256": "34dbfe01313c4d89d300d4f0cd8e991902d62cce084b9a1a296dc5e87aad561d",
+      "lf_sha256": "34dbfe01313c4d89d300d4f0cd8e991902d62cce084b9a1a296dc5e87aad561d",
+      "bytes": 135605
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.1.review.json",
+      "raw_sha256": "6b232c1bd230643b94fab8dd24b9ae45b7644dd67d65776c577ccef7ba71e99a",
+      "lf_sha256": "6b232c1bd230643b94fab8dd24b9ae45b7644dd67d65776c577ccef7ba71e99a",
+      "bytes": 109995
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.2.review.json",
+      "raw_sha256": "5b21ffa1323389ecaec122cc681c4f9b14e1984d308ca7df5aed678c629351e7",
+      "lf_sha256": "5b21ffa1323389ecaec122cc681c4f9b14e1984d308ca7df5aed678c629351e7",
+      "bytes": 128478
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.repairs.json",
+      "raw_sha256": "163038a8f32f47b91ee675cf34b9d44485b8c0d2acae9446a3fccd88e1c10cfd",
+      "lf_sha256": "163038a8f32f47b91ee675cf34b9d44485b8c0d2acae9446a3fccd88e1c10cfd",
+      "bytes": 22388
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.lease.json",
+      "raw_sha256": "66fdab21ffd335fa034d26e00283e4cb4868fa4b54910ac80f0d3b908d7b5e91",
+      "lf_sha256": "66fdab21ffd335fa034d26e00283e4cb4868fa4b54910ac80f0d3b908d7b5e91",
+      "bytes": 16811
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.topology.json",
+      "raw_sha256": "0ae12a92328be8e63b8ec8de4cbb0f80a842fde69d359a5010514f017f073794",
+      "lf_sha256": "0ae12a92328be8e63b8ec8de4cbb0f80a842fde69d359a5010514f017f073794",
+      "bytes": 21789
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.proposal.json",
+      "raw_sha256": "0a0775f2280e5564f1c8bb3fe2c1bf25006f799f2f8b73faffcaef201264b780",
+      "lf_sha256": "cce47314322aefe3242af5a074a136876af2b0f1048f735a24338bcc29ad2872",
+      "bytes": 6619
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/math-freeze.exposition-repaired.json",
+      "raw_sha256": "7010668b5f2402efbc4662b67649293ae7f98d0ea9de41378650b8495ee3083e",
+      "lf_sha256": "ab889bf8c2d2f366e4dd8c9d3d6afa5032382cd1651254501ac4fdb22588e9d2",
+      "bytes": 2985
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/whole-math-review.json",
+      "raw_sha256": "a38785c2e632ea049e1e5d0621bc6523f8538af3ead7fd37a9684a02aa78754f",
+      "lf_sha256": "a38785c2e632ea049e1e5d0621bc6523f8538af3ead7fd37a9684a02aa78754f",
+      "bytes": 23871
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.exposition-repair.0.log",
+      "raw_sha256": "060344f52528667ba5bdb7efcc79c3b372246a3609859333073a2a557bf1dea0",
+      "lf_sha256": "060344f52528667ba5bdb7efcc79c3b372246a3609859333073a2a557bf1dea0",
+      "bytes": 21531
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.0.raw.snapshot",
+      "raw_sha256": "4599dca2177561e6d6e8f8fc57f76b0a9f20c0ae9b30b5c7257e4d4f12fa22a2",
+      "lf_sha256": "1eb39e2d615b2bb9dda0630be8062ff83432b47dd34e5577af3364c393ab7cb2",
+      "bytes": 11187
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.1.raw.snapshot",
+      "raw_sha256": "c4277d47962d537097010cdd79d2954215d350ff27c75c71c0ce9a561770e372",
+      "lf_sha256": "aa584db25d1c8d0034b82d1a55a772b5ecb888809542515843c4a69af7720c1d",
+      "bytes": 34686
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.2.raw.snapshot",
+      "raw_sha256": "3e3ba8aae3c3d55cdc9c9b6563463ee1c9e8b2dbbeab72abbd2a871c9597f4ce",
+      "lf_sha256": "875064f29010cfdcf8f750151619a33189c97b3bf390533a9e3bc939b97b95e1",
+      "bytes": 17523
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.3.raw.snapshot",
+      "raw_sha256": "0c56e835b02a1cdd2e745b8f539184f67ff4687abd41d2bf1e2f5d1ca320c54a",
+      "lf_sha256": "8cd258eef6472b74cc6b3a133d3a01974a725cb5775375bfc5a63a43f366d0a5",
+      "bytes": 17398
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.4.raw.snapshot",
+      "raw_sha256": "7e0e32d14b564b1590630a6e4e904be74383c217f3ef1594cca53e4237e99f6b",
+      "lf_sha256": "f1a5dcc896727a34c2cdbc00fa4498af91e68e60c9aabdfc4041876ab2d85fe0",
+      "bytes": 5182
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.audit.0.raw.snapshot",
+      "raw_sha256": "9ec3a20090d35382b7a732acc6ceb30dba29452f10c60203a6f2de8f8c63cad7",
+      "lf_sha256": "f46db92454fc0c0cfbb8dc50c09c114cb957f2d3b9bb9eef5f661418e1491187",
+      "bytes": 68386
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.audit.1.raw.snapshot",
+      "raw_sha256": "d7c22553546b2eb983331d104a8a99d8ac324711b8bc1a355f9cd8cfdccc27a4",
+      "lf_sha256": "f8c1008bbf0e1fe59a2351ae5d8e7458c16310e30ef095eda8ff5c423321fa9f",
+      "bytes": 61306
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.audit.2.raw.snapshot",
+      "raw_sha256": "3ee30db52600b2b050cb92e34c450bab3dc0a83d44adf5cd2c4e36f7d88afe6a",
+      "lf_sha256": "fbf06213bb786e72c405e60e042eedb0cb5388f0270c9b82a6dbba201dcf441d",
+      "bytes": 63905
+    },
+    {
+      "path": "runs/20261006-companion-priority/smoothed-hessian-lower-preread/source-primary.sphmc-v1.raw.html",
+      "raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "lf_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "bytes": 1858750
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.inventory.json",
+      "raw_sha256": "f8fa76c6b114c51aee6cf0bd10e717856d2f08810bd788c5868514cb4de49843",
+      "lf_sha256": "f8fa76c6b114c51aee6cf0bd10e717856d2f08810bd788c5868514cb4de49843",
+      "bytes": 98072
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/LineDeriv/IntegrationByParts.lean",
+      "raw_sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "lf_sha256": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962",
+      "bytes": 13259
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/ParametricIntegral.lean",
+      "raw_sha256": "d63869326d278ce53699b42ce5cf3af11bc8260aad1bb97eaeb86889b92f6ca7",
+      "lf_sha256": "495f1a89774b147de1528e0213f519817d50fc3602724c9cbea633e9617c3375",
+      "bytes": 18954
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/BumpFunction/Convolution.lean",
+      "raw_sha256": "42770c7caab00fa5dcb8412eaed82ab70ca515d14306c2b90be7f79707487c59",
+      "lf_sha256": "7e89c7cb27e6d8fbeba7ef17cff8f9f62e4467337e5bf9e9d132b92825cf088a",
+      "bytes": 7390
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Convolution.lean",
+      "raw_sha256": "e88453ce9a1e1735a0335b4c092ec662e72e798835b945e3dbb7ca7b3bc265a7",
+      "lf_sha256": "51c4b08497f08a898573cabb6ad5a95f4a1e170ab74fec15d2bf4fdd8eba370b",
+      "bytes": 25454
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/DominatedConvergence.lean",
+      "raw_sha256": "e77596f8709e4af3304d4e810f32a60a242925151b0d868e1c2fad190db71f5a",
+      "lf_sha256": "18b709ea5c9ef9136e3e75ded82a6135641e6e19688e0ca3abcb0af45648ab84",
+      "bytes": 40268
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+      "raw_sha256": "6d18e03bf6ebd6452265eafd9a776519e6d93814636ab959e51b168cda6bed43",
+      "lf_sha256": "86660bae117cac863b46dd7205f3161908b42a8cc5ba65ebd52a7a98e3d723a6",
+      "bytes": 12407
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Moments/MGFAnalytic.lean",
+      "raw_sha256": "fe7e8baa7f49f8db0aba9eaa5d56328d14206f20fcd6f025c1c0a0bbb156f965",
+      "lf_sha256": "43bf9669a4aececdead05bfb77193476d2bf92885767b876960ca4c314d20a23",
+      "bytes": 13557
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "raw_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "lf_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "bytes": 5800
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HessianStrongConvexity.lean",
+      "raw_sha256": "78dcbca82db4c1aaaf2fb5ab59e2df74b23f2e48c805e41cde07f33d9f72ad30",
+      "lf_sha256": "2274e86f3affb400c4de8c94c1796bb103d4b77c980a530ff23bd4c344e0bb62",
+      "bytes": 4021
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothnessEquivalences.lean",
+      "raw_sha256": "c6e04ae6243722537732de0e4e4120512912645491710382714f56ff20302123",
+      "lf_sha256": "60c0b4a1afaa83b0e19d18a6c7923be8335f1e1eb53243d59372e45464d2fbbd",
+      "bytes": 3199
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentContraction.lean",
+      "raw_sha256": "47bd30cb5073a27d9ff1ef8a7b77a8fdbd229438b9c6f5bc8d5c1042e604baf7",
+      "lf_sha256": "d12a1ad0e67ba09a5696850fb8be4e01345363c52f5960745d5e0f3630293177",
+      "bytes": 5282
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "raw_sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "lf_sha256": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "bytes": 4880
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Measure/IsotropicGaussianDensity.lean",
+      "raw_sha256": "cb1bb40f2e4c17f4a9482cbd7ba022bac815409d68d4e7b6e9f8d00bcdd3e817",
+      "lf_sha256": "08eaba5759c1f514e80c58123f6a7c4c9f1ffc18c4d20df3a93b6e718fae25d7",
+      "bytes": 4867
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/StdGaussianMoment.lean",
+      "raw_sha256": "33d22a897719aab96566a8eb935ae96bc7939af90df2f9cc7f83a01212c8a5ce",
+      "lf_sha256": "f87a1c18284dbe58658c3c312f1015fa2eec0b203d5a1187618e5f43ea2a6e00",
+      "bytes": 2823
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.unchanged-domain-parent.raw.snapshot.lean",
+      "raw_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+      "lf_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+      "bytes": 3184
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.overlay-review.json",
+      "raw_sha256": "3eea650d8a06775a14fd474de79e7faa3c1cfe0de9d2f8a9ccb83884817190f9",
+      "lf_sha256": "3eea650d8a06775a14fd474de79e7faa3c1cfe0de9d2f8a9ccb83884817190f9",
+      "bytes": 171255
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.inventory.json",
+      "raw_sha256": "ded7377a6e53d4aab79e00c5fd5a6c6481ae7143fc18ce8c3804b09cda291dc8",
+      "lf_sha256": "ded7377a6e53d4aab79e00c5fd5a6c6481ae7143fc18ce8c3804b09cda291dc8",
+      "bytes": 60427
+    }
+  ],
+  "immutable_input_snapshots": [
+    {
+      "input": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianSharpConcentration.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.000.raw.snapshot",
+      "raw_sha256": "7fc0df051e5c27217dfa3f8e757067de71081b23995570d1ad900c90fd8a1b1d",
+      "lf_sha256": "882752597e7dabbbf02ce9c23838f20b8c0715b78bf7ee532a5ee93772d07761"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.0.reviewer-packet.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.001.raw.snapshot",
+      "raw_sha256": "67194a0aade95f599fa2c6af1bce65d0d17c5b450ec62333e05950f2b550509c",
+      "lf_sha256": "80ff9a054243d2e8dc4ff9cd36e3156aaece1831c46d99731cdcab838888e90d"
+    },
+    {
+      "input": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianSharpOracle.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.002.raw.snapshot",
+      "raw_sha256": "88069a68a2a473ab9277ac8efd8f83aa703923a1fe8bb74293e781b9840c1605",
+      "lf_sha256": "2267190267ce18bacea095adcecc83e301a6e8ed46cee9ee44784e2c3b738a73"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.1.reviewer-packet.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.003.raw.snapshot",
+      "raw_sha256": "ccbfe3691fae3bf6ee6a81b48cda555ec24f3b85fa00810f3ec9da2c4de0a03b",
+      "lf_sha256": "1d9752271c88537f6f710c8f1ca9a74adb6923c60ef855d6ce5a16692ef345f4"
+    },
+    {
+      "input": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianDomainSharpModuleRevalidation.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.004.raw.snapshot",
+      "raw_sha256": "bffdac0c5ccb3e4fbf22ab3d80481177f80379c17b238966e84823788bbb0df6",
+      "lf_sha256": "db6ecebf0d463788e61e1d0402a03c685921d7416eb36576af73273ccb9a2318"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.2.reviewer-packet.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.005.raw.snapshot",
+      "raw_sha256": "3366d420d31e800088b6650234fa9a0031130177c5a832e93c217279bde940a7",
+      "lf_sha256": "8db106aacb090e298a86ce152ff457ed043a37d685aba602c8d205b85933e437"
+    },
+    {
+      "input": "runs/20261007-companion-priority/anonymous-decoder-30/lease.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.006.raw.snapshot",
+      "raw_sha256": "5cc1dba8f24b4e393635299111f9d1aa728fc8a6de677c55434a1ccd5c27f844",
+      "lf_sha256": "5cc1dba8f24b4e393635299111f9d1aa728fc8a6de677c55434a1ccd5c27f844"
+    },
+    {
+      "input": "runs/20261007-companion-priority/anonymous-decoder-30/packet0.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.007.raw.snapshot",
+      "raw_sha256": "dff2bd0f4bb1b19d5f2b2fbb3fba06815fa9a6305f6558f0eb29f19fdaea9e8a",
+      "lf_sha256": "c46f417bc3210f8ee2bc93f160635e7e3eeb9842550190a664b140d6fe7648a1"
+    },
+    {
+      "input": "runs/20261007-companion-priority/anonymous-decoder-30/packet1.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.008.raw.snapshot",
+      "raw_sha256": "8d3ef4170170a2a344dee5a567bbe69f6a28c438d80927a8fb5e48f8e847476c",
+      "lf_sha256": "1866fd8c2935354281546cd301c411c1a0b33d94e1e66c189a435afb08bd1571"
+    },
+    {
+      "input": "runs/20261007-companion-priority/anonymous-decoder-30/result0.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.009.raw.snapshot",
+      "raw_sha256": "42685705697f4a3f893efe69c207498fdf7dcd1a4b06d33460bb6df075df04ba",
+      "lf_sha256": "42685705697f4a3f893efe69c207498fdf7dcd1a4b06d33460bb6df075df04ba"
+    },
+    {
+      "input": "runs/20261007-companion-priority/anonymous-decoder-30/result1.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.010.raw.snapshot",
+      "raw_sha256": "032b2532169bfdea70d50136ee6c2a447e25ea1cb6eceb1792bf16e2cf8a8ad0",
+      "lf_sha256": "032b2532169bfdea70d50136ee6c2a447e25ea1cb6eceb1792bf16e2cf8a8ad0"
+    },
+    {
+      "input": "runs/20261007-companion-priority/anonymous-decoder-30/run.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.011.raw.snapshot",
+      "raw_sha256": "6304ef1fc962c945207c917c6ffc5b9cd6270c3f38e12133cb95727d7d394b51",
+      "lf_sha256": "6304ef1fc962c945207c917c6ffc5b9cd6270c3f38e12133cb95727d7d394b51"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.012.raw.snapshot",
+      "raw_sha256": "555ee4cd7d0b49abef204bc18a966e443c5051b279127d91edcae654a38b5a09",
+      "lf_sha256": "e46ea6518b151be180528574a4eb89d76b03aaf0b6f5e78784ffa9da7d0b1e75"
+    },
+    {
+      "input": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/FullRangeProximalGaussianOracle.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.013.raw.snapshot",
+      "raw_sha256": "ffe2a2b2499a5057714deea8ede6a3094207c89ae96d7b30e7099178153f1ba4",
+      "lf_sha256": "b13c0561e4a32f9a7d1445ab1c4b1b553842ffc972a4c3c9e1e5e25f6d9ee73b"
+    },
+    {
+      "input": "Tests/GaussianLipschitzExponential.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.014.raw.snapshot",
+      "raw_sha256": "471009b4da4ca22a24bd2fe57205bda26286a5c08ec74626c154658d93a3fe0f",
+      "lf_sha256": "4b507b45968939ccaef7c0107b113ceea97873c5be1b94e3eed47d4c247c9a16"
+    },
+    {
+      "input": "Tests/FullRangeProximalGaussianOracle.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.015.raw.snapshot",
+      "raw_sha256": "35aed362394c52eb5aaa589cef15c2a84e8de2462f876522806e1718e8a81494",
+      "lf_sha256": "8fc94012e87ab95d5374e4f8c49ac7a266a1f94af118a4b4d0eb8057dc463456"
+    },
+    {
+      "input": "Tests/StandardizedRGOPositionFisher.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.016.raw.snapshot",
+      "raw_sha256": "75e04efdbbf84d6a4b4b6781cf107f20c6d5cbdd70e5558002f87bb4463128e6",
+      "lf_sha256": "a82741b90f140dbf5217719f085befe4436f70e7377934b04ca9eac5a4fc0e43"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.generic-sharp.0.log",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.017.raw.snapshot",
+      "raw_sha256": "244d92b37d095704ca7b748a90deae75454f25ba77c868eb12bcb1e1b789389c",
+      "lf_sha256": "244d92b37d095704ca7b748a90deae75454f25ba77c868eb12bcb1e1b789389c"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.source-sharp.0.log",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.018.raw.snapshot",
+      "raw_sha256": "317cd3c0c104f0e781b42ebf86b82ae5314cb870e6c28efe0b66e1aea2b54cfe",
+      "lf_sha256": "317cd3c0c104f0e781b42ebf86b82ae5314cb870e6c28efe0b66e1aea2b54cfe"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.standard-tests.1.log",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.019.raw.snapshot",
+      "raw_sha256": "40973210c198a1157928dd48000657b064fae44993ff0ac451c0fc59e8497fb4",
+      "lf_sha256": "40973210c198a1157928dd48000657b064fae44993ff0ac451c0fc59e8497fb4"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/claim.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.020.raw.snapshot",
+      "raw_sha256": "a8200759bb6d06d9a06a81e92551f94c0dcbccd89bd366af6fe0244a8b105f3b",
+      "lf_sha256": "dfb9ed82cf6c2a2324e3783a67b5f354a42de8367cd143e7be1fb3468052fee2"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/statement-seals.accepted.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.021.raw.snapshot",
+      "raw_sha256": "c59f6cf476d591a46ba08a0c33184395f0b4a506b568386e80fa75e6fe101b7e",
+      "lf_sha256": "a0e3a7d833f99fc94ae60833e356314e2a229a5582c34af58e91bc0fa679de19"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/reviewer.statement-seal-admission.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.022.raw.snapshot",
+      "raw_sha256": "440b0017785dfefaed84ed7ffdc18510892baab5202d07f9b3b1693b79f75278",
+      "lf_sha256": "440b0017785dfefaed84ed7ffdc18510892baab5202d07f9b3b1693b79f75278"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/source-proof-graph.independent.author-final.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.023.raw.snapshot",
+      "raw_sha256": "d2ae602d50351687bf33b3d661aeb9d7eec39a1868a7ee7806363b925227443a",
+      "lf_sha256": "d2ae602d50351687bf33b3d661aeb9d7eec39a1868a7ee7806363b925227443a"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/preproof/reviewer.source-topology-review.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.024.raw.snapshot",
+      "raw_sha256": "221cacf975e4054da8d8df1821559b7c9115b4e3d5c7b9507a7b751ce50cb84e",
+      "lf_sha256": "221cacf975e4054da8d8df1821559b7c9115b4e3d5c7b9507a7b751ce50cb84e"
+    },
+    {
+      "input": "lean-toolchain",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.025.raw.snapshot",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+    },
+    {
+      "input": "lake-manifest.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.026.raw.snapshot",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/publication-plan.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.027.raw.snapshot",
+      "raw_sha256": "d68313e0daf27b9c69412d3eef9212b07c0b57bcd233db9df103292bef1161dd",
+      "lf_sha256": "3c0df6e6969b0b17fd86476fc963bcb468e21993a3dbfa78c55e2776e5ee8594"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.contract.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.028.raw.snapshot",
+      "raw_sha256": "0d9911aa6ccbea09b195317e9d8bb224b857b03335e799afd735f32a7d917c47",
+      "lf_sha256": "0d9911aa6ccbea09b195317e9d8bb224b857b03335e799afd735f32a7d917c47"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.lease.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.029.raw.snapshot",
+      "raw_sha256": "aa1012d0ccd0a9874e29fca121e8c1d24de6cafdd0612f53956f66e5d0f64628",
+      "lf_sha256": "aa1012d0ccd0a9874e29fca121e8c1d24de6cafdd0612f53956f66e5d0f64628"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/proof-digestion.route-expansion.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.030.raw.snapshot",
+      "raw_sha256": "78cc350847bb485d7ccda92ca5d6c3754ff6773cc1950904a2a5958f95904af9",
+      "lf_sha256": "19fcecbf948721fbd8eb38aaebd156cdd4ebc07ac0176430c63b0b3f9b02a57c"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/publication-routing-reconciliation.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.031.raw.snapshot",
+      "raw_sha256": "7c83ba9918fa77250eac56aac5d24695bab15ce5a72876d29e9e1f5fb2954583",
+      "lf_sha256": "5ce5a577d731f5fe2fff6f0b59c5d468f88529c9fa7ab221b245a7f87ac5f4ad"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/rotation-covariance-route.proposal.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.032.raw.snapshot",
+      "raw_sha256": "5ba2e35f9d246ca475104b52f153797a6c8bdbf188403ba4b44cc794246a0f3d",
+      "lf_sha256": "e753f860b2f1e90b0da265e2bb8a0b8fbf94bf00129a1f2110f48c77ce3c89c5"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/rotation-comparison-route.proposal.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.033.raw.snapshot",
+      "raw_sha256": "8f1a83bb1800088f90ac6bce2e38226e6c424a0054dc0514d35396bece0c860d",
+      "lf_sha256": "4268317401e7aea5706e3e6ba96421100c946639875c313dc9b97244e76d6b3f"
+    },
+    {
+      "input": "research-wiki/frontier-cells/ASTIS-SHARED-gaussian-sharp-concentration.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.034.raw.snapshot",
+      "raw_sha256": "89fb9ff223059d3853be095bd0fd955ce13dbfdabc341c5fe15f376b79408a3b",
+      "lf_sha256": "ca4eb792bd63fb2198b9695d971a6f27a300e2bc0749a27bf30db5f00f59d42f"
+    },
+    {
+      "input": "research-wiki/frontier-cells/ASTIS-SW-SPHMC-full-range-proximal-gaussian-oracle.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.035.raw.snapshot",
+      "raw_sha256": "2e95edff0c44a3137bde3b685dc914f8ed7ff6566b90d325611ae02f3db85708",
+      "lf_sha256": "b9b6a10fe87910a56751f7d19d5c3af3e82069e2200cb724bd9308cd85b15cd2"
+    },
+    {
+      "input": "research-wiki/frontier-cells/ASTIS-SHARED-gaussian-lipschitz-exponential-domain.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.036.raw.snapshot",
+      "raw_sha256": "e0e2beb6514c7924d4980c94f21778d13e61249b0f3aa799c6bf855a33a3c612",
+      "lf_sha256": "557d9e90eaa62032eb005f3aaf8b30489354e2d6e3dcb07c657f96ef21c820eb"
+    },
+    {
+      "input": "website/content/publications/gaussian-sharp-concentration.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.037.raw.snapshot",
+      "raw_sha256": "d37571637c691c50cdfc1ce1a5ceea32d01de3ca1b5c2c7520be37fbf3e163ce",
+      "lf_sha256": "e3ee68511fecb9ca817959bafd0bd3a8b55076ee2643f2b96d8698ebddd391b3"
+    },
+    {
+      "input": "website/content/publications/sphmc-full-range-proximal-gaussian-oracle.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.038.raw.snapshot",
+      "raw_sha256": "12895613909914f60f2a4cca207ea62f388aa555c55d009fb0b26740feb43ba7",
+      "lf_sha256": "624e66d754445586d7c68975b6ece1ea59617028dbce8105ec1090bc9b7038dc"
+    },
+    {
+      "input": "website/content/publications/gaussian-lipschitz-exponential.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.039.raw.snapshot",
+      "raw_sha256": "5c9531a12c8b917ef4a308ac77a13607dc5b652d533e8b4a75110eac86332515",
+      "lf_sha256": "bc9248a7a8cf5c265d95e68ade80df96e474d8fc7cc4664445132b76470d324b"
+    },
+    {
+      "input": "website/content/declaration_lessons/gaussian-sharp-concentration.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.040.raw.snapshot",
+      "raw_sha256": "37b657dd8f5f0f57c0169097c9e393458480aa5125f0a3b9eb5ae7e4914ff211",
+      "lf_sha256": "648e305a06907184cf89270ab93ae6493f954682710952f4cd018e57d25197c5"
+    },
+    {
+      "input": "website/content/declaration_lessons/sphmc-full-range-proximal-gaussian-oracle.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.041.raw.snapshot",
+      "raw_sha256": "f695fa37ae7fc1d25854dc9674cb404c3c8d6f3e7d6f05673dfd6360d569525e",
+      "lf_sha256": "535bb4076c9f69d6765f04d85b79eddbe273e7bb0a6e994ae83f0b03a9c1abbc"
+    },
+    {
+      "input": "website/content/declaration_lessons/gaussian-lipschitz-exponential.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.042.raw.snapshot",
+      "raw_sha256": "8ebde62cad967d46facc3a67b870bde3b3f5ef35396c81b6201e89942883004a",
+      "lf_sha256": "ad50d14db618db0ec4b0a1a9b454c9668dda595f56759e34ee4fe1563d1bdd7b"
+    },
+    {
+      "input": "proof-blueprints/gaussian-sharp-concentration.md",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.043.raw.snapshot",
+      "raw_sha256": "d9101e567fb565f751eb20f8f7c4151cb6a9295620f4395dda1d79593fac5b7f",
+      "lf_sha256": "d9101e567fb565f751eb20f8f7c4151cb6a9295620f4395dda1d79593fac5b7f"
+    },
+    {
+      "input": "research-wiki/technical-lemmas/gaussian_sharp_concentration.md",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.044.raw.snapshot",
+      "raw_sha256": "b149d00145e50ca5ca9ba1641a2f39700aa7c946d21254025722f41e8e281d1e",
+      "lf_sha256": "b149d00145e50ca5ca9ba1641a2f39700aa7c946d21254025722f41e8e281d1e"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repaired.0.reviewer-packet.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.045.raw.snapshot",
+      "raw_sha256": "b2fb5e6a80f1f2304ab687e9787957ee7c3236837a623d2c59f6ff4cd5c9f12b",
+      "lf_sha256": "b9f9c439c6f25741c52fb3f54cab5798646bd677f9985c418f2d8787cf039c65"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repaired.1.reviewer-packet.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.046.raw.snapshot",
+      "raw_sha256": "b66dc06239da574e6db2000dcb43bb92e73e44c78de06ab14bf31e50c2449f68",
+      "lf_sha256": "ea5e3c6e188006f8d7474ff59c06eb117ed82cda9ce7f41685b39aa61b3bfa9e"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repaired.2.reviewer-packet.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.047.raw.snapshot",
+      "raw_sha256": "adfdeabae2246510b2205b6bb0f4c26a8aa8842e71bb258e9e3955d501fc0a40",
+      "lf_sha256": "c32cbc57e5f435555584314b468754e52dc16c6e35f01ff657540c8035963b15"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.0.review.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.048.raw.snapshot",
+      "raw_sha256": "34dbfe01313c4d89d300d4f0cd8e991902d62cce084b9a1a296dc5e87aad561d",
+      "lf_sha256": "34dbfe01313c4d89d300d4f0cd8e991902d62cce084b9a1a296dc5e87aad561d"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.1.review.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.049.raw.snapshot",
+      "raw_sha256": "6b232c1bd230643b94fab8dd24b9ae45b7644dd67d65776c577ccef7ba71e99a",
+      "lf_sha256": "6b232c1bd230643b94fab8dd24b9ae45b7644dd67d65776c577ccef7ba71e99a"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.2.review.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.050.raw.snapshot",
+      "raw_sha256": "5b21ffa1323389ecaec122cc681c4f9b14e1984d308ca7df5aed678c629351e7",
+      "lf_sha256": "5b21ffa1323389ecaec122cc681c4f9b14e1984d308ca7df5aed678c629351e7"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.repairs.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.051.raw.snapshot",
+      "raw_sha256": "163038a8f32f47b91ee675cf34b9d44485b8c0d2acae9446a3fccd88e1c10cfd",
+      "lf_sha256": "163038a8f32f47b91ee675cf34b9d44485b8c0d2acae9446a3fccd88e1c10cfd"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.lease.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.052.raw.snapshot",
+      "raw_sha256": "66fdab21ffd335fa034d26e00283e4cb4868fa4b54910ac80f0d3b908d7b5e91",
+      "lf_sha256": "66fdab21ffd335fa034d26e00283e4cb4868fa4b54910ac80f0d3b908d7b5e91"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.topology.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.053.raw.snapshot",
+      "raw_sha256": "0ae12a92328be8e63b8ec8de4cbb0f80a842fde69d359a5010514f017f073794",
+      "lf_sha256": "0ae12a92328be8e63b8ec8de4cbb0f80a842fde69d359a5010514f017f073794"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.proposal.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.054.raw.snapshot",
+      "raw_sha256": "0a0775f2280e5564f1c8bb3fe2c1bf25006f799f2f8b73faffcaef201264b780",
+      "lf_sha256": "cce47314322aefe3242af5a074a136876af2b0f1048f735a24338bcc29ad2872"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/math-freeze.exposition-repaired.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.055.raw.snapshot",
+      "raw_sha256": "7010668b5f2402efbc4662b67649293ae7f98d0ea9de41378650b8495ee3083e",
+      "lf_sha256": "ab889bf8c2d2f366e4dd8c9d3d6afa5032382cd1651254501ac4fdb22588e9d2"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/whole-math-review.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.056.raw.snapshot",
+      "raw_sha256": "a38785c2e632ea049e1e5d0621bc6523f8538af3ead7fd37a9684a02aa78754f",
+      "lf_sha256": "a38785c2e632ea049e1e5d0621bc6523f8538af3ead7fd37a9684a02aa78754f"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/focused.exposition-repair.0.log",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.057.raw.snapshot",
+      "raw_sha256": "060344f52528667ba5bdb7efcc79c3b372246a3609859333073a2a557bf1dea0",
+      "lf_sha256": "060344f52528667ba5bdb7efcc79c3b372246a3609859333073a2a557bf1dea0"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.0.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.058.raw.snapshot",
+      "raw_sha256": "4599dca2177561e6d6e8f8fc57f76b0a9f20c0ae9b30b5c7257e4d4f12fa22a2",
+      "lf_sha256": "1eb39e2d615b2bb9dda0630be8062ff83432b47dd34e5577af3364c393ab7cb2"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.1.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.059.raw.snapshot",
+      "raw_sha256": "c4277d47962d537097010cdd79d2954215d350ff27c75c71c0ce9a561770e372",
+      "lf_sha256": "aa584db25d1c8d0034b82d1a55a772b5ecb888809542515843c4a69af7720c1d"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.2.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.060.raw.snapshot",
+      "raw_sha256": "3e3ba8aae3c3d55cdc9c9b6563463ee1c9e8b2dbbeab72abbd2a871c9597f4ce",
+      "lf_sha256": "875064f29010cfdcf8f750151619a33189c97b3bf390533a9e3bc939b97b95e1"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.3.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.061.raw.snapshot",
+      "raw_sha256": "0c56e835b02a1cdd2e745b8f539184f67ff4687abd41d2bf1e2f5d1ca320c54a",
+      "lf_sha256": "8cd258eef6472b74cc6b3a133d3a01974a725cb5775375bfc5a63a43f366d0a5"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.4.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.062.raw.snapshot",
+      "raw_sha256": "7e0e32d14b564b1590630a6e4e904be74383c217f3ef1594cca53e4237e99f6b",
+      "lf_sha256": "f1a5dcc896727a34c2cdbc00fa4498af91e68e60c9aabdfc4041876ab2d85fe0"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.audit.0.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.063.raw.snapshot",
+      "raw_sha256": "9ec3a20090d35382b7a732acc6ceb30dba29452f10c60203a6f2de8f8c63cad7",
+      "lf_sha256": "f46db92454fc0c0cfbb8dc50c09c114cb957f2d3b9bb9eef5f661418e1491187"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.audit.1.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.064.raw.snapshot",
+      "raw_sha256": "d7c22553546b2eb983331d104a8a99d8ac324711b8bc1a355f9cd8cfdccc27a4",
+      "lf_sha256": "f8c1008bbf0e1fe59a2351ae5d8e7458c16310e30ef095eda8ff5c423321fa9f"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/exposition-repair.before.audit.2.raw.snapshot",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.065.raw.snapshot",
+      "raw_sha256": "3ee30db52600b2b050cb92e34c450bab3dc0a83d44adf5cd2c4e36f7d88afe6a",
+      "lf_sha256": "fbf06213bb786e72c405e60e042eedb0cb5388f0270c9b82a6dbba201dcf441d"
+    },
+    {
+      "input": "runs/20261006-companion-priority/smoothed-hessian-lower-preread/source-primary.sphmc-v1.raw.html",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.066.raw.snapshot",
+      "raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "lf_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.primary-first.inventory.json",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.067.raw.snapshot",
+      "raw_sha256": "f8fa76c6b114c51aee6cf0bd10e717856d2f08810bd788c5868514cb4de49843",
+      "lf_sha256": "f8fa76c6b114c51aee6cf0bd10e717856d2f08810bd788c5868514cb4de49843"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/LineDeriv/IntegrationByParts.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.068.raw.snapshot",
+      "raw_sha256": "3cf3b6c6b3e7025957ffbd83c278fe7b36e26a466ca4a7f4c8fce9428bf1d912",
+      "lf_sha256": "37f8b789e35db498bbc477cfbf12a4e91d52f09acbaf0a379f4094480b3a9962"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/ParametricIntegral.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.069.raw.snapshot",
+      "raw_sha256": "d63869326d278ce53699b42ce5cf3af11bc8260aad1bb97eaeb86889b92f6ca7",
+      "lf_sha256": "495f1a89774b147de1528e0213f519817d50fc3602724c9cbea633e9617c3375"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/BumpFunction/Convolution.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.070.raw.snapshot",
+      "raw_sha256": "42770c7caab00fa5dcb8412eaed82ab70ca515d14306c2b90be7f79707487c59",
+      "lf_sha256": "7e89c7cb27e6d8fbeba7ef17cff8f9f62e4467337e5bf9e9d132b92825cf088a"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Convolution.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.071.raw.snapshot",
+      "raw_sha256": "e88453ce9a1e1735a0335b4c092ec662e72e798835b945e3dbb7ca7b3bc265a7",
+      "lf_sha256": "51c4b08497f08a898573cabb6ad5a95f4a1e170ab74fec15d2bf4fdd8eba370b"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/DominatedConvergence.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.072.raw.snapshot",
+      "raw_sha256": "e77596f8709e4af3304d4e810f32a60a242925151b0d868e1c2fad190db71f5a",
+      "lf_sha256": "18b709ea5c9ef9136e3e75ded82a6135641e6e19688e0ca3abcb0af45648ab84"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.073.raw.snapshot",
+      "raw_sha256": "6d18e03bf6ebd6452265eafd9a776519e6d93814636ab959e51b168cda6bed43",
+      "lf_sha256": "86660bae117cac863b46dd7205f3161908b42a8cc5ba65ebd52a7a98e3d723a6"
+    },
+    {
+      "input": ".lake/packages/mathlib/Mathlib/Probability/Moments/MGFAnalytic.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.074.raw.snapshot",
+      "raw_sha256": "fe7e8baa7f49f8db0aba9eaa5d56328d14206f20fcd6f025c1c0a0bbb156f965",
+      "lf_sha256": "43bf9669a4aececdead05bfb77193476d2bf92885767b876960ca4c314d20a23"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.075.raw.snapshot",
+      "raw_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "lf_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Analysis/HessianStrongConvexity.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.076.raw.snapshot",
+      "raw_sha256": "78dcbca82db4c1aaaf2fb5ab59e2df74b23f2e48c805e41cde07f33d9f72ad30",
+      "lf_sha256": "2274e86f3affb400c4de8c94c1796bb103d4b77c980a530ff23bd4c344e0bb62"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothnessEquivalences.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.077.raw.snapshot",
+      "raw_sha256": "c6e04ae6243722537732de0e4e4120512912645491710382714f56ff20302123",
+      "lf_sha256": "60c0b4a1afaa83b0e19d18a6c7923be8335f1e1eb53243d59372e45464d2fbbd"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentContraction.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.078.raw.snapshot",
+      "raw_sha256": "47bd30cb5073a27d9ff1ef8a7b77a8fdbd229438b9c6f5bc8d5c1042e604baf7",
+      "lf_sha256": "d12a1ad0e67ba09a5696850fb8be4e01345363c52f5960745d5e0f3630293177"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.079.raw.snapshot",
+      "raw_sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "lf_sha256": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Measure/IsotropicGaussianDensity.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.080.raw.snapshot",
+      "raw_sha256": "cb1bb40f2e4c17f4a9482cbd7ba022bac815409d68d4e7b6e9f8d00bcdd3e817",
+      "lf_sha256": "08eaba5759c1f514e80c58123f6a7c4c9f1ffc18c4d20df3a93b6e718fae25d7"
+    },
+    {
+      "input": "AutoSamplingTheory/TechnicalLemmas/Probability/StdGaussianMoment.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.081.raw.snapshot",
+      "raw_sha256": "33d22a897719aab96566a8eb935ae96bc7939af90df2f9cc7f83a01212c8a5ce",
+      "lf_sha256": "f87a1c18284dbe58658c3c312f1015fa2eec0b203d5a1187618e5f43ea2a6e00"
+    },
+    {
+      "input": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.review.unchanged-domain-parent.raw.snapshot.lean",
+      "snapshot": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.repair.input.082.raw.snapshot",
+      "raw_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+      "lf_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1"
+    }
+  ],
+  "review_completed_utc": "2026-10-06T20:18:20.999877+00:00",
+  "verdict_interpretation": "Independent scoped source/publication equivalence at this repaired binding; historical BLOCKED receipts retained. This review is not self-admission/VERIFIED, fullLemma/main/work completion, or new mathematical credit to the unchanged domain leaf.",
+  "no_self_admission_or_VERIFIED": true,
+  "original_blocked_receipt": {
+    "path": "runs/20261007-companion-priority/gaussian-sharp-concentration/source.0.review.json",
+    "raw_sha256": "34dbfe01313c4d89d300d4f0cd8e991902d62cce084b9a1a296dc5e87aad561d",
+    "lf_sha256": "34dbfe01313c4d89d300d4f0cd8e991902d62cce084b9a1a296dc5e87aad561d",
+    "bytes": 135605
+  },
+  "decoder_input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "decoder_observed_input_artifacts": [
+    {
+      "bytes": 2358,
+      "lf_sha256": "c46f417bc3210f8ee2bc93f160635e7e3eeb9842550190a664b140d6fe7648a1",
+      "path": "E:/Samplinglib/.astis/decoder-30/packet0.json",
+      "raw_sha256": "dff2bd0f4bb1b19d5f2b2fbb3fba06815fa9a6305f6558f0eb29f19fdaea9e8a"
+    }
+  ],
+  "review_run_sha256": "e455c2d1d5de82c4d738cf8cfbdf7f8f3dc45d8dfc3c7a4919c524d579d9d2c6"
+}

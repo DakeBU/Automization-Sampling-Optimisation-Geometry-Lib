@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en" data-theme="blueprint" data-color-scheme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <meta property="og:title" content="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior · Samplinglib">
+  <meta property="og:description" content="Samplinglib: verified sampling, optimisation, and geometry theory in Lean">
+  <link rel="icon" href="data:,">
+  <meta property="og:image" content="../assets/samplinglib-og.png">
+  <meta property="og:site_name" content="Samplinglib">
+  <title>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior · Samplinglib</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+  <link rel="stylesheet" href="../assets/lean-tutor.css">
+  <link rel="stylesheet" href="../assets/information-architecture.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-polish.css">
+  <link rel="stylesheet" href="../assets/quantumcomputinglib-detail-polish.css">
+  <link rel="stylesheet" href="../assets/math-first-reader.css">
+  <link rel="stylesheet" href="../assets/reader-contract-final.css">
+  <link rel="stylesheet" href="../assets/textbook-math-contract.css">
+  <link rel="stylesheet" href="../assets/chewi-source-first-contract.css">
+  <link rel="stylesheet" href="../assets/library-shelves.css">
+  <link rel="stylesheet" href="../assets/formalization-progress.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="mobile-bar">
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-sidebar">Contents</button>
+    <a href="../index.html"><strong>Samplinglib</strong></a>
+    <button id="scheme-toggle-mobile" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+  </header>
+  <div class="site-shell">
+    <aside id="site-sidebar" class="site-sidebar" aria-label="Samplinglib contents">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark">S</span>
+        <span><strong>Samplinglib</strong><small>Verified Sampling, Optimisation, Geometry Theory in Lean</small></span>
+      </a>
+      <div class="search-shell">
+        <label class="sr-only" for="global-search">Search declarations and modules</label>
+        <input id="global-search" data-global-search data-search-root="../" type="search" placeholder="Search the library">
+        <ul class="search-results" data-global-results hidden></ul>
+      </div>
+      <div class="sidebar-contents" data-ia-version="2">
+<section class="sidebar-group sidebar-libraries" data-library-shelves="1">
+  <h2><a href="../libraries/index.html">Libraries</a></h2>
+  <nav class="source-hubs library-source-hubs">
+    <a class="source-hub" href="../textbook/index.html"><span class="source-hub-title">Log-Concave Sampling</span><small>Chewi · textbook graph</small></a>
+    <a class="source-hub" href="../example-cases/samplewiki.html"><span class="source-hub-title">SampleWiki</span><small>sampling frontier cases</small></a>
+    <a class="source-hub" href="../libraries/riemannian-optimization/index.html"><span class="source-hub-title">Riemannian Optimization</span><small>Boumal · 11 chapters</small></a>
+    <a class="source-hub" href="../libraries/optimisation/index.html"><span class="source-hub-title">Optimisation</span><small>Chewi · arXiv:2605.07006</small></a>
+    <a class="source-hub" href="../libraries/statistical-optimal-transport/index.html"><span class="source-hub-title">Statistical Optimal Transport</span><small>Chewi · Niles-Weed · Rigollet</small></a>
+    <a class="source-hub" href="../libraries/discrete-sampling/index.html"><span class="source-hub-title">Discrete Sampling</span><small>Chen · Štefankovič · Vigoda</small></a>
+    <a class="source-hub" href="../libraries/mcmc/index.html"><span class="source-hub-title">Markov Chain Monte Carlo</span><small>Fearnhead · Nemeth · Oates · Sherlock</small></a>
+  </nav>
+</section>
+<section class="sidebar-group sidebar-progress" data-formalization-progress="1">
+  <h2><a href="../progress/index.html">Current Progress</a></h2>
+  <nav class="progress-route-nav">
+    <a href="../progress/index.html#samplewiki">SampleWiki Route</a>
+    <a href="../progress/index.html#riemannian">Riemannian Optimization</a>
+    <a href="../progress/index.html#optimisation">Optimisation</a>
+    <a href="../progress/index.html#optimal-transport">Statistical Optimal Transport Route</a>
+    <a href="../progress/index.html#higher-order-sampling">Higher-Order Smoothness × Sampling</a>
+    <a href="../progress/index.html#discrete-sampling">Discrete Sampling Route</a>
+    <a href="../progress/index.html#mcmc">Markov Chain Monte Carlo Route</a>
+  </nav>
+</section>
+<details class="book-nav"><summary>Book contents</summary><div class="book-toc compact-book-toc"><div class="toc-part compact"><span>Part 1</span>Diffusions in Continuous Time</div><a class="compact-chapter-link" href="../textbook/chapter-01.html"><span>01</span><strong>The Langevin Diffusion in Continuous Time</strong></a><a class="compact-chapter-link" href="../textbook/chapter-02.html"><span>02</span><strong>Functional Inequalities</strong></a><a class="compact-chapter-link" href="../textbook/chapter-03.html"><span>03</span><strong>Additional Topics in Stochastic Analysis</strong></a><div class="toc-part compact"><span>Part 2</span>Complexity of Sampling</div><a class="compact-chapter-link" href="../textbook/chapter-04.html"><span>04</span><strong>Analysis of Langevin Monte Carlo</strong></a><a class="compact-chapter-link" href="../textbook/chapter-05.html"><span>05</span><strong>Faster Low-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-06.html"><span>06</span><strong>Convergence in Rényi Divergence</strong></a><a class="compact-chapter-link" href="../textbook/chapter-07.html"><span>07</span><strong>High-Accuracy Samplers</strong></a><a class="compact-chapter-link" href="../textbook/chapter-08.html"><span>08</span><strong>The Proximal Sampler</strong></a><a class="compact-chapter-link" href="../textbook/chapter-09.html"><span>09</span><strong>Lower Bounds for Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-10.html"><span>10</span><strong>Structured Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-11.html"><span>11</span><strong>Non-Log-Concave Sampling</strong></a><a class="compact-chapter-link" href="../textbook/chapter-12.html"><span>12</span><strong>Diffusion Generative Models</strong></a></div></details>
+<section class="sidebar-group">
+  <h2>Chapter 1 companion</h2>
+  <nav>
+    <a href="../textbook/chapter-01-companion.html">Companion guide</a>
+    <a href="../learning-path/index.html">Study guide</a>
+    <a href="../textbook/chapter-01-matrix.html">Formalization status</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Proof graph</h2>
+  <nav>
+    <a href="../lean-foundations.html">Underlying Lean Graph of Libraries</a>
+    <a href="../implementation-map/index.html">Implementation map</a>
+    <a href="../declarations/index.html">Lean declarations</a>
+    <a href="../source-correspondence.html">Source map</a>
+  </nav>
+</section>
+<section class="sidebar-group">
+  <h2>Build</h2>
+  <nav>
+    <a href="../live/index.html">Live formalization</a>
+    <a href="../workflow/index.html">ASTIS harness</a>
+  </nav>
+</section>
+<details class="sidebar-more">
+  <summary>Project</summary>
+  <nav>
+    <a href="../roadmap/index.html">Roadmap</a>
+    <a href="../contribute/index.html">Contribute</a>
+    <a href="../related-systems/index.html">Related systems</a>
+    <a href="../attribution/index.html">Attribution</a>
+    <a href="../maintenance.html">Verification workflow</a>
+  </nav>
+</details>
+</div>
+      <div class="sidebar-utility">
+        <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib">GitHub <span aria-hidden="true">↗</span></a>
+        <button id="scheme-toggle" class="scheme-toggle" title="Toggle color scheme" aria-label="Toggle color scheme">◐</button>
+      </div>
+    </aside>
+    <button class="sidebar-scrim" type="button" data-sidebar-scrim aria-label="Close contents"></button>
+    <div class="site-stage">
+      <div class="verification-strip unverified">
+        <span><strong>Lean gate not recorded for this source state</strong></span>
+        <span>codex/sphmc-standardized-rgo · f91b82a2920b</span>
+      </div>
+      <main id="content">
+<section class="page-hero compact"><div class="eyebrow">production module</div>
+<h1><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior</code></h1><p><a href="../lessons/module-autosamplingtheory-examplecases-smoothedpicardhmc-smoothedscoreposterior.html">Read the mathematical statements and proofs in order</a></p><p class="lede">2 named declarations scanned from <code>AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedScorePosterior.lean</code>.</p></section>
+<section class="module-meta">
+  <div><dt>Imports</dt><dd class="decl-links"><a href="autosamplingtheory-technicallemmas-analysis-gibbsgradientmean.html"><code>AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-smoothedgibbspotential.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential</code></a><a href="autosamplingtheory-examplecases-smoothedpicardhmc-standardizedrgopositionfisher.html"><code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher</code></a></dd></div>
+  <div><dt>Imported by</dt><dd class="decl-links"><a href="autosamplingtheory-examplecases.html"><code>AutoSamplingTheory.ExampleCases</code></a><a href="tests-smoothedscoreposterior.html"><code>Tests.SmoothedScorePosterior</code></a></dd></div>
+  <div><dt>Placeholder scan</dt><dd>0 declaration(s) flagged</dd></div>
+  <div><dt>Gate status</dt><dd><span class="status status-yellow">Partial</span></dd></div>
+</section>
+<section><h2>Declarations</h2><div class="declaration-list"><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-smoothedscoreposterior-e4435010b2">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior.rho_gradient</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">private theorem rho_gradient {V : E → ℝ} (hV : ContDiff ℝ 2 V)
+    (p : E) (η : ℝ) (u : E) :
+    gradient (fun z =&gt; V (p+Real.sqrt η • z)-V p-
+      Real.sqrt η*inner ℝ (gradient V p) z) u =
+      Real.sqrt η • (gradient V (p+Real.sqrt η • u)-gradient V p) := by
+  have hd : Differentiable ℝ V := hV.differentiable (by norm_num)
+  have hc := (hd (p+Real.sqrt η • u)).hasFDerivAt.comp u
+    ((hasFDerivAt_const p u).add ((hasFDerivAt_id u).const_smul (Real.sqrt η)))
+  have hl := ((innerSL ℝ (gradient V p)).hasFDerivAt (x := u)).const_mul (Real.sqrt η)
+  have hh := (hc.sub_const (V p)).sub hl
+  apply ext_inner_right ℝ
+  intro v
+  rw [inner_gradient_left]
+  rw [show fderiv ℝ (fun z =&gt; V (p+Real.sqrt η • z)-V p-
+    Real.sqrt η*inner ℝ (gradient V p) z) u = _ from hh.fderiv]
+  simp only [sub_apply,ContinuousLinearMap.comp_apply,smul_apply,
+    ContinuousLinearMap.id_apply,
+    zero_add,innerSL_apply_apply,real_inner_smul_left,inner_sub_left,smul_eq_mul]
+  rw [← inner_gradient_left]
+  simp only [real_inner_smul_right]
+  ring</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-smoothedscoreposterior.html#complete-module-source">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedScorePosterior.lean:33</a><span>local preview source</span></p>
+    
+  </div>
+</details><details class="declaration" id="decl-autosamplingtheory-examplecases-smoothedpicardhmc-smoothedscoreposterior-b80b5d4b64">
+  <summary><span class="kind">theorem</span> <code>AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior.smoothed_score_posterior</code> <span class="status status-yellow">Partial</span> <span class="status status-gray">Not mapped</span></summary><p data-lesson-link="AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior.smoothed_score_posterior"><a href="../lessons/autosamplingtheory-examplecases-smoothedpicardhmc-smoothedscoreposterior-smoothed-score-posterior-015aea160ae2.html">Read the complete mathematical statement and proof, with Lean below each</a></p>
+  <div class="declaration-content">
+    <p class="muted">No declaration docstring.</p>
+    <pre class="code-block"><code class="language-lean">theorem smoothed_score_posterior
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {κ η : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (hη : 0 &lt; η) :
+    let μ := (volume : Measure E).tilted (fun x =&gt; -V x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let A := fun y : E =&gt; C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+    let Vη := fun y : E =&gt; -Real.log (A y)
+    let R := fun y : E =&gt; μ.tilted (fun x =&gt; -‖x-y‖^2/(2*η))
+    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧
+      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        Integrable (gradient V) (R y) ∧
+        gradient Vη y = ∫ x, gradient V x ∂(R y)) ∧
+      ∃ p : E → E, Measurable p ∧ (∀ y, p y+η • gradient V (p y)=y) ∧
+        let rho := fun y u =&gt; V (p y+Real.sqrt η • u)-V (p y)-
+          Real.sqrt η*inner ℝ (gradient V (p y)) u
+        let r := fun y =&gt; (R y).map (fun x =&gt; (Real.sqrt η)⁻¹ • (x-p y))
+        ∀ y, r y=(volume : Measure E).tilted (fun u =&gt; -(‖u‖^2/2+rho y u)) ∧
+          IsProbabilityMeasure (r y) ∧ MemLp (gradient (rho y)) 2 (r y) ∧
+          gradient Vη y=gradient V (p y)+(Real.sqrt η)⁻¹ • (∫ u, gradient (rho y) u ∂(r y)) ∧
+          ∀ z, gradient V (p y+Real.sqrt η • z)=
+            gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z := by
+  have hk : 0 &lt; κ := lt_of_lt_of_le zero_lt_one hκ
+  have ha : 0 &lt; κ⁻¹ := inv_pos.mpr hk
+  let μ := (volume : Measure E).tilted (fun x =&gt; -V x)
+  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+  let A := fun y : E =&gt; C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+  let Vη := fun y : E =&gt; -Real.log (A y)
+  let R := fun y : E =&gt; μ.tilted (fun x =&gt; -‖x-y‖^2/(2*η))
+  let U := fun y : E =&gt; -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)
+  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)
+  obtain ⟨_hZ,hμ,_hlaw,_hI,_hInt,_hTilt,_hA,hC2,hshift⟩ :=
+    SmoothedGibbsPotential.smoothed_gibbs_potential ha hV (fun x a =&gt; (hH x a).1) hη
+  have : IsProbabilityMeasure μ := hμ
+  have hC : 0 &lt; C := by dsimp only [C]; positivity
+  obtain ⟨hRm,hD,_hDD⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC
+  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+    ha (hV.differentiable (by norm_num))
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x a =&gt; (hH x a).1))
+  have hshiftfun : U = (fun y =&gt; Vη y+Real.log ZV) := funext hshift
+  have hDU : fderiv ℝ U = fderiv ℝ Vη := by
+-- Source excerpt truncated; follow the exact source link.</code></pre>
+    <p class="source-links"><a href="../modules/autosamplingtheory-examplecases-smoothedpicardhmc-smoothedscoreposterior.html#complete-module-source">AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedScorePosterior.lean:55</a><span>local preview source</span></p>
+    <p class="muted">Excerpt truncated; the exact source link is authoritative.</p>
+  </div>
+</details></div></section>
+<section id="complete-module-source"><h2>Complete Lean source</h2>
+<details><summary><code>AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedScorePosterior.lean</code> — full module with imports and context</summary>
+<pre class="code-block"><code class="language-lean">import AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher
+
+/-!
+# True smoothed score and posterior expectation
+
+Chen, Chewi, Lu and Zhang, arXiv:2609.06906v1, Section3.1 and unnumbered
+S4.Ex9. The actual everywhere quadratic posterior, rather than a chosen
+almost-everywhere conditional representative, supplies the gradient mean.
+The source unnormalized convolution potential differs from the normalized
+potential by a constant log partition. That constant is retained until
+differentiation. All positive eta, the same produced proximal selector, and
+the same real affine standardized posterior are used throughout.
+
+This is a mean identity and exact evaluator chain rule. It does not prove
+bias(4.2), first(4.6) Wasserstein/Fisher, Gaussian LSI/T2, the full oracle
+lemma, any HMC approximation, either main theorem, or expected query costs.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior
+
+open MeasureTheory InnerProductSpace
+open scoped RealInnerProductSpace NNReal
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+private theorem rho_gradient {V : E → ℝ} (hV : ContDiff ℝ 2 V)
+    (p : E) (η : ℝ) (u : E) :
+    gradient (fun z =&gt; V (p+Real.sqrt η • z)-V p-
+      Real.sqrt η*inner ℝ (gradient V p) z) u =
+      Real.sqrt η • (gradient V (p+Real.sqrt η • u)-gradient V p) := by
+  have hd : Differentiable ℝ V := hV.differentiable (by norm_num)
+  have hc := (hd (p+Real.sqrt η • u)).hasFDerivAt.comp u
+    ((hasFDerivAt_const p u).add ((hasFDerivAt_id u).const_smul (Real.sqrt η)))
+  have hl := ((innerSL ℝ (gradient V p)).hasFDerivAt (x := u)).const_mul (Real.sqrt η)
+  have hh := (hc.sub_const (V p)).sub hl
+  apply ext_inner_right ℝ
+  intro v
+  rw [inner_gradient_left]
+  rw [show fderiv ℝ (fun z =&gt; V (p+Real.sqrt η • z)-V p-
+    Real.sqrt η*inner ℝ (gradient V p) z) u = _ from hh.fderiv]
+  simp only [sub_apply,ContinuousLinearMap.comp_apply,smul_apply,
+    ContinuousLinearMap.id_apply,
+    zero_add,innerSL_apply_apply,real_inner_smul_left,inner_sub_left,smul_eq_mul]
+  rw [← inner_gradient_left]
+  simp only [real_inner_smul_right]
+  ring
+
+theorem smoothed_score_posterior
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {κ η : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (hη : 0 &lt; η) :
+    let μ := (volume : Measure E).tilted (fun x =&gt; -V x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let A := fun y : E =&gt; C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+    let Vη := fun y : E =&gt; -Real.log (A y)
+    let R := fun y : E =&gt; μ.tilted (fun x =&gt; -‖x-y‖^2/(2*η))
+    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧
+      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        Integrable (gradient V) (R y) ∧
+        gradient Vη y = ∫ x, gradient V x ∂(R y)) ∧
+      ∃ p : E → E, Measurable p ∧ (∀ y, p y+η • gradient V (p y)=y) ∧
+        let rho := fun y u =&gt; V (p y+Real.sqrt η • u)-V (p y)-
+          Real.sqrt η*inner ℝ (gradient V (p y)) u
+        let r := fun y =&gt; (R y).map (fun x =&gt; (Real.sqrt η)⁻¹ • (x-p y))
+        ∀ y, r y=(volume : Measure E).tilted (fun u =&gt; -(‖u‖^2/2+rho y u)) ∧
+          IsProbabilityMeasure (r y) ∧ MemLp (gradient (rho y)) 2 (r y) ∧
+          gradient Vη y=gradient V (p y)+(Real.sqrt η)⁻¹ • (∫ u, gradient (rho y) u ∂(r y)) ∧
+          ∀ z, gradient V (p y+Real.sqrt η • z)=
+            gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z := by
+  have hk : 0 &lt; κ := lt_of_lt_of_le zero_lt_one hκ
+  have ha : 0 &lt; κ⁻¹ := inv_pos.mpr hk
+  let μ := (volume : Measure E).tilted (fun x =&gt; -V x)
+  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+  let A := fun y : E =&gt; C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+  let Vη := fun y : E =&gt; -Real.log (A y)
+  let R := fun y : E =&gt; μ.tilted (fun x =&gt; -‖x-y‖^2/(2*η))
+  let U := fun y : E =&gt; -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)
+  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)
+  obtain ⟨_hZ,hμ,_hlaw,_hI,_hInt,_hTilt,_hA,hC2,hshift⟩ :=
+    SmoothedGibbsPotential.smoothed_gibbs_potential ha hV (fun x a =&gt; (hH x a).1) hη
+  have : IsProbabilityMeasure μ := hμ
+  have hC : 0 &lt; C := by dsimp only [C]; positivity
+  obtain ⟨hRm,hD,_hDD⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC
+  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+    ha (hV.differentiable (by norm_num))
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x a =&gt; (hH x a).1))
+  have hshiftfun : U = (fun y =&gt; Vη y+Real.log ZV) := funext hshift
+  have hDU : fderiv ℝ U = fderiv ℝ Vη := by
+    rw [hshiftfun]
+    funext y
+    exact fderiv_add_const _
+  have hscore (y : E) : Integrable (gradient V) (R y) ∧
+      gradient Vη y = ∫ x, gradient V x ∂(R y) := by
+    let W := fun x =&gt; V x+η⁻¹/2*‖x-y‖^2
+    have hW : ContDiff ℝ 2 W := hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜 := ℝ)))
+    have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)
+    have hVdd : Differentiable ℝ (fderiv ℝ V) := (hV.fderiv_right (m := 1) (by norm_num)).differentiable_one
+    have hq (x : E) : HasFDerivAt (fun z =&gt; η⁻¹/2*‖z-y‖^2)
+        (η⁻¹ • innerSL ℝ (x-y)) x := by
+      convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul (η⁻¹/2)
+        using 1 &lt;;&gt; first | rfl | (ext a; simp; ring)
+    have hWfd (x : E) : fderiv ℝ W x = fderiv ℝ V x+η⁻¹ • innerSL ℝ (x-y) :=
+      ((hVd x).hasFDerivAt.add (hq x)).fderiv
+    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=
+      {toFun := fun a =&gt; innerSL ℝ a
+       map_add&#x27; := by intros; ext; simp
+       map_smul&#x27; := by intros; ext; simp
+       cont := (innerSL ℝ (E := E)).continuous}
+    have hWdd (x : E) : HasFDerivAt (fderiv ℝ W)
+        (fderiv ℝ (fderiv ℝ V) x+η⁻¹ • J) x := by
+      rw [show fderiv ℝ W=(fun z =&gt; fderiv ℝ V z+η⁻¹ • innerSL ℝ (z-y)) from funext hWfd]
+      convert (hVdd x).hasFDerivAt.add ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const y)).const_smul η⁻¹) using 1 &lt;;&gt; rfl
+    have hb (x a : E) : (κ⁻¹+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a ∧
+        fderiv ℝ (fderiv ℝ W) x a a ≤ (1+η⁻¹)*‖a‖^2 := by
+      rw [(hWdd x).fderiv]
+      change (κ⁻¹+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ∧
+        fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ≤ (1+η⁻¹)*‖a‖^2
+      rw [real_inner_self_eq_norm_sq]
+      constructor &lt;;&gt; nlinarith [(hH x a).1,(hH x a).2]
+    have hgradW (x : E) : gradient W x = gradient V x+η⁻¹ • (x-y) := by
+      apply ext_inner_right ℝ
+      intro a
+      rw [inner_gradient_left,hWfd]
+      simp only [add_apply,smul_apply,innerSL_apply_apply,inner_add_left,real_inner_smul_left,inner_gradient_left,smul_eq_mul]
+    let α : ℝ≥0 := ⟨κ⁻¹+η⁻¹,by positivity⟩
+    let β : ℝ≥0 := ⟨1+η⁻¹,by positivity⟩
+    have hα : 0 &lt; α := by change 0 &lt; κ⁻¹+η⁻¹; positivity
+    have hmean := AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean.integrable_gradient_and_integral_eq_zero
+      (α := α) (β := β) hα hW hb
+    have hRW : R y=(volume : Measure E).tilted (fun x =&gt; -W x) := by
+      dsimp only [R,μ]
+      rw [tilted_tilted hi]
+      congr 1
+      funext x
+      simp only [Pi.add_apply,W]
+      field_simp [hη.ne&#x27;]
+      ring
+    have : IsProbabilityMeasure (R y) := (hRm y).1
+    have hX : Integrable (fun x : E =&gt; x) (R y) := (hRm y).2.integrable (by norm_num)
+    have hqint : Integrable (fun x =&gt; η⁻¹ • (x-y)) (R y) :=
+      (hX.sub (integrable_const y)).smul η⁻¹
+    have hgw : Integrable (gradient W) (R y) := hRW.symm ▸ hmean.2.1
+    have hgv : Integrable (gradient V) (R y) := by
+      convert hgw.sub hqint using 1
+      funext x
+      change gradient V x = gradient W x-η⁻¹ • (x-y)
+      rw [hgradW]
+      abel
+    have hz : (∫ x, gradient V x ∂(R y))+η⁻¹ • ((∫ x, x ∂(R y))-y) = 0 := by
+      have he : (∫ x, gradient W x ∂(R y)) = 0 := hRW.symm ▸ hmean.2.2
+      simp_rw [hgradW] at he
+      rw [integral_add hgv hqint,integral_smul,integral_sub hX (integrable_const y)] at he
+      simpa only [integral_const,probReal_univ,one_smul] using he
+    have hemean : (∫ x, gradient V x ∂(R y)) = η⁻¹ • (y-∫ x, x ∂(R y)) := by
+      calc
+        _ = -(η⁻¹ • ((∫ x, x ∂(R y))-y)) := eq_neg_of_add_eq_zero_left hz
+        _ = _ := by rw [← smul_neg,neg_sub]
+    refine ⟨hgv,?_⟩
+    rw [hemean]
+    apply ext_inner_right ℝ
+    intro v
+    rw [inner_gradient_left,← hDU,hD]
+    simp only [real_inner_smul_left]
+    change inner ℝ (y-∫ x,x ∂(R y)) v/η = η⁻¹*inner ℝ (y-∫ x,x ∂(R y)) v
+    ring
+  refine ⟨hμ,hC2,(fun y =&gt; ⟨(hRm y).1,(hRm y).2,(hscore y).1,(hscore y).2⟩),?_⟩
+  obtain ⟨p,hpm,hstat,hstd⟩ :=
+    StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher hκ hV hH
+      (eta := fun _ : E =&gt; η) (y := fun x =&gt; x) measurable_const measurable_id (fun _ =&gt; hη)
+  refine ⟨p,hpm,hstat,?_⟩
+  let rho := fun y u =&gt; V (p y+Real.sqrt η • u)-V (p y)-
+    Real.sqrt η*inner ℝ (gradient V (p y)) u
+  let r := fun y =&gt; (R y).map (fun x =&gt; (Real.sqrt η)⁻¹ • (x-p y))
+  change ∀ y, r y=(volume : Measure E).tilted (fun u =&gt; -(‖u‖^2/2+rho y u)) ∧
+    IsProbabilityMeasure (r y) ∧ MemLp (gradient (rho y)) 2 (r y) ∧
+    gradient Vη y=gradient V (p y)+(Real.sqrt η)⁻¹ • (∫ u, gradient (rho y) u ∂(r y)) ∧
+    ∀ z, gradient V (p y+Real.sqrt η • z)=
+      gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z
+  intro y
+  obtain ⟨_hRp,_hρ,_hQ,_hρ0,_hQ0,_hρH,_hQH,hrlaw,hrp,_hrX,_hrXI,_hrXb,hrρ,_hrρa,_hrρb⟩ := hstd.2 y
+  have : IsProbabilityMeasure (r y) := hrp
+  have heval (z : E) : gradient V (p y+Real.sqrt η • z) =
+      gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z := by
+    have hρ := rho_gradient hV (p y) η z
+    change gradient (rho y) z = _ at hρ
+    rw [hρ,smul_smul,inv_mul_cancel₀ (Real.sqrt_pos.mpr hη).ne&#x27;,one_smul]
+    abel
+  refine ⟨hrlaw,hrp,hrρ,?_,heval⟩
+  have hρint : Integrable (gradient (rho y)) (r y) := hrρ.integrable (by norm_num)
+  have hρscaled : Integrable (fun u =&gt; (Real.sqrt η)⁻¹ • gradient (rho y) u) (r y) :=
+    hρint.smul (Real.sqrt η)⁻¹
+  have hconst : Integrable (fun _ : E =&gt; gradient V (p y)) (r y) := integrable_const _
+  have hFint : Integrable (fun u =&gt; gradient V (p y+Real.sqrt η • u)) (r y) := by
+    convert hconst.add hρscaled using 1 &lt;;&gt; try rfl
+    funext u
+    change gradient V (p y+Real.sqrt η • u)=gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) u
+    exact heval u
+  have hmap : (∫ u, gradient V (p y+Real.sqrt η • u) ∂(r y)) =
+      ∫ x, gradient V x ∂(R y) := by
+    rw [show r y=(R y).map (fun x =&gt; (Real.sqrt η)⁻¹ • (x-p y)) from rfl,
+      integral_map (by fun_prop) hFint.aestronglyMeasurable]
+    apply integral_congr_ae
+    filter_upwards with x
+    congr 1
+    rw [smul_smul,mul_inv_cancel₀ (Real.sqrt_pos.mpr hη).ne&#x27;,one_smul]
+    abel
+  rw [(hscore y).2,← hmap]
+  simp_rw [heval]
+  rw [integral_add hconst hρscaled,integral_smul,
+    integral_const,probReal_univ,one_smul]
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior
+</code></pre>
+</details></section>
+</main>
+      <footer>
+        <p><strong>Samplinglib</strong> is the public formal library and learning interface of Auto-Sampling-Theory-In-Sleep (ASTIS).</p>
+        <p><a href="../contribute/index.html">Contribute</a> · <a href="../attribution/index.html">Attribution</a> · <a href="../maintenance.html">Build and maintenance</a> · generated from Lean source, route metadata, and gate evidence.</p>
+      </footer>
+    </div>
+  </div>
+  <script src="../assets/site.js"></script>
+  
+  <script>try{localStorage.setItem("samplinglib-lean-language","en");}catch(e){}</script>
+  <script defer src="../assets/module-lean-tutor.js"></script>
+</body>
+</html>

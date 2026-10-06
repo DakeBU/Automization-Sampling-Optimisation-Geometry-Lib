@@ -62,6 +62,8 @@ import Tests.StrongConvexGibbsIntegrability
 import Tests.GibbsGradientMoment
 import Tests.GibbsGradientMean
 import Tests.SmoothedScorePosterior
+import Tests.GaussianSqrtDensityDomain
+import Tests.StandardizedRGOSqrtDensity
 import Tests.GibbsCovarianceLower
 import Tests.IsotropicGaussianDensity
 import Tests.ProximalBPSGaussianAugmentation

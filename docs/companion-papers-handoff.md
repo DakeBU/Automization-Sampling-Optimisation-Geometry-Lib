@@ -1,5 +1,38 @@
 # Companion-paper formalization handoff
 
+## Actual Gaussian square-root density domains 2026-10-07
+
+`ASTIS-SA-20261007-GaussianSqrtDensityDomain` is independently VERIFIED at
+`1de412105042ebcfe147d50a3d1022fb0514faad`. One canonical shared producer establishes actual
+positive Gaussian-relative partition/density, true volume Gibbs equality,
+probability, C2 explicit square root, all f/gradientf and gradientrho L2 domains,
+entropy L1 and the exact one-quarter Dirichlet-Fisher energy. No normalizer,
+probability, domain or gradient certificate is supplied. L0 and dimension0 remain.
+
+The genuine source consumer uses the SAME internally produced stationary p,
+literal residual and affine true RGO law, for every eta>0. The measurable family
+S is explicitly authored, and constant Unit families recover the printed case.
+This is only omitted classical background before FIRST(4.6), not its inequality.
+Focused3748 tests pass, including actual eta2/y3 stationaryp1/residualu-square
+and true posterior energy; only standard3 axioms. Independent wholeproof,
+fresh blind32, anti-anchored source review and exactcommit gates are recorded in
+`runs/20261007-companion-priority/gaussian-sqrt-density-domain/verified.json`.
+Current32 shared Registry/imports count476 are now staged for aggregate checks;
+site/graph/static ExpositionSeal/own-headCI remain separate until receipts exist.
+
+Next dependency is actual canonical KL identification and its finite domain,
+with honest explicit representatives. A.e. equality with an RN density never
+licenses pointwise differentiation of an arbitrary canonical RN version.
+Actual GaussianLSI/T2 and weakSobolev/metric adapters remain OPEN, as do FIRST(4.6),
+vector-mean comparison, bias(4.2), fullLemma4.2 and algorithm/main/work/composition.
+The broad strong-convex Gibbs LSI/T2 cell and older PBPS/other frontiers are preserved.
+
+Current31 repository/static Exposition seals are closed, and its own published
+0e3fd294 head has all four remoteCI runs successful (site deploy skipped).
+Those receipts validate current31, not current32. DraftPR313 remains unmerged;
+Copy/Download/renderedQA/postmerge purification and live delivery remain open.
+TV proximity does not transfer unbounded expected cost. The whole Goal continues.
+
 ## True smoothed score and posterior mean 2026-10-07
 
 `ASTIS-SA-20261007-SmoothedScorePosterior` is independently VERIFIED at

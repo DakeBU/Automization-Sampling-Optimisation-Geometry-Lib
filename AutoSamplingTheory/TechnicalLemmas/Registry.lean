@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.relative.sqrt-density-domains"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain"
+    upstreamDecl := "ProbabilityTheory.stdGaussian / MeasureTheory.integrable_tilted_iff / ASTIS Gaussian moment and curvature producers"
+    upstreamFile := "Mathlib.Probability.Distributions.Gaussian.Multivariate; Mathlib.MeasureTheory.Measure.Tilted"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "relative-density", "square-root", "entropy", "Fisher", "SPHMC"]
+    saldUse := "Actual SPHMC standardized true RGO analytic domains before Gaussian LSI/T2; no SALD or second-consumer admission"
+    note := "Actual covarianceI Gaussian, true volume/relative tilt equality, internally positive partition and L2/entropy domains, explicit gradients and exact energy1/4. Includes L0/dimension0; source consumes all eta>0. Independent exactcommit 1de412105042ebcfe147d50a3d1022fb0514faad. No weakSobolev/KL/LSI/T2/W2/main/cost credit."
+  },
+  {
     key := "measure.wasserstein.chewi-definition-1-3-4",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance",
     upstreamDecl := "Chewi Definition 1.3.4",

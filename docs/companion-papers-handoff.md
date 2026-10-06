@@ -29,12 +29,14 @@ reader-step math passed, including true nonquadratic eta1/2 same-D/u/ALLC2cutoff
 local and global5/8 stress plus actual E0 constant7 normalized Gibbs original-D
 stress. Distinct blind reconstructions, primary-first anti-anchored source
 review and exact independent proof VERIFIED have immutable raw/LF evidence.
-Five provenance-only metadata repairs and four lifecycle/reconstruction
-bindings have separate before/after independent reconciliation; production,
+Five provenance-only metadata repairs, four lifecycle/reconstruction bindings
+and a verifier-authored string-path schema repair have separate immutable
+before/after reconciliation; production,
 Test, mathematical reader lessons, blueprint and source inputs stayed frozen.
 Exact independently VERIFIED proof `b294055449999326ee044092cb967cfb409fa8b4`:
 `runs/20261006-companion-priority/global-weighted-resolvent-coercivity/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof b294055449999326ee044092cb967cfb409fa8b4 independently VERIFIED; shared integration a80c783cb55eb50f9cba1f1078f09cc71f772f93. Full ASTIS gate PASS (9115 root / 9370 Tests), publication170, semantic230/8, frontier233, contributor53/49. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and two actual import/declaration branches checked, full site and official graph freshness/contributor PASS. Graph838 modules/616 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/global-weighted-resolvent-coercivity/integration.json`. Goal remains active.
 
 Next bounded mathematical dependency is actual weak-gradient-zero constants
 and SAME-original-Gibbs closed-gradient kernel. The independent primary-first

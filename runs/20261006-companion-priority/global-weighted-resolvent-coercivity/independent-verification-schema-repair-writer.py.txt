@@ -1,0 +1,61 @@
+import sys,pathlib,json,hashlib,subprocess,datetime
+sys.path.insert(0,'tools');import astis_publication as pub,astis_advance as adv
+R=pathlib.Path('runs/20261006-companion-priority/global-weighted-resolvent-coercivity');V='picard_commit_verifier_20261005';C=subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()
+assert C=='a80c783cb55eb50f9cba1f1078f09cc71f772f93'
+def rd(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def fp(p):
+ b=pathlib.Path(p).read_bytes();return {'path':str(p).replace(chr(92),'/'),'raw_sha256':hashlib.sha256(b).hexdigest(),'lf_sha256':hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),'bytes':len(b)}
+verified_before=fp(R/'verified.json');assert verified_before['raw_sha256']=='aa802b061f1db63cf7e514bde3f33717fd82e23d289a249c756cebb6f6132ddb'
+z=rd(R/'verified.json');state_before=adv.current_advances();assert state_before[z['advance_id']]['state']=='VERIFIED'
+ledger_before=fp('runs/substantive_advances.jsonl')
+tracked=[]
+for p in z['lean_files']+['Tests/GlobalWeightedResolventCoercivity.lean']:
+ tracked.append(fp(p))
+for suffix in ['global-weighted-resolvent-coercivity','pbps-conditional-global-coercivity']:
+ for stem in ['declaration_lessons','publications']:tracked.append(fp('website/content/'+stem+'/'+suffix+'.json'))
+for a in z['source_audit']:
+ for k in ['current_audit','source_packet','source_result','decoder_packet','decoder_result']:tracked.append(fp(a[k]['path']))
+tracked += [fp(R/'math-review.json'),fp(R/'exact-admission-reconciliation.json'),verified_before]
+m=rd(R/'math-review.json');orig={x['path']:x for x in m['frozen_inputs']}
+for x in tracked:
+ if x['path'] in orig:assert x['raw_sha256']==orig[x['path']]['raw_sha256'] and x['lf_sha256']==orig[x['path']]['lf_sha256'],x['path']
+bindings_before=[]
+for item in pub.load():
+ for b in item['bindings']:
+  if b['declaration'] in z['lean_declarations']:
+   a=pub.inputs()['audits'][b['audit_id']]
+   h=pub.binding_digest(item,b);ctx=pub.review_context(item,b)
+   assert h==a['publication_binding_sha256'] and ctx==a['publication_context']
+   bindings_before.append({'declaration':b['declaration'],'audit_id':b['audit_id'],'publication_binding_sha256':h,'review_context_sha256':pub.digest(ctx)})
+assert len(bindings_before)==2
+changes=[]
+for cell in z['cell_ids']:
+ p=pathlib.Path('research-wiki/frontier-cells')/(cell+'.json');raw=p.read_bytes();old=json.loads(raw);new=json.loads(raw)
+ ev=new['evidence'];detail=ev['independent_verification'];assert isinstance(detail,dict) and detail['verifier_id']==V and detail['verified_commit']==z['verified_commit']
+ assert 'independent_verification_details' not in ev
+ snap=R/(cell+'.schema-repair-before.snapshot.json');assert not snap.exists();snap.write_bytes(raw)
+ ev['independent_verification']=str(R/'verified.json').replace(chr(92),'/');ev['independent_verification_details']=detail
+ # Exact field relocation only; preserve original line endings.
+ check=json.loads(json.dumps(new));check['evidence']['independent_verification']=check['evidence'].pop('independent_verification_details');assert check==old
+ out=(json.dumps(new,ensure_ascii=False,indent=2)+'\n').encode()
+ if b'\r\n' in raw:out=out.replace(b'\n',b'\r\n')
+ p.write_bytes(out)
+ changes.append({'cell_id':cell,'status_unchanged':old['status']==new['status'],'before_snapshot':fp(snap),'after':fp(p),'exact_changed_fields':['/evidence/independent_verification','/evidence/independent_verification_details'],'detail_object_unchanged':old['evidence']['independent_verification']==new['evidence']['independent_verification_details'],'path_string_resolves_exact_original_verified_receipt':True})
+pub.inputs.cache_clear();bindings_after=[]
+for item in pub.load():
+ for b in item['bindings']:
+  if b['declaration'] in z['lean_declarations']:
+   a=pub.inputs()['audits'][b['audit_id']];h=pub.binding_digest(item,b);ctx=pub.review_context(item,b)
+   assert h==a['publication_binding_sha256'] and ctx==a['publication_context']
+   bindings_after.append({'declaration':b['declaration'],'audit_id':b['audit_id'],'publication_binding_sha256':h,'review_context_sha256':pub.digest(ctx)})
+assert bindings_after==bindings_before
+for x in tracked:assert fp(x['path'])==x
+assert fp('runs/substantive_advances.jsonl')==ledger_before
+assert adv.current_advances()[z['advance_id']]==state_before[z['advance_id']]
+log=R/'independent-verification-schema-repair.frontier.log';assert not log.exists()
+with log.open('wb') as f:s=subprocess.run([sys.executable,'tools/astis_frontier_cells.py','check'],stdout=f,stderr=subprocess.STDOUT)
+assert s.returncode==0,log.read_text()
+assert '233 registered cells' in log.read_text()
+out={'schema_version':1,'reviewer_id':V,'role':'independent_verifier_metadata_schema_repair','status':'passed-scoped-metadata-only','checked_integration_head':C,'original_verified_commit':z['verified_commit'],'reason':'Frontier _nonempty accepts independent_verification as a nonempty path string; prior complete evidence object is retained byte-semantically under independent_verification_details. No mathematical or admission state change.','two_exact_cell_changes':changes,'unchanged_production_Test_lessons_publications_audits_source_decoder_math_and_verified_receipts':tracked,'publication_bindings_before_after_unchanged':bindings_after,'ledger_exact_raw_unchanged':ledger_before,'no_new_VERIFIED_transition':True,'no_new_math_source_compile_credit':True,'frontier_check':{'command':'python tools/astis_frontier_cells.py check','exit_code':0,'result':'PASS233','log':fp(log)},'existing_verified_json_immutable':verified_before,'all_compiler_sessions_and_writes_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+p=R/'independent-verification-schema-repair.json';assert not p.exists();p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'status':out['status'],'receipt':fp(p),'frontier':'PASS233','ledger_and_verified_unchanged':True,'all_writes_compilers_closed':True}))

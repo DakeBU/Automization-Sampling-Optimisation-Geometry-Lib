@@ -1,3 +1,4 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance
 import AutoSamplingTheory.ExampleCases.SampleWiki
 import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection

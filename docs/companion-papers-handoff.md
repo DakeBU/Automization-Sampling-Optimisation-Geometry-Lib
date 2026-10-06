@@ -1,5 +1,41 @@
 # Companion-paper formalization handoff
 
+## Actual source smoothed Hessian bounds 2026-10-06
+
+`ASTIS-SA-20261006-SmoothedHessianBounds` proves the actual analytic
+SPHMC Lemma4.1 for source beta=1, alpha=kappa^-1, 1<=kappa and0<eta<=1:
+(kappa+eta)^-1 I <= Hess V_eta <= (1+eta)^-1 I, and the genuine smoothed
+gradient is1-Lipschitz. V_eta is the source unnormalized Gaussian convolution
+potential; its actual constant difference from normalized U is proved before
+identifying derivatives. Actual posterior probabilities, positive partitions,
+positionL2, the literal unreflected law, and covariance upper are produced
+internally. There is no assumed moment/covariance/normalizer certificate.
+
+Canonical BOTH-curvature GibbsC1Poincare yields true linear covariance upper
+after actual linear gradient/energy and covariance-variance identification.
+This isotropic result is consumed by the genuine posterior Hessian identity;
+the already verified reverse-Cramer-Rao upper half is reused. Full anisotropic
+Brascamp-Lieb is not claimed. No PBPS reflected-quarter law is substituted.
+Finite real Hilbert/Borel representation including dimension0 is disclosed.
+
+Independent exact StatementSeal/source-only topology preceded production;
+whole mathematics, sourceblind reconstruction, final anti-anchored source
+review and exact proof commit d8f540f5 are independently accepted. Nonquadratic
+source eta1/2 yields Hess2/5..2/3 and eta1 yields1/3..1/2. Independent true
+quadratic kappa2 eta1 constant7 gives posterior Cov2/3, direction2 value8/3,
+and the sharp actual source Hessian1/3. Standard3 axioms only.
+Evidence: runs/20261006-companion-priority/smoothed-hessian-lower/verified.json.
+
+Shared full-gate/static-reader/graph integration and independent repository
+ProofSeal/purification/ExpositionSeal are pending at this checkpoint. The next
+source dependency is the full-range actual proximal Gaussian oracle and the
+literal standardized affine posterior law. Existing proximal construction is
+eta<=1/2 while the source requires eta<=1; no smaller range is relabeled complete.
+Normalized conditional score/marginal PI/fullBL/higher smoothing, actual sampler
+accuracy/Wp/proxy-warmness/initialization, both main results and actual-input
+expected-query-cost composition remain OPEN. TV never transfers unbounded
+cost; exact-gradient K, stochastic-exact-proximal Khat and mean Kbar stay distinct.
+
 ## Actual centered original-domain Poincare and score variance 2026-10-06
 
 `ASTIS-SA-20261006-CenteredPoincare` proves genuine centered-domain Poincare

@@ -1,3 +1,4 @@
+import Tests.SmoothedHessianBounds
 import Tests.CenteredPoincare
 import Tests.Shared.UniformRegularization
 import Tests.WeightedLocalL2

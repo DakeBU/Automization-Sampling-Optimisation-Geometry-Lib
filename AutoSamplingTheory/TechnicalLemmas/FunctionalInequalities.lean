@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator

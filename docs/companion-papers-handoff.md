@@ -32,8 +32,15 @@ reviews and fixed proof commit were independently checked; see
 nonquadratic eta1/2 gives m5/8 and variance9/40; actual0D constant7 probability
 and original-domain noncentered failure preserve the centering boundary.
 
-Shared integration, full aggregate/static-reader/graph acceptance, purification
-and independent Exposition Seal are pending in this integration checkpoint.
+Shared integration and full Lean gate passed at 8c7f3dd4; the independent
+repository ProofSeal binds that commit. Source-preview lossless expansion
+was independently rejected, repaired at 07824d87, and independently accepted
+after fresh full gate 9127/9386 and full static site validation. The scoped
+purification/ExpositionSeal is accepted; both private helper tails and full
+Test/import context now expand losslessly. Fresh repair regressions are
+composite 137 actual successful tests plus the corrected process-memory
+module 3; the wrong-module runner diagnostic is preserved.
+Rendered visual/copy/download QA and final push/CI acceptance remain open.
 Next mathematical edge is actual unreflected RGO linear-observable covariance
 upper using already compiled actual posterior positionL2 and the exact law
 normalization adapter, then actual SPHMC smoothed Hessian lower. Normalized

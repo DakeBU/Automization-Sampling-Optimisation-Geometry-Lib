@@ -1,0 +1,113 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+import Mathlib.Analysis.InnerProductSpace.PiL2
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+open Set MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds
+namespace Tests.SmoothedHessianBounds
+private def potential (x : ℝ) : ℝ := (3/8)*x^2 + (1/8)*Real.sin x
+private theorem potential_curvature :
+    ∀ z v : ℝ, (1/(2*(1:ℝ)))*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ potential) z v) v ∧
+      (fderiv ℝ (fderiv ℝ potential) z v) v ≤ ‖v‖^2 := by
+  have hder (z : ℝ) : HasDerivAt potential ((3/4)*z+(1/8)*Real.cos z) z := by
+    convert (((hasDerivAt_id z).pow 2).const_mul (3/8)).add
+      ((Real.hasDerivAt_sin z).const_mul (1/8)) using 1 <;> first | rfl | (simp [potential, Pi.add_apply, mul_comm]; ring)
+  have hD : fderiv ℝ potential = fun z =>
+      ((3/4)*z+(1/8)*Real.cos z) • ContinuousLinearMap.id ℝ ℝ := by
+    funext z
+    ext
+    rw [fderiv_eq_smul_deriv, (hder z).deriv]
+    simp
+  have hDD (z v : ℝ) : (fderiv ℝ (fderiv ℝ potential) z v) v =
+      ((3/4)-(1/8)*Real.sin z)*v^2 := by
+    have hd : HasDerivAt (fun w : ℝ => (3/4)*w+(1/8)*Real.cos w)
+        ((3/4)-(1/8)*Real.sin z) z := by
+      convert ((hasDerivAt_id z).const_mul (3/4)).add
+        ((Real.hasDerivAt_cos z).const_mul (1/8)) using 1 <;> (try dsimp only [id]) <;> first | rfl | ring
+    rw [hD, fderiv_eq_smul_deriv,
+      (hd.smul_const (ContinuousLinearMap.id ℝ ℝ)).deriv]
+    simp
+    ring
+  intro z v
+  rw [hDD]
+  simp only [Real.norm_eq_abs, sq_abs]
+  constructor <;> nlinarith [Real.sin_le_one z, Real.neg_one_le_sin z, sq_nonneg v]
+
+
+
+-- A genuine nonquadratic law tests every actual posterior and source Hessian
+-- conclusion, including the source eta=1 endpoint rather than an abstract field.
+theorem actual_nonquadratic_full {η : ℝ} (hη : 0<η) (hη1 : η≤1) :
+    let μ := (volume : Measure ℝ).tilted (fun x => -potential x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ ℝ
+    let A := fun y : ℝ => C*∫ x, Real.exp (-potential x-‖y-x‖^2/(2*η)) ∂(volume : Measure ℝ)
+    let Vη := fun y => -Real.log (A y)
+    let R := fun y : ℝ => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧
+      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        (∀ a, covarianceBilin (R y) a a ≤ ‖a‖^2/((1/2:ℝ)+η⁻¹)) ∧
+        ∀ a, (1/(2+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧
+          fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2) ∧
+      LipschitzWith (1 : ℝ≥0) (gradient Vη) := by
+  have hV : ContDiff ℝ 2 potential := by unfold potential;fun_prop
+  have hh : ∀ x a : ℝ, (2:ℝ)⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ potential) x a a ∧
+      fderiv ℝ (fderiv ℝ potential) x a a ≤ ‖a‖^2 := by
+    intro x a
+    norm_num at *
+    simpa using potential_curvature x a
+  simpa using smoothed_hessian_bounds (κ:=2) (by norm_num) hV hh hη hη1
+
+theorem actual_nonquadratic_eta_half :
+    let C := ((Real.sqrt (2*Real.pi*(1/2:ℝ)))⁻¹)^Module.finrank ℝ ℝ
+    let Vη := fun y : ℝ => -Real.log (C*∫ x, Real.exp (-potential x-‖y-x‖^2/(2*(1/2:ℝ))) ∂(volume : Measure ℝ))
+    ∀ y a, (2/5:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧
+      fderiv ℝ (fderiv ℝ Vη) y a a ≤ (2/3:ℝ)*‖a‖^2 := by
+  have h := (actual_nonquadratic_full (η:=1/2) (by norm_num) (by norm_num)).2.2.1
+  dsimp only
+  intro y a
+  norm_num at h ⊢
+  exact (h y).2.2.2 a
+
+theorem actual_nonquadratic_eta_one :
+    let C := ((Real.sqrt (2*Real.pi*(1:ℝ)))⁻¹)^Module.finrank ℝ ℝ
+    let Vη := fun y : ℝ => -Real.log (C*∫ x, Real.exp (-potential x-‖y-x‖^2/(2*(1:ℝ))) ∂(volume : Measure ℝ))
+    ∀ y a, (1/3:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧
+      fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/2:ℝ)*‖a‖^2 := by
+  have h := (actual_nonquadratic_full (η:=1) (by norm_num) (by norm_num)).2.2.1
+  dsimp only
+  intro y a
+  norm_num at h ⊢
+  exact (h y).2.2.2 a
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+private def W0 (_ : E0) : ℝ := 7
+theorem actual_zero_dimension_probability_and_posterior :
+    let μ := (volume : Measure E0).tilted (fun x => -W0 x)
+    let R := fun y : E0 => μ.tilted (fun x => -‖x-y‖^2/(2*(1:ℝ)))
+    IsProbabilityMeasure μ ∧
+      ∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        ∀ a, covarianceBilin (R y) a a=0 := by
+  have hW : ContDiff ℝ 2 W0 := contDiff_const
+  have hh : ∀ x a : E0, (1:ℝ)⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W0) x a a ∧
+      fderiv ℝ (fderiv ℝ W0) x a a ≤ ‖a‖^2 := by
+    intro x a
+    have ha : a=0 := Subsingleton.elim _ _
+    simp [ha]
+  have h := smoothed_hessian_bounds (κ:=1) (η:=1) (by norm_num) hW hh (by norm_num) (by norm_num)
+  refine ⟨h.1,?_⟩
+  intro y
+  refine ⟨(h.2.2.1 y).1,(h.2.2.1 y).2.1,?_⟩
+  intro a
+  have ha : a=0 := Subsingleton.elim _ _
+  simp [ha]
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper
+#print axioms smoothed_hessian_bounds
+#print axioms actual_nonquadratic_full
+#print axioms actual_nonquadratic_eta_half
+#print axioms actual_nonquadratic_eta_one
+#print axioms actual_zero_dimension_probability_and_posterior
+end Tests.SmoothedHessianBounds

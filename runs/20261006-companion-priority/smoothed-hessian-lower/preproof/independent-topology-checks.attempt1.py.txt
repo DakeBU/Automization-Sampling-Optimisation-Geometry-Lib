@@ -1,0 +1,87 @@
+from html.parser import HTMLParser
+class N:
+ def __init__(self,tag='',attrs=None,parent=None):self.tag=tag;self.attrs=dict(attrs or []);self.parent=parent;self.children=[]
+ def text(self):
+  if self.tag=='math':return self.attrs.get('alttext','')
+  if self.tag in ['script','style','annotation']:return ''
+  return ' '.join(c.text() if isinstance(c,N) else c for c in self.children)
+ def descendants(self):
+  for c in self.children:
+   if isinstance(c,N):yield c;yield from c.descendants()
+class P(HTMLParser):
+ def __init__(self):super().__init__(convert_charrefs=True);self.root=N('root');self.stack=[self.root];self.raw='';self.offsets=[]
+ def handle_starttag(self,tag,attrs):
+  n=N(tag,attrs,self.stack[-1]);self.stack[-1].children.append(n)
+  line,col=self.getpos();n.start=self.offsets[line-1]+col
+  if tag not in ['meta','link','br','img','hr','input','source','wbr','area','base','embed','param','track','col']:self.stack.append(n)
+ def handle_endtag(self,tag):
+  for i in range(len(self.stack)-1,0,-1):
+   if self.stack[i].tag==tag:
+    line,col=self.getpos();self.stack[i].end=self.offsets[line-1]+col+len('</'+tag+'>');self.stack=self.stack[:i];break
+ def handle_data(self,data):self.stack[-1].children.append(data)
+
+import pathlib,json,hashlib,collections,datetime,sys
+sys.path.insert(0,'tools')
+from astis_semantic_roundtrip_core import sha256_json
+R=pathlib.Path('runs/20261006-companion-priority/smoothed-hessian-lower/preproof');V='picard_commit_verifier_20261005'
+def rd(p):return json.loads(pathlib.Path(p).read_text())
+def fr(p):
+ b=pathlib.Path(p).read_bytes();return {'path':str(p).replace(chr(92),'/'),'raw_sha256':hashlib.sha256(b).hexdigest(),'lf_sha256':hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),'bytes':len(b)}
+b=(R/'source-primary.sphmc-v1.raw.html').read_bytes();raw=b.decode();q=P();q.raw=raw;q.offsets=[0]
+for ln in raw.splitlines(keepends=True):q.offsets.append(q.offsets[-1]+len(ln))
+q.feed(raw);ids={x.attrs.get('id'):x for x in q.root.descendants() if x.attrs.get('id')};gp=R/'source-proof-graph.draft.json';g=rd(gp);seal=rd(R/'statement-seals.accepted.json');sr=rd(R/'statement-proposal-review.json')
+assert fr(R/'source-primary.sphmc-v1.raw.html')['raw_sha256']==g['source_raw_snapshot']['raw_sha256']=='ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d'
+assert fr(R/'statement-proposal-review.json')['raw_sha256']==seal['independent_statement_review']['raw_sha256']
+assert sr['verdict']=='accepted-statement-only' and not sr['blocking'] and not seal['binder_audit']['EXCESS']
+for s in seal['signatures']:
+ assert hashlib.sha256(s['signature_text'].encode()).hexdigest()==s['signature_lf_sha256']
+ assert pathlib.Path(s['snapshot']).read_text()==s['signature_text']
+inventory=[];nodeids={n['id'] for n in g['nodes']}
+for x in g['inventory']:
+ n=ids[x['anchor_id']];frag=raw[n.start:n.end].encode();assert (n.start,n.end)==(x['char_start'],x['char_end']) and len(frag)==x['bytes'] and n.tag==x['tag'] and hashlib.sha256(frag).hexdigest()==x['raw_utf8_outer_span_sha256']
+ assert frag.endswith(('</'+n.tag+'>').encode())
+ assert x['disposition'] in ['NODE','EXCLUDED'] and (bool(x.get('node_ids')) if x['disposition']=='NODE' else bool(x['reason']))
+ if x['disposition']=='NODE':assert set(x['node_ids'])<=nodeids
+ inventory.append({'anchor_id':x['anchor_id'],'tag':n.tag,'char_start':n.start,'char_end':n.end,'utf8_byte_start':len(raw[:n.start].encode()),'utf8_byte_end':len(raw[:n.end].encode()),'raw_utf8_outer_span_sha256':hashlib.sha256(frag).hexdigest(),'full_closing_tag_verified':True,'disposition':x['disposition'],'node_ids':x.get('node_ids',[]),'reason':x['reason']})
+sec={n.attrs['id'] for n in [ids['S4.SS1'],*ids['S4.SS1'].descendants()] if n.attrs.get('id')}
+expected=set(sec)
+for k in ['S1.p1.1','S1.E1','S2.p1.1','S2.p3.1','S2.Ex1','S3.SS1.p1.1','S3.Ex1','S3.SS1.p2.1','S3.SS1.p2.2','bib.bib21','bib.bib39']:
+ expected.add(k);expected.update(n.attrs['id'] for n in ids[k].descendants() if n.attrs.get('id'))
+assert expected=={x['anchor_id'] for x in inventory} and len(inventory)==len(expected)==184 and len(sec)==157
+assert not [k for k,c in collections.Counter(x['anchor_id'] for x in inventory).items() if c>1]
+for node in g['nodes']:
+ assert all(k in ids for k in node['anchor_ids']) and node['truth_status']=='source-present-not-formal-admission'
+edges=[]
+for x in g['author_consumer_use_edges']:
+ assert x['source'] in nodeids and x['target'] in nodeids and x['use_anchor'] in ids
+ edges.append({**x,'raw_use_text':ids[x['use_anchor']].text(),'use_outer_hash':hashlib.sha256(raw[ids[x['use_anchor']].start:ids[x['use_anchor']].end].encode()).hexdigest(),'independently_validated_direction_and_use':True})
+assert len(edges)==15
+def closure(n,vis=None):
+ vis=set() if vis is None else vis
+ for x in edges:
+  if x['target']==n:
+   assert x['source'] not in vis
+   vis.add(x['source']);closure(x['source'],vis-{x['source']})
+ return vis
+# Independently trace both final roots backward; do not infer a compiled dependency.
+reached=set()
+def collect(n):
+ if n in reached:return
+ reached.add(n)
+ for x in edges:
+  if x['target']==n:collect(x['source'])
+collect('SPHMC-L41-LIPSCHITZ');assert reached==nodeids
+ip=R/'independent-topology-inventory.attempt1.json';assert not ip.exists()
+iv={'schema_version':1,'source':fr(R/'source-primary.sphmc-v1.raw.html'),'graph':fr(gp),'independent_scope_ID_count':184,'section4_1_ID_count':157,'background_ID_count':27,'no_missing_or_duplicate_ID':True,'all184_canonical_outer_spans_exact':True,'node_disposition_count':54,'excluded_count':130,'inventory':inventory,'author_edges':edges,'recursive_source_root_closure':sorted(reached),'math_admission':False}
+ip.write_text(json.dumps(iv,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+snap=[]
+for f in ['source-proof-graph.draft.json','statement-seals.accepted.json','statement-proposal-review.json','independent-topology-primary-reconstruction.json']:
+ p=R/f;s=R/('independent-review.attempt1.'+f+'.raw.snapshot');assert not s.exists();s.write_bytes(p.read_bytes());snap.append({'original':fr(p),'snapshot':fr(s)})
+blockers=[
+ {'class':'SOURCE_TOPOLOGY_CONDITIONAL_PREMISE_MISCLASSIFIED','anchors':['S4.SS1.p1.3','S4.SS1.p1.m2','S4.SS1.p1.m3'],'raw_text':'Let X|Y=y be drawn from R_eta,y; first math is X|Y=y, second is R_eta,y.','actual_disposition':'All EXCLUDED as proximal point convention','residual':'This is the actual conditional-posterior/RGO identification used by mean/covariance Eq4.1. It is not a proximal algorithm convention. Inventory does not presently classify its mathematical content faithfully even though 184 IDs are structurally complete.','minimal_repair':'Map those3 source items to SPHMC-RGO-LAW (or an explicit conditional-law node) and preserve only the paragraph trailing proximal-point introduction/Ex3 as explicit out-of-scope portion. Keep actual source consumer edge to Eq4.1; no kernel theorem or source law discharge inferred.'},
+ {'class':'SOURCE_TOPOLOGY_OBJECT_NODE_MISMATCH','anchors':['S3.SS1.p2.m3','S3.SS1.p2.m4','S3.SS1.p2.2'],'raw_text':'G~N(0,I) and X~pi are independent; final g_eta:=gradient V_eta is a distinct definition in the same paragraph.','actual_disposition':'Gaussian and source input laws both mapped to SPHMC-GRADIENT-NAME.','residual':'A gradient-name node does not preserve actual Gaussian/source law and independence semantics underlying smoothing and conditional means. Mixed paragraph also includes quantitative higher derivative/computability prose that remains outside target.','minimal_repair':'Map math m3/m4 to SPHMC-SMOOTHED-LAW or explicit independent-Gaussian-law context; map mixed paragraph to actual law AND gradient-name content with explicit higher-regularity/computability exclusion. Keep m5 on gradient-name. Update precise node anchor summaries accordingly; not a Lean dependency.'}
+]
+out={'schema_version':1,'reviewer':V,'reviewer_id':V,'formalizer_and_graph_extractor':'root-samplinglib-writer','status':'rejected','blocking':True,'review_kind':'independent-preproof-primary-first-source-only-topology','reviewed_graph_path':str(gp).replace(chr(92),'/'),'reviewed_graph_raw_sha256':fr(gp)['raw_sha256'],'source_digest':fr(R/'source-primary.sphmc-v1.raw.html'),'statement_seals_digest':fr(R/'statement-seals.accepted.json'),'statement_only_review_digest':fr(R/'statement-proposal-review.json'),'independent_primary_reconstruction':fr(R/'independent-topology-primary-reconstruction.json'),'input_snapshots':snap,'reviewed_nodes':g['nodes'],'excluded_with_reason':[x for x in inventory if x['disposition']=='EXCLUDED'],'source_gaps':g['source_gaps']+[{'id':'REVIEWER-PENDING-actual-posterior-calculus','boundary':'Printed easy-to-check Eq4.1 still requires actual positive finite partitions, true C2/source normalization constant shift, real posterior positionL2/Bochner covariance and differentiation legality. These are actual dependency discharge obligations, not inferred by this source-topology review or accepted statement alone.'},{'id':'REVIEWER-PENDING-Hessian-to-Lipschitz','boundary':'In-particular1Lip requires genuine sourceVetaC2 symmetry, positive Hessian spectral/opnorm bound and full-space segment argument including E0; no supplied Lipschitz/certificate or totalized gradient fallback.'}],'alternative_routes':g['alternative_routes'],'blockers':blockers,'recommended_mapping_precision':[{'anchors':['S4.SS1.p2.1','S4.SS1.p2.1.1'],'recommendation':'Mixed RGO-curvature + BL-invocation paragraph may map to both SPHMC-RGO-CURVATURE and SPHMC-BL-COV-UPPER; current BL citation/use edges are correct, so this alone is not a missing-use-edge blocker.'}],'independent_coverage_checks':{'inventory_ID_set_exact':True,'canonical_outer_UTF8_spans_exact':184,'full_closing_tags_verified':True,'section4_1_all157IDs_inventoried':True,'54NODE_130EXCLUDED':True,'semantic_dispositions_accepted':False,'author15_actual_use_edges':True,'BL_printed13_bib21_and_reverseCR_printed24_bib39_correct':True,'recursive_target_closure14nodes':True,'alternative_BL_vs_sufficient_linear_PI_OR_no_false_AND':True,'inventory_artifact':fr(ip)},'mathematical_contract_check':{'statement_only_seals':True,'A_source_beta1_kappa_ge1_eta_cap_not_extra_final_certificates':True,'B_BOTH_Hessian_and_actual_position_L2_explicit_canonical_contract_not_full_BL':True,'exact_Hessian_constants':'lower1/(kappa+eta), upper1/(1+eta)<=1','source_potential':'Actual unnormalized Veta, normalizedU additive logZ adapter only; Hess/gradient equivalence must be proved.','all_signature_digests_match_snapshots':True,'formal_well_definedness_or_proof_admission':False},'failure_boundary':'Two precise semantic inventory classification defects block topology acceptance before proof search; outer byte spans, citations, source-use directions and OR route are retained as passed bounded findings. No claim wholeSection4.1/formal source theorem or genericBL/bookCR is proved.','reviewer_independence':{'distinct_from_graph_extractor':True,'primary_read_and_independent_contract_frozen_before_graph':True,'prior24_proof_exposure_disclosed':True,'future25_production_body_read':False,'future25_prototype_read':False,'extractor_private_rationale_read':False,'no_source_or_math_self_admission':True},'compiler':'none','advance_or_goal_or_production_changes':False,'all_compiler_sessions_closed':True,'write_lease':'CLOSED','created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+out['review_run_sha256']=sha256_json(out)
+p=R/'source-topology-review.json';assert not p.exists();p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'status':'rejected','blockers':len(blockers),'source_graph':fr(gp),'review':fr(p),'review_run':out['review_run_sha256'],'all_leases':'CLOSED'}))

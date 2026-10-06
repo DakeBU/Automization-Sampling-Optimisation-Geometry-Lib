@@ -1,0 +1,19 @@
+theorem smoothed_hessian_bounds
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
+    {V : E → ℝ} {κ η : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E, κ⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧
+      fderiv ℝ (fderiv ℝ V) x a a ≤ ‖a‖^2)
+    (hη : 0 < η) (hη1 : η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+    let Vη := fun y => -Real.log (A y)
+    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧
+      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        (∀ a, ProbabilityTheory.covarianceBilin (R y) a a ≤ ‖a‖^2/(κ⁻¹+η⁻¹)) ∧
+        ∀ a, (1/(κ+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧
+          fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2) ∧
+      LipschitzWith (1 : ℝ≥0) (gradient Vη)

@@ -1,0 +1,191 @@
+
+import pathlib,json,hashlib,sys,subprocess,datetime,collections,re
+sys.path.insert(0,'tools')
+from astis_semantic_roundtrip_core import sha256_json
+R=pathlib.Path('runs/20261006-companion-priority/smoothed-hessian-lower')
+V='picard_commit_verifier_20261005'
+def rd(p):return json.loads(pathlib.Path(p).read_bytes())
+def fr(p):
+ p=pathlib.Path(p);b=p.read_bytes();return {'path':p.as_posix(),'raw_sha256':hashlib.sha256(b).hexdigest(),'lf_sha256':hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),'bytes':len(b)}
+def emit(p,j):
+ p=pathlib.Path(p);assert not p.exists(),p;p.write_bytes((json.dumps(j,ensure_ascii=False,indent=2)+'\n').encode())
+def delta(a,b,p=''):
+ if type(a)!=type(b):return [{'path':p,'before':a,'after':b}]
+ if isinstance(a,dict):
+  z=[]
+  for k in sorted(set(a)|set(b)):
+   if k not in a:z.append({'path':p+'/'+k,'before':None,'after':b[k]})
+   elif k not in b:z.append({'path':p+'/'+k,'before':a[k],'after':None})
+   else:z+=delta(a[k],b[k],p+'/'+k)
+  return z
+ if isinstance(a,list):
+  if len(a)!=len(b):return [] if a==b else [{'path':p,'before':a,'after':b}]
+  return sum((delta(x,y,p+'/'+str(i)) for i,(x,y) in enumerate(zip(a,b))),[])
+ return [] if a==b else [{'path':p,'before':a,'after':b}]
+freeze=rd(R/'math-freeze.json');head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+assert head==freeze['checked_base_commit']=='07824d87b35e6fd1a59b2b3abebb5218297c4d98'
+pr=rd(R/'provenance-reconciliation.json');parent=pr['parent']
+assert parent=='AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower'
+prov=[]
+for i,path in enumerate(pr['changed_paths']):
+ before=R/('provenance-before.'+str(i)+'.raw.snapshot.json')
+ old=rd(before)
+ target=R/'decoder-binding-before.1.raw.snapshot.audit.json' if i==3 else pathlib.Path(path)
+ new=rd(target);ds=delta(old,new)
+ original=next(x for x in freeze['inputs'] if x['path']==path)
+ assert fr(before)['raw_sha256']==original['raw_sha256'] and fr(before)['lf_sha256']==original['lf_sha256']
+ fields=[set(['/proof_digestion/existing_substrate','/reuse_plan/reused_declarations']),set(['/items/0/proof_digestion/existing_substrate']),set(['/units/0/astis_dependencies']),set(['/publication_binding_sha256','/publication_context/lesson/astis_dependencies'])][i]
+ assert {x['path'] for x in ds}==fields
+ for d in ds:
+  if d['path']!='/publication_binding_sha256':assert d['after']==d['before']+[parent]
+ prov.append({'before':fr(before),'after':fr(target),'canonical_path':path,'exact_diffs':ds})
+auditpaths=['research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-GibbsLinearCovarianceUpper.json','research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-SmoothedHessianBounds.json']
+life=[]
+for i,path in enumerate(auditpaths):
+ before=R/('decoder-binding-before.'+str(i)+'.raw.snapshot.audit.json');a=rd(before);b=rd(path);ds=delta(a,b)
+ assert {x['path'] for x in ds}=={'/state','/reconstruction'}
+ assert a['state']=='draft' and b['state']=='blind-reconstructed'
+ # Reconstruction payload is preserved as exact administrative bytes/hash, not proof evidence.
+ life.append({'before':fr(before),'current':fr(path),'exact_diff_paths':[x['path'] for x in ds],'state_transition':'draft->blind-reconstructed','reconstruction_payload_sha256':sha256_json(b['reconstruction']),'mathematical_evidence':False})
+original_by={x['path']:x for x in freeze['inputs']}
+changed=[]
+for x in freeze['inputs']:
+ now=fr(x['path'])
+ if now['raw_sha256']!=x['raw_sha256']:
+  changed.append(x['path'])
+ else:assert now['lf_sha256']==x['lf_sha256']
+assert set(changed)==set(pr['changed_paths'])|{auditpaths[0]} and len(changed)==5
+assert sum(fr(x['path'])['raw_sha256']==x['raw_sha256'] for x in freeze['inputs'])==22
+recon={'schema_version':1,'status':'passed-scoped','reviewer_id':V,'kind':'independent-bounded-math-provenance-and-decoder-lifecycle-reconciliation','checked_base_head':head,'original_freeze':fr(R/'math-freeze.json'),'original27_preserved':True,'original22_exact_raw_LF_unchanged':True,'5_current_metadata_footprints_changed':changed,'four_parent_provenance_steps':prov,'two_audit_administrative_steps':life,'production_Test_sealed_signatures_math_formulas_prose_anonymous_packets_unchanged':True,'selected_draft_publication_gate':fr(R/'independent-publication-draft.log'),'source_review_verdict_not_used':True,'compiler_credit':'none for administrative correction; previously passed exact production/Test bytes reused','mutations':'owned reconciliation only'}
+recon['review_run_sha256']=sha256_json(recon);emit(R/'independent-math-metadata-reconciliation.json',recon)
+# Correct old receipts' normalized_sha256 versus lf_sha256 field names explicitly;
+# retain the first diagnostic rather than rewriting it.
+reuse=rd(R/'independent-parent-code-reuse.json')
+receipts=['centered-poincare','gaussian-convolution-derivatives','gibbs-covariance-lower','smoothed-gibbs-potential','weighted-c1-gradient-domain']
+for item in reuse:
+ found=[]
+ for rr in receipts:
+  p=pathlib.Path('runs/20261006-companion-priority')/rr/'math-review.json';j=rd(p)
+  for x in j['frozen_inputs']:
+   if x.get('path')==item['current']['path'] and x.get('raw_sha256')==item['current']['raw_sha256'] and x.get('lf_sha256',x.get('normalized_sha256'))==item['current']['lf_sha256']:
+    found.append({'prior_own_full_math_receipt':fr(p),'matched_input':x})
+ item['matched_prior_own_receipts']=found
+ item['read_this_round']='Invoked interfaces and proof reviewed afresh where listed in math-review; whole prior mathematics reused only exact matching bytes.'
+assert sum(bool(x['matched_prior_own_receipts']) for x in reuse)==11 and all(x['current_Hash_verified_against_base_Git_LF'] for x in reuse)
+emit(R/'independent-parent-code-reuse.normalized-fields.json',{'schema_version':1,'retained_initial_diagnostic':fr(R/'independent-parent-code-reuse.json'),'field_adaptation':'prior normalized_sha256 and lf_sha256 are both actual CRLF->LF hashes','12_parent_modules':reuse,'11_matching_prior_own_full_math_code_footprints':True,'Poincare_definitions':'Freshly inspected literal variance/Dirichlet/Admissible definitions; not a new independent entire-module proof credit.'})
+# Stable inputs versus four mutable cell/audit contexts are explicit.
+contexts=[x['path'] for x in freeze['inputs'] if '/frontier-cells/' in x['path'] or '/semantic-roundtrip/audits/' in x['path']]
+assert len(contexts)==4
+stable=[x['path'] for x in freeze['inputs'] if x['path'] not in contexts]
+parents=[x['current']['path'] for x in reuse]
+mathlib=[
+'Mathlib/Probability/Moments/CovarianceBilin.lean',
+'Mathlib/Probability/Moments/CovarianceBilinDual.lean',
+'Mathlib/Probability/Moments/Variance.lean',
+'Mathlib/MeasureTheory/Measure/Tilted.lean',
+'Mathlib/MeasureTheory/Function/L2Space.lean',
+'Mathlib/MeasureTheory/Integral/Bochner/Basic.lean',
+'Mathlib/Analysis/Calculus/Gradient/Basic.lean',
+'Mathlib/Analysis/Calculus/FDeriv/Add.lean',
+'Mathlib/Analysis/InnerProductSpace/Calculus.lean',
+'Mathlib/Analysis/Calculus/MeanValue.lean',
+'Mathlib/Analysis/InnerProductSpace/Rayleigh.lean',
+'Mathlib/Analysis/Calculus/FDeriv/Symmetric.lean']
+mathlib=['.lake/packages/mathlib/'+p for p in mathlib]
+for p in mathlib:assert pathlib.Path(p).exists()
+stable=list(dict.fromkeys(stable+parents+mathlib+[
+'lean-toolchain','lake-manifest.json',str(R/'claim.json'),str(R/'math-freeze.json'),
+str(R/'preproof/source-primary.sphmc-v1.raw.html'),
+str(R/'preproof/statement-proposal.signature.0.lf.snapshot.txt'),
+str(R/'preproof/statement-proposal.signature.1.lf.snapshot.txt')]))
+snapdir=R/'independent-math-inputs';assert not snapdir.exists();snapdir.mkdir()
+frozen=[]
+for i,p in enumerate(stable):
+ info=fr(p);sn=snapdir/(str(i).zfill(3)+'.raw.snapshot');sn.write_bytes(pathlib.Path(p).read_bytes())
+ info['snapshot']=fr(sn)
+ if p in parents:
+  gb=subprocess.check_output(['git','show',head+':'+p])
+  info['git_base_commit']=head;info['git_raw_sha256']=hashlib.sha256(gb).hexdigest();info['git_LF_equals_current_LF']=hashlib.sha256(gb.replace(b'\r\n',b'\n')).hexdigest()==info['lf_sha256']
+  assert info['git_LF_equals_current_LF']
+ frozen.append(info)
+contextsn=[]
+for p in contexts:
+ sp=R/(pathlib.Path(p).name+'.math-reviewed.snapshot.json');assert not sp.exists()
+ sp.write_bytes(pathlib.Path(p).read_bytes());contextsn.append({'current':fr(p),'snapshot':fr(sp),'scope':'administrative context only, not mathematics or source-review verdict'})
+# Pinned libraries/independent real checks and whole module sizes.
+pin=subprocess.check_output(['git','-C','.lake/packages/mathlib','rev-parse','HEAD'],text=True).strip()
+assert pin=='db584cd6d46c92f209a44c0f1c829460d327499d'
+assert pathlib.Path('lean-toolchain').read_text().strip()=='leanprover/lean4:v4.33.0'
+direct=rd(R/'independent-direct-checks.json');assert len(direct)==3 and all(x['exit_code']==0 for x in direct)
+fl=(R/'independent-focused.log').read_text(encoding='utf-8');assert 'Build completed successfully (3877 jobs).' in fl
+stress=(R/'independent-sharp-quadratic.attempt3.log').read_text(encoding='utf-8')
+assert 'error:' not in stress and 'sorryAx' not in stress and stress.count('depends on axioms:')==3
+std=(R/'independent-direct-test.log').read_text(encoding='utf-8')
+assert 'sorryAx' not in std and std.count('depends on axioms:')==6
+axioms_allowed=['propext','Classical.choice','Quot.sound']
+for text in [std,stress]:
+ for a in re.findall(r'depends on axioms:\s*\[([^\]]+)\]',text):assert set(x.strip() for x in a.split(','))==set(axioms_allowed)
+seal=rd(R/'preproof/statement-seals.accepted.json')
+signatures=[]
+for x,p in zip(seal['signatures'],freeze['inputs'][:2]):
+ t=pathlib.Path(p['path']).read_text(encoding='utf-8');start=t.index('theorem '+x['declaration']);end=t.index(' := by',start)
+ assert t[start:end].rstrip()==x['signature_text'].rstrip()
+ signatures.append({'declaration':x['full_declaration'],'sealed_signature_lf_sha256':x['signature_lf_sha256'],'literal_current_signature_matches':True})
+fake=rd(R/'independent-fake-closure-scan.json');assert fake['reachable_ASTIS_and_Test_module_count']==59 and not fake['hits']
+for x in fake['source_files']:assert fr(x['path'])['raw_sha256']==x['raw_sha256'] and fr(x['path'])['lf_sha256']==x['lf_sha256']
+# Reader13 steps and genuine per-unit ASTIS calls with the corrected seventh parent.
+lessons=[rd('website/content/declaration_lessons/'+x+'.json')['units'][0] for x in ['gibbs-linear-covariance-upper','sphmc-smoothed-hessian-bounds']]
+assert [len(x['steps']) for x in lessons]==[6,7]
+assert len(lessons[0]['astis_dependencies'])==1 and len(lessons[1]['astis_dependencies'])==7 and parent in lessons[1]['astis_dependencies']
+review={
+'schema_version':1,'kind':'independent-complete-mathematics-review-before-PROVED_LOCAL',
+'advance_id':'ASTIS-SA-20261006-SmoothedHessianBounds','reviewer':V,'reviewer_id':V,
+'formalizer':'root-samplinglib-writer','independent_from_formalizer':True,
+'status':'passed-scoped','verification_status':'passed-scoped','blocking':False,'blockers':[],
+'checked_base_commit':head,'proof_commit_verified':False,
+'original_freeze':fr(R/'math-freeze.json'),'original27_chain':'Initially all27 raw/LF independently matched. Parent-provenance correction and admitted independent reconstruction now change5 metadata files only;22 exact originals retained. Four context files have separate current raw snapshots.',
+'frozen_inputs':frozen,'stable_input_count':len(frozen),'parent_module_count':12,'pinned_Mathlib_API_file_count':12,
+'separately_scoped_metadata':contextsn,'bounded_metadata_reconciliation':fr(R/'independent-math-metadata-reconciliation.json'),
+'matching_prior_own_parent_code_footprints':fr(R/'independent-parent-code-reuse.normalized-fields.json'),
+'toolchain':{'Lean':'leanprover/lean4:v4.33.0','Mathlib':pin,'LEAN_NUM_THREADS':2,'Python':'bundled Codex primary runtime','local_pinned_parent_Git_LF_matches':12},
+'whole_module_reviews':[
+ {'path':freeze['inputs'][0]['path'],'lines':len(pathlib.Path(freeze['inputs'][0]['path']).read_text().splitlines()),'public_declarations':1,'private_declarations':0,'all_body_read':True,'proof':'Real linear observable scalarL2 from vectorL2; actual Riesz gradient constanta; normalized mass1 constant energy; genuine C1 PI then covarianceBilin_self/variance_eq_integral and division by m>0.'},
+ {'path':freeze['inputs'][1]['path'],'lines':len(pathlib.Path(freeze['inputs'][1]['path']).read_text().splitlines()),'public_declarations':1,'private_declarations':0,'all_body_read':True,'local_helpers':'All local W/J/first and second derivative/every-y hcov/hlower/hupper/nonnegative Hessian/Lipschitz proof bodies inspected; not merely the public wrapper.'}],
+'proof_checks':[
+ {'check':'Canonical covariance genuine domain','finding':'hX actual id in L2 is explicit; hX.const_inner supplies real scalarL2. Mass1 and gradient=a yield exact energy norm², so totalized covariance outside L2 is never used.'},
+ {'check':'C1 PI consumer','finding':'Same actual W and normalized law under BOTH m/M curvature; existing C1 producer constructs its originalD and derives Admissible integrability. No supplied PI/covariance or unrelated graph identity.'},
+ {'check':'Source original normalizer','finding':'Source lowerκ^-1>0, C2 and genuine Hessian give exponential integrability/positive partition/probability/C2 convolution internally; no minimizer/partition premise.'},
+ {'check':'Gaussian posterior moments','finding':'Actual μ probability and η>0 feed true convolution producer; every literal unreflected R_y has probability and idL2 by weighted Gaussian domination, without input original moments.'},
+ {'check':'True W_y Hessian','finding':'W=V+η^-1/2 norm(x-y)²; actual first derivative η^-1 innerSL(x-y), second η^-1J, no supplied Hessian field. Genuine bounds m=κ^-1+η^-1 and M=1+η^-1.'},
+ {'check':'Literal tilted_tilted law','finding':'Original exp(-V) integrability is supplied to Mathlib tilted_tilted, negated potential algebra uses η nonzero. W_y exponential integrability/positive partition are independently derived and idL2 transported over exact measure equality.'},
+ {'check':'Source U normalization','finding':'Actual source unnormalized Vη=-log(C volume integral) with exact Gaussian C, source smoothed Gibbs producer gives U=Vη+logZV. fderiv_add_const transfers both true derivatives; normalizedU is never renamed sourceVη.'},
+ {'check':'Exact signed Hessian constants','finding':'κ,η,m,κ+η positive. Covupper norm²/m subtracts with η²≥0 to give exact1/(κ+η). Existing actual reverseCR parent specialized β1 gives1/(1+η), no assumed bound or false scalar inequality.'},
+ {'check':'True global gradient Lipschitz','finding':'Produced C2 and 0≤Hess≤I satisfy canonical QuadraticRegularization m0 L1 r0. Actual Hessian symmetry/Riesz/Rayleigh operator norm and whole-space mean value yield1-Lip including0D, with no classical Hessian or operator-norm certificate.'},
+ {'check':'Source η cap','finding':'0<η<=1 retained literally in sealed signature. hη1 remains unused since the mathematical estimates generalize; no silent signature weakening.'},
+ {'check':'No circular or fake consumers','finding':'Canonical PI and reverseCR branches are actual prior proof producers. NewCovUpper feeds actual W_y/R_y in new source theorem; Test exercises nonconstant potential allposteriors andE0. Production imports no Tests.'}],
+'signature_seals':signatures,
+'focused_check':{'command':['lake','build','Tests.SmoothedHessianBounds'],'exit_code':0,'jobs':3877,'log':fr(R/'independent-focused.log'),'build_kind':'independently invoked cached focused build with actual std3 and consumer output'},
+'fresh_direct_elaboration':[dict(x,log_hashes=fr(x['log'])) for x in direct],
+'standard_axiom_checks':{'actual_test_prints':6,'independent_stress_prints':3,'only':axioms_allowed,'fresh_test_log':fr(R/'independent-direct-test.log'),'fresh_stress_log':fr(R/'independent-sharp-quadratic.attempt3.log')},
+'independent_stress':{
+ 'accepted_source':fr(R/'independent-sharp-quadratic.attempt3.stdin.txt'),'accepted_log':fr(R/'independent-sharp-quadratic.attempt3.log'),'command':['lake','env','lean','--stdin'],'exit_code':0,
+ 'potential':'Q(lam,x)=lam/2*x²+7; lam1/2,κ2,η1 sharp lower endpoint',
+ 'actual_outputs':'Actual sourceμ probability,C2 sourceVη,trueR_y probability/vectorL2,for everyy/a Cov=2/3 norm² and Hess=1/3 norm²; actual direction2 gives8/3. True positive source A,partition preservation and U=Vη+logZV retained with source additive offset7.',
+ 'only_standard_axioms':True,
+ 'retained_failure_diagnostics':[{'source':fr(R/'independent-sharp-quadratic.attempt1.stdin.txt'),'log':fr(R/'independent-sharp-quadratic.attempt1.log'),'class':'IMPLEMENTATION_FAILED','cause':'My stress parameter used reserved λ syntax; cascaded Lean recovery sorryAx is failure-only, no admission.'},{'source':fr(R/'independent-sharp-quadratic.attempt2.stdin.txt'),'log':fr(R/'independent-sharp-quadratic.attempt2.log'),'class':'API_BLOCKED','cause':'My scalarCLM ext/derivative normalization and let binder introduction plus goal-versus-hypothesis norm normalization; no production or mathematical statement correction.'}],
+ 'credit_boundary':'Owned stress is review evidence, not a new production/publication theorem; warnings retained, no proof churn.'},
+'test_review':{'path':freeze['inputs'][2]['path'],'lines':len(pathlib.Path(freeze['inputs'][2]['path']).read_text().splitlines()),'private_helpers':2,'all_body_read':True,'nonquadratic':'3/8 x²+1/8 sinx has true second derivative3/4-1/8 sinx and sourceκ2 bounds; outputsactualprobability/posteriorL2/cov/Hess/globalLip for all0<η<=1;ηhalf2/5..2/3 andηone1/3..1/2 numerically verified.','zero_dimension':'Actual E0 finiteHilbert,constant7 potential,positive canonicalvolume/tilted probability,allposteriorL2 andCov0; hH proved by trueallvector a=0, no Nontrivial/zero measure.'},
+'fake_closure_scan':fr(R/'independent-fake-closure-scan.json'),'fake_closure_count':59,'fake_closure_hits':[],
+'reader_review':{'steps':13,'6_generic_and7_source':True,'all_formula_proof_and_assumptions_read':True,'actual_single_LaTex_command_backslashes_checked':True,'corrected_source_seventh_actual_ASTIS_parent':parent,'strict_source_moment_and_normalization_contract_preserved':True,'reader_visual_or_exposition_seal':False},
+'source_proof_coverage':{'preproof_primary_first_topology':fr(R/'preproof/source-topology-review.json'),'inventory184_14nodes_15actual_use_edges':'prior independently accepted source-only coverage retained','current_math_discharge':'Proposed OR PI-to-linearCov route implemented; actualC2/positive partitions/posteriorL2/exactlaw/Ushift/Hess-toLip are internally produced by real named parents. FullanisotropicBL/citedbookreverseCR not discharged. Formal source reviewer must still accept exact packets.'},
+'remaining_boundary':['Fresh anti-anchored whole-module source fidelity and exact committed VERIFIED are pending; this is whole-math review only.','Repository ProofSeal/aggregate/shared imports/Registry/site/graphs/remoteCI/merge/purification/ExpositionSeal not claimed.','FullanisotropicBL and fullChewi reverseCR theorem are not proved; Bcanonical BOTHcurvature+realvectorL2 only,sourceβ1/κ/ηcap exactly.','Joint measurable posterior selector, higher regularity,normalizedconditional score/marginalPI,stationarity/Wp/proxywarmness/stochastichistory/querywork/both main results/composition remain separate. PBPS reflectedquarter R/S law distinct;TV proximity never transfers unboundedcost.'],
+'review_exposure':{'prior24_complete_math_exposure':True,'independent_preproof_primary_then_source_topology_review':True,'current_production_Test_read_entirely':True,'anonymous_packet_files':'only raw/LF footprint checks; no reconstruction/verdict used as mathematics','current_audit_reconstruction':'Only administrative state/diff and digest reconciliation; not used for proof correctness.','source_reviewer_results':'not read','ignored_root_prototypes':'not read'},
+'administrative_boundary':{'PROVED_LOCAL_or_VERIFIED_transition':False,'cell_audit_ledger_or_production_edits_by_reviewer':False,'proof_commit_check':'HEADbase only; newfiles uncommitted','owned_outputs_only':True,'sole_stabilization_owner':'root original SPHMCImplementedPhaseKernel lane','all_compiler_sessions_closed':True,'compiler_lease':'CLOSED','write_lease':'CLOSED'},
+'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()
+}
+review['review_run_sha256']=sha256_json(review);emit(R/'math-review.json',review)
+# Final exact stable and context snapshot byte comparison before releasing the lease.
+for x in frozen:
+ assert pathlib.Path(x['path']).read_bytes()==pathlib.Path(x['snapshot']['path']).read_bytes()
+for x in contextsn:assert pathlib.Path(x['current']['path']).read_bytes()==pathlib.Path(x['snapshot']['path']).read_bytes()
+print(json.dumps({'status':review['status'],'checked_base_head':head,'math_review':fr(R/'math-review.json'),'review_run_sha256':review['review_run_sha256'],'stable_inputs':len(frozen),'context_snapshots':len(contextsn),'parents':12,'Mathlibfiles':12,'fake_closure_files':59,'all_leases':'CLOSED'}))

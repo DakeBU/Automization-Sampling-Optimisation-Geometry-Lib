@@ -34,9 +34,14 @@ preserved; final focused and UTF8 contributor gates pass unchanged validators.
 Evidence: `runs/20261007-companion-priority/gaussian-laplace-domain/verified.json`.
 
 Serialized Probability/Registry/Test integration now adds this real shared
-leaf to the original stabilization lane. Fresh aggregate/static reader/graph,
-repository ProofSeal, ExpositionSeal, remoteCI, merge and postmerge purification
-remain pending. Copy/Download control implementation and renderedQA still open.
+leaf to the original stabilization lane. Fresh aggregate9133/9396, publication189, semantic253/8, frontier252,
+contributor72/68, site and bothgraphchecks pass at sharedf4be544d.
+Independent repository ProofSeal and scoped static ExpositionSeal both accept
+that exact frozen shared commit; current graph2091/5470 and its015cda20 digest
+are independently checked and raw-snapshotted before the nextcell version.
+Original failed aggregate from the stale Registry count472 is retained; actual
+newleaf count473 focused and complete rerun pass. No mathematical/source change.
+Remote f4be544d CI, merge, renderedQA and postmerge purification remain pending. Copy/Download control implementation and renderedQA still open.
 Original28 exact published a7f567dc remote Lean/site/two contributor jobs pass;
 deploy was skipped, draftPR313 stays unmerged, and that CI excludes this29packet.
 

@@ -1,0 +1,53 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+import Mathlib.Analysis.InnerProductSpace.PiL2
+
+noncomputable section
+set_option autoImplicit false
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential
+
+namespace Tests.GaussianLipschitzExponential
+
+-- A nonlinear unbounded observable, with a negative signed parameter.
+theorem nonlinear_negative_parameter :
+    Integrable (fun x : ℝ => Real.exp ((-3)*(‖x‖-∫ z : ℝ, ‖z‖ ∂stdGaussian ℝ)))
+      (stdGaussian ℝ) := by
+  have hf : LipschitzWith 1 (fun x : ℝ => ‖x‖) := by
+    apply LipschitzWith.of_dist_le_mul
+    intro x y
+    simpa only [dist_eq_norm, Real.norm_eq_abs, NNReal.coe_one, one_mul] using
+      abs_norm_sub_norm_le x y
+  exact (integrable_and_integrable_exp_centered_of_lipschitz
+    (μ := stdGaussian ℝ) hf).2 (-3)
+
+-- Zero direction is retained, with no positive Lipschitz constant assumption.
+theorem zero_lipschitz_constant (c t : ℝ) :
+    Integrable (fun x : ℝ => Real.exp (t*((fun _ : ℝ => c) x-
+      ∫ z : ℝ, (fun _ : ℝ => c) z ∂stdGaussian ℝ))) (stdGaussian ℝ) := by
+  have hf : LipschitzWith 0 (fun _ : ℝ => c) := by
+    apply LipschitzWith.of_dist_le_mul
+    intro x y
+    simp
+  exact (integrable_and_integrable_exp_centered_of_lipschitz
+    (μ := stdGaussian ℝ) hf).2 t
+
+-- Degenerate zero-dimensional standard Gaussian, arbitrary signed parameter.
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+theorem zero_dimension (t : ℝ) :
+    Integrable (fun x : E0 => Real.exp (t*(‖x‖-∫ z : E0, ‖z‖ ∂stdGaussian E0)))
+      (stdGaussian E0) := by
+  have hf : LipschitzWith 0 (fun x : E0 => ‖x‖) := by
+    apply LipschitzWith.of_dist_le_mul
+    intro x y
+    have hxy : x=y := Subsingleton.elim _ _
+    simp [hxy]
+  exact (integrable_and_integrable_exp_centered_of_lipschitz
+    (μ := stdGaussian E0) hf).2 t
+
+#print axioms integrable_and_integrable_exp_centered_of_lipschitz
+#print axioms nonlinear_negative_parameter
+#print axioms zero_lipschitz_constant
+#print axioms zero_dimension
+end Tests.GaussianLipschitzExponential
+end

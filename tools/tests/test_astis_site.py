@@ -105,6 +105,33 @@ class SourceIndexTests(unittest.TestCase):
         )
 
 
+class SourceLinkPinTests(unittest.TestCase):
+    def test_historical_local_provenance_is_immutable_but_not_current_source(self) -> None:
+        root = "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
+        current = "a" * 40
+        historical = "b" * 40
+        url = f"{root}/blob/{historical}/AutoSamplingTheory/Example.lean"
+        self.assertIsNone(
+            astis_site.source_commit_link_error(
+                url, current, root, require_current_local=False
+            )
+        )
+        self.assertIn(
+            "generated commit",
+            astis_site.source_commit_link_error(
+                url, current, root, require_current_local=True
+            ),
+        )
+
+    def test_unpinned_local_blob_is_never_accepted(self) -> None:
+        root = "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
+        url = f"{root}/blob/main/AutoSamplingTheory/Example.lean"
+        error = astis_site.source_commit_link_error(
+            url, "a" * 40, root, require_current_local=False
+        )
+        self.assertIn("immutable commit", error)
+
+
 class ChapterOneEvidenceTests(unittest.TestCase):
     def test_duplicate_source_route_is_rejected(self) -> None:
         items = matrix()

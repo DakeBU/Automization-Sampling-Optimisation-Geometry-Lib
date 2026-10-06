@@ -5,10 +5,12 @@ description: Own one source-backed ASTIS theorem-DAG advance, with independent v
 
 # ASTIS Substantive Advance Worker Packet
 
-Before new/changed Lean work, read **all three**:
+Before new/changed Lean work, read **all five**:
 
 - `docs/contributor-codex-contract.md`;
 - `docs/theorem-publication-protocol.md`;
+- `docs/proof-digestion-protocol.md`;
+- `docs/evidence-routed-memory-protocol.md`;
 - this packet.
 
 Then run `python3 tools/astis_publication.py packet --cell CELL_ID`. Reuse the bounded source/lesson/audit packet. For any changed production declaration, also run `python3 tools/astis_contributor_contract.py check --base BASE_COMMIT` before asking for stabilization.
@@ -22,6 +24,12 @@ Use this packet for one Universal Worker and one source-backed theorem-DAG advan
 A Worker is not a narrow proof-script executor. It may cross source reading, mathematical derivation, library retrieval, counterexample search, Lean editing, focused verification, refactoring, and exposition whenever those actions help close the assigned mathematical delta.
 
 For collaborative route work, every substantive advance must also have a persistent Frontier Cell record under `research-wiki/frontier-cells/` and pass `python3 tools/astis_frontier_cells.py check`.
+
+## Source-Anchor / proof-digestion addendum
+
+For a new or materially changed source-facing Anchor, **do not begin proof search until the Statement Seal is fixed**. New Source Anchors should use Frontier Cell schema 3 and fill the `learning_contract`. Before dispatch, consult the evidence-routed process/negative memory; the control plane may route evidence but may not invent mathematical conclusions. Recursively expand project-owned assumption bundles and reject any `EXCESS` binder. A needed estimate, regularity fact, witness, event, moment bound or other proof ingredient is a dependency edge to be produced and consumed inside the proof, never a convenience hypothesis on the sealed theorem.
+
+Reconstruct the Source Proof Graph from the pinned source without using implementation Lean to decide its topology. Every substantive source proof region is a reviewed `NODE` or `EXCLUDED(reason)`; missing bridges remain `SOURCE_GAP`, and alternative sufficient proofs are OR-routes. Keep this source graph distinct from the compiler-backed Lean Dependency Graph. During stabilization/publication also record the candidate Compressed Shared Spine; after merge the route remains `purification: pending` until dead/duplicate/wrapper-only residue, canonicalization, proof-route compression and reader compression have been reviewed. `MERGED` is not `PURIFIED`.
 
 ## Input contract
 
@@ -71,6 +79,36 @@ graph_contribution:
   color_semantics: evidence-status; library-scope
   focus_targets: []
   visual_review:
+learning_contract:
+  control_plane_math_authority: false
+  process_memory_checked: true
+  process_memory_ids: []
+  failure_class: NONE | REFUTED | SOURCE_INVALID | API_BLOCKED | ENV_BLOCKED | IMPLEMENTATION_FAILED
+  salvage:
+    required: false
+    status: not-applicable | pending | completed
+    reason:
+    promoted_fragments: []
+    discarded_fragments: []
+  parallelism:
+    decision: serial | parallel
+    direction_fingerprints: []
+    expected_information_gain:
+    shared_verified_context_digest:
+  cross_route_blind_spot_audit:
+    required: false
+    status: not-applicable | pending | accepted
+    evidence:
+    canonical_route:
+    selection_reason:
+  reader_backpressure:
+    purification_status: pending | purified | not-applicable
+    exposition_seal_status: pending | accepted | not-applicable
+    exposition_evidence:
+    source_expansion_nodes: []
+    lean_expansion_nodes: []
+    assumptions_preserved: false
+    boundary_preserved: false
 owned_files: []
 forbidden_shared_files:
   - AutoSamplingTheory/TechnicalLemmas/Analysis.lean
@@ -160,6 +198,36 @@ graph_contribution:
   color_semantics: evidence-status; library-scope
   focus_targets: []
   visual_review:
+learning_contract:
+  control_plane_math_authority: false
+  process_memory_checked: true
+  process_memory_ids: []
+  failure_class: NONE | REFUTED | SOURCE_INVALID | API_BLOCKED | ENV_BLOCKED | IMPLEMENTATION_FAILED
+  salvage:
+    required: false
+    status: not-applicable | pending | completed
+    reason:
+    promoted_fragments: []
+    discarded_fragments: []
+  parallelism:
+    decision: serial | parallel
+    direction_fingerprints: []
+    expected_information_gain:
+    shared_verified_context_digest:
+  cross_route_blind_spot_audit:
+    required: false
+    status: not-applicable | pending | accepted
+    evidence:
+    canonical_route:
+    selection_reason:
+  reader_backpressure:
+    purification_status: pending | purified | not-applicable
+    exposition_seal_status: pending | accepted | not-applicable
+    exposition_evidence:
+    source_expansion_nodes: []
+    lean_expansion_nodes: []
+    assumptions_preserved: false
+    boundary_preserved: false
 focused_checks:
   - command:
     result:
@@ -201,7 +269,7 @@ commit:
 
 For `PROVED_LOCAL`, `result_kind` must be `theorem-edge`, `reusable-interface`, or `integration-node`, and declaration/check evidence is mandatory. Update the persistent Frontier Cell to `proved_locally` only after focused checks pass.
 
-For `BLOCKED`, use `result_kind: strict-obstruction` and provide a typed blocker, strict reduction, plus at least one smaller child Frontier Cell, retired route, counterexample, or minimal reproducer. Update the persistent record to `blocked` with the child IDs.
+For `BLOCKED`, use `result_kind: strict-obstruction` and provide a typed blocker, strict reduction, plus at least one smaller child Frontier Cell, retired route, counterexample, or minimal reproducer. Classify the failure before scheduling the next action. Every non-`NONE` failure gets an explicit salvage audit; API/environment/implementation failures may not retire the mathematical target. If two or more distinct directions were run in parallel, the common-blind-spot audit is mandatory before a merged proof claim. Update the persistent record to `blocked` with the child IDs.
 
 ## Source-facing semantic addendum
 

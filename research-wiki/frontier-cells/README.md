@@ -59,3 +59,9 @@ python3 tools/astis_frontier_cells.py summary
 ```
 
 The site build also runs this validator. Invalid or evidence-free progress states are not publishable.
+
+## Schema 3: evidence-routed learning contract
+
+New source-facing Frontier Cells should use `schema_version: 3`. Schema 3 preserves the existing source-detail/domain contracts and additionally requires `learning_contract`: curated process-memory IDs consulted; typed failure class; salvage audit; serial/parallel admission with distinct direction fingerprints; common-blind-spot review status; and reader-backpressure / Exposition-Seal state. Historical schema-1/2 cells remain valid and are not backfilled with fictional evidence.
+
+The control plane is explicitly non-mathematical. `REFUTED` and independently reviewed `SOURCE_INVALID` records may retire a sealed mathematical route; `API_BLOCKED`, `ENV_BLOCKED`, and `IMPLEMENTATION_FAILED` may only alter process routing. Every non-success schema-3 cell records a salvage audit before branch/dead-code cleanup.

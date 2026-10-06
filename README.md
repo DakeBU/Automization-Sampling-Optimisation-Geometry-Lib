@@ -30,13 +30,13 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 
 ## News
 
+- **2026-10-06:** Extended Statement Seal / Proof Digestion with evidence-routed memory: failed routes receive typed failure and salvage audits, verified negative knowledge can prevent repeated dead ends, parallel proof directions require distinct uncertainty and a common-blind-spot review, and PURIFIED pages require an Exposition Seal.
 - **2026-10-03:** Added source-grounded research workspaces, proof ledgers, and a downloadable ChatGPT/MCP App.
 - **2026-09-29:** [Our system paper](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the NeurIPS 2026 Workshop MATH-AI.
 - **2026-09-10:** Compiled and source-reviewed the first [SPHMC](conversion-windows/ASTIS-SW-SPHMC-2026.md) and [Proximal BPS](conversion-windows/ASTIS-SW-PBPS-2026.md) proof packets.
 - **2026-09-07:** Added Discrete Sampling and MCMC as peer libraries.
 - **2026-09-05:** Added Statistical Optimal Transport and the Functor Hypergraph.
 - **2026-08-29:** Added source-fidelity checks and theorem denoising.
-- **2026-07-27:** Added the Blueprint-style textbook and formalization website.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.
 
 ## Research aim

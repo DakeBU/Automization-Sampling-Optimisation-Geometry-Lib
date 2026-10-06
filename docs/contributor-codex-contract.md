@@ -1,6 +1,6 @@
 # Samplinglib contributor and Codex contract
 
-This contract applies to every contributor, including `jicheng9617`, `andyjm3`, `hudsonchen`, and automated coding agents acting for them. It complements `AGENTS.md`, `.agents/skills/astis-substantive-advance/SKILL.md`, and `docs/theorem-publication-protocol.md`.
+This contract applies to every contributor, including `jicheng9617`, `andyjm3`, `hudsonchen`, and automated coding agents acting for them. It complements `AGENTS.md`, `.agents/skills/astis-substantive-advance/SKILL.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, and `docs/evidence-routed-memory-protocol.md`.
 
 ## 1. Plan for a shared Lean graph before proving locally
 
@@ -53,23 +53,31 @@ For a source-facing theorem, use the canonical semantic round trip:
 
 The formalizer, blind decoder, and source reviewer must be distinct actors. Source repairs never silently mutate `faithfulPaper`.
 
-## 4. Every contribution belongs to the three graph views
+## 4. Four mathematical graph views, plus Overview navigation
 
-Every changed production declaration must record `graph_contribution` in its Frontier Cell.
+Every source-facing Anchor follows the four-view proof-digestion stack from `docs/proof-digestion-protocol.md` and the evidence-routed learning contract from `docs/evidence-routed-memory-protocol.md`; the existing `graph_contribution` Frontier-Cell fields remain the machine-readable integration contract during schema migration.
 
-### Lean Branches Graph
+### Source Proof Graph
+
+Answers **how the author proved it**. It is reconstructed source-first, with exhaustive source-region coverage, direct consumer-use edges, `SOURCE_GAP` nodes and explicit OR-routes. Implementation Lean must not determine this topology.
+
+### Lean Branches / Dependency Graph
 
 This view contains compiler-backed module/declaration structure. Formal structural edges are solid. Source-name scans, curated source correspondences, candidate substrates, and conceptual relations are never promoted to theorem implication.
 
-### Overview Graph
+### Compressed Shared Spine
 
-This view records source/library/frontier placement and generated publication progress. A theorem may update the source route without claiming chapter completion.
+Answers **which mathematical primitives recur after implementation bookkeeping is removed**. It is produced by the purification pass, preserves lossless drill-down to source/Lean leaves, and never erases hypothesis adapters.
 
 ### Functor Hypergraph
 
 Run the conceptual-mirror audit for every substantive advance. Use `none-found` when there is no new reusable cross-domain mechanism. If there is one, publish a typed conceptual-mirror discovery with stable `family:` / `transport:` / `concept:` ids, hypothesis map, conclusion map, source evidence, and failure boundary. The creator cannot independently validate the mirror.
 
 A conceptual mirror is not a Lean theorem edge or a certified functor unless a separate formal certificate exists.
+
+### Overview Graph (navigation, not a fifth proof semantics)
+
+Overview records source/library/frontier placement and generated publication progress around the four mathematical views. A theorem may update the source route without claiming chapter completion.
 
 ## 5. Graph colour and edge semantics are part of truth, not decoration
 
@@ -138,4 +146,4 @@ The PR must state the graph delta, remaining mathematical boundary, reuse decisi
 
 A contributor can start Codex with:
 
-> Read `AGENTS.md`, `docs/contributor-codex-contract.md`, `docs/theorem-publication-protocol.md`, and `.agents/skills/astis-substantive-advance/SKILL.md` before planning. Treat Chapter 1.3 as the reader-quality reference. Reuse and generalize canonical shared Lean lemmas before adding route-local copies; record actual and planned consumers. Complete the encoder–denoiser audit. Publish the exact Lean/Overview/Functor graph delta using canonical colour and solid/dashed edge semantics. Do not merge or claim completion until the current-main publication, semantic, graph, site, root Tests, and ASTIS gates pass.
+> Read `AGENTS.md`, `docs/contributor-codex-contract.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, `docs/evidence-routed-memory-protocol.md`, and `.agents/skills/astis-substantive-advance/SKILL.md` before planning. Treat Chapter 1.3 as the reader-quality reference. Reuse and generalize canonical shared Lean lemmas before adding route-local copies; record actual and planned consumers. Complete the encoder–denoiser audit. Publish the exact Lean/Overview/Functor graph delta using canonical colour and solid/dashed edge semantics. Do not merge or claim completion until the current-main publication, semantic, graph, site, root Tests, and ASTIS gates pass.

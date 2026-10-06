@@ -39,10 +39,18 @@ class ProcessMemoryTests(unittest.TestCase):
             "cross_route_blind_spot_audit": {
                 "required": False,
                 "status": "not-applicable",
+                "evidence": "",
+                "canonical_route": "",
+                "selection_reason": "",
             },
             "reader_backpressure": {
                 "purification_status": "not-applicable",
                 "exposition_seal_status": "not-applicable",
+                "exposition_evidence": "",
+                "source_expansion_nodes": [],
+                "lean_expansion_nodes": [],
+                "assumptions_preserved": False,
+                "boundary_preserved": False,
             },
         }
         return cell
@@ -62,6 +70,9 @@ class ProcessMemoryTests(unittest.TestCase):
         cell["learning_contract"]["cross_route_blind_spot_audit"] = {
             "required": False,
             "status": "not-applicable",
+            "evidence": "",
+            "canonical_route": "",
+            "selection_reason": "",
         }
         errors = astis_frontier_cells.validate_cells([cell])
         self.assertTrue(any("common-blind-spot" in error for error in errors))

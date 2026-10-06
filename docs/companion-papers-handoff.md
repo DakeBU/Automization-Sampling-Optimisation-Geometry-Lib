@@ -26,8 +26,15 @@ quadratic kappa2 eta1 constant7 gives posterior Cov2/3, direction2 value8/3,
 and the sharp actual source Hessian1/3. Standard3 axioms only.
 Evidence: runs/20261006-companion-priority/smoothed-hessian-lower/verified.json.
 
-Shared full-gate/static-reader/graph integration and independent repository
-ProofSeal/purification/ExpositionSeal are pending at this checkpoint. The next
+Shared integration c61471ea has independently accepted repository ProofSeal,
+full Lean gate9129/9389 and full static site/official graph plus fivecell checks.
+The independent static ExpositionSeal and scoped purification are accepted:
+all57/148production and113Test lines expand losslessly, all13mathsteps and
+184source spans plus52local links and formal import/declaration branches match.
+Tests has two private definitions and one private lemma, all expanded. Earlier
+private_helpers2 is a definition count, not total private declaration count.
+Rendered visual/copy/download QA, final push/currentCI and both complete
+main results remain OPEN. The next
 source dependency is the full-range actual proximal Gaussian oracle and the
 literal standardized affine posterior law. Existing proximal construction is
 eta<=1/2 while the source requires eta<=1; no smaller range is relabeled complete.

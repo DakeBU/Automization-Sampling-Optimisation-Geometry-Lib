@@ -1,3 +1,4 @@
+import Tests.FullRangeProximalGaussianOracle
 import Tests.SmoothedHessianBounds
 import Tests.CenteredPoincare
 import Tests.Shared.UniformRegularization

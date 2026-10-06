@@ -1,0 +1,125 @@
+import pathlib,json,hashlib,subprocess,sys,re,datetime
+sys.path.insert(0,'tools');import astis,astis_publication as pub,astis_semantic_roundtrip_core as rt,astis_advance as adv
+R=pathlib.Path('runs/20261006-companion-priority/full-range-proximal');C='88cff0188d9bf7c11b57b65f4d36b5b1a60ec902'
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+def H(b):return hashlib.sha256(b).hexdigest()
+def LF(b):return b.replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+def J(p):return json.loads(pathlib.Path(p).read_text(encoding='utf8'))
+def F(p):
+ p=pathlib.Path(p);b=p.read_bytes();return {'path':p.as_posix(),'raw_sha256':H(b),'lf_sha256':H(LF(b)),'bytes':len(b)}
+def W(p,x):
+ p=pathlib.Path(p);assert not p.exists();p.write_bytes((json.dumps(x,ensure_ascii=False,indent=2)+'\n').encode('utf8'))
+def D(a,b,p=''):
+ if type(a)!=type(b):return [p]
+ if isinstance(a,dict):return sum([D(a.get(k),b.get(k),p+'.'+k)for k in sorted(set(a)|set(b))],[])
+ if isinstance(a,list):return []if a==b else [p]
+ return []if a==b else [p]
+def G(p,raw=False):
+ p=pathlib.Path(p)
+ if p.as_posix().startswith('.lake/packages/mathlib/'):
+  pin='db584cd6d46c92f209a44c0f1c829460d327499d'
+  assert subprocess.check_output(['git','-C','.lake/packages/mathlib','rev-parse','HEAD']).decode().strip()==pin
+  b=subprocess.check_output(['git','-C','.lake/packages/mathlib','show',pin+':'+p.as_posix()[len('.lake/packages/mathlib/'):]])
+ else:b=subprocess.check_output(['git','show',C+':'+p.as_posix()])
+ cur=p.read_bytes()
+ assert LF(b)==LF(cur),p
+ if raw:assert b==cur,p
+ return {**F(p),'Git_raw_sha256':H(b),'Git_lf_sha256':H(LF(b)),'Git_raw_exact':b==cur,'Git_lf_exact':True}
+m=J(R/'math-review.json');assert F(R/'math-review.json')['raw_sha256']=='8970214a31b728933a033760b3652d897fe8abd6adb25602bb04366bd0047347'
+stable=[]
+for q in m['frozen_inputs']:
+ f=F(q['path']);assert f['raw_sha256']==q['raw_sha256']and f['lf_sha256']==q['lf_sha256'],q['path']
+ s=q.get('snapshot');sp=s.get('path')if isinstance(s,dict)else s
+ if sp:assert pathlib.Path(sp).read_bytes()==pathlib.Path(q['path']).read_bytes()
+ stable.append(f)
+assert len(stable)==61
+claim=J(R/'claim.json');pl=J(R/'proved-local.json');decls=claim['declarations']
+assert decls==pl['publication_declarations']==pl['lean_declarations']
+state=adv.current_advances()[claim['advance_id']];assert state['state']=='PROVED_LOCAL'and state['owner_id']!='picard_commit_verifier_20261005'
+assert state['publication_declarations']==decls
+cellpath='research-wiki/frontier-cells/'+claim['cells'][0]+'.json';auditpath='research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261006-FullRangeProximalGaussianOracle.json'
+cell=J(cellpath);a=J(auditpath);contexts=[]
+allowcell={'.status','.evidence.proof_review','.evidence.development_boundary','.graph_contribution.visual_review'}
+for q in m['separately_scoped_metadata']:
+ old=J(q['snapshot']['path']);cur=J(q['path']);diff=D(old,cur)
+ if q['path']==cellpath:
+  assert set(diff)==allowcell,diff
+  assert old['status']=='claimed' and cur['status']=='proved_locally'
+  before=R/'ASTIS-SW-SPHMC-full-range-proximal-gaussian-oracle.before-proved-local.raw.snapshot.json'
+  assert pathlib.Path(before).read_bytes()==pathlib.Path(q['snapshot']['path']).read_bytes()
+ else:assert not diff,diff
+ contexts.append({'path':q['path'],'math_snapshot':F(q['snapshot']['path']),'current':G(q['path']),'exact_field_diffs':diff})
+# Source actor inputs: verify all exact immutable snapshots, separate permitted post-review admin changes.
+review=J(R/'source.0.review.json');packet=J(R/'source.0.reviewer-packet.json');decoder=J(R/'decoder.0.json');blind=J(R/'anonymous.0.decoder.json')
+assert review['verdict']=='equivalent-after-elaboration' and not review['blocking'] and review['deltas']==[] and review['repairs']==[]
+assert review['whole_module_covered'] is True and set(review['private_helpers_covered'])=={'actual_gradient_bounds','parameterized_damped_point','actual_quadratic_minimum'}
+assert review['independent_from_formalizer'] and review['independent_from_decoder']
+assert review['reviewer']!=decoder['decoder'] and decoder['decoder']!=state['owner_id']
+assert set(review['semantic_slots'])=={'objects','domains','quantifiers','assumptions','conclusion','scopes','constant_dependencies'}
+for x in review['semantic_slots'].values():assert x['relation']in ['equivalent','explicit-elaboration','same']
+def canon(x,key):return pub.digest({k:v for k,v in x.items()if k!=key})
+for x,key in [(packet,'packet_sha256'),(blind,'packet_sha256'),(review,'review_run_sha256'),(decoder,'decoder_run_sha256')]:
+ assert canon(x,key)==x[key],key
+assert rt.semantic_reviewer_packet(a)['packet_sha256']==packet['packet_sha256']
+assert rt.decoder_packet(a)['packet_sha256']==blind['packet_sha256']
+assert a['state']=='accepted'and a['source_review']['state']=='accepted'
+assert a['source_review']['review_run_sha256']==review['review_run_sha256']
+assert a['source_review']['reviewer_packet_sha256']==packet['packet_sha256']==review['reviewer_packet_sha256']
+assert a['reconstruction']['decoder_run_sha256']==decoder['decoder_run_sha256']==review['decoder_run_sha256']
+assert a['reconstruction']['decoder_packet_sha256']==blind['packet_sha256']==review['decoder_packet_sha256']
+assert decoder['source_text_visible']is False and decoder['source_consulted']is False and not decoder['blocking'] and not decoder['blockers']
+assert decoder['reconstructed_text_sha256']==H(decoder['reconstructed_theorem_text'].encode())==review['reconstructed_text_sha256']
+assert review['source_text_sha256']==packet['source']['text_sha256']==H(packet['source']['original_text'].encode())
+assert review['lean_statement_sha256']==packet['lean']['statement_sha256']==H(packet['lean']['statement'].encode())
+assert pub.digest(review['review_context'])==review['review_context_sha256']
+item=J('website/content/publications/sphmc-full-range-proximal-gaussian-oracle.json')['items'][0]
+binding=next(b for b in item['bindings']if b['declaration']==decls[0])
+assert pub.binding_digest(item,binding)==a['publication_binding_sha256']==packet['publication_binding_sha256']==review['publication_binding_sha256']
+assert pub.review_context(item,binding)==review['review_context']
+assert review['whole_module_raw_sha256']==F(claim['lean_files'][0])['raw_sha256']
+assert review['whole_module_lf_sha256']==F(claim['lean_files'][0])['lf_sha256']
+sourceunion=[]
+for q in review['input_artifacts']:
+ p=pathlib.Path(q['path']);sp=pathlib.Path(q['snapshot']);f=F(sp)
+ assert f['raw_sha256']==q['raw_sha256']and f['lf_sha256']==q['lf_sha256']and f['bytes']==q['bytes']
+ G(sp,True)
+ if p.read_bytes()!=sp.read_bytes():
+  assert p.as_posix()in [auditpath,cellpath]
+  diff=D(J(sp),J(p))
+  if p.as_posix()==cellpath:assert set(diff)==allowcell
+  else:
+   before=R/'source-admission-before.0.raw.snapshot.audit.json';assert before.read_bytes()==sp.read_bytes()
+   for z in diff:assert z in ['.state','.deltas','.semantic_slots','.verdict']or z.startswith('.source_review.'),diff
+  sourceunion.append({'original':q,'snapshot':G(sp,True),'current':G(p),'authorized_admin_diffs':diff})
+ else:sourceunion.append({'original':q,'snapshot':G(sp,True),'current':G(p),'exact_raw_LF_unchanged':True})
+assert len(sourceunion)==43
+# Complete commit evidence inventory: immutable raw receipts/logs/snapshots must match Git exactly.
+added=subprocess.check_output(['git','diff','--name-only','d35ac3b2de65dfffde06723d9e6e262509be6bc4',C]).decode().splitlines()
+raw_evidence=[];code_meta=[]
+for p in added:
+ if p.startswith('runs/') and pathlib.Path(p).exists():raw_evidence.append(G(p,True))
+ elif pathlib.Path(p).exists():code_meta.append(G(p))
+# Preserve current frozen context and exact candidate before verifier writes.
+for name,p in [('cell',cellpath),('audit',auditpath)]:
+ dest=R/('reviewer.exact.before-verification.'+name+'.raw.snapshot.json')
+ assert not dest.exists();dest.write_bytes(pathlib.Path(p).read_bytes())
+# Fresh reachable fake-closure scan, all targets and actual ASTIS imports.
+pending=[pathlib.Path(claim['lean_files'][0]),pathlib.Path('Tests/FullRangeProximalGaussianOracle.lean')];seen=set();hits=[]
+while pending:
+ p=pending.pop();n=p.as_posix()
+ if n in seen:continue
+ seen.add(n);s=astis.strip_lean_comments_and_strings(p.read_text(encoding='utf8'))
+ for line in re.findall(r'^\s*import\s+([^\n]+)',s,re.M):
+  for module in line.split():
+   pp=pathlib.Path(module.replace('.','/')+'.lean')
+   if pp.exists()and(module.startswith('AutoSamplingTheory')or module.startswith('Tests')):pending.append(pp)
+for p in sorted(seen):
+ s=astis.strip_lean_comments_and_strings(pathlib.Path(p).read_text(encoding='utf8'))
+ for x in astis.FORBIDDEN_REGEX.finditer(s):hits.append({'path':p,'token':x.group(),'line':s[:x.start()].count('\n')+1})
+assert not hits
+scan={'verified_commit':C,'scanner':'canonical ASTIS stripped FORBIDDEN_REGEX; real ASTIS/Test import reachability','reachable_module_count':len(seen),'hits':hits,'files':[G(p)for p in sorted(seen)]}
+W(R/'reviewer.exact.fake-closure.json',scan)
+pub.check_advance(decls,reviewed=True)
+recon={'kind':'independent-exact-admission-reconciliation','verified_commit':C,'verifier_id':'picard_commit_verifier_20261005','math_review':G(R/'math-review.json',True),'stable_inputs':stable,'stable_input_count':61,'current_contexts':contexts,'source_input_union':sourceunion,'source_input_count':43,'commit_changed_path_count':len(added),'committed_immutable_raw_evidence':raw_evidence,'immutable_raw_evidence_count':len(raw_evidence),'Git_normalized_production_metadata':code_meta,'source_review':G(R/'source.0.review.json',True),'source_packet':G(R/'source.0.reviewer-packet.json',True),'decoder_result':G(R/'decoder.0.json',True),'anonymous_packet':G(R/'anonymous.0.decoder.json',True),'current_publication_binding_sha256':pub.binding_digest(item,binding),'source_review_run_sha256':review['review_run_sha256'],'source_packet_sha256':packet['packet_sha256'],'decoder_run_sha256':decoder['decoder_run_sha256'],'decoder_packet_sha256':blind['packet_sha256'],'current_source_full_module_and_three_private_helpers':True,'reviewed_publication_admission':True,'no_new_mathematical_credit':'Reuse independently read entire249/115 and nine-step proof only for exact61 stable bytes; admin/status changes are not mathematics. Prior25 remoteCI/admin evidence is raw commit provenance only, excludes this proof CI.','all_source_semantic_slots_bound':True}
+W(R/'reviewer.exact-admission-reconciliation.json',recon)
+print(json.dumps({'status':'passed-scoped','verified_commit':C,'stable':61,'source_input_union':43,'commit_paths':len(added),'immutable_raw_evidence':len(raw_evidence),'fake_scan':len(seen),'fake_hits':0,'source_run':review['review_run_sha256']},indent=2))

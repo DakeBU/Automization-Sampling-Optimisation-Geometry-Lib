@@ -1,5 +1,40 @@
 # Companion-paper formalization handoff
 
+## Actual full-range proximal Gaussian oracle 2026-10-06
+
+`ASTIS-SA-20261006-FullRangeProximalGaussianOracle` constructs the literal
+SPHMC exact proximal selector throughout source0<eta<=1 from actual C2 V,
+beta1/alpha=kappa^-1 andkappa>=1. No minimizer, measurable selector or oracle
+certificate is assumed. The true damped map contracts by eta/(1+eta)<=1/2;
+measurable actual iterates converge to the selector. The literal equation,
+quantitative quadratic growth and unique minimum are then proved. Equal-eta
+proximal comparison and the genuine Gaussian gradient evaluator yield exact
+input/noise coefficients1/sqrteta, and a literal jointly measurable Markov
+pushforward law. This is (2.1)/(3.2) and only (4.4)/(4.5), not full Lemma4.2.
+
+Independent StatementSeal/source-only topology preceded production. Complete
+mathematics, nonquadratic varying-eta stress, equal-eta-guard counterexample,
+sourceblind reconstruction, final anti-anchored source review and exact proof
+commit `88cff0188d9bf7c11b57b65f4d36b5b1a60ec902` are independently accepted. Root quadratic variable-eta tests
+identify the actual shifted Gaussian law and centered second momenteta; eta1
+gives moment1. Actual0D constant7 gives the genuine Dirac kernel. Standard3 only.
+Evidence: `runs/20261006-companion-priority/full-range-proximal/verified.json`.
+
+Source finite Hilbert/Borel including0 and arbitrary measurable parameter-space
+extensions are disclosed. Existing eta<=1/2 producers remain preserved. The
+numericalprox sourcecap eta<=1/(2beta) and finite expectedquery work stay separate;
+no mathematical fullrange conclusion transfers an algorithmic cost guarantee.
+Gaussian gradient-output law is distinct from RGO posterior and HMC K/Khat/Kbar.
+
+Shared wholegate/reader/graph integration and independent repository ProofSeal,
+ExpositionSeal/purification are pending at this checkpoint. Next bounded source
+candidate is actual normalized affine RGO transport with source rho/Q curvature,
+stationarity and true position/Fisher moments. Gaussian Talagrand/LSI toW2,
+bias/MGF/higher smoothing/fullLemma4.2, actual sampler/Wp/proxywarmness and
+initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work,
+both main results and actual-input expected-query-cost composition remain OPEN.
+TV proximity never transfers unbounded expectedcost.
+
 ## Actual source smoothed Hessian bounds 2026-10-06
 
 `ASTIS-SA-20261006-SmoothedHessianBounds` proves the actual analytic

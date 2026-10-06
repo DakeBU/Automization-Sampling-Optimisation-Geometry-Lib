@@ -202,6 +202,7 @@ import Tests.LocalizedWeakResolvent
 import Tests.CompactWeakPoissonSobolev
 import Tests.CompactPoissonSmoothGraph
 import Tests.CompactWeightedPoissonCoercivity
+import Tests.GlobalWeightedResolventCoercivity
 import Tests.SmoothedPicardHMCTruncation
 import Tests.SmoothedPicardHMCGaussianPowerMoment
 import Tests.SmoothedPicardHMCGaussianMixture

@@ -1,5 +1,59 @@
 # Companion-paper formalization handoff
 
+## Actual global weighted resolvent coercivity 2026-10-06
+
+`ASTIS-SA-20261006-GlobalWeightedResolventCoercivity` constructs ONE actual
+positive-epsilon weak resolvent u in the SAME original closed compact-gradient
+operator before ALL compact C2 cutoffs, and proves
+m*norm(D.closure u)^2 <= norm(f-epsilon*u)^2 <= normf^2.
+The potential is genuinely C2 with both Hessian bounds 0<m<=M. True radial
+cutoff first/second derivatives and the actual linear drift bound give bounded
+commutator coefficients and weighted L2 dominated limits. Compact weighted
+Bochner coercivity is applied to actual localized data, then passed by norm
+continuity. The forcing residual inequality follows from the original
+variational identity tested at u. No final limits/coercivity/core certificate,
+extra norm(x)*u moment, global ordinary Laplacian/drift-product L2, C-infinity
+potential or unproved Poincare/uniform unscaled resolvent bound is supplied.
+All original variational/local-volume/weak-gradient/weak-Poisson and ALL C2
+compact cutoff facts remain. Zero dimension is handled explicitly.
+
+The actual PBPS consumer retains common Gaussian J/R/S and original D_y before
+epsilon/f, and ONE actual u before ALL C2 compact chi. It derives the exact
+((alpha+eta^-1)/4) global gradient/residual bound using the explicit W_y Hessian
+lower/upper bounds; no auxiliary curvature kernels are equated with R/S.
+Source C2 curvature, eta cap, positive partitions, reflected quarter Hessian
+and fourfold Dirichlet normalization remain exact.
+
+Focused3867 and complete independent551/all12private +107source/132Test/7+5
+reader-step math passed, including true nonquadratic eta1/2 same-D/u/ALLC2cutoff
+local and global5/8 stress plus actual E0 constant7 normalized Gibbs original-D
+stress. Distinct blind reconstructions, primary-first anti-anchored source
+review and exact independent proof VERIFIED have immutable raw/LF evidence.
+Five provenance-only metadata repairs and four lifecycle/reconstruction
+bindings have separate before/after independent reconciliation; production,
+Test, mathematical reader lessons, blueprint and source inputs stayed frozen.
+Exact independently VERIFIED proof `b294055449999326ee044092cb967cfb409fa8b4`:
+`runs/20261006-companion-priority/global-weighted-resolvent-coercivity/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+Next bounded mathematical dependency is actual weak-gradient-zero constants
+and SAME-original-Gibbs closed-gradient kernel. The independent primary-first
+`Weighted_kernel_poincare_source_preread.md` and typed scaled-residual discovery
+retain a proposal-only route: constants must first enter the actual original
+closure domain, then centered epsilon*u weak compactness/closed-graph/energy
+can avoid assuming the Poincare inequality it is meant to prove. No sequence
+compactness without separability, final kernel/range certificate or uniform
+unscaled u bound is assumed. Full constant-domain/centered scaled-residual/
+epsilon-zero/range/Poincare/BL, full rough Hessian/adjoint/core identities,
+SPHMC smoothed Hessian lower/full4.1 and both complete main results and actual
+input precision/expected-query-cost composition remain OPEN. No jointly
+measurable fiber selection is inferred; TV never transfers unbounded cost.
+Previous b736 compact weighted head has four terminalSUCCESS workflows in its
+own frozen receipt; this final global head requires its own CI. Draft/open/
+unmerged. Rendered visual/copy/download acceptance remains open because the
+browser-service bootstrap is unavailable; static readers remain checkable.
+
+
 ## Actual compact weighted Poisson coercivity 2026-10-06
 
 `ASTIS-SA-20261006-CompactWeightedPoissonCoercivity` derives actual normalized

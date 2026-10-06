@@ -193,6 +193,7 @@ import Tests.ProximalBPSConditionalScoreDomain
 import Tests.ProximalBPSConditionalBochner
 import Tests.ProximalBPSConditionalGradient
 import Tests.WeakGradientZeroKernel
+import Tests.WeightedC1GradientDomain
 import Tests.ProximalBPSConditionalResolvent
 import Tests.WeightedGradientWeak
 import Tests.WeightedGradientDistribution

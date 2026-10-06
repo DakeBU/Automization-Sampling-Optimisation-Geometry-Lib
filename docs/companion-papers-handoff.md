@@ -1,5 +1,51 @@
 # Companion-paper formalization handoff
 
+## Actual weighted C1 original domain and conditional score 2026-10-06
+
+`ASTIS-SA-20261006-WeightedC1GradientDomain` proves for ANY genuinely finite
+measure on a finite-dimensional real Hilbert space and the SAME exact closable
+compact-smooth gradient D chosen BEFORE ALL functions: actual C1 f with true
+weighted L2 f and genuine gradient belongs to the original closure graph.
+Actual smooth radial cutoffs, dominated weighted L2 limits, the genuine
+product derivative and closed graph supply the proof without spatial moments
+or Nontrivial E. Constants truly enter that same domain with zero gradient.
+The previous zero-implies-constant result now gives full Gibbs kernel iff.
+
+The actual PBPS common Gaussian J/R/S consumer keeps source C2 curvature, eta
+cap, positive partition and the SAME original D_y before ALL constants/u/a.
+Its real unnormalized PARAMETER-y score is C1 and has actual weighted scalar
+and gradient L2 classes in that domain; the exact quarter reflected constant
+is retained. Auxiliary S2=S follows literal normalized density equality only;
+R2=R, alternative-domain identities and joint selectors are not inferred.
+
+Focused3307 and independent whole247/32/74 production including five private
+helpers,112Test and6+3+3+4 reader steps passed. True nonquadratic eta1/2 source
+stress and actual dimension0 constant7 normalized Gibbs original-D stress
+passed; independent actual cutoff*x^(3/2) C1 stress passed too. Four distinct
+sourceblind reconstructions and primary-first anti-anchored reviews agree,
+with no deltas/repairs. Eight administrative bindings were independently
+reconciled; original mathematical inputs stayed frozen. Exact independent
+VERIFIED proof `d3936f55b5571098a02f7480f39b7d1895c0e351`: `runs/20261006-companion-priority/weighted-c1-gradient-domain/verified.json`.
+Original sole root stabilization/PR313 lane. Shared aggregate/reader/graph
+checks pending for this packet. Goal remains active.
+
+Next bounded mathematical route is actual scaled positive-epsilon resolvent
+residual limit via energy, genuine weak compactness/Riesz and SAME closed
+gradient graph, using forcing orthogonal to its now established kernel.
+`Scaled_residual_orthogonal_graph_route.md` is a typed proposal only; ignored
+WithLp2 closed-graph prototype compilation is not a residual-limit proof.
+No Poincare/spectral-gap/range/unscaled-resolvent certificate is assumed.
+Centered score/variance estimates, SPHMC Hessian lower/BL/full4.1/Wp/proxy
+warmness/actual algorithm accuracy-work-initialization and PBPS reflection,
+invariance, nonexplosion, discrete hypocoercivity, implementation and cost,
+both complete main results and actual incoming precision/expected-query-cost
+composition remain OPEN. TV never transfers unbounded cost. Older frontier
+and cycles remain preserved. Previous7c head all4CI terminalSUCCESS in its
+receipt; current final head needs own CI. Draft/open/unmerged. Rendered visual,
+copy/download acceptance remains open because browser-service bootstrap is
+unavailable; static readers checkable.
+
+
 ## Actual weak-gradient-zero constant implication 2026-10-06
 
 `ASTIS-SA-20261006-WeakGradientZeroKernel` proves an actual full-space

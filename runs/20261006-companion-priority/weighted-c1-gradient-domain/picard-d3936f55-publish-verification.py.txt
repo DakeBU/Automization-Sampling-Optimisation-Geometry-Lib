@@ -1,0 +1,36 @@
+import pathlib,json,hashlib,sys,subprocess,datetime
+sys.path.insert(0,'tools');import astis_advance as adv
+R=pathlib.Path('runs/20261006-companion-priority/weighted-c1-gradient-domain');C='d3936f55b5571098a02f7480f39b7d1895c0e351';V='picard_commit_verifier_20261005'
+def rd(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def hashp(p):
+ b=pathlib.Path(p).read_bytes();return {'path':str(p).replace(chr(92),'/'),'raw_sha256':hashlib.sha256(b).hexdigest(),'lf_sha256':hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),'bytes':len(b)}
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+e=rd(R/'exact-admission-reconciliation.json');m=rd(R/'math-review.json');pl=rd(R/'proved-local.json')
+assert e['verification_status']=='passed-scoped' and e['verified_commit']==C
+claim=rd(R/'claim.json');state=adv.current_advances();assert state[claim['advance_id']]['state']=='PROVED_LOCAL' and state[claim['advance_id']]['owner_id']!=V
+cells=[]
+for cell in claim['cells']:
+ p=pathlib.Path('research-wiki/frontier-cells')/(cell+'.json');z=rd(p);assert z['status']=='proved_locally'
+ snap=R/(cell+'.exact-before-verified.snapshot.json');assert not snap.exists();snap.write_bytes(p.read_bytes());cells.append((p,z,snap))
+g=e['gate_logs']
+gate={'scope':'Independent exact bounded admission only. Root canonical aggregate/sharedimports/Registry/site/graph/current remoteCI are later serialized integration.','focused':{'command':'ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 LEAN_NUM_THREADS=2 lake build Tests.WeightedC1GradientDomain','result':'PASS3307','evidence':g[-1]},'reviewed_actual_publication_admission':True}
+for i,(key,cmd,result) in enumerate([
+('publication','python tools/astis_publication.py check --base origin/main','PASS177'),
+('semantic','python tools/astis_semantic_roundtrip.py check','PASS237audits8repairs'),
+('frontier','python tools/astis_frontier_cells.py check','PASS240cells'),
+('contributor','python tools/astis_contributor_contract.py check --base origin/main','PASS60declarations56cells')]):gate[key]={'command':cmd,'result':result,'log':g[i]}
+out={'schema_version':1,'advance_id':claim['advance_id'],'cell_ids':claim['cells'],'role':'independent_verifier','verifier_id':V,'worker_id':V,'verification_status':'passed-scoped','verified_commit':C,'checked_date':'2026-10-06','lean_declarations':pl['lean_declarations'],'publication_declarations':pl['publication_declarations'],'lean_files':pl['lean_files'],'gate':gate,'source_audit':e['source_audits'],'fake_closure_scan':e['fake_closure_scan'],'standard_axioms':e['standard_axioms'],'conceptual_mirror_audit':pl['conceptual_mirror_audit'],'math_review':hashp(R/'math-review.json'),'exact_admission_reconciliation':hashp(R/'exact-admission-reconciliation.json'),'exact_verifier_script':hashp(R/'picard-d3936f55-exact-writer-v2.py.txt'),'exact_verifier_log':hashp(R/'picard-d3936f55-exact-attempt2.log'),'retained_verifier_adapter_diagnostic':hashp(R/'picard-d3936f55-exact.log'),'source_whole_module_hash_contract':e['source_whole_module_file_hash_contract'],'retained_exact_scope_wording_correction':hashp(R/'exact-admission.scope-correction.json'),'unchanged_input_evidence':{'stable_raw_lf':e['stable_raw_lf_unchanged_count'],'current_stable_inputs':e['stable_inputs'],'eight_metadata_reconciliations':e['eight_metadata_reconciliations'],'committed_raw_artifacts':len(e['immutable_raw_git_evidence']),'source_union':e['source_union_count'],'exact_before_verified_cells':[hashp(s) for _,_,s in cells],'raw_source_and_math_snapshots_preserved':True},'mathematical_scope':e['reused_full_math_scope'],'header_boundary':e['header_boundary'],'reuse_boundary':'Entire independent mathematics/all5private/all16readersteps, actual real C1/noncompact constant7/same originalD and genuine E0 Test reused only matching46raw/LF inputs. Fresh focused/gates/source chain are exact admission checks, no repeated credit. Source union audits were pre-admission blind-reconstructed; initial adapter failure retained and actual original snapshots/current accepted admin deltas separately validated. Scope wording correction preserved separately.','remaining_boundary':[e['remaining_boundary'],'Independent mathematics, source-blind decoder, anti-anchored source review and exact VERIFIED are complete for this bounded weighted C1/domain/full constant-kernel/actual noncompact reflected-score original graph packet. Root serialized sharedimports/Registry/site/graph/fullgate/currentremoteCI pending; full Goal ACTIVE.'],'sole_existing_stabilization_owner':e['sole_original_stabilization_owner'],'all_compiler_sessions_and_writes_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+target=R/'verified.json';assert not target.exists();target.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+evidence={k:out[k] for k in ['verifier_id','verified_commit','gate','source_audit','fake_closure_scan','lean_declarations','publication_declarations','conceptual_mirror_audit','exact_admission_reconciliation']}
+evidence.update(role='independent_verifier',verification_status='passed-scoped',verification_receipt=hashp(target),truth_boundary=pl['truth_boundary'])
+adv.transition_advance(claim['advance_id'],'VERIFIED',worker_id=V,modes=['independent-exact-verification'],evidence=evidence)
+for p,z,snap in cells:
+ assert p.read_bytes()==snap.read_bytes()
+ z['status']='independently_verified'
+ z['evidence']['independent_verification_details']={'verifier_id':V,'verified_commit':C,'verification_status':'passed-scoped','receipt':hashp(target),'exact_admission_reconciliation':hashp(R/'exact-admission-reconciliation.json'),'focused':'PASS3307; standard3; exact math/source binding and fake18 PASS','boundary':'Actual weighted first-order C1/domain/constants/full Gibbs constant kernel and actual reflected unnormalized parameter-y score graph only. Epsilon-zero/centered residual/range/Poincare/BL/core/normalized conditional differentiation/main/composition remain open; serialized integration pending.'}
+ z['evidence']['independent_verification']=str(target).replace(chr(92),'/')
+ with p.open('w',encoding='utf-8',newline='') as f:f.write(json.dumps(z,ensure_ascii=False,indent=2)+'\n')
+assert adv.current_advances()[claim['advance_id']]['state']=='VERIFIED'
+for p,z,s in cells:assert rd(p)['status']=='independently_verified'
+assert len([x for x in adv.current_advances().values() if x['state']=='STABILIZING'])==1
+print(json.dumps({'status':'passed-scoped','VERIFIED':claim['advance_id'],'commit':C,'receipt':hashp(target),'cells':[str(p) for p,_,_ in cells],'all_compiler_and_writes_closed':True}))

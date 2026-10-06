@@ -1,3 +1,4 @@
+import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher
 import Tests.FullRangeProximalGaussianOracle
 import Tests.SmoothedHessianBounds

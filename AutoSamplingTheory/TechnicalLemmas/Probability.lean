@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential
 import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
 import AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance
 import AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductPairMarginal

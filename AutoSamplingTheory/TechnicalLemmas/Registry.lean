@@ -830,6 +830,16 @@ def analysisMemory : List LemmaMemoryEntry := [
 
 def gaussianMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.lipschitz.signed-exponential-domain"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz"
+    upstreamDecl := "IsGaussian.integrable_id / exists_integrable_exp_sq / Young domination"
+    upstreamFile := "Mathlib.Probability.Distributions.Gaussian.Fernique"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["gaussian", "Lipschitz", "first-moment", "exponential-domain", "signed", "SPHMC"]
+    saldUse := "SPHMC actual Gaussian gradient-output centered Laplace domain; general Gaussian-observable background"
+    note := "Real Banach/Borel Gaussian including degenerate laws and zero Lipschitz constants. Actual same-producer consumer independently verified1f746dc6. Domain only: no sharp coefficient, bias, posterior, main or cost credit."
+  },
+  {
     key := "gaussian.std.norm-square-second-moment"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
     upstreamDecl := "IsGaussian.memLp_two_id / covarianceBilin_stdGaussian / finite-dimensional Parseval"

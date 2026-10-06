@@ -1,5 +1,55 @@
 # Companion-paper formalization handoff
 
+## Genuine Gaussian-output Laplace domain 2026-10-07
+
+`ASTIS-SA-20261007-GaussianLaplaceDomain` is independently VERIFIED at
+`1f746dc634b95f780b7f5bffe04c50f9bb4f21e3`. One canonical shared Gaussian Lipschitz domain theorem is
+consumed inside the same existing positive-step proximal/Gaussian producer.
+Its previous three genuine proximal helper proofs are reused, with no self-call,
+new selector wrapper, supplied mean, Laplace certificate or extra source binder.
+
+For general Gaussian mu on a complete second-countable real Banach Borel space,
+Lipschitz growth gives actual f L1 and its own mean. Fernique gives some C>0
+with exp(C norm(x)^2) L1. For signed t, b=abs(t)L and
+D=abs(t)(abs(f(0))+abs(mean)) give exp(t(f-mean)) <=
+exp(D+C^-1 b^2)*exp(C norm(x)^2). This proves the necessary domain only.
+The bound depends on Fernique C and f(0); it is not the sharp Gaussian constant.
+
+The actual source G_s=gradientV(p_s+sqrt(eta_s)*z) has vector first Bochner
+moment from genuine noise Lipschitz growth. Under its same real Markov law K_s,
+id is L1 and exp(t*inner(a,w-int v dK_s)) is L1 for every a and signed t.
+Bochner pushforward and integral_inner identify the actual own output mean.
+No equality with a smoothed gradient or unbiasedness is asserted. All eta>0,
+zero direction/zero dimension/zero Lipschitz constants remain retained.
+
+Independent exact StatementSeal and implementation-free exhaustive169-span
+SourceProofGraph preceded proof search. The initial missing two source
+well-definedness edges were repaired and independently reviewed; rejection is
+preserved. Independent fullmath, fresh blind decoder and anti-anchored source
+review accepted the two declarations with no EXCESS/delta/repair. Focused3731,
+fresh direct checks and positive nonlinear/E0 actual kernel stress pass with
+standard three axioms only. Exactcommit verifier checked600 Git inputs and
+34reachable files fake0. Failed development/encoding/API diagnostics are
+preserved; final focused and UTF8 contributor gates pass unchanged validators.
+Evidence: `runs/20261007-companion-priority/gaussian-laplace-domain/verified.json`.
+
+Serialized Probability/Registry/Test integration now adds this real shared
+leaf to the original stabilization lane. Fresh aggregate/static reader/graph,
+repository ProofSeal, ExpositionSeal, remoteCI, merge and postmerge purification
+remain pending. Copy/Download control implementation and renderedQA still open.
+Original28 exact published a7f567dc remote Lean/site/two contributor jobs pass;
+deploy was skipped, draftPR313 stays unmerged, and that CI excludes this29packet.
+
+Next source-ready edge: sharp centered Gaussian concentration in4.3, with
+actual coefficient eta*normu^2/2 and ownmean, zero dimension/direction handled
+internally. Pinned SLT candidates remain external references until an ASTIS
+minimal port compiles/is tested/registered. No new sharp proof search precedes
+its independent exact StatementSeal/source graph. Bias4.2, FIRST4.6W2/LSI/T2,
+fullLemma4.2, higher smoothing/Picard/Wp/proxywarmness/initialization, PBPS
+invariance/nonexplosion/hypocoercivity/implementation/work, both main results
+and actual-input precision/expected-query-cost composition remain OPEN.
+TV never transfers unbounded expected cost; no completion badge is advanced.
+
 ## Positive-step proximal and true standardized RGO 2026-10-07
 
 `ASTIS-SA-20261007-PositiveStepProximalRGO` strengthens the two existing

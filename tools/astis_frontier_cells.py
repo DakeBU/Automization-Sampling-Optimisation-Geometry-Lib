@@ -18,6 +18,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CELL_ROOT = ROOT / "research-wiki" / "frontier-cells"
+PROCESS_MEMORY = ROOT / "research-wiki" / "process-memory.json"
 
 ROUTES = {"samplewiki-route", "riemannian-optimization", "optimisation", "statistical-optimal-transport", "higher-order-sampling", "discrete-sampling", "mcmc", "shared"}
 MODES = {"faithfulPaper", "exploratoryProof"}
@@ -38,6 +39,19 @@ DECISIONS = {
     "new_canonical_shared",
     "out_of_scope",
 }
+FAILURE_CLASSES = {
+    "REFUTED",
+    "SOURCE_INVALID",
+    "API_BLOCKED",
+    "ENV_BLOCKED",
+    "IMPLEMENTATION_FAILED",
+    "NONE",
+}
+SALVAGE_STATUSES = {"pending", "completed", "not-applicable"}
+PARALLEL_DECISIONS = {"serial", "parallel"}
+CROSS_ROUTE_STATUSES = {"pending", "accepted", "not-applicable"}
+PURIFICATION_STATUSES = {"pending", "purified", "not-applicable"}
+EXPOSITION_STATUSES = {"pending", "accepted", "not-applicable"}
 
 
 def cell_paths(root: Path = DEFAULT_CELL_ROOT) -> list[Path]:
@@ -77,6 +91,16 @@ def _list(value: Any) -> list[Any]:
 def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
     errors: list[str] = []
     seen: dict[str, str] = {}
+    process_memory_ids: set[str] = set()
+    try:
+        memory = json.loads(PROCESS_MEMORY.read_text(encoding="utf-8"))
+        process_memory_ids = {
+            str(entry.get("id", "")).strip()
+            for entry in memory.get("entries", [])
+            if isinstance(entry, dict) and str(entry.get("id", "")).strip()
+        }
+    except Exception as exc:
+        errors.append(f"process memory unavailable: {exc}")
     common = (
         "schema_version",
         "cell_id",
@@ -159,11 +183,12 @@ def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
                     f"{path}: route-local cell may not implement a new shared foundation; open/use the shared cell first"
                 )
 
-        if (route in {"statistical-optimal-transport", "higher-order-sampling", "discrete-sampling", "mcmc"} or "mcmc" in _list(cell.get("consumers"))) and cell.get("schema_version") != 2:
-            errors.append(f"{path}: new cross-domain routes require schema_version 2")
-        if cell.get("schema_version") not in {1, 2}:
+        schema_version = cell.get("schema_version")
+        if (route in {"statistical-optimal-transport", "higher-order-sampling", "discrete-sampling", "mcmc"} or "mcmc" in _list(cell.get("consumers"))) and schema_version not in {2, 3}:
+            errors.append(f"{path}: new cross-domain routes require schema_version 2 or 3")
+        if schema_version not in {1, 2, 3}:
             errors.append(f"{path}: unsupported schema_version")
-        if cell.get("schema_version") == 2:
+        if schema_version in {2, 3}:
             searches = " ".join(map(str, searched or [])).lower()
             for library in ("samplinglib", "mathlib"):
                 if library not in searches:
@@ -195,6 +220,96 @@ def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
                 for key in ("potential_class", "smoothness_p", "oracle_q", "dynamics_k", "accuracy_r", "metric", "start", "cost"):
                     if not _nonempty(comparison.get(key)):
                         errors.append(f"{path}: higher-order sampling needs comparison_contract.{key}")
+
+
+        if schema_version == 3:
+            learning = cell.get("learning_contract")
+            if not isinstance(learning, dict):
+                errors.append(f"{path}: schema-3 cells require learning_contract")
+                learning = {}
+
+            if learning.get("control_plane_math_authority") is not False:
+                errors.append(f"{path}: learning_contract.control_plane_math_authority must be false")
+            if learning.get("process_memory_checked") is not True:
+                errors.append(f"{path}: learning_contract.process_memory_checked must be true")
+
+            memory_ids = learning.get("process_memory_ids")
+            if not isinstance(memory_ids, list) or any(not _nonempty(item) for item in memory_ids):
+                errors.append(f"{path}: learning_contract.process_memory_ids must be a string list")
+                memory_ids = []
+            unknown_memory = sorted(set(memory_ids) - process_memory_ids)
+            if unknown_memory:
+                errors.append(f"{path}: unknown process-memory ids {unknown_memory}")
+
+            failure_class = learning.get("failure_class")
+            if failure_class not in FAILURE_CLASSES:
+                errors.append(f"{path}: invalid learning_contract.failure_class")
+
+            salvage = learning.get("salvage")
+            if not isinstance(salvage, dict):
+                errors.append(f"{path}: learning_contract.salvage must be an object")
+                salvage = {}
+            if salvage.get("status") not in SALVAGE_STATUSES:
+                errors.append(f"{path}: invalid salvage status")
+            if not isinstance(salvage.get("required"), bool):
+                errors.append(f"{path}: salvage.required must be boolean")
+            if failure_class != "NONE" and salvage.get("required") is not True:
+                errors.append(f"{path}: every non-success failure requires an explicit salvage audit")
+            if salvage.get("status") == "not-applicable" and not _nonempty(salvage.get("reason")):
+                errors.append(f"{path}: not-applicable salvage requires a reason")
+            for field in ("promoted_fragments", "discarded_fragments"):
+                if not isinstance(salvage.get(field), list):
+                    errors.append(f"{path}: salvage.{field} must be a list")
+
+            parallel = learning.get("parallelism")
+            if not isinstance(parallel, dict):
+                errors.append(f"{path}: learning_contract.parallelism must be an object")
+                parallel = {}
+            decision_parallel = parallel.get("decision")
+            if decision_parallel not in PARALLEL_DECISIONS:
+                errors.append(f"{path}: invalid parallelism decision")
+            directions = parallel.get("direction_fingerprints")
+            if not isinstance(directions, list) or any(not _nonempty(item) for item in directions):
+                errors.append(f"{path}: direction_fingerprints must be a string list")
+                directions = []
+            if len(directions) != len(set(directions)):
+                errors.append(f"{path}: direction_fingerprints must be unique")
+            if decision_parallel == "parallel":
+                if len(directions) < 2:
+                    errors.append(f"{path}: parallel work requires at least two distinct direction fingerprints")
+                if not _nonempty(parallel.get("expected_information_gain")):
+                    errors.append(f"{path}: parallel work requires expected_information_gain")
+                if not _nonempty(parallel.get("shared_verified_context_digest")):
+                    errors.append(f"{path}: parallel work requires shared_verified_context_digest")
+
+            cross = learning.get("cross_route_blind_spot_audit")
+            if not isinstance(cross, dict):
+                errors.append(f"{path}: cross_route_blind_spot_audit must be an object")
+                cross = {}
+            if not isinstance(cross.get("required"), bool):
+                errors.append(f"{path}: cross_route_blind_spot_audit.required must be boolean")
+            if cross.get("status") not in CROSS_ROUTE_STATUSES:
+                errors.append(f"{path}: invalid cross-route audit status")
+            if decision_parallel == "parallel" and cross.get("required") is not True:
+                errors.append(f"{path}: parallel routes require a common-blind-spot audit")
+            if status == "merged" and decision_parallel == "parallel" and cross.get("status") != "accepted":
+                errors.append(f"{path}: merged parallel route requires accepted common-blind-spot audit")
+
+            reader = learning.get("reader_backpressure")
+            if not isinstance(reader, dict):
+                errors.append(f"{path}: reader_backpressure must be an object")
+                reader = {}
+            if reader.get("purification_status") not in PURIFICATION_STATUSES:
+                errors.append(f"{path}: invalid purification_status")
+            if reader.get("exposition_seal_status") not in EXPOSITION_STATUSES:
+                errors.append(f"{path}: invalid exposition_seal_status")
+            if reader.get("purification_status") == "purified" and reader.get("exposition_seal_status") != "accepted":
+                errors.append(f"{path}: PURIFIED requires an accepted Exposition Seal")
+            if mode == "faithfulPaper" and status == "merged" and reader.get("purification_status") == "not-applicable":
+                errors.append(f"{path}: merged source-facing work may be pending or purified, not purification-not-applicable")
+
+            if status in {"blocked", "quarantined"} and failure_class == "NONE":
+                errors.append(f"{path}: blocked/quarantined schema-3 cell requires a typed failure class")
 
         if route == "mcmc" or "mcmc" in _list(cell.get("consumers")):
             contract = cell.get("mcmc_contract")

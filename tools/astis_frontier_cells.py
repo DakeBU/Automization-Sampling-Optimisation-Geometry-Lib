@@ -286,6 +286,9 @@ def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
             if not isinstance(cross, dict):
                 errors.append(f"{path}: cross_route_blind_spot_audit must be an object")
                 cross = {}
+            for field in ("evidence", "canonical_route", "selection_reason"):
+                if field not in cross or not isinstance(cross.get(field), str):
+                    errors.append(f"{path}: cross_route_blind_spot_audit.{field} must be a string")
             if not isinstance(cross.get("required"), bool):
                 errors.append(f"{path}: cross_route_blind_spot_audit.required must be boolean")
             if cross.get("status") not in CROSS_ROUTE_STATUSES:
@@ -294,6 +297,10 @@ def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
                 errors.append(f"{path}: parallel routes require a common-blind-spot audit")
             if status == "merged" and decision_parallel == "parallel" and cross.get("status") != "accepted":
                 errors.append(f"{path}: merged parallel route requires accepted common-blind-spot audit")
+            if cross.get("status") == "accepted":
+                for field in ("evidence", "canonical_route", "selection_reason"):
+                    if not _nonempty(cross.get(field)):
+                        errors.append(f"{path}: accepted cross-route audit requires {field}")
 
             reader = learning.get("reader_backpressure")
             if not isinstance(reader, dict):
@@ -303,6 +310,21 @@ def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
                 errors.append(f"{path}: invalid purification_status")
             if reader.get("exposition_seal_status") not in EXPOSITION_STATUSES:
                 errors.append(f"{path}: invalid exposition_seal_status")
+            for field in ("source_expansion_nodes", "lean_expansion_nodes"):
+                if not isinstance(reader.get(field), list) or any(not _nonempty(item) for item in reader.get(field, [])):
+                    errors.append(f"{path}: reader_backpressure.{field} must be a string list")
+            for field in ("assumptions_preserved", "boundary_preserved"):
+                if not isinstance(reader.get(field), bool):
+                    errors.append(f"{path}: reader_backpressure.{field} must be boolean")
+            if "exposition_evidence" not in reader or not isinstance(reader.get("exposition_evidence"), str):
+                errors.append(f"{path}: reader_backpressure.exposition_evidence must be a string")
+            if reader.get("exposition_seal_status") == "accepted":
+                if not _nonempty(reader.get("exposition_evidence")):
+                    errors.append(f"{path}: accepted Exposition Seal requires evidence")
+                if not reader.get("source_expansion_nodes") or not reader.get("lean_expansion_nodes"):
+                    errors.append(f"{path}: accepted Exposition Seal requires source and Lean expansion nodes")
+                if reader.get("assumptions_preserved") is not True or reader.get("boundary_preserved") is not True:
+                    errors.append(f"{path}: accepted Exposition Seal must preserve assumptions and boundary")
             if reader.get("purification_status") == "purified" and reader.get("exposition_seal_status") != "accepted":
                 errors.append(f"{path}: PURIFIED requires an accepted Exposition Seal")
             if mode == "faithfulPaper" and status == "merged" and reader.get("purification_status") == "not-applicable":

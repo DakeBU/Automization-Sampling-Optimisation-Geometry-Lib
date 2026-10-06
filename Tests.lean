@@ -60,6 +60,8 @@ import Tests.SmoothedPicardRecursiveCondition
 import Tests.SmoothedPicardRGOClosure
 import Tests.StrongConvexGibbsIntegrability
 import Tests.GibbsGradientMoment
+import Tests.GibbsGradientMean
+import Tests.SmoothedScorePosterior
 import Tests.GibbsCovarianceLower
 import Tests.IsotropicGaussianDensity
 import Tests.ProximalBPSGaussianAugmentation

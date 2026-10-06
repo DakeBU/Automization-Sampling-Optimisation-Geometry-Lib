@@ -87,6 +87,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "gibbs.gradient.actual-zero-mean"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean.integrable_gradient_and_integral_eq_zero"
+    upstreamDecl := "integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable / ASTIS actual Gibbs domain producers"
+    upstreamFile := "Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts; ASTIS authored Gibbs cancellation"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gibbs", "gradient", "mean-zero", "IBP", "SPHMC"]
+    saldUse := "Actual SPHMC true posterior smoothed-score mean identity; generic MCMC reuse planned only"
+    note := "Exact true volume tilt, internally derived probability/L1/weighted fullspace IBP products, positive lower and finite upper Hessian bounds; alpha<=beta not assumed, dimension0 retained. Independent exactcommit f91b82a2920b40299e57ccb821583a91e0a3e188. No Gaussian LSI/T2/bias/main/cost credit."
+  },
+  {
     key := "analysis.hessian-secant.actual-integral",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator.hessian_secant_operator",
     upstreamDecl := "Genuine Hessian segment integral represents full gradient difference",

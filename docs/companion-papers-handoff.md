@@ -1,5 +1,61 @@
 # Companion-paper formalization handoff
 
+## True smoothed score and posterior mean 2026-10-07
+
+`ASTIS-SA-20261007-SmoothedScorePosterior` is independently VERIFIED at
+`f91b82a2920b40299e57ccb821583a91e0a3e188`. The new shared actual Gibbs gradient theorem
+produces probability, vector Bochner first integrability and zero mean from
+global C2 positive-lower/finite-upper Hessian bounds. Its public signature has
+no alpha<=beta premise and retains dimension0. This is authored background,
+not a separately printed source theorem.
+
+The actual source consumer proves Section3.1 and unnumbered `S4.Ex9`:
+the literal unnormalized convolution score is the genuine true posterior
+expectation of gradientV, with all posterior probability/position/gradient
+domains internal. The exact constant log-partition shift is differentiated.
+The same produced measurable stationary proximal p, true affine posterior r
+and standardized rho supply both the printed mean identity and evaluator chain,
+for every eta>0. There is no Gaussian-output law substitution or supplied mean,
+normalizer, selector, domain, IBP or concentration certificate.
+
+Production and translated EX7/dimension0alpha1beta0/actual eta2 score3=1,
+posterior EX1 tests compile3751 with only the standard3 axioms. Independent
+whole mathematical review, fresh source-blind decoder31 and anti-anchored
+source reviews are retained. Original BLOCKED metadata-provenance receipts
+remain immutable; separately accepted exact metadata-only overlay changes
+neither Lean/Test bytes, primary text, signatures nor blind reconstructions.
+Original exact7641ee07 admission failed contributor cell full-ID metadata;
+new exact verification is scoped to the corrected commit above.
+
+Evidence: `runs/20261007-companion-priority/smoothed-score-posterior/verified.json`.
+Current31 shared imports/Registry count475 pass the mandatory aggregate gate:
+9135 root jobs and 9400 Tests jobs. The original reader build failed only because
+the two declaration lessons used kind=proof instead of the actual kind=theorem;
+the separate reader-kind overlay was independently accepted with Lean/Test bytes
+unchanged. Refreshed publication192, semantic258/repair8 and contributor75/71
+checks pass. Static site/graph and independent repository/ExpositionSeal
+acceptance are tracked separately in that run.
+Copy/Download controls, rendered interaction QA, merge and postmerge purification
+remain open. DraftPR313 is unmerged; prior-head CI does not validate this packet.
+
+Next source-backed candidate is the actual standardized posterior's relative
+Gaussian density, square-root Sobolev/entropy and energy domains, needed by
+FIRST(4.6). The repaired source-only Gaussian transport graph has distinct
+accepted topology review (26 nodes, 52 edges, one authored OR, 202 balanced raw
+source spans). Original failed graph/review records remain immutable. The old
+dependency-ready.packet.json still binds the original graph and is historical
+reconnaissance only. A new proposal must bind the repaired graph, inventory,
+contract, repair proposal and distinct repaired review. No prospective statement
+seal, new SAU claim or proof search has occurred for this candidate.
+Actual Gaussian LSI and Talagrand T2 producers, carrier/metric adapters and the
+vector Lipschitz mean comparison remain separate dependencies. No convenience
+certificate enters a faithful public source signature.
+
+Bias(4.2), FIRST(4.6), fullLemma4.2, smoothing/Picard/Wp/proxy-warmness/initialization,
+PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both full main
+results and actual-input precision/expected-query-cost composition remain open.
+TV proximity never transfers unbounded expected cost. The whole Goal continues.
+
 ## Sharp Gaussian-output concentration 2026-10-07
 
 `ASTIS-SA-20261007-GaussianSharpConcentration` is independently VERIFIED at
@@ -25,7 +81,7 @@ candidate substrate links are dashed, not Lean implication/functor certificates.
 Evidence: `runs/20261007-companion-priority/gaussian-sharp-concentration/verified.json`.
 Current30 serialized aggregate9133/9396, publication190, semantic256/8, frontier253,
 contributor73/69, process memory, site474/864/4544 and both affected graph-checks pass.
-Independent repository ProofSeal/static ExpositionSeal and own-head remote CI remain pending. Copy/Download control implementation and
+Current30 independent repository ProofSeal/static ExpositionSeal accepted-scoped at c0696fcc; published e2d6805f has all four own-head CI jobs successful, deploy skipped. Exact seals/CI receipts are in gaussian-sharp-concentration/. This is current30 evidence, not current31 or live/merged/PURIFIED credit. Copy/Download control implementation and
 rendered QA/postmerge purification remain open; draftPR313 is unmerged.
 Next dependency: literal unnumbered primary `S4.Ex9` true smoothed-score/true RGO
 posterior expected-gradient identity. Numbered `S4.E9`/(4.9) is a distinct Hessian

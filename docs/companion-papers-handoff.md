@@ -31,7 +31,8 @@ and Windows CRCRLF mechanical repair have an explicit original/intermediate/
 final byte chain; mathematical Lean/Test/lessons remained unchanged.
 Exact independently VERIFIED proof `88aa4d29f029da3a315234ae78f09397b68df0bc`:
 `runs/20261006-companion-priority/compact-weighted-poisson-coercivity/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof 88aa4d29f029da3a315234ae78f09397b68df0bc independently VERIFIED; shared integration 3f0597ab25879b6299147d8dd42557c1d6c049ae. Full ASTIS gate PASS (9113 root / 9367 Tests), publication168, semantic228/8, frontier231, contributor51/47. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and two actual import/declaration branches checked, full site and official graph freshness/contributor PASS. Graph835 modules/614 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/compact-weighted-poisson-coercivity/integration.json`. Goal remains active.
 
 Next bounded dependency is actual global cutoff commutator/tail convergence and
 same-u positive-epsilon scalar coercivity. The independent source/API preread

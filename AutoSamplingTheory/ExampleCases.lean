@@ -1,3 +1,4 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance

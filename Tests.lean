@@ -1,3 +1,4 @@
+import Tests.StandardizedRGOPositionFisher
 import Tests.FullRangeProximalGaussianOracle
 import Tests.SmoothedHessianBounds
 import Tests.CenteredPoincare

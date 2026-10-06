@@ -1,5 +1,51 @@
 # Companion-paper formalization handoff
 
+## Actual standardized RGO position and Fisher 2026-10-06
+
+`ASTIS-SA-20261006-StandardizedRGOPositionFisher` produces the literal true
+SPHMC standardized RGO law from retained source C2 V, beta1/alpha=kappa^-1,
+kappa>=1, and every0<eta<=1. The measurable exact proximal selector p is
+internally constructed, with p+eta*gradientV(p)=y. Literal rho and
+Q=normu^2/2+rho have actual C2, mode0 and curvature0..eta /1..1+eta.
+The true RGO R=mu.tilted(-norm(x-y)^2/(2eta)) is normalized probability;
+its actual centered/sqrteta pushforward r equals volume.tilted(-Q).
+
+The canonical `AffineGibbs.map_affine_gibbs` proves the real signed-affine
+Lebesgue Jacobian cancellation, including dimension0 and arbitrary F. It is
+an identity of totalized Mathlib tilts, not a probability assertion by itself.
+The actual source consumer independently produces exponential integrability,
+positive normalization, probability and genuine position/gradient L2.
+`GibbsPositionMoment` supplies the genuine position IBP via ordinary-volume
+L1 products and full-space Fubini/IBP, with no cutoff assumption or construction.
+The source consumer proves integral normu^2 dr<=d and integral normgradrho^2 dr
+<=eta^2 integral normu^2 dr<=eta^2d: only the last TWO comparisons of4.6.
+
+Independent V2 StatementSeal and source-only topology preceded proof search.
+Whole mathematics, real focused tests, blind decoding, anti-anchored source
+review and exact proof commit `36bdaa8404ff4b716dd0bf8e8844f2f02f43f2e4` are independently accepted.
+The initial generic decoder omitted ambient E classes; its blocked reconstruction
+is retained alongside the independently redecoded exact-context revision.
+Reader cutoff provenance was corrected with its original raw snapshots and
+separate bounded independent reconciliation. Actual eta1 quadratic true RGO
+moment is1/2, distinct from prior Gaussian gradient-output moment1; variableeta,
+negative scalar affine law and0D constant7 posterior tests all pass/standard3.
+Evidence: `runs/20261006-companion-priority/standardized-rgo-position-fisher/verified.json`.
+
+Finite Hilbert/Borel incl0 and arbitrary measurable parameter-space extensions
+are disclosed. Fresh primary-only preread confirms printed Lemma4.2 assumes
+eta>0; eta<=1 is printed in neighboring Lemma4.1. Prior26 and this27 certify
+only their explicit0<eta<=1 slices. The eta>1 proximal/standardized-law extension
+is a real remaining source dependency before fullLemma4.2, not supplied as a
+certificate. See `runs/20261006-companion-priority/gaussian-functional-preread/source-primary.contract.json`.
+R/r remain distinct from Gaussian gradient outputs and HMC
+K/Khat/Kbar. Posterior joint Markov-family semantics, FIRST4.6 GaussianTalagrand/
+LSI/W2, bias/MGF/fullLemma4.2, higher smoothing/Picard/Wp/proxywarmness and
+initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work,
+both main results and actual-input expected-query-cost composition remain OPEN.
+The numerical-prox eta<=1/(2beta) cost cap stays separate. TV proximity never
+transfers unbounded expected cost. Shared whole gate/static reader/graph and
+independent repository/exposition/purification admission are pending here.
+
 ## Actual full-range proximal Gaussian oracle 2026-10-06
 
 `ASTIS-SA-20261006-FullRangeProximalGaussianOracle` constructs the literal

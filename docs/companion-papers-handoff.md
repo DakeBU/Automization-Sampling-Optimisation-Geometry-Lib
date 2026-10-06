@@ -1,5 +1,49 @@
 # Companion-paper formalization handoff
 
+## Actual compact C1 gradient domain and conditional weak tests — 2026-10-06
+
+`ASTIS-SA-20261006-CompactC1GradientDomain` derives joint true function/gradient
+L2 approximation by normalized compact smooth convolution. For any finite
+measure and the same supplied exact closable compact-smooth gradient D, a C1
+compact function and its genuine gradient belong to D.closure.graph. This does
+not assert existence of such D for every finite or singular measure. Actual
+pointwise convolution convergence plus finite-measure bounded domination proves
+both L2 limits; no assumed uniform/common-support or domain certificate.
+
+The actual positive-epsilon variational solution on the same closed gradient
+now admits every C1 compact weighted volume test. All three products are L1,
+normalization is genuinely positive, and the ordinary weak gradient/local
+volume integrability are retained. The real PBPS R/S conditional producer keeps
+S_y=(2x-y)#R_y and W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta), its real partition,
+source C2 alpha/beta and beta eta<=1. One original dense closable D_y is fixed
+before all epsilon and input choices. Reflected/RGO laws/operators/quarter
+Hessian and Dirichlet scales are not identified; no measurable solution
+selection in y or cost transfer is claimed. Finite Hilbert/Borel/zero-dimension
+and generic finite-measure/C1-W generalizations are explicit prerequisites.
+
+Focused3305, complete independent mathematics/direct elaboration, concrete
+nonquadratic source and bump*norm^(3/2) weak equation, zero-dimensional actual
+Gibbs D/domain/resolvent tests, three blind reconstructions and three independent
+source reviews PASS; standard3/fake scan. Immutable original math/source reviews,
+raw/LF footprints and bounded parent/lifecycle reconciliations are preserved.
+Exact independent proof VERIFIED `45d4b8e8a47e224676f122aa7a14fd97d9827bca`:
+`runs/20261006-companion-priority/compact-c1-gradient-domain/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+Local H2, global generator core/Bochner, constant/linear noncompact domains,
+centered epsilon-zero residual limit, conditional Poincare/BL, SPHMC Hessian
+lower/full4.1 and all other full-main/actual-input-cost composition boundaries
+remain open. TV never transfers unbounded expected cost. Next bounded true
+ordinary weak Laplacian and locally-L2 right-hand-side prerequisite is audited
+in `research-wiki/cited-results/Weighted_ordinary_resolvent_dependency_audit.md`;
+source W need only be C1 and exp(W)phi remains a compact legitimate C1 test.
+No local elliptic or final Poisson/core certificate is supplied.
+Preceding exact f680 covariance/Hessian-upper head passed all four GitHub
+workflows; later head needs separate CI. Draft/open/unmerged, no deployment or
+live verification. Browser runtime's required browser-service.mjs is missing;
+rendered visual and metadata copy/download controls acceptance remain open.
+
+
 ## Actual Gibbs covariance lower and smoothed Hessian upper — 2026-10-06
 
 `ASTIS-SA-20261006-GibbsCovarianceLower` extends the canonical Gibbs calculus:

@@ -28,7 +28,8 @@ source reviews PASS; standard3/fake scan. Immutable original math/source reviews
 raw/LF footprints and bounded parent/lifecycle reconciliations are preserved.
 Exact independent proof VERIFIED `45d4b8e8a47e224676f122aa7a14fd97d9827bca`:
 `runs/20261006-companion-priority/compact-c1-gradient-domain/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof 45d4b8e8a47e224676f122aa7a14fd97d9827bca independently VERIFIED; shared integration 0c58bf4d8821deab348958d3052f28372d5ff33c. Full ASTIS gate PASS (9103 root / 9352 Tests), publication158, semantic218/8, frontier221, contributor41/37. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and three actual module/declaration branches checked, full site and official graph freshness/contributor PASS. Graph820 modules/604 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/compact-c1-gradient-domain/integration.json`. Goal remains active.
 
 Local H2, global generator core/Bochner, constant/linear noncompact domains,
 centered epsilon-zero residual limit, conditional Poincare/BL, SPHMC Hessian

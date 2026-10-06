@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-2bb631dae6198440",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let Q := fun s u => ‖u‖^2/2+rho s u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      IsProbabilityMeasure mu ∧\n        ∀ s, IsProbabilityMeasure (R s) ∧\n          ContDiff ℝ 2 (rho s) ∧ ContDiff ℝ 2 (Q s) ∧\n          gradient (rho s) 0=0 ∧ gradient (Q s) 0=0 ∧\n          (∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2) ∧\n          (∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2) ∧\n          r s=(volume : Measure E).tilted (fun u => -Q s u) ∧\n          IsProbabilityMeasure (r s) ∧ MemLp id 2 (r s) ∧\n          Integrable (fun u => ‖u‖^2) (r s) ∧\n          (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E ∧\n          MemLp (gradient (rho s)) 2 (r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*(∫ u, ‖u‖^2 ∂r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*Module.finrank ℝ E",
+    "statement_sha256": "2bb631dae61984406ffff2d8b154ef62842114ad758c6c049276707392d84560",
+    "compiled": true,
+    "approved_definition_context": [
+      "Measure.tilted mu f is mu.withDensity(x->ENNReal.ofReal(exp(f x)/(integral exp(f) dmu))). Bochner integral normalization is totalized when exponential integrability fails. Equality alone is not probability. IsProbabilityMeasure nu means nu(univ)=1.",
+      "Measure.map is the genuine measurable pushforward. volume is real finite-Hilbert Lebesgue/Haar measure. Real scaling uses vector smul; finrank is the actual real dimension and may be0.",
+      "ContDiff R2 and fderiv are actual twice continuous Frechet calculus. gradient f x=(InnerProductSpace.toDual R E).symm(fderiv R f x), the true real Hilbert Riesz gradient. MemLp id2r and MemLp gradientrho2r are genuine AE strong measurability and finite L2 norms.",
+      "All potentials and mu/R/r are literal let bodies of the public signature. The affine identity has any F/nonzero real scale; the source theorem has actual positive-curvature V and internally produces probability, moments and gradients. No estimate-certificate aliases occur.",
+      "R is the literal conditional Gibbs RGO tilt and r is its centered/sqrteta standardized pushforward. Neither is the earlier Gaussian gradient-output law nor HMC K/Khat/Kbar. Joint measurability of the posterior measure-valued family is not a conclusion."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "095c4650afb954641de0457b95c498a23dff21946b6a06dea1e1c9ac9f210bfd"
+}

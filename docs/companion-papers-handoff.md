@@ -33,8 +33,13 @@ ExpositionSeal and scoped purification are accepted: full249production/115Test
 lines, all3private declarations in each, nine mathematical steps,176canonical
 source spans and26local links expand losslessly with exact formal branches.
 Unused local hsc is a nonblocking cleanup note; no source statement changed.
-Rendered visual/copy/download acceptance, new26head remoteCI, merge/live and
-both complete main results remain OPEN. Next bounded source
+Published26head `b8732d1b9fc8809fff472a2745105f6c44fa1505` passes all four
+remote workflows; actual remote Lean9130/9391 and Chapter1 integrity confirmed.
+Receipt: `runs/20261006-companion-priority/full-range-proximal/remote-ci.b8732d1b.accepted.json`.
+The final administrative admission is independently accepted with unchanged
+mathematical bytes and9exact string source-node IDs. Uncommitted27 is excluded.
+Rendered visual/copy/download acceptance, merge/live and both complete main
+results remain OPEN. Next bounded source
 candidate is actual normalized affine RGO transport with source rho/Q curvature,
 stationarity and true position/Fisher moments. Gaussian Talagrand/LSI toW2,
 bias/MGF/higher smoothing/fullLemma4.2, actual sampler/Wp/proxywarmness and

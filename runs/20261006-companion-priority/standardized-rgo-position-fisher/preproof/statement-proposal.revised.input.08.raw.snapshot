@@ -1,0 +1,34 @@
+theorem standardized_rgo_position_and_fisher
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+      let Q := fun s u => ‖u‖^2/2+rho s u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+      IsProbabilityMeasure mu ∧
+        ∀ s, IsProbabilityMeasure (R s) ∧
+          ContDiff ℝ 2 (rho s) ∧ ContDiff ℝ 2 (Q s) ∧
+          gradient (rho s) 0=0 ∧ gradient (Q s) 0=0 ∧
+          (∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧
+            fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2) ∧
+          (∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧
+            fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2) ∧
+          r s=(volume : Measure E).tilted (fun u => -Q s u) ∧
+          IsProbabilityMeasure (r s) ∧ MemLp id 2 (r s) ∧
+          Integrable (fun u => ‖u‖^2) (r s) ∧
+          (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E ∧
+          MemLp (gradient (rho s)) 2 (r s) ∧
+          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤
+            (eta s)^2*(∫ u, ‖u‖^2 ∂r s) ∧
+          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤
+            (eta s)^2*Module.finrank ℝ E

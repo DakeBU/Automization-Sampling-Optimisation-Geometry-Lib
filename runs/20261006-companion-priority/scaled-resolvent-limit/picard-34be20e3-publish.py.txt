@@ -1,0 +1,38 @@
+import pathlib,json,hashlib,sys,subprocess,datetime
+sys.path.insert(0,'tools');import astis_advance as adv
+R=pathlib.Path('runs/20261006-companion-priority/scaled-resolvent-limit')
+C='34be20e35ba8b16c03a121151ff84d37f316d2d9';V='picard_commit_verifier_20261005'
+def rd(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def fr(p):
+ b=pathlib.Path(p).read_bytes();return {'path':str(p).replace(chr(92),'/'),'raw_sha256':hashlib.sha256(b).hexdigest(),'lf_sha256':hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),'bytes':len(b)}
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+e=rd(R/'exact-admission-reconciliation.json');m=rd(R/'math-review.json');pl=rd(R/'proved-local.json');cl=rd(R/'claim.json')
+assert e['verification_status']=='passed-scoped' and e['verified_commit']==C
+assert adv.current_advances()[cl['advance_id']]['state']=='PROVED_LOCAL'
+cells=[]
+for cell in cl['cells']:
+ p=pathlib.Path('research-wiki/frontier-cells')/(cell+'.json');z=rd(p);assert z['status']=='proved_locally'
+ snap=R/(cell+'.exact-before-verified.snapshot.json');assert not snap.exists();snap.write_bytes(p.read_bytes());cells.append((p,z,snap))
+gates=e['gate_logs']
+gate={'scope':'Independent exact scoped Lean/source/publication/semantic/frontier/contributor/fake admission; aggregate/sharedimports/site/graph/remote CI remain root serialized integration.','focused':{'command':'ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 LEAN_NUM_THREADS=2 lake build Tests.ScaledResolventLimit','result':'PASS3323','evidence':gates[-1]},'reviewed_actual_publication_admission':True}
+for i,(key,cmd,result) in enumerate([
+ ('publication','python tools/astis_publication.py check --base origin/main','PASS180'),
+ ('semantic','python tools/astis_semantic_roundtrip.py check','PASS240audits8repairs'),
+ ('frontier','python tools/astis_frontier_cells.py check','PASS243cells'),
+ ('contributor','python tools/astis_contributor_contract.py check --base origin/main','PASS; affected metadata-only classifier output retained honestly')]):
+ gate[key]={'command':cmd,'result':result,'log':gates[i]}
+out={'schema_version':1,'advance_id':cl['advance_id'],'cell_ids':cl['cells'],'role':'independent_verifier','verifier_id':V,'worker_id':V,'verification_status':'passed-scoped','verified_commit':C,'lean_declarations':pl['lean_declarations'],'publication_declarations':pl['publication_declarations'],'lean_files':pl['lean_files'],'gate':gate,'source_audit':e['source_reviews'],'fake_closure_scan':e['fake_closure'],'standard_axioms':e['standard_axioms'],'conceptual_mirror_audit':pl['conceptual_mirror_audit'],'math_review':fr(R/'math-review.json'),'exact_admission_reconciliation':fr(R/'exact-admission-reconciliation.json'),'exact_verifier_script':fr(R/'picard-34be20e3-exact-writer.py.txt'),'exact_verifier_log':fr(R/'picard-34be20e3-exact.log'),'retained_failed_commit_receipt':fr(R/'picard-61e538a7.failed-admission.json'),'retained_adapter_diagnostic':fr(R/'picard-61e538a7-exact.log'),'unchanged_input_evidence':{'stable_raw_LF_count':43,'stable_inputs':e['stable43_rawLF_and_Git'],'six_snapshots':e['six_math_snapshots'],'original22_freeze_unchanged_or_original_admin_snapshot':True,'current_admin_reconciliation':e['six_current_admin_deltas_plus_two_proposal_plan_fields_plus_frontier_repair'],'committed_raw_artifact_count':157,'source_union_count':50,'exact_before_verified_cells':[fr(s) for _,_,s in cells],'source_raw_Git_LF_contract':e['source_review_hash_contract']},'independent_metadata_repair_check':e['independent_frontier_metadata_reconciliation'],'source_lifecycle_review':e['source_lifecycle'],'proposal_plan_review':e['proposal_plan_review'],'frontier_metadata_review':e['frontier_metadata_review'],'mathematical_scope':{'production_lines':[141,66,54],'test_lines':140,'private_helpers':e['private_helpers'],'reader_steps':[7,5,3],'full_proofs_read':True,'findings':e['findings'],'nonzero_two_dim_projection_and_forcing_with_nonmonotone_positive_epsilon_stress':True,'actual_nonquad_eta_half_true_JRS_same_original_D':True,'true_E0_constant7_Gibbs_originalD_centered_resolvent':True,'actual_noncentered_zero_operator_residual7_counterexample':True},'reuse_boundary':'Entire independent mathematics/direct4/focused3323/std3/nonzero2D nonmonotone epsilon stress reused ONLY exact43stable raw/LF/current GitLF; fresh exactfocused3323 plus named source/publication/semantic/frontier/contributor/fake17 establish exact bounded admission. Original failure61e538a7 preserved and never certified. Proposal-only discovery string has no formal edge or Poincare completion credit.','remaining_boundary':[e['remaining_boundary'],'Both complete papers/main results/composition remain unfinished. Actual unscaled solution limit/range/uniform estimate/Poincare/BL/fulladjoint/core/measurable joint selector/score variance/history/global work remain open; reflected law and RGO scales stay distinct; TV does not transfer unbounded expected cost.'],'excluded_future_artifacts':e['excluded_untracked_future_artifacts'],'sole_existing_stabilization_owner':e['sole_stabilization_owner'],'no_duplicate_mathematical_or_extraction_credit':True,'all_compiler_sessions_and_writes_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+p=R/'verified.json';assert not p.exists();p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ev={k:out[k] for k in ['verifier_id','verified_commit','gate','source_audit','fake_closure_scan','lean_declarations','publication_declarations','conceptual_mirror_audit','exact_admission_reconciliation']}
+ev.update(role='independent_verifier',verification_status='passed-scoped',verification_receipt=fr(p),truth_boundary=pl['truth_boundary'])
+adv.transition_advance(cl['advance_id'],'VERIFIED',worker_id=V,modes=['independent-exact-verification'],evidence=ev)
+for path,z,snap in cells:
+ assert path.read_bytes()==snap.read_bytes()
+ z['status']='independently_verified'
+ z['evidence']['independent_verification']=str(p).replace(chr(92),'/')
+ z['evidence']['independent_verification_details']={'verifier_id':V,'verified_commit':C,'verification_status':'passed-scoped','receipt':fr(p),'exact_admission':fr(R/'exact-admission-reconciliation.json'),'focused':'PASS3323; standard3; fake17; publication180; semantic240/8; frontier243; contributor PASS','remaining_boundary':'Actual strongly scaled residual/gradient only; original normalized Gibbs/source reflected sameD actual centered variational sequence. Poincare/BL/unscaled limit/core/jointselector/main/composition open; proposalonly has no formal edge.'}
+ with path.open('w',encoding='utf-8',newline='') as f:f.write(json.dumps(z,ensure_ascii=False,indent=2)+'\n')
+assert adv.current_advances()[cl['advance_id']]['state']=='VERIFIED'
+assert len([x for x in adv.current_advances().values() if x['state']=='STABILIZING'])==1
+for p0,_,_ in cells:assert rd(p0)['status']=='independently_verified' and isinstance(rd(p0)['evidence']['independent_verification'],str)
+print(json.dumps({'VERIFIED':cl['advance_id'],'checked_commit':C,'receipt':fr(p),'cells':len(cells),'all_compiler_write_leases_CLOSED':True}))

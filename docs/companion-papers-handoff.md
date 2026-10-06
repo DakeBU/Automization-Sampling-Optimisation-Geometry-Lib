@@ -1,5 +1,53 @@
 # Companion-paper formalization handoff
 
+## Actual scaled original-resolvent norm limit 2026-10-06
+
+`ASTIS-SA-20261006-ScaledResolventLimit` proves actual strong epsilon_n*u_n
+and epsilon_n*D(u_n) zero limits for a SAME real closed partial Hilbert operator,
+true positive epsilon_n->0 and actual all-domain variational solutions when f
+is orthogonal to EVERY kernel element. Explicit separability gives genuine
+Riesz WeakDual subsequences; the actual WithLp2 graph/double-orthogonal limit
+and scaled energy force strongzero, without Poincare, uniform unscaled u,
+supplied weak-limit/graph certificate, monotonic epsilon or Nontrivial spaces.
+
+The actual normalized C1 Gibbs consumer derives genuine scalarL2 separability
+from finite-dimensional Borel E/finite probability, actual fL2-to-L1 and
+mean-zero-to-kernel orthogonality via the SAME zero-gradient/AEconstant theorem.
+It constructs actual positiveepsilon solutions on SAME original D beforeALLf,
+retaining ordinary local integrability and every legal compactC1 weak test.
+Actual common PBPS Gaussian J/R/S/sourceC2 alpha-beta eta cap/reflected W_y,
+positive partitions and original dense closable D_y precede ALL centered f/
+epsilon sequences; true variational solutions/residualzero are fiberwise.
+No R2/R/alternateD identity or jointly measurable selector is inferred.
+
+Focused3323/std3 and independent complete141/all4private +66/54production,
+140Test and7+5+3 reader steps passed. True nonquadratic eta1/2 and actual0D
+constant7 Gibbs original-domain consumers passed. Genuine closed zero operator
+with noncentered forcing7 has scaled residual7 and cannot tendzero, preserving
+the necessary forcing/kernel boundary. Three distinct sourceblind reconstructions,
+primary-first anti-anchored reviews and six administrative binding audits passed;
+mathematical inputs remained frozen. Exact independent VERIFIED proof
+`34be20e35ba8b16c03a121151ff84d37f316d2d9`: `runs/20261006-companion-priority/scaled-resolvent-limit/verified.json`.
+Original sole root stabilization/PR313 lane. Shared aggregate/reader/graph
+checks pending for this packet. Goal remains active.
+
+Next bounded route joins residual-converging and global-coercivity witnesses
+using genuine SAME D/epsilon/f variational uniqueness, then tests a truly
+centered domain z and passes the residual limit to derive exact Poincare.
+`Centered_domain_Poincare_resolvent_route.md` and typed discovery remain
+proposal-only. Actual centered class/variance/score energy and unreflected
+RGO linear moment/covariance adapters remain separate. Exact reflected quarter
+and unreflected constants are retained. Poincare/BL/full rough Hessian/adjoint/
+core/range/unscaled epsilon0 solution, SPHMC Hessian lower/full4.1/Wp/proxy
+warmness/algorithm accuracy-work-initialization and PBPS reflection/invariance/
+nonexplosion/discrete hypocoercivity/implementation/cost, both complete main
+results and actual incoming precision/expected-query-cost composition remain
+OPEN. TV never transfers unbounded cost. Older frontiers/cycles preserved.
+Previous5cf CI receipt separate; current final head needs own CI. Draft/open/
+unmerged. Rendered visual/copy/download acceptance open because browser-service
+bootstrap unavailable; static readers checkable.
+
+
 ## Actual weighted C1 original domain and conditional score 2026-10-06
 
 `ASTIS-SA-20261006-WeightedC1GradientDomain` proves for ANY genuinely finite

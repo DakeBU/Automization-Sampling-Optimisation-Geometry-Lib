@@ -43,8 +43,15 @@ LSI/W2, bias/MGF/fullLemma4.2, higher smoothing/Picard/Wp/proxywarmness and
 initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work,
 both main results and actual-input expected-query-cost composition remain OPEN.
 The numerical-prox eta<=1/(2beta) cost cap stays separate. TV proximity never
-transfers unbounded expected cost. Shared whole gate/static reader/graph and
-independent repository/exposition/purification admission are pending here.
+transfers unbounded expected cost. Shared298d0426 passes the whole ASTIS
+gate9132/9394, publication188, semantic248/8, frontier251, static site and
+canonical two-cell graph checks. Independent repository ProofSeal accepts the
+exact bounded mathematics; whole862-file fake-closure scan has zero hits.
+Static full54/309/233-line structure, three/seven lesson steps and176 source
+anchors pass. Full ExpositionSeal/PURIFIED remains pending: frozen lessons and
+publication must explicitly distinguish source eta>0 from this eta<=1 restriction.
+The next allpositive actual theorem advance addresses that source range before
+new source assimilation; a static partial result is not fullLemma4.2.
 
 ## Actual full-range proximal Gaussian oracle 2026-10-06
 

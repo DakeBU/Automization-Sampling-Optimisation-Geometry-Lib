@@ -1,5 +1,51 @@
 # Companion-paper formalization handoff
 
+## Actual ordinary weak Laplacian and conditional local L2 — 2026-10-06
+
+`ASTIS-SA-20261006-OrdinaryWeakResolvent` retains the same actual positive-epsilon
+variational solution u and G=D.closure u, with the original exact compact-smooth
+closable gradient fixed before epsilon/forcing. For genuine mu=volume.tilted(-W)
+and C1 W with actual exponential integrability, it derives the ordinary volume
+distribution equation Delta u=epsilon u+inner(gradient W,G)-f against every C2
+compact phi, with both tested products L1 and every integral split justified.
+It derives actual compact-volume L2 of u/G/right-hand side and locally integrable
+squared right-hand side. It preserves the all-domain variational equation,
+ordinary local integrability and all C1 compact directional weak-gradient identities.
+No classical total laplacian of an arbitrary L2 representative or supplied PDE,
+local-L2, H2 or operator-core certificate is used.
+
+True inverseweight exp(W)phi remains compact C1. Its genuine Frechet/Riesz product
+rule and finite orthonormal-basis weak derivative summation produce the ordinary
+Laplacian with correct sign/unit coefficients. Continuous gradient W is bounded
+only on each compact; no global drift-product L2 is inferred. The real PBPS
+R/S consumer retains the actual augmentation/disintegration/reflection,
+S_y=(2x-y)#R_y and W_y(u)=V((y+u)/2)+norm(u-y)^2/(8eta), true positive partition,
+source C2 alpha/beta/eta cap, and original dense closable D_y before epsilon/input.
+Reflected/RGO laws/operators/quarter Hessian and Dirichlet factor4 remain distinct;
+no joint measurable solution selection is claimed. Shared C1-W/C2-test,
+finite-Hilbert/Borel/zero-dimensional generalizations are disclosed prerequisites.
+
+Focused3307, independent complete242-line shared/five-private proofs and72-line
+actual source module,113-line true nonquadratic Test, actual compact
+rho(x)*(x^2)^(5/2) C2 PDE and zero-dimensional constant7 genuine Gibbs D/PDE balance
+PASS; standard3/fake scan. Two distinct blind reconstructions and two independent
+anti-anchored full source reviews PASS. Original14 freeze and the sole displayed
+rho formula correction plus all raw/LF reviews and metadata snapshots are preserved.
+Exact independent proof VERIFIED `e15c75690beb0c54c4ae3507b92696836a0201c5`:
+`runs/20261006-companion-priority/ordinary-weak-resolvent/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+Local H2, global generator core/Bochner, noncompact constant/linear domains,
+centered epsilon-zero limit, conditional Poincare/BL, SPHMC Hessian lower/full4.1,
+PBPS discrete hypocoercivity and both complete main results/actual-input precision
+and expected-cost composition remain open. TV never transfers unbounded cost.
+Next dependency is a true compact-cutoff/global-Poisson-Sobolev adapter, not an
+assumed local elliptic regularity certificate. Preceding exact3dd C1 head passed
+all four required remote workflows. This head requires separate CI; draft/open/
+unmerged, no deployment. Browser bootstrap's required browser-service.mjs remains
+unavailable; rendered visual and metadata copy/download UI acceptance are open.
+
+
 ## Actual compact C1 gradient domain and conditional weak tests — 2026-10-06
 
 `ASTIS-SA-20261006-CompactC1GradientDomain` derives joint true function/gradient

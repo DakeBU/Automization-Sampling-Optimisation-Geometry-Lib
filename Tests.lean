@@ -197,6 +197,7 @@ import Tests.WeightedGradientWeak
 import Tests.WeightedGradientDistribution
 import Tests.WeightedResolvent
 import Tests.CompactC1GradientDomain
+import Tests.OrdinaryWeakResolvent
 import Tests.SmoothedPicardHMCTruncation
 import Tests.SmoothedPicardHMCGaussianPowerMoment
 import Tests.SmoothedPicardHMCGaussianMixture

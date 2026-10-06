@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Actual compact weak-Poisson Sobolev regularity — 2026-10-06
+
+`ASTIS-SA-20261006-CompactWeakPoissonSobolev` derives actual complex volume-L2
+classes vc/Fc AE-linked to ofReal(v/F), every complex Schwartz tested PDE with
+both bilinear products L1, Delta(LpTD vc)=LpTD Fc, and MemSobolev 2 2 (LpTD vc)
+from actual real C2 compact weak-Poisson tests, common compact supports and
+actual global volume L2. A fixed smooth outer plateau and real-linear Re/Im
+extension replace any unproved tail limit. Actual Fourier normalization gives
+B2=I-(2pi)^(-2)Delta and a genuine L2 Bessel witness; no final Schwartz,
+distributional or Sobolev certificate is assumed.
+
+The genuine conditional PBPS consumer retains original Gaussian/Gibbs J/R/S,
+S_y=(2x-y)#R_y, reflected W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta), positive
+partition and source C2 curvature/eta cap. The original dense closable D_y is
+fixed before epsilon/f, ONE actual u before ALL C2 compact chi, and complex
+classes after chi before ALL Schwartz tests. All accepted localization outputs
+are retained. Reflected and unreflected RGO operators/scales remain distinct.
+
+Focused3337 and independent full194/all6private +source98/Test134/12readersteps
+PASS, including genuine nonquadratic eta1/2/nonreal Schwartz and actual E0
+constant7 Gibbs original-D cutoff/TD/Sobolev stress. Standard3/fake scan, two
+distinct blind reconstructions and independent anti-anchored source reviews
+passed with raw/LF footprints and bounded administrative reconciliation.
+Exact independently VERIFIED proof `aa98ddc2d35bc3679517f247e337f7074255638e`:
+`runs/20261006-companion-priority/compact-weak-poisson-sobolev/verified.json`. Original sole root stabilization/PR313 lane.
+Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+
+This is complex Bessel-Sobolev regularity. Real mixed second representatives,
+ordinary Hessian assembly, localized membership in original weighted D,
+weighted generator core/Bochner, noncompact domains, centered epsilon-zero
+limit, Poincare/BL, SPHMC smoothed Hessian lower/full4.1 and both complete main
+results/actual-input precision/expected-cost composition remain open. No joint
+measurable fiber selector is inferred. Raw real-mixed derivative routes remain
+planning only; TV never transfers unbounded cost. Previous bfa remote workflows
+are checked separately; this final Sobolev head needs its own CI. Draft/open/
+unmerged. Rendered visual/copy/download acceptance remains open because the
+browser bootstrap cannot load browser-service.mjs; static artifacts are checked.
+
+
 ## Actual same-solution compact localization — 2026-10-06
 
 `ASTIS-SA-20261006-LocalizedWeakResolvent` keeps the original dense closable exact

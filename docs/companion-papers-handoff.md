@@ -27,7 +27,8 @@ PASS, standard3/fake scan. Two distinct blind reconstructions and two independen
 anti-anchored source reviews passed; raw/LF evidence and lifecycle snapshots
 retained. Exact independent proof VERIFIED `d0dfa1207402a5ac75423424994a743e51aa3d91`:
 `runs/20261006-companion-priority/localized-weak-resolvent/verified.json`. Original sole root stabilization/PR313 lane.
-Shared aggregate/reader/graph checks pending for this packet. Goal remains active.
+Exact proof d0dfa1207402a5ac75423424994a743e51aa3d91 independently VERIFIED; shared integration b6dc44ceaf7016d87e578517d6ac6fb0ad2d57d2. Full ASTIS gate PASS (9107 root / 9358 Tests), publication162, semantic222/8, frontier225, contributor45/41. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun for this pure Lean/metadata packet. Original companion static source/formula/proof/folded-Lean/Test/residual and two actual import/declaration branches checked, full site and official graph freshness/contributor PASS. Graph826 modules/608 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open; browser bootstrap cannot load required browser-service.mjs.
+`runs/20261006-companion-priority/localized-weak-resolvent/integration.json`. Goal remains active.
 
 Localized v membership in the original weighted closed-gradient domain is NOT
 asserted. Compact-to-Schwartz/complex/tempered adapter, real local H2, global

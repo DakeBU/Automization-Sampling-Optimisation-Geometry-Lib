@@ -1,0 +1,113 @@
+import sys,pathlib,json,subprocess,hashlib,re,datetime
+sys.path.insert(0,str(pathlib.Path('tools').resolve()));sys.stdout.reconfigure(encoding='utf-8')
+import astis,astis_publication as pub
+R=pathlib.Path('runs/20261006-companion-priority/global-weighted-resolvent-coercivity')
+C='b736b7459fcd2c8eab6a75dc427f93b651581948'
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+def rd(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def sha(b):return hashlib.sha256(b).hexdigest()
+def freeze(p,git=False):
+ p=str(p).replace(chr(92),'/');b=pathlib.Path(p).read_bytes();q={'path':p,'raw_sha256':sha(b),'lf_sha256':sha(b.replace(b'\r\n',b'\n')),'normalized_sha256':sha(b.replace(b'\r\n',b'\n')),'bytes':len(b)}
+ if git:
+  g=subprocess.check_output(['git','show',C+':'+p]);q.update(git_commit=C,git_raw_sha256=sha(g),git_lf_sha256=sha(g.replace(b'\r\n',b'\n')),git_lf_equals_worktree=g.replace(b'\r\n',b'\n')==b.replace(b'\r\n',b'\n'));assert q['git_lf_equals_worktree'],p
+ return q
+def diff(a,b,p=''):
+ if type(a)!=type(b):return [p]
+ if isinstance(a,dict):return sum([diff(a.get(k),b.get(k),p+'/'+k) for k in sorted(a.keys()|b.keys())],[])
+ if isinstance(a,list):return [p] if a!=b else []
+ return [p] if a!=b else []
+original=rd(R/'math-freeze.json')['files'];claim=rd(R/'claim.json');pr=rd(R/'provenance-reconciliation.json')
+origmap={x['path']:x for x in original};changed={}
+expected=[
+['/units/0/astis_dependencies','/units/0/mathlib_dependencies'],
+['/units/0/mathlib_dependencies'],
+['/reuse_plan/reused_declarations'],[],
+['/publication_binding_sha256','/publication_context/lesson/astis_dependencies','/publication_context/lesson/mathlib_dependencies'],
+['/publication_binding_sha256','/publication_context/lesson/mathlib_dependencies']]
+records=[]
+for i,x in enumerate(pr['before_after']):
+ p=x['after']['path'];bs=pathlib.Path(x['before']['snapshot']).read_bytes();before=freeze(x['before']['snapshot']);after=freeze(p)
+ assert before['raw_sha256']==x['before']['raw_sha256']==origmap[p]['raw_sha256']
+ assert before['lf_sha256']==x['before']['lf_sha256']==origmap[p]['lf_sha256']
+ assert after['raw_sha256']==x['after']['raw_sha256'] and after['lf_sha256']==x['after']['lf_sha256']
+ a=json.loads(bs);b=rd(p)
+ if '/declaration_lessons/' in p:
+  d=diff(a['units'][0],b['units'][0],'/units/0')
+  aa=dict(a);bb=dict(b);aa['units']=None;bb['units']=None;assert aa==bb
+ else:d=diff(a,b)
+ assert sorted(d)==sorted(expected[i]),(p,d)
+ if '/audits/' in p:
+  assert a['decoder_context']==b['decoder_context'] if 'decoder_context' in a else True
+ records.append({'path':p,'before_snapshot':before,'after':after,'exact_changed_fields':d,'math_statement_formula_proof_assumptions_unchanged':True})
+ changed[p]=after
+remaining=[]
+for x in original:
+ if x['path'] in changed:continue
+ q=freeze(x['path']);assert q['raw_sha256']==x['raw_sha256'] and q['lf_sha256']==x['lf_sha256'],x['path'];remaining.append(q)
+assert len(remaining)==11 and sum(bool(x['exact_changed_fields']) for x in records)==5
+current=[freeze(x['path']) for x in original]
+contexts=[x for x in current if '/frontier-cells/' in x['path'] or '/audits/' in x['path']]
+snapshots=[]
+for x in contexts:
+ p=R/(pathlib.Path(x['path']).stem+'.math-reviewed.snapshot.json');assert not p.exists()
+ p.write_bytes(pathlib.Path(x['path']).read_bytes());snapshots.append({'original':x,'snapshot':freeze(p)})
+old=rd('runs/20261006-companion-priority/compact-weighted-poisson-coercivity/math-review.json')
+oldp=[x for x in old['frozen_inputs'] if x['path'].startswith('AutoSamplingTheory/')]
+parents=[freeze(x['path'],True) for x in oldp]
+for a,b in zip(oldp,parents):assert a['raw_sha256']==b['raw_sha256'] and a['lf_sha256']==b['lf_sha256'],a['path']
+parents += [freeze('AutoSamplingTheory/TechnicalLemmas/Analysis/'+p,True) for p in ['HessianSecantOperator.lean','Calculus/Cutoff.lean','Calculus/Laplacian.lean']]
+oldapi=[x for x in old['frozen_inputs'] if x['path'].startswith('.lake/')]
+apis=[freeze(x['path']) for x in oldapi]
+for a,b in zip(oldapi,apis):assert a['raw_sha256']==b['raw_sha256'] and a['lf_sha256']==b['lf_sha256'],a['path']
+apis += [freeze('.lake/packages/mathlib/Mathlib/'+p) for p in [
+'MeasureTheory/Integral/DominatedConvergence.lean','MeasureTheory/Function/L2Space.lean',
+'Analysis/InnerProductSpace/Basic.lean']]
+mathlib='db584cd6d46c92f209a44c0f1c829460d327499d'
+assert subprocess.check_output(['git','-C','.lake/packages/mathlib','rev-parse','HEAD']).decode().strip()==mathlib
+by={}
+for x in current:
+ if '/frontier-cells/' not in x['path'] and '/audits/' not in x['path'] and '/anonymous.' not in x['path']:by[x['path']]=x
+for x in parents+apis+[freeze('lean-toolchain',True),freeze('lake-manifest.json',True)]:by[x['path']]=x
+stable=list(by.values());prod=[x['path'] for x in original[:3]]
+files=list(dict.fromkeys(prod+[x['path'] for x in parents]));hits=[]
+for p in files:
+ t=astis.strip_lean_comments_and_strings(pathlib.Path(p).read_text(encoding='utf-8'))
+ assert not(p.startswith('AutoSamplingTheory/') and re.search(r'^import Tests[.]',t,re.M)),p
+ for n,line in enumerate(t.splitlines(),1):
+  if astis.FORBIDDEN_REGEX.search(line):hits.append({'file':p,'line':n,'text':line})
+assert not hits,hits
+std=['propext','Classical.choice','Quot.sound']
+lognames=['independent-production.log','independent-conditional.log','independent-test.log','independent-focused.log','independent-stress-attempt1.log','independent-stress-attempt2.log']
+logs=[freeze(R/p) for p in lognames]
+assert 'Build completed successfully (3867 jobs).' in (R/'independent-focused.log').read_text()
+for p in ['independent-test.log','independent-focused.log','independent-stress-attempt2.log']:
+ t=(R/p).read_text();assert 'sorryAx' not in t and 'error:' not in t
+ assert all(z in t for z in std),p
+priv=re.findall(r'^private (?:theorem|def) (\w+)',pathlib.Path(prod[0]).read_text(),re.M);assert len(priv)==12
+readers=[]
+for x in current:
+ p=x['path']
+ if '/declaration_lessons/' not in p:continue
+ u=rd(p)['units'][0];assert all(chr(92)*2 not in a['formula'] for a in u['steps'])
+ for d in u['astis_dependencies']:
+  module=d.rsplit('.',1)[0];assert any(d.rsplit('.',1)[1] in pathlib.Path(z['path']).read_text(encoding='utf-8') for z in parents+current[:2]),d
+ readers.append({'path':p,'steps':len(u['steps']),'all_statement_assumptions_steps_formulas_read':True,'astis_dependencies':u['astis_dependencies'],'mathlib_dependencies':u['mathlib_dependencies'],'single_actual_LaTeX_command_backslashes_checked':True})
+assert [x['steps'] for x in readers]==[7,5]
+pub.check_advance(claim['declarations'],reviewed=False)
+findings={
+'weighted_L2_DCT':'True AE measurability/integrable norm-squared from weighted MemLp2, coefficient domination and pointwise zero yield integrals and real square-root/Lp-norm limits. Finite bounds and nonnegative dominating constants explicit. No moment of norm(x)*u, no global drift-product or ordinary residual L2 is assumed.',
+'both_curvatures_to_actual_linear_drift':'Genuine C2 Hessian secant CLM producer, signed Rayleigh bound and 0<m<=M give normgradW(x)<=normgradW0+M normx. No supplied Lipschitz/drift certificate. Both curvature bounds explicitly required.',
+'actual_radial_cutoff':'Actual Rn=n+1, [0,1]/pointwise-one and first/second derivative bounds. Trace finite ON basis gives genuine Laplacian C/Rn^2; private Nontrivial branch only. Actual outer gradient zero follows parent global-minimum proof, including boundary. Linear growth paired with inner radius bound and outer gradient zero yields uniformly bounded generator coefficient, without multiplying norm(x) into a global L2 assumption.',
+'same_quotient_representatives':'Gchi=chi G+u gradchi; Achi=chi a-2 innergradchiG+(innergradWgradchi-Delta chi)u with a=f-epsilon u. Every commutator has weighted MemLp2 and vanishing quotient norm. Explicit AE quotient subtraction/addition identifies actual same classes, not different sequences or certified limits as premises.',
+'compact_to_global_limit':'Calls actual CompactWeightedPoissonCoercivity for every actual smooth radial chi. Same original graph D, original u/G and ordinary localized data. Same cutoff classes converge in weighted Lp, and scalar norm-square bound passes to limit. Full rough Hessian/adjoint/operator-core equality is not concluded.',
+'positive_epsilon_residual':'Same original variational energy yields norm(f-epsilon*u)^2=normf^2-epsilon^2 normu^2-2epsilon normG^2<=normf^2. Epsilon positive and all inner-product/scalar signs checked; no epsilon-zero or limiting resolvent/range certificate.',
+'original_quantifier_order_and_source_scales':'Original exact compact-gradient D precedes epsilon/f; ONE actual u precedes ALL compact C2 chi. Every original local weak gradient/PDE/integrability fact is retained. ConditionalScoreDomain auxiliary R2/S2 supplies Hessian algebra only and is discarded; actual R/S/reflected law comes from actual ConditionalLocalizedResolvent. No auxiliary/actual kernel equality asserted. Quarter curvature gives exact (alpha+eta^-1)/4; eta1/2 and alpha1/2 produce 5/8.',
+'zero_dimension':'Public explicitly handles subsingleton E; Lp vector class is zero, scalar bound follows nonnegative square. Independently compiled genuine E0 constant7 Gibbs volume tilt mass1, original compact_gradient_closable D beforeepsilon/f, m2/M3 positive vacuous curvature, entire new generic result and ALL ordinary/C2-cutoff facts. No zero/fake measure, artificial graph or final coercivity premise.',
+'actual_nonquadratic_stress':'Full genuine eta1/2 model V=3x^2/8+sinx/8, nonconstant Hessian 5/8..7/8 within1/2..1. Independently compiles actual source producer and retains full fiber law/partition/C2/original D beforeepsilon/f/ONEu beforeALLC2chi, actual ordinary local statements and exact5/8 residual coercivity. Original Test additionally instantiates genuine C2 compact bump*(x^2)^(5/2), not a C-infinity assumption.',
+'reader_provenance':'All7+5 statement/assumption/formula/proof steps checked. After bounded dependency-list-only repair, generic actual six additional Cutoff/Laplacian calls and source real_inner_self_eq_norm_sq match code. Original17 inputfreeze preserved;11 untouched and6 selected before/after snapshots checked, actually5 changed. No source/statement/assumption/math/decoder-context drift.',
+'parent_exposition_boundary':'Existing Cutoff module header has historical stale statement excluding second derivative bounds; actual public second derivative proof and current source preread explicitly provide/check them. This old parent text is not changed or given repeated mathematical credit by this packet; no mathematical blocker from that header.'
+}
+recon={'status':'passed-scoped','reviewer_id':'picard_commit_verifier_20261005','original_freeze':freeze(R/'math-freeze.json'),'root_reconciliation':freeze(R/'provenance-reconciliation.json'),'eleven_original_raw_LF_unchanged':remaining,'six_selected_footprints':records,'actually_changed_file_count':5,'mathematical_inputs_code_statements_assumptions_formulas_proofs_unchanged':True,'no_repeat_compile_credit':True,'anonymous_files_hash_only_unchanged_no_content_read':True}
+out={'schema_version':1,'advance_id':claim['advance_id'],'reviewer_id':'picard_commit_verifier_20261005','role':'independent_mathematical_reviewer','status':'passed-scoped','verification_status':'passed-scoped','checked_base_head':C,'verified_commit':None,'cell_ids':claim['cells'],'reviewed_declarations':claim['declarations'],'scope':'ENTIRE551-line generic module with ALL12private helpers/public,107-line actual source consumer,132-line genuine Test, all7+5 reader steps, both source prereads as scoped primary/API planning. Current invoked actual parent interfaces and proofs inspected; unchanged prior full mathematics reused only exact matching raw/LF and base Git LF.','frozen_inputs':stable,'frozen_input_count':len(stable),'separately_scoped_metadata':contexts,'immutable_metadata_snapshots':snapshots,'original17_input_provenance_reconciliation':recon,'unchanged_parent_files':parents,'matching_prior_independent_parent_review_reuse':'23 prior bounded ASTIS parent/context files match raw/LF previous compact-weighted independent full mathematics receipt and current base Git LF. Actual LocalizedWeakResolvent, ConditionalScoreDomain, ConditionalLocalizedResolvent and CompactWeightedPoissonCoercivity interfaces checked; prior full body evidence exact reused. Entire actual Cutoff/HessianSecantOperator read anew; actual Laplacian continuity interface checked. Adjacent historical DAG modules are frozen context, not asserted new direct formalparents.','pinned_mathlib':mathlib,'pinned_toolchain':'leanprover/lean4:v4.33.0','private_helpers_reviewed':priv,'production_line_counts':{p:len(pathlib.Path(p).read_text().splitlines()) for p in prod},'findings':findings,'compiler_checks':[{'command':['lake','env','lean',prod[i]],'exit_code':0,'log':logs[i],'LEAN_NUM_THREADS':2} for i in range(3)]+[{'command':['lake','build','Tests.GlobalWeightedResolventCoercivity'],'exit_code':0,'jobs':3867,'log':logs[3],'LEAN_NUM_THREADS':2},{'command':['lake','env','lean','--stdin'],'exit_code':0,'stress_source':freeze(R/'independent-stress-attempt2.stdin.txt'),'log':logs[5],'LEAN_NUM_THREADS':2,'maxHeartbeats':1500000,'maxRecDepth':4000}],'raw_compiler_evidence':logs,'stress_stdin':[freeze(R/f'independent-stress-attempt{i}.stdin.txt') for i in (1,2)],'retained_stress_diagnostics':[{'attempt':1,'exit_code':1,'log':logs[4],'reason':'Nonquad full result already passed standard3. Own E0 Integrable constant expression did not unfold W0 definition; explicit simpa only [W0] using integrable_const fixed actual true expression. No production/math assumption repair.'}],'failed_stdin_sorryAx_excluded_from_math_certificate':True,'fake_closure_scan':{'status':'passed','files':files,'file_count':len(files),'matches':hits,'scope':'Canonical new3+unchanged bounded parent/context modules; comments/strings stripped; no production Testsimports. Historical failedstdin excluded from accepted certificate.'},'standard_axioms':std,'reader_checks':readers,'draft_publication_validation':{'reviewed':False,'exact_two_declarations_checked':True,'status':'passed','source_admission_not_claimed':True},'source_boundary':claim['truth_boundary'],'remaining_boundary':['Actual positive-epsilon global weighted scalar resolvent coercivity plus retained genuine original weak/local/cutoff outputs only. Full rough Hessian/weighted operator core or adjoint equality, constants-domain/kernel, epsilon-zero/range/centered-residual arguments, Poincare/BL, joint measurable choices, both main results and composition/expected implementation cost remain open. Source auxiliary curvature kernels/reflected actual law/RGO scales remain independent; TV never transfers unbounded costs.','Independent blind/source admission, exact committed VERIFIED and serialized shared imports/Registry/site/graph/fullgate/currentremoteCI are separate later stages. This mathematical review does not claim them.','Old Cutoff header provenance text is historically stale while actual compiled second derivative theorem is checked; existing preread records discrepancy. No old parent edits/duplicate proof credit.'],'source_verdicts_or_decoder_results_read':False,'anonymous_packet_contents_or_reconstruction_read':False,'no_verification_transition':True,'mutations':'Only owned run mathreview/four context snapshots/compiler stress logs and stdin. Root authorized five dependency-provenance metadata changes independently reconciled, original17 freeze and six before snapshots preserved. No reviewer production/Test/reader/cell/audit/ledger/shared/Goal/branch changes.','all_compiler_sessions_and_writes_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+target=R/'math-review.json';assert not target.exists();target.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'status':'passed-scoped','stable':len(stable),'parents':len(parents),'mathlib':len(apis),'original17_actual_metadata_changed':5,'context_snapshots':len(snapshots),'focused_jobs':3867,'private_helpers':len(priv),'fake_files':len(files),'receipt':str(target),'receipt_raw_sha256':sha(target.read_bytes()),'all_compilers_and_writes_closed':True}))

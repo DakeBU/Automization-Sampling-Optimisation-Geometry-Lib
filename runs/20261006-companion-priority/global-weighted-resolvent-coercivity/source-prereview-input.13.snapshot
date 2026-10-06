@@ -1,0 +1,154 @@
+{
+  "id": "ASTIS-RT-20261006-PBPSConditionalGlobalCoercivity",
+  "state": "draft",
+  "source": {
+    "source_id": "companion:pbps-conditional-global-coercivity",
+    "anchor": "PBPS arXiv2609.06905v1 Section2.2 reflected conditional Poincare and AppendixC.1 omitted full-space coercivity background; SPHMC arXiv2609.06906v1 Section4.1 BL covariance-upper background. Positive-epsilon global scalar resolvent bound is an authored analytic prerequisite, not a numbered paper theorem, Poincare or BL.",
+    "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+    "original_text": "Explicit authored analytic prerequisite restatement:\nFinite real Hilbert/Borel E including0; V C2, NNReal alpha/beta with 0<alpha<=beta and actual all-point/all-vector alpha I<=HessV<=beta I. eta>0 and beta*eta<=1 are retained.\nActual Gaussian augmentation J=(x,x+sqrteta*xi)#(mu*standardGaussian) and common genuine Markov/disintegrating R/S with S_y=(2x-y)#R_y and S_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta). Source C2 W_y, integrability/positive partition and original dense closable exact compact-smooth D_y with closed closure are produced. Only explicit W_y Hessian facts are extracted from the accepted curvature parent; its auxiliary R2/S2 are not equated with the resolvent kernels.\nConstruct genuine common R/S and for each y fix original D_y before epsilon/f. Produce ONE actual u in the SAME original D.closure.domain for every positive epsilon and forcing, all-domain variational identity, local-volume L1 of u/G, ALL C1 compact ordinary weak-gradient products/identity, local squared PDE residual and compact-volume L2, ALL C2 compact ordinary weak-Poisson products/identity, and ALL C2 compact chi actual v/Gchi/Fchi volumeL2/support/weak identities. Derive exact ((alpha+eta^-1)/4)*norm(D_y.closureu)^2<=norm(f-epsilon*u)^2<=normf^2 from true reflected lower/upper curvature. No joint measurable fiber choice or complete Poincare/BL/main result is inferred.\nSame original compact-smooth gradient D precedes epsilon/f; derive ONE actual variational/localized resolvent u and actual weighted radial cutoff/commutator limits. Prove m*norm(D.closure u)^2<=norm(f-epsilon*u)^2<=normf^2 with source C2/two-sided0<m<=M Hessian bounds. E0 retained. No final limit/coercivity/core certificate, extra norm(x)*u moment, global ordinary Laplacian or drift-product L2, C-infinity potential, epsilon0/kernel/constant-domain/range/Poincare/BL/adjoint/core/jointselector/main/composition is inferred. Reflected quarter/fourfold constants exact; TV never transfers unbounded cost.",
+    "text_sha256": "55f2aad6f2a96ba0c0887afc7f8fc87fcfd4b7087923fa8195a1ee53518b5933"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity.conditional_global_coercivity",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGlobalCoercivity.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        (((α:ℝ)+1/η)/4)*‖D.closure u‖^2 ≤\n          ‖f-ε • (u : Lp ℝ 2 (S y))‖^2 ∧\n        ‖f-ε • (u : Lp ℝ 2 (S y))‖^2 ≤ ‖f‖^2 ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧\n      Integrable (fun x => Fχ x * φ x) ∧\n      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x",
+    "statement_sha256": "e0b3a8d2447e14474f7cd710367bf77930e57a37041a6a3588e2282f76037f8a",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "Finite real Hilbert/Borel E with canonical volume, including0; NNReal are nonnegative reals. W/V are actual C2 potentials, not C-infinity. Both Hessian bounds are actual all-point/all-vector forms and source lower constant is positive.",
+      "Measure.tilted(-W) is the true normalized exp(-W) Gibbs measure with actual positive integrable partition. MemLp/toLp and every norm are actual weighted L2 AE quotients. Original graph is exact compact-C-infinity classical gradient and genuine partial linear-map closure.",
+      "Original D precedes every epsilon/f. The conclusion produces ONE actual u in D.closure.domain, its all-domain variational identity and all original local/ordinary weak/C2cutoff equations. No final cutoff norm limit, scalar inequality, core certificate or norm(x)*u moment is a premise.",
+      "Generic scalar endpoint is m*norm(D.closureu)^2<=norm(f-epsilon*u)^2<=normf^2, with 0<m<=M. It does not assert epsilon-zero/Poincare/BL. Ordinary unlocalized innergradientW,G and PDE residual are only local; global weighted integrability is obtained after exact commutator cancellation.",
+      "Source actual augmentation J and common Markov/disintegrating R/S are true Gaussian/reflected kernels. W_y=V((y+z)/2)+norm(z-y)^2/(8eta), exact m=(alpha+eta^-1)/4 and M=(beta+eta^-1)/4; alpha/beta/eta cap retained. Auxiliary curvature kernels are not equated with resolvent kernels.",
+      "All cutoffs are after the SAME u; localized Gchi=chiG+u*gradientchi, Fchi=chi*(epsilon*u+innergradientW,G-f)+2innergradientchi,G+u*Deltachi. No joint measurable fiber selector is inferred.",
+      "Actual gradient kernel/constant-domain, centered scaled residual/epsilon-zero/range/Poincare/BL, full adjoint/core/global Bochner, both main results and actual-input expected cost composition remain open; TV cannot transfer unbounded cost."
+    ],
+    "compiler_evidence": "Focused3867 actual same-originalD/u global scalar/forcing bound and true nonquadratic eta1/2 exact5/8 C2cutoff PASS standard3. Independent math/blind/source/exactcommit/integration pending."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "a1b26c18c94edeec0bfa32176a415aff4dd318a90cdc35eea5677ac8fafd9779",
+  "publication_context": {
+    "file": "40c7d0bc3b4fde9e0047f579cb8c8ed39922f792ce80d14ead1dcff1b6b2a0f5",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain\n\nset_option autoImplicit false\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped ContDiff NNReal RealInnerProductSpace Topology\nnoncomputable section\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity\n\n/-- The true reflected conditional kernels and original gradient graphs have an\nactual positive-epsilon resolvent satisfying global quarter-scale coercivity.\nAll original variational/local/ordinary weak and cutoff data are retained. -/\ntheorem conditional_global_coercivity {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : NNReal} {η : ℝ}\n    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))\n    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧\n      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧\n        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧\n        0 < (∫ u, Real.exp (-W y u)) ∧\n        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),\n          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧\n          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔\n            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧\n              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧\n      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),\n      ∃ u : D.closure.domain,\n        (∀ v : D.closure.domain,\n          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +\n            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧\n        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧\n        LocallyIntegrable (fun x => D.closure u x) ∧\n        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,\n          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n          (∫ x, ψ x * inner ℝ (D.closure u x) v) =\n            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧\n        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +\n          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧\n        (∀ K : Set E, IsCompact K →\n          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧\n          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧\n          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧\n        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧\n          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +\n            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =\n            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +\n              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧\n        (((α:ℝ)+1/η)/4)*‖D.closure u‖^2 ≤\n          ‖f-ε • (u : Lp ℝ 2 (S y))‖^2 ∧\n        ‖f-ε • (u : Lp ℝ 2 (S y))‖^2 ≤ ‖f‖^2 ∧\n        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →\n    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x\n    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x\n    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +\n      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x\n    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧\n    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧\n    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,\n      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧\n      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧\n      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧\n    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →\n      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧\n      Integrable (fun x => Fχ x * φ x) ∧\n      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x := by\n  obtain ⟨_R2,_S2,_hR2,_hS2,_hcond2,_hSR2,hcurv⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain\n      hα hαβ hV hH hη hβη\n  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent\n      hα hαβ hV hH hη hβη\n  dsimp only\n  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩\n  intro y\n  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,_⟩ := hfiber y\n  obtain ⟨_,_,_,hderiv,hlower,_,_⟩ := hcurv y\n  have hupper (x a : E) :\n      (fderiv ℝ (fderiv ℝ (fun z => V ((1/2:ℝ) • (y+z))+‖z-y‖^2/(8*η))) x a) a\n        ≤ (((β:ℝ)+1/η)/4)*‖a‖^2 := by\n    rw [(hderiv x a a).1,real_inner_self_eq_norm_sq]\n    have hv := (hH ((1/2:ℝ) • (y+x)) a).2\n    have hn : (((β:ℝ)+1/η)/4)*‖a‖^2 =\n        (1/4:ℝ)*((β:ℝ)*‖a‖^2)+(1/(4*η))*‖a‖^2 := by ring\n    rw [hn]\n    nlinarith\n  have hβ : (α:ℝ) ≤ (β:ℝ) := by exact_mod_cast hαβ\n  have hm : 0 < ((α:ℝ)+1/η)/4 := by positivity\n  have hmM : ((α:ℝ)+1/η)/4 ≤ ((β:ℝ)+1/η)/4 := by linarith\n  refine ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,?_⟩\n  exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity.global_weak_resolvent_coercivity\n    (fun z => V ((1/2:ℝ) • (y+z))+‖z-y‖^2/(8*η)) hW hI hZ\n    (((α:ℝ)+1/η)/4) (((β:ℝ)+1/η)/4) hm hmM hlower hupper (S y) hSy D hClose hgraph\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv2609.06905v1 Section2.2 reflected conditional Poincare and AppendixC.1 omitted full-space coercivity background; SPHMC arXiv2609.06906v1 Section4.1 BL covariance-upper background. Positive-epsilon global scalar resolvent bound is an authored analytic prerequisite, not a numbered paper theorem, Poincare or BL.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib authored full-space positive-epsilon scalar prerequisite toward PBPS conditional Poincare and SPHMC BL; not a quoted numbered theorem or complete paper result."
+    },
+    "statement": "Construct genuine common R/S and for each y fix original D_y before epsilon/f. Produce ONE actual u in the SAME original D.closure.domain for every positive epsilon and forcing, all-domain variational identity, local-volume L1 of u/G, ALL C1 compact ordinary weak-gradient products/identity, local squared PDE residual and compact-volume L2, ALL C2 compact ordinary weak-Poisson products/identity, and ALL C2 compact chi actual v/Gchi/Fchi volumeL2/support/weak identities. Derive exact ((alpha+eta^-1)/4)*norm(D_y.closureu)^2<=norm(f-epsilon*u)^2<=normf^2 from true reflected lower/upper curvature. No joint measurable fiber choice or complete Poincare/BL/main result is inferred.",
+    "formulae": [
+      {
+        "label": "Actual PBPS reflected global quarter-scale coercivity",
+        "tex": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u:\\quad\\frac{\\alpha+\\eta^{-1}}4\\|\\overline D_yu\\|_{S_y}^2\\le\\|f-\\varepsilon u\\|_{S_y}^2\\le\\|f\\|_{S_y}^2."
+      }
+    ],
+    "assumptions": [
+      "Finite real Hilbert/Borel E including0; V C2, NNReal alpha/beta with 0<alpha<=beta and actual all-point/all-vector alpha I<=HessV<=beta I. eta>0 and beta*eta<=1 are retained.",
+      "Actual Gaussian augmentation J=(x,x+sqrteta*xi)#(mu*standardGaussian) and common genuine Markov/disintegrating R/S with S_y=(2x-y)#R_y and S_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta). Source C2 W_y, integrability/positive partition and original dense closable exact compact-smooth D_y with closed closure are produced. Only explicit W_y Hessian facts are extracted from the accepted curvature parent; its auxiliary R2/S2 are not equated with the resolvent kernels."
+    ],
+    "obligations": [
+      {
+        "id": "global-resolvent-scalar",
+        "label": "Actual same-u positive-epsilon global scalar coercivity"
+      },
+      {
+        "id": "kernel-poincare-bl",
+        "label": "Actual kernel/constant-domain/epsilon-zero/Poincare/BL (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expected-cost composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity.conditional_global_coercivity",
+      "title": "Actual PBPS reflected global quarter-scale coercivity",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS AppendixC.1 authored analytic prerequisite",
+          "scope": "Same original compact-smooth gradient D precedes epsilon/f; derive ONE actual variational/localized resolvent u and actual weighted radial cutoff/commutator limits. Prove m*norm(D.closure u)^2<=norm(f-epsilon*u)^2<=normf^2 with source C2/two-sided0<m<=M Hessian bounds. E0 retained. No final limit/coercivity/core certificate, extra norm(x)*u moment, global ordinary Laplacian or drift-product L2, C-infinity potential, epsilon0/kernel/constant-domain/range/Poincare/BL/adjoint/core/jointselector/main/composition is inferred. Reflected quarter/fourfold constants exact; TV never transfers unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GlobalWeightedResolventCoercivity"
+      ],
+      "assumptions": [
+        "Finite real Hilbert/Borel E including0; V C2, NNReal alpha/beta with 0<alpha<=beta and actual all-point/all-vector alpha I<=HessV<=beta I. eta>0 and beta*eta<=1 are retained.",
+        "Actual Gaussian augmentation J=(x,x+sqrteta*xi)#(mu*standardGaussian) and common genuine Markov/disintegrating R/S with S_y=(2x-y)#R_y and S_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta). Source C2 W_y, integrability/positive partition and original dense closable exact compact-smooth D_y with closed closure are produced. Only explicit W_y Hessian facts are extracted from the accepted curvature parent; its auxiliary R2/S2 are not equated with the resolvent kernels."
+      ],
+      "statement": "Construct genuine common R/S and for each y fix original D_y before epsilon/f. Produce ONE actual u in the SAME original D.closure.domain for every positive epsilon and forcing, all-domain variational identity, local-volume L1 of u/G, ALL C1 compact ordinary weak-gradient products/identity, local squared PDE residual and compact-volume L2, ALL C2 compact ordinary weak-Poisson products/identity, and ALL C2 compact chi actual v/Gchi/Fchi volumeL2/support/weak identities. Derive exact ((alpha+eta^-1)/4)*norm(D_y.closureu)^2<=norm(f-epsilon*u)^2<=normf^2 from true reflected lower/upper curvature. No joint measurable fiber choice or complete Poincare/BL/main result is inferred.",
+      "formula": "\\exists R,S\\ \\forall y\\ \\exists D_y\\ \\forall\\varepsilon>0,f\\ \\exists u:\\quad\\frac{\\alpha+\\eta^{-1}}4\\|\\overline D_yu\\|_{S_y}^2\\le\\|f-\\varepsilon u\\|_{S_y}^2\\le\\|f\\|_{S_y}^2.",
+      "steps": [
+        {
+          "title": "Keep the genuine reflected kernels and original graph",
+          "text": "Consume the actual ConditionalLocalizedResolvent kernels/partition/original D_y before epsilon/f. Retain every original local/weak/cutoff fact. The shared global producer constructs the actual solution on this same graph, not an arbitrary supplied u or a new domain.",
+          "formula": "S_y=Z_y^{-1}e^{-W_y}dz,\\quad W_y(z)=V((y+z)/2)+\\|z-y\\|^2/(8\\eta).",
+          "lean": "ConditionalLocalizedResolvent.conditional_localized_resolvent"
+        },
+        {
+          "title": "Extract BOTH reflected Hessian bounds for the explicit potential",
+          "text": "Use the accepted conditional Hessian formula and source V bounds to derive m=(alpha+eta^-1)/4 and M=(beta+eta^-1)/4 with 0<m<=M. Only explicit W_y derivative facts are reused; auxiliary kernels are not identified. Reflected and unreflected RGO constants and laws remain distinct.",
+          "formula": "\\frac{\\alpha+\\eta^{-1}}4I\\preceq\\nabla^2W_y\\preceq\\frac{\\beta+\\eta^{-1}}4I.",
+          "lean": "ConditionalScoreDomain.conditional_curvature_and_score_domain; hlower; hupper"
+        },
+        {
+          "title": "Consume the actual shared global producer on original D_y",
+          "text": "Supply genuine S_y law equality, C2/partition/curvature and original closable exact graph. The shared producer derives ONE actual variational u, global quarter-scale coercivity and the forcing bound, with all original weak/local/cutoff data. No weighted cutoff limit or final inequality is an input.",
+          "formula": "\\frac{\\alpha+\\eta^{-1}}4\\|\\overline D_yu\\|^2\\le\\|f-\\varepsilon u\\|^2\\le\\|f\\|^2.",
+          "lean": "GlobalWeightedResolventCoercivity.global_weak_resolvent_coercivity"
+        },
+        {
+          "title": "Exercise true nonquadratic curvature and exact5/8",
+          "text": "The focused Test proves V=3x^2/8+sin(x)/8 has curvature[1/2,1], chooses actual eta1/2 and source common J/R/S/originalD/u. It extracts the actual global constant5/8, residual forcing bound and original ordinary C2-cutoff data for rho(x)*abs(x)^5, without requiring that cutoff to be C-infinity.",
+          "formula": "m=(1/2+2)/4=5/8.",
+          "lean": "Tests.GlobalWeightedResolventCoercivity.actual_nonquadratic_global_coercivity"
+        },
+        {
+          "title": "Expose the remaining analytic and paper boundary",
+          "text": "Actual kernel=constants, constant-domain membership, centered scaled residual/epsilon-zero/range/Poincare, linear-observable/BL, adjoint/core/global Bochner identity and both main/composition remain separate unproved obligations. No jointly measurable selector or TV-to-unbounded-cost implication is claimed.",
+          "formula": "\\text{positive-epsilon scalar bound only; Poincare/BL/main/composition remain open}.",
+          "lean": "conditional_global_coercivity"
+        }
+      ],
+      "lean_statement": "Construct genuine common R/S and for each y fix original D_y before epsilon/f. Produce ONE actual u in the SAME original D.closure.domain for every positive epsilon and forcing, all-domain variational identity, local-volume L1 of u/G, ALL C1 compact ordinary weak-gradient products/identity, local squared PDE residual and compact-volume L2, ALL C2 compact ordinary weak-Poisson products/identity, and ALL C2 compact chi actual v/Gchi/Fchi volumeL2/support/weak identities. Derive exact ((alpha+eta^-1)/4)*norm(D_y.closureu)^2<=norm(f-epsilon*u)^2<=normf^2 from true reflected lower/upper curvature. No joint measurable fiber choice or complete Poincare/BL/main result is inferred.",
+      "lean_proof": "Keep the genuine reflected kernels and original graph; Extract BOTH reflected Hessian bounds for the explicit potential; Consume the actual shared global producer on original D_y; Exercise true nonquadratic curvature and exact5/8; Expose the remaining analytic and paper boundary",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity.global_weak_resolvent_coercivity"
+      ],
+      "mathlib_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity.conditional_global_coercivity",
+      "role": "prerequisite",
+      "supports": [
+        "global-resolvent-scalar"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source C2 curvature-bounded reflected conditional route.",
+        "lean": "Finite real Hilbert/Borel E including0; V C2, NNReal alpha/beta with 0<alpha<=beta and actual all-point/all-vector alpha I<=HessV<=beta I. eta>0 and beta*eta<=1 are retained.\nActual Gaussian augmentation J=(x,x+sqrteta*xi)#(mu*standardGaussian) and common genuine Markov/disintegrating R/S with S_y=(2x-y)#R_y and S_y=volume.tilted(-W_y), W_y(z)=V((y+z)/2)+norm(z-y)^2/(8eta). Source C2 W_y, integrability/positive partition and original dense closable exact compact-smooth D_y with closed closure are produced. Only explicit W_y Hessian facts are extracted from the accepted curvature parent; its auxiliary R2/S2 are not equated with the resolvent kernels."
+      },
+      {
+        "source": "Analytic density/closedness and global scalar passage omitted in AppendixC.1.",
+        "lean": "Construct genuine common R/S and for each y fix original D_y before epsilon/f. Produce ONE actual u in the SAME original D.closure.domain for every positive epsilon and forcing, all-domain variational identity, local-volume L1 of u/G, ALL C1 compact ordinary weak-gradient products/identity, local squared PDE residual and compact-volume L2, ALL C2 compact ordinary weak-Poisson products/identity, and ALL C2 compact chi actual v/Gchi/Fchi volumeL2/support/weak identities. Derive exact ((alpha+eta^-1)/4)*norm(D_y.closureu)^2<=norm(f-epsilon*u)^2<=normf^2 from true reflected lower/upper curvature. No joint measurable fiber choice or complete Poincare/BL/main result is inferred."
+      },
+      {
+        "source": "Conditional Poincare, SPHMC BL covariance-upper and both main results.",
+        "lean": "Same original compact-smooth gradient D precedes epsilon/f; derive ONE actual variational/localized resolvent u and actual weighted radial cutoff/commutator limits. Prove m*norm(D.closure u)^2<=norm(f-epsilon*u)^2<=normf^2 with source C2/two-sided0<m<=M Hessian bounds. E0 retained. No final limit/coercivity/core certificate, extra norm(x)*u moment, global ordinary Laplacian or drift-product L2, C-infinity potential, epsilon0/kernel/constant-domain/range/Poincare/BL/adjoint/core/jointselector/main/composition is inferred. Reflected quarter/fourfold constants exact; TV never transfers unbounded cost."
+      }
+    ]
+  }
+}

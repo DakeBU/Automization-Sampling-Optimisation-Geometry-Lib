@@ -1,0 +1,17 @@
+# Actual global weighted resolvent scalar coercivity
+
+PBPS arXiv2609.06905v1 Section2.2 reflected conditional Poincare and AppendixC.1 omitted full-space coercivity background; SPHMC arXiv2609.06906v1 Section4.1 BL covariance-upper background. Positive-epsilon global scalar resolvent bound is an authored analytic prerequisite, not a numbered paper theorem, Poincare or BL.
+
+Produce the actual same-D positive-epsilon variational resolvent with all accepted local-volume/weak-gradient/weak-Poisson and ALLC2 compact cutoff facts, then derive global weighted scalar coercivity through genuine radial cutoff derivatives, linear drift from BOTH Hessian bounds, dominated L2 quotient convergence, compact actual originalD coercivity and norm continuity. Derive residual forcing norm by testing the original variational identity at u. No supplied final certificate.
+
+For actual PBPS Gaussian augmentation J and common R/S, originalD_y before epsilon/f and sameONEu retain all original local/weak/cutoff facts and derive global exact ((alpha+eta^-1)/4)*normDu^2<=norm(f-epsilon*u)^2<=normf^2. Extract only explicit reflectedW lower/upper Hessian from accepted curvature producer, not an equality of auxiliary kernels.
+
+Samplinglib FunctionalInequalities card, technical README, Probability/SDE, current original gradient graph and accepted LocalizedWeakResolvent/CompactWeightedPoissonCoercivity/HessianSecantOperator/Cutoff nodes searched. No actual global same-u weighted cutoff scalar coercivity producer exists.
+
+Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d: true dominated integral convergence, L2 norm-square formula, MemLp.toLp sum/sub/AE extensionality, real norm_sub_sq; actual radial derivative/second-derivative/outer derivative zero and Laplacian trace searched.
+
+Independent primaryfirst Weighted_global_cutoff_coercivity_source_preread.md SHA05849f9317b8f5964e6c071bf70530bf5e78fdd2263127d54a6463b159be0a76, proposal-only. Ignored actual weighted cutoff/commutator/scalar prototype localPASSstandard3 attempt12; production generic/source and true nonquadratic eta1/2 exact5/8 originalD/u C2cutoff Test now focused3867 PASSstandard3. Independent math/source/exactcommit/integration remain pending.
+
+Same original compact-smooth gradient D precedes epsilon/f; derive ONE actual variational/localized resolvent u and actual weighted radial cutoff/commutator limits. Prove m*norm(D.closure u)^2<=norm(f-epsilon*u)^2<=normf^2 with source C2/two-sided0<m<=M Hessian bounds. E0 retained. No final limit/coercivity/core certificate, extra norm(x)*u moment, global ordinary Laplacian or drift-product L2, C-infinity potential, epsilon0/kernel/constant-domain/range/Poincare/BL/adjoint/core/jointselector/main/composition is inferred. Reflected quarter/fourfold constants exact; TV never transfers unbounded cost.
+
+Failure policy: retain all failed focused logs; diagnose exact API/mathematical contract, freeze unchanged retries; never patch with spatial moments, smooth potential or final coercivity/limit/core certificates.

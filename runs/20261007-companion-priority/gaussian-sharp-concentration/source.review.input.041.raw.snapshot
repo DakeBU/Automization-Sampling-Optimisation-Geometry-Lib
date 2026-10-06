@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+      "title": "Actual proximal Gaussian oracle with sharp centered concentration",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem2",
+          "label": "SPHMC actual evaluator and (4.3)-(4.5)",
+          "scope": "Locally compiled sharp centered Gaussian-output estimate (4.3), retained exact positive-step proximal/evaluator and (4.4)-(4.5), genuine first Bochner moments and all signed exponential domains. Independent mathematics/blind/source/publication/exact-commit/integration admission pending. Bias (4.2), first W2 inequality in (4.6), LSI/T2 adapter, full Lemma4.2, higher smoothing/Picard/Wp/proxy-warmness/initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both main results and actual-input precision/expected-query-cost composition remain open. Centers are actual Gaussian output means. TV proximity does not transfer unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.FullRangeProximalGaussianOracle"
+      ],
+      "assumptions": [
+        "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.",
+        "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with eta(s)>0 for every s. These coordinate-free/parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.",
+        "No supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound, probability kernel, mean or concentration certificate. Exact witnesses, first moments, signed Laplace domains and sharp coefficient are produced internally. The numerical proximal call cap eta<=1/(2 beta) remains a separate computational contract."
+      ],
+      "statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the quantitative quadratic minimum and uniqueness, and equal-eta nonexpansivity. The literal G(s,z)=gradientV(p_s+sqrt(eta_s)*z) is jointly measurable and has equal-eta input/noise Lipschitz constants 1 and sqrteta. Produce the genuine Markov law K_s=G(s,-)_#stdGaussian with vector first Bochner moment. For its own mean m_s, every a and signed t have an integrable exponential and integral <=exp(eta_s*t^2*norm(a)^2/2). This covers (3.2) and (4.3)-(4.5), without identifying K with the RGO posterior or HMC transition.",
+      "formula": "F_s(x)=V(x)+\\|x-y_s\\|^2/(2\\eta_s),\\quad p_s+\\eta_s\\nabla V(p_s)=y_s,\\quad G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad K_s=G(s,\\cdot)_\\#\\gamma,\\quad m_s=\\int w\\,dK_s,\\quad\\int e^{t\\langle a,w-m_s\\rangle}dK_s\\le e^{\\eta_st^2\\|a\\|^2/2}.",
+      "boundary": "Locally compiled sharp centered Gaussian-output estimate (4.3), retained exact positive-step proximal/evaluator and (4.4)-(4.5), genuine first Bochner moments and all signed exponential domains. Independent mathematics/blind/source/publication/exact-commit/integration admission pending. Bias (4.2), first W2 inequality in (4.6), LSI/T2 adapter, full Lemma4.2, higher smoothing/Picard/Wp/proxy-warmness/initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both main results and actual-input precision/expected-query-cost composition remain open. Centers are actual Gaussian output means. TV proximity does not transfer unbounded expected cost.",
+      "steps": [
+        {
+          "title": "Derive the real gradient estimates",
+          "text": "Reuse the actual C2 Hessian-to-gradient and strong-convexity APIs. The source upper bound supplies gradientV Lipschitz1. The convex gradient-step theorem supplies id-gradientV Lipschitz1, and convexity supplies monotonicity. None is a theorem premise.",
+          "formula": "\\operatorname{Lip}(\\nabla V)\\le1,\\quad\\operatorname{Lip}(I-\\nabla V)\\le1,\\quad\\langle\\nabla V(x)-\\nabla V(z),x-z\\rangle\\ge0.",
+          "lean": "actual_gradient_bounds; QuadraticRegularization; SmoothnessEquivalences; GradientDescentContraction; StrongConvexFirstOrder"
+        },
+        {
+          "title": "Construct the actual pointwise damped map",
+          "text": "For each actual positive eta, T_s contracts with its own coefficient eta_s/(1+eta_s)<1. The coefficients may approach one over the parameter space. Banach fixed-point construction is pointwise and makes no uniform-parameter contraction or runtime assumption.",
+          "formula": "T_s(x)=(1+\\eta_s)^{-1}[y_s+\\eta_s(x-\\nabla V(x))],\\quad c_s=\\eta_s/(1+\\eta_s)<1.",
+          "lean": "parameterized_damped_point; ContractingWith"
+        },
+        {
+          "title": "Obtain joint measurability from actual iterates",
+          "text": "Every iterate T_s^n(0) is measurable in s from actual measurable eta/y and the continuous id-minus-gradient map. Pointwise Banach convergence with the actual c_s and measurable-limit theorem give a measurable p. Uniform convergence and an upper eta cap are unnecessary; no measurable selector is supplied.",
+          "formula": "p_s=\\lim_{n\\to\\infty}T_s^n(0),\\quad s\\mapsto p_s\\text{ measurable, even when }\\sup_s c_s=1.",
+          "lean": "ContractingWith.fixedPoint; tendsto_iterate_fixedPoint; measurable_of_tendsto_metrizable"
+        },
+        {
+          "title": "Recover the exact source equation",
+          "text": "Multiply the actual fixed-point equation by positive 1+eta and cancel the scalar inverse. The resulting equality is the literal proximal first-order condition for the source quadratic potential.",
+          "formula": "p_s+\\eta_s\\nabla V(p_s)=y_s.",
+          "lean": "ContractingWith.fixedPoint_isFixedPt; smul_smul; mul_inv_cancel₀"
+        },
+        {
+          "title": "Prove the genuine minimum and uniqueness",
+          "text": "Differentiate the true quadratic regularization. Its gradient vanishes at the constructed p. Existing strong-convexity and first-order bounds give the exact coefficient (kappa^-1+eta^-1)/2. Positivity forces norm(z-p)^2=0 for any competing lower point.",
+          "formula": "F_s(p_s)+\\tfrac12(\\kappa^{-1}+\\eta_s^{-1})\\|z-p_s\\|^2\\le F_s(z),\\quad F_s(z)\\le F_s(p_s)\\iff z=p_s.",
+          "lean": "actual_quadratic_minimum; HasFDerivAt.norm_sq; QuadraticRegularization; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+        },
+        {
+          "title": "Keep nonexpansivity at fixed eta",
+          "text": "Subtract the two literal proximal equations only when eta_s=eta_t. Monotonicity bounds the inner product below by the squared proximal distance. Cauchy-Schwarz and positive-norm cancellation give nonexpansivity; a zero-distance branch is handled separately.",
+          "formula": "\\eta_s=\\eta_t\\Longrightarrow\\|p_s-p_t\\|^2\\le\\langle y_s-y_t,p_s-p_t\\rangle\\Longrightarrow\\|p_s-p_t\\|\\le\\|y_s-y_t\\|.",
+          "lean": "gradient_inner_lower_bound_of_strongConvexOn; real_inner_le_norm; norm_nonneg"
+        },
+        {
+          "title": "Use the literal Gaussian gradient evaluator",
+          "text": "The actual measurable p, eta square root and noise coordinate give a jointly measurable input to the continuous gradient. No posterior identification or oracle witness is used.",
+          "formula": "G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad G\\text{ measurable on }S\\times E.",
+          "lean": "Measurable.comp; Measurable.sqrt; Measurable.smul; LipschitzWith.continuous"
+        },
+        {
+          "title": "Prove the exact input and noise constants",
+          "text": "Apply the true gradient Lipschitz bound, split the input difference with the triangle inequality and use proximal nonexpansivity at equal eta. The literal square-root coefficient stays outside the noise norm. This supplies both source inequalities (4.4)-(4.5).",
+          "formula": "\\eta_s=\\eta_t\\Longrightarrow\\|G(s,z)-G(t,w)\\|\\le\\|y_s-y_t\\|+\\sqrt{\\eta_s}\\|z-w\\|.",
+          "lean": "LipschitzWith.dist_le_mul; norm_add_le; norm_smul; Real.sqrt_nonneg"
+        },
+        {
+          "title": "Realize the actual Markov kernel",
+          "text": "Take the product of the identity kernel and the constant standard Gaussian kernel, then map it by G. Joint measurability proves it Markov; dirac-product and map-map give the exact pointwise pushforward. This gradient-output law is distinct from the RGO posterior and HMC transitions.",
+          "formula": "K=(\\mathrm{id}\\times\\gamma).\\mathrm{map}(G),\\quad K_s=G(s,\\cdot)_\\#\\gamma,\\quad K_s(E)=1.",
+          "lean": "Kernel.id; Kernel.const; Kernel.prod; Kernel.IsMarkovKernel.map; Measure.dirac_prod; Measure.map_map"
+        },
+        {
+          "title": "Produce the actual vector first moment",
+          "text": "For fixed s the already produced noise Lipschitz bound yields normG(s,z)<=sqrt(eta_s) norm(z)+normG(s,0). Genuine Gaussian norm L1 and measurability imply vector Bochner integrability. Pushforward integrability proves the identity observable is integrable under the same actual output law K_s.",
+          "formula": "\\|G(s,z)\\|\\le\\sqrt{\\eta_s}\\|z\\|+\\|G(s,0)\\|,\\quad G(s,\\cdot)\\in L^1(\\gamma;E),\\quad\\mathrm{id}\\in L^1(K_s;E).",
+          "lean": "IsGaussian.integrable_id; Integrable.mono'; integrable_map_measure"
+        },
+        {
+          "title": "Apply the canonical domain leaf to the actual direction",
+          "text": "For every actual vector a, Cauchy-Schwarz and the true noise bound give the scalar observable z->inner(a,G(s,z)) Lipschitz with constant norm(a)sqrt(eta_s). Apply the shared Fernique-domain theorem for every real t, including negative t and zero direction.",
+          "formula": "f_{s,a}(z)=\\langle a,G(s,z)\\rangle,\\quad\\operatorname{Lip}(f_{s,a})\\le\\|a\\|\\sqrt{\\eta_s},\\quad e^{t(f_{s,a}-\\int f_{s,a}d\\gamma)}\\in L^1(\\gamma).",
+          "lean": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz; abs_real_inner_le_norm; LipschitzWith.of_dist_le_mul"
+        },
+        {
+          "title": "Identify the actual center and pull back the law",
+          "text": "The Bochner pushforward identity gives m_s=int G(s,z)d gamma. Integral commutation with the continuous inner-product functional gives int f_s,a d gamma=inner(a,m_s). The integrability pushforward equivalence then yields every actual centered directional exponential under K_s. This is the output own mean; no equality with a smoothed gradient is assumed or proved.",
+          "formula": "m_s=\\int w\\,dK_s=\\int G(s,z)\\,d\\gamma,\\quad\\int e^{t\\langle a,w-m_s\\rangle}\\,dK_s(w)<\\infty\\quad(a\\in E,t\\in\\mathbb R).",
+          "lean": "integral_map; integral_inner; inner_sub_right; integrable_map_measure"
+        },
+        {
+          "title": "Apply sharp concentration at the actual own mean",
+          "text": "Push the genuine vector mean back through the same actual Gaussian gradient law, commute inner product with its Bochner integral and apply the canonical sharp concentration theorem to f_s,a(z)=inner(a,G(s,z)). Its internally established Lipschitz constant is norm(a)sqrteta. Positivity of eta gives (norm(a)sqrteta)^2=eta norm(a)^2; the coefficient is exactly one half for every signed t, with no step cap or smoothed-gradient mean substitution.",
+          "formula": "\\int f_{s,a}\\,d\\gamma=\\langle a,m_s\\rangle,\\quad\\int e^{t\\langle a,w-m_s\\rangle}dK_s\\le e^{(\\|a\\|\\sqrt{\\eta_s})^2t^2/2}=e^{\\eta_st^2\\|a\\|^2/2}.",
+          "lean": "integral_map; integral_inner; inner_sub_right; AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz; Real.sq_sqrt"
+        }
+      ],
+      "lean_statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the quantitative quadratic minimum and uniqueness, and equal-eta nonexpansivity. The literal G(s,z)=gradientV(p_s+sqrt(eta_s)*z) is jointly measurable and has equal-eta input/noise Lipschitz constants 1 and sqrteta. Produce the genuine Markov law K_s=G(s,-)_#stdGaussian with vector first Bochner moment. For its own mean m_s, every a and signed t have an integrable exponential and integral <=exp(eta_s*t^2*norm(a)^2/2). This covers (3.2) and (4.3)-(4.5), without identifying K with the RGO posterior or HMC transition.",
+      "lean_proof": "Derive the real gradient estimates; Construct the actual pointwise damped map; Obtain joint measurability from actual iterates; Recover the exact source equation; Prove the genuine minimum and uniqueness; Keep nonexpansivity at fixed eta; Use the literal Gaussian gradient evaluator; Prove the exact input and noise constants; Realize the actual Markov kernel; Produce the actual vector first moment; Apply the canonical domain leaf to the actual direction; Identify the actual center and pull back the law; Apply sharp concentration at the actual own mean",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences.upper_model_iff_fderiv2_upper",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_step_contraction",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz"
+      ],
+      "mathlib_dependencies": [
+        "ContractingWith.fixedPoint",
+        "ContractingWith.tendsto_iterate_fixedPoint",
+        "measurable_of_tendsto_metrizable",
+        "real_inner_le_norm",
+        "HasFDerivAt.norm_sq",
+        "Kernel.id",
+        "Kernel.const",
+        "Kernel.prod",
+        "Kernel.IsMarkovKernel.map",
+        "Measure.dirac_prod",
+        "Measure.map_map",
+        "ProbabilityTheory.IsGaussian.integrable_id",
+        "integrable_map_measure",
+        "integral_map",
+        "integral_inner",
+        "abs_real_inner_le_norm",
+        "Real.sq_sqrt",
+        "Real.coe_toNNReal"
+      ]
+    }
+  ]
+}

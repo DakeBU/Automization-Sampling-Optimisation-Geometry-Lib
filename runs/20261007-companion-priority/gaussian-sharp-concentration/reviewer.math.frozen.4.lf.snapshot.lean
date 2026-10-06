@@ -1,0 +1,250 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher
+import Mathlib.Analysis.InnerProductSpace.PiL2
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher
+namespace Tests.StandardizedRGOPositionFisher
+
+private def quadratic (x : ℝ) : ℝ := x^2/2
+
+private theorem quadratic_gradient : gradient quadratic = id := by
+  funext x
+  have hd : HasDerivAt quadratic x x := by
+    convert ((hasDerivAt_id x).pow 2).div_const 2 using 1 <;>
+      first | rfl | (simp only [id_eq];ring)
+  simpa using hd.hasGradientAt.gradient
+
+private theorem quadratic_curvature (x v : ℝ) :
+    fderiv ℝ (fderiv ℝ quadratic) x v v = ‖v‖^2 := by
+  have hd (z : ℝ) : HasDerivAt quadratic z z := by
+    convert ((hasDerivAt_id z).pow 2).div_const 2 using 1 <;>
+      first | rfl | (simp only [id_eq];ring)
+  have hf : fderiv ℝ quadratic = fun z => z • ContinuousLinearMap.id ℝ ℝ := by
+    funext z
+    ext
+    rw [fderiv_eq_smul_deriv,(hd z).deriv]
+    simp
+  have hDD : deriv (fun z : ℝ => z • ContinuousLinearMap.id ℝ ℝ) x =
+      ContinuousLinearMap.id ℝ ℝ := by
+    simpa only [id_eq,one_smul] using
+      ((hasDerivAt_id x).smul_const (ContinuousLinearMap.id ℝ ℝ)).deriv
+  rw [hf,fderiv_eq_smul_deriv,hDD]
+  simp [Real.norm_eq_abs,pow_two]
+
+-- This is the posterior standardized law, whose quadratic coefficient is1+eta.
+-- The preceding Gaussian-gradient output has a different centered momenteta.
+theorem quadratic_variable_eta
+    {S : Type*} [MeasurableSpace S] {eta y : S → ℝ}
+    (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0<eta s) :
+    let mu := (volume : Measure ℝ).tilted (fun x => -quadratic x)
+    ∀ s, let R := mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+      let r := R.map (fun x => (Real.sqrt (eta s))⁻¹*(x-y s/(1+eta s)))
+      IsProbabilityMeasure R ∧ IsProbabilityMeasure r ∧
+      r=(volume : Measure ℝ).tilted (fun u => -(1+eta s)*u^2/2) ∧
+      Integrable (fun u => u^2) r ∧ (∫ u, u^2 ∂r)≤1 ∧
+      (∫ u, (eta s*u)^2 ∂r)=(eta s)^2*(∫ u, u^2 ∂r) := by
+  have hV : ContDiff ℝ 2 quadratic := by unfold quadratic;fun_prop
+  have hH : ∀ x v : ℝ, (1:ℝ)⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ quadratic) x v v ∧
+      fderiv ℝ (fderiv ℝ quadratic) x v v ≤ ‖v‖^2 := by
+    intro x v;rw [quadratic_curvature];norm_num
+  obtain ⟨p,hpm,heq,hmu,hall⟩ := standardized_rgo_position_and_fisher
+    (κ:=1) (by norm_num) hV hH heta hy hpos
+  have hpform (s : S) : p s=y s/(1+eta s) := by
+    apply (eq_div_iff (ne_of_gt (by linarith [hpos s] : 0<1+eta s))).mpr
+    have h := heq s
+    rw [quadratic_gradient] at h
+    simp only [id_eq,smul_eq_mul] at h
+    nlinarith
+  dsimp only
+  intro s
+  obtain ⟨hRp,_hρ,_hQ,_hρ0,_hQ0,_hHρ,_hHQ,hlaw,hpr,_hlp,hip,hbd,_hlf,_hfp,_hfd⟩ := hall s
+  let r := (((volume : Measure ℝ).tilted (fun x => -quadratic x)).tilted
+      (fun x => -‖x-y s‖^2/(2*eta s))).map
+      (fun x => (Real.sqrt (eta s))⁻¹*(x-y s/(1+eta s)))
+  have he : (fun u : ℝ => ‖u‖^2/2+(quadratic (p s+Real.sqrt (eta s) • u)-
+      quadratic (p s)-Real.sqrt (eta s)*inner ℝ (gradient quadratic (p s)) u)) =
+      fun u => (1+eta s)*u^2/2 := by
+    funext u
+    simp only [quadratic_gradient,id_eq,quadratic,smul_eq_mul,real_inner_comm,
+      Real.norm_eq_abs,sq_abs]
+    change u^2/2+((p s+Real.sqrt (eta s)*u)^2/2-(p s)^2/2-
+      Real.sqrt (eta s)*(p s*u))=(1+eta s)*u^2/2
+    nlinarith [Real.sq_sqrt (hpos s).le]
+  have hlaw' : r=(volume : Measure ℝ).tilted (fun u => -(1+eta s)*u^2/2) := by
+    have ht : (volume : Measure ℝ).tilted (fun u => -(‖u‖^2/2+
+        (quadratic (p s+Real.sqrt (eta s) • u)-quadratic (p s)-
+          Real.sqrt (eta s)*inner ℝ (gradient quadratic (p s)) u))) =
+        volume.tilted (fun u => -(1+eta s)*u^2/2) := by
+      congr 1
+      funext u
+      have hu := congrFun he u
+      rw [hu]
+      ring
+    exact (by simpa only [r,hpform,smul_eq_mul] using hlaw.trans ht)
+  have hi : Integrable (fun u => u^2) r := by
+    simpa only [r,hpform,smul_eq_mul,Real.norm_eq_abs,sq_abs] using hip
+  have hb : (∫ u, u^2 ∂r)≤1 := by
+    simpa only [r,hpform,smul_eq_mul,Real.norm_eq_abs,sq_abs,Module.finrank_self,Nat.cast_one] using hbd
+  refine ⟨hRp,?_,hlaw',hi,hb,?_⟩
+  · simpa only [hpform,smul_eq_mul] using hpr
+  · simp_rw [mul_pow]
+    rw [integral_const_mul]
+
+private theorem square_gradient : gradient (fun x : ℝ => x^2) = fun x => 2*x := by
+  funext x
+  have hd : HasDerivAt (fun z : ℝ => z^2) (2*x) x := by
+    convert! (hasDerivAt_id x).pow 2 using 1
+    simp
+  exact hd.hasGradientAt.gradient
+
+private theorem square_curvature (x v : ℝ) :
+    fderiv ℝ (fderiv ℝ (fun z : ℝ => z^2)) x v v = 2*‖v‖^2 := by
+  have hd (z : ℝ) : HasDerivAt (fun w : ℝ => w^2) (2*z) z := by
+    convert! (hasDerivAt_id z).pow 2 using 1
+    simp
+  have hf : fderiv ℝ (fun z : ℝ => z^2) = fun z => (2*z) • ContinuousLinearMap.id ℝ ℝ := by
+    funext z
+    ext
+    rw [fderiv_eq_smul_deriv,(hd z).deriv]
+    simp
+  have hDD : deriv (fun z : ℝ => (2*z) • ContinuousLinearMap.id ℝ ℝ) x =
+      (2:ℝ) • ContinuousLinearMap.id ℝ ℝ := by
+    simpa only [id_eq,mul_one] using
+      (((hasDerivAt_id x).const_mul 2).smul_const (ContinuousLinearMap.id ℝ ℝ)).deriv
+  rw [hf,fderiv_eq_smul_deriv,hDD]
+  simp [Real.norm_eq_abs,pow_two]
+  ring
+
+-- Sharp actual posterior moment is1/2 ateta1, whereas Gaussian-gradientoutput
+-- from the previous packet has centered moment1. Actual IBP supplies equality.
+theorem quadratic_eta_one_sharp :
+    let R := ((volume : Measure ℝ).tilted (fun x => -quadratic x)).tilted
+      (fun x => -‖x-2‖^2/2)
+    let r := R.map (fun x => x-1)
+    IsProbabilityMeasure R ∧ IsProbabilityMeasure r ∧
+      r=(volume : Measure ℝ).tilted (fun u => -u^2) ∧
+      (∫ u, u^2 ∂r)=1/2 := by
+  let R := ((volume : Measure ℝ).tilted (fun x => -quadratic x)).tilted
+      (fun x => -‖x-2‖^2/2)
+  let r := R.map (fun x => x-1)
+  have ht := quadratic_variable_eta (S:=Unit) (eta:=fun _ => 1) (y:=fun _ => 2)
+    measurable_const measurable_const (by norm_num)
+  have hs := ht ()
+  norm_num at hs
+  obtain ⟨hRp,hpr,hl,_hi,_hb⟩ := hs
+  have hlaw : r=(volume : Measure ℝ).tilted (fun u => -u^2) := by
+    have hl' : r=(volume : Measure ℝ).tilted (fun u => -((2:ℝ)*u^2)/2) := by
+      simpa only [R,r,Real.norm_eq_abs,sq_abs] using hl
+    rw [hl']
+    congr 1
+    funext u
+    ring
+  have hHQ : ∀ x v : ℝ, ((2:ℝ≥0):ℝ)*‖v‖^2 ≤
+      fderiv ℝ (fderiv ℝ (fun z : ℝ => z^2)) x v v ∧
+      fderiv ℝ (fderiv ℝ (fun z : ℝ => z^2)) x v v ≤ ((2:ℝ≥0):ℝ)*‖v‖^2 := by
+    intro x v
+    rw [square_curvature]
+    norm_num
+  obtain ⟨_hqp,_hqi,_hqZ,_hqnorm,_hqpair,heqd,_hqbound⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GibbsPositionMoment.gibbs_position_moment
+      (α:=2) (β:=2) (by norm_num) (by norm_num) (by fun_prop) hHQ (0:ℝ)
+      (by rw [square_gradient];simp)
+  have he : (fun u : ℝ => inner ℝ (u-0) (gradient (fun z : ℝ => z^2) u)) =
+      fun u => 2*u^2 := by
+    funext u
+    rw [square_gradient]
+    simp [mul_comm]
+    ring
+  rw [he,integral_const_mul] at heqd
+  have hm : (∫ u, u^2 ∂r)=1/2 := by
+    rw [hlaw]
+    have heqd' : 2*(∫ u : ℝ, u^2 ∂(volume : Measure ℝ).tilted (fun u => -u^2))=1 := by
+      simpa only [Module.finrank_self,Nat.cast_one] using heqd
+    linarith
+  refine ⟨?_,?_,hlaw,hm⟩
+  · simpa only [R,Real.norm_eq_abs,sq_abs] using hRp
+  · simpa only [R,r,Real.norm_eq_abs,sq_abs] using hpr
+
+-- At eta=2 the true standardized posterior has bounded position moment,
+-- while the preceding Gaussian-gradient output has centered moment 2.
+theorem quadratic_eta_two :
+    let R := ((volume : Measure ℝ).tilted (fun x => -quadratic x)).tilted
+      (fun x => -‖x-3‖^2/4)
+    let r := R.map (fun x => (Real.sqrt 2)⁻¹*(x-1))
+    IsProbabilityMeasure R ∧ IsProbabilityMeasure r ∧
+      r=(volume : Measure ℝ).tilted (fun u => -3*u^2/2) ∧
+      Integrable (fun u => u^2) r ∧ (∫ u, u^2 ∂r)≤1 ∧
+      (∫ u, (2*u)^2 ∂r)=4*(∫ u, u^2 ∂r) := by
+  have h := quadratic_variable_eta (S:=Unit)
+    (eta:=fun _ => 2) (y:=fun _ => 3)
+    measurable_const measurable_const (by norm_num)
+  simpa only [show 1+(2:ℝ)=3 by norm_num,show (3:ℝ)/3=1 by norm_num,
+    show 2*(2:ℝ)=4 by norm_num,show (2:ℝ)^2=4 by norm_num] using h ()
+
+theorem negative_scale_affine (F : ℝ → ℝ) :
+    ((volume : Measure ℝ).tilted (fun x => -F x)).map (fun x => 3-2*x) =
+      volume.tilted (fun x => -F ((3-x)/2)) := by
+  have h := AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs
+    F 3 (s:=-2) (by norm_num)
+  convert! h using 1
+  · congr 1
+    funext x
+    simp only [smul_eq_mul]
+    ring
+  · congr 1
+    funext x
+    congr 1
+    simp only [smul_eq_mul]
+    norm_num
+    ring_nf
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+theorem zero_dimension_variable_eta
+    {S : Type*} [MeasurableSpace S] {eta : S → ℝ}
+    (heta : Measurable eta) (hpos : ∀ s, 0<eta s) :
+    let mu := (volume : Measure E0).tilted (fun _ => (-7:ℝ))
+    ∀ s, let R := mu.tilted (fun x => -‖x‖^2/(2*eta s))
+      let r := R.map (fun x => (Real.sqrt (eta s))⁻¹ • x)
+      IsProbabilityMeasure R ∧ r=Measure.dirac (0:E0) ∧
+        (∫ u, ‖u‖^2 ∂r)=0 := by
+  have hh : ∀ x v : E0, (1:ℝ)⁻¹*‖v‖^2 ≤
+      fderiv ℝ (fderiv ℝ (fun _ : E0 => (7:ℝ))) x v v ∧
+      fderiv ℝ (fderiv ℝ (fun _ : E0 => (7:ℝ))) x v v ≤ ‖v‖^2 := by
+    intro x v
+    have hv : v=0 := Subsingleton.elim _ _
+    simp [hv]
+  obtain ⟨p,_hpm,_heq,_hmu,hall⟩ := standardized_rgo_position_and_fisher (κ:=1)
+    (by norm_num) contDiff_const hh heta (y:=fun _ => 0) measurable_const hpos
+  dsimp only
+  intro s
+  obtain ⟨hRp,_hρ,_hQ,_hρ0,_hQ0,_hHρ,_hHQ,_hlaw,_hpr,_hlp,_hip,_hbd,_hlf,_hfp,_hfd⟩ := hall s
+  let R := ((volume : Measure E0).tilted (fun _ => (-7:ℝ))).tilted
+    (fun x => -‖x‖^2/(2*eta s))
+  let r := R.map (fun x => (Real.sqrt (eta s))⁻¹ • x)
+  have hprob : IsProbabilityMeasure R := by simpa only [R,sub_zero] using hRp
+  have : IsProbabilityMeasure R := hprob
+  have hmap : (fun x : E0 => (Real.sqrt (eta s))⁻¹ • x) = fun _ : E0 => (0:E0) := by
+    funext x
+    exact Subsingleton.elim _ _
+  have hr : r=Measure.dirac (0:E0) := by
+    dsimp only [r]
+    rw [hmap]
+    simp
+  refine ⟨hprob,hr,?_⟩
+  change (∫ u, ‖u‖^2 ∂r)=0
+  rw [hr]
+  simp
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs
+#print axioms standardized_rgo_position_and_fisher
+#print axioms quadratic_eta_two
+#print axioms quadratic_variable_eta
+#print axioms quadratic_eta_one_sharp
+#print axioms negative_scale_affine
+#print axioms zero_dimension_variable_eta
+end Tests.StandardizedRGOPositionFisher
+end

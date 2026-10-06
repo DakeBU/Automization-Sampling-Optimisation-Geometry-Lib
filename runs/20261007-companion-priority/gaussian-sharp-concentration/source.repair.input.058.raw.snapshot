@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz",
+      "title": "Sharp standard Gaussian concentration for every Lipschitz observable",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.E3",
+          "label": "Exact Gaussian background for sharp (4.3)",
+          "scope": "Locally compiled sharp centered Gaussian-output estimate (4.3), retained exact positive-step proximal/evaluator and (4.4)-(4.5), genuine first Bochner moments and all signed exponential domains. Independent mathematics/blind/source/publication/exact-commit/integration admission pending. Bias (4.2), first W2 inequality in (4.6), LSI/T2 adapter, full Lemma4.2, higher smoothing/Picard/Wp/proxy-warmness/initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both main results and actual-input precision/expected-query-cost composition remain open. Centers are actual Gaussian output means. TV proximity does not transfer unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianLipschitzExponential"
+      ],
+      "assumptions": [
+        "Finite-dimensional complete real Hilbert space E with its actual inner product and Borel measurable structure, including dimension zero; gamma is the canonical covariance-identity standard Gaussian.",
+        "Actual globally L-Lipschitz f:E->R with NNReal L>=0 including zero; every signed t in R. No differentiability, boundedness, given mean, positive dimension or concentration/LSI/domain certificate."
+      ],
+      "statement": "For every globally L-Lipschitz scalar observable on the stated finite real Hilbert/Borel space, its actual standard Gaussian centered exponential integral is at most exp(L^2*t^2/2) for every signed real t. Actual first moments and all exponential domains are produced by the existing shared domain theorem; the C1 restriction used inside the proof is removed internally.",
+      "formula": "\\gamma=\\operatorname{stdGaussian}(E),\\quad m=\\int f\\,d\\gamma,\\quad\\int e^{t(f-m)}\\,d\\gamma\\le e^{L^2t^2/2}\\quad(t\\in\\mathbb R).",
+      "boundary": "Locally compiled sharp centered Gaussian-output estimate (4.3), retained exact positive-step proximal/evaluator and (4.4)-(4.5), genuine first Bochner moments and all signed exponential domains. Independent mathematics/blind/source/publication/exact-commit/integration admission pending. Bias (4.2), first W2 inequality in (4.6), LSI/T2 adapter, full Lemma4.2, higher smoothing/Picard/Wp/proxy-warmness/initialization, PBPS invariance/nonexplosion/hypocoercivity/implementation/work, both main results and actual-input precision/expected-query-cost composition remain open. Centers are actual Gaussian output means. TV proximity does not transfer unbounded expected cost.",
+      "steps": [
+        {
+          "title": "Establish the actual Gaussian domains",
+          "text": "The existing Fernique-domain declaration proves first Bochner integrability and every signed centered exponential L1 from global Lipschitz growth. Shifting the center gives radial exponential domains. Polynomial factors are dominated by a larger radial exponential, also on the actual product Gaussian equipped with its Banach max norm.",
+          "formula": "m=\\int f\\,d\\gamma,\\quad e^{t(f-m)}\\in L^1(\\gamma),\\quad (1+\\|x\\|)^2e^{a\\|x\\|}\\in L^1(\\gamma).",
+          "lean": "integrable_and_integrable_exp_centered_of_lipschitz; gaussian_radial_exponential_integrable; gaussian_polynomial_radial_integrable"
+        },
+        {
+          "title": "Derive Gaussian Stein integration by parts",
+          "text": "For the temporary C1 case, the canonical ASTIS Gaussian density with respect to the given Hilbert volume has derivative -w(x) inner(x,-). Growth, the genuine Gaussian second moment and the derivative bound by L prove every Haar integration-by-parts integrability input. The resulting Stein equality has no supplied domain certificate.",
+          "formula": "w(x)=(\\sqrt{2\\pi})^{-d}e^{-\\|x\\|^2/2},\\quad Dw(x)[v]=-w(x)\\langle x,v\\rangle,\\quad\\int\\langle x,v\\rangle f(x)\\,d\\gamma=\\int Df(x)[v]\\,d\\gamma.",
+          "lean": "standardGaussian_density; standardWeight_hasFDerivAt; standardGaussian_stein_lipschitz_c1; integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable"
+        },
+        {
+          "title": "Rotate two independent standard Gaussians",
+          "text": "For X,Y independently distributed as gamma, U=cos(theta)X+sin(theta)Y and W=-sin(theta)X+cos(theta)Y have the same product law. Differentiate F(theta)=E[f(X) exp(t(f(U)-m))] using an explicit polynomial times radial-exponential domination valid for every theta. The inverse relation X=cos(theta)U-sin(theta)W is exact.",
+          "formula": "U_\\theta=cX+sY,\\ W_\\theta=-sX+cY,\\quad F^{\\prime}(\\theta)=t\\,\\mathbb E[f(X)e^{t(f(U_\\theta)-m)}Df(U_\\theta)[W_\\theta]].",
+          "lean": "standardGaussian_rotation_integral; rotX_hasDerivAt; rotated_laplace_integral_hasDerivAt; rotation_inverse_first"
+        },
+        {
+          "title": "Apply Stein only to the affine Lipschitz factor",
+          "text": "After rotation, fix U=u and let a(u) be the Riesz representative of Df(u). Apply Stein in W to the C1 Lipschitz function W->f(cu-sW). Its derivative is -s Df(cu-sW). The exponential is constant in this conditional variable; it is never asserted globally Lipschitz. Actual product L1 and Fubini justify the conditional calculation.",
+          "formula": "F^{\\prime}(\\theta)=-s t\\int e^{t(f(u)-m)}\\!\\left[\\int Df(cu-sv)[a(u)]\\,d\\gamma(v)\\right]d\\gamma(u),\\quad\\|a(u)\\|\\le L.",
+          "lean": "standardGaussian_stein_affine; affine_stein_laplace_slice; rotated_laplace_derivative_integral_identity"
+        },
+        {
+          "title": "Recover the covariance bound with correct sign",
+          "text": "The inner integral has absolute value at most L squared. On theta in [0,pi/2] and t>=0 the factor -sin(theta)t is nonpositive, so the upper bound on the inner integral gives a lower bound on F prime. For C=t L squared M, H=F-cos(theta)C is nondecreasing by the mean-value theorem. Actual derivative existence gives endpoint continuity. Endpoint independence yields the covariance inequality.",
+          "formula": "M=\\int e^{t(f-m)}d\\gamma,\\quad F^{\\prime}\\ge-\\sin\\theta\\,tL^2M,\\quad H^{\\prime}\\ge0,\\quad\\operatorname{Cov}_\\gamma(f,e^{t(f-m)})\\le tL^2M.",
+          "lean": "affine_directional_derivative_integral_norm_le; rotated_laplace_derivative_integral_lower_bound; gaussian_laplace_covariance_bound; monotoneOn_of_hasDerivWithinAt_nonneg"
+        },
+        {
+          "title": "Prove the sharp Herbst estimate and both signs",
+          "text": "All signed exponential domains give integrableExpSet=the full real line. Pinned Mathlib MGF differentiation gives the actual M prime. The covariance estimate implies M prime<=t L squared M on t>=0. The integrating factor exp(-L squared t squared/2)M is nonincreasing and equals one at zero. Apply the result to -f and -t for negative parameters.",
+          "formula": "M^{\\prime}(t)\\le tL^2M(t),\\quad\\left(e^{-L^2t^2/2}M(t)\\right)^{\\prime}\\le0,\\quad M(t)\\le e^{L^2t^2/2}\\quad(t\\in\\mathbb R).",
+          "lean": "gaussian_centered_integrableExpSet; gaussian_centered_laplace_hasDerivAt; gaussian_centered_laplace_bound_c1; hasDerivAt_mgf; antitoneOn_of_hasDerivWithinAt_nonpos"
+        },
+        {
+          "title": "Smooth internally without changing the constant",
+          "text": "Use the actual nonnegative normalized compactly supported smooth bump against canonical Hilbert volume. Its outer radius is epsilon_n=2^-n and its mass is one. The convolution f_n is C1 and remains globally L Lipschitz. The uniform error is at most L epsilon_n. This introduces no differentiability assumption on the public observable.",
+          "formula": "f_n=\\phi_n*f,\\quad\\phi_n\\ge0,\\quad\\int\\phi_n\\,dx=1,\\quad\\operatorname{Lip}(f_n)\\le L,\\quad\\|f_n-f\\|_\\infty\\le L2^{-n}.",
+          "lean": "normed_bump_convolution_lipschitz; normed_bump_convolution_error; smoothApprox_contDiff; smoothApprox_lipschitz"
+        },
+        {
+          "title": "Pass the actual center and exponential integral to the limit",
+          "text": "First-moment integrability and the uniform approximation give |m_n-m|<=L epsilon_n. The centered exponents converge pointwise, and every n is dominated by exp(2|t|L) exp(t(f-m)), whose L1 was proved before the sharp estimate. Dominated convergence passes the same sharp bound to f. Zero L and the zero-dimensional carrier are discharged directly as constant observables.",
+          "formula": "|m_n-m|\\le L2^{-n},\\quad e^{t(f_n-m_n)}\\le e^{2|t|L}e^{t(f-m)},\\quad\\int e^{t(f-m)}d\\gamma\\le e^{L^2t^2/2}.",
+          "lean": "smoothApprox_mean_error; smoothApprox_centered_exp_integral_tendsto; centered_exp_integral_of_lipschitz_zero; centered_exp_integral_of_subsingleton; integral_exp_centered_le_stdGaussian_of_lipschitz"
+        }
+      ],
+      "lean_statement": "For every globally L-Lipschitz scalar observable on the stated finite real Hilbert/Borel space, its actual standard Gaussian centered exponential integral is at most exp(L^2*t^2/2) for every signed real t. Actual first moments and all exponential domains are produced by the existing shared domain theorem; the C1 restriction used inside the proof is removed internally.",
+      "lean_proof": "Establish the actual Gaussian domains; Derive Gaussian Stein integration by parts; Rotate two independent standard Gaussians; Apply Stein only to the affine Lipschitz factor; Recover the covariance bound with correct sign; Prove the sharp Herbst estimate and both signs; Smooth internally without changing the constant; Pass the actual center and exponential integral to the limit",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.map_rotation_eq_self",
+        "MeasureTheory.integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+        "MeasureTheory.hasDerivAt_integral_of_dominated_loc_of_deriv_le",
+        "MeasureTheory.integral_prod",
+        "ProbabilityTheory.hasDerivAt_mgf",
+        "ProbabilityTheory.integrable_pow_mul_exp_of_mem_interior_integrableExpSet",
+        "monotoneOn_of_hasDerivWithinAt_nonneg",
+        "antitoneOn_of_hasDerivWithinAt_nonpos",
+        "ContDiffBump.hasCompactSupport_normed",
+        "ContDiffBump.contDiff_normed",
+        "MeasureTheory.tendsto_integral_of_dominated_convergence"
+      ]
+    }
+  ]
+}

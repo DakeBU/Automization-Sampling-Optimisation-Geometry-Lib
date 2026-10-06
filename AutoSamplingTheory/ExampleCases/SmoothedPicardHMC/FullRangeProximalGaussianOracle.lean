@@ -11,15 +11,16 @@ import Mathlib.Tactic
 /-!
 # Actual source-range proximal Gaussian oracle
 
-SPHMC arXiv:2609.06906v1, (2.1), (3.2), and Lemma 4.2 (4.4)-(4.5), plus necessary (4.3) domains.
+SPHMC arXiv:2609.06906v1, (2.1), (3.2), and Lemma 4.2 (4.3)-(4.5), including genuine exponential domains.
 The exact source signature and source-only topology were independently sealed
 before this implementation. The numerical oracle's separate eta<=1/(2 beta)
 call/cost boundary does not become a full-range implementation guarantee.
 
 The Gaussian gradient-output law is distinct from the RGO posterior and HMC
 transition. Genuine output first moments and signed centered exponential domains are produced
-below. The sharp MGF coefficient, bias, standardized posterior transport, Wp, histories, numerical
-queries, main results and composition remain separate obligations.
+below. The sharp own-mean bound (4.3) is proved internally with coefficient eta*norm(a)^2/2.
+Bias, first Gaussian transport/LSI, full Lemma 4.2, Wp, histories, numerical queries,
+main results and composition remain separate obligations.
 -/
 
 noncomputable section
@@ -206,7 +207,9 @@ theorem full_range_proximal_gaussian_oracle
         (∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z))) ∧
         ∀ s, MeasureTheory.Integrable (fun w : E => w) (K s) ∧
           ∀ (a : E) (t : ℝ), MeasureTheory.Integrable
-            (fun w => Real.exp (t * inner ℝ a (w - ∫ v, v ∂K s))) (K s) := by
+            (fun w => Real.exp (t * inner ℝ a (w - ∫ v, v ∂K s))) (K s) ∧
+            (∫ w, Real.exp (t * inner ℝ a (w - ∫ v, v ∂K s)) ∂K s) ≤
+              Real.exp (eta s * t^2 * ‖a‖^2 / 2) := by
   let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2
   obtain ⟨hLip,hMinus,_hsc,hmono⟩ := actual_gradient_bounds hκ hV hH
   obtain ⟨p,hp,heq⟩ := parameterized_damped_point hMinus heta hy hpos
@@ -286,11 +289,29 @@ theorem full_range_proximal_gaussian_oracle
     have he :=
       (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz
         (μ := stdGaussian E) hf).2 t
-    rw [hKs s,integral_map (hGm s).aemeasurable (by fun_prop)]
-    apply (integrable_map_measure (by fun_prop) (hGm s).aemeasurable).mpr
-    convert he using 1
-    funext z
-    rw [Function.comp_apply,inner_sub_right,integral_inner (hGi s) a]
+    refine ⟨?_,?_⟩
+    · rw [hKs s,integral_map (hGm s).aemeasurable (by fun_prop)]
+      apply (integrable_map_measure (by fun_prop) (hGm s).aemeasurable).mpr
+      convert he using 1
+      funext z
+      rw [Function.comp_apply,inner_sub_right,integral_inner (hGi s) a]
+    · have hm : (∫ v, v ∂K s) = ∫ z, G (s,z) ∂stdGaussian E := by
+        rw [hKs s]
+        exact integral_map (hGm s).aemeasurable (by fun_prop)
+      rw [hm,hKs s,integral_map (hGm s).aemeasurable (by fun_prop)]
+      calc
+        _ = ∫ z, Real.exp (t * (inner ℝ a (G (s,z)) -
+            ∫ v, inner ℝ a (G (s,v)) ∂stdGaussian E)) ∂stdGaussian E := by
+          apply integral_congr_ae
+          filter_upwards with z
+          rw [inner_sub_right,integral_inner (hGi s) a]
+        _ ≤ Real.exp (((Real.toNNReal (‖a‖*Real.sqrt (eta s)) : ℝ≥0) : ℝ)^2*t^2/2) :=
+          AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz hf t
+        _ = _ := by
+          congr 1
+          rw [Real.coe_toNNReal _ (mul_nonneg (norm_nonneg _) (Real.sqrt_nonneg _)),
+            mul_pow,Real.sq_sqrt (hpos s).le]
+          ring
 
 
 end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle

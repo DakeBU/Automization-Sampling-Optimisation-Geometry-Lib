@@ -45,14 +45,17 @@ theorem quadratic_variable_eta
       ∀ s, K s = (stdGaussian ℝ).map
         (fun z => y s/(1+eta s)+Real.sqrt (eta s)*z) ∧
         (∫ w, ‖w-y s/(1+eta s)‖^2 ∂K s) = eta s ∧
-        ∀ z, (quadratic z+(eta s)⁻¹/2*‖z-y s‖^2 ≤
+        (∀ z, (quadratic z+(eta s)⁻¹/2*‖z-y s‖^2 ≤
           quadratic (y s/(1+eta s))+(eta s)⁻¹/2*‖y s/(1+eta s)-y s‖^2)
-          ↔ z=y s/(1+eta s) := by
+          ↔ z=y s/(1+eta s)) ∧
+        Integrable (fun w : ℝ => w) (K s) ∧
+          ∀ (a t : ℝ), Integrable
+            (fun w => Real.exp (t*inner ℝ a (w-∫ v, v ∂K s))) (K s) := by
   have hV : ContDiff ℝ 2 quadratic := by unfold quadratic;fun_prop
   have hH : ∀ x v : ℝ, (1:ℝ)⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ quadratic) x v v ∧
       fderiv ℝ (fderiv ℝ quadratic) x v v ≤ ‖v‖^2 := by
     intro x v;rw [quadratic_curvature];norm_num
-  obtain ⟨p,hp,heq,hmin,hnexp,hG,hLip,K,hK,hKs⟩ :=
+  obtain ⟨p,hp,heq,hmin,hnexp,hG,hLip,K,hK,hKs,hDomain⟩ :=
     full_range_proximal_gaussian_oracle (κ:=1) (by norm_num) hV hH heta hy hpos
   have hpform (s : S) : p s=y s/(1+eta s) := by
     apply (eq_div_iff (ne_of_gt (by linarith [hpos s] : 0<1+eta s))).mpr
@@ -64,7 +67,7 @@ theorem quadratic_variable_eta
   have hlaw : K s=(stdGaussian ℝ).map
       (fun z => y s/(1+eta s)+Real.sqrt (eta s)*z) := by
     simpa only [quadratic_gradient,id_eq,hpform,smul_eq_mul] using hKs s
-  refine ⟨hlaw,?_,?_⟩
+  refine ⟨hlaw,?_,?_,hDomain s⟩
   · rw [hlaw,integral_map (by fun_prop) (by fun_prop)]
     have hm := AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian (E:=ℝ)
     calc
@@ -95,7 +98,9 @@ theorem quadratic_unbounded_eta :
     ∃ K : Kernel ℕ ℝ, IsMarkovKernel K ∧
       ∀ n, K n=(stdGaussian ℝ).map
           (fun z => 3/((n:ℝ)+3)+Real.sqrt ((n:ℝ)+2)*z) ∧
-        (∫ w, ‖w-3/((n:ℝ)+3)‖^2 ∂K n)=(n:ℝ)+2 := by
+        (∫ w, ‖w-3/((n:ℝ)+3)‖^2 ∂K n)=(n:ℝ)+2 ∧
+        Integrable (fun w : ℝ => w) (K n) ∧
+          Integrable (fun w => Real.exp ((-3)*inner ℝ (2:ℝ) (w-∫ v, v ∂K n))) (K n) := by
   obtain ⟨K,hK,h⟩ := quadratic_variable_eta
     (eta:=fun n : ℕ => (n:ℝ)+2) (y:=fun _ => 3)
     (by fun_prop) measurable_const (by intro n;positivity)
@@ -103,7 +108,7 @@ theorem quadratic_unbounded_eta :
   have he : 1+((n:ℝ)+2)=(n:ℝ)+3 := by ring
   have hn := h n
   rw [he] at hn
-  exact ⟨hn.1,hn.2.1⟩
+  exact ⟨hn.1,hn.2.1,hn.2.2.2.1,hn.2.2.2.2 2 (-3)⟩
 
 abbrev E0 := EuclideanSpace ℝ (Fin 0)
 theorem zero_dimension_variable_eta
@@ -114,7 +119,7 @@ theorem zero_dimension_variable_eta
   have hh : ∀ x v : E0, (1:ℝ)⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (fun _ : E0 => (7:ℝ))) x v v ∧
       fderiv ℝ (fderiv ℝ (fun _ : E0 => (7:ℝ))) x v v ≤ ‖v‖^2 := by
     intro x v;have hv : v=0 := Subsingleton.elim _ _;simp [hv]
-  obtain ⟨p,hp,heq,hmin,hnexp,hG,hLip,K,hK,hKs⟩ :=
+  obtain ⟨p,hp,heq,hmin,hnexp,hG,hLip,K,hK,hKs,_hDomain⟩ :=
     full_range_proximal_gaussian_oracle (κ:=1) (by norm_num)
       contDiff_const hh heta (y:=fun _ => 0) measurable_const hpos
   refine ⟨K,hK,fun s => ?_⟩

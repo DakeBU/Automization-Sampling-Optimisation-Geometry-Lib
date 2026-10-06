@@ -1,0 +1,136 @@
+{
+  "id": "ASTIS-RT-20261007-GaussianLipschitzExponential",
+  "state": "draft",
+  "source": {
+    "source_id": "companion:gaussian-lipschitz-exponential",
+    "anchor": "SPHMC arXiv2609.06906v1 S3.E2 actualGaussian-gradient evaluator; S4.E3 centered directional signed exponential; S2.E1/S4.Ex3 actualproximal; inherited S1.E1 C2 Hessian and S3.SS1.p1.1 eta>0. Domain prerequisites only, sharp coefficient remains open.",
+    "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+    "original_text": "ASTIS exact scoped domain background / source consumer restatement:\nReal complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).\nActual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise.\nFor every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.\nGenuine Gaussian-gradient-output first Bochner moment and every signed directional centered exponential L1, plus existing exact positive-step proximal/input/noise semantics only. Sharp centered coefficient eta*normu^2/2 in4.3, bias4.2, FIRSTW2/LSI/T2/fullLemma4.2, posterior jointkernel/higher smoothing/Picard/Wp/proxywarmness/initialization/main/work/composition remainOPEN. Domain proof is authored Fernique alternative, not Gaussian concentration constant. TV never transfers unboundedcost. Exactstatements/topology alreadysealed beforeproof; no unreviewed signature gap.",
+    "text_sha256": "0897c4cb35525e6337406bfddbe51bb91f768e6b0f156dcb715e0b59f9db1940"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    [CompleteSpace E] [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]\n    {μ : MeasureTheory.Measure E} [ProbabilityTheory.IsGaussian μ]\n    {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzWith L f) :\n    MeasureTheory.Integrable f μ ∧ ∀ t : ℝ,\n      MeasureTheory.Integrable\n        (fun x => Real.exp (t * (f x - ∫ z, f z ∂μ))) μ",
+    "statement_sha256": "386f8e0c54839adabeae5d0334fec161335e5940f61599a6df71831f8282002a",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "IsGaussian mu is the actual Mathlib Gaussian probability measure class: every real continuous linear functional has Gaussian pushforward. Mean need not be zero; the law may be degenerate.",
+      "LipschitzWith L f is the actual global metric Lipschitz bound with nonnegative NNReal constant L, allowed to be zero. E is a complete second-countable real normed vector space with its Borel measurable structure.",
+      "Integrable means Bochner integrability of the actual real-valued function under the actual measure. The integral in the exponential is that same function own mean. The quantified real t has both signs. No moment/MGF constant is supplied as data."
+    ],
+    "compiler_evidence": "focused.1.log genuine3731 PASS standard3only. Preproof exact statements and primary-only exhaustivegraph independentlysealed beforeproofsearch. No sharpMGF/bias/main/cost claim."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "d7db76b49f4be772420b632f5e8ebee39d4eb07a09134584b757f333bb00b2ca",
+  "publication_context": {
+    "file": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+    "current_lean_module": "import Mathlib.Probability.Distributions.Gaussian.Fernique\nimport Mathlib.Tactic\n\n/-!\n# Genuine Laplace domains for Lipschitz Gaussian observables\n\nFernique domination gives first moments and every signed centered exponential\nmoment on a real second-countable Banach Borel space. This proves the domain,\nnot the sharp Gaussian concentration coefficient. SPHMC's actual Gaussian\noutput consumes this leaf; its mean is its own Bochner mean, not an assumed\nsmoothed gradient. Degenerate Gaussian laws and zero Lipschitz constants remain\nin the statement.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped NNReal ENNReal\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential\n\ntheorem integrable_and_integrable_exp_centered_of_lipschitz\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    [CompleteSpace E] [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]\n    {μ : MeasureTheory.Measure E} [ProbabilityTheory.IsGaussian μ]\n    {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzWith L f) :\n    MeasureTheory.Integrable f μ ∧ ∀ t : ℝ,\n      MeasureTheory.Integrable\n        (fun x => Real.exp (t * (f x - ∫ z, f z ∂μ))) μ := by\n  have hbound (x : E) : |f x| ≤ (L : ℝ)*‖x‖+|f 0| := by\n    have hd := hf.dist_le_mul x 0\n    simp only [dist_eq_norm, sub_zero, Real.norm_eq_abs] at hd\n    calc\n      |f x| = |(f x-f 0)+f 0| := by congr 1; ring\n      _ ≤ |f x-f 0|+|f 0| := abs_add_le _ _\n      _ ≤ (L : ℝ)*‖x‖+|f 0| := add_le_add hd le_rfl\n  have hi : Integrable f μ :=\n    (((IsGaussian.integrable_id (μ := μ)).norm.const_mul (L : ℝ)).add\n      (integrable_const |f 0|)).mono' hf.continuous.aestronglyMeasurable\n        (ae_of_all _ fun x => by simpa only [Real.norm_eq_abs, Pi.add_apply, id_eq] using hbound x)\n  refine ⟨hi,fun t => ?_⟩\n  obtain ⟨C,hC,hint⟩ := IsGaussian.exists_integrable_exp_sq μ\n  let b : ℝ := |t| *(L : ℝ)\n  let D : ℝ := |t| *(|f 0|+|∫ z, f z ∂μ|)\n  have hb : 0 ≤ b := mul_nonneg (abs_nonneg _) L.coe_nonneg\n  have hdom (x : E) : t*(f x-∫ z, f z ∂μ) ≤\n      D+C⁻¹*b^2+C*‖x‖^2 := by\n    have hlin : t*(f x-∫ z, f z ∂μ) ≤ b*‖x‖+D := by\n      calc\n        _ ≤ |t*(f x-∫ z, f z ∂μ)| := le_abs_self _\n        _ = |t| *|f x-∫ z, f z ∂μ| := abs_mul _ _\n        _ ≤ |t| *(|f x|+|∫ z, f z ∂μ|) :=\n          mul_le_mul_of_nonneg_left (by simpa only [sub_zero, zero_sub, abs_neg] using\n            (abs_sub_le (f x) 0 (∫ z, f z ∂μ))) (abs_nonneg _)\n        _ ≤ |t| *((L : ℝ)*‖x‖+|f 0|+|∫ z, f z ∂μ|) :=\n          mul_le_mul_of_nonneg_left (add_le_add (hbound x) le_rfl) (abs_nonneg _)\n        _ = b*‖x‖+D := by dsimp [b,D]; ring\n    have hy : 2*‖x‖*b ≤ C*‖x‖^2+C⁻¹*b^2 := two_mul_le_add_mul_sq hC\n    have hnon : 0 ≤ b*‖x‖ := mul_nonneg hb (norm_nonneg _)\n    nlinarith\n  apply (hint.const_mul (Real.exp (D+C⁻¹*b^2))).mono'\n    (by fun_prop)\n  filter_upwards with x\n  rw [Real.norm_eq_abs,abs_of_pos (Real.exp_pos _),← Real.exp_add]\n  exact Real.exp_le_exp.mpr (hdom x)\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential\nend\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+      "edition": "Mathlib db584cd6; SPHMC arXiv2609.06906v1 domain consumer",
+      "anchor": "SPHMC arXiv2609.06906v1 S3.E2 actualGaussian-gradient evaluator; S4.E3 centered directional signed exponential; S2.E1/S4.Ex3 actualproximal; inherited S1.E1 C2 Hessian and S3.SS1.p1.1 eta>0. Domain prerequisites only, sharp coefficient remains open.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS authored sufficient domain lemma using pinned Mathlib Fernique; source4.3 sharp Gaussian concentration is a separate unproved bound."
+    },
+    "statement": "For every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.",
+    "formulae": [
+      {
+        "label": "Gaussian Lipschitz first moment and signed exponential domain",
+        "tex": "f\\in L^1(\\mu),\\qquad e^{t(f-\\int f\\,d\\mu)}\\in L^1(\\mu)\\quad(t\\in\\mathbb R)."
+      }
+    ],
+    "assumptions": [
+      "Real complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).",
+      "Actual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise."
+    ],
+    "obligations": [
+      {
+        "id": "gaussian-domain",
+        "label": "Genuine firstmoment and allsigned centered Laplace domain"
+      },
+      {
+        "id": "sharp-mgf",
+        "label": "Sharp coefficient/bias/transport/fullLemma remain open"
+      },
+      {
+        "id": "full-papers",
+        "label": "Main results and actual-input expected-query-cost composition open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+      "title": "Gaussian Lipschitz first moment and signed exponential domain",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+          "label": "Pinned Gaussian domain background",
+          "scope": "Genuine Gaussian-gradient-output first Bochner moment and every signed directional centered exponential L1, plus existing exact positive-step proximal/input/noise semantics only. Sharp centered coefficient eta*normu^2/2 in4.3, bias4.2, FIRSTW2/LSI/T2/fullLemma4.2, posterior jointkernel/higher smoothing/Picard/Wp/proxywarmness/initialization/main/work/composition remainOPEN. Domain proof is authored Fernique alternative, not Gaussian concentration constant. TV never transfers unboundedcost. Exactstatements/topology alreadysealed beforeproof; no unreviewed signature gap."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianLipschitzExponential"
+      ],
+      "assumptions": [
+        "Real complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).",
+        "Actual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise."
+      ],
+      "statement": "For every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.",
+      "formula": "f\\in L^1(\\mu),\\qquad e^{t(f-\\int f\\,d\\mu)}\\in L^1(\\mu)\\quad(t\\in\\mathbb R).",
+      "steps": [
+        {
+          "title": "Produce the genuine first moment",
+          "text": "Lipschitz growth bounds the actual scalar observable by L times the norm plus its value at zero. Gaussian first Bochner integrability from pinned Mathlib yields norm L1. Continuity gives measurability, so domination yields scalar L1 and a genuine finite mean.",
+          "formula": "|f(x)|\\le L\\|x\\|+|f(0)|,\\quad f\\in L^1(\\mu),\\quad m=\\int f\\,d\\mu.",
+          "lean": "IsGaussian.integrable_id; LipschitzWith.dist_le_mul; Integrable.mono'"
+        },
+        {
+          "title": "Use actual Fernique integrability",
+          "text": "Pinned Gaussian Fernique gives one actual C>0 with exp(C norm(x)^2) integrable. The space is a complete second-countable real Banach Borel space. The Gaussian need not be centered or nondegenerate; zero dimensions and zero Lipschitz constant require no extra branch or premise.",
+          "formula": "\\exists C>0:\\quad\\int e^{C\\|x\\|^2}\\,d\\mu(x)<\\infty.",
+          "lean": "ProbabilityTheory.IsGaussian.exists_integrable_exp_sq"
+        },
+        {
+          "title": "Dominate every signed centered exponential",
+          "text": "For each real t set b=abs(t)L and D=abs(t)(abs(f(0))+abs(m)). Young inequality gives b norm(x)<=C norm(x)^2+C^-1 b^2. Thus the centered exponential is dominated by a finite scalar times the genuine Fernique integrand. This proves the domain only; its constant depends on C and f(0), and supplies no sharp concentration coefficient.",
+          "formula": "b=|t|L,\\ D=|t|(|f(0)|+|m|),\\quad e^{t(f(x)-m)}\\le e^{D+C^{-1}b^2}e^{C\\|x\\|^2}.",
+          "lean": "two_mul_le_add_mul_sq; Real.exp_le_exp; Integrable.const_mul; Integrable.mono'"
+        }
+      ],
+      "lean_statement": "For every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.",
+      "lean_proof": "Produce the genuine first moment; Use actual Fernique integrability; Dominate every signed centered exponential",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.integrable_id",
+        "ProbabilityTheory.IsGaussian.exists_integrable_exp_sq",
+        "LipschitzWith.dist_le_mul",
+        "Integrable.mono'",
+        "two_mul_le_add_mul_sq"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+      "role": "proof-edge",
+      "supports": [
+        "gaussian-domain"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Authored Gaussian-domain background implication from pinned Mathlib Fernique; this is not the printed sharp concentration estimate.",
+        "lean": "Real complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).\nActual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise.\nFor every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound."
+      },
+      {
+        "source": "SPHMC4.3 sharp centered concentration coefficient eta*normu^2/2.",
+        "lean": "Genuine Gaussian-gradient-output first Bochner moment and every signed directional centered exponential L1, plus existing exact positive-step proximal/input/noise semantics only. Sharp centered coefficient eta*normu^2/2 in4.3, bias4.2, FIRSTW2/LSI/T2/fullLemma4.2, posterior jointkernel/higher smoothing/Picard/Wp/proxywarmness/initialization/main/work/composition remainOPEN. Domain proof is authored Fernique alternative, not Gaussian concentration constant. TV never transfers unboundedcost. Exactstatements/topology alreadysealed beforeproof; no unreviewed signature gap."
+      }
+    ]
+  }
+}

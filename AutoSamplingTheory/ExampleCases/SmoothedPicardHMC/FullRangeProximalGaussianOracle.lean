@@ -1,3 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential
+import Mathlib.MeasureTheory.Function.L2Space
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction
@@ -9,13 +11,14 @@ import Mathlib.Tactic
 /-!
 # Actual source-range proximal Gaussian oracle
 
-SPHMC arXiv:2609.06906v1, (2.1), (3.2), and only Lemma 4.2 (4.4)-(4.5).
+SPHMC arXiv:2609.06906v1, (2.1), (3.2), and Lemma 4.2 (4.4)-(4.5), plus necessary (4.3) domains.
 The exact source signature and source-only topology were independently sealed
 before this implementation. The numerical oracle's separate eta<=1/(2 beta)
 call/cost boundary does not become a full-range implementation guarantee.
 
 The Gaussian gradient-output law is distinct from the RGO posterior and HMC
-transition. Bias, MGF, standardized posterior transport, Wp, histories, numerical
+transition. Genuine output first moments and signed centered exponential domains are produced
+below. The sharp MGF coefficient, bias, standardized posterior transport, Wp, histories, numerical
 queries, main results and composition remain separate obligations.
 -/
 
@@ -200,7 +203,10 @@ theorem full_range_proximal_gaussian_oracle
       (∀ s t z w, eta s = eta t →
         ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧
       ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧
-        ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z)) := by
+        (∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z))) ∧
+        ∀ s, MeasureTheory.Integrable (fun w : E => w) (K s) ∧
+          ∀ (a : E) (t : ℝ), MeasureTheory.Integrable
+            (fun w => Real.exp (t * inner ℝ a (w - ∫ v, v ∂K s))) (K s) := by
   let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2
   obtain ⟨hLip,hMinus,_hsc,hmono⟩ := actual_gradient_bounds hκ hV hH
   obtain ⟨p,hp,heq⟩ := parameterized_damped_point hMinus heta hy hpos
@@ -246,7 +252,46 @@ theorem full_range_proximal_gaussian_oracle
     rw [Kernel.map_apply _ hG,Kernel.prod_apply,Kernel.id_apply,Kernel.const_apply,
       Measure.dirac_prod,Measure.map_map hG (by fun_prop)]
     rfl
-  exact ⟨hG,hGLip,K,hK,hKs⟩
+  have hGm (s : S) : Measurable (fun z => G (s,z)) :=
+    hG.comp (measurable_const.prodMk measurable_id)
+  have hGi (s : S) : Integrable (fun z => G (s,z)) (stdGaussian E) := by
+    apply (((IsGaussian.integrable_id (μ := stdGaussian E)).norm.const_mul
+      (Real.sqrt (eta s))).add (integrable_const ‖G (s,0)‖)).mono'
+        (hGm s).aestronglyMeasurable
+    filter_upwards with z
+    have hd := hGLip s s z 0 rfl
+    simp only [sub_self,norm_zero,zero_add,sub_zero] at hd
+    calc
+      ‖G (s,z)‖ = ‖(G (s,z)-G (s,0))+G (s,0)‖ := by rw [sub_add_cancel]
+      _ ≤ ‖G (s,z)-G (s,0)‖+‖G (s,0)‖ := norm_add_le _ _
+      _ ≤ Real.sqrt (eta s)*‖z‖+‖G (s,0)‖ := add_le_add hd le_rfl
+      _ = _ := rfl
+  refine ⟨hG,hGLip,K,hK,hKs,fun s => ⟨?_,fun a t => ?_⟩⟩
+  · rw [hKs s]
+    exact (integrable_map_measure (by fun_prop) (hGm s).aemeasurable).mpr (hGi s)
+  · have hf : LipschitzWith (Real.toNNReal (‖a‖*Real.sqrt (eta s)))
+        (fun z => inner ℝ a (G (s,z))) := by
+      apply LipschitzWith.of_dist_le_mul
+      intro z w
+      rw [dist_eq_norm,Real.norm_eq_abs,← inner_sub_right,
+        Real.coe_toNNReal _ (mul_nonneg (norm_nonneg _) (Real.sqrt_nonneg _)),dist_eq_norm]
+      have hd := hGLip s s z w rfl
+      simp only [sub_self,norm_zero,zero_add] at hd
+      calc
+        |inner ℝ a (G (s,z)-G (s,w))| ≤ ‖a‖*‖G (s,z)-G (s,w)‖ :=
+          abs_real_inner_le_norm _ _
+        _ ≤ ‖a‖*(Real.sqrt (eta s)*‖z-w‖) :=
+          mul_le_mul_of_nonneg_left hd (norm_nonneg _)
+        _ = (‖a‖*Real.sqrt (eta s))*‖z-w‖ := by ring
+    have he :=
+      (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz
+        (μ := stdGaussian E) hf).2 t
+    rw [hKs s,integral_map (hGm s).aemeasurable (by fun_prop)]
+    apply (integrable_map_measure (by fun_prop) (hGm s).aemeasurable).mpr
+    convert he using 1
+    funext z
+    rw [Function.comp_apply,inner_sub_right,integral_inner (hGi s) a]
+
 
 end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle
 end

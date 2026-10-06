@@ -1,0 +1,603 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "Authored Gaussian-domain background: actual scalar f and actual Gaussian mu, centered by integral f under the same mu.",
+      "reconstructed": "Decoder names the same f, Gaussian law and actual own mean; it asserts no separate mean certificate.",
+      "relation": "equivalent",
+      "evidence": "Basic.IsGaussian and actual proof hi precede centering; Fernique obtains C internally."
+    },
+    "domains": {
+      "original": "Complete second-countable real normed/Borel E, arbitrary possibly noncentered or degenerate Gaussian law; nonnegative Lipschitz L includes zero.",
+      "reconstructed": "Reconstruction retains precisely these ambient classes, degeneracy and L=0; no finite-dimensional/nontrivial restriction.",
+      "relation": "equivalent",
+      "evidence": "Full module signature and pinned Gaussian/Fernique ambient contracts; zero-dimensional/zero-L Tests."
+    },
+    "quantifiers": {
+      "original": "Every such mu,f,L and every real signed t, after genuine f integrability.",
+      "reconstructed": "All real t, including negative/zero, and arbitrary Gaussian means reconstructed.",
+      "relation": "equivalent",
+      "evidence": "Proof uses abs(t), not t positivity; nonlinear-negative-parameter Test."
+    },
+    "assumptions": {
+      "original": "Only genuine Gaussian class, Banach/Borel ambient contracts and actual global Lipschitz bound; shared canonical-library prerequisite, not a new SPHMC public Lipschitz certificate.",
+      "reconstructed": "Decoder has exactly those premises and no differentiability, boundedness, given mean or Laplace certificate.",
+      "relation": "explicit-elaboration",
+      "evidence": "Gaussian probability is derived by IsGaussian instance. Source consumer derives its directional Lipschitz bound internally."
+    },
+    "conclusion": {
+      "original": "f genuinely Bochner L1 and exp(t*(f-integral f)) L1 for every real t; no estimate on the exponential integral.",
+      "reconstructed": "Same conjunction and own-mean centered integrability, explicitly no quantitative bound.",
+      "relation": "equivalent",
+      "evidence": "hi is a genuine integrability proof; positive exponential integrand dominated by exp(D+C^-1*b^2)*exp(C*norm(x)^2)."
+    },
+    "scopes": {
+      "original": "ASTIS authored sufficient Fernique domain lemma, a prerequisite for printed sharp concentration; full (4.3) and other source results remain open.",
+      "reconstructed": "Decoder returns domain membership only; candidate lesson/attribution says authored alternative and leaves sharp coefficient open.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source p5.2 invokes Gaussian concentration; actual proof uses Fernique for domain only. No theorem-number/background citation fabricated."
+    },
+    "constant_dependencies": {
+      "original": "No sharp MGF constant output. Auxiliary C>0 is supplied internally by Fernique; b=abs(t)*L and D=abs(t)*(abs(f(0))+abs(mean)).",
+      "reconstructed": "Decoder retains L nonnegative and all signed t without quantitative bound.",
+      "relation": "equivalent",
+      "evidence": "Young inequality gives the intentionally loose dominator C^-1*b^2; this does not imply eta/2 or dimensionfree concentration."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "phase_source_reviewer_20261005",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Fresh primary-first contract frozen before current candidate/reconstruction exposure. Independently read complete target modules, all three private proximal helpers, all three complete Tests, and all 3+12 natural-language/formula steps. Recomputed canonical packets, text hashes, whole-module bytes and selected publication binding/context against current exact files. All 34 frozen inputs and 12 additional source/dependency footprints verified raw/LF. Actual Gaussian/Fernique contracts independently read; current math verdict and earlier statement/topology verdicts merely byte-bound, not read or used as source semantic evidence. No compiler, no self topology validation, no VERIFIED transition. Scoped equivalence is to the explicit domain component, not the full printed Lemma4.2 or sharp (4.3).",
+  "reviewer_packet_sha256": "3c32fecbe1c4150b0cad184037fb3a761c63a4690e88f19b0b9485b70415d2df",
+  "schema_version": 1,
+  "artifact_kind": "independent-whole-module-source-fidelity-review",
+  "formalizer": "root-samplinglib-writer",
+  "decoder": "blind_statement_decoder_29",
+  "reviewer_packet_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.0.reviewer-packet.json",
+  "blocking": false,
+  "source_excess": [],
+  "source_excess_count": 0,
+  "reviewed_utc": "2026-10-06T17:58:27.207974+00:00",
+  "source_statement_sha256": "0897c4cb35525e6337406bfddbe51bb91f768e6b0f156dcb715e0b59f9db1940",
+  "lean_statement_sha256": "386f8e0c54839adabeae5d0334fec161335e5940f61599a6df71831f8282002a",
+  "reconstructed_text_sha256": "8365924dabad832e7ceedef6e6a986ebd31af5c45902444c1fb247480cfe091d",
+  "decoder_packet_sha256": "dce81cf1fddd9d914f654b8676bde92055fa95e4e077acfbaade5c2ee884d35b",
+  "decoder_run_sha256": "6d35f593139f5e411a0e2b196c0410e390877e2e73c610d4f96b9cbb2d87b563",
+  "publication_binding_sha256": "d7db76b49f4be772420b632f5e8ebee39d4eb07a09134584b757f333bb00b2ca",
+  "review_context": {
+    "file": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+    "current_lean_module": "import Mathlib.Probability.Distributions.Gaussian.Fernique\nimport Mathlib.Tactic\n\n/-!\n# Genuine Laplace domains for Lipschitz Gaussian observables\n\nFernique domination gives first moments and every signed centered exponential\nmoment on a real second-countable Banach Borel space. This proves the domain,\nnot the sharp Gaussian concentration coefficient. SPHMC's actual Gaussian\noutput consumes this leaf; its mean is its own Bochner mean, not an assumed\nsmoothed gradient. Degenerate Gaussian laws and zero Lipschitz constants remain\nin the statement.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped NNReal ENNReal\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential\n\ntheorem integrable_and_integrable_exp_centered_of_lipschitz\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    [CompleteSpace E] [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]\n    {μ : MeasureTheory.Measure E} [ProbabilityTheory.IsGaussian μ]\n    {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzWith L f) :\n    MeasureTheory.Integrable f μ ∧ ∀ t : ℝ,\n      MeasureTheory.Integrable\n        (fun x => Real.exp (t * (f x - ∫ z, f z ∂μ))) μ := by\n  have hbound (x : E) : |f x| ≤ (L : ℝ)*‖x‖+|f 0| := by\n    have hd := hf.dist_le_mul x 0\n    simp only [dist_eq_norm, sub_zero, Real.norm_eq_abs] at hd\n    calc\n      |f x| = |(f x-f 0)+f 0| := by congr 1; ring\n      _ ≤ |f x-f 0|+|f 0| := abs_add_le _ _\n      _ ≤ (L : ℝ)*‖x‖+|f 0| := add_le_add hd le_rfl\n  have hi : Integrable f μ :=\n    (((IsGaussian.integrable_id (μ := μ)).norm.const_mul (L : ℝ)).add\n      (integrable_const |f 0|)).mono' hf.continuous.aestronglyMeasurable\n        (ae_of_all _ fun x => by simpa only [Real.norm_eq_abs, Pi.add_apply, id_eq] using hbound x)\n  refine ⟨hi,fun t => ?_⟩\n  obtain ⟨C,hC,hint⟩ := IsGaussian.exists_integrable_exp_sq μ\n  let b : ℝ := |t| *(L : ℝ)\n  let D : ℝ := |t| *(|f 0|+|∫ z, f z ∂μ|)\n  have hb : 0 ≤ b := mul_nonneg (abs_nonneg _) L.coe_nonneg\n  have hdom (x : E) : t*(f x-∫ z, f z ∂μ) ≤\n      D+C⁻¹*b^2+C*‖x‖^2 := by\n    have hlin : t*(f x-∫ z, f z ∂μ) ≤ b*‖x‖+D := by\n      calc\n        _ ≤ |t*(f x-∫ z, f z ∂μ)| := le_abs_self _\n        _ = |t| *|f x-∫ z, f z ∂μ| := abs_mul _ _\n        _ ≤ |t| *(|f x|+|∫ z, f z ∂μ|) :=\n          mul_le_mul_of_nonneg_left (by simpa only [sub_zero, zero_sub, abs_neg] using\n            (abs_sub_le (f x) 0 (∫ z, f z ∂μ))) (abs_nonneg _)\n        _ ≤ |t| *((L : ℝ)*‖x‖+|f 0|+|∫ z, f z ∂μ|) :=\n          mul_le_mul_of_nonneg_left (add_le_add (hbound x) le_rfl) (abs_nonneg _)\n        _ = b*‖x‖+D := by dsimp [b,D]; ring\n    have hy : 2*‖x‖*b ≤ C*‖x‖^2+C⁻¹*b^2 := two_mul_le_add_mul_sq hC\n    have hnon : 0 ≤ b*‖x‖ := mul_nonneg hb (norm_nonneg _)\n    nlinarith\n  apply (hint.const_mul (Real.exp (D+C⁻¹*b^2))).mono'\n    (by fun_prop)\n  filter_upwards with x\n  rw [Real.norm_eq_abs,abs_of_pos (Real.exp_pos _),← Real.exp_add]\n  exact Real.exp_le_exp.mpr (hdom x)\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential\nend\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+      "edition": "Mathlib db584cd6; SPHMC arXiv2609.06906v1 domain consumer",
+      "anchor": "SPHMC arXiv2609.06906v1 S3.E2 actualGaussian-gradient evaluator; S4.E3 centered directional signed exponential; S2.E1/S4.Ex3 actualproximal; inherited S1.E1 C2 Hessian and S3.SS1.p1.1 eta>0. Domain prerequisites only, sharp coefficient remains open.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS authored sufficient domain lemma using pinned Mathlib Fernique; source4.3 sharp Gaussian concentration is a separate unproved bound."
+    },
+    "statement": "For every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.",
+    "formulae": [
+      {
+        "label": "Gaussian Lipschitz first moment and signed exponential domain",
+        "tex": "f\\in L^1(\\mu),\\qquad e^{t(f-\\int f\\,d\\mu)}\\in L^1(\\mu)\\quad(t\\in\\mathbb R)."
+      }
+    ],
+    "assumptions": [
+      "Real complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).",
+      "Actual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise."
+    ],
+    "obligations": [
+      {
+        "id": "gaussian-domain",
+        "label": "Genuine firstmoment and allsigned centered Laplace domain"
+      },
+      {
+        "id": "sharp-mgf",
+        "label": "Sharp coefficient/bias/transport/fullLemma remain open"
+      },
+      {
+        "id": "full-papers",
+        "label": "Main results and actual-input expected-query-cost composition open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+      "title": "Gaussian Lipschitz first moment and signed exponential domain",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+          "label": "Pinned Gaussian domain background",
+          "scope": "Genuine Gaussian-gradient-output first Bochner moment and every signed directional centered exponential L1, plus existing exact positive-step proximal/input/noise semantics only. Sharp centered coefficient eta*normu^2/2 in4.3, bias4.2, FIRSTW2/LSI/T2/fullLemma4.2, posterior jointkernel/higher smoothing/Picard/Wp/proxywarmness/initialization/main/work/composition remainOPEN. Domain proof is authored Fernique alternative, not Gaussian concentration constant. TV never transfers unboundedcost. Exactstatements/topology alreadysealed beforeproof; no unreviewed signature gap."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianLipschitzExponential"
+      ],
+      "assumptions": [
+        "Real complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).",
+        "Actual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise."
+      ],
+      "statement": "For every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.",
+      "formula": "f\\in L^1(\\mu),\\qquad e^{t(f-\\int f\\,d\\mu)}\\in L^1(\\mu)\\quad(t\\in\\mathbb R).",
+      "steps": [
+        {
+          "title": "Produce the genuine first moment",
+          "text": "Lipschitz growth bounds the actual scalar observable by L times the norm plus its value at zero. Gaussian first Bochner integrability from pinned Mathlib yields norm L1. Continuity gives measurability, so domination yields scalar L1 and a genuine finite mean.",
+          "formula": "|f(x)|\\le L\\|x\\|+|f(0)|,\\quad f\\in L^1(\\mu),\\quad m=\\int f\\,d\\mu.",
+          "lean": "IsGaussian.integrable_id; LipschitzWith.dist_le_mul; Integrable.mono'"
+        },
+        {
+          "title": "Use actual Fernique integrability",
+          "text": "Pinned Gaussian Fernique gives one actual C>0 with exp(C norm(x)^2) integrable. The space is a complete second-countable real Banach Borel space. The Gaussian need not be centered or nondegenerate; zero dimensions and zero Lipschitz constant require no extra branch or premise.",
+          "formula": "\\exists C>0:\\quad\\int e^{C\\|x\\|^2}\\,d\\mu(x)<\\infty.",
+          "lean": "ProbabilityTheory.IsGaussian.exists_integrable_exp_sq"
+        },
+        {
+          "title": "Dominate every signed centered exponential",
+          "text": "For each real t set b=abs(t)L and D=abs(t)(abs(f(0))+abs(m)). Young inequality gives b norm(x)<=C norm(x)^2+C^-1 b^2. Thus the centered exponential is dominated by a finite scalar times the genuine Fernique integrand. This proves the domain only; its constant depends on C and f(0), and supplies no sharp concentration coefficient.",
+          "formula": "b=|t|L,\\ D=|t|(|f(0)|+|m|),\\quad e^{t(f(x)-m)}\\le e^{D+C^{-1}b^2}e^{C\\|x\\|^2}.",
+          "lean": "two_mul_le_add_mul_sq; Real.exp_le_exp; Integrable.const_mul; Integrable.mono'"
+        }
+      ],
+      "lean_statement": "For every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound.",
+      "lean_proof": "Produce the genuine first moment; Use actual Fernique integrability; Dominate every signed centered exponential",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.integrable_id",
+        "ProbabilityTheory.IsGaussian.exists_integrable_exp_sq",
+        "LipschitzWith.dist_le_mul",
+        "Integrable.mono'",
+        "two_mul_le_add_mul_sq"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz",
+      "role": "proof-edge",
+      "supports": [
+        "gaussian-domain"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Authored Gaussian-domain background implication from pinned Mathlib Fernique; this is not the printed sharp concentration estimate.",
+        "lean": "Real complete second-countable normed vector space E with Borel measurable structure, Gaussian probability measure mu (possibly noncentered/degenerate).\nActual globally Lipschitz scalar function f:E->R with NNReal constant L, including L=0. No differentiability, boundedness, positive dimension, given mean, Laplace certificate or sharp coefficient premise.\nFor every actual Gaussian mu and globally L-Lipschitz scalar f on the stated Banach/Borel space, f is Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t. This is a Gaussian-domain background theorem, not the sharp concentration bound."
+      },
+      {
+        "source": "SPHMC4.3 sharp centered concentration coefficient eta*normu^2/2.",
+        "lean": "Genuine Gaussian-gradient-output first Bochner moment and every signed directional centered exponential L1, plus existing exact positive-step proximal/input/noise semantics only. Sharp centered coefficient eta*normu^2/2 in4.3, bias4.2, FIRSTW2/LSI/T2/fullLemma4.2, posterior jointkernel/higher smoothing/Picard/Wp/proxywarmness/initialization/main/work/composition remainOPEN. Domain proof is authored Fernique alternative, not Gaussian concentration constant. TV never transfers unboundedcost. Exactstatements/topology alreadysealed beforeproof; no unreviewed signature gap."
+      }
+    ]
+  },
+  "whole_module_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean",
+  "whole_module_file_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+  "whole_module_raw_sha256": "d10917976f7ad74923eee3b0e1b6719ecc8752190c1dedf4f3d034bad08028d4",
+  "whole_module_lf_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+  "whole_module_reviewed": true,
+  "whole_module_private_helpers_reviewed": [],
+  "input_artifacts": [
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianLipschitzExponential.json",
+      "raw_sha256": "69b25f4f4ba090cb454c08bd3fef3be02e7e9119cf3804a4e588be81c4795173",
+      "lf_sha256": "3a6323fe4ffb9dc82c75ff347be0039cdd59ef0ff7e392763a07a97322b6a167",
+      "bytes": 18172,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.00.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.0.reviewer-packet.json",
+      "raw_sha256": "57fbd6602c4e70447894ec36377a3bd397269468114520fc06adac33797f76ee",
+      "lf_sha256": "7f0f2d5edac6264bee0b5413900d66894c5609f08cad18062d1142c43e8884eb",
+      "bytes": 19504,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.01.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianLaplaceOracle.json",
+      "raw_sha256": "18d03177258698cebfdb113ff6f78e5c8f75e2fd2db321718d8d6c7f8d57cf55",
+      "lf_sha256": "1890c686f988e604d4517e57e190380f90292512b25eda42f277cdef56217ed2",
+      "bytes": 46982,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.02.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.1.reviewer-packet.json",
+      "raw_sha256": "b5fbe209712d6b4c4ebed84b5567a032e45a8b69ea8cbfe3b74c68c0c63c6336",
+      "lf_sha256": "0bd21968c818a14e5144989484d6d3c9ec677ed95bcdcd051a1fb2703f29ce88",
+      "bytes": 47673,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.03.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-29/lease.json",
+      "raw_sha256": "cc47424d59447031315bd6d6120ff68d41686bbccb009028971cb958d69c63ed",
+      "lf_sha256": "cc47424d59447031315bd6d6120ff68d41686bbccb009028971cb958d69c63ed",
+      "bytes": 1234,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.04.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-29/packet0.json",
+      "raw_sha256": "e38573abba57fe0a981f82cbf3caee375bc3b6fd69c33146a5b17cf204b99cc8",
+      "lf_sha256": "afdce175330ccf133f0e5beb96b03b625acd9fb332c603475a3d532144600eb4",
+      "bytes": 2432,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.05.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-29/packet1.json",
+      "raw_sha256": "bf6455ac62cefb6b06957812c0dc549250f24edf5dacd6643a30565060525e9f",
+      "lf_sha256": "dce98a529758e4119ec642991c442acfb44f6a9130d644a61bb872523d165f6c",
+      "bytes": 4215,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.06.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-29/result0.json",
+      "raw_sha256": "e41069985b96f1c5e3f4c74bd2ae5e4f1216d41510e0ebf84fe0c7754bd70c62",
+      "lf_sha256": "e41069985b96f1c5e3f4c74bd2ae5e4f1216d41510e0ebf84fe0c7754bd70c62",
+      "bytes": 7731,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.07.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/anonymous-decoder-29/result1.json",
+      "raw_sha256": "03c47e4679bd3074c713acd93159eb579394c8dc26bcbb4d90b5bec657b2473d",
+      "lf_sha256": "03c47e4679bd3074c713acd93159eb579394c8dc26bcbb4d90b5bec657b2473d",
+      "bytes": 13677,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.08.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/whole-math-review.json",
+      "raw_sha256": "7e669c59a1ebe9a4f8ab48a47463b3ca6674afe7bbd823b770fc3c17835dd276",
+      "lf_sha256": "7e669c59a1ebe9a4f8ab48a47463b3ca6674afe7bbd823b770fc3c17835dd276",
+      "bytes": 54151,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.09.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.primary-first.contract.json",
+      "raw_sha256": "9156dc5a13b18b9c89758e11b7c0b5383a083be729aa0af188bca26fc397080a",
+      "lf_sha256": "9156dc5a13b18b9c89758e11b7c0b5383a083be729aa0af188bca26fc397080a",
+      "bytes": 26433,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.10.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.primary-first.lease.json",
+      "raw_sha256": "cb5f03ee59292f72eb76b7cb4eb5c200224cf42fb9a4344791fce43443268b78",
+      "lf_sha256": "cb5f03ee59292f72eb76b7cb4eb5c200224cf42fb9a4344791fce43443268b78",
+      "bytes": 4447,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.11.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean",
+      "raw_sha256": "d10917976f7ad74923eee3b0e1b6719ecc8752190c1dedf4f3d034bad08028d4",
+      "lf_sha256": "9ff9d256b0b26847b7a3c3915c72764ffa6d67edd740bfd7ab8511ac4e42b7b1",
+      "bytes": 3251,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.12.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/FullRangeProximalGaussianOracle.lean",
+      "raw_sha256": "d3403a2186ee0faf12c1f263c98d650e97277ae39427592c165738d111ea16d9",
+      "lf_sha256": "2ea7eb22c424d920b20fb83afac6825b2347700e2061ad568abab12a63bde49a",
+      "bytes": 16440,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.13.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "Tests/GaussianLipschitzExponential.lean",
+      "raw_sha256": "51db0523e1b9719fe18c4d5f0bf006ef24d2e4e40d560bf2babc65f480860541",
+      "lf_sha256": "ed07b4bdc8b07e3d176d32814983c254143dc6ebb4439476e77f030a0acaecbd",
+      "bytes": 2275,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.14.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "Tests/FullRangeProximalGaussianOracle.lean",
+      "raw_sha256": "0a3ad20f0ab2ae9447f415c5b35f655628dc2b91450c1d6b9b71f581cff08646",
+      "lf_sha256": "552f44e13e56f23a4dbbdff6a351cbdd16866a3938690a699aee73c77f7ddf33",
+      "bytes": 6521,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.15.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "Tests/StandardizedRGOPositionFisher.lean",
+      "raw_sha256": "75e04efdbbf84d6a4b4b6781cf107f20c6d5cbdd70e5558002f87bb4463128e6",
+      "lf_sha256": "a82741b90f140dbf5217719f085befe4436f70e7377934b04ca9eac5a4fc0e43",
+      "bytes": 11321,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.16.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/focused.1.log",
+      "raw_sha256": "bbd3846aaf14bdcdb068a2527783efb039356b66c2f84fa1f971753869b5624b",
+      "lf_sha256": "570eb699f36f931b053354da48b896143b68b1369ca1bf4a1dc909d634081f95",
+      "bytes": 13306,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.17.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/claim.json",
+      "raw_sha256": "02f8dbe0a883d1910f195007d1de9c542588373d7615b526f47d22f114f5bde3",
+      "lf_sha256": "aea1d49155699833dc32d5dae114dcaad42afd42b38a39a4ced01c699c26f5f6",
+      "bytes": 3782,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.18.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/preproof/statement-seals.accepted.json",
+      "raw_sha256": "9cf164290a03cab92f36a97370f5d8ee474f6229f5d9628ab40376bbfa5bc3fa",
+      "lf_sha256": "5eb7c90726b5a7a613160737c1635f59484cdac362787c673e2f19170d220608",
+      "bytes": 7768,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.19.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/preproof/reviewer.statement-seal-admission.json",
+      "raw_sha256": "35e36426dda610b4fb958699922041eb12073c69931de3d5a491ddd7f10ada69",
+      "lf_sha256": "35e36426dda610b4fb958699922041eb12073c69931de3d5a491ddd7f10ada69",
+      "bytes": 6643,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.20.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/preproof/source-proof-graph.revised.json",
+      "raw_sha256": "e094ff4d3af4efcc30f491122193730055c35b3fe6fc1dbe1f5c5049ec3cdce2",
+      "lf_sha256": "5d69fde4ce45b5964a563613c719a1777b55bd4d21536d46330e017c6ee248ac",
+      "bytes": 256452,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.21.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "runs/20261007-companion-priority/gaussian-laplace-domain/preproof/reviewer.source-topology-review.revised.json",
+      "raw_sha256": "8de4c1ff69f426333055e9786e25b486acc503763079b6c6367d092239f06a59",
+      "lf_sha256": "8de4c1ff69f426333055e9786e25b486acc503763079b6c6367d092239f06a59",
+      "bytes": 6441,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.22.raw.snapshot",
+      "read_scope": "raw/LF byte binding only; no verdict, classification or route used as source fidelity evidence"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "lf_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "bytes": 26,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.23.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "lf_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "bytes": 3234,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.24.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Fernique.lean",
+      "raw_sha256": "6d18e03bf6ebd6452265eafd9a776519e6d93814636ab959e51b168cda6bed43",
+      "lf_sha256": "86660bae117cac863b46dd7205f3161908b42a8cc5ba65ebd52a7a98e3d723a6",
+      "bytes": 12407,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.25.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SHARED-gaussian-lipschitz-exponential-domain.json",
+      "raw_sha256": "15e46e5ba1250a6e9ace8480af70a1f3e7db9765f9e639f80e7b4850de2e5d12",
+      "lf_sha256": "5f3e3e9fd9065b4a0978047f5f4ccc619af45dd049081e677023869247d254de",
+      "bytes": 19419,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.26.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-SPHMC-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "9e18b816ac58582af30f37297dc5640a187aa1f342e45c6866d979557879e294",
+      "lf_sha256": "51f78b20211f437e3b9cc0405a3b0c1a7a6f934613532b1ba0bd9cdcf300d8d3",
+      "bytes": 23629,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.27.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "website/content/publications/gaussian-lipschitz-exponential.json",
+      "raw_sha256": "327459ddfe631e8d48c1770c120089a3e32f64ad878ae263dc4c74cdc534d5ce",
+      "lf_sha256": "7281a5895f8ee7823f9a70c4252b08d1e498b87b39132ae7249d19aad9e93ae8",
+      "bytes": 17389,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.28.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "website/content/publications/sphmc-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "367a103f146dc41a70c7566c8e0f994d7553d81c5daf2ac9e9d60c1b3edc3bfc",
+      "lf_sha256": "23a0473ce73c6e0181406f904a93166497a2e567686630f2490926975ffeafc8",
+      "bytes": 22015,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.29.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "website/content/declaration_lessons/gaussian-lipschitz-exponential.json",
+      "raw_sha256": "7e0e32d14b564b1590630a6e4e904be74383c217f3ef1594cca53e4237e99f6b",
+      "lf_sha256": "f1a5dcc896727a34c2cdbc00fa4498af91e68e60c9aabdfc4041876ab2d85fe0",
+      "bytes": 5182,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.30.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "website/content/declaration_lessons/sphmc-full-range-proximal-gaussian-oracle.json",
+      "raw_sha256": "3e8e1111e045dd5957cab8837b7f8d2f8f0fe47fb1824aac06071befff6c14e0",
+      "lf_sha256": "1d14a9457fa23029c7e18afafd55693675bbe47eb0fcd50a9e27b4273d5ac640",
+      "bytes": 14117,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.31.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "proof-blueprints/gaussian-laplace-domain.md",
+      "raw_sha256": "ee68429b35652d7bef13caa4d357f67b11d4fb91d6e7f17972201e7a66315257",
+      "lf_sha256": "1b0bbba40b8c4abe86504b2f70fdd7f59b8336a8611c5b59e99b5d5ac0e25c91",
+      "bytes": 2389,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.32.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "research-wiki/technical-lemmas/gaussian_lipschitz_exponential_domain.md",
+      "raw_sha256": "8a96bd2a7516ac7434bceb4ba2f6c543fcdb24b9ce1e2b667a80732dcb4e0c3f",
+      "lf_sha256": "580d3dd2eff8fc53b1369c8c5b806f9808ff2fb5a3032e4ed21b05689418912d",
+      "bytes": 2513,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.33.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "runs/20261006-companion-priority/smoothed-hessian-lower-preread/source-primary.sphmc-v1.raw.html",
+      "raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "lf_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+      "bytes": 1858750,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.34.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Basic.lean",
+      "raw_sha256": "7e01aba78c311f151164559248be0e7f1975017490a551b38a103bfa777347fb",
+      "lf_sha256": "d787d5341155cbd9ab7dc19de55c8cf490ab109f70ffd69a5560cbc7e110e556",
+      "bytes": 11938,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.35.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Fernique.lean",
+      "raw_sha256": "ca46b0aba1a075fc7e7aedbe6d6238ae6a02ebd5c7b0446c38399bfc3a8b9356",
+      "lf_sha256": "56ded82620c63a1fd73c35363eb68a1a38931ab92431d03d39a185bdaef1075d",
+      "bytes": 32902,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.36.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "raw_sha256": "bf27cc682e22025ede23f8bf9b2eec2bb6549867f8eb9465bace8f75ec50bd30",
+      "lf_sha256": "1fec35cf781da1009c37db80a96b05d70f2296ca7768e19bfc0b6314c9b43d49",
+      "bytes": 13028,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.37.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+      "raw_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+      "lf_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303",
+      "bytes": 5800,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.38.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HessianStrongConvexity.lean",
+      "raw_sha256": "78dcbca82db4c1aaaf2fb5ab59e2df74b23f2e48c805e41cde07f33d9f72ad30",
+      "lf_sha256": "2274e86f3affb400c4de8c94c1796bb103d4b77c980a530ff23bd4c344e0bb62",
+      "bytes": 4021,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.39.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothnessEquivalences.lean",
+      "raw_sha256": "c6e04ae6243722537732de0e4e4120512912645491710382714f56ff20302123",
+      "lf_sha256": "60c0b4a1afaa83b0e19d18a6c7923be8335f1e1eb53243d59372e45464d2fbbd",
+      "bytes": 3199,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.40.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentContraction.lean",
+      "raw_sha256": "47bd30cb5073a27d9ff1ef8a7b77a8fdbd229438b9c6f5bc8d5c1042e604baf7",
+      "lf_sha256": "d12a1ad0e67ba09a5696850fb8be4e01345363c52f5960745d5e0f3630293177",
+      "bytes": 5282,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.41.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean",
+      "raw_sha256": "d9b0295b38b0b2259c844f86052b8ff9f2acad49a03c7dfc86708568022f4c68",
+      "lf_sha256": "6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17",
+      "bytes": 4880,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.42.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianSmoothing.lean",
+      "raw_sha256": "79d0b7086a151b0b780b880a7da9616107fbfd9e674023409bcac8e4b1119b38",
+      "lf_sha256": "64c4e66b11e1beeae2da593b84410f2e29de8979c4d2e1184877a1f72e89f627",
+      "bytes": 4033,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.43.raw.snapshot",
+      "read_scope": "import/declaration matches inspected; no claim of fresh complete mathematical re-review of this historical parent"
+    },
+    {
+      "path": "tools/astis_semantic_roundtrip_core.py",
+      "raw_sha256": "a3e92a6e161944031fdee813838d6a4729e0e76a4c6abdd84c300cb5b2f0b229",
+      "lf_sha256": "90049b13ea83ccc41876f9267fd2e1a8052acac42e89a1063f97ac5619d39058",
+      "bytes": 43547,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.44.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    },
+    {
+      "path": "tools/astis_publication.py",
+      "raw_sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+      "lf_sha256": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5",
+      "bytes": 25431,
+      "immutable_snapshot_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input.45.raw.snapshot",
+      "read_scope": "current exact source/publication/code/context integrity; textual semantic review scope detailed in review evidence"
+    }
+  ],
+  "input_inventory_path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.input-inventory.json",
+  "input_inventory_raw_sha256": "8a30332ce4ecb365e88cee34d58eebd16cffc714fc1c324628f9ac8c09ab19bd",
+  "fresh_primary_contract": {
+    "path": "runs/20261007-companion-priority/gaussian-laplace-domain/source.review.primary-first.contract.json",
+    "raw_sha256": "9156dc5a13b18b9c89758e11b7c0b5383a083be729aa0af188bca26fc397080a",
+    "review_run_sha256": "fedbd7e3bb1ed38195a2037e0bac7e3f73e7ea093467372e6c63cba16b1aef9c",
+    "frozen_before_current_implementation_exposure": true
+  },
+  "primary_source_raw_sha256": "ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d",
+  "primary_anchors_reviewed": [
+    "S1.p1.1",
+    "S1.E1",
+    "S2.p1.1",
+    "S2.E1",
+    "S2.p2.2",
+    "S3.SS1.p1.1",
+    "S3.E1",
+    "S3.E2",
+    "S4.Ex3",
+    "S4.Ex7",
+    "S4.E3",
+    "S4.E4",
+    "S4.E5",
+    "S4.Ex9",
+    "S4.SS1.p5.2"
+  ],
+  "proof_review_details": {
+    "generic": "Lipschitz growth produces scalar L1 using derived Gaussian vector first moment. For arbitrary signed t, abs(t) growth and actual Fernique C>0 give a finite exponential-square dominator; L=0 and degenerate laws require no additional premise.",
+    "consumer": "Actual Hessian parents produce grad/id-minus-grad Lipschitz bounds. Pointwise damped contractions build measurable p without uniform eta cap; regularized gradient zero gives exact minimum and uniqueness. Monotonicity gives fixed-eta nonexpansivity. Joint measurable G yields actual Markov pushforward K. Genuine vector first L1 and actual scalar directional Lipschitzness are produced; same-law integral_map/integral_inner identify own mean before pulling back centered domains.",
+    "tests": "Nonlinear unbounded norm with negative t; zero L; dimension zero; varying/unbounded eta family and actual output moment; posterior-versus-Gaussian moment distinction reviewed in the third Test without granting additional theorem credit.",
+    "reader_provenance": "All cited direct ASTIS theorem calls and selected Mathlib contract names checked against actual calls/current parent interfaces. All formula fields contain single TeX backslashes, no double-slash encoding repair required.",
+    "compilation_boundary": "No new compilation performed or compilation-only acceptance inferred."
+  },
+  "exposure_attestation": {
+    "historical": "Prior packet28 mathematical/source review and preproof source-only domain graph authoring known; never claim complete historical blindness.",
+    "current_primary_before_packet": true,
+    "current_math_verdict_read": false,
+    "prior_statement_topology_verdicts_read": false,
+    "preproof_graph_authoring_is_not_independent_topology_credit": true,
+    "current_blind_reconstruction_is_distinct_actor": true
+  },
+  "remaining_boundary": [
+    "sharp source (4.3) coefficient eta*norm(u)^2/2",
+    "bias (4.2)",
+    "FIRST (4.6) W2/Gaussian Talagrand/LSI/T2",
+    "full Lemma4.2",
+    "posterior joint Markov family",
+    "higher smoothing/Picard/Wp/main/work/composition"
+  ],
+  "self_admission": false,
+  "compiler_used": false,
+  "review_run_sha256": "4a18b6747c8c8ce9c79a9a581b7fcec46f91977259ad9140a4d8614b9e6ae468"
+}

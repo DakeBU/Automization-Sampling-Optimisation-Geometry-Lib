@@ -1,0 +1,39 @@
+# Gaussian Lipschitz exponential-domain leaf
+
+- Leaf: gaussian.lipschitz.signed-exponential-domain
+- Declaration: AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integrable_and_integrable_exp_centered_of_lipschitz
+- File: AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean
+- Status: formalized-local; independent admission pending
+- Imports: Mathlib.Probability.Distributions.Gaussian.Fernique; Mathlib.Tactic
+
+For a Gaussian probability measure mu on a complete second-countable real
+Banach Borel space E and a globally L-Lipschitz scalar f (L>=0), f is genuinely
+Bochner integrable and exp(t*(f-int f dmu)) is integrable for every real t.
+The Gaussian may be noncentered/degenerate, L may be zero, and dimension may
+be zero. This domain-general shape is suitable for later Mathlib consideration;
+local compilation is the only immediate proof credit.
+
+Samplinglib recursive TechnicalLemmas search found no exact producer. Reuse
+Mathlib IsGaussian.integrable_id / exists_integrable_exp_sq, LipschitzWith
+.dist_le_mul, Integrable.mono', two_mul_le_add_mul_sq. Pinned SLT signed-domain
+candidate is reference-only (upstream Lean4.32), not imported or evaluated.
+Actual consumer: existing SPHMC FullRangeProximalGaussianOracle strengthened
+in the same packet. Gaussian-proposal Lipschitz observations are a planned
+second route, with no consumer theorem credit yet.
+
+Hidden contracts: Gaussian instance gives finite probability; Borel plus
+continuity gives measurability; completeness/second countability are exact
+Fernique API contracts. First moment and exp domination are outputs.
+No smoothness, boundedness, compact support, decay condition, prescribed mean,
+positive dimension, positive Lipschitz constant or exponential certificate.
+
+Proof route: (1) bound abs(f)<=L norm(x)+abs(f(0)); (2) Gaussian norm L1 gives
+f L1; (3) genuine Fernique C>0; (4) signed t produces b=abs(t)L and offset D;
+(5) Young dominates linear growth by C norm(x)^2+C^-1 b^2; (6) exponential
+monotonicity and finite scalar multiplication give actual centered exp L1.
+
+Failure policy: freeze after same route/signature repeats; diagnose source,
+representative, missing assumption or exact API before another attempt.
+Current failures were Lean lexical/triangle-API conversions only and were
+resolved without changing the sealed statement. No sharp concentration,
+Gaussian LSI/T2, bias, main result or expected-query-cost assertion follows.

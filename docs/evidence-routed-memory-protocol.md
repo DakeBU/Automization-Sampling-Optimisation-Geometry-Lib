@@ -124,7 +124,13 @@ A parallel/multi-route Source Anchor cannot be called proof-sealed until the
 required common-blind-spot audit is accepted or every alternative but one has
 been retired with evidence.
 
-## 7. Reader backpressure and Exposition Seal
+## 7. Verified-route comparator
+
+After the common-blind-spot audit, if more than one route remains verified, a comparator selects the **default reader route**, not the only true route. It may compare source fidelity, assumption strength, reuse of canonical primitives, proof compression, and pedagogical readability. The selected route and reason are recorded, while all other verified alternatives remain explicit OR-routes in the Source Proof Graph.
+
+The comparator may choose only among routes that already passed their own verification; it cannot promote an unverified candidate because it looks shorter or more elegant.
+
+## 8. Reader backpressure and Exposition Seal
 
 Samplinglib explicitly tracks the debt created when proof production outruns
 human digestion:
@@ -144,7 +150,9 @@ The compressed reader statement must expand losslessly to source and Lean nodes,
 preserve hidden hypotheses and the remaining boundary, and be independently
 reviewable without knowledge of the agent run.
 
-## 8. Run-record integration
+The Exposition Seal is evidence-bearing rather than a status word alone: it records the source nodes and Lean nodes to which the compressed explanation expands, plus independent confirmation that assumptions and the remaining boundary were preserved.
+
+## 9. Run-record integration
 
 New Frontier Cells should use schema version 3 and record a
 `learning_contract` containing:
@@ -159,7 +167,7 @@ New Frontier Cells should use schema version 3 and record a
 Historical schema-1/2 cells remain valid. This is a forward protocol, not
 retroactive evidence fabrication.
 
-## 9. Samplinglib-specific standing lessons
+## 10. Samplinglib-specific standing lessons
 
 The initial process-memory registry is deliberately small and evidence-backed.
 It records only lessons already visible in the repository's reviewed runs,

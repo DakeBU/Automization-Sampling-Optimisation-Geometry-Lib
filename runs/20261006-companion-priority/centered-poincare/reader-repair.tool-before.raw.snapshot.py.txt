@@ -933,7 +933,7 @@ def source_href(
         )
     prefix = relative_prefix(from_path)
     return (
-        f"{prefix}modules/{slugify(declaration.module)}.html#complete-module-source",
+        f"{prefix}modules/{slugify(declaration.module)}.html#{declaration.anchor}",
         "local preview source",
     )
 
@@ -2612,7 +2612,6 @@ def render_source_module(
     imported_by: list[str],
 ) -> str:
     gate = _ACTIVE_GATE or load_gate_evidence()
-    complete_source = (ROOT / module.source_file).read_text(encoding="utf-8")
     imports = [
         f'<a href="{slugify(name)}.html"><code>{esc(name)}</code></a>'
         if any(candidate.name == name for candidate in _ALL_MODULES)
@@ -2657,10 +2656,6 @@ def render_source_module(
   <div><dt>Gate status</dt><dd>{route_badge("Compiled" if gate.passed else "Partial")}</dd></div>
 </section>
 <section><h2>Declarations</h2><div class="declaration-list">{''.join(declaration_blocks) if declaration_blocks else '<p class="muted">This aggregator contains no named declarations.</p>'}</div></section>
-<section id="complete-module-source"><h2>Complete Lean source</h2>
-<details><summary><code>{esc(module.source_file)}</code> — full module with imports and context</summary>
-{code_html(complete_source)}
-</details></section>
 """
     return page(module.name, f"modules/{slugify(module.name)}.html", body, active="Modules")
 
@@ -2985,7 +2980,7 @@ def render_attribution_index(git: GitContext) -> str:
 </section>
 <section id="citation"><div class="section-heading"><span>Citation</span><h2>Cite ASTIS and Samplinglib</h2></div>{code_html(citation, "bibtex")}</section>
 <section><h2>Source state</h2><dl><dt>Git ref</dt><dd><code>{esc(git.ref)}</code></dd><dt>Commit</dt><dd><code>{esc(git.commit)}</code></dd><dt>Remote</dt><dd><code>{esc(git.remote_url)}</code></dd><dt>Published commit</dt><dd>{"yes" if git.commit_published else "not found on a configured remote ref"}</dd><dt>Public source links</dt><dd>{"enabled" if git.public_source_links else "disabled; using site-local anchors"}</dd></dl></section>
-<section class="note"><h2>Source-link rule</h2><p>By default every declaration links to the complete Lean module in the generated site, including imports and context, so private or unpublished repositories cannot create public 404s. Set <code>ASTIS_PUBLIC_SOURCE_LINKS=1</code> only after verifying that the remote is public; clean files at a remote-published commit then link to that exact SHA. Modified or untracked files always remain labeled “local preview source”. The generator never assumes that checkout content already exists on <code>main</code>.</p></section>
+<section class="note"><h2>Source-link rule</h2><p>By default every declaration links to the generated module anchor, so private or unpublished repositories cannot create public 404s. Set <code>ASTIS_PUBLIC_SOURCE_LINKS=1</code> only after verifying that the remote is public; clean files at a remote-published commit then link to that exact SHA. Modified or untracked files always remain labeled “local preview source”. The generator never assumes that checkout content already exists on <code>main</code>.</p></section>
 """
     return page("Attribution", "attribution/index.html", body)
 

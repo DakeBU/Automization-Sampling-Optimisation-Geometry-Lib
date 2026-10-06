@@ -1,0 +1,76 @@
+import pathlib,json,subprocess,hashlib,sys,datetime,re
+sys.path.insert(0,'tools')
+import astis,astis_publication as pub
+R=pathlib.Path('runs/20261006-companion-priority/centered-poincare');C='8c7f3dd4dced22e46787384d2b92cf9a6ce20f31';P='292878b81db3f6d6ff46bdf59ba98539f05ce87f';V='picard_commit_verifier_20261005'
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+tracked=set(subprocess.check_output(['git','ls-tree','-r','--name-only',C]).decode().splitlines())
+def rd(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def sh(b):return hashlib.sha256(b).hexdigest()
+def fr(p):
+ p=str(p).replace(chr(92),'/');b=pathlib.Path(p).read_bytes();z={'path':p,'raw_sha256':sh(b),'lf_sha256':sh(b.replace(b'\r\n',b'\n')),'bytes':len(b),'tracked_in_checked_commit':p in tracked}
+ if p in tracked:
+  g=subprocess.check_output(['git','show',C+':'+p]);z.update(git_raw_sha256=sh(g),git_lf_sha256=sh(g.replace(b'\r\n',b'\n')),git_raw_equals_worktree=g==b,git_LF_equals_worktree=g.replace(b'\r\n',b'\n')==b.replace(b'\r\n',b'\n'));assert z['git_LF_equals_worktree'] or p in ['research-wiki/frontier-cells/'+x+'.json' for x in rd(R/'verified.json')['cell_ids']],p
+ return z
+def same(x):
+ z=fr(x['path']);assert z['raw_sha256']==x['raw_sha256'] and z['lf_sha256']==x['lf_sha256'],x['path'];return z
+def dif(a,b,p=''):
+ if type(a)!=type(b):return[p]
+ if isinstance(a,dict):return sum([dif(a.get(k),b.get(k),p+'/'+k) for k in sorted(set(a)|set(b))],[])
+ return[] if a==b else[p]
+v=rd(R/'verified.json');e=rd(R/'exact-admission-reconciliation.json');integ=rd(R/'integration.json')
+assert v['verified_commit']==P and v['verification_status']=='passed-scoped'
+assert fr(R/'verified.json')['raw_sha256']=='2647e8c5171945b00ebf1c913b0c41f65fa31936540770b52648fbcaf232c7c8'
+assert integ['checked_integration_commit']==C and integ['verified_proof_commit']==P
+math=[same(x) for x in e['stable34_current_raw_LF_Git']];parents=[same(x) for x in e['parent13']];mathlib=[same(x) for x in e['pinned_mathlib6']]
+for x in math+parents:
+ assert subprocess.check_output(['git','show',P+':'+x['path']]).replace(b'\r\n',b'\n')==pathlib.Path(x['path']).read_bytes().replace(b'\r\n',b'\n')
+source=[]
+for x in e['source_reviews']:
+ z={}
+ for k in ['audit','source_packet','source_result','decoder_packet','decoder_result']:
+  z[k]=same(x[k])
+  assert subprocess.check_output(['git','show',P+':'+x[k]['path']]).replace(b'\r\n',b'\n')==pathlib.Path(x[k]['path']).read_bytes().replace(b'\r\n',b'\n')
+ a=rd(x['audit']['path']);r=rd(x['source_result']['path']);assert a['state']==a['source_review']['state']=='accepted' and a['source_review']['review_run_sha256']==x['source_run']==r['review_run_sha256']
+ assert a['publication_binding_sha256']==x['binding'] and a['publication_context']==r['review_context']
+ z.update(source_run=x['source_run'],decoder_run=x['decoder_run'],binding=x['binding']);source.append(z)
+pub.check_advance(v['publication_declarations'],reviewed=True)
+roots=[]
+expected={'AutoSamplingTheory/ExampleCases.lean':['import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance'],'AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities.lean':['import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare','import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare'],'Tests.lean':['import Tests.CenteredPoincare']}
+changed=subprocess.check_output(['git','diff','--name-only',P,C,'--','*.lean']).decode().splitlines();assert set(changed)==set(expected)
+for p,prefix in expected.items():
+ old=subprocess.check_output(['git','show',P+':'+p]).decode().replace('\r\n','\n');new=pathlib.Path(p).read_text()
+ assert new=='\n'.join(prefix)+'\n'+old,p
+ roots.append({'file':fr(p),'only_imports_added':prefix})
+for p in ['tools','website/scripts']:
+ assert not subprocess.check_output(['git','diff','5b7846fa59eb83bacb6f35b3165ccd0bf276d1d0',C,'--',p]).strip(),p
+assert pathlib.Path('lean-toolchain').read_text().strip()==integ['toolchain']==e['pinned_toolchain']
+assert subprocess.check_output(['git','-C','.lake/packages/mathlib','rev-parse','HEAD']).decode().strip()==integ['mathlib_commit']==e['pinned_mathlib']
+checks=[]
+for x in integ['checks']:
+ z=fr(x['log']);assert z['raw_sha256']==x['raw_sha256'] and x['exit_code']==0 and z['tracked_in_checked_commit'] and z['git_raw_equals_worktree']
+ checks.append({'name':x['name'],'log':z,'claimed_exit_code':0})
+aggregate=pathlib.Path(integ['checks'][0]['log']).read_text()
+assert 'Build completed successfully (9127 jobs).' in aggregate and 'Build completed successfully (9386 jobs).' in aggregate and 'ASTIS check passed' in aggregate and '$ lake build Tests' in aggregate
+assert 'Replayed Tests.CenteredPoincare' in aggregate
+for name in v['lean_declarations']+['Tests.CenteredPoincare.actual_nonquadratic_poincare_and_score_variance','Tests.CenteredPoincare.actual_zero_dim_poincare_and_noncentered_failure']:
+ matches=re.findall(re.escape("'"+name+"'")+" depends on axioms: "+r"\[([^\]]+)\]",aggregate)
+ assert matches and all(set(y.strip() for y in ax.split(','))=={'propext','Classical.choice','Quot.sound'} for ax in matches)
+hits=astis.forbidden_pattern_hits();assert not hits;files=astis.lean_source_files()
+assert 'Publication PASS: 183' in pathlib.Path(integ['checks'][1]['log']).read_text()
+assert '243 audits, 8 repair proposals' in pathlib.Path(integ['checks'][2]['log']).read_text()
+assert '246 registered cells' in pathlib.Path(integ['checks'][3]['log']).read_text()
+assert 'affected declarations=66; changed cells=62' in pathlib.Path(integ['checks'][5]['log']).read_text() and 'contributor contract PASS' in pathlib.Path(integ['checks'][5]['log']).read_text()
+reg=integ['regression_evidence'];assert fr(reg['log'])['raw_sha256']==reg['raw_sha256'] and 'Ran 138 tests' in pathlib.Path(reg['log']).read_text()
+graphs=[]
+for f,g in zip(['graph-domain.json','graph-variance.json','graph-score.json'],integ['graph_checks']):
+ assert rd(R/f)==g and g['status']=='graph coverage checked';graphs.append(fr(R/f))
+cell_deltas=[]
+for cid in v['cell_ids']:
+ p='research-wiki/frontier-cells/'+cid+'.json';before=json.loads(subprocess.check_output(['git','show',C+':'+p]).decode());cur=rd(p)
+ delta=dif(before,cur);assert delta==['/evidence/integration_receipt','/graph_contribution/visual_review'],(cid,delta)
+ assert cur['status']=='independently_verified' and cur['evidence']['independent_verification']==str(R/'verified.json').replace(chr(92),'/')
+ assert cur['evidence']['integration_receipt']==str(R/'integration.json').replace(chr(92),'/')
+ cell_deltas.append({'cell_id':cid,'current':fr(p),'allowed_uncommitted_admin_fields':delta,'mathematical_input_changed':False})
+out={'schema_version':1,'kind':'independent-repository-proof-seal-admission','advance_id':v['advance_id'],'reviewer_id':V,'status':'accepted-scoped','verification_status':'passed-scoped','proof_seal_status':'PROOF_SEALED-scoped','checked_integration_commit':C,'verified_proof_commit':P,'verified_receipt':fr(R/'verified.json'),'integration_receipt':fr(R/'integration.json'),'integration_receipt_scope':'Post-commit untracked root integration.json honestly bound by named commit and committed raw logs; three current cell administrative changes are uncommitted, independently reconciled and not mathematical/source-binding changes.','declarations':v['lean_declarations'],'statement_seals':v['statement_seals'],'sealed_mathematical_scope':v['mathematical_scope'],'source_audits_unchanged':source,'stable34_rawLF_Git_unchanged':math,'parents13_rawLF_Git_unchanged':parents,'mathlib6_unchanged':mathlib,'aggregate_imports':roots,'repository_checks':checks,'aggregate_summary':integ['aggregate_summary'],'fresh_recompiled_by_this_reviewer':False,'reuse_reason':'Root serialized repository lake build root9127 and Tests9386 are accepted only after exact committed log hashes, actual target/standard3 print evidence, pinned Mathlib and identical mathematical/source bytes. Earlier independent fresh direct3/Test/focused3885/full-body proof review remains bound to exact unchanged bytes; no redundant compile or new mathematical credit.','fresh_static_repository_fake_closure_scan':{'file_count':len(files),'hits':hits,'scanner':'tools/astis.py forbidden_pattern_hits over actual AutoSamplingTheory/**/*.lean, Tests/**/*.lean and both roots','tools_unchanged_from_postsync_regression':True},'regression_reuse':{'receipt':reg,'same_tools_and_website_scripts':True,'fresh_rerun':False},'graph_structural_checks':graphs,'cell_metadata_reconciliation':cell_deltas,'source_proof_coverage':v['coverage']['source_coverage'],'proof_seal_requirements':{'exact_signatures_match':True,'binder_definitions_no_EXCESS_for_scoped_B_B_A':True,'repository_Lean_compile_actual_targets':True,'standard3_no_fake_closures':True,'conditional_premises_supplied_by_actual_dependencies':True,'current_independent_encoder_denoiser_accepted':True,'source_graph_scoped_discharge_and_exclusions_recorded':True},'remaining_boundaries':['SOURCE_GAP full lower-only D6/Bakry-Emery and external cited proof remain open; two canonical BOTH-Hessian nodes are a narrower sufficient OR route, not full D6 or anisotropicBL.','Unnormalized parameter-y reflected score variance only; normalized conditional-score derivative, marginal/outer-y Poincare, unreflected RGO covariance upper/SPHMC Hessian lower remain separate.','PBPS/SPHMC full algorithms/invariance/nonexplosion/hypocoercivity/implementation/global history/cost/main results and composition remain unfinished; TV never transfers unbounded expected cost.','Independent purification/Exposition Seal and rendered visual QA remain pending. Site/graph checks are structural and do not establish visual/live acceptance.','Exact shared-head remote CI remains pending and this receipt does not claim merged main or live deployment.'], 'future25_exclusion':'All untracked smoothed-hessian-lower/source-preread/statement/topology materials are future work, not read or admitted in this24 proof seal.','no_advance_or_cell_mutations_by_this_review':True,'all_compiler_sessions_closed':True,'write_lease':'CLOSED','created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+p=R/'repository-proof-seal.json';assert not p.exists();p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'status':'accepted-scoped','commit':C,'root_jobs':9127,'Tests_jobs':9386,'static_fake_files':len(files),'receipt':fr(p),'lease':'CLOSED'}))

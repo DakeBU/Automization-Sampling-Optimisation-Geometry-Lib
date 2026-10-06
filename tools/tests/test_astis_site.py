@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import html
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -106,6 +108,40 @@ class SourceIndexTests(unittest.TestCase):
 
 
 class SourceLinkPinTests(unittest.TestCase):
+    def test_local_exact_links_expand_complete_real_modules(self) -> None:
+        paths = [ROOT / "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CenteredDomainPoincare.lean",
+                 ROOT / "Tests/CenteredPoincare.lean"]
+        with patch.object(astis_site, "project_lean_paths", return_value=paths):
+            modules, _ = astis_site.scan_project_sources()
+        git = astis_site.GitContext("a" * 40, "local", "", "", False, False, set())
+        gate = astis_site.GateEvidence(False, False, "", "", "", [], "renderer test")
+        with patch.object(astis_site, "_ACTIVE_GIT", git), patch.object(astis_site, "_ACTIVE_GATE", gate):
+            for module in modules:
+                with self.subTest(module=module.name):
+                    rendered = astis_site.render_source_module(module, [])
+                    full = re.search(r'<section id="complete-module-source">.*?<code class="language-lean">(.*?)</code>',
+                                     rendered, re.S)
+                    self.assertIsNotNone(full)
+                    self.assertEqual(html.unescape(full.group(1)), (ROOT / module.source_file).read_text(encoding="utf-8"))
+                    self.assertIn("Source excerpt truncated", rendered)
+                    for decl in module.declarations:
+                        href, label = astis_site.source_href(decl, from_path="declarations/example.html")
+                        self.assertTrue(href.endswith("#complete-module-source"))
+                        self.assertEqual(label, "local preview source")
+
+    def test_dirty_source_keeps_complete_local_target(self) -> None:
+        decl = declaration()
+        git = astis_site.GitContext("a" * 40, "local", "", "https://github.com/example/repo",
+                                   True, True, {decl.source_file})
+        with patch.object(astis_site, "_ACTIVE_GIT", git):
+            href, label = astis_site.source_href(decl, from_path="declarations/example.html")
+            self.assertTrue(href.endswith("#complete-module-source"))
+            self.assertEqual(label, "local preview source")
+            git.dirty_files.clear()
+            href, label = astis_site.source_href(decl, from_path="declarations/example.html")
+            self.assertEqual(href, f"{git.web_root}/blob/{git.commit}/{decl.source_file}#L1")
+            self.assertTrue(label.startswith("published source at "))
+
     def test_historical_local_provenance_is_immutable_but_not_current_source(self) -> None:
         root = "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
         current = "a" * 40

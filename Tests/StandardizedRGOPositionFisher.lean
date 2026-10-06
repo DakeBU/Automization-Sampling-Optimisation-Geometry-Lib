@@ -39,7 +39,7 @@ private theorem quadratic_curvature (x v : ℝ) :
 theorem quadratic_variable_eta
     {S : Type*} [MeasurableSpace S] {eta y : S → ℝ}
     (heta : Measurable eta) (hy : Measurable y)
-    (hpos : ∀ s, 0<eta s) (hsmall : ∀ s, eta s≤1) :
+    (hpos : ∀ s, 0<eta s) :
     let mu := (volume : Measure ℝ).tilted (fun x => -quadratic x)
     ∀ s, let R := mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
       let r := R.map (fun x => (Real.sqrt (eta s))⁻¹*(x-y s/(1+eta s)))
@@ -52,7 +52,7 @@ theorem quadratic_variable_eta
       fderiv ℝ (fderiv ℝ quadratic) x v v ≤ ‖v‖^2 := by
     intro x v;rw [quadratic_curvature];norm_num
   obtain ⟨p,hpm,heq,hmu,hall⟩ := standardized_rgo_position_and_fisher
-    (κ:=1) (by norm_num) hV hH heta hy hpos hsmall
+    (κ:=1) (by norm_num) hV hH heta hy hpos
   have hpform (s : S) : p s=y s/(1+eta s) := by
     apply (eq_div_iff (ne_of_gt (by linarith [hpos s] : 0<1+eta s))).mpr
     have h := heq s
@@ -132,7 +132,7 @@ theorem quadratic_eta_one_sharp :
       (fun x => -‖x-2‖^2/2)
   let r := R.map (fun x => x-1)
   have ht := quadratic_variable_eta (S:=Unit) (eta:=fun _ => 1) (y:=fun _ => 2)
-    measurable_const measurable_const (by norm_num) (by norm_num)
+    measurable_const measurable_const (by norm_num)
   have hs := ht ()
   norm_num at hs
   obtain ⟨hRp,hpr,hl,_hi,_hb⟩ := hs
@@ -169,6 +169,22 @@ theorem quadratic_eta_one_sharp :
   · simpa only [R,Real.norm_eq_abs,sq_abs] using hRp
   · simpa only [R,r,Real.norm_eq_abs,sq_abs] using hpr
 
+-- At eta=2 the true standardized posterior has bounded position moment,
+-- while the preceding Gaussian-gradient output has centered moment 2.
+theorem quadratic_eta_two :
+    let R := ((volume : Measure ℝ).tilted (fun x => -quadratic x)).tilted
+      (fun x => -‖x-3‖^2/4)
+    let r := R.map (fun x => (Real.sqrt 2)⁻¹*(x-1))
+    IsProbabilityMeasure R ∧ IsProbabilityMeasure r ∧
+      r=(volume : Measure ℝ).tilted (fun u => -3*u^2/2) ∧
+      Integrable (fun u => u^2) r ∧ (∫ u, u^2 ∂r)≤1 ∧
+      (∫ u, (2*u)^2 ∂r)=4*(∫ u, u^2 ∂r) := by
+  have h := quadratic_variable_eta (S:=Unit)
+    (eta:=fun _ => 2) (y:=fun _ => 3)
+    measurable_const measurable_const (by norm_num)
+  simpa only [show 1+(2:ℝ)=3 by norm_num,show (3:ℝ)/3=1 by norm_num,
+    show 2*(2:ℝ)=4 by norm_num,show (2:ℝ)^2=4 by norm_num] using h ()
+
 theorem negative_scale_affine (F : ℝ → ℝ) :
     ((volume : Measure ℝ).tilted (fun x => -F x)).map (fun x => 3-2*x) =
       volume.tilted (fun x => -F ((3-x)/2)) := by
@@ -189,7 +205,7 @@ theorem negative_scale_affine (F : ℝ → ℝ) :
 abbrev E0 := EuclideanSpace ℝ (Fin 0)
 theorem zero_dimension_variable_eta
     {S : Type*} [MeasurableSpace S] {eta : S → ℝ}
-    (heta : Measurable eta) (hpos : ∀ s, 0<eta s) (hsmall : ∀ s, eta s≤1) :
+    (heta : Measurable eta) (hpos : ∀ s, 0<eta s) :
     let mu := (volume : Measure E0).tilted (fun _ => (-7:ℝ))
     ∀ s, let R := mu.tilted (fun x => -‖x‖^2/(2*eta s))
       let r := R.map (fun x => (Real.sqrt (eta s))⁻¹ • x)
@@ -202,7 +218,7 @@ theorem zero_dimension_variable_eta
     have hv : v=0 := Subsingleton.elim _ _
     simp [hv]
   obtain ⟨p,_hpm,_heq,_hmu,hall⟩ := standardized_rgo_position_and_fisher (κ:=1)
-    (by norm_num) contDiff_const hh heta (y:=fun _ => 0) measurable_const hpos hsmall
+    (by norm_num) contDiff_const hh heta (y:=fun _ => 0) measurable_const hpos
   dsimp only
   intro s
   obtain ⟨hRp,_hρ,_hQ,_hρ0,_hQ0,_hHρ,_hHQ,_hlaw,_hpr,_hlp,_hip,_hbd,_hlf,_hfp,_hfd⟩ := hall s
@@ -225,6 +241,7 @@ theorem zero_dimension_variable_eta
 
 #print axioms AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs
 #print axioms standardized_rgo_position_and_fisher
+#print axioms quadratic_eta_two
 #print axioms quadratic_variable_eta
 #print axioms quadratic_eta_one_sharp
 #print axioms negative_scale_affine

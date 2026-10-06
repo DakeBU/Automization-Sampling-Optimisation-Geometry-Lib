@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "status": "unreviewed-signature-only-no-proof-search",
+  "advance_id": "ASTIS-SA-20261007-PositiveStepProximalRGO",
+  "source_revision": "arXiv:2609.06906v1",
+  "source_primary_contract": {
+    "path": "runs/20261006-companion-priority/gaussian-functional-preread/source-primary.contract.json",
+    "raw_sha256": "517f1ecc8ad44ce70a95292774083d5bce0f02495ce695017d971b35c5f60e5f",
+    "lf_sha256": "517f1ecc8ad44ce70a95292774083d5bce0f02495ce695017d971b35c5f60e5f",
+    "bytes": 38377
+  },
+  "source_range": {
+    "literal": "S3.SS1.p1.1 eta>0; S4.Thmtheorem2 has no printed eta<=1 premise. S4.Thmtheorem1.p1.1 alone says 0<eta<=1. Source Lemma4.2 proof chain as printed does not consume eta<=1.",
+    "future_scoped_choice": "A future statement with 0<eta<=1 should be explicitly called a restricted analytic slice if claiming literal full Lemma4.2 equivalence; do not insert the neighboring lemma cap silently. No future signature has been approved here.",
+    "numerical": "S2.p2.2 only actual proximal oracle use/implementation is restricted to a<=1/(2beta). This is distinct from analytic eta>0 or eta<=1 and does not establish query count/work for analytic full-range evaluator."
+  },
+  "signatures": [
+    {
+      "full_declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+      "signature_text": "theorem full_range_proximal_gaussian_oracle\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s + eta s • gradient V (p s) = y s) ∧\n      (∀ s z, F s (p s) + (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n        (F s z ≤ F s (p s) ↔ z=p s)) ∧\n      (∀ s t, eta s = eta t → ‖p s-p t‖ ≤ ‖y s-y t‖) ∧\n      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n      Measurable G ∧\n      (∀ s t z w, eta s = eta t →\n        ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧\n      ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧\n        ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z))",
+      "signature_lf_sha256": "afa203ae8c6b24b1dd60321478448e4b579eee1d32d2b2586d41c1604d7224ed",
+      "declaration_level": "source-anchor",
+      "prior_signature_lf_sha256": "39ca19d54bfe5ad40d898cc184be58a6ce317ce75c5e75a727cbbd3b13eb01dc",
+      "prior_seal": {
+        "path": "runs/20261006-companion-priority/full-range-proximal/preproof/statement-seals.accepted.json",
+        "raw_sha256": "312aa2fd24962e643c65501e5ea0544de6c3b4536a8e08a68294b482cf4cc342",
+        "lf_sha256": "46c7ad7b9384c7c83db9b061dead9bb03bfa086a0f87449ae4059cb36eb26093",
+        "bytes": 2946
+      },
+      "change": "Remove only eta<=1 input cap; no output/other binder changed.",
+      "statement_version": 2
+    },
+    {
+      "full_declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+      "signature_text": "theorem standardized_rgo_position_and_fisher\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let Q := fun s u => ‖u‖^2/2+rho s u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      IsProbabilityMeasure mu ∧\n        ∀ s, IsProbabilityMeasure (R s) ∧\n          ContDiff ℝ 2 (rho s) ∧ ContDiff ℝ 2 (Q s) ∧\n          gradient (rho s) 0=0 ∧ gradient (Q s) 0=0 ∧\n          (∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2) ∧\n          (∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2) ∧\n          r s=(volume : Measure E).tilted (fun u => -Q s u) ∧\n          IsProbabilityMeasure (r s) ∧ MemLp id 2 (r s) ∧\n          Integrable (fun u => ‖u‖^2) (r s) ∧\n          (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E ∧\n          MemLp (gradient (rho s)) 2 (r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*(∫ u, ‖u‖^2 ∂r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*Module.finrank ℝ E",
+      "signature_lf_sha256": "9139f5c97d257c6ae7f6832e9afcfc9db71eef467529cc3040e337b0386e1c07",
+      "declaration_level": "source-anchor",
+      "prior_signature_lf_sha256": "39f449c50ec46729def4687328ea8d5e6b7ec2f078ca015212f39bb0b3cd6972",
+      "prior_seal": {
+        "path": "runs/20261006-companion-priority/standardized-rgo-position-fisher/preproof/statement-seals.accepted.json",
+        "raw_sha256": "4242d18b24b3d905c1f55964ecc9d0a4d5e948d8e20a0108fa7152e1ce87617e",
+        "lf_sha256": "79acdab5d704aaff382fb1cb5b056898f00a8bb2b57b8ce0905ad9c98f8b9d64",
+        "bytes": 3754
+      },
+      "change": "Remove only eta<=1 input cap; no output/other binder changed.",
+      "statement_version": 3
+    }
+  ],
+  "definition_contract": "Exact existing literal F/G/rho/Q/mu/R/r expressions; proximal selection and finite positive partitions, probability, position/Fisher, measurability are outputs constructed internally. No oracle/moment/coupling/gradient/IBP certificate or fallback definition is an input.",
+  "truth_boundary": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost.",
+  "inputs": [
+    {
+      "path": "runs/20261006-companion-priority/gaussian-functional-preread/source-primary.contract.json",
+      "raw_sha256": "517f1ecc8ad44ce70a95292774083d5bce0f02495ce695017d971b35c5f60e5f",
+      "lf_sha256": "517f1ecc8ad44ce70a95292774083d5bce0f02495ce695017d971b35c5f60e5f",
+      "bytes": 38377
+    },
+    {
+      "path": "runs/20261006-companion-priority/full-range-proximal/preproof/statement-seals.accepted.json",
+      "raw_sha256": "312aa2fd24962e643c65501e5ea0544de6c3b4536a8e08a68294b482cf4cc342",
+      "lf_sha256": "46c7ad7b9384c7c83db9b061dead9bb03bfa086a0f87449ae4059cb36eb26093",
+      "bytes": 2946
+    },
+    {
+      "path": "runs/20261006-companion-priority/full-range-proximal/preproof/source-proof-graph.revised.json",
+      "raw_sha256": "f116f54b505db8077c04dd2f5f8a6bcabec008e16b7de09d1cfb3f9ea09c7ca0",
+      "lf_sha256": "a2e4b1c64a981ad14be7f39867df06118d40571781cc86b39e15352d43ad154a",
+      "bytes": 97741
+    },
+    {
+      "path": "runs/20261006-companion-priority/standardized-rgo-position-fisher/preproof/statement-seals.accepted.json",
+      "raw_sha256": "4242d18b24b3d905c1f55964ecc9d0a4d5e948d8e20a0108fa7152e1ce87617e",
+      "lf_sha256": "79acdab5d704aaff382fb1cb5b056898f00a8bb2b57b8ce0905ad9c98f8b9d64",
+      "bytes": 3754
+    },
+    {
+      "path": "runs/20261006-companion-priority/standardized-rgo-position-fisher/preproof/source-proof-graph.revised.json",
+      "raw_sha256": "09f388893b267b59b7dbba2a18a0e14b9ac4456996234c92207210664d142850",
+      "lf_sha256": "03740b6ed9f0488b5e40165a5ebe62cce6b5c375a09cfd86bab9420452e5e838",
+      "bytes": 100323
+    }
+  ],
+  "production_read_or_write": false,
+  "compiler_or_api_search": false,
+  "created_utc": "2026-10-06T16:20:11.458765+00:00"
+}

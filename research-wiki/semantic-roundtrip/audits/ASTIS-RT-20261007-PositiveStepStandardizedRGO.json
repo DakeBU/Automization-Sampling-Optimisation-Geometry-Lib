@@ -1,0 +1,270 @@
+{
+  "id": "ASTIS-RT-20261007-PositiveStepStandardizedRGO",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion:sphmc-standardized-rgo-position-fisher",
+    "anchor": "SPHMC arXiv2609.06906v1 S3.SS1.p1.1 eta>0, S2.E1/S3.E2/S4.Ex3 proximal and Gaussian evaluator, S4.E4/E5, Ex8/p4.1/p4.2/p4.3/E6 only lastTWO comparisons. NeighborLemma4.1 eta<=1 excluded; numericaleta<=1/(2beta) cost separate.",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.Ex8",
+    "original_text": "Exact source component with explicit truth boundary:\nSource beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2<=D2V(x)[v,v]<=normv^2 for every x,v.\nFinite real complete Hilbert/Borel full space E, including dimension zero, and arbitrary measurable parameter space S; measurable eta/y with everyeta(s)>0. These coordinate-free and parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.\nNo supplied proximal point, law identity, normalizer, probability, curvature, gradient or moment certificate. Actual p, mu/R/r probability, normalized affine law, C2 curvature/mode and genuine position/Fisher L2 are internally produced. The numerical-prox eta<=1/(2beta) cap is a separate computational contract.\nProduce one measurable exact proximal selector p satisfying p+eta*gradientV(p)=y. For literal rho(u)=V(p+sqrteta*u)-V(p)-sqrteta*inner(gradientV(p),u) and Q=normu^2/2+rho, produce C2, mode0, 0<=Hessrho<=etaI and I<=HessQ<=(1+eta)I. The actual RGO R=mu.tilted(-norm(x-y)^2/(2eta)) is a probability measure, and its actual standardized pushforward r equals volume.tilted(-Q). Genuine position and rho-gradient L2 satisfy integral normu^2 dr<=d and integral normgradrho^2 dr<=eta^2 integral normu^2 dr<=eta^2 d. Only the last TWO comparisons of(4.6) are covered; the first W2 comparison is open.\nAllpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost.",
+    "text_sha256": "b63799d8109e53d12f68569705f895b290a6bfbb8d4f131d894ac7639ecc0b19"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/StandardizedRGOPositionFisher.lean",
+    "statement": "{E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let Q := fun s u => ‖u‖^2/2+rho s u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      IsProbabilityMeasure mu ∧\n        ∀ s, IsProbabilityMeasure (R s) ∧\n          ContDiff ℝ 2 (rho s) ∧ ContDiff ℝ 2 (Q s) ∧\n          gradient (rho s) 0=0 ∧ gradient (Q s) 0=0 ∧\n          (∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2) ∧\n          (∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2) ∧\n          r s=(volume : Measure E).tilted (fun u => -Q s u) ∧\n          IsProbabilityMeasure (r s) ∧ MemLp id 2 (r s) ∧\n          Integrable (fun u => ‖u‖^2) (r s) ∧\n          (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E ∧\n          MemLp (gradient (rho s)) 2 (r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*(∫ u, ‖u‖^2 ∂r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*Module.finrank ℝ E",
+    "statement_sha256": "0e8b91543f6056c1d0a4804d029de36ba474b3e7c2bc3091308d67ed7440a828",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "Measure.tilted mu f is mu.withDensity(x->ENNReal.ofReal(exp(f x)/(integral exp(f) dmu))). Bochner integral normalization is totalized when exponential integrability fails. Equality alone is not probability. IsProbabilityMeasure nu means nu(univ)=1.",
+      "Measure.map is the genuine measurable pushforward. volume is real finite-Hilbert Lebesgue/Haar measure. Real scaling uses vector smul; finrank is the actual real dimension and may be0.",
+      "ContDiff R2 and fderiv are actual twice continuous Frechet calculus. gradient f x=(InnerProductSpace.toDual R E).symm(fderiv R f x), the true real Hilbert Riesz gradient. MemLp id2r and MemLp gradientrho2r are genuine AE strong measurability and finite L2 norms.",
+      "All potentials and mu/R/r are literal let bodies of the public signature. The affine identity has any F/nonzero real scale; the source theorem has actual positive-curvature V and internally produces probability, moments and gradients. No estimate-certificate aliases occur.",
+      "R is the literal conditional Gibbs RGO tilt and r is its centered/sqrteta standardized pushforward. Neither is the earlier Gaussian gradient-output law nor HMC K/Khat/Kbar. Joint measurability of the posterior measure-valued family is not a conclusion."
+    ],
+    "compiler_evidence": "Actual focused3729 PASS/standard3. Two sourceAnchors preproof statement/topology independentlysealed before API/proofsearch. Generic54line affine proof unchanged; consumer-range prose only, no new proof credit."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Fresh primary-first contract and21 literal source anchors; complete current production modules including all5 private proofs, both full Tests, all19 lesson steps, actual needed parent and pinned Mathlib contracts. Current packet/hash and live publication/context independently recomputed. Bounded canonical projection changes only labels/preserved observations/attestation and no mathematical bytes. Detailed immutable evidence source.review.evidence.json and source.review.normalization-api.json. No compiler or whole-math-review verdict used; no self-admission/VERIFIED.",
+    "review_run_sha256": "3215387818a52736bbd9b6a546532977e0265ffcb98c32e1f8d68f16f0b5ee46",
+    "reviewer_packet_sha256": "ab35c77633a1e0e241ae0ebbb0f990b8329b3b227d3781393a78f902a9098fa6",
+    "run_artifact": "runs/20261007-companion-priority/positive-step-proximal-rgo/source.1.review.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "241a947264bbd069a95a393d0601b55aea403604b7da74cb06eebe41bcbc944f",
+  "publication_context": {
+    "file": "d120124daae320690e6721378c413dddff7ceee11804bba77f1a7e271276e0d4",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GibbsPositionMoment\n\n/-! Source SPHMC2609.06906v1 Ex8 and only last TWO inequalities4.6.\nLiteral standardized true RGO, not Gaussian gradient output. Produce actual\nnormalization, affine law, C2/curvature/stationarity and genuine L2/moments.\nFirst Gaussian Talagrand/LSI/W2 inequality, bias/MGF/fullLemma4.2, actual\nalgorithms/initialization/main and expected-query-cost composition remain open.\nStatement and source-only topology independently sealed before proof search. -/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher\nopen MeasureTheory InnerProductSpace Set ProbabilityTheory\nopen scoped NNReal\nnoncomputable section\nset_option autoImplicit false\nset_option backward.isDefEq.respectTransparency false\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\nprivate theorem actual_standardized_calculus {V : E → ℝ} (hV : ContDiff ℝ 2 V)\n    (p : E) {η : ℝ} (hη : 0 < η) :\n    let rho := fun u : E => V (p+Real.sqrt η • u)-V p-\n      Real.sqrt η*inner ℝ (gradient V p) u\n    let Q := fun u : E => ‖u‖^2/2+rho u\n    ContDiff ℝ 2 rho ∧ ContDiff ℝ 2 Q ∧\n      gradient rho 0=0 ∧ gradient Q 0=0 ∧\n      (∀ u v, fderiv ℝ (fderiv ℝ rho) u v v =\n        η*fderiv ℝ (fderiv ℝ V) (p+Real.sqrt η • u) v v) ∧\n      ∀ u v, fderiv ℝ (fderiv ℝ Q) u v v =\n        ‖v‖^2+η*fderiv ℝ (fderiv ℝ V) (p+Real.sqrt η • u) v v := by\n  let a := Real.sqrt η\n  let rho := fun u : E => V (p+a • u)-V p-a*inner ℝ (gradient V p) u\n  let Q := fun u : E => ‖u‖^2/2+rho u\n  let L : E →L[ℝ] E := a • ContinuousLinearMap.id ℝ E\n  have hA (u : E) : HasFDerivAt (fun x : E => p+a • x) L u := by\n    convert ((hasFDerivAt_id u).const_smul a).const_add p using 1\n    simp\n  have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)\n  have hVdd : Differentiable ℝ (fderiv ℝ V) :=\n    (hV.fderiv_right (m:=1) (by norm_num)).differentiable_one\n  let B : E →L[ℝ] ℝ := a • innerSL ℝ (gradient V p)\n  have hB (u : E) : HasFDerivAt (fun x : E => a*inner ℝ (gradient V p) x) B u := by\n    exact B.hasFDerivAt\n  have hrd (u : E) : HasFDerivAt rho\n      (a • fderiv ℝ V (p+a • u)-B) u := by\n    have he : (fderiv ℝ V (p+a • u)).comp L = a • fderiv ℝ V (p+a • u) := by\n      ext v\n      simp [L]\n    rw [← he]\n    exact (((hVd (p+a • u)).hasFDerivAt.comp u (hA u)).sub_const (V p)).sub (hB u)\n  have hrfd : fderiv ℝ rho = fun u => a • fderiv ℝ V (p+a • u)-B :=\n    funext (fun u => (hrd u).fderiv)\n  have hrg (u : E) : gradient rho u = a • (gradient V (p+a • u)-gradient V p) := by\n    apply HasGradientAt.gradient\n    rw [hasGradientAt_iff_hasFDerivAt]\n    have he : toDual ℝ E (a • (gradient V (p+a • u)-gradient V p)) =\n        a • fderiv ℝ V (p+a • u)-B := by\n      ext v\n      simp [B,inner_gradient_left,mul_sub]\n    rw [he]\n    exact hrd u\n  have hρ : ContDiff ℝ 2 rho :=\n    ((hV.comp (contDiff_const.add (contDiff_id.const_smul a))).sub contDiff_const).sub\n      (contDiff_const.mul (contDiff_const.inner ℝ contDiff_id))\n  have hQ : ContDiff ℝ 2 Q :=\n    ((contDiff_id.norm_sq (𝕜:=ℝ)).div_const 2).add hρ\n  have hgQ (u : E) : gradient Q u = u+gradient rho u := by\n    apply HasGradientAt.gradient\n    rw [hasGradientAt_iff_hasFDerivAt]\n    have hq : HasFDerivAt (fun x : E => ‖x‖^2/2) (innerSL ℝ u) u := by\n      convert! ((hasFDerivAt_id u).norm_sq).const_mul (1/2 : ℝ) using 1 <;>\n        first | rfl | (funext x; simp only [id_eq]; ring) | (ext v; simp)\n    convert! hq.add ((hρ.differentiable (by norm_num) u).hasGradientAt.hasFDerivAt) using 1\n    simp only [map_add]\n    rfl\n  have hrH (u v : E) : fderiv ℝ (fderiv ℝ rho) u v v =\n      η*fderiv ℝ (fderiv ℝ V) (p+a • u) v v := by\n    rw [hrfd]\n    have hdd : HasFDerivAt (fun x => a • fderiv ℝ V (p+a • x)-B)\n        (a • (fderiv ℝ (fderiv ℝ V) (p+a • u)).comp L) u := by\n      exact (((hVdd (p+a • u)).hasFDerivAt.comp u (hA u)).const_smul a).sub_const B\n    rw [hdd.fderiv]\n    have ha2 : a*a=η := by simpa only [pow_two] using Real.sq_sqrt hη.le\n    simp [L,← mul_assoc,ha2]\n  have hqfd (u : E) : fderiv ℝ Q u = innerSL ℝ u+fderiv ℝ rho u := by\n    have hq : HasFDerivAt (fun x : E => ‖x‖^2/2) (innerSL ℝ u) u := by\n      convert! ((hasFDerivAt_id u).norm_sq).const_mul (1/2 : ℝ) using 1 <;>\n        first | rfl | (funext x; simp only [id_eq]; ring) | (ext v; simp)\n    exact (hq.add ((hρ.differentiable (by norm_num) u).hasFDerivAt)).fderiv\n  have hQH (u v : E) : fderiv ℝ (fderiv ℝ Q) u v v =\n      ‖v‖^2+η*fderiv ℝ (fderiv ℝ V) (p+a • u) v v := by\n    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=\n      {toFun:=fun x=>innerSL ℝ x\n       map_add':=by intros;ext;simp\n       map_smul':=by intros;ext;simp\n       cont:=(innerSL ℝ (E:=E)).continuous}\n    have hρdd : Differentiable ℝ (fderiv ℝ rho) :=\n      (hρ.fderiv_right (m:=1) (by norm_num)).differentiable_one\n    rw [show fderiv ℝ Q=(fun x=>innerSL ℝ x+fderiv ℝ rho x) from funext hqfd]\n    have hdd : HasFDerivAt (fun x => innerSL ℝ x+fderiv ℝ rho x)\n        (J+fderiv ℝ (fderiv ℝ rho) u) u := J.hasFDerivAt.add (hρdd u).hasFDerivAt\n    rw [hdd.fderiv]\n    change inner ℝ v v+fderiv ℝ (fderiv ℝ rho) u v v = _\n    rw [real_inner_self_eq_norm_sq,hrH]\n  change ContDiff ℝ 2 rho ∧ ContDiff ℝ 2 Q ∧ gradient rho 0=0 ∧ gradient Q 0=0 ∧ _\n  refine ⟨hρ,hQ,?_,?_,hrH,hQH⟩\n  · simp [hrg]\n  · simp [hgQ,hrg]\n\nprivate theorem actual_standardized_law [FiniteDimensional ℝ E]\n    [MeasurableSpace E] [BorelSpace E] (V : E → ℝ) {η : ℝ} (hη : 0 < η)\n    (p y : E) (heq : p+η • gradient V p=y)\n    (hiV : Integrable (fun x => Real.exp (-V x)) (volume : Measure E))\n    (hiQ : Integrable (fun u => Real.exp (-(‖u‖^2/2+\n      (V (p+Real.sqrt η • u)-V p-Real.sqrt η*inner ℝ (gradient V p) u))))\n      (volume : Measure E))\n    (hQprob : IsProbabilityMeasure ((volume : Measure E).tilted (fun u =>\n      -(‖u‖^2/2+(V (p+Real.sqrt η • u)-V p-\n        Real.sqrt η*inner ℝ (gradient V p) u))))) :\n    (((volume : Measure E).tilted (fun x => -V x)).tilted\n      (fun x => -‖x-y‖^2/(2*η))).map\n        (fun x => (Real.sqrt η)⁻¹ • (x-p)) =\n      volume.tilted (fun u => -(‖u‖^2/2+\n        (V (p+Real.sqrt η • u)-V p-Real.sqrt η*inner ℝ (gradient V p) u))) := by\n  let a := Real.sqrt η\n  have ha : a ≠ 0 := (Real.sqrt_pos.mpr hη).ne'\n  let W := fun x : E => V x+‖x-y‖^2/(2*η)\n  let Q := fun u : E => ‖u‖^2/2+V (p+a • u)-V p-a*inner ℝ (gradient V p) u\n  let C := V p+‖p-y‖^2/(2*η)\n  have hR : ((volume : Measure E).tilted (fun x => -V x)).tilted\n      (fun x => -‖x-y‖^2/(2*η)) = volume.tilted (fun x => -W x) := by\n    rw [tilted_tilted hiV]\n    congr 1\n    funext x\n    simp only [Pi.add_apply,W]\n    ring\n  have hF (u : E) : W (p+a • u)=Q u+C := by\n    have hpy : p-y=-(η • gradient V p) := by rw [← heq]; abel\n    dsimp only [W,Q,C]\n    rw [show p+a • u-y=(p-y)+a • u by abel,norm_add_sq_real,\n      norm_smul,Real.norm_eq_abs,mul_pow,sq_abs,inner_smul_right]\n    rw [show a^2=η from Real.sq_sqrt hη.le]\n    rw [hpy,inner_neg_left,inner_smul_left]\n    simp only [starRingEnd_apply,star_trivial]\n    field_simp [hη.ne']\n    ring\n  have hmap : (volume.tilted (fun x => -W x)).map (fun x => a⁻¹ • (x-p)) =\n      volume.tilted (fun u => -W (p+a • u)) := by\n    have h := AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs\n      W (-(a⁻¹ • p)) (s:=a⁻¹) (inv_ne_zero ha)\n    convert! h using 1\n    · congr 1\n      funext x\n      simp [sub_eq_add_neg,add_comm]\n    · congr 1\n      funext u\n      simp [inv_inv,smul_add,smul_smul,ha,add_comm]\n  have hconst : volume.tilted (fun u => -Q u-C) =\n      (volume : Measure E).tilted (fun u => -Q u) := by\n    have hQi : Integrable (fun u => Real.exp (-Q u)) (volume : Measure E) := by\n      convert! hiQ using 1\n      funext u\n      congr 1\n      dsimp [Q,a]\n      ring\n    have : IsProbabilityMeasure ((volume : Measure E).tilted (fun u => -Q u)) := by\n      convert! hQprob using 1\n      congr 1\n      funext u\n      dsimp [Q,a]\n      ring\n    rw [show (fun u => -Q u-C)=(fun u => -Q u)+(fun _ => -C) by rfl,\n      ← tilted_tilted hQi]\n    exact tilted_const _ (-C)\n  rw [hR,hmap]\n  simp_rw [hF,neg_add]\n  rw [show (fun u => -Q u+ -C)=(fun u => -Q u-C) by rfl,hconst]\n  congr 1\n  funext u\n  dsimp [Q,a]\n  ring\n\ntheorem standardized_rgo_position_and_fisher\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let Q := fun s u => ‖u‖^2/2+rho s u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      IsProbabilityMeasure mu ∧\n        ∀ s, IsProbabilityMeasure (R s) ∧\n          ContDiff ℝ 2 (rho s) ∧ ContDiff ℝ 2 (Q s) ∧\n          gradient (rho s) 0=0 ∧ gradient (Q s) 0=0 ∧\n          (∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2) ∧\n          (∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n            fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2) ∧\n          r s=(volume : Measure E).tilted (fun u => -Q s u) ∧\n          IsProbabilityMeasure (r s) ∧ MemLp id 2 (r s) ∧\n          Integrable (fun u => ‖u‖^2) (r s) ∧\n          (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E ∧\n          MemLp (gradient (rho s)) 2 (r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*(∫ u, ‖u‖^2 ∂r s) ∧\n          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n            (eta s)^2*Module.finrank ℝ E := by\n  have ha : 0<κ⁻¹ := inv_pos.mpr (lt_of_lt_of_le zero_lt_one hκ)\n  have hiV := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n    ha (hV.differentiable (by norm_num))\n    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x v => (hH x v).1))\n  let mu := (volume : Measure E).tilted (fun x => -V x)\n  have hmu : IsProbabilityMeasure mu := isProbabilityMeasure_tilted hiV\n  have : IsProbabilityMeasure mu := hmu\n  obtain ⟨p,hpm,heq,_hrest⟩ := FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle\n    hκ hV hH heta hy hpos\n  let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n    Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n  let Q := fun s u => ‖u‖^2/2+rho s u\n  let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n  let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n  refine ⟨p,hpm,heq,?_⟩\n  change IsProbabilityMeasure mu ∧ _\n  refine ⟨hmu,?_⟩\n  intro s\n  have hη : 0<eta s := hpos s\n  obtain ⟨hρ,hQ,hρ0,hQ0,hρdd,hQdd⟩ := actual_standardized_calculus hV (p s) (hpos s)\n  have hrhoH : ∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n      fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2 := by\n    intro u v\n    rw [hρdd]\n    constructor\n    · exact mul_nonneg (hpos s).le ((mul_nonneg ha.le (sq_nonneg ‖v‖)).trans (hH _ v).1)\n    · exact mul_le_mul_of_nonneg_left (hH _ v).2 (hpos s).le\n  have hQH : ∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n      fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2 := by\n    intro u v\n    rw [hQdd]\n    constructor\n    · exact le_add_of_nonneg_right (mul_nonneg (hpos s).le ((mul_nonneg ha.le (sq_nonneg ‖v‖)).trans (hH _ v).1))\n    · nlinarith [mul_le_mul_of_nonneg_left (hH (p s+Real.sqrt (eta s) • u) v).2 (hpos s).le]\n  let beta : ℝ≥0 := ⟨1+eta s,by positivity⟩\n  have hβ : (1:ℝ≥0)≤beta := by change 1≤1+eta s; linarith [hpos s]\n  have hHQ : ∀ u v : E, ((1:ℝ≥0):ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n      fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (beta:ℝ)*‖v‖^2 := by\n    change ∀ u v : E, 1*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧\n      fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2\n    simpa only [one_mul] using hQH\n  obtain ⟨hqp,hiq,_hqpos,hip,_hpair,_heqd,hbd⟩ :=\n    GibbsPositionMoment.gibbs_position_moment (by norm_num : (0:ℝ≥0)<1) hβ hQ hHQ (0:E) hQ0\n  have hlaw : r s=(volume : Measure E).tilted (fun u => -Q s u) :=\n    actual_standardized_law V (hpos s) (p s) (y s) (heq s) hiV hiq hqp\n  have hpr : IsProbabilityMeasure (r s) := hlaw.symm ▸ hqp\n  have hipos : Integrable (fun u => ‖u‖^2) (r s) := by\n    rw [hlaw]\n    simpa only [sub_zero] using hip\n  have hbound : (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E := by\n    rw [hlaw]\n    simpa only [sub_zero,NNReal.coe_one,div_one] using hbd\n  have hlp : MemLp id 2 (r s) :=\n    (memLp_two_iff_integrable_sq_norm (by fun_prop)).mpr hipos\n  let b : ℝ≥0 := ⟨eta s,(hpos s).le⟩\n  have hHρ : ∀ u v : E, ((0:ℝ≥0):ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n      fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ (b:ℝ)*‖v‖^2 := by\n    change ∀ u v : E, 0*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧\n      fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2\n    simpa only [zero_mul] using hrhoH\n  have hlip : LipschitzWith b (gradient (rho s)) := by\n    simpa only [NNReal.coe_zero,zero_div,zero_mul,add_zero] using (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r:=0) hρ hHρ (0:E)).2\n  have hpoint (u : E) : ‖gradient (rho s) u‖^2 ≤ (eta s)^2*‖u‖^2 := by\n    have h := hlip.norm_sub_le u 0\n    rw [hρ0,sub_zero,sub_zero] at h\n    have hs := (sq_le_sq₀ (norm_nonneg _) (mul_nonneg (hpos s).le (norm_nonneg u))).mpr h\n    simpa only [mul_pow] using hs\n  have hgcont : Continuous (gradient (rho s)) := hlip.continuous\n  have hif : Integrable (fun u => ‖gradient (rho s) u‖^2) (r s) := by\n    apply (hipos.const_mul ((eta s)^2)).mono' (by fun_prop)\n    filter_upwards with u\n    rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _)]\n    exact hpoint u\n  have hlf : MemLp (gradient (rho s)) 2 (r s) :=\n    (memLp_two_iff_integrable_sq_norm hgcont.aestronglyMeasurable).mpr hif\n  have hfp : (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤\n      (eta s)^2*(∫ u, ‖u‖^2 ∂r s) := by\n    rw [← integral_const_mul]\n    exact integral_mono hif (hipos.const_mul ((eta s)^2)) hpoint\n  have hfd : (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤ (eta s)^2*Module.finrank ℝ E :=\n    hfp.trans (mul_le_mul_of_nonneg_left hbound (sq_nonneg _))\n  have hiR : Integrable (fun x => Real.exp (-‖x-y s‖^2/(2*eta s))) mu := by\n    apply (integrable_const (1:ℝ)).mono' (by fun_prop)\n    filter_upwards with x\n    rw [Real.norm_eq_abs,abs_of_nonneg (Real.exp_pos _).le]\n    apply Real.exp_le_one_iff.mpr\n    exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity)\n  have hRp : IsProbabilityMeasure (R s) := isProbabilityMeasure_tilted hiR\n  exact ⟨hRp,hρ,hQ,hρ0,hQ0,hrhoH,hQH,hlaw,hpr,hlp,hipos,hbound,hlf,hfp,hfd⟩\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.Ex8",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "SPHMC arXiv2609.06906v1 S3.SS1.p1.1 eta>0, S2.E1/S3.E2/S4.Ex3 proximal and Gaussian evaluator, S4.E4/E5, Ex8/p4.1/p4.2/p4.3/E6 only lastTWO comparisons. NeighborLemma4.1 eta<=1 excluded; numericaleta<=1/(2beta) cost separate.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; Ex8/p4.2/p4.3 and only last TWO4.6 comparisons."
+    },
+    "statement": "Produce one measurable exact proximal selector p satisfying p+eta*gradientV(p)=y. For literal rho(u)=V(p+sqrteta*u)-V(p)-sqrteta*inner(gradientV(p),u) and Q=normu^2/2+rho, produce C2, mode0, 0<=Hessrho<=etaI and I<=HessQ<=(1+eta)I. The actual RGO R=mu.tilted(-norm(x-y)^2/(2eta)) is a probability measure, and its actual standardized pushforward r equals volume.tilted(-Q). Genuine position and rho-gradient L2 satisfy integral normu^2 dr<=d and integral normgradrho^2 dr<=eta^2 integral normu^2 dr<=eta^2 d. Only the last TWO comparisons of(4.6) are covered; the first W2 comparison is open.",
+    "formulae": [
+      {
+        "label": "Actual standardized RGO position and Fisher",
+        "tex": "r=(x\\mapsto (x-p)/\\sqrt\\eta)_\\#R=Z_Q^{-1}e^{-Q(u)}du,\\quad\\int\\|\\nabla\\rho\\|^2dr\\le\\eta^2\\int\\|u\\|^2dr\\le\\eta^2d."
+      }
+    ],
+    "assumptions": [
+      "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2<=D2V(x)[v,v]<=normv^2 for every x,v.",
+      "Finite real complete Hilbert/Borel full space E, including dimension zero, and arbitrary measurable parameter space S; measurable eta/y with everyeta(s)>0. These coordinate-free and parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.",
+      "No supplied proximal point, law identity, normalizer, probability, curvature, gradient or moment certificate. Actual p, mu/R/r probability, normalized affine law, C2 curvature/mode and genuine position/Fisher L2 are internally produced. The numerical-prox eta<=1/(2beta) cap is a separate computational contract."
+    ],
+    "obligations": [
+      {
+        "id": "true-standardized-position-fisher",
+        "label": "True standardized RGO and last TWO4.6 comparisons"
+      },
+      {
+        "id": "gaussian-w2-bias",
+        "label": "First W2 comparison, bias/MGF and full Lemma4.2 remaining"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expected-query-cost composition remaining"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+      "title": "Allpositive-step true standardized RGO position and Fisher",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.Ex8",
+          "label": "SPHMC Ex8/p4.2/p4.3 and scoped4.6; affine prerequisite",
+          "scope": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.StandardizedRGOPositionFisher"
+      ],
+      "assumptions": [
+        "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2<=D2V(x)[v,v]<=normv^2 for every x,v.",
+        "Finite real complete Hilbert/Borel full space E, including dimension zero, and arbitrary measurable parameter space S; measurable eta/y with everyeta(s)>0. These coordinate-free and parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.",
+        "No supplied proximal point, law identity, normalizer, probability, curvature, gradient or moment certificate. Actual p, mu/R/r probability, normalized affine law, C2 curvature/mode and genuine position/Fisher L2 are internally produced. The numerical-prox eta<=1/(2beta) cap is a separate computational contract."
+      ],
+      "statement": "Produce one measurable exact proximal selector p satisfying p+eta*gradientV(p)=y. For literal rho(u)=V(p+sqrteta*u)-V(p)-sqrteta*inner(gradientV(p),u) and Q=normu^2/2+rho, produce C2, mode0, 0<=Hessrho<=etaI and I<=HessQ<=(1+eta)I. The actual RGO R=mu.tilted(-norm(x-y)^2/(2eta)) is a probability measure, and its actual standardized pushforward r equals volume.tilted(-Q). Genuine position and rho-gradient L2 satisfy integral normu^2 dr<=d and integral normgradrho^2 dr<=eta^2 integral normu^2 dr<=eta^2 d. Only the last TWO comparisons of(4.6) are covered; the first W2 comparison is open.",
+      "formula": "r=(x\\mapsto (x-p)/\\sqrt\\eta)_\\#R=Z_Q^{-1}e^{-Q(u)}du,\\quad\\int\\|\\nabla\\rho\\|^2dr\\le\\eta^2\\int\\|u\\|^2dr\\le\\eta^2d.",
+      "steps": [
+        {
+          "title": "Produce the true proximal point and base law",
+          "text": "Positive source curvature gives actual base Gibbs integrability and probability. Reuse the allpositive measurable proximal construction from the original potential, preserving p+eta*gradientV(p)=y. No selector, normalizer, probability or estimate is supplied.",
+          "formula": "\\mu=Z_V^{-1}e^{-V}dx,\\quad p_s+\\eta_s\\nabla V(p_s)=y_s.",
+          "lean": "StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn; HessianStrongConvexity; FullRangeProximalGaussianOracle"
+        },
+        {
+          "title": "Differentiate the literal standardized potential",
+          "text": "Apply genuine affine chain rules and the real Hilbert Riesz gradient to the literal rho and Q. The linear term cancels the gradient at zero; the quadratic term contributes the identity Hessian.",
+          "formula": "\\nabla\\rho(u)=\\sqrt\\eta[\\nabla V(p+\\sqrt\\eta u)-\\nabla V(p)],\\quad D^2\\rho=\\eta D^2V,\\quad D^2Q=I+\\eta D^2V.",
+          "lean": "actual_standardized_calculus; HasFDerivAt.comp; inner_gradient_left; HasFDerivAt.norm_sq"
+        },
+        {
+          "title": "Derive actual curvature and the mode",
+          "text": "Retained source curvature and positive eta give 0<=Hessrho<=etaI and I<=HessQ<=(1+eta)I, with both real gradients zero at zero. C2 is produced from V; none of these estimates is supplied.",
+          "formula": "\\nabla\\rho(0)=\\nabla Q(0)=0,\\quad 0\\preceq D^2\\rho\\preceq\\eta I,\\quad I\\preceq D^2Q\\preceq(1+\\eta)I.",
+          "lean": "actual_standardized_calculus; hH; mul_le_mul_of_nonneg_left"
+        },
+        {
+          "title": "Produce genuine Q normalization and the position moment",
+          "text": "Apply the accepted noncompact Gibbs position-moment producer to the actual Q with alpha1,beta1+eta and mode0. Its actual weighted IBP proves the required ordinary-volume L1 product integrability and applies full-space Fubini/IBP, without a cutoff assumption or construction, yielding positive partition, probability and positionL2. The current source theorem assumes no IBP or moment certificate.",
+          "formula": "\\int\\langle u,\\nabla Q(u)\\rangle dr=d,\\quad\\int\\|u\\|^2dr\\le d.",
+          "lean": "GibbsPositionMoment.gibbs_position_moment; memLp_two_iff_integrable_sq_norm"
+        },
+        {
+          "title": "Identify the literal true RGO law",
+          "text": "Combine the actual two tilts into W=V+norm(x-y)^2/(2eta). Exact proximal optimality gives W(p+sqrteta*u)=Q(u)+C, with C=V(p)+norm(p-y)^2/(2eta). Apply canonical affine transport, then cancel C using the internally produced Q probability and integrability. The true RGO weight is bounded by1 under probability mu, so R is independently a probability measure.",
+          "formula": "W(p+\\sqrt\\eta u)=Q(u)+C,\\quad r=(x\\mapsto(x-p)/\\sqrt\\eta)_\\#R=Z_Q^{-1}e^{-Q}du.",
+          "lean": "actual_standardized_law; AffineGibbs.map_affine_gibbs; tilted_tilted; tilted_const; isProbabilityMeasure_tilted"
+        },
+        {
+          "title": "Prove the pointwise gradient comparison",
+          "text": "The actual C2 curvature theorem supplies eta-Lipschitz gradientrho. Its mode0 gives normgradrho(u)<=eta*normu; squaring keeps exactly eta^2. This is a real derivative estimate, not a gradient-output law certificate.",
+          "formula": "\\|\\nabla\\rho(u)\\|^2\\le\\eta^2\\|u\\|^2.",
+          "lean": "QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic; LipschitzWith.norm_sub_le"
+        },
+        {
+          "title": "Integrate under the actual standardized posterior",
+          "text": "Domination by the genuine position-square integrable function proves rho-gradient L2. Integral monotonicity and the genuine dimension bound give the last TWO comparisons of4.6 in squared form. No Talagrand/LSI/W2 estimate follows without its separate dependency.",
+          "formula": "\\int\\|\\nabla\\rho\\|^2dr\\le\\eta^2\\int\\|u\\|^2dr\\le\\eta^2d.",
+          "lean": "Integrable.mono'; integral_mono; integral_const_mul; memLp_two_iff_integrable_sq_norm"
+        }
+      ],
+      "lean_statement": "Produce one measurable exact proximal selector p satisfying p+eta*gradientV(p)=y. For literal rho(u)=V(p+sqrteta*u)-V(p)-sqrteta*inner(gradientV(p),u) and Q=normu^2/2+rho, produce C2, mode0, 0<=Hessrho<=etaI and I<=HessQ<=(1+eta)I. The actual RGO R=mu.tilted(-norm(x-y)^2/(2eta)) is a probability measure, and its actual standardized pushforward r equals volume.tilted(-Q). Genuine position and rho-gradient L2 satisfy integral normu^2 dr<=d and integral normgradrho^2 dr<=eta^2 integral normu^2 dr<=eta^2 d. Only the last TWO comparisons of(4.6) are covered; the first W2 comparison is open.",
+      "lean_proof": "Produce the true proximal point and base law; Differentiate the literal standardized potential; Derive actual curvature and the mode; Produce genuine Q normalization and the position moment; Identify the literal true RGO law; Prove the pointwise gradient comparison; Integrate under the actual standardized posterior",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GibbsPositionMoment.gibbs_position_moment",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs"
+      ],
+      "mathlib_dependencies": [
+        "tilted_tilted",
+        "tilted_const",
+        "isProbabilityMeasure_tilted",
+        "HasFDerivAt.comp",
+        "HasFDerivAt.norm_sq",
+        "inner_gradient_left",
+        "integral_mono",
+        "integral_const_mul",
+        "memLp_two_iff_integrable_sq_norm"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+      "role": "proof-edge",
+      "supports": [
+        "true-standardized-position-fisher"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean source true RGO standardization and normalized density; standing beta1/alphakappainv.",
+        "lean": "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2<=D2V(x)[v,v]<=normv^2 for every x,v.\nFinite real complete Hilbert/Borel full space E, including dimension zero, and arbitrary measurable parameter space S; measurable eta/y with everyeta(s)>0. These coordinate-free and parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.\nNo supplied proximal point, law identity, normalizer, probability, curvature, gradient or moment certificate. Actual p, mu/R/r probability, normalized affine law, C2 curvature/mode and genuine position/Fisher L2 are internally produced. The numerical-prox eta<=1/(2beta) cap is a separate computational contract."
+      },
+      {
+        "source": "Printed density proportionality and position IBP omit full normalization/regularity details.",
+        "lean": "Produce one measurable exact proximal selector p satisfying p+eta*gradientV(p)=y. For literal rho(u)=V(p+sqrteta*u)-V(p)-sqrteta*inner(gradientV(p),u) and Q=normu^2/2+rho, produce C2, mode0, 0<=Hessrho<=etaI and I<=HessQ<=(1+eta)I. The actual RGO R=mu.tilted(-norm(x-y)^2/(2eta)) is a probability measure, and its actual standardized pushforward r equals volume.tilted(-Q). Genuine position and rho-gradient L2 satisfy integral normu^2 dr<=d and integral normgradrho^2 dr<=eta^2 integral normu^2 dr<=eta^2 d. Only the last TWO comparisons of(4.6) are covered; the first W2 comparison is open."
+      },
+      {
+        "source": "First W2 comparison4.6, bias/MGF/fullLemma4.2, higher/Picard/Wp/warmness, main results and expected query costs.",
+        "lean": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost."
+      },
+      {
+        "source": "Section3.1 eta>0 and Lemma4.2 have no upper eta bound; neighboring Lemma4.1 alone requires eta<=1.",
+        "lean": "All eta(s)>0, with no hsmall cap; every other sealed binder and output is unchanged."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E and S be types. E has a normed additive commutative group structure, a real inner product space structure, is complete and finite dimensional over the reals, and has a measurable space structure equal to its Borel structure; S has an arbitrary measurable space structure. Let V:E→R and κ∈R. Assume κ≥1, V is twice continuously Frechet differentiable over R, and for every x,v∈E, κ^{-1}||v||^2 ≤ D(DV)(x)[v][v] ≤ ||v||^2. Let eta:S→R and y:S→E be measurable, with eta(s)>0 for every s∈S.\nThere exists one measurable p:S→E satisfying p(s)+eta(s)∇V(p(s))=y(s) for every s∈S. For this p define, for s∈S and u∈E, rho(s,u)=V(p(s)+sqrt(eta(s))u)-V(p(s))-sqrt(eta(s))<∇V(p(s)),u>_R and Q(s,u)=||u||^2/2+rho(s,u). Define mu=volume.tilted(x↦-V(x)), R(s)=mu.tilted(x↦-||x-y(s)||^2/(2 eta(s))), and r(s) as the pushforward of R(s) under x↦sqrt(eta(s))^{-1}(x-p(s)), where real-vector multiplication is scalar multiplication. For a measure nu and real function f, nu.tilted(f) literally means nu.withDensity(x↦ENNReal.ofReal(exp(f(x))/(∫exp(f)dnu))); the real Bochner normalization is totalized if integrability fails.\nThe measure mu is a probability measure. Moreover, for every s∈S, all the following hold simultaneously: R(s) is a probability measure; rho(s,·) and Q(s,·) are twice continuously Frechet differentiable over R; ∇rho(s,·)(0)=0 and ∇Q(s,·)(0)=0; for every u,v∈E, 0≤D(D(rho(s,·)))(u)[v][v]≤eta(s)||v||^2; for every u,v∈E, ||v||^2≤D(D(Q(s,·)))(u)[v][v]≤(1+eta(s))||v||^2; r(s)=volume.tilted(u↦-Q(s,u)); r(s) is a probability measure; the identity map on E belongs to L2(r(s)); u↦||u||^2 is integrable with respect to r(s); ∫||u||^2 dr(s)≤dim_R(E); the function u↦∇rho(s,·)(u) belongs to L2(r(s)); ∫||∇rho(s,·)(u)||^2 dr(s)≤eta(s)^2∫||u||^2 dr(s); and ∫||∇rho(s,·)(u)||^2 dr(s)≤eta(s)^2 dim_R(E).\nHere volume is the finite real Hilbert Lebesgue/Haar measure, dim_R(E) is the actual real finite dimension interpreted as a real number in the inequalities, and all Hessians and gradients are actual Frechet/Riesz objects. Membership in L2 includes almost-everywhere strong measurability and finiteness of the L2 norm. Every point and direction quantified above ranges over all E. The construction uses a single p; mu's probability assertion precedes the universal quantifier over s. There is no eta upper bound, no nonzero-dimension assumption, no asserted uniqueness of p, and no conclusion of joint measurability of s↦R(s) or s↦r(s). R(s) is the literal conditional Gibbs tilt and r(s) its centered and sqrt(eta(s))-standardized law. Equality to a tilted measure is accompanied by separate probability assertions; it is not itself interpreted as establishing probability.",
+    "text_sha256": "eacfade709ea999aa995b3e7ed676b63d2187a28bdc15bb9bbe72d130cc7ffd9",
+    "decoder": "/root/blind_statement_decoder_28; independent source-blind mathematical statement decoder",
+    "decoder_run_sha256": "db8561169f11d360e38c9f98942b333550fd12efe35f106dcabc12fe80925d86",
+    "decoder_packet_sha256": "15206cfb245868aa61178b9e1d47098c56737208514e8983d065a26730d9b603",
+    "source_text_visible": false,
+    "lean_statement_sha256": "0e8b91543f6056c1d0a4804d029de36ba474b3e7c2bc3091308d67ed7440a828",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261007-companion-priority/anonymous-decoder-28/result1.json",
+    "observed_input_artifacts": [
+      {
+        "path": "E:\\Samplinglib\\.astis\\decoder-28\\packet1.json",
+        "kind": "anonymous-canonical-packet",
+        "raw_sha256": "9d3a45d335f22ece6e0aa629a7bf617792575ebe9bb3524a4af953d8ce483e3a",
+        "lf_sha256": "6cd825bbcf7a8e145ff407c3d3c28427768844b5e51a4dc08006a72fd9000fa0",
+        "sha256": "9d3a45d335f22ece6e0aa629a7bf617792575ebe9bb3524a4af953d8ce483e3a",
+        "immutable_raw_snapshot": {
+          "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet1.raw.snapshot.json",
+          "raw_sha256": "9d3a45d335f22ece6e0aa629a7bf617792575ebe9bb3524a4af953d8ce483e3a",
+          "lf_sha256": "6cd825bbcf7a8e145ff407c3d3c28427768844b5e51a4dc08006a72fd9000fa0",
+          "bytes": 4606
+        },
+        "immutable_raw_snapshot_path": "runs/20261007-companion-priority/anonymous-decoder-28/packet1.raw.snapshot.json",
+        "immutable_raw_snapshot_raw_sha256": "9d3a45d335f22ece6e0aa629a7bf617792575ebe9bb3524a4af953d8ce483e3a",
+        "immutable_raw_snapshot_lf_sha256": "6cd825bbcf7a8e145ff407c3d3c28427768844b5e51a4dc08006a72fd9000fa0",
+        "immutable_raw_snapshot_bytes": 4606
+      }
+    ],
+    "administrative_schema_projection": "Canonical materials labels come verbatim from the same originally observed anonymous packet; actual byte-observation descriptors and portable independent decoder results remain separately preserved. No mathematical reconstruction, decoder identity/run/statement/source visibility changed."
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "True unreflected RGO R_eta,y and standardized r_y; literal rho_y and Q=||u||²/2+rho_y.",
+      "reconstructed": "Actual mu=volume.tilted(-V), R=mu.tilted(-penalty), r=R.map((x-p)/sqrteta); literal rho/Q genuineC2.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source Ex8/p4.1/p4.2; actual calculus/law private proofs and decoder1."
+    },
+    "domains": {
+      "original": "Source R^d, ordinary Lebesgue Gibbs probability and actual posterior expectations.",
+      "reconstructed": "Finite real complete Hilbert/Borel including0D and measurable parameter S; actual posterior differs from Gaussian gradient-output and PBPS reflection.",
+      "relation": "explicit-elaboration",
+      "evidence": "Real volume Haar adapter; both completeTests distinguish moments1/2 vs1 at eta1 and posterior vs output at eta2."
+    },
+    "quantifiers": {
+      "original": "Every eta>0,y, all u,v with same actual prox before standardized conclusions.",
+      "reconstructed": "One measurable p before all s; actual mu probability before all s includingemptyS; every posterior probability/curvature/moment output simultaneous.",
+      "relation": "equivalent",
+      "evidence": "No eta upper bound, no supplied posterior witness, no jointposterior Markov/measurable-family conclusion, no uniqueness claim added to this signature."
+    },
+    "assumptions": {
+      "original": "Standing beta1/kappa^-1 genuine global C2 bounds and eta>0 only for this source slice.",
+      "reconstructed": "Exactly these plus finite Hilbert/Borel/measurable-family typing. Base/Q/R partitions, probability, mode, genuineL2 and IBP are produced internally.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source omission is discharged by actualGibbs integrability, full-space ordinaryL1/FubiniIBP and signed affine measure parent, not public certificates."
+    },
+    "conclusion": {
+      "original": "Last TWO (4.6): sqrtA<=eta sqrtB<=eta sqrtd, true standardized law/curvature and mode.",
+      "reconstructed": "Actual r=volume.tilted(-Q), rhoH0..eta and QH1..1+eta/mode0; L2 id/grad rho; B<=d and A<=eta²B<=eta²d.",
+      "relation": "explicit-elaboration",
+      "evidence": "All309 lines/2 private proofs and7 reader steps checked; actual finite nonnegative integrals make squared comparisons equivalent to printed square-root comparisons."
+    },
+    "scopes": {
+      "original": "Only normalized standardized posterior and last TWO4.6, firstW2 uses separate Talagrand/LSI.",
+      "reconstructed": "No FIRSTW2/LSI/T2, bias/MGF/fullLemma/main/work or jointposterior Markov-family result.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source p4.3 FIRST comparison explicitly excluded; source numerical cap/neighboranalytic cap independent; no TV-to-unbounded-cost transfer."
+    },
+    "constant_dependencies": {
+      "original": "Scale1/sqrteta and posterior precision1/(2eta); source rhoH<=etaI and strongQ1.",
+      "reconstructed": "True signed affine Jacobian eta-dependent factor cancels; actual base/Q constants cancel using genuineprobability; exact coefficients eta²,d.",
+      "relation": "equivalent",
+      "evidence": "Explicit p equation cancels linear terms, Q curvature1..1+eta, position IBP normalization once and integral_mono actualL1."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration"
+}

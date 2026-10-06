@@ -1,0 +1,178 @@
+{
+  "id": "ASTIS-RT-20261007-AffineGibbsReaderRange",
+  "state": "blind-reconstructed",
+  "source": {
+    "source_id": "companion:affine-gibbs",
+    "anchor": "SPHMC arXiv:2609.06906v1 standingS1.E1/S2.p1.1, true RGO densityS2.Ex1, actualprox S2.E1/S4.Ex3/S4.SS1.p4.1, literalrho S4.Ex8, trueaffine law/rhocurvature S4.SS1.p4.2, scoped mode/Lip/IBP S4.SS1.p4.3 and only lastTWO4.6 inequalities S4.E6; FIRSTW2/TalagrandLSI and numericalcap/work excluded.",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.Ex8",
+    "original_text": "Exact source component with explicit truth boundary:\nFinite real Hilbert/Borel full space E, including dimension zero; any function F:E->R, any translation p:E and a real scale s!=0.\nNo continuity, measurability of F, exponential integrability, probability or moment premise. Equality is of Mathlib totalized normalized tilted measures; probability is a separate obligation for every consumer.\nThe actual pushforward of the normalized Lebesgue Gibbs tilt under x->p+s*x is the normalized Lebesgue tilt with inverse-affine potential x->F(s^-1*(x-p)). The nonzero actual Lebesgue Jacobian cancels between partition and set numerator. This canonical identity alone makes no probability assertion.\nCanonical signed affine identity for arbitrary F and nonzero scale, no eta/curvature/probability/integrability premise. The current actual SPHMC consumer separately produces allpositiveeta true posterior normalization and lastTWO4.6 moments. FIRSTW2/bias/MGF/fullLemma/main/work/composition remainOPEN; generic map identity itself is no probability assertion.",
+    "text_sha256": "032094c129d3f616d7766547cd81db638c52940375a922f7541849e8c684155a"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/AffineGibbs.lean",
+    "statement": "(F : E → ℝ) (p : E) {s : ℝ} (hs : s ≠ 0) :\n    Measure.map (fun x : E => p+s • x)\n      ((volume : Measure E).tilted (fun x => -F x)) =\n      volume.tilted (fun x => -F (s⁻¹ • (x-p)))",
+    "statement_sha256": "c238a3b9f8b21b49791baecedd98440dec90689fbdb590c29c9a7f159712f3db",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "Measure.tilted mu f is mu.withDensity(x->ENNReal.ofReal(exp(f x)/(integral exp(f) dmu))). Bochner integral normalization is totalized when exponential integrability fails. Equality alone is not probability. IsProbabilityMeasure nu means nu(univ)=1.",
+      "Measure.map is the genuine measurable pushforward. volume is real finite-Hilbert Lebesgue/Haar measure. Real scaling uses vector smul; finrank is the actual real dimension and may be0.",
+      "ContDiff R2 and fderiv are actual twice continuous Frechet calculus. gradient f x=(InnerProductSpace.toDual R E).symm(fderiv R f x), the true real Hilbert Riesz gradient. MemLp id2r and MemLp gradientrho2r are genuine AE strong measurability and finite L2 norms.",
+      "All potentials and mu/R/r are literal let bodies of the public signature. The affine identity has any F/nonzero real scale; the source theorem has actual positive-curvature V and internally produces probability, moments and gradients. No estimate-certificate aliases occur.",
+      "R is the literal conditional Gibbs RGO tilt and r is its centered/sqrteta standardized pushforward. Neither is the earlier Gaussian gradient-output law nor HMC K/Khat/Kbar. Joint measurability of the posterior measure-valued family is not a conclusion.",
+      "Exact ambient binders from the canonical declaration section: {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]. There is no CompleteSpace, Nontrivial, probability, integrability or regularity binder. These ambient binders precede the explicit F,p,s,hs signature; F is an arbitrary function."
+    ],
+    "compiler_evidence": "Actual focused3729 PASS/standard3. Two sourceAnchors preproof statement/topology independentlysealed before API/proofsearch. Generic54line affine proof unchanged; consumer-range prose only, no new proof credit."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "8d6777b68fd429443ba177d626d03bbc045fe0a80ce773e352cf4fa72f4a16cd",
+  "publication_context": {
+    "file": "8847b628e189fb29a41b99448389aa1976ebf88d013e4ccd223c38bc8cddb9b4",
+    "current_lean_module": "import Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.MeasureTheory.Measure.Haar.NormedSpace\nimport Mathlib.MeasureTheory.Group.Integral\nimport Mathlib.Tactic\n\n/-! A literal affine change of variables for normalized Lebesgue tilts.\nThe true Jacobian cancels between the partition and set numerator. This is\nan identity of Mathlib tilted measures, not a probability assertion: applications\nmust produce actual finite positive partitions separately. Dimension zero is\nallowed. The scaling-only private route in NormalizedReferenceCall was searched;\nthis canonical leaf adds arbitrary translations and nonzero real scales. -/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs\nopen MeasureTheory Set\nnoncomputable section\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- Actual affine pushforward, with its inverse potential and Jacobian canceled.\nNo regularity, integrability, probability or moment certificate is assumed. -/\ntheorem map_affine_gibbs (F : E → ℝ) (p : E) {s : ℝ} (hs : s ≠ 0) :\n    Measure.map (fun x : E => p+s • x)\n      ((volume : Measure E).tilted (fun x => -F x)) =\n      volume.tilted (fun x => -F (s⁻¹ • (x-p))) := by\n  let T := fun x : E => p+s • x\n  let H := fun x : E => s⁻¹ • (x-p)\n  let J : ℝ := |(s^Module.finrank ℝ E)⁻¹|\n  have hJ : J ≠ 0 := abs_ne_zero.mpr (inv_ne_zero (pow_ne_zero _ hs))\n  have hm : Measurable T := by dsimp [T]; fun_prop\n  have hHT (x : E) : H (T x) = x := by simp [H,T,smul_smul,hs]\n  have change_variables (f : E → ℝ) : (∫ x, f (T x)) = J*(∫ x, f x) := by\n    have h := Measure.integral_comp_smul (volume : Measure E) (fun x => f (p+x)) s\n    simpa only [integral_add_left_eq_self,smul_eq_mul,T,J] using h\n  have hZ : (∫ x, Real.exp (-F x)) = J*(∫ x, Real.exp (-F (H x))) := by\n    simpa only [hHT] using change_variables (fun x => Real.exp (-F (H x)))\n  ext B hB\n  rw [Measure.map_apply hm hB,tilted_apply_eq_ofReal_integral' _ (hB.preimage hm),\n    tilted_apply_eq_ofReal_integral' _ hB]\n  congr 1\n  rw [integral_div,integral_div]\n  have hI : (∫ x in T ⁻¹' B, Real.exp (-F x)) =\n      J*(∫ x in B, Real.exp (-F (H x))) := by\n    have h := change_variables (B.indicator (fun x => Real.exp (-F (H x))))\n    have he : (fun x => B.indicator (fun y => Real.exp (-F (H y))) (T x)) =\n        (T ⁻¹' B).indicator (fun x => Real.exp (-F x)) := by\n      funext x\n      by_cases hx : T x ∈ B <;> simp [Set.indicator,hx,hHT]\n    rw [he,integral_indicator (hB.preimage hm),integral_indicator hB] at h\n    exact h\n  rw [hI,hZ]\n  exact mul_div_mul_left _ _ hJ\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.Ex8",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "SPHMC arXiv:2609.06906v1 standingS1.E1/S2.p1.1, true RGO densityS2.Ex1, actualprox S2.E1/S4.Ex3/S4.SS1.p4.1, literalrho S4.Ex8, trueaffine law/rhocurvature S4.SS1.p4.2, scoped mode/Lip/IBP S4.SS1.p4.3 and only lastTWO4.6 inequalities S4.E6; FIRSTW2/TalagrandLSI and numericalcap/work excluded.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; canonical affine prerequisite."
+    },
+    "statement": "The actual pushforward of the normalized Lebesgue Gibbs tilt under x->p+s*x is the normalized Lebesgue tilt with inverse-affine potential x->F(s^-1*(x-p)). The nonzero actual Lebesgue Jacobian cancels between partition and set numerator. This canonical identity alone makes no probability assertion.",
+    "formulae": [
+      {
+        "label": "Actual affine normalized Gibbs transport",
+        "tex": "T(x)=p+sx,\\quad H(x)=s^{-1}(x-p),\\quad T_\\#(Z_F^{-1}e^{-F}dx)=Z_{F\\circ H}^{-1}e^{-F\\circ H}dx."
+      }
+    ],
+    "assumptions": [
+      "Finite real Hilbert/Borel full space E, including dimension zero; any function F:E->R, any translation p:E and a real scale s!=0.",
+      "No continuity, measurability of F, exponential integrability, probability or moment premise. Equality is of Mathlib totalized normalized tilted measures; probability is a separate obligation for every consumer."
+    ],
+    "obligations": [
+      {
+        "id": "true-standardized-position-fisher",
+        "label": "True standardized RGO and last TWO4.6 comparisons"
+      },
+      {
+        "id": "gaussian-w2-bias",
+        "label": "First W2 comparison, bias/MGF and full Lemma4.2 remaining"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expected-query-cost composition remaining"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs",
+      "title": "Actual affine normalized Gibbs transport",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.Ex8",
+          "label": "SPHMC Ex8/p4.2/p4.3 and scoped4.6; affine prerequisite",
+          "scope": "Canonical signed affine identity for arbitrary F and nonzero scale, no eta/curvature/probability/integrability premise. The current actual SPHMC consumer separately produces allpositiveeta true posterior normalization and lastTWO4.6 moments. FIRSTW2/bias/MGF/fullLemma/main/work/composition remainOPEN; generic map identity itself is no probability assertion."
+        }
+      ],
+      "tests": [
+        "lake build Tests.StandardizedRGOPositionFisher"
+      ],
+      "assumptions": [
+        "Finite real Hilbert/Borel full space E, including dimension zero; any function F:E->R, any translation p:E and a real scale s!=0.",
+        "No continuity, measurability of F, exponential integrability, probability or moment premise. Equality is of Mathlib totalized normalized tilted measures; probability is a separate obligation for every consumer."
+      ],
+      "statement": "The actual pushforward of the normalized Lebesgue Gibbs tilt under x->p+s*x is the normalized Lebesgue tilt with inverse-affine potential x->F(s^-1*(x-p)). The nonzero actual Lebesgue Jacobian cancels between partition and set numerator. This canonical identity alone makes no probability assertion.",
+      "formula": "T(x)=p+sx,\\quad H(x)=s^{-1}(x-p),\\quad T_\\#(Z_F^{-1}e^{-F}dx)=Z_{F\\circ H}^{-1}e^{-F\\circ H}dx.",
+      "steps": [
+        {
+          "title": "Fix the true affine inverse",
+          "text": "Use T(x)=p+s*x and H(x)=s^-1*(x-p). Nonzero s gives H(T(x))=x and a measurable forward map, even for negative scales or zero dimension.",
+          "formula": "H(T(x))=x,\\quad J=|s^{-d}|\\ne0.",
+          "lean": "map_affine_gibbs; Measurable.smul; smul_smul"
+        },
+        {
+          "title": "Transform the actual Lebesgue integrals",
+          "text": "The canonical Haar scalar and translation change of variables applies to actual Bochner integrals. Apply it to exp(-F o H) and to its measurable-set indicator. Both the original partition and set numerator acquire the same real factor J; no moment or integrability estimate is assumed.",
+          "formula": "Z_F=JZ_{F\\circ H},\\quad\\int_{T^{-1}B}e^{-F}dx=J\\int_Be^{-F\\circ H}dx.",
+          "lean": "Measure.integral_comp_smul; integral_add_left_eq_self; integral_indicator"
+        },
+        {
+          "title": "Cancel the Jacobian in the normalized law",
+          "text": "Use map_apply on the measurable affine map and tilted_apply_eq_ofReal_integral on each measurable set. J!=0 cancels in the numerator/partition ratio. Mathlib totalizes improper integrals; this identity does not certify probability. The source consumer below derives positive integrability internally.",
+          "formula": "\\frac{J\\int_Be^{-F\\circ H}}{JZ_{F\\circ H}}=\\frac{\\int_Be^{-F\\circ H}}{Z_{F\\circ H}}.",
+          "lean": "Measure.map_apply; tilted_apply_eq_ofReal_integral'; integral_div; mul_div_mul_left"
+        }
+      ],
+      "lean_statement": "The actual pushforward of the normalized Lebesgue Gibbs tilt under x->p+s*x is the normalized Lebesgue tilt with inverse-affine potential x->F(s^-1*(x-p)). The nonzero actual Lebesgue Jacobian cancels between partition and set numerator. This canonical identity alone makes no probability assertion.",
+      "lean_proof": "Fix the true affine inverse; Transform the actual Lebesgue integrals; Cancel the Jacobian in the normalized law",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Measure.integral_comp_smul",
+        "integral_add_left_eq_self",
+        "integral_indicator",
+        "Measure.map_apply",
+        "tilted_apply_eq_ofReal_integral'",
+        "mul_div_mul_left"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs",
+      "role": "prerequisite",
+      "supports": [
+        "true-standardized-position-fisher"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean source true RGO standardization and normalized density; standing beta1/alphakappainv.",
+        "lean": "Finite real Hilbert/Borel full space E, including dimension zero; any function F:E->R, any translation p:E and a real scale s!=0.\nNo continuity, measurability of F, exponential integrability, probability or moment premise. Equality is of Mathlib totalized normalized tilted measures; probability is a separate obligation for every consumer."
+      },
+      {
+        "source": "Printed density proportionality and position IBP omit full normalization/regularity details.",
+        "lean": "The actual pushforward of the normalized Lebesgue Gibbs tilt under x->p+s*x is the normalized Lebesgue tilt with inverse-affine potential x->F(s^-1*(x-p)). The nonzero actual Lebesgue Jacobian cancels between partition and set numerator. This canonical identity alone makes no probability assertion."
+      },
+      {
+        "source": "First W2 comparison4.6, bias/MGF/fullLemma4.2, higher/Picard/Wp/warmness, main results and expected query costs.",
+        "lean": "Canonical signed affine identity for arbitrary F and nonzero scale, no eta/curvature/probability/integrability premise. The current actual SPHMC consumer separately produces allpositiveeta true posterior normalization and lastTWO4.6 moments. FIRSTW2/bias/MGF/fullLemma/main/work/composition remainOPEN; generic map identity itself is no probability assertion."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be a type with a normed additive commutative group structure, a real inner product space structure, finite dimension over R, and a measurable space structure equal to its Borel structure. For every arbitrary function F:E→R and every point p∈E, and for every real scalar s with s≠0, the pushforward under A(x)=p+s x of volume.tilted(x↦-F(x)) equals volume.tilted(x↦-F(s^{-1}(x-p))):\nA_*(volume.tilted(-F)) = volume.tilted(x↦-F(s^{-1}(x-p))).\nReal-vector multiplication is scalar multiplication; volume is the finite real Hilbert Lebesgue/Haar measure. For any measure nu and real function f, nu.tilted(f) literally denotes nu.withDensity(x↦ENNReal.ofReal(exp(f(x))/(∫exp(f)dnu))). This Bochner integral normalization is totalized when exponential integrability fails; the equality is equality of those literal measures. The affine map is the genuine measurable pushforward map, and the right-hand potential is composed with its inverse x↦s^{-1}(x-p). There is no CompleteSpace binder, no nontriviality assumption, and no hypothesis that F is measurable, integrable, differentiable, convex, or otherwise regular. There is no probability-measure assumption or conclusion and no assertion of exponential integrability or a positive normalization. Negative s is allowed and E may have dimension zero. The nonzero scalar is the sole explicit hypothesis after F and p; its quantifier precedes the proof argument s≠0. No Gaussian, posterior family, moment bound, or gradient conclusion occurs.",
+    "text_sha256": "67b1699133273f6e7e36f0b0a7265f0420b0ca247fd47a57da4cd4d480687ac4",
+    "decoder": "/root/blind_statement_decoder_28; independent source-blind mathematical statement decoder",
+    "decoder_run_sha256": "db8561169f11d360e38c9f98942b333550fd12efe35f106dcabc12fe80925d86",
+    "decoder_packet_sha256": "8fd6d1500dac4ed677eca55f04ee6de1a3d8be4ca6b1837321cae99863736483",
+    "source_text_visible": false,
+    "lean_statement_sha256": "c238a3b9f8b21b49791baecedd98440dec90689fbdb590c29c9a7f159712f3db",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261007-companion-priority/anonymous-decoder-28/result2.json",
+    "observed_input_artifacts": [
+      {
+        "path": "E:\\Samplinglib\\.astis\\decoder-28\\packet2.json",
+        "kind": "anonymous-canonical-packet",
+        "raw_sha256": "0f7122af638ce88a864cd6c70c9206deeb9926eed37b6711697a07b1e2789228",
+        "lf_sha256": "9a481d3f4276beb5cbe866c152338aa885cc4c2e0889ee68b5b95ab7707e0126",
+        "sha256": "0f7122af638ce88a864cd6c70c9206deeb9926eed37b6711697a07b1e2789228",
+        "immutable_raw_snapshot": {
+          "path": "runs/20261007-companion-priority/anonymous-decoder-28/packet2.raw.snapshot.json",
+          "raw_sha256": "0f7122af638ce88a864cd6c70c9206deeb9926eed37b6711697a07b1e2789228",
+          "lf_sha256": "9a481d3f4276beb5cbe866c152338aa885cc4c2e0889ee68b5b95ab7707e0126",
+          "bytes": 3185
+        },
+        "immutable_raw_snapshot_path": "runs/20261007-companion-priority/anonymous-decoder-28/packet2.raw.snapshot.json",
+        "immutable_raw_snapshot_raw_sha256": "0f7122af638ce88a864cd6c70c9206deeb9926eed37b6711697a07b1e2789228",
+        "immutable_raw_snapshot_lf_sha256": "9a481d3f4276beb5cbe866c152338aa885cc4c2e0889ee68b5b95ab7707e0126",
+        "immutable_raw_snapshot_bytes": 3185
+      }
+    ],
+    "administrative_schema_projection": "Canonical materials labels come verbatim from the same originally observed anonymous packet; actual byte-observation descriptors and portable independent decoder results remain separately preserved. No mathematical reconstruction, decoder identity/run/statement/source visibility changed."
+  }
+}

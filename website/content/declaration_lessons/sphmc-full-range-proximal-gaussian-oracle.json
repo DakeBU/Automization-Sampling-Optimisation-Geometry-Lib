@@ -4,12 +4,12 @@
     {
       "kind": "theorem",
       "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
-      "title": "Actual full-range proximal Gaussian oracle",
+      "title": "Allpositive-step actual proximal Gaussian oracle",
       "sources": [
         {
           "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem2",
           "label": "SPHMC (2.1), (3.2), only (4.4)-(4.5)",
-          "scope": "Source beta1 alpha=kappainv kappa>=1 and0<eta<=1, genuine C2/global allpoint-allvector Hessian. Full-space finite real Hilbert/Borel incl0 and arbitrary measurable parameter spaces are disclosed representation extensions. Actual selector/gradient/kernel witnesses are outputs, never input certificates. Exact Gaussian gradient-output kernel is not RGO posterior or HMC K/Khat/Kbar. Old eta<=1/2 construct remains preserved. Numericalprox calls sourceeta<=1/(2beta) do not grant fullrange finite-query work. No standardized affine posterior law or position moment, history-integrated moment, bias4.2/GaussianMGF4.3/fullLemma4.2/Wp/higher smoothing/sampler/initialization/main/querycost/composition. TV never transfers unbounded cost."
+          "scope": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost."
         }
       ],
       "tests": [
@@ -17,12 +17,12 @@
       ],
       "assumptions": [
         "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.",
-        "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with 0<eta(s)<=1 for every s. These coordinate-free/parameter-space extensions are disclosed.",
+        "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with eta(s)>0 for every s. These coordinate-free/parameter-space extensions are disclosed. Printed Lemma4.2 inherits eta>0 from Section3.1; the eta<=1 premise of neighboring Lemma4.1 is not consumed.",
         "No supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
       ],
       "statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
       "formula": "F_s(x)=V(x)+\\|x-y_s\\|^2/(2\\eta_s),\\quad p_s+\\eta_s\\nabla V(p_s)=y_s,\\quad G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad K_s=G(s,\\cdot)_\\#\\gamma.",
-      "boundary": "Source beta1 alpha=kappainv kappa>=1 and0<eta<=1, genuine C2/global allpoint-allvector Hessian. Full-space finite real Hilbert/Borel incl0 and arbitrary measurable parameter spaces are disclosed representation extensions. Actual selector/gradient/kernel witnesses are outputs, never input certificates. Exact Gaussian gradient-output kernel is not RGO posterior or HMC K/Khat/Kbar. Old eta<=1/2 construct remains preserved. Numericalprox calls sourceeta<=1/(2beta) do not grant fullrange finite-query work. No standardized affine posterior law or position moment, history-integrated moment, bias4.2/GaussianMGF4.3/fullLemma4.2/Wp/higher smoothing/sampler/initialization/main/querycost/composition. TV never transfers unbounded cost.",
+      "boundary": "Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost.",
       "steps": [
         {
           "title": "Derive the real gradient estimates",
@@ -31,15 +31,15 @@
           "lean": "actual_gradient_bounds; QuadraticRegularization; SmoothnessEquivalences; GradientDescentContraction; StrongConvexFirstOrder"
         },
         {
-          "title": "Construct a uniformly damped map",
-          "text": "Use a real sufficient implementation of the source-implicit proximal existence step. For each actual parameter, damp the equation by (1+eta)^-1. Its contraction factor is eta/(1+eta)<=1/2 throughout 0<eta<=1, including eta1. This is a mathematical construction, not a numerical query-cost assertion.",
-          "formula": "T_s(x)=(1+\\eta_s)^{-1}[y_s+\\eta_s(x-\\nabla V(x))],\\quad \\operatorname{Lip}(T_s)\\le\\eta_s/(1+\\eta_s)\\le1/2.",
+          "title": "Construct the actual pointwise damped map",
+          "text": "For each actual positive eta, T_s contracts with its own coefficient eta_s/(1+eta_s)<1. The coefficients may approach one over the parameter space. Banach fixed-point construction is pointwise and makes no uniform-parameter contraction or runtime assumption.",
+          "formula": "T_s(x)=(1+\\eta_s)^{-1}[y_s+\\eta_s(x-\\nabla V(x))],\\quad c_s=\\eta_s/(1+\\eta_s)<1.",
           "lean": "parameterized_damped_point; ContractingWith"
         },
         {
           "title": "Obtain joint measurability from actual iterates",
-          "text": "Start every iteration at zero. Actual measurable eta/y and the continuous id-gradient map make every parameterized iterate measurable. Banach convergence and measurable limit prove measurability of the actual selector, rather than assuming a measurable choice.",
-          "formula": "p_s=\\lim_{n\\to\\infty}T_s^n(0),\\quad s\\mapsto p_s\\text{ measurable}.",
+          "text": "Every iterate T_s^n(0) is measurable in s from actual measurable eta/y and the continuous id-minus-gradient map. Pointwise Banach convergence with the actual c_s and measurable-limit theorem give a measurable p. Uniform convergence and an upper eta cap are unnecessary; no measurable selector is supplied.",
+          "formula": "p_s=\\lim_{n\\to\\infty}T_s^n(0),\\quad s\\mapsto p_s\\text{ measurable, even when }\\sup_s c_s=1.",
           "lean": "ContractingWith.fixedPoint; tendsto_iterate_fixedPoint; measurable_of_tendsto_metrizable"
         },
         {
@@ -80,7 +80,7 @@
         }
       ],
       "lean_statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
-      "lean_proof": "Derive the real gradient estimates; Construct a uniformly damped map; Obtain joint measurability from actual iterates; Recover the exact source equation; Prove the genuine minimum and uniqueness; Keep nonexpansivity at fixed eta; Use the literal Gaussian gradient evaluator; Prove the exact input and noise constants; Realize the actual Markov kernel",
+      "lean_proof": "Derive the real gradient estimates; Construct the actual pointwise damped map; Obtain joint measurability from actual iterates; Recover the exact source equation; Prove the genuine minimum and uniqueness; Keep nonexpansivity at fixed eta; Use the literal Gaussian gradient evaluator; Prove the exact input and noise constants; Realize the actual Markov kernel",
       "astis_dependencies": [
         "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
         "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",

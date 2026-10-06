@@ -40,7 +40,7 @@ private theorem quadratic_curvature (x v : ℝ) :
 theorem quadratic_variable_eta
     {S : Type*} [MeasurableSpace S] {eta y : S → ℝ}
     (heta : Measurable eta) (hy : Measurable y)
-    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :
+    (hpos : ∀ s, 0 < eta s) :
     ∃ K : Kernel S ℝ, IsMarkovKernel K ∧
       ∀ s, K s = (stdGaussian ℝ).map
         (fun z => y s/(1+eta s)+Real.sqrt (eta s)*z) ∧
@@ -53,7 +53,7 @@ theorem quadratic_variable_eta
       fderiv ℝ (fderiv ℝ quadratic) x v v ≤ ‖v‖^2 := by
     intro x v;rw [quadratic_curvature];norm_num
   obtain ⟨p,hp,heq,hmin,hnexp,hG,hLip,K,hK,hKs⟩ :=
-    full_range_proximal_gaussian_oracle (κ:=1) (by norm_num) hV hH heta hy hpos hsmall
+    full_range_proximal_gaussian_oracle (κ:=1) (by norm_num) hV hH heta hy hpos
   have hpform (s : S) : p s=y s/(1+eta s) := by
     apply (eq_div_iff (ne_of_gt (by linarith [hpos s] : 0<1+eta s))).mpr
     have h := heq s
@@ -82,17 +82,33 @@ theorem quadratic_eta_one :
       ∀ y, K y=(stdGaussian ℝ).map (fun z => y/2+z) ∧
         (∫ w, ‖w-y/2‖^2 ∂K y)=1 := by
   obtain ⟨K,hK,h⟩ := quadratic_variable_eta (eta:=fun _ : ℝ => 1) (y:=id)
-    measurable_const measurable_id (by norm_num) (by norm_num)
+    measurable_const measurable_id (by norm_num)
   refine ⟨K,hK,fun y => ?_⟩
   have hy := h y
   norm_num at hy
   refine ⟨hy.1,?_⟩
   simpa only [Real.norm_eq_abs,sq_abs] using hy.2.1
 
+-- This unbounded parameter family has contraction factors tending to one;
+-- its actual centered Gaussian-output moment grows without a uniform cap.
+theorem quadratic_unbounded_eta :
+    ∃ K : Kernel ℕ ℝ, IsMarkovKernel K ∧
+      ∀ n, K n=(stdGaussian ℝ).map
+          (fun z => 3/((n:ℝ)+3)+Real.sqrt ((n:ℝ)+2)*z) ∧
+        (∫ w, ‖w-3/((n:ℝ)+3)‖^2 ∂K n)=(n:ℝ)+2 := by
+  obtain ⟨K,hK,h⟩ := quadratic_variable_eta
+    (eta:=fun n : ℕ => (n:ℝ)+2) (y:=fun _ => 3)
+    (by fun_prop) measurable_const (by intro n;positivity)
+  refine ⟨K,hK,fun n => ?_⟩
+  have he : 1+((n:ℝ)+2)=(n:ℝ)+3 := by ring
+  have hn := h n
+  rw [he] at hn
+  exact ⟨hn.1,hn.2.1⟩
+
 abbrev E0 := EuclideanSpace ℝ (Fin 0)
 theorem zero_dimension_variable_eta
     {S : Type*} [MeasurableSpace S] {eta : S → ℝ}
-    (heta : Measurable eta) (hpos : ∀ s, 0<eta s) (hsmall : ∀ s, eta s≤1) :
+    (heta : Measurable eta) (hpos : ∀ s, 0<eta s) :
     ∃ K : Kernel S E0, IsMarkovKernel K ∧
       ∀ s, K s=Measure.dirac (0:E0) := by
   have hh : ∀ x v : E0, (1:ℝ)⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (fun _ : E0 => (7:ℝ))) x v v ∧
@@ -100,7 +116,7 @@ theorem zero_dimension_variable_eta
     intro x v;have hv : v=0 := Subsingleton.elim _ _;simp [hv]
   obtain ⟨p,hp,heq,hmin,hnexp,hG,hLip,K,hK,hKs⟩ :=
     full_range_proximal_gaussian_oracle (κ:=1) (by norm_num)
-      contDiff_const hh heta (y:=fun _ => 0) measurable_const hpos hsmall
+      contDiff_const hh heta (y:=fun _ => 0) measurable_const hpos
   refine ⟨K,hK,fun s => ?_⟩
   have hf : (fun z => gradient (fun _ : E0 => (7:ℝ)) (p s+Real.sqrt (eta s) • z))=
       fun _ : E0 => (0:E0) := by funext z;exact Subsingleton.elim _ _
@@ -110,6 +126,7 @@ theorem zero_dimension_variable_eta
 #print axioms full_range_proximal_gaussian_oracle
 #print axioms quadratic_variable_eta
 #print axioms quadratic_eta_one
+#print axioms quadratic_unbounded_eta
 #print axioms zero_dimension_variable_eta
 end Tests.FullRangeProximalGaussianOracle
 end

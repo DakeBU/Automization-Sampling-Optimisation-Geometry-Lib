@@ -1,0 +1,11 @@
+# Allpositive-step real proximal and standardized RGO dependency
+
+Strengthen both existing actual proximal/Gaussian and true standardizedRGO position/Fisher source Anchors to every eta>0 by removing only mathematical eta<=1 restriction. Internally construct a measurable selector without a uniform parameter contraction cap; retain all outputs and source assumptions. Actual lastTWO4.6 Fisher/position consumer uses the same strengthened parent; no duplicate theorem.
+
+Allpositive eta source3.2/4.4/4.5 plus true normalized affine posterior and lastTWO4.6 only. FIRSTW2 GaussianT2/LSI,bias4.2,centeredMGF4.3,fullLemma4.2,actual jointposterior Markov sampling/Picard/Wp/warmness/main/initialization/work/composition OPEN. Numericalprox cap eta<=1/(2beta) is separate. TV never transfers unboundedcost.
+
+Independent exact StatementSeals and exhaustive19-node/25-edge/186-primary-span source graph were accepted before first new API/proof read. Existing two canonical SourceAnchors strengthened; no new public declaration or supplied proof ingredient. Prior bounded versions/snapshots/receipts remain immutable.
+
+Seven moves: (1) reuse true gradient/id-minus-gradient Lipschitz and convex monotonicity; (2) actual damped map with pointwise eta/(1+eta)<1; (3) measurable actual iterates and pointwise Banach limit without uniformeta cap; (4) same real proximal equation/strong-convex minimum and fixedeta nonexpansivity; (5) same actual Gaussian gradient evaluator Markov map; (6) actual normalized affine RGO rho/Q/curvature/IBP producer consumed with allpositive parent; (7) original true finite position/Fisher L2 and lastTWO4.6, tests unboundedeta andeta2.
+
+Diagnostics retained: focused0 IMPLEMENTATION_FAILED metric-distance vsnorm conversion; focused1 TEST expected-type scalar rewrite; both resolved without signature change. Focused2 PASS3729, standard3. Independent math/blind/source/exactcommit/shared gates still pending. Affine54line proof unchanged; only inherited reader source-range prose is revalidated, no new generic proof credit.

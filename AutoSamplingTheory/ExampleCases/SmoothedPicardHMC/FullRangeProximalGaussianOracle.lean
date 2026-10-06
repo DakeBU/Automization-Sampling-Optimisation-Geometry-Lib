@@ -76,33 +76,36 @@ private theorem parameterized_damped_point
     [MeasurableSpace S] {g : E → E}
     (hg : LipschitzWith 1 (fun x => x-g x))
     {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
-    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :
+    (hpos : ∀ s, 0 < eta s) :
     ∃ p : S → E, Measurable p ∧ ∀ s, p s+eta s • g (p s)=y s := by
   let f : S → E → E := fun s x => (1+eta s)⁻¹ • (y s+eta s • (x-g x))
   have hsum (s : S) : 0 < 1+eta s := by linarith [hpos s]
-  have hc (s : S) : ContractingWith (1/2) (f s) := by
-    refine ⟨by norm_num,LipschitzWith.of_dist_le_mul fun x z => ?_⟩
-    have h := hg.dist_le_mul x z
-    simp only [NNReal.coe_one,one_mul,dist_eq_norm] at h
-    have hid : f s x-f s z = (1+eta s)⁻¹ •
-        (eta s • ((x-g x)-(z-g z))) := by
-      dsimp only [f]
-      rw [← smul_sub]
-      congr 1
-      module
-    have hfactor : (1+eta s)⁻¹*eta s ≤ 1/2 := by
+  let c : S → ℝ≥0 := fun s => ⟨(1+eta s)⁻¹*eta s,
+    mul_nonneg (inv_pos.mpr (hsum s)).le (hpos s).le⟩
+  have hc (s : S) : ContractingWith (c s) (f s) := by
+    refine ⟨?_,LipschitzWith.of_dist_le_mul fun x z => ?_⟩
+    · change (1+eta s)⁻¹*eta s < 1
       rw [← div_eq_inv_mul]
-      apply (div_le_iff₀ (hsum s)).mpr
-      linarith [hsmall s]
-    rw [dist_eq_norm,hid,norm_smul,norm_smul,Real.norm_eq_abs,Real.norm_eq_abs,
-      abs_of_pos (inv_pos.mpr (hsum s)),abs_of_pos (hpos s)]
-    simp only [NNReal.coe_div,NNReal.coe_one,NNReal.coe_ofNat,dist_eq_norm]
-    calc
-      (1+eta s)⁻¹*(eta s*‖(x-g x)-(z-g z)‖) =
-          ((1+eta s)⁻¹*eta s)*‖(x-g x)-(z-g z)‖ := by ring
-      _ ≤ ((1+eta s)⁻¹*eta s)*‖x-z‖ :=
-        mul_le_mul_of_nonneg_left h (mul_nonneg (inv_pos.mpr (hsum s)).le (hpos s).le)
-      _ ≤ (1/2)*‖x-z‖ := mul_le_mul_of_nonneg_right hfactor (norm_nonneg _)
+      apply (div_lt_iff₀ (hsum s)).mpr
+      linarith
+    · have h := hg.dist_le_mul x z
+      simp only [NNReal.coe_one,one_mul,dist_eq_norm] at h
+      have hid : f s x-f s z = (1+eta s)⁻¹ •
+          (eta s • ((x-g x)-(z-g z))) := by
+        dsimp only [f]
+        rw [← smul_sub]
+        congr 1
+        module
+      rw [dist_eq_norm,hid,norm_smul,norm_smul,Real.norm_eq_abs,Real.norm_eq_abs,
+        abs_of_pos (inv_pos.mpr (hsum s)),abs_of_pos (hpos s)]
+      simp only [dist_eq_norm]
+      change (1+eta s)⁻¹*(eta s*‖(x-g x)-(z-g z)‖) ≤
+        ((1+eta s)⁻¹*eta s)*‖x-z‖
+      calc
+        (1+eta s)⁻¹*(eta s*‖(x-g x)-(z-g z)‖) =
+            ((1+eta s)⁻¹*eta s)*‖(x-g x)-(z-g z)‖ := by ring
+        _ ≤ ((1+eta s)⁻¹*eta s)*‖x-z‖ :=
+          mul_le_mul_of_nonneg_left h (mul_nonneg (inv_pos.mpr (hsum s)).le (hpos s).le)
   let p : S → E := fun s => (hc s).fixedPoint (f s)
   have hit (n : ℕ) : Measurable (fun s => (f s)^[n] (0 : E)) := by
     induction n with
@@ -185,7 +188,7 @@ theorem full_range_proximal_gaussian_oracle
     (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
       fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
     {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
-    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :
+    (hpos : ∀ s, 0 < eta s) :
     let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2
     ∃ p : S → E, Measurable p ∧
       (∀ s, p s + eta s • gradient V (p s) = y s) ∧
@@ -199,8 +202,8 @@ theorem full_range_proximal_gaussian_oracle
       ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧
         ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z)) := by
   let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2
-  obtain ⟨hLip,hMinus,hsc,hmono⟩ := actual_gradient_bounds hκ hV hH
-  obtain ⟨p,hp,heq⟩ := parameterized_damped_point hMinus heta hy hpos hsmall
+  obtain ⟨hLip,hMinus,_hsc,hmono⟩ := actual_gradient_bounds hκ hV hH
+  obtain ⟨p,hp,heq⟩ := parameterized_damped_point hMinus heta hy hpos
   have hmin := actual_quadratic_minimum hκ hV hH hpos heq
   have hnexp : ∀ s t, eta s=eta t → ‖p s-p t‖ ≤ ‖y s-y t‖ := by
     intro s t ht

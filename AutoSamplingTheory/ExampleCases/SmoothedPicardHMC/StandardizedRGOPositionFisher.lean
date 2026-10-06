@@ -188,7 +188,7 @@ theorem standardized_rgo_position_and_fisher
     (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
       fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
     {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
-    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :
+    (hpos : ∀ s, 0 < eta s) :
     ∃ p : S → E, Measurable p ∧
       (∀ s, p s+eta s • gradient V (p s)=y s) ∧
       let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
@@ -222,7 +222,7 @@ theorem standardized_rgo_position_and_fisher
   have hmu : IsProbabilityMeasure mu := isProbabilityMeasure_tilted hiV
   have : IsProbabilityMeasure mu := hmu
   obtain ⟨p,hpm,heq,_hrest⟩ := FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle
-    hκ hV hH heta hy hpos hsmall
+    hκ hV hH heta hy hpos
   let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
     Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
   let Q := fun s u => ‖u‖^2/2+rho s u

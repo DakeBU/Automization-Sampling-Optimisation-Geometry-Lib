@@ -1,27 +1,28 @@
 {
   "schema_version": 3,
-  "cell_id": "ASTIS-SHARED-gibbs-gradient-mean",
-  "route": "shared",
-  "title": "Actual Gibbs gradient mean zero",
+  "cell_id": "ASTIS-SW-SPHMC-smoothed-score-posterior",
+  "route": "samplewiki-route",
+  "title": "True smoothed-score posterior and standardized expectation identity",
   "mode": "faithfulPaper",
   "source_anchor": "Section3.1 and literal unnumbered S4.Ex9 (not numbered S4.E9/(4.9)); source normalized Hessian in Section2",
-  "target_statement": "theorem integrable_gradient_and_integral_eq_zero\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {U : E → ℝ} {α β : ℝ≥0} (hα : 0 < α) (hU : ContDiff ℝ 2 U)\n    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧\n      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :\n    let μ := (volume : Measure E).tilted (fun x => -U x)\n    IsProbabilityMeasure μ ∧ Integrable (gradient U) μ ∧\n      (∫ x, gradient U x ∂μ) = 0\n",
+  "target_statement": "theorem smoothed_score_posterior\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {κ η : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (hη : 0 < η) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y : E => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧\n      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧\n        Integrable (gradient V) (R y) ∧\n        gradient Vη y = ∫ x, gradient V x ∂(R y)) ∧\n      ∃ p : E → E, Measurable p ∧ (∀ y, p y+η • gradient V (p y)=y) ∧\n        let rho := fun y u => V (p y+Real.sqrt η • u)-V (p y)-\n          Real.sqrt η*inner ℝ (gradient V (p y)) u\n        let r := fun y => (R y).map (fun x => (Real.sqrt η)⁻¹ • (x-p y))\n        ∀ y, r y=(volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho y u)) ∧\n          IsProbabilityMeasure (r y) ∧ MemLp (gradient (rho y)) 2 (r y) ∧\n          gradient Vη y=gradient V (p y)+(Real.sqrt η)⁻¹ • (∫ u, gradient (rho y) u ∂(r y)) ∧\n          ∀ z, gradient V (p y+Real.sqrt η • z)=\n            gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z\n",
   "status": "proved_locally",
   "parents": [
-    "ASTIS-SHARED-gibbs-gradient-moment"
+    "ASTIS-SHARED-gibbs-gradient-mean",
+    "ASTIS-SW-SPHMC-smoothed-gibbs-potential",
+    "ASTIS-SW-SPHMC-standardized-rgo-position-fisher"
   ],
   "consumers": [
-    "samplewiki-route",
-    "mcmc"
+    "samplewiki-route"
   ],
   "shared_floor_audit": {
     "searched": [
       "Samplinglib Probability/SDE, Measure/Gradient cards, GibbsGradientMoment, GibbsPositionMoment, StrongConvexGibbsIntegrability, actual GaussianConvolutionRegularity, SmoothedGibbsPotential and StandardizedRGOPositionFisher searched. No public vector-gradient mean-zero producer or true posterior score identity exists; reuse genuine existing moments, law and derivative providers.",
       "Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d IntegrationByParts, Tilted.integrable_tilted_iff/integral_tilted, vector integral/inner and gradient calculus searched. No SLT/ATLAS port. Public GibbsGradientMoment still has alpha<=beta: internally widen beta to max(alpha,beta), never add that binder to the sealed theorem."
     ],
-    "classification": "missing",
-    "decision": "new_canonical_shared",
-    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean.integrable_gradient_and_integral_eq_zero",
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior.smoothed_score_posterior",
     "canonical_shared_cell": "ASTIS-SHARED-gibbs-gradient-mean"
   },
   "reuse_plan": {
@@ -30,20 +31,15 @@
       "Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d IntegrationByParts, Tilted.integrable_tilted_iff/integral_tilted, vector integral/inner and gradient calculus searched. No SLT/ATLAS port. Public GibbsGradientMoment still has alpha<=beta: internally widen beta to max(alpha,beta), never add that binder to the sealed theorem."
     ],
     "reused_declarations": [
-      "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment",
-      "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
-      "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one",
-      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic"
+      "GibbsGradientMoment.gibbs_gradient_moment",
+      "GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+      "SmoothedGibbsPotential.smoothed_gibbs_potential",
+      "StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher",
+      "QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic"
     ],
-    "new_shared_declarations": [
-      "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean.integrable_gradient_and_integral_eq_zero"
-    ],
-    "known_consumers": [
-      "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior.smoothed_score_posterior"
-    ],
-    "planned_consumers": [
-      "MCMC static Gibbs score expectation zero for strongly convex smooth targets; planned only, no MCMC theorem/status credit."
-    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [],
     "no_duplicate_wrapper": true,
     "decision_reason": "One canonical actual Gibbs vector gradient mean-zero producer, consumed by true RGO W=V+quadratic; source score equality joins genuine Gaussian-convolution derivative with posterior IBP, then exact affine law/chain integration."
   },
@@ -63,7 +59,7 @@
     "edge_semantics": "formal-solid; overlays-dashed",
     "color_semantics": "evidence-status; library-scope",
     "focus_targets": [
-      "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean.integrable_gradient_and_integral_eq_zero"
+      "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedScorePosterior.smoothed_score_posterior"
     ],
     "visual_review": "Pending actual compiled packet; no future graph admission."
   },
@@ -87,7 +83,7 @@
     "reason": "",
     "children": []
   },
-  "declaration_level": "canonical-library-node",
+  "declaration_level": "source-anchor",
   "source_detail_audit": {
     "primary_edition": "arXiv:2609.06906v1",
     "primary_anchor": "Section3.1 and literal unnumbered S4.Ex9 (not numbered S4.E9/(4.9)); source normalized Hessian in Section2",
@@ -162,27 +158,11 @@
       "Source posterior expected-gradient identity and real standardized chain integration; no supplied equality."
     ]
   },
-  "mcmc_contract": {
-    "state_space": "Finite real Hilbert Borel E, including dimension0.",
-    "target": "Actual normalized smooth strongly convex Gibbs volume tilt exp(-U).",
-    "support": "Entire E; normalizer derived finite positive.",
-    "operator": "Static score/gradient expectation only; no transition/generator constructed.",
-    "time_model": "static",
-    "clock": "Not applicable to static mean identity.",
-    "invariance": "No process invariance claim; target measure normalized internally.",
-    "ergodicity": "Not claimed.",
-    "initialization": "Not applicable to static target expectation.",
-    "metric": "Exact vector expectation zero with proved Bochner L1.",
-    "cost": "No query or computational complexity claim.",
-    "objective": "Static expectation identity, usable in later MCMC score/Stein consumers.",
-    "source_proof_status": "Planned generic background for actual SPHMC posterior; MCMC consumer planned only, not source theorem admission.",
-    "invariance_class": "not-applicable"
-  },
   "statement_seal": {
     "evidence": "runs/20261007-companion-priority/smoothed-score-posterior/preproof/statement-seals.accepted.json",
     "source_revision": "arXiv:2609.06906v1",
     "statement_version": 1,
-    "signature_digest": "e38b40af2e88bafcaa53c83154634df1669f126f71777f8a76b8c25afd8f03ca",
+    "signature_digest": "34db8be0f8df313b384604583937f1562d07b0a096d834ef0cc4c28796649394",
     "binder_audit": "runs/20261007-companion-priority/smoothed-score-posterior/preproof/reviewer.statement.review.json",
     "definition_kind": {
       "mu": "Literal canonical normalized original Gibbs tilt.",

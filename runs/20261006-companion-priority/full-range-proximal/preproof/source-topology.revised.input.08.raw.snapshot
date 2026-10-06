@@ -1,0 +1,50 @@
+PROPOSAL ONLY: no SAU, sealed statement or production proof yet.
+
+Source Anchor: SPHMC arXiv:2609.06906v1 equation (3.2), S4.Ex3 actual unique
+proximal point, Lemma4.2 (4.4)-(4.5) input/noise Lipschitz. Source beta=1,
+alpha=kappa^-1, 1<=kappa and 0<eta<=1. Full-space finite Hilbert/Borel,
+including dimension0, arbitrary measurable parameter spaces are disclosed
+extensions. No assumed proximal selector or supplied algorithm certificate.
+
+Proposed full declaration:
+AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle
+
+theorem full_range_proximal_gaussian_oracle
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :
+    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s + eta s • gradient V (p s) = y s) ∧
+      (∀ s z, F s (p s) + (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧
+        (F s z ≤ F s (p s) ↔ z=p s)) ∧
+      (∀ s t, eta s = eta t → ‖p s-p t‖ ≤ ‖y s-y t‖) ∧
+      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)
+      Measurable G ∧
+      (∀ s t z w, eta s = eta t →
+        ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧
+      ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧
+        ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z))
+
+Outputs are exact mathematical proximal points and actual Gaussian evaluation
+pushforward kernels over the entire stated eta range, including eta=1. No
+finite-query implementation, finite oracle cost, history-integrated moment,
+posterior RGO identification, standardized affine law, posterior moment bound,
+Gaussian MGF, bias/Wp bound, complete Lemma4.2, main theorem, initialization or
+composition is admitted. K here denotes the Gaussian gradient-output kernel;
+it is not the paper's HMC transition or RGO posterior R_y, nor K/Khat/Kbar.
+Its measurability is literal construction, not an assumed oracle witness.
+
+Bounded API search after primary source read: QuadraticRegularization supplies
+actual Hessian/gradient Lipschitz and quadratic strong convexity; existing
+StrongConvexMinimizer supplies global existence; MonotoneProximalMap supplies
+fixed-eta nonexpansive equation consumers. Existing ProximalGaussianEstimator
+parameterized construction and ProximalEstimatorLipschitz retain eta<=1/2.
+StdGaussianMoment is already canonical: do not duplicate Gaussian moment IBP.
+No proof search or production implementation may begin before independent
+statement and source-only topology acceptance.

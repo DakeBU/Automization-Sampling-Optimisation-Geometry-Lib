@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-616d943293eb94eb",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "anonymous_decoder_20261006",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion:sphmc-full-range-proximal-gaussian-oracle",
+    "anchor": "SPHMC arXiv:2609.06906v1 standing S1.E1/S2.p1.1, actual proximal argmin2.1 S2.E1/S4.Ex3, exact Gaussian gradient estimator3.2 S3.E2, proximal optimalityS4.SS1.p4.1, only input/noise Lemma4.2 equations4.4/4.5 S4.E4/E5 and scoped author argument S4.SS1.p5.2; numerical-oracle cap S2.p2.2 excluded.",
+    "original_text": "Exact independently sealed bounded source statement:\nSource beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.\nFinite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with 0<eta(s)<=1 for every s. These coordinate-free/parameter-space extensions are disclosed.\nNo supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract.\nProduce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.\nSource beta1 alpha=kappainv kappa>=1 and0<eta<=1, genuine C2/global allpoint-allvector Hessian. Full-space finite real Hilbert/Borel incl0 and arbitrary measurable parameter spaces are disclosed representation extensions. Actual selector/gradient/kernel witnesses are outputs, never input certificates. Exact Gaussian gradient-output kernel is not RGO posterior or HMC K/Khat/Kbar. Old eta<=1/2 construct remains preserved. Numericalprox calls sourceeta<=1/(2beta) do not grant fullrange finite-query work. No standardized affine posterior law or position moment, history-integrated moment, bias4.2/GaussianMGF4.3/fullLemma4.2/Wp/higher smoothing/sampler/initialization/main/querycost/composition. TV never transfers unbounded cost.",
+    "text_sha256": "e98cfd850e9e4a4ffb9161d7d16a7d5133e7e8369b1607b1943ae2dffc7d484b"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/FullRangeProximalGaussianOracle.lean",
+    "statement": "{E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :\n    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s + eta s • gradient V (p s) = y s) ∧\n      (∀ s z, F s (p s) + (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n        (F s z ≤ F s (p s) ↔ z=p s)) ∧\n      (∀ s t, eta s = eta t → ‖p s-p t‖ ≤ ‖y s-y t‖) ∧\n      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n      Measurable G ∧\n      (∀ s t z w, eta s = eta t →\n        ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧\n      ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧\n        ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z))",
+    "statement_sha256": "19f6702589af2c4b8759b234a54f04507324971045ad2bc7944b382db3a082ef",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be a complete finite-dimensional real inner-product space with its Borel measurable structure, and let S be an arbitrary measurable space. Dimension zero for E is allowed; there is no Nontrivial or nonempty-S assumption. Let V:E->R and kappa:R satisfy kappa>=1, V is twice continuously Frechet differentiable, and for every x,v in E,\n  kappa^(-1)*||v||^2 <= (fderiv R (fderiv R V) x v) v <= ||v||^2.\nLet eta:S->R and y:S->E be measurable, and assume for every s in S that 0<eta(s)<=1. The norm is the given real Hilbert norm and grad V is the genuine Riesz representative of the Frechet derivative.\nDefine, for every s in S and x in E,\n  F(s,x)=V(x)+(eta(s))^(-1)/2*||x-y(s)||^2.\nThen there exists a single map p:S->E such that all the following hold simultaneously:\n(1) p is measurable.\n(2) For every s in S,\n  p(s)+eta(s)*grad V(p(s))=y(s),\nwhere the product eta(s)*grad V is real scalar multiplication in E.\n(3) For every s in S and z in E, both\n  F(s,p(s))+(kappa^(-1)+(eta(s))^(-1))/2*||z-p(s)||^2 <= F(s,z),\nand\n  (F(s,z)<=F(s,p(s))) if and only if z=p(s).\nThus the displayed map is the actual unique global minimizer in each fiber, with the stated strictly positive quadratic growth coefficient; these are conclusions, not supplied minimizer certificates.\n(4) For every s,t in S, if eta(s)=eta(t), then\n  ||p(s)-p(t)|| <= ||y(s)-y(t)||.\nFor this same p define the literal map G:S x E->E by\n  G(s,z)=grad V(p(s)+sqrt(eta(s))*z),\nwith real square root and real scalar multiplication. Then additionally:\n(5) G is measurable on the product measurable space S x E.\n(6) For every s,t in S and z,w in E, if eta(s)=eta(t), then\n  ||G(s,z)-G(t,w)|| <= ||y(s)-y(t)||+sqrt(eta(s))*||z-w||.\n(7) There exists a measurable kernel K:S->Measure(E) which is a Markov kernel (every K(s) is a probability measure), and for every s in S,\n  K(s)=(stdGaussian E).map(z -> G(s,z)).\nHere stdGaussian E is the actual canonical centered covariance-identity Gaussian law in the given finite real Hilbert metric, and map is its literal measurable pushforward. Thus K is the law of the gradient evaluated at p(s)+sqrt(eta(s))*Z for canonical Gaussian Z. It is not asserted to be Gaussian itself, a posterior sampling law, or another transition kernel.\nThe order of quantifiers is: arbitrary E,S,V,kappa,eta,y satisfying the stated premises; one measurable p; all optimality/growth/uniqueness and equal-step comparison claims for that p; the let-defined G using that p; measurable G and all equal-step comparison claims; one Markov K with exact law for every s. No probability law on S, independent sampling sequence, joint continuity in eta, comparison between unequal eta values, posterior identity, approximation/error estimate, query count, or whole-algorithm conclusion is present. The coefficients are exactly 1/2 on each quadratic term, 1 on the center-distance bound, and sqrt(eta(s)) on the noise-distance bound. The upper curvature bound 1 and eta cap 1 remain explicit premises even where a particular conclusion could have a wider validity range.",
+    "text_sha256": "6179f34ad7ef80c39699a57a41c1e21b35f14fda623831d5fd4b685c6c204eba",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_packet_sha256": "c11391138020254ef5cd886f6278531a94fc9c51017a46644c6f9a52db364038",
+    "decoder_run_sha256": "7ca331354e1f0c450b43164f27f180c5bcc6f58a8af209b88460cf83b1e3835b",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "74093af2d69c550c76fae71c5bc258c63ff701a14322f35893e73dec905b2906",
+  "candidate_publication_context": {
+    "file": "3392fad82be5ee34353d906c7482bd75ba3cbeb695c62732826c442d18f00a19",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction\nimport Mathlib.Topology.MetricSpace.Contracting\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable\nimport AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing\nimport Mathlib.Tactic\n\n/-!\n# Actual source-range proximal Gaussian oracle\n\nSPHMC arXiv:2609.06906v1, (2.1), (3.2), and only Lemma 4.2 (4.4)-(4.5).\nThe exact source signature and source-only topology were independently sealed\nbefore this implementation. The numerical oracle's separate eta<=1/(2 beta)\ncall/cost boundary does not become a full-range implementation guarantee.\n\nThe Gaussian gradient-output law is distinct from the RGO posterior and HMC\ntransition. Bias, MGF, standardized posterior transport, Wp, histories, numerical\nqueries, main results and composition remain separate obligations.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory InnerProductSpace Filter Topology\nopen scoped RealInnerProductSpace NNReal ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle\n\nprivate theorem actual_gradient_bounds\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n    {V : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) :\n    LipschitzWith 1 (gradient V) ∧\n      LipschitzWith 1 (fun x => x-gradient V x) ∧\n      StrongConvexOn Set.univ κ⁻¹ V ∧\n      ∀ x z, 0 ≤ inner ℝ (gradient V x-gradient V z) (x-z) := by\n  have hκ0 : 0 < κ := lt_of_lt_of_le zero_lt_one hκ\n  have hα : 0 ≤ κ⁻¹ := (inv_pos.mpr hκ0).le\n  have hH' : ∀ x v : E,\n      ((Real.toNNReal κ⁻¹ : ℝ≥0) : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (1 : ℝ≥0)*‖v‖^2 := by\n    simpa only [Real.coe_toNNReal _ hα, NNReal.coe_one, one_mul] using hH\n  have hLip : LipschitzWith 1 (gradient V) := by\n    simpa using (QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := 0) hV hH' (0:E)).2\n  have hsc : StrongConvexOn Set.univ κ⁻¹ V :=\n    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x v => (hH x v).1)\n  have hsc0 : StrongConvexOn Set.univ 0 V :=\n    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (by\n        intro x v\n        simpa only [zero_mul] using\n          (mul_nonneg hα (sq_nonneg ‖v‖)).trans (hH x v).1)\n  have hu : ∀ x z, V z ≤ V x+inner ℝ (gradient V x) (z-x)+1/2*‖z-x‖^2 :=\n    (SmoothnessEquivalences.upper_model_iff_fderiv2_upper hV).mpr (by\n        intro x v\n        simpa only [one_mul] using (hH x v).2)\n  have hMinus : LipschitzWith 1 (fun x => x-gradient V x) := by\n    apply LipschitzWith.of_dist_le_mul\n    intro x z\n    have h := GradientDescentContraction.gradient_step_contraction (h := 1)\n      (hV.of_le (by norm_num)) hsc0\n        (by norm_num) (by norm_num) (by norm_num) (by norm_num) hu z x\n    simpa only [one_smul, zero_mul, sub_zero, Real.sqrt_one,\n      NNReal.coe_one, one_mul, dist_eq_norm] using h\n  refine ⟨hLip,hMinus,hsc,fun x z => ?_⟩\n  have h := StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn\n    (x := z) (y := x) hsc\n      (fun w _ => (hV.differentiable (by norm_num) w).hasGradientAt)\n      (Set.mem_univ z) (Set.mem_univ x)\n  exact (mul_nonneg hα (sq_nonneg ‖x-z‖)).trans h\n\nprivate theorem parameterized_damped_point\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {g : E → E}\n    (hg : LipschitzWith 1 (fun x => x-g x))\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :\n    ∃ p : S → E, Measurable p ∧ ∀ s, p s+eta s • g (p s)=y s := by\n  let f : S → E → E := fun s x => (1+eta s)⁻¹ • (y s+eta s • (x-g x))\n  have hsum (s : S) : 0 < 1+eta s := by linarith [hpos s]\n  have hc (s : S) : ContractingWith (1/2) (f s) := by\n    refine ⟨by norm_num,LipschitzWith.of_dist_le_mul fun x z => ?_⟩\n    have h := hg.dist_le_mul x z\n    simp only [NNReal.coe_one,one_mul,dist_eq_norm] at h\n    have hid : f s x-f s z = (1+eta s)⁻¹ •\n        (eta s • ((x-g x)-(z-g z))) := by\n      dsimp only [f]\n      rw [← smul_sub]\n      congr 1\n      module\n    have hfactor : (1+eta s)⁻¹*eta s ≤ 1/2 := by\n      rw [← div_eq_inv_mul]\n      apply (div_le_iff₀ (hsum s)).mpr\n      linarith [hsmall s]\n    rw [dist_eq_norm,hid,norm_smul,norm_smul,Real.norm_eq_abs,Real.norm_eq_abs,\n      abs_of_pos (inv_pos.mpr (hsum s)),abs_of_pos (hpos s)]\n    simp only [NNReal.coe_div,NNReal.coe_one,NNReal.coe_ofNat,dist_eq_norm]\n    calc\n      (1+eta s)⁻¹*(eta s*‖(x-g x)-(z-g z)‖) =\n          ((1+eta s)⁻¹*eta s)*‖(x-g x)-(z-g z)‖ := by ring\n      _ ≤ ((1+eta s)⁻¹*eta s)*‖x-z‖ :=\n        mul_le_mul_of_nonneg_left h (mul_nonneg (inv_pos.mpr (hsum s)).le (hpos s).le)\n      _ ≤ (1/2)*‖x-z‖ := mul_le_mul_of_nonneg_right hfactor (norm_nonneg _)\n  let p : S → E := fun s => (hc s).fixedPoint (f s)\n  have hit (n : ℕ) : Measurable (fun s => (f s)^[n] (0 : E)) := by\n    induction n with\n    | zero => simpa only [Function.iterate_zero,id_eq] using\n        (measurable_const : Measurable (fun _ : S => (0:E)))\n    | succ n ih =>\n      simp only [Function.iterate_succ_apply']\n      exact (measurable_const.add heta).inv.smul\n        (hy.add (heta.smul (hg.continuous.measurable.comp ih)))\n  have hp : Measurable p := measurable_of_tendsto_metrizable hit\n    (tendsto_pi_nhds.mpr (fun s => (hc s).tendsto_iterate_fixedPoint 0))\n  refine ⟨p,hp,fun s => ?_⟩\n  have heq : f s (p s)=p s := (hc s).fixedPoint_isFixedPt\n  have hs := congrArg (fun x : E => (1+eta s) • x) heq\n  simp only [f,smul_smul,mul_inv_cancel₀ (ne_of_gt (hsum s)),one_smul] at hs\n  calc\n    p s+eta s • g (p s) = (1+eta s) • p s-eta s • (p s-g (p s)) := by module\n    _ = y s := by rw [← hs]; module\n\nprivate theorem actual_quadratic_minimum\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n    {V : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y p : S → E} (hpos : ∀ s, 0 < eta s)\n    (heq : ∀ s, p s+eta s • gradient V (p s)=y s) :\n    let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2\n    ∀ s z, F s (p s)+(κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n      (F s z ≤ F s (p s) ↔ z=p s) := by\n  let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2\n  have hα : 0 ≤ κ⁻¹ := (inv_pos.mpr (lt_of_lt_of_le zero_lt_one hκ)).le\n  have hH' : ∀ x v : E,\n      ((Real.toNNReal κ⁻¹ : ℝ≥0) : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ (1 : ℝ≥0)*‖v‖^2 := by\n    simpa only [Real.coe_toNNReal _ hα,NNReal.coe_one,one_mul] using hH\n  change ∀ s z, F s (p s)+(κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n    (F s z ≤ F s (p s) ↔ z=p s)\n  intro s z\n  have hd : Differentiable ℝ V := hV.differentiable (by norm_num)\n  have hq (x : E) : HasFDerivAt (fun w => (eta s)⁻¹/2*‖w-y s‖^2)\n      ((eta s)⁻¹ • innerSL ℝ (x-y s)) x := by\n    convert (((hasFDerivAt_id x).sub_const (y s)).norm_sq).const_mul ((eta s)⁻¹/2)\n      using 1 <;> first | rfl | (ext v; simp; ring)\n  have hFd (x : E) : DifferentiableAt ℝ (F s) x :=\n    (hd x).add (hq x).differentiableAt\n  have hg (x : E) : gradient (F s) x = gradient V x+(eta s)⁻¹ • (x-y s) := by\n    apply HasGradientAt.gradient\n    rw [hasGradientAt_iff_hasFDerivAt]\n    change HasFDerivAt (fun w => V w+(eta s)⁻¹/2*‖w-y s‖^2)\n      ((toDual ℝ E) (gradient V x+(eta s)⁻¹ • (x-y s))) x\n    convert! (hd x).hasGradientAt.hasFDerivAt.add (hq x) using 1\n    simp only [map_add,map_smul]\n    rfl\n  have hz : gradient (F s) (p s)=0 := by\n    rw [hg]\n    have hs : p s-y s=-(eta s • gradient V (p s)) := by rw [← heq s]; abel\n    rw [hs,smul_neg,smul_smul,inv_mul_cancel₀ (ne_of_gt (hpos s)),one_smul,add_neg_cancel]\n  have hsc : StrongConvexOn Set.univ (κ⁻¹+(eta s)⁻¹) (F s) := by\n    have hb := QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n      (r := Real.toNNReal ((eta s)⁻¹)) hV hH' (y s)\n    simpa [F,Real.coe_toNNReal _ hα,Real.coe_toNNReal _ (inv_nonneg.mpr (hpos s).le)] using hb.1\n  have hbound := StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hsc\n    (fun x _ => (hFd x).hasGradientAt) (x := p s) (y := z)\n    (Set.mem_univ _) (Set.mem_univ _)\n  rw [hz,inner_zero_left,add_zero] at hbound\n  refine ⟨hbound,⟨fun hle => ?_,fun he => by rw [he]⟩⟩\n  have ha : 0 < (κ⁻¹+(eta s)⁻¹)/2 :=\n    div_pos (add_pos_of_nonneg_of_pos hα (inv_pos.mpr (hpos s))) (by norm_num)\n  have hnonpos : (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ 0 := by linarith\n  have hn : ‖z-p s‖^2=0 :=\n    le_antisymm (nonpos_of_mul_nonpos_right hnonpos ha) (sq_nonneg _)\n  exact sub_eq_zero.mp (norm_eq_zero.mp (sq_eq_zero_iff.mp hn))\n\nset_option maxHeartbeats 800000 in\ntheorem full_range_proximal_gaussian_oracle\n    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1) :\n    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s + eta s • gradient V (p s) = y s) ∧\n      (∀ s z, F s (p s) + (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n        (F s z ≤ F s (p s) ↔ z=p s)) ∧\n      (∀ s t, eta s = eta t → ‖p s-p t‖ ≤ ‖y s-y t‖) ∧\n      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n      Measurable G ∧\n      (∀ s t z w, eta s = eta t →\n        ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧\n      ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧\n        ∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z)) := by\n  let F := fun s x => V x+(eta s)⁻¹/2*‖x-y s‖^2\n  obtain ⟨hLip,hMinus,hsc,hmono⟩ := actual_gradient_bounds hκ hV hH\n  obtain ⟨p,hp,heq⟩ := parameterized_damped_point hMinus heta hy hpos hsmall\n  have hmin := actual_quadratic_minimum hκ hV hH hpos heq\n  have hnexp : ∀ s t, eta s=eta t → ‖p s-p t‖ ≤ ‖y s-y t‖ := by\n    intro s t ht\n    have hsub : y s-y t=(p s-p t)+eta s • (gradient V (p s)-gradient V (p t)) := by\n      rw [← heq s,← heq t,← ht]\n      module\n    have hpair : ‖p s-p t‖^2 ≤ inner ℝ (y s-y t) (p s-p t) := by\n      calc\n        _ ≤ ‖p s-p t‖^2+eta s*inner ℝ (gradient V (p s)-gradient V (p t)) (p s-p t) :=\n          le_add_of_nonneg_right (mul_nonneg (hpos s).le (hmono (p s) (p t)))\n        _ = _ := by\n          rw [hsub,inner_add_left,real_inner_smul_left,real_inner_self_eq_norm_sq]\n    have hb := hpair.trans (real_inner_le_norm (y s-y t) (p s-p t))\n    by_cases hz : ‖p s-p t‖=0\n    · simpa only [hz] using norm_nonneg (y s-y t)\n    · have hpositive : 0 < ‖p s-p t‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hz)\n      nlinarith\n  refine ⟨p,hp,heq,hmin,hnexp,?_⟩\n  let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n  have hG : Measurable G := hLip.continuous.measurable.comp\n    ((hp.comp measurable_fst).add ((heta.comp measurable_fst).sqrt.smul measurable_snd))\n  have hGLip : ∀ s t z w, eta s=eta t →\n      ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖ := by\n    intro s t z w ht\n    have h := hLip.dist_le_mul (p s+Real.sqrt (eta s) • z) (p t+Real.sqrt (eta t) • w)\n    simp only [NNReal.coe_one,one_mul,dist_eq_norm] at h\n    have hdiff : (p s+Real.sqrt (eta s) • z)-(p t+Real.sqrt (eta t) • w) =\n        (p s-p t)+Real.sqrt (eta s) • (z-w) := by rw [← ht]; module\n    calc\n      _ ≤ ‖(p s+Real.sqrt (eta s) • z)-(p t+Real.sqrt (eta t) • w)‖ := h\n      _ = ‖(p s-p t)+Real.sqrt (eta s) • (z-w)‖ := by rw [hdiff]\n      _ ≤ ‖p s-p t‖+‖Real.sqrt (eta s) • (z-w)‖ := norm_add_le _ _\n      _ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖ := by\n        rw [norm_smul,Real.norm_eq_abs,abs_of_nonneg (Real.sqrt_nonneg _)]\n        exact add_le_add (hnexp s t ht) le_rfl\n  let K := (Kernel.id ×ₖ Kernel.const S (stdGaussian E)).map G\n  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hG\n  have hKs (s : S) : K s=(stdGaussian E).map (fun z => G (s,z)) := by\n    dsimp only [K]\n    rw [Kernel.map_apply _ hG,Kernel.prod_apply,Kernel.id_apply,Kernel.const_apply,\n      Measure.dirac_prod,Measure.map_map hG (by fun_prop)]\n    rfl\n  exact ⟨hG,hGLip,K,hK,hKs⟩\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle\nend\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem2",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "SPHMC arXiv:2609.06906v1 standing S1.E1/S2.p1.1, actual proximal argmin2.1 S2.E1/S4.Ex3, exact Gaussian gradient estimator3.2 S3.E2, proximal optimalityS4.SS1.p4.1, only input/noise Lemma4.2 equations4.4/4.5 S4.E4/E5 and scoped author argument S4.SS1.p5.2; numerical-oracle cap S2.p2.2 excluded.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; exact proximal/evaluator and only Lemma4.2 input/noise components."
+    },
+    "statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
+    "formulae": [
+      {
+        "label": "Actual full-range proximal Gaussian oracle",
+        "tex": "F_s(x)=V(x)+\\|x-y_s\\|^2/(2\\eta_s),\\quad p_s+\\eta_s\\nabla V(p_s)=y_s,\\quad G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad K_s=G(s,\\cdot)_\\#\\gamma."
+      }
+    ],
+    "assumptions": [
+      "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.",
+      "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with 0<eta(s)<=1 for every s. These coordinate-free/parameter-space extensions are disclosed.",
+      "No supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
+    ],
+    "obligations": [
+      {
+        "id": "actual-oracle-input-noise",
+        "label": "Actual source-range proximal Gaussian evaluator and input/noise components"
+      },
+      {
+        "id": "posterior-bias-mgf",
+        "label": "Standardized posterior transport, bias/MGF and higher regularity remaining"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expected-cost composition remaining"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+      "title": "Actual full-range proximal Gaussian oracle",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem2",
+          "label": "SPHMC (2.1), (3.2), only (4.4)-(4.5)",
+          "scope": "Source beta1 alpha=kappainv kappa>=1 and0<eta<=1, genuine C2/global allpoint-allvector Hessian. Full-space finite real Hilbert/Borel incl0 and arbitrary measurable parameter spaces are disclosed representation extensions. Actual selector/gradient/kernel witnesses are outputs, never input certificates. Exact Gaussian gradient-output kernel is not RGO posterior or HMC K/Khat/Kbar. Old eta<=1/2 construct remains preserved. Numericalprox calls sourceeta<=1/(2beta) do not grant fullrange finite-query work. No standardized affine posterior law or position moment, history-integrated moment, bias4.2/GaussianMGF4.3/fullLemma4.2/Wp/higher smoothing/sampler/initialization/main/querycost/composition. TV never transfers unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.FullRangeProximalGaussianOracle"
+      ],
+      "assumptions": [
+        "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.",
+        "Finite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with 0<eta(s)<=1 for every s. These coordinate-free/parameter-space extensions are disclosed.",
+        "No supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
+      ],
+      "statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
+      "formula": "F_s(x)=V(x)+\\|x-y_s\\|^2/(2\\eta_s),\\quad p_s+\\eta_s\\nabla V(p_s)=y_s,\\quad G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad K_s=G(s,\\cdot)_\\#\\gamma.",
+      "steps": [
+        {
+          "title": "Derive the real gradient estimates",
+          "text": "Reuse the actual C2 Hessian-to-gradient and strong-convexity APIs. The source upper bound supplies gradientV Lipschitz1. The convex gradient-step theorem supplies id-gradientV Lipschitz1, and convexity supplies monotonicity. None is a theorem premise.",
+          "formula": "\\operatorname{Lip}(\\nabla V)\\le1,\\quad\\operatorname{Lip}(I-\\nabla V)\\le1,\\quad\\langle\\nabla V(x)-\\nabla V(z),x-z\\rangle\\ge0.",
+          "lean": "actual_gradient_bounds; QuadraticRegularization; SmoothnessEquivalences; GradientDescentContraction; StrongConvexFirstOrder"
+        },
+        {
+          "title": "Construct a uniformly damped map",
+          "text": "Use a real sufficient implementation of the source-implicit proximal existence step. For each actual parameter, damp the equation by (1+eta)^-1. Its contraction factor is eta/(1+eta)<=1/2 throughout 0<eta<=1, including eta1. This is a mathematical construction, not a numerical query-cost assertion.",
+          "formula": "T_s(x)=(1+\\eta_s)^{-1}[y_s+\\eta_s(x-\\nabla V(x))],\\quad \\operatorname{Lip}(T_s)\\le\\eta_s/(1+\\eta_s)\\le1/2.",
+          "lean": "parameterized_damped_point; ContractingWith"
+        },
+        {
+          "title": "Obtain joint measurability from actual iterates",
+          "text": "Start every iteration at zero. Actual measurable eta/y and the continuous id-gradient map make every parameterized iterate measurable. Banach convergence and measurable limit prove measurability of the actual selector, rather than assuming a measurable choice.",
+          "formula": "p_s=\\lim_{n\\to\\infty}T_s^n(0),\\quad s\\mapsto p_s\\text{ measurable}.",
+          "lean": "ContractingWith.fixedPoint; tendsto_iterate_fixedPoint; measurable_of_tendsto_metrizable"
+        },
+        {
+          "title": "Recover the exact source equation",
+          "text": "Multiply the actual fixed-point equation by positive 1+eta and cancel the scalar inverse. The resulting equality is the literal proximal first-order condition for the source quadratic potential.",
+          "formula": "p_s+\\eta_s\\nabla V(p_s)=y_s.",
+          "lean": "ContractingWith.fixedPoint_isFixedPt; smul_smul; mul_inv_cancel₀"
+        },
+        {
+          "title": "Prove the genuine minimum and uniqueness",
+          "text": "Differentiate the true quadratic regularization. Its gradient vanishes at the constructed p. Existing strong-convexity and first-order bounds give the exact coefficient (kappa^-1+eta^-1)/2. Positivity forces norm(z-p)^2=0 for any competing lower point.",
+          "formula": "F_s(p_s)+\\tfrac12(\\kappa^{-1}+\\eta_s^{-1})\\|z-p_s\\|^2\\le F_s(z),\\quad F_s(z)\\le F_s(p_s)\\iff z=p_s.",
+          "lean": "actual_quadratic_minimum; HasFDerivAt.norm_sq; QuadraticRegularization; StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn"
+        },
+        {
+          "title": "Keep nonexpansivity at fixed eta",
+          "text": "Subtract the two literal proximal equations only when eta_s=eta_t. Monotonicity bounds the inner product below by the squared proximal distance. Cauchy-Schwarz and positive-norm cancellation give nonexpansivity; a zero-distance branch is handled separately.",
+          "formula": "\\eta_s=\\eta_t\\Longrightarrow\\|p_s-p_t\\|^2\\le\\langle y_s-y_t,p_s-p_t\\rangle\\Longrightarrow\\|p_s-p_t\\|\\le\\|y_s-y_t\\|.",
+          "lean": "gradient_inner_lower_bound_of_strongConvexOn; real_inner_le_norm; norm_nonneg"
+        },
+        {
+          "title": "Use the literal Gaussian gradient evaluator",
+          "text": "The actual measurable p, eta square root and noise coordinate give a jointly measurable input to the continuous gradient. No posterior identification or oracle witness is used.",
+          "formula": "G(s,z)=\\nabla V(p_s+\\sqrt{\\eta_s}z),\\quad G\\text{ measurable on }S\\times E.",
+          "lean": "Measurable.comp; Measurable.sqrt; Measurable.smul; LipschitzWith.continuous"
+        },
+        {
+          "title": "Prove the exact input and noise constants",
+          "text": "Apply the true gradient Lipschitz bound, split the input difference with the triangle inequality and use proximal nonexpansivity at equal eta. The literal square-root coefficient stays outside the noise norm. This supplies both source inequalities (4.4)-(4.5).",
+          "formula": "\\eta_s=\\eta_t\\Longrightarrow\\|G(s,z)-G(t,w)\\|\\le\\|y_s-y_t\\|+\\sqrt{\\eta_s}\\|z-w\\|.",
+          "lean": "LipschitzWith.dist_le_mul; norm_add_le; norm_smul; Real.sqrt_nonneg"
+        },
+        {
+          "title": "Realize the actual Markov kernel",
+          "text": "Take the product of the identity kernel and the constant standard Gaussian kernel, then map it by G. Joint measurability proves it Markov; dirac-product and map-map give the exact pointwise pushforward. This gradient-output law is distinct from the RGO posterior and HMC transitions.",
+          "formula": "K=(\\mathrm{id}\\times\\gamma).\\mathrm{map}(G),\\quad K_s=G(s,\\cdot)_\\#\\gamma,\\quad K_s(E)=1.",
+          "lean": "Kernel.id; Kernel.const; Kernel.prod; Kernel.IsMarkovKernel.map; Measure.dirac_prod; Measure.map_map"
+        }
+      ],
+      "lean_statement": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim.",
+      "lean_proof": "Derive the real gradient estimates; Construct a uniformly damped map; Obtain joint measurability from actual iterates; Recover the exact source equation; Prove the genuine minimum and uniqueness; Keep nonexpansivity at fixed eta; Use the literal Gaussian gradient evaluator; Prove the exact input and noise constants; Realize the actual Markov kernel",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences.upper_model_iff_fderiv2_upper",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction.gradient_step_contraction",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn"
+      ],
+      "mathlib_dependencies": [
+        "ContractingWith.fixedPoint",
+        "ContractingWith.tendsto_iterate_fixedPoint",
+        "measurable_of_tendsto_metrizable",
+        "real_inner_le_norm",
+        "HasFDerivAt.norm_sq",
+        "Kernel.id",
+        "Kernel.const",
+        "Kernel.prod",
+        "Kernel.IsMarkovKernel.map",
+        "Measure.dirac_prod",
+        "Measure.map_map"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FullRangeProximalGaussianOracle.full_range_proximal_gaussian_oracle",
+      "role": "proof-edge",
+      "supports": [
+        "actual-oracle-input-noise"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean d-dimensional source beta1/alpha=kappa^-1 and 0<eta<=1; exact argmin and Gaussian gradient definition.",
+        "lean": "Source beta=1, alpha=kappa^-1, real kappa>=1; actual C2 V with kappa^-1*normv^2 <= D2V(x)[v,v] <= normv^2 for every x,v.\nFinite real complete Hilbert/Borel full space E, including dimension zero; arbitrary measurable parameter space S; actual measurable eta:S->R and y:S->E with 0<eta(s)<=1 for every s. These coordinate-free/parameter-space extensions are disclosed.\nNo supplied proximal point, minimizer, measurable selector, gradient estimate, Lipschitz bound or Markov kernel. All are produced from the literal potential and actual Gaussian pushforward. The source numerical-prox call cap eta<=1/(2beta) remains a separate computational contract."
+      },
+      {
+        "source": "Actual proximal existence/uniqueness/optimality are implicit and source uses fixed-eta nonexpansivity.",
+        "lean": "The constructed uniform damped fixed point supplies measurable selector, true equation and unique quadratic minimum internally."
+      },
+      {
+        "source": "Gaussian estimator (3.2), only input Lipschitz (4.4) and noise Lipschitz (4.5).",
+        "lean": "Produce a measurable exact proximal selector p satisfying p+eta*gradientV(p)=y, the genuine quantitative quadratic minimum and uniqueness, and fixed-eta nonexpansivity. The literal Gaussian gradient evaluator G(s,z)=gradientV(p(s)+sqrt(eta(s))*z) is jointly measurable and obeys input/noise Lipschitz constants 1 and sqrteta for equal eta. Produce an actual Markov kernel K(s)=stdGaussian.map(G(s,-)). This covers the exact evaluator (3.2) and only Lemma4.2 (4.4)-(4.5), with no posterior or finite-query claim."
+      },
+      {
+        "source": "Separate bias/MGF, posterior standardized law, Wp, warmness, numerical implementation, both main theorems and composition.",
+        "lean": "Source beta1 alpha=kappainv kappa>=1 and0<eta<=1, genuine C2/global allpoint-allvector Hessian. Full-space finite real Hilbert/Borel incl0 and arbitrary measurable parameter spaces are disclosed representation extensions. Actual selector/gradient/kernel witnesses are outputs, never input certificates. Exact Gaussian gradient-output kernel is not RGO posterior or HMC K/Khat/Kbar. Old eta<=1/2 construct remains preserved. Numericalprox calls sourceeta<=1/(2beta) do not grant fullrange finite-query work. No standardized affine posterior law or position moment, history-integrated moment, bias4.2/GaussianMGF4.3/fullLemma4.2/Wp/higher smoothing/sampler/initialization/main/querycost/composition. TV never transfers unbounded cost."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "323d0e1dd78991e778e14ca1b85fe719cecdb28f97a2fb10001519f9b35d3922"
+}

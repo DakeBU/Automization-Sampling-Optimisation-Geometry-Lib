@@ -33,8 +33,12 @@ all57/148production and113Test lines expand losslessly, all13mathsteps and
 184source spans plus52local links and formal import/declaration branches match.
 Tests has two private definitions and one private lemma, all expanded. Earlier
 private_helpers2 is a definition count, not total private declaration count.
-Rendered visual/copy/download QA, final push/currentCI and both complete
-main results remain OPEN. The next
+Published head `d35ac3b2de65dfffde06723d9e6e262509be6bc4` passes all four remote
+workflows, including the actual Lean9129/9389 gate and Chapter1 item integrity.
+Receipt: `runs/20261006-companion-priority/smoothed-hessian-lower/remote-ci.d35ac3b2.accepted.json`.
+The scoped reader source-node ID type repair is independently accepted and
+preserves source inventory and mathematical bytes. Rendered visual/copy/download
+QA, merge/live deployment and both complete main results remain OPEN. The next
 source dependency is the full-range actual proximal Gaussian oracle and the
 literal standardized affine posterior law. Existing proximal construction is
 eta<=1/2 while the source requires eta<=1; no smaller range is relabeled complete.

@@ -1,0 +1,160 @@
+import pathlib,json,hashlib,subprocess,sys,re,datetime,html
+sys.path.insert(0,'tools');import astis
+R=pathlib.Path('runs/20261006-companion-priority/full-range-proximal');V='picard_commit_verifier_20261005'
+C=subprocess.check_output(['git','rev-parse','HEAD']).decode().strip();assert C=='d35ac3b2de65dfffde06723d9e6e262509be6bc4'
+def H(b):return hashlib.sha256(b).hexdigest()
+def LF(b):return b.replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+def J(p):return json.loads(pathlib.Path(p).read_text(encoding='utf8'))
+def F(p):
+ p=pathlib.Path(p);b=p.read_bytes();return {'path':p.as_posix(),'raw_sha256':H(b),'lf_sha256':H(LF(b)),'bytes':len(b)}
+def W(p,x):pathlib.Path(p).write_bytes((json.dumps(x,ensure_ascii=False,indent=2)+'\n').encode('utf8'))
+def snap(p,name):
+ p=pathlib.Path(p);s=R/name;assert not s.exists();s.write_bytes(p.read_bytes());return F(s)
+freeze=J(R/'math-freeze.json');claim=J(R/'claim.json')
+assert len(freeze['inputs'])==22
+stable=[];contexts=[];chain=[]
+for i,q in enumerate(freeze['inputs']):
+ p=pathlib.Path(q['path']);current=F(p)
+ isctx='/frontier-cells/'in q['path'] or '/semantic-roundtrip/audits/'in q['path']
+ if current['raw_sha256']!=q['raw_sha256']:
+  assert '/semantic-roundtrip/audits/'in q['path']
+  before=R/'decoder-binding-before.0.raw.snapshot.audit.json'
+  assert F(before)['raw_sha256']==q['raw_sha256']
+  a=J(before);b=J(p)
+  assert set(a)|set(b)==set(b)
+  changed=[k for k in b if a.get(k)!=b.get(k)]
+  assert set(changed)=={'state','reconstruction'},changed
+  assert a['state']=='draft' and b['state']=='blind-reconstructed'
+  assert {k:x for k,x in a.items()if k not in changed}=={k:x for k,x in b.items()if k not in changed}
+  chain.append({'path':q['path'],'original':q,'preserved_original_snapshot':F(before),'current':current,'exact_top_level_changes':changed,'scope':'Independent decoder binding lifecycle only; text/value not mathematical evidence.'})
+ else:
+  assert current['lf_sha256']==q['lf_sha256']
+  chain.append({'path':q['path'],'raw_LF_original_exact':True,'current':current})
+ sf=snap(p,f'reviewer.math-input.{i:02}.raw.snapshot')
+ entry={**current,'snapshot':sf,'classification':'administrative context'if isctx else 'stable mathematical/source input'}
+ (contexts if isctx else stable).append(entry)
+assert len(stable)==20 and len(contexts)==2
+parents=[
+'AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothnessEquivalences.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentContraction.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/HessianStrongConvexity.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/StrongConvexFirstOrder.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexSmoothGradient.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC2.lean',
+'AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexityC1.lean',
+'AutoSamplingTheory/TechnicalLemmas/Measure/GaussianSmoothing.lean',
+'AutoSamplingTheory/TechnicalLemmas/Probability/StdGaussianMoment.lean',
+'AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalGaussianEstimator.lean',
+'AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ProximalEstimatorLipschitz.lean']
+parent_records=[]
+for i,p in enumerate(parents):
+ b=subprocess.check_output(['git','show',C+':'+p]);assert LF(b)==LF(pathlib.Path(p).read_bytes())
+ q=F(p);q['Git_raw_sha256']=H(b);q['Git_lf_sha256']=H(LF(b));q['snapshot']=snap(p,f'reviewer.parent.{i:02}.raw.snapshot')
+ q['review_scope']='Whole fresh proof/invoked interface inspected' if i in [0,1,2,4,5,9] else ('preserved old narrower range/interface or import context, no new completion credit'if i in [8,10,11]else 'invoked shared API inspected and exact unchanged previously reviewed parent bytes')
+ parent_records.append(q);stable.append(q)
+mathlib=[
+'Mathlib/Topology/MetricSpace/Contracting.lean','Mathlib/MeasureTheory/Constructions/BorelSpace/Metrizable.lean',
+'Mathlib/MeasureTheory/MeasurableSpace/Basic.lean','Mathlib/Analysis/Calculus/Gradient/Basic.lean',
+'Mathlib/Analysis/Calculus/FDeriv/Norm.lean','Mathlib/Analysis/InnerProductSpace/Calculus.lean',
+'Mathlib/Probability/Kernel/Basic.lean','Mathlib/Probability/Kernel/Composition/Prod.lean',
+'Mathlib/Probability/Kernel/Composition/MapComap.lean','Mathlib/MeasureTheory/Measure/Prod.lean',
+'Mathlib/MeasureTheory/Measure/Map.lean','Mathlib/Probability/Distributions/Gaussian/Multivariate.lean',
+'Mathlib/MeasureTheory/Integral/Bochner/Basic.lean','Mathlib/Analysis/Calculus/Deriv/Basic.lean']
+ml=[]
+for i,s in enumerate(mathlib):
+ p='.lake/packages/mathlib/'+s; q=F(p);q['snapshot']=snap(p,f'reviewer.Mathlib.{i:02}.raw.snapshot');ml.append(q);stable.append(q)
+assert subprocess.check_output(['git','-C','.lake/packages/mathlib','rev-parse','HEAD']).decode().strip()=='db584cd6d46c92f209a44c0f1c829460d327499d'
+for i,p in enumerate(['lean-toolchain','lake-manifest.json']):
+ q=F(p);q['snapshot']=snap(p,f'reviewer.runtime.{i}.raw.snapshot');stable.append(q)
+assert pathlib.Path('lean-toolchain').read_text().strip()=='leanprover/lean4:v4.33.0'
+primary='runs/20261006-companion-priority/smoothed-hessian-lower-preread/source-primary.sphmc-v1.raw.html'
+q=F(primary);assert q['raw_sha256']=='ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d'
+q['snapshot']=snap(primary,'reviewer.primary-whole.raw.snapshot.html');stable.append(q)
+primaryfr=[]
+for p in sorted((R/'preproof').glob('source-primary.*.raw.snapshot.html')):
+ q=F(p);q['snapshot']=snap(p,'reviewer.primary-fragment.'+str(len(primaryfr))+'.raw.snapshot.html');primaryfr.append(q);stable.append(q)
+# Primary-first contract comparison by this mathematical reviewer, separate from mandatory final anti-anchored source verdict.
+source_contract={'reviewer_id':V,'primary':F(primary),'exact_scope':'Source(2.1),(3.2), bounded0<eta<=1 analytic range and only Lemma4.2(4.4)-(4.5); no bias/MGF/standardized posterior/computational claim',
+ 'source_anchors':['S1.p1.1','S1.E1','S2.p1.1','S2.E1','S2.p2.2','S3.E2','S4.Ex3','S4.Thmtheorem2','S4.E4','S4.E5','S4.SS1.p4.1','S4.SS1.p5.2'],
+ 'semantic_checks':{'objects':'Literal argmin of V+norm(x-y)^2/(2eta), actual grad V evaluated at p+sqrteta*z; kernel is Gaussian gradient-output, not posterior.',
+ 'domains':'Actual C2 finite complete real Hilbert/Borel full-space, dimension0 disclosed; arbitrary measurable S, eta,y measurable, pointwise0<eta<=1; fixed common V/curvature.',
+ 'quantifiers':'One constructed measurable p over all S before every parameter/minimum/noise bound; K same p/G; equal eta retained in two-point bounds.',
+ 'assumptions':'Only source normalized beta1/kappainv curvature and typing/parameter generalization; no selector/minimum/covariance/moment/kernel/approx/cost certificates.',
+ 'conclusion':'Equation, exact positive quadratic growth and unique global minimum, equaleta nonexpansivity, full joint G measurability and exact pointwise Gaussian Markov law.',
+ 'scopes':'Source numerical proximal call cap1/(2beta) stays separate; bounded analytical producer0<eta<=1 does not prove allpositiveeta proximal construction or entire Lemma4.2.',
+ 'constants':'Fixed-point damping eta/(1+eta)<=1/2, exact growth(kappainv+etainv)/2, input1 and noise sqrteta; slash prose1/sqrteta is read as two coefficients, displayed equation unambiguous.'},
+ 'author_route':'Source4.5 from gradV 1Lip and sqrteta noise;4.4 from trueprox nonexpansivity +gradV1Lip. Implementation explicitly fills implicit existence/measurability via actual damped Banach map, not an added premise.',
+ 'mathematical_scope_check':'passed-scoped','mandatory_final_encoder_denoiser_source_review':'separate pending admission, not supplied by this math receipt','source_verdict_used_as_math':False}
+W(R/'reviewer.source-contract.json',source_contract)
+# Exact signature remains preproof sealed.
+seals=J(R/'preproof/statement-seals.accepted.json');text=pathlib.Path(claim['lean_files'][0]).read_text(encoding='utf8')
+sig=text[text.index('theorem full_range_proximal_gaussian_oracle'):text.index(' := by',text.index('theorem full_range_proximal_gaussian_oracle'))].rstrip()
+q=seals['signatures'][0];assert q['signature_text'].rstrip()==sig
+assert H(sig.encode())==q['signature_lf_sha256']
+# Import reachability; canonical scanner only project/Tests nodes, no ignored stress failure files.
+pending=[pathlib.Path(claim['lean_files'][0]),pathlib.Path('Tests/FullRangeProximalGaussianOracle.lean')];seen=set()
+while pending:
+ p=pending.pop();name=p.as_posix()
+ if name in seen:continue
+ seen.add(name);s=astis.strip_lean_comments_and_strings(p.read_text(encoding='utf8'))
+ for line in re.findall(r'^\s*import\s+([^\n]+)',s,re.M):
+  for mod in line.split():
+   cp=pathlib.Path(mod.replace('.','/')+'.lean')
+   if cp.exists() and(mod.startswith('AutoSamplingTheory')or mod.startswith('Tests')):pending.append(cp)
+hits=[]
+for p in sorted(seen):
+ s=astis.strip_lean_comments_and_strings(pathlib.Path(p).read_text(encoding='utf8'))
+ for x in astis.FORBIDDEN_REGEX.finditer(s):hits.append({'path':p,'line':s[:x.start()].count('\n')+1,'token':x.group()})
+assert not hits
+scan={'method':'fresh canonical ASTIS comment/string strip + FORBIDDEN_REGEX, actual ASTIS/Test import reachability','reachable_module_count':len(seen),'files':[F(p)for p in sorted(seen)],'hits':hits,'ignored_failed_stress_diagnostics_excluded':True}
+W(R/'reviewer.fake-closure-scan.json',scan)
+checks=J(R/'reviewer.direct-checks.json');assert len(checks)==3 and all(q['exit_code']==0 for q in checks)
+for q in checks:assert F(q['log'])['raw_sha256']==q['raw_sha256'];q['log_hashes']=F(q['log'])
+actual_test=pathlib.Path(R/'reviewer.direct-test.log').read_text()
+stress=(R/'reviewer.stress.attempt2.log').read_text()
+for content,count in [(actual_test,4),(stress,2)]:
+ aa=re.findall(r'depends on axioms: \[([^]]*)\]',content)
+ assert len(aa)==count and all(set(y.strip()for y in x.split(','))=={'propext','Classical.choice','Quot.sound'}for x in aa)
+ assert 'sorryAx'not in content
+lesson=J('website/content/declaration_lessons/sphmc-full-range-proximal-gaussian-oracle.json')['units'][0];assert len(lesson['steps'])==9
+receipt={'schema_version':1,'kind':'independent-whole-mathematical-review','advance_id':claim['advance_id'],'reviewer_id':V,'reviewer':V,
+ 'formalizer':'companion_root_20261005','independent_from_formalizer':True,'status':'passed-scoped','verification_status':'passed-scoped','blocking':False,'blockers':[],
+ 'checked_base_commit':C,'proof_commit_verified':False,'original_freeze':F(R/'math-freeze.json'),'original22_chain':chain,
+ 'frozen_inputs':stable,'stable_input_count':len(stable),'separately_scoped_metadata':contexts,'parent_module_count':12,'pinned_Mathlib_API_file_count':14,
+ 'production_review':{'path':claim['lean_files'][0],'lines':249,'private_helpers':3,'public_declarations':1,'all_proof_bodies_read':True,
+ 'actual_gradient_bounds':'Fresh actual Hessian->grad1Lip +convex upper model->gradient-step h1/alpha0 contraction gives I-grad1Lip; genuine lowerfirstorder implies monotonicity; no assumed spectral field or contraction.',
+ 'parameterized_damped_point':'Uniform Banach on actual complete nonempty E, finite real full domain. eta/(1+eta)<=1/2 includingeta1. All iterations from0 are measurable; exact allpoint Pi-limit via measurable_of_tendsto_metrizable creates measurable p even arbitrary S; fixed-point multiplied by positive1+eta gives literal p+eta gradp=y. No measurable-choice premise.',
+ 'actual_quadratic_minimum':'True norm-square Frechet derivative, genuine Riesz gradient zero from equation, actual shifted strongconvexity coefficientkappainv+etainv; positivity enforces unique global minimum, no original V minimizer assumption.',
+ 'public_consumer':'Same actual p used in growth/equation/nonexpansivity/G/K. Equaleta retained; zero proximal-distance branch legal. All-point true-gradient triangle bound coefficients1/sqrteta-as-two-values. Joint meas G derives globally before Kernel.map, so zero/nonmeasurable fallback never used. id×const Gaussian are actual Markov hence SFinite, so product fallback never used.',
+ 'E0':'No Nontrivial or unit-vector premise anywhere; positivity/cancellation only nonzero normbranch. stdGaussian inFin0 is genuine probability; actual constant7 Test outputsdirac0.'},
+ 'proof_checks':['Source curvature impliesbothsmoothness andconvexity without coercivity/completion certificates.',
+ 'Uniform halfcontracting factor positiveeta andeta<=1; no uniform rate/cost asserted for machinequery approximation.',
+ 'All eta inverses used with actual positivity, exact halfenergy convention and growthmodulus retained.',
+ 'No varyingeta input-only nonexpansivity: actual counterexample y=1 p1=1/2,p_half=2/3, positive gap1/6 vsinputgap0.',
+ 'Kernel law contains noisy true gradient, notproximalstate/posterior law/HMCtransition; no query count or numerical precision claim.'],
+ 'signature_seal':{'path':F(R/'preproof/statement-seals.accepted.json'),'declaration':claim['declarations'][0],'signature_sha256':H(sig.encode()),'exact_current_signature_match':True},
+ 'reader_review':{'step_count':9,'actual_astis_parents':lesson['astis_dependencies'],'actual_formulas_proofs_assumptions_boundary_consistent':True,
+ 'nonblocking_editorial_note':'Blueprint coefficient slash shorthand1/sqrteta means1 andsqrteta; reader displayed bound and statement explicitly identify those two coefficients. Official Test isquadratic/zeroDim; independent reviewer provides actualnonquadratic stress, no extra production Test claim.'},
+ 'source_mathematical_boundary_audit':F(R/'reviewer.source-contract.json'),'source_primary_fragments':primaryfr,
+ 'fresh_direct_elaboration':checks,'standard_axioms':['propext','Classical.choice','Quot.sound'],'actual_Test_axiom_prints':4,'own_stress_axiom_prints':2,
+ 'Test_review':{'lines':115,'private_helpers':3,'all_bodies_read':True,'actualvariableeta':'Actual constructed p= y/(1+eta) identified through equation then same Kpushforward. True Gaussian moment eta via actual StdGaussian integrable normsq and legal integral_map; unique literal quadratic minimum retained.',
+ 'eta1':'Actual gradient-output centered moment1. Analytically forV=x²/2,the RGO posterior variance ateta1 is1/2, illustrating different law; RGOcomparison not separately formalized here.',
+ 'E0':'Actual original sourceconstant7 inrealFin0 with arbitrarypositivevariableeta<=1, genuine MarkovGaussian mapdirac0.'},
+ 'independent_stress':{'status':'PASS','stdin':F(R/'reviewer.stress.attempt2.stdin.txt'),'log':F(R/'reviewer.stress.attempt2.log'),
+ 'nonquadratic':'V=3/8x²+sinx/8,actual Hessian3/4-sinx/8,κ2; measurable eta=1 at0 else1/2, centersy(s)=s. Same produced p/G/K everyparameter; p0 !=0 fromgradV0=1/8; eta1 exactgrowth3/4, all equaleta input/noisebounds andjointmeas/kernelmap.',
+ 'guard_counterexample':'Actual quadraticvariable-eta K with fixedcenter1: true Gaussian lawcenters1/2,2/3 andsecondmoments1,1/2; proximalgap1/6>samecentergap0 demonstrates equaleta guard necessary.',
+ 'preserved_failed_attempt':{'stdin':F(R/'reviewer.stress.attempt1.stdin.txt'),'log':F(R/'reviewer.stress.attempt1.log'),'cause':'Own normalization/API mismatches realnorm-square vsplain square after norm_num; square-root normalization tosqrt2 inverse. Failed declaration recovery sorryAx explicitly excluded; no production/source statements changed.'}},
+ 'fake_closure_scan':F(R/'reviewer.fake-closure-scan.json'),'fake_closure_count':len(seen),'fake_closure_hits':[],
+ 'toolchain':'leanprover/lean4:v4.33.0','Mathlib_commit':'db584cd6d46c92f209a44c0f1c829460d327499d','LEAN_NUM_THREADS':2,
+ 'review_exposure':{'entire_current_production_Test_reader_and_literal_primary_read':True,'preproof_seals_source_graph_metadata':'frozen accepted preproof only, not inference from future body',
+ 'anonymous_packet':'raw/LF footprint only, no decoding content used as mathematical proof','current_reconstruction':'only allowed audit lifecyclediff/rawhash; no reconstruction text or verdict used to decide mathematics',
+ 'final_source_reviewer_verdict_or_repairs_read':False,'ignored_root_prototypes_read':False},
+ 'remaining_boundary':['Independent final sourceblind/source review, PROVED_LOCAL/exactcommit VERIFIED/repository ProofSeal/shared integration/exposition/currentCI/merge are separate futureadmissions; this is wholemathematical passed-scoped only.',
+ 'Bounded fullsource analytic0<eta<=1 exactselector/Gaussian-gradient kernel andonly4.4/4.5; noallpositiveeta construction/fullLemma4.2 bias4.2/GaussianMGF4.3/highercumulation/bias-moment theorem.',
+ 'Numericalprox eta<=1/(2beta)querycap/cost stays separate. No affine standardized RGOlaw/moment, posterior selection kernel, historyintegratedinputmoments, Wp/warmness/initialization/sampler/main/PBPSremainingedges or actual expectedcostcomposition; TV nevertransfersunboundedcost.'],
+ 'all_compiler_sessions_closed':True,'compiler_lease':'CLOSED','write_lease':'CLOSED','no_canonical_math_metadata_audit_cell_or_ledger_mutation':True,
+ 'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+receipt['review_run_sha256']=H(json.dumps(receipt,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())
+assert not (R/'math-review.json').exists();W(R/'math-review.json',receipt)
+print(json.dumps({'status':'passed-scoped','checked_base':C,'receipt':F(R/'math-review.json'),'stable_inputs':len(stable),'context_snapshots':len(contexts),'reachable_fake_scan':len(seen),'private_helpers':3,'reader_steps':9,'compiler_and_write_lease':'CLOSED'},indent=2))

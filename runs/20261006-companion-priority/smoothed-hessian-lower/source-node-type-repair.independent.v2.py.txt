@@ -1,0 +1,75 @@
+import pathlib,json,subprocess,hashlib,datetime
+R=pathlib.Path('runs/20261006-companion-priority/smoothed-hessian-lower')
+C='d35ac3b2de65dfffde06723d9e6e262509be6bc4';B='3e6472065d7027c6f07540fc4497386c9f5037bb';V='picard_commit_verifier_20261005'
+def H(b):return hashlib.sha256(b).hexdigest()
+def LF(b):return b.replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+def F(p):
+ p=pathlib.Path(p);b=p.read_bytes();return {'path':p.as_posix(),'raw_sha256':H(b),'lf_sha256':H(LF(b)),'bytes':len(b)}
+def J(p):return json.loads(pathlib.Path(p).read_text(encoding='utf8'))
+def G(args):return subprocess.check_output(['git']+args)
+def diff(a,b,p=''):
+ if type(a)!=type(b):return [p]
+ if isinstance(a,dict):return sum([diff(a.get(k),b.get(k),p+'/'+k)for k in sorted(set(a)|set(b))],[])
+ if isinstance(a,list):
+  if len(a)!=len(b):return [p]
+  return sum([diff(x,y,p+'/'+str(i))for i,(x,y)in enumerate(zip(a,b))],[])
+ return [] if a==b else [p]
+assert G(['rev-parse','HEAD']).decode().strip()==C
+assert G(['rev-parse',C+'^']).decode().strip()==B
+er=R/'exposition-seal.json';e=J(er);repair=J(R/'source-node-type-repair.json')
+assert F(er)['raw_sha256']=='d4ecdaa8ca4cfba058fb3169adb0b4c810ab0a5342d089a49db4e049fe0d617f'
+assert G(['show',B+':'+er.as_posix()])==G(['show',C+':'+er.as_posix()])==er.read_bytes()
+ids=[n['id']for n in e['source_expansion_nodes']]
+assert len(ids)==len(set(ids))==14 and all(isinstance(n,str)and n.strip()for n in ids)
+assert repair['source_ids']==ids
+field='/learning_contract/reader_backpressure/source_expansion_nodes';records=[]
+cids=['ASTIS-SHARED-gibbs-linear-covariance-upper','ASTIS-SW-SPHMC-smoothed-hessian-bounds']
+for k,cid in enumerate(cids):
+ p=pathlib.Path('research-wiki/frontier-cells')/(cid+'.json')
+ before_blob=G(['show',B+':'+p.as_posix()]);after_blob=G(['show',C+':'+p.as_posix()])
+ before=json.loads(before_blob);after=J(p)
+ assert LF(after_blob)==LF(p.read_bytes())
+ ds=diff(before,after);assert ds==[field+'/'+str(i) for i in range(14)],ds
+ old=before['learning_contract']['reader_backpressure']['source_expansion_nodes']
+ new=after['learning_contract']['reader_backpressure']['source_expansion_nodes']
+ assert old==e['source_expansion_nodes'] and new==ids
+ assert all(isinstance(n,dict)and n['id']==id for n,id in zip(old,new))
+ snapshot=R/f'source-node-type-repair.before.{k}.raw.snapshot.cell.json'
+ assert J(snapshot)==before and LF(snapshot.read_bytes())==LF(before_blob)
+ current_snap=R/f'source-node-type-repair.independent-current.{k}.raw.snapshot.cell.json';assert not current_snap.exists();current_snap.write_bytes(p.read_bytes())
+ records.append({'cell_id':cid,'only_changed_field':field,'exact_element_changes':ds,'before_snapshot':F(snapshot),'before_git_raw_sha256':H(before_blob),'before_git_lf_sha256':H(LF(before_blob)),
+ 'current':F(p),'current_snapshot':F(current_snap),'current_git_raw_sha256':H(after_blob),'current_git_lf_sha256':H(LF(after_blob)),
+ 'before_objects_exact_exposition_nodes':True,'after_exact_id_projection':True,'all_other_fields_exactly_unchanged':True,
+ 'status_unchanged':after['status'],'purification_and_exposition_admission_unchanged':after['learning_contract']['reader_backpressure']['exposition_seal_status']})
+changed=G(['diff','--name-only',B,C]).decode().splitlines()
+expected=set('research-wiki/frontier-cells/'+cid+'.json'for cid in cids)|{(R/n).as_posix()for n in [
+'remote-ci-site-failure.3e647206.log','source-node-type-repair.before.0.raw.snapshot.cell.json','source-node-type-repair.before.1.raw.snapshot.cell.json',
+'source-node-type-repair.failed-test.log','source-node-type-repair.frontier.log','source-node-type-repair.json']}
+assert set(changed)==expected,changed
+inputs=[]
+for p in changed:
+ if p.startswith(R.as_posix()+'/'):
+  assert G(['show',C+':'+p])==pathlib.Path(p).read_bytes(),p
+  inputs.append(F(p))
+# Whole commit excludes production/Test/math/audit/lesson/signature/ledger/purification changes.
+assert not any(p.endswith('.lean')or '/declaration_lessons/'in p or '/semantic-roundtrip/'in p or '/publications/'in p or p=='runs/substantive_advances.jsonl'for p in changed)
+text=pathlib.Path('tools/astis_frontier_cells.py').read_text(encoding='utf8')
+assert 'for field in ("source_expansion_nodes", "lean_expansion_nodes"):'in text
+assert 'reader_backpressure.{field} must be a string list'in text
+assert G(['show',B+':tools/astis_frontier_cells.py'])==G(['show',C+':tools/astis_frontier_cells.py'])
+assert '249 registered cells'in (R/'source-node-type-repair.frontier.log').read_text()
+assert 'Ran 1 test'in (R/'source-node-type-repair.failed-test.log').read_text() and 'OK'in (R/'source-node-type-repair.failed-test.log').read_text()
+out={'schema_version':1,'kind':'independent-bounded-administrative-node-id-projection-reconciliation','reviewer_id':V,'status':'accepted-scoped-metadata-only',
+ 'checked_commit':C,'parent_failed_head':B,'blocking':False,'blockers':[],'field':field,'cells':records,'accepted_source_node_ids':ids,
+ 'unchanged_detailed_exposition_receipt':F(er),'all_14_detailed_objects_anchors_retained_in_exposition_receipt':True,
+ 'current_schema_rule':{'path':'tools/astis_frontier_cells.py','line':313,'contract':'both expansion fields are nonempty string lists; changed source entries now exact accepted IDs','unchanged_across_repair_commit':True},
+ 'exact_changed_files':changed,'committed_root_repair_evidence':inputs,'no_mathematical_source_signature_code_or_assumption_change':True,
+ 'no_lifecycle_or_ledger_transition':True,'no_purification_admission_change':True,'no_compiler_started':True,
+ 'no_tests_rerun':'Root preserved genuine one failed-CI test replay PASS and frontier249; bounded schema/string projection established independently without broad test/compile repetition.',
+ 'prior_independent_math_and_repository_ProofSeal_not_repeated_or_modified':True,
+ 'remaining_boundary':'This is a metadata type projection, no new proof/source/Exposition acceptance credit. Repaired head remote CI remains separately pending; merge, both main results/Wp/warmness/query cost/composition remain open.',
+ 'future26_source_or_proof_content_read':False,'writes':'own two raw current snapshots and this bounded receipt only','write_lease':'CLOSED',
+ 'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+target=R/'source-node-type-repair.independent.json';assert not target.exists()
+target.write_bytes((json.dumps(out,ensure_ascii=False,indent=2)+'\n').encode('utf8'))
+print(json.dumps({'status':out['status'],'checked_commit':C,'receipt':F(target),'changed_fields':2,'accepted_node_ids':14,'compiler':'not started','writes':'CLOSED'},ensure_ascii=False,indent=2))

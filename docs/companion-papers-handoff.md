@@ -26,8 +26,15 @@ numericalprox sourcecap eta<=1/(2beta) and finite expectedquery work stay separa
 no mathematical fullrange conclusion transfers an algorithmic cost guarantee.
 Gaussian gradient-output law is distinct from RGO posterior and HMC K/Khat/Kbar.
 
-Shared wholegate/reader/graph integration and independent repository ProofSeal,
-ExpositionSeal/purification are pending at this checkpoint. Next bounded source
+Shared integration22fb9ce5 has independently accepted repository ProofSeal,
+full ASTIS gate9130/9391, static site and official graph/onecell checks. Fresh
+independent full859-file fake-closure scan is zero. Independent static
+ExpositionSeal and scoped purification are accepted: full249production/115Test
+lines, all3private declarations in each, nine mathematical steps,176canonical
+source spans and26local links expand losslessly with exact formal branches.
+Unused local hsc is a nonblocking cleanup note; no source statement changed.
+Rendered visual/copy/download acceptance, new26head remoteCI, merge/live and
+both complete main results remain OPEN. Next bounded source
 candidate is actual normalized affine RGO transport with source rho/Q curvature,
 stationarity and true position/Fisher moments. Gaussian Talagrand/LSI toW2,
 bias/MGF/higher smoothing/fullLemma4.2, actual sampler/Wp/proxywarmness and

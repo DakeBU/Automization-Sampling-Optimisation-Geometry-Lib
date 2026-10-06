@@ -1,0 +1,162 @@
+{
+  "id": "ASTIS-RT-20261006-CompactC1GradientDomain",
+  "state": "draft",
+  "source": {
+    "source_id": "companion:compact-c1-gradient-domain",
+    "anchor": "PBPS arXiv:2609.06905v1 Appendix C.1 proof of Lemma B.1/Lemma C.1 compact-smooth-to-weighted-H1 analytic prerequisite; Section2.2 equations2.6-2.14 actual reflected conditional law. SPHMC2609.06906v1 Section4.1 BL actual-resolvent dependency only.",
+    "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+    "original_text": "Explicit analytic prerequisite restatement:\nE is a finite-dimensional real inner-product space with Borel measurable structure and canonical volume, including dimension zero. mu is any finite measure; no absolute-continuity or Gibbs hypothesis on mu is required.\nD is the same closable real-linear partial operator, with original graph iff actual C-infinity compact scalar representatives and their genuine gradients, both classes identified mu-a.e. This semantics comes from the existing gradient producer in the paper consumer.\nThe tested scalar f is only C1 and compactly supported. Its gradient, L2 integrability and actual closure membership are conclusions, not inputs.\nFor every finite Borel measure mu, every closable partial gradient D whose original graph is exactly compact smooth scalar representatives and their genuine gradients, and every C1 compact scalar f, derive MemLp f 2 mu and MemLp (gradient f) 2 mu and prove the actual pair of their L2 classes lies in D.closure.graph. No graph-membership or approximation certificate is supplied.\nSame actual compact-gradient graph closure admits C1 compact function/gradient pairs; actual positive-epsilon weak resolvent has all C1 compact weighted volume tests and genuine ordinary weak gradient. Actual PBPS reflected conditional R/S law and original fixed D precede epsilon/input. No local H2, global operator-core/Bochner, conditional Poincare/BL, centered epsilon limit, noncompact constant/linear domains, measurable y-selection, SPHMC Hessian lower/full4.1, PBPS hypocoercivity or either complete main/composition. TV never transfers unbounded expected cost.",
+    "text_sha256": "3267f04679ab8fbdd2969ab2e8c2eedcc1e9b1ff57d743dee9398c242f8e51b1"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain.compact_c1_in_closed_gradient",
+    "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactC1GradientDomain.lean",
+    "statement": "(μ : Measure E) [IsFiniteMeasure μ]\n    (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ) (hD : D.IsClosable)\n    (hgraph : ∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔\n      ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n        a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ)\n    {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f) :\n    ∃ hp : MemLp f 2 μ, ∃ hq : MemLp (gradient f) 2 μ,\n      (hp.toLp f,hq.toLp (gradient f)) ∈ D.closure.graph",
+    "statement_sha256": "f32ad228ca3e024252ae950ba4c4360f0960f705cb917e4330d0c48f84898a9d",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a finite-dimensional real inner-product space with its Borel measurable space and canonical Lebesgue volume, including dimension zero. All section ambient instances remain part of the contract. NNReal denotes nonnegative real scalars.",
+      "Lp F 2 mu is the actual L2 quotient space; MemLp means a measurable representative with finite L2 norm. MemLp.toLp embeds the actual function class and agrees mu-a.e. Inner products of L2 classes integrate pointwise real inner products against mu.",
+      "ContDiff R 1 means C1; infinity means smooth. gradient f is the Riesz representative of the actual Frechet derivative fderiv R f. HasCompactSupport means the topological closure of nonzero support is compact.",
+      "LinearPMap is a real-linear partial operator on its stated submodule domain. Its graph consists of pairs of a domain element and its actual output. D.IsClosable means its topological graph closure is single-valued; D.closure is that same closed operator. Coercions from its domain and from L2 classes choose the usual representatives. No test membership is built into these definitions.",
+      "Measure.tilted f is exp(f)/integral exp(f) times the original measure. Probability/nonzero normalization is not built into this definition. Kernel is a measurable probability-transition family when IsMarkovKernel holds. A conditional kernel disintegrates the specified joint measure; measure.map is actual pushforward and prod is the actual independent product. stdGaussian denotes the standard real Hilbert Gaussian. All volume or law integrals specify their actual measure."
+    ],
+    "compiler_evidence": "Focused production3303/Test3305 PASS, actual nonquadratic conditional and compact C1 observable, standard3 only. Separate full mathematics/blind/source/exactcommit/integration pending."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "33113690feaaf1f00625dd07b533241ef08ac6dc1e283e7242134a3ba5ba5795",
+  "publication_context": {
+    "file": "dd6234dfec6d2dfb351d1ad45c3fcc0eb111e1c18038ebc4c6ab48035033a2f7",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient\nimport Mathlib.Analysis.Calculus.ContDiff.Convolution\nimport Mathlib.Analysis.Calculus.BumpFunction.Convolution\nimport Mathlib.MeasureTheory.Integral.DominatedConvergence\n\n/-!\n# Compact C1 functions belong to the same closed gradient graph\n\nAnalytic prerequisite for PBPS arXiv:2609.06905v1 Appendix C.1 and the\nSPHMC2609.06906v1 Section4.1 BL route. Actual normalized compact mollifiers\njointly approximate a function and its genuine gradient. A finite measure\nallows bounded dominated convergence; no uniform support/domain certificate\nis assumed. The original exact compact smooth graph is retained.\n\nFinite-dimensional real Borel Hilbert spaces include dimension zero.\nThis is not local H2, a generator core, global Bochner, Poincare or BL.\n-/\nset_option autoImplicit false\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain\nopen MeasureTheory ContinuousLinearMap Filter InnerProductSpace ProbabilityTheory\nopen scoped Convolution Topology ContDiff RealInnerProductSpace NNReal\nnoncomputable section\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\nprivate theorem mollifier_fderiv {f : E → ℝ} (hf : ContDiff ℝ 1 f)\n    (hc : HasCompactSupport f) (φ : ContDiffBump (0:E)) :\n    let g := (φ.normed volume ⋆[lsmul ℝ ℝ, volume] f)\n    ContDiff ℝ ∞ g ∧ HasCompactSupport g ∧\n      fderiv ℝ g = φ.normed volume ⋆[lsmul ℝ ℝ, volume] (fderiv ℝ f) := by\n  let g := (φ.normed volume ⋆[lsmul ℝ ℝ, volume] f)\n  refine ⟨φ.hasCompactSupport_normed.contDiff_convolution_left (lsmul ℝ ℝ)\n      φ.contDiff_normed hf.continuous.locallyIntegrable,\n    φ.hasCompactSupport_normed.convolution (lsmul ℝ ℝ) hc,?_⟩\n  funext x\n  have hd := hc.hasFDerivAt_convolution_right (μ := (volume : Measure E)) (lsmul ℝ ℝ)\n    (φ.integrable_normed (μ := (volume : Measure E))).locallyIntegrable hf x\n  rw [hd.fderiv]\n  congr 1\n\n\nprivate theorem mollifier_squared_error {F : Type*} [NormedAddCommGroup F]\n    [NormedSpace ℝ F] [CompleteSpace F] (μ : Measure E) [IsFiniteMeasure μ]\n    {h : E → F} (hh : Continuous h) {C : ℝ} (hC : ∀ x, ‖h x‖≤C)\n    (φ : ℕ → ContDiffBump (0:E))\n    (hφ : Tendsto (fun n => (φ n).rOut) atTop (𝓝 0)) :\n    Tendsto (fun n => ∫ x, ‖((φ n).normed volume ⋆[lsmul ℝ ℝ, volume] h) x-h x‖^2 ∂μ)\n      atTop (𝓝 0) := by\n  let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] h\n  have hc : 0≤C := (norm_nonneg (h (0:E))).trans (hC _)\n  have hg (n : ℕ) : Continuous (g n) :=\n    (φ n).hasCompactSupport_normed.continuous_convolution_left (lsmul ℝ ℝ)\n      (φ n).continuous_normed hh.locallyIntegrable\n  have hb (n : ℕ) (x : E) : ‖g n x‖≤C := by\n    have ht := dist_convolution_le (μ := (volume : Measure E)) (x₀ := x) (z₀ := (0:F)) hc\n      (φ n).support_normed_eq.subset (φ n).nonneg_normed (φ n).integral_normed\n      hh.aestronglyMeasurable (fun t _ => by simpa only [dist_zero_right] using hC t)\n    simpa only [dist_zero_right] using ht\n  have he := tendsto_integral_of_dominated_convergence (μ := μ)\n    (F := fun n x => ‖g n x-h x‖^2) (f := fun _ => (0:ℝ))\n    (fun _ => (2*C)^2)\n    (fun n => ((hg n).sub hh).norm.pow 2 |>.aestronglyMeasurable)\n    (integrable_const _) (fun n => by\n      filter_upwards with x\n      rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _)]\n      apply (sq_le_sq₀ (norm_nonneg _) (by positivity)).2\n      exact (norm_sub_le _ _).trans (by linarith [hb n x,hC x])) (by\n      filter_upwards with x\n      have ht := ContDiffBump.convolution_tendsto_right_of_continuous\n        (μ := (volume : Measure E)) hφ hh x\n      simpa only [g,sub_self,norm_zero,zero_pow (by norm_num : (2:ℕ)≠0)] using\n        ((ht.sub (tendsto_const_nhds : Tendsto (fun _ : ℕ => h x) atTop (𝓝 (h x)))).norm.pow 2))\n  simpa only [integral_zero] using he\n\n\nprivate theorem compact_c1_approximation (μ : Measure E) [IsFiniteMeasure μ]\n    {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f)\n    (φ : ℕ → ContDiffBump (0:E))\n    (hφ : Tendsto (fun n => (φ n).rOut) atTop (𝓝 0)) :\n    let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] f\n    (∀ n, ContDiff ℝ ∞ (g n) ∧ HasCompactSupport (g n)) ∧\n      Tendsto (fun n => ∫ x, ‖g n x-f x‖^2 ∂μ) atTop (𝓝 0) ∧\n      Tendsto (fun n => ∫ x, ‖fderiv ℝ (g n) x-fderiv ℝ f x‖^2 ∂μ) atTop (𝓝 0) := by\n  let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] f\n  obtain ⟨C,hC⟩ := hf.continuous.norm.bddAbove_range_of_hasCompactSupport hc.norm\n  have hCb (x : E) : ‖f x‖≤C := hC ⟨x,rfl⟩\n  have hd := hf.continuous_fderiv one_ne_zero\n  obtain ⟨B,hB⟩ := hd.norm.bddAbove_range_of_hasCompactSupport (hc.fderiv ℝ).norm\n  have hBb (x : E) : ‖fderiv ℝ f x‖≤B := hB ⟨x,rfl⟩\n  have hgi (n : ℕ) := mollifier_fderiv hf hc (φ n)\n  refine ⟨fun n => ⟨(hgi n).1,(hgi n).2.1⟩,\n    mollifier_squared_error μ hf.continuous hCb φ hφ,?_⟩\n  have he := mollifier_squared_error μ hd hBb φ hφ\n  convert he using 1\n  funext n\n  dsimp only [g]\n  rw [(hgi n).2.2]\n\n\nprivate theorem l2_convergence {F : Type*} [NormedAddCommGroup F]\n    [InnerProductSpace ℝ F] [CompleteSpace F] (μ : Measure E)\n    (g : ℕ → E → F) (f : E → F) (hg : ∀ n, MemLp (g n) 2 μ) (hf : MemLp f 2 μ)\n    (he : Tendsto (fun n => ∫ x, ‖g n x-f x‖^2 ∂μ) atTop (𝓝 0)) :\n    Tendsto (fun n => (hg n).toLp (g n)) atTop (𝓝 (hf.toLp f)) := by\n  have hn (n : ℕ) : ‖(hg n).toLp (g n)-hf.toLp f‖ =\n      Real.sqrt (∫ x, ‖g n x-f x‖^2 ∂μ) := by\n    rw [norm_eq_sqrt_re_inner (𝕜 := ℝ), L2.inner_def]\n    congr 1\n    apply integral_congr_ae\n    filter_upwards [Lp.coeFn_sub ((hg n).toLp (g n)) (hf.toLp f),\n      (hg n).coeFn_toLp, hf.coeFn_toLp] with x hs hx hy\n    simp only [hs,Pi.sub_apply,hx,hy,real_inner_self_eq_norm_sq]\n  rw [tendsto_iff_dist_tendsto_zero]\n  simp_rw [dist_eq_norm,hn]\n  simpa only [Real.sqrt_zero] using he.sqrt\n\n\ntheorem compact_c1_in_closed_gradient (μ : Measure E) [IsFiniteMeasure μ]\n    (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ) (hD : D.IsClosable)\n    (hgraph : ∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔\n      ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n        a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ)\n    {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f) :\n    ∃ hp : MemLp f 2 μ, ∃ hq : MemLp (gradient f) 2 μ,\n      (hp.toLp f,hq.toLp (gradient f)) ∈ D.closure.graph := by\n  let φ : ℕ → ContDiffBump (0:E) := fun n =>\n    { rIn := ((n:ℝ)+1)⁻¹, rOut := 2*((n:ℝ)+1)⁻¹,\n      rIn_pos := by positivity,\n      rIn_lt_rOut := by\n        have h : 0<((n:ℝ)+1)⁻¹ := by positivity\n        linarith }\n  have hφ : Tendsto (fun n => (φ n).rOut) atTop (𝓝 0) := by\n    have ht : Tendsto (fun n : ℕ => ((n:ℝ)+1)⁻¹) atTop (𝓝 0) :=\n      tendsto_inv_atTop_zero.comp\n        (tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop)\n    simpa only [mul_zero] using ht.const_mul 2\n  let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] f\n  obtain ⟨hgi,hgf,hgd⟩ := compact_c1_approximation μ hf hc φ hφ\n  have gradCont (a : E → ℝ) (ha : ContDiff ℝ 1 a) : Continuous (gradient a) :=\n    (toDual ℝ E).symm.continuous.comp (ha.continuous_fderiv one_ne_zero)\n  have gradComp (a : E → ℝ) (ha : HasCompactSupport a) : HasCompactSupport (gradient a) := by\n    refine HasCompactSupport.of_support_subset_isCompact ha.isCompact ?_\n    intro x hx\n    by_contra hn\n    exact hx (by simp [gradient,fderiv_of_notMem_tsupport ℝ hn])\n  have hp := hf.continuous.memLp_of_hasCompactSupport (μ := μ) hc (p := 2)\n  have hq := (gradCont f hf).memLp_of_hasCompactSupport (μ := μ) (gradComp f hc) (p := 2)\n  have hgp (n) := (hgi n).1.continuous.memLp_of_hasCompactSupport (μ := μ) (hgi n).2 (p := 2)\n  have hgq (n) := (gradCont (g n) (contDiff_infty.mp (hgi n).1 1)).memLp_of_hasCompactSupport\n    (μ := μ) (gradComp (g n) (hgi n).2) (p := 2)\n  have htq : Tendsto (fun n => ∫ x, ‖gradient (g n) x-gradient f x‖^2 ∂μ) atTop (𝓝 0) := by\n    convert hgd using 1\n    funext n\n    apply integral_congr_ae\n    filter_upwards [] with x\n    simp only [gradient,← map_sub,(toDual ℝ E).symm.norm_map]\n    rfl\n  have htp := l2_convergence μ g f hgp hp hgf\n  have htq' := l2_convergence μ (fun n => gradient (g n)) (gradient f) hgq hq htq\n  refine ⟨hp,hq,?_⟩\n  rw [← hD.graph_closure_eq_closure_graph]\n  apply D.graph.isClosed_topologicalClosure.mem_of_tendsto (htp.prodMk_nhds htq')\n  filter_upwards [] with n\n  apply D.graph.le_topologicalClosure\n  exact (hgraph _ _).mpr ⟨g n,(hgi n).1,(hgi n).2,(hgp n).coeFn_toLp,(hgq n).coeFn_toLp⟩\n\n\nend\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "PBPS arXiv:2609.06905v1 Appendix C.1 proof of Lemma B.1/Lemma C.1 compact-smooth-to-weighted-H1 analytic prerequisite; Section2.2 equations2.6-2.14 actual reflected conditional law. SPHMC2609.06906v1 Section4.1 BL actual-resolvent dependency only.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib explicit full-space analytic prerequisite to Chen, Chewi, Lu and Zhang Appendix C.1; not a quoted numbered theorem or full Lemma C.1/Poincare result."
+    },
+    "statement": "For every finite Borel measure mu, every closable partial gradient D whose original graph is exactly compact smooth scalar representatives and their genuine gradients, and every C1 compact scalar f, derive MemLp f 2 mu and MemLp (gradient f) 2 mu and prove the actual pair of their L2 classes lies in D.closure.graph. No graph-membership or approximation certificate is supplied.",
+    "formulae": [
+      {
+        "label": "C1 compact functions lie in the same closed gradient graph",
+        "tex": "\\psi\\in C_c^1(E)\\Longrightarrow\\psi,\\nabla\\psi\\in L^2(\\mu),\\quad([\\psi],[\\nabla\\psi])\\in\\overline{\\operatorname{graph}D}=\\operatorname{graph}(\\overline D)."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space with Borel measurable structure and canonical volume, including dimension zero. mu is any finite measure; no absolute-continuity or Gibbs hypothesis on mu is required.",
+      "D is the same closable real-linear partial operator, with original graph iff actual C-infinity compact scalar representatives and their genuine gradients, both classes identified mu-a.e. This semantics comes from the existing gradient producer in the paper consumer.",
+      "The tested scalar f is only C1 and compactly supported. Its gradient, L2 integrability and actual closure membership are conclusions, not inputs."
+    ],
+    "obligations": [
+      {
+        "id": "actual-c1-domain-tests",
+        "label": "Actual joint graph-domain approximation and legitimate C1 conditional weak tests"
+      },
+      {
+        "id": "elliptic-core",
+        "label": "Local H2, global operator core and Bochner (remaining)"
+      },
+      {
+        "id": "full-papers",
+        "label": "Poincare/BL, full main results and composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain.compact_c1_in_closed_gradient",
+      "title": "C1 compact functions lie in the same closed gradient graph",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS Appendix C.1 omitted analytic domain prerequisite",
+          "scope": "Same actual compact-gradient graph closure admits C1 compact function/gradient pairs; actual positive-epsilon weak resolvent has all C1 compact weighted volume tests and genuine ordinary weak gradient. Actual PBPS reflected conditional R/S law and original fixed D precede epsilon/input. No local H2, global operator-core/Bochner, conditional Poincare/BL, centered epsilon limit, noncompact constant/linear domains, measurable y-selection, SPHMC Hessian lower/full4.1, PBPS hypocoercivity or either complete main/composition. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.CompactC1GradientDomain"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space with Borel measurable structure and canonical volume, including dimension zero. mu is any finite measure; no absolute-continuity or Gibbs hypothesis on mu is required.",
+        "D is the same closable real-linear partial operator, with original graph iff actual C-infinity compact scalar representatives and their genuine gradients, both classes identified mu-a.e. This semantics comes from the existing gradient producer in the paper consumer.",
+        "The tested scalar f is only C1 and compactly supported. Its gradient, L2 integrability and actual closure membership are conclusions, not inputs."
+      ],
+      "statement": "For every finite Borel measure mu, every closable partial gradient D whose original graph is exactly compact smooth scalar representatives and their genuine gradients, and every C1 compact scalar f, derive MemLp f 2 mu and MemLp (gradient f) 2 mu and prove the actual pair of their L2 classes lies in D.closure.graph. No graph-membership or approximation certificate is supplied.",
+      "formula": "\\psi\\in C_c^1(E)\\Longrightarrow\\psi,\\nabla\\psi\\in L^2(\\mu),\\quad([\\psi],[\\nabla\\psi])\\in\\overline{\\operatorname{graph}D}=\\operatorname{graph}(\\overline D).",
+      "steps": [
+        {
+          "title": "Construct genuine normalized compact mollifiers",
+          "text": "Choose bump radii (n+1)^-1 and twice that value. Normalize the actual smooth compact nonnegative kernel against canonical volume; it has integral one and shrinking support. The approximation is the real convolution g_n=rho_n*f, not a supplied approximating sequence.",
+          "formula": "\\rho_n\\ge0,\\quad\\int\\rho_n dx=1,\\quad r_n\\to0,\\quad g_n=\\rho_n*\\psi.",
+          "lean": "compact_c1_in_closed_gradient: phi,hphi; ContDiffBump.normed"
+        },
+        {
+          "title": "Differentiate the actual convolution",
+          "text": "Compact support and C1 regularity justify the right-variable derivative theorem. Actual g_n is compact smooth and its Frechet derivative is convolution with Df. This establishes a joint function/derivative sequence.",
+          "formula": "Dg_n=\\rho_n*D\\psi,\\quad g_n\\in C_c^\\infty(E).",
+          "lean": "mollifier_fderiv; HasCompactSupport.hasFDerivAt_convolution_right"
+        },
+        {
+          "title": "Derive both squared L2 limits from bounded domination",
+          "text": "Compact continuous f and its continuous compact derivative have bounded norms C and B. Kernel positivity/mass one bounds each convolution by the same constant. Pointwise mollifier convergence plus the integrable constant (2C)^2 or (2B)^2 under finite mu gives both genuine squared-error integral limits. No uniform-convergence or common-support premise is needed in this finite-measure argument.",
+          "formula": "\\int|g_n-\\psi|^2d\\mu\\to0,\\quad\\int\\|Dg_n-D\\psi\\|^2d\\mu\\to0.",
+          "lean": "mollifier_squared_error; compact_c1_approximation; tendsto_integral_of_dominated_convergence"
+        },
+        {
+          "title": "Convert derivative and integral convergence into true L2 topology",
+          "text": "The Riesz isometry identifies gradient with the actual Frechet derivative and preserves norms of differences. The L2 inner-product norm formula identifies norm difference with square root of the actual squared-error integral. Both genuine L2 classes converge jointly.",
+          "formula": "\\|[g_n]-[\\psi]\\|_2\\to0,\\quad\\|[\\nabla g_n]-[\\nabla\\psi]\\|_2\\to0.",
+          "lean": "l2_convergence; L2.inner_def; toDual.symm.norm_map"
+        },
+        {
+          "title": "Use the original graph and its actual closure",
+          "text": "Each pair belongs to the original exact compact smooth gradient graph by its representatives. Its joint L2 limit lies in the closed topological graph closure. Actual closability identifies that closure with D.closure.graph; the same operator is preserved.",
+          "formula": "([g_n],[\\nabla g_n])\\in\\operatorname{graph}D\\Longrightarrow([\\psi],[\\nabla\\psi])\\in\\operatorname{graph}\\overline D.",
+          "lean": "hgraph; Submodule.isClosed_topologicalClosure; IsClosable.graph_closure_eq_closure_graph"
+        },
+        {
+          "title": "Keep the analytic boundary explicit",
+          "text": "This derives C1 compact domain membership only. Noncompact constants/linear observables still need true tail cutoffs; local H2 and the generator core/global Bochner are separate. Zero dimension is included without a unit-vector assumption.",
+          "formula": "C_c^1\\subset\\operatorname{dom}\\overline D;\\quad H^2,\\ D^*D\\text{ core},\\ \\mathrm{BL}\\text{ remain open}.",
+          "lean": "compact_c1_in_closed_gradient; Tests.CompactC1GradientDomain"
+        }
+      ],
+      "lean_statement": "For every finite Borel measure mu, every closable partial gradient D whose original graph is exactly compact smooth scalar representatives and their genuine gradients, and every C1 compact scalar f, derive MemLp f 2 mu and MemLp (gradient f) 2 mu and prove the actual pair of their L2 classes lies in D.closure.graph. No graph-membership or approximation certificate is supplied.",
+      "lean_proof": "Construct genuine normalized compact mollifiers; Differentiate the actual convolution; Derive both squared L2 limits from bounded domination; Convert derivative and integral convergence into true L2 topology; Use the original graph and its actual closure; Keep the analytic boundary explicit",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasCompactSupport.hasFDerivAt_convolution_right",
+        "ContDiffBump.convolution_tendsto_right_of_continuous",
+        "tendsto_integral_of_dominated_convergence",
+        "L2.inner_def",
+        "LinearPMap.IsClosable.graph_closure_eq_closure_graph"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain.compact_c1_in_closed_gradient",
+      "role": "prerequisite",
+      "supports": [
+        "actual-c1-domain-tests"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source Euclidean C2 positively curved Gibbs conditional weighted-H1 route.",
+        "lean": "E is a finite-dimensional real inner-product space with Borel measurable structure and canonical volume, including dimension zero. mu is any finite measure; no absolute-continuity or Gibbs hypothesis on mu is required.\nD is the same closable real-linear partial operator, with original graph iff actual C-infinity compact scalar representatives and their genuine gradients, both classes identified mu-a.e. This semantics comes from the existing gradient producer in the paper consumer.\nThe tested scalar f is only C1 and compactly supported. Its gradient, L2 integrability and actual closure membership are conclusions, not inputs."
+      },
+      {
+        "source": "Source compact smooth calculations and extension to weighted H1 omit approximation/domain details.",
+        "lean": "For every finite Borel measure mu, every closable partial gradient D whose original graph is exactly compact smooth scalar representatives and their genuine gradients, and every C1 compact scalar f, derive MemLp f 2 mu and MemLp (gradient f) 2 mu and prove the actual pair of their L2 classes lies in D.closure.graph. No graph-membership or approximation certificate is supplied."
+      },
+      {
+        "source": "Appendix C.1 pursues conditional Poincare/macroscopic H1 extension.",
+        "lean": "Same actual compact-gradient graph closure admits C1 compact function/gradient pairs; actual positive-epsilon weak resolvent has all C1 compact weighted volume tests and genuine ordinary weak gradient. Actual PBPS reflected conditional R/S law and original fixed D precede epsilon/input. No local H2, global operator-core/Bochner, conditional Poincare/BL, centered epsilon limit, noncompact constant/linear domains, measurable y-selection, SPHMC Hessian lower/full4.1, PBPS hypocoercivity or either complete main/composition. TV never transfers unbounded expected cost."
+      }
+    ]
+  }
+}

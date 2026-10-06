@@ -1,0 +1,64 @@
+
+import Tests.CompactC1GradientDomain
+import Mathlib.Analysis.InnerProductSpace.PiL2
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ContDiff RealInnerProductSpace Topology
+noncomputable section
+def observable : ℝ → ℝ := fun x =>
+  ({rIn:=1,rOut:=2,rIn_pos:=by norm_num,rIn_lt_rOut:=by norm_num} : ContDiffBump (0:ℝ)).normed (volume : Measure ℝ) x * ‖x‖^(3/2:ℝ)
+example :
+    ∃ R S : Kernel ℝ ℝ, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      ∀ y, ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp ℝ 2 (S y),
+        ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 (S y),
+        ∃ u : D.closure.domain,
+          ε * (∫ x, Real.exp (-( (3/8)*((1/2:ℝ)*(y+x))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+x))+‖x-y‖^2/(8*(1/2:ℝ)))) * ((u : Lp ℝ 2 (S y)) x * observable x)) +
+          (∫ x, Real.exp (-( (3/8)*((1/2:ℝ)*(y+x))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+x))+‖x-y‖^2/(8*(1/2:ℝ)))) * inner ℝ (D.closure u x) (gradient observable x)) =
+          ∫ x, Real.exp (-( (3/8)*((1/2:ℝ)*(y+x))^2+(1/8)*Real.sin ((1/2:ℝ)*(y+x))+‖x-y‖^2/(8*(1/2:ℝ)))) * (f x * observable x) := by
+  obtain ⟨hψ,hc,R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    Tests.CompactC1GradientDomain.actual_nonconstant_source
+      (η:=1/2) (by norm_num) (by norm_num)
+  refine ⟨R,S,hR,hS,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,hres⟩ := hfiber y
+  refine ⟨D,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hweighted⟩ := hres ε hε f
+  refine ⟨u,?_⟩
+  exact (hweighted observable hψ hc).2.2.2
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+example :
+    let μ := (volume : Measure E0).tilted (fun _ => -(7:ℝ))
+    ∃ D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ,
+      D.IsClosable ∧
+      ∃ hp : MemLp (fun _ : E0 => (7:ℝ)) 2 μ,
+      ∃ hq : MemLp (gradient (fun _ : E0 => (7:ℝ))) 2 μ,
+        (hp.toLp (fun _ => (7:ℝ)),hq.toLp (gradient (fun _ => (7:ℝ)))) ∈ D.closure.graph := by
+  have hI : Integrable (fun _ : E0 => Real.exp (-(7:ℝ))) := integrable_const _
+  obtain ⟨D,hDense,hD,hClosed,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI
+  refine ⟨D,hD,?_⟩
+  apply AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain.compact_c1_in_closed_gradient
+    _ D hD hgraph contDiff_const
+  apply HasCompactSupport.of_support_subset_isCompact isCompact_univ
+  exact Set.subset_univ _
+example :
+    let μ := (volume : Measure E0).tilted (fun _ => -(7:ℝ))
+    ∃ D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ,
+      ∀ ε : ℝ, 0<ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+        ∀ ψ : E0 → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ →
+          ε * (∫ x, Real.exp (-(7:ℝ)) * ((u : Lp ℝ 2 μ) x * ψ x)) +
+            (∫ x, Real.exp (-(7:ℝ)) * inner ℝ (D.closure u x) (gradient ψ x)) =
+            ∫ x, Real.exp (-(7:ℝ)) * (f x * ψ x) := by
+  have hI : Integrable (fun _ : E0 => Real.exp (-(7:ℝ))) := integrable_const _
+  obtain ⟨D,hDense,hD,hClosed,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI
+  refine ⟨D,?_⟩
+  intro ε hε f
+  obtain ⟨u,hu,huL,hGL,hder,hweighted⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedResolventC1.weak_resolvent_c1
+      (fun _ : E0 => (7:ℝ)) contDiff_const hI D hD hgraph ε hε f
+  exact ⟨u,fun ψ hψ hc => (hweighted ψ hψ hc).2.2.2⟩

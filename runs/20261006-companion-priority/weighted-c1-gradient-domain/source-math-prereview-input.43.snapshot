@@ -1,0 +1,47 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.WeakGradientZero
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientDistribution
+
+/-! Actual SAME original Gibbs closed-gradient zero implies AE constant; W C1 and true exponential integrability suffice. This one-way implication neither puts constants into the domain nor identifies the full kernel, Poincare or paper result. Includes dimension0. -/
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory Filter ContinuousLinearMap
+open scoped Topology Convolution ContDiff
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+theorem closed_gradient_zero_ae_constant (W : E → ℝ) (hW : ContDiff ℝ 1 W)
+    (hI : Integrable (fun x => Real.exp (-W x))) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔
+        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ) →
+      ∀ u : D.closure.domain, D.closure u = 0 →
+        ∃ c : ℝ, (u : Lp ℝ 2 μ) =ᵐ[μ] (fun _ => c) := by
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  dsimp only
+  intro D hD hgraph u hz
+  obtain ⟨hu,hG,hweak⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientDistribution.closed_gradient_distributional
+      W hW hI D hD hgraph (u : Lp ℝ 2 μ) (D.closure u) (D.closure.mem_graph u)
+  have hzero : (fun x => D.closure u x) =ᵐ[μ] (fun _ => (0:E)) := by
+    rw [hz]
+    exact Lp.coeFn_zero E 2 μ
+  have hvol : (fun x => D.closure u x) =ᵐ[volume] (fun _ => (0:E)) :=
+    (absolutelyContinuous_tilted hI).ae_eq hzero
+  obtain ⟨c,hc⟩ := AutoSamplingTheory.TechnicalLemmas.Analysis.WeakGradientZero.ordinary_weak_zero_gradient_ae_constant (fun x => (u : Lp ℝ 2 μ) x) hu (by
+    intro ψ hψ hψc a
+    obtain ⟨hi,hj,he⟩ := hweak ψ hψ hψc a
+    refine ⟨hj,?_⟩
+    have he0 : (∫ x, ψ x * inner ℝ (D.closure u x) a) = 0 := by
+      calc
+        _ = ∫ x : E, (0:ℝ) := integral_congr_ae (by
+          filter_upwards [hvol] with x hx
+          simp [hx])
+        _ = 0 := by simp
+    rw [he0] at he
+    linarith)
+  exact ⟨c,(tilted_absolutelyContinuous (volume : Measure E) (fun x => -W x)).ae_eq hc⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel

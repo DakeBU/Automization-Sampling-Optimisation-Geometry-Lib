@@ -1,0 +1,110 @@
+.astis/WeightedC1DomainPrototype.lean:95:8: warning: automatically included section variable(s) unused in theorem `_private.«.astis».WeightedC1DomainPrototype.0.WeightedC1DomainPrototype.actual_cutoff_function_convergence`:
+  [FiniteDimensional ℝ E]
+  [BorelSpace E]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [FiniteDimensional ℝ E] [BorelSpace E] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+.astis/WeightedC1DomainPrototype.lean:95:16: warning: Overlapping instance parameters in `actual_cutoff_function_convergence`:
+
+⚠️ There are 2 `[BorelSpace E]` instances; one is sufficient.
+
+Note: This linter can be disabled with `set_option linter.overlappingInstances false`
+.astis/WeightedC1DomainPrototype.lean:177:4: error: Type mismatch: After simplification, term
+  Tendsto.const_mul C
+    (Tendsto.comp tendsto_inv_atTop_zero (tendsto_atTop_add_const_right atTop 1 tendsto_natCast_atTop_atTop))
+ has type
+  @Tendsto ℕ ℝ (fun x => C * ((fun r => r⁻¹) ∘ fun x => ↑x + 1) x) atTop (𝓝 0)
+but is expected to have type
+  @Tendsto ℕ ℝ (fun n => C * (↑n + 1)⁻¹) atTop (𝓝 0)
+.astis/WeightedC1DomainPrototype.lean:200:18: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  fderiv ℝ (χ n * f) x
+in the target expression
+  (toDual ℝ E).symm (fderiv ℝ (fun z => χ n z * f z) x) = χ n x • gradient f x + f x • gradient (χ n) x
+
+E : Type u_1
+inst✝⁵ : MeasurableSpace E
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : BorelSpace E
+μ : Measure E
+inst✝ : IsFiniteMeasure μ
+D : ↥(Lp ℝ 2 μ) →ₗ.[ℝ] ↥(Lp E 2 μ)
+hD : D.IsClosable
+hgraph :
+  ∀ (a : ↥(Lp ℝ 2 μ)) (H : ↥(Lp E 2 μ)),
+    (a, H) ∈ D.graph ↔ ∃ φ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧ ↑↑a =ᵐ[μ] φ ∧ ↑↑H =ᵐ[μ] gradient φ
+f : E → ℝ
+hf : ContDiff ℝ 1 f
+hp : MemLp f 2 μ
+hq : MemLp (gradient f) 2 μ
+χ : ℕ → E → ℝ := fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)
+hχ : ∀ (n : ℕ), ContDiff ℝ 1 (χ n)
+hc : ∀ (n : ℕ), HasCompactSupport (χ n)
+hfn :
+  ∀ (n : ℕ),
+    MemLp
+      (fun x =>
+        (fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)) n x • f x)
+      2 μ
+hfnt :
+  Tendsto
+    (fun n =>
+      MemLp.toLp
+        (fun x =>
+          (fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)) n x • f x)
+        ⋯)
+    atTop (𝓝 (MemLp.toLp f hp))
+hGn :
+  ∀ (n : ℕ),
+    MemLp
+      (fun x =>
+        (fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)) n x •
+          gradient f x)
+      2 μ
+hGnt :
+  Tendsto
+    (fun n =>
+      MemLp.toLp
+        (fun x =>
+          (fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)) n x •
+            gradient f x)
+        ⋯)
+    atTop (𝓝 (MemLp.toLp (gradient f) hq))
+C : ℝ
+hC : 0 < C
+hCb :
+  ∀ (R : ℝ),
+    0 < R →
+      ∀ (x : E), ‖fderiv ℝ (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff R) x‖ ≤ C / R
+hgrad :
+  ∀ (n : ℕ),
+    Continuous[PseudoMetricSpace.toUniformSpace.toTopologicalSpace, PseudoMetricSpace.toUniformSpace.toTopologicalSpace]
+      (gradient (χ n))
+hgb : ∀ (n : ℕ) (x : E), ‖gradient (χ n) x‖ ≤ C / (↑n + 1)
+hgradt : ∀ (x : E), Tendsto (fun n => gradient (χ n) x) atTop (𝓝 0)
+hen : ∀ (n : ℕ), MemLp (fun x => f x • gradient (χ n) x) 2 μ
+hent : Tendsto (fun n => MemLp.toLp (fun x => f x • gradient (χ n) x) ⋯) atTop (𝓝 0)
+hqn : ∀ (n : ℕ),
+  MemLp
+    ((fun x =>
+        (fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)) n x •
+          gradient f x) +
+      fun x => f x • gradient (χ n) x)
+    2 μ :=
+  fun n => MemLp.add (hGn n) (hen n)
+hqnt :
+  Tendsto
+    (fun n =>
+      MemLp.toLp
+        ((fun x =>
+            (fun n => AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff (↑n + 1)) n x •
+              gradient f x) +
+          fun x => f x • gradient (χ n) x)
+        ⋯)
+    atTop (𝓝 (MemLp.toLp (gradient f) hq))
+n : ℕ
+x : E
+⊢ (toDual ℝ E).symm (fderiv ℝ (fun z => χ n z * f z) x) = χ n x • gradient f x + f x • gradient (χ n) x
+'WeightedC1DomainPrototype.c1_in_closed_gradient' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]

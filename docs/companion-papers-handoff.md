@@ -1,5 +1,56 @@
 # Companion-paper formalization handoff
 
+## Positive-step proximal and true standardized RGO 2026-10-07
+
+`ASTIS-SA-20261007-PositiveStepProximalRGO` strengthens the two existing
+canonical declarations to every measurable positive eta, removing only the
+old eta<=1 restriction. Source Lemma4.2 actually has eta>0; the neighboring
+Lemma4.1 cap remains a distinct source boundary. No duplicate declaration,
+assumption certificate, new potential or synthetic consumer was introduced.
+
+For T_s(x)=(y_s+eta_s*(x-gradient V(x)))/(1+eta_s), the actual contraction
+constant is eta_s/(1+eta_s)<1. Measurable finite iterates converge pointwise to
+the exact proximal selector p; no uniform contraction cap over S is needed.
+The same actual p supplies stationarity, minimum, equal-eta nonexpansivity,
+joint Gaussian gradient evaluation and its genuine Markov output law.
+
+The actual true conditional Gibbs posterior R and centered/sqrteta pushforward
+r remain different measures from that Gaussian output. Their internally
+produced C2 potentials, finite positive normalizers, probability and L2 give
+E_r normu^2<=d and E_r normgradient rho^2<=eta^2 E_r normu^2<=eta^2d,
+only the last TWO comparisons of4.6. Full-space IBP uses ordinary-volume L1
+products and Fubini, with no cutoff assumption. The canonical generic affine
+Gibbs theorem is unchanged; only its inherited consumer range metadata was
+independently revalidated.
+
+Independent preproof StatementSeal and source-only graph, whole mathematics,
+fresh source-blind decoder and final anti-anchored source review accepted the
+exact strengthened statements. Proof commit `39c19947c6267141f39bcb2b64e0def30b00164e` independently verified.
+Unbounded eta(n)=n+2 Gaussian-output and eta=2 true-posterior tests pass;
+the former output centered moment is n+2, whereas the latter true posterior
+has density proportional to exp(-3u^2/2). Neither test is an algorithm run.
+Evidence: `runs/20261007-companion-priority/positive-step-proximal-rgo/verified.json`.
+The initial artifact-label registration mismatch was administrative; original
+decoder bytes, schema-v1 pause and canonical-label projection are retained.
+
+Existing root/Test imports are reused. Shared metadata/reader/graph acceptance,
+repository ProofSeal, ExpositionSeal/purification, rendered copy/download QA,
+new remote CI and merge/publication remain separate pending checks here.
+Older26/27 bounded results and their original receipts remain historical.
+
+FIRST4.6 GaussianT2/LSI/W2, actual bias/MGF/fullLemma4.2, posterior joint kernel
+semantics, Picard/Wp/proxywarmness, initialization and both main results remain
+OPEN, as do PBPS reflection/invariance/nonexplosion/discrete hypocoercivity/
+implementation error/work and actual-input precision/expected-query-cost
+composition. Numerical-prox eta<=1/(2beta) is independent; TV does not transfer
+unbounded expected costs. No paper completion badge is advanced.
+
+Next source-ready background: the pinned Gaussian functional availability audit
+identifies genuine SLT candidates, their exact Sobolev/entropy/derivative
+contracts and API mismatch, all still reference-only. Mathlib Fernique supplies
+a possible small exponential-domain edge; it supplies no sharp centered bound.
+See `research-wiki/cited-results/SPHMC_gaussian_functional_availability_20261007.md`.
+
 ## Actual standardized RGO position and Fisher 2026-10-06
 
 `ASTIS-SA-20261006-StandardizedRGOPositionFisher` produces the literal true

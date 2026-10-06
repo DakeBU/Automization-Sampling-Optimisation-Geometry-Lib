@@ -1,5 +1,17 @@
 # Companion-paper formalization handoff
 
+## Upstream protocol synchronization 2026-10-06
+
+Upstream main `84f0a9fc` was merged without changing accepted mathematics at
+`5b7846fa`. Both source-link API contracts are preserved. Fresh 138 relevant
+Python regressions and the complete Lean/publication/semantic/frontier/process
+/contributor/site/three affected graph checks pass; prior95 reuse belongs only
+to the pre-sync receipt. Evidence: `runs/20261006-companion-priority/sync-84f0a9fc/acceptance.json`.
+New source-anchor protocols apply forward to the next centered-Poincare packet:
+independent exact statement and source-only topology reviews precede production.
+Remote CI for this new head, rendered reader/copy/download acceptance, both full
+main results and composition remain open. No historical source seal is invented.
+
 ## Actual scaled original-resolvent norm limit 2026-10-06
 
 `ASTIS-SA-20261006-ScaledResolventLimit` proves actual strong epsilon_n*u_n

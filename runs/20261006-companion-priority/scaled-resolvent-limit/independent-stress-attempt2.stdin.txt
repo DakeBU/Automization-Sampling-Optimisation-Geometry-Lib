@@ -1,0 +1,65 @@
+import Tests.ScaledResolventLimit
+set_option autoImplicit false
+set_option maxHeartbeats 1500000
+noncomputable section
+open Filter InnerProductSpace MeasureTheory
+open scoped Topology RealInnerProductSpace
+namespace IndependentScaledResolventStress
+abbrev H := WithLp 2 (ℝ × ℝ)
+def D : H →ₗ.[ℝ] ℝ := (WithLp.sndL 2 ℝ ℝ ℝ).toLinearMap.toPMap ⊤
+def forcing : H := WithLp.toLp 2 ((0:ℝ),7)
+def eps (n : ℕ) : ℝ := (if Even n then (1:ℝ) else 2)/((n:ℝ)+1)
+theorem eps_positive (n : ℕ) : 0 < eps n := by
+  unfold eps
+  split_ifs <;> positivity
+theorem eps_zero : Tendsto eps atTop (𝓝 0) := by
+  have ht : Tendsto (fun n : ℕ => 2/((n:ℝ)+1)) atTop (𝓝 (0:ℝ)) := by
+    simpa only [div_eq_mul_inv,mul_zero,Function.comp_def] using
+      (tendsto_inv_atTop_zero.comp
+        (tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop)).const_mul 2
+  apply squeeze_zero (fun n => (eps_positive n).le) (fun n => ?_) ht
+  unfold eps
+  apply (div_le_div_iff_of_pos_right (by positivity : (0:ℝ)<(n:ℝ)+1)).mpr
+  split_ifs <;> norm_num
+theorem eps_is_not_monotone_decay : eps 2 < eps 3 := by
+  norm_num [eps, Nat.even_iff]
+theorem actual_nonzero_operator_forcing_all_kernel_orthogonal :
+    forcing ≠ 0 ∧
+    ∃ u : ℕ → D.domain,
+      (∀ n, ∀ v : D.domain,
+        eps n*inner ℝ (u n : H) (v : H)+inner ℝ (D (u n)) (D v)=
+          inner ℝ forcing (v : H)) ∧
+      Tendsto (fun n => eps n • (u n : H)) atTop (𝓝 0) ∧
+      Tendsto (fun n => eps n • D (u n)) atTop (𝓝 0) := by
+  have hf : forcing ≠ 0 := by
+    intro h
+    have h2 := congrArg WithLp.snd h
+    norm_num [forcing,WithLp.snd] at h2
+  have hD : D.IsClosed := D.graph.closed_of_finiteDimensional
+  have hk : ∀ v : D.domain, D v=0 → inner ℝ forcing (v : H)=0 := by
+    intro v hv
+    have h2 : (v : H).snd=0 := hv
+    simp only [WithLp.prod_inner_apply, RCLike.inner_apply, conj_trivial]
+    change (0:ℝ)*(v : H).fst+7*(v : H).snd=0
+    simp [h2]
+  let u : ℕ → D.domain := fun n =>
+    ⟨WithLp.toLp 2 ((0:ℝ),7/(1+eps n)),Submodule.mem_top⟩
+  have hu : ∀ n, ∀ v : D.domain,
+      eps n*inner ℝ (u n : H) (v : H)+inner ℝ (D (u n)) (D v)=
+        inner ℝ forcing (v : H) := by
+    intro n v
+    simp only [WithLp.prod_inner_apply, RCLike.inner_apply, conj_trivial]
+    change eps n*((0:ℝ)*(v : H).fst+(7/(1+eps n))*(v : H).snd)+
+      (7/(1+eps n))*(v : H).snd = 0*(v : H).fst+7*(v : H).snd
+    have hp : (1+eps n) ≠ 0 := ne_of_gt (by linarith [eps_positive n])
+    field_simp
+    <;> ring
+  exact ⟨hf,u,hu,
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ScaledClosedGraphResolvent.scaled_resolvent_sequence_tendsto_zero
+      D hD forcing eps eps_positive eps_zero u hu hk⟩
+#print axioms actual_nonzero_operator_forcing_all_kernel_orthogonal
+#print axioms eps_is_not_monotone_decay
+#print axioms Tests.ScaledResolventLimit.actual_nonquadratic_centered_resolvent
+#print axioms Tests.ScaledResolventLimit.actual_zero_dim_centered_resolvent
+#print axioms Tests.ScaledResolventLimit.noncentered_residual_does_not_tendsto_zero
+end IndependentScaledResolventStress

@@ -1,0 +1,21 @@
+# Actual scaled-resolvent norm limit
+
+PBPS arXiv2609.06905v1 Section2.2 Equation2.11 and AppendixC1 density/closedness1197-1234, PoincareD6/BLD9 background omitted; authored scaled-positive-epsilon resolvent prerequisite. SPHMC2609.06906v1 Section4.1 Eq4.1/BL is a separate later unreflected covariance consumer.
+
+Derive true strong epsilon*u_n and epsilon*D(u_n) zero limits for actual closed-graph variational resolvents with kernel-orthogonal forcing and positive epsilon sequence->0. Four actual Hilbert/Riesz/graph/energy helpers are proved, not supplied certificates.
+
+Construct same-original normalized Gibbs variational solution sequence for every truly mean-zero weightedL2 forcing; derive actual L1/kernel orthogonality/L2 separability and residualzero, retaining actual local weak-gradient test facts.
+
+Produce actual common Gaussian J/R/S/reflected conditional law and original dense closable exact D_y BEFOREALL meanzero f/epsilon sequences. Construct actual same-domain variational u_n and strong scaled residualzero on that true law.
+
+FunctionalInequalities card, technical README, Probability/SDE/shared TechnicalLemmas previously inspected; ClosedGraphResolvent provides actual positive-epsilon variational producer, WeightedResolvent supplies genuine ordinary local/weak facts, GibbsGradientKernel provides actual zero=>constant; no scaled epsilon-zero norm limit exists.
+
+Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Lean4.33.0: toDual/Riesz inverse evaluation, WeakDual.isSeqCompact_closedBall with explicit separability, actual WithLp2 comap/continuous graph/productinner/doubleorthogonal; Filter.tendsto_of_subseq_tendsto, squared norm/sqrt squeeze. Measure SeparableMeasure and Fact2!=top give genuine finite-measure L2 separability.
+
+Independent primary-first Scaled_residual_source_preread.md raw521c23dbbe173540128f0612c12893c28877dcea1355520ae2d77aa574f23ba4; source omits resolvent epsilon-limit construction. Ignored full generic/Gibbs/trueconditional prototype attempt12 passes standard3 after exact import/eval/scope/ENNReal adapters; no formal production/source admission. No SLT/ATLAS port.
+
+Fix real complete Hilbert H,K and SAME actual closed partial linear D before forcing f, positive epsilon sequence->0 and actual variational solutions u_n. H separable explicitly; actual finite-dimensional Borel Gibbs E gives genuine scalar L2 separability by countably generated finite measure, not finite-dimensional L2. Actual energy/scaled domain, Riesz WeakDual sequential compactness, WithLp2 genuine graph double-orthogonal and forcing orthogonal to EVERY kernel give strong epsilon*u_n->0 and epsilon*D(u_n)->0 without Poincare or uniform unscaled u. True C1 Gibbs W/positive exponential normalizer/actual normalized probability and SAME exact original compact-smooth closable gradient beforeALLf; genuine mean-zero L2 forcing is integrable and kernel-orthogonal via actual AEconstant. Construct actual positive-epsilon variational solutions, retaining ordinary localL1/weakC1 test integrabilities. Actual common PBPS J/R/S/reflected law/sourceC2 alpha-beta/eta cap/positive partitions and originalD_y beforeALLf/epsilon; fiberwise only. No epsilon0 solution/range/unscaled uniform bound/extra spatial moment/supplied weak-limit or graph or residual certificate/Poincare/BL/core/adjoint/jointselector/normalized conditional-score derivative/both main/composition; TV never transfers unbounded expectedcost.
+
+Failure policy: preserve focused errors; diagnose exact Riesz evaluation/closedgraph/measure-separability/meanzero issue. No input Poincare, uniformunscaled u, finalgraph/limit certificate or separately chosen D. Nonquadratic eta1/2 and actual0D tests, and negative noncentered constant7 stress required.
+
+Focused local PASS3323,3production/4privatehelpers and realnonquad/0D/closedzero noncenteredcounterexample Tests. Independent reviews pending; no new source main completion.

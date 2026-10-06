@@ -1,0 +1,58 @@
+# Centered original-domain Poincare from actual resolvents
+
+2026-10-06 root mathematical proposal only. The current ScaledResolventLimit
+production/focused proof is undergoing independent reviews; it is not yet
+VERIFIED. No Poincare, BL, covariance upper, main result or transport certificate
+is admitted by this note. This note is not an input to the current22 mathematical
+freeze or its three source reviews.
+
+Actual normalized Gibbs mu, true C2 W with 0<m<=M Hessian lower/upper,
+and SAME original exact compact-smooth closable gradient D must be fixed
+before every centered original-domain z. Let f=z in L2(mu), genuinely mean0.
+Existing GlobalWeightedResolventCoercivity produces actual positive-epsilon
+variational solutions with m*||Du||²<=||z||², all ordinary/local/cutoff facts.
+Current CenteredGibbsResolventLimit constructs actual solutions with scaled
+residualzero. These may be different witnesses but are for the SAME D, eps,f.
+Do NOT silently identify them: use accepted ClosedGraphResolvent uniqueness
+via its actual all-domain variational producer. This yields uniform gradient
+bound for the current residual-converging witnesses, without an unscaled u
+bound or epsilon0 solution/range. Alternatively apply the generic norm-limit
+to the Global-produced sequence and derive actual mean/kernel orthogonality.
+
+For a concrete positive epsilon_n=1/(n+1)->0, actual variational test z gives
+||z||²=<epsilon_n*u_n,z>+<Du_n,Dz>. The first term tends0 by true residualnorm
+convergence. True Cauchy-Schwarz and m*||Du_n||²<=||z||² give
+sqrt(m)*||z||²<=sqrt(m)*<epsilon_n*u_n,z>+||z||*||Dz||.
+Pass to the scalar limit, handle z=0 separately and cancel only positive
+||z|| in the other branch; squaring yields m*||z||²<=||Dz||². This proves an
+actual centered original-domain inequality, not an assumed Poincare certificate.
+
+At most seven steps:
+1. Fix actual W/mu/original D and centered z; produce positive epsilon sequence.
+2. Produce actual scaled-residual-converging variational solutions.
+3. Produce actual global-coercivity solutions at each epsilon for SAME D,f.
+4. Prove witness equality by genuine positive-epsilon variational uniqueness.
+5. Test with actual z, use true Hilbert Cauchy-Schwarz/sqrtm gradient bound.
+6. Pass scalar residual limit, separate z=0 and derive exact squared inequality.
+7. Source conditional consumer uses actual W_y with m=(alpha+eta^-1)/4 and
+   upper M=(beta+eta^-1)/4; only literal potential/density equalities, no R2=R
+   or separately chosen D. Source score variance/linear covariance are later
+   adapters unless their actual centered class/mean/energy identities are proved.
+
+The accepted ConditionalScoreClosedDomain has actual score and all constants
+in SAME D_y. To center q use its actual scalar mean under true probability,
+produce constant-domain witness and domain subtraction, prove Dz=Dq and
+actual L2 norm-square=variance. The score gradient bound gives the exact source
+(eta^-1-alpha)²||a||²/[4(alpha+eta^-1)] once actual Poincare is proved.
+Unreflected RGO instead uses m=alpha+eta^-1; its linear observable L2 moments
+and genuine probability/covariance adapters must be independently established.
+Full anisotropic BL, rough Hessian/adjoint/core, both papers and composition
+remain open. Do not transfer unbounded costs through TV proximity.
+
+Pinned APIs searched: ClosedGraphResolvent.weak_resolvent actual uniqueness,
+GlobalWeightedResolventCoercivity.global_weak_resolvent_coercivity exact all
+local/cutoff facts, current generic scaled limit and actual Gibbs consumer,
+ConditionalScoreDomain exact reflected Hessian formula/lower bound. Need prove
+source upper Hessian from its genuine formula, not introduce a final curvature
+certificate. Failure policy: diagnose witness/domain/AE/centering/normalization
+or missing actual moment contract; preserve route errors and no hidden premises.

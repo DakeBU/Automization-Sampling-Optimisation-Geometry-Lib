@@ -1,0 +1,107 @@
+import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientKernel
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+import Mathlib.Analysis.InnerProductSpace.NormPow
+import Mathlib.Analysis.Calculus.BumpFunction.Convolution
+
+set_option autoImplicit false
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ContDiff NNReal RealInnerProductSpace Topology
+noncomputable section
+namespace Tests.WeakGradientZeroKernel
+
+private def potential (x : ℝ) : ℝ := (3/8)*x^2 + (1/8)*Real.sin x
+private theorem potential_curvature :
+    ∀ z v : ℝ, (1/(2*(1:ℝ)))*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ potential) z v) v ∧
+      (fderiv ℝ (fderiv ℝ potential) z v) v ≤ ‖v‖^2 := by
+  have hder (z : ℝ) : HasDerivAt potential ((3/4)*z+(1/8)*Real.cos z) z := by
+    convert (((hasDerivAt_id z).pow 2).const_mul (3/8)).add
+      ((Real.hasDerivAt_sin z).const_mul (1/8)) using 1 <;> first | rfl | (simp [potential, Pi.add_apply, mul_comm]; ring)
+  have hD : fderiv ℝ potential = fun z =>
+      ((3/4)*z+(1/8)*Real.cos z) • ContinuousLinearMap.id ℝ ℝ := by
+    funext z
+    ext
+    rw [fderiv_eq_smul_deriv, (hder z).deriv]
+    simp
+  have hDD (z v : ℝ) : (fderiv ℝ (fderiv ℝ potential) z v) v =
+      ((3/4)-(1/8)*Real.sin z)*v^2 := by
+    have hd : HasDerivAt (fun w : ℝ => (3/4)*w+(1/8)*Real.cos w)
+        ((3/4)-(1/8)*Real.sin z) z := by
+      convert ((hasDerivAt_id z).const_mul (3/4)).add
+        ((Real.hasDerivAt_cos z).const_mul (1/8)) using 1 <;> (try dsimp only [id]) <;> first | rfl | ring
+    rw [hD, fderiv_eq_smul_deriv,
+      (hd.smul_const (ContinuousLinearMap.id ℝ ℝ)).deriv]
+    simp
+    ring
+  intro z v
+  rw [hDD]
+  simp only [Real.norm_eq_abs, sq_abs]
+  constructor <;> nlinarith [Real.sin_le_one z, Real.neg_one_le_sin z, sq_nonneg v]
+
+
+
+
+theorem actual_noncompact_seven_weak_zero :
+    (¬ Integrable (fun _ : ℝ => (7:ℝ)) volume) ∧
+    ∃ c : ℝ, (fun _ : ℝ => (7:ℝ)) =ᵐ[volume] (fun _ => c) := by
+  have hn : ¬ Integrable (fun _ : ℝ => (7:ℝ)) volume := by
+    intro hi
+    rcases integrable_const_iff.mp hi with hz | hfin
+    · norm_num at hz
+    · letI := hfin
+      have hm := measure_ne_top (volume : Measure ℝ) Set.univ
+      rw [Real.volume_univ] at hm
+      exact hm rfl
+  refine ⟨hn,AutoSamplingTheory.TechnicalLemmas.Analysis.WeakGradientZero.ordinary_weak_zero_gradient_ae_constant _ continuous_const.locallyIntegrable ?_⟩
+  intro ψ hψ hc a
+  have hd : Continuous (fun x : ℝ => fderiv ℝ ψ x a) :=
+    (hψ.continuous_fderiv one_ne_zero).clm_apply continuous_const
+  have hdc : HasCompactSupport (fun x : ℝ => fderiv ℝ ψ x a) := by
+    apply HasCompactSupport.of_support_subset_isCompact hc.isCompact
+    intro x hx
+    by_contra hn
+    have hz : fderiv ℝ ψ x = 0 := fderiv_of_notMem_tsupport ℝ hn
+    exact hx (by simp [hz])
+  have hi : Integrable (fun x : ℝ => (7:ℝ)*fderiv ℝ ψ x a) volume :=
+    hd.integrable_of_hasCompactSupport hdc |>.const_mul 7
+  refine ⟨hi,?_⟩
+  have h := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable
+    (μ := (volume : Measure ℝ)) (f := fun _ : ℝ => (7:ℝ)) (g := ψ) (v := a)
+    (by simp)
+    hi ((hψ.continuous.integrable_of_hasCompactSupport hc).const_mul 7)
+    (fun _ _ => differentiableAt_const _) (fun x _ => hψ.differentiable one_ne_zero x)
+  simpa using h
+
+theorem actual_nonquadratic_conditional_gradient_zero :
+    let η : ℝ := 1/2
+    let μ := (volume : Measure ℝ).tilted (fun x => -potential x)
+    let J := Measure.map (fun p : ℝ × ℝ => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian ℝ))
+    let W := fun y u : ℝ => potential ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)
+    ∃ R S : Kernel ℝ ℝ, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧
+      ∀ y, S y = (volume : Measure ℝ).tilted (fun u => -W y u) ∧
+        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧
+        0 < (∫ u, Real.exp (-W y u)) ∧
+        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp ℝ 2 (S y),
+          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧
+          (∀ (u : Lp ℝ 2 (S y)) (v : Lp ℝ 2 (S y)), (u,v) ∈ D.graph ↔
+            ∃ f : ℝ → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧
+              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧
+          ∀ u : D.closure.domain, D.closure u = 0 →
+            ∃ c : ℝ, (u : Lp ℝ 2 (S y)) =ᵐ[S y] (fun _ => c) := by
+  have hV : ContDiff ℝ 2 potential := by unfold potential; fun_prop
+  have hh : ∀ x v : ℝ, ((1/2:ℝ≥0):ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ potential) x v v ∧
+      fderiv ℝ (fderiv ℝ potential) x v v ≤ ((1:ℝ≥0):ℝ)*‖v‖^2 := by
+    intro x v
+    simpa using potential_curvature x v
+  exact AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientKernel.conditional_gradient_zero_ae_constant
+    (α := (1/2:NNReal)) (β := (1:NNReal)) (η := (1/2:ℝ))
+    (by norm_num) (by norm_num) hV hh (by norm_num) (by norm_num)
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.WeakGradientZero.ordinary_weak_zero_gradient_ae_constant
+#print axioms AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel.closed_gradient_zero_ae_constant
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientKernel.conditional_gradient_zero_ae_constant
+#print axioms actual_noncompact_seven_weak_zero
+#print axioms actual_nonquadratic_conditional_gradient_zero
+end Tests.WeakGradientZeroKernel

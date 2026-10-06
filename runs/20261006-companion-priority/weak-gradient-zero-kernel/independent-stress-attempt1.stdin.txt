@@ -1,0 +1,55 @@
+import Tests.WeakGradientZeroKernel
+import Mathlib.Analysis.InnerProductSpace.PiL2
+set_option autoImplicit false
+set_option maxHeartbeats 1500000
+set_option maxRecDepth 4000
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ContDiff NNReal RealInnerProductSpace Topology
+noncomputable section
+namespace IndependentWeakZeroStress
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+def W0 (_ : E0) : ℝ := 7
+
+theorem actual_zero_dim_original_gibbs :
+    let μ := (volume : Measure E0).tilted (fun x => -W0 x)
+    μ Set.univ = 1 ∧
+    ∃ D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E0 2 μ,
+      Dense (D.domain : Set (Lp ℝ 2 μ)) ∧ D.IsClosable ∧ D.closure.IsClosed ∧
+      (∀ (a : Lp ℝ 2 μ) (H : Lp E0 2 μ), (a,H) ∈ D.graph ↔
+        ∃ φ : E0 → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ) ∧
+      ∀ u : D.closure.domain, D.closure u = 0 ∧
+        ∃ c : ℝ, (u : Lp ℝ 2 μ) =ᵐ[μ] (fun _ => c) := by
+  have hW : ContDiff ℝ 1 W0 := contDiff_const
+  have hI : Integrable (fun x : E0 => Real.exp (-W0 x)) volume := by
+    simpa only [W0] using (integrable_const (Real.exp (-(7:ℝ))) :
+      Integrable (fun _ : E0 => Real.exp (-(7:ℝ))) volume)
+  let μ := (volume : Measure E0).tilted (fun x => -W0 x)
+  haveI : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hI
+  obtain ⟨D,hd,hD,hDc,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable W0 hW hI
+  dsimp only
+  refine ⟨measure_univ, D,hd,hD,hDc,hgraph,?_⟩
+  intro u
+  have hz : D.closure u = 0 := by
+    apply Lp.ext
+    filter_upwards [] with x
+    exact Subsingleton.elim _ _
+  refine ⟨hz,?_⟩
+  exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel.closed_gradient_zero_ae_constant
+    W0 hW hI D hD hgraph u hz
+
+theorem actual_zero_dim_ordinary_seven :
+    ∃ c : ℝ, (fun _ : E0 => (7:ℝ)) =ᵐ[volume] (fun _ => c) := by
+  apply AutoSamplingTheory.TechnicalLemmas.Analysis.WeakGradientZero.ordinary_weak_zero_gradient_ae_constant
+    _ continuous_const.locallyIntegrable
+  intro ψ hψ hc a
+  have ha : a = 0 := Subsingleton.elim _ _
+  subst a
+  simp
+
+#print axioms actual_zero_dim_original_gibbs
+#print axioms actual_zero_dim_ordinary_seven
+#print axioms Tests.WeakGradientZeroKernel.actual_noncompact_seven_weak_zero
+#print axioms Tests.WeakGradientZeroKernel.actual_nonquadratic_conditional_gradient_zero
+end IndependentWeakZeroStress

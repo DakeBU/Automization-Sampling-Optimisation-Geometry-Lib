@@ -1,0 +1,12 @@
+import pathlib,subprocess,os,sys
+r=pathlib.Path('runs/20261006-companion-priority/weak-gradient-zero-kernel')
+os.environ.update(PYTHONUTF8='1',ELAN_TOOLCHAIN='leanprover/lean4:v4.33.0',LEAN_NUM_THREADS='2')
+files=['AutoSamplingTheory/TechnicalLemmas/Analysis/WeakGradientZero.lean','AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GibbsGradientKernel.lean','AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientKernel.lean','Tests/WeakGradientZeroKernel.lean']
+for i,p in enumerate(files):
+ f=r/f'independent-direct-{i}.log';assert not f.exists()
+ with f.open('wb') as w:s=subprocess.run(['lake','env','lean',p],stdout=w,stderr=subprocess.STDOUT)
+ print(str(f),s.returncode,flush=True)
+ if s.returncode:print(f.read_text()[-3500:]);sys.exit(s.returncode)
+f=r/'independent-focused.log';assert not f.exists()
+with f.open('wb') as w:s=subprocess.run(['lake','build','Tests.WeakGradientZeroKernel'],stdout=w,stderr=subprocess.STDOUT)
+print(str(f),s.returncode,flush=True);print(f.read_text()[-1300:]);sys.exit(s.returncode)

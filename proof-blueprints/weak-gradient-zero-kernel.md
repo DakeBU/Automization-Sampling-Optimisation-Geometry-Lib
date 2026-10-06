@@ -1,0 +1,21 @@
+# Actual weak-gradient zero and Gibbs/PBPS constant implication
+
+PBPS arXiv:2609.06905v1 Section2.2 conditional Poincare and AppendixC.1 omitted full-space gradient kernel background; SPHMC arXiv:2609.06906v1 Section4.1 BL background. Authored prerequisite, not a numbered theorem or complete kernel equality/Poincare/BL.
+
+Locally volume integrable real u with all C1 compact zero directional weak derivatives is volume-AE one constant. Differentiate actual normalized shrinking compact convolution using translated test with its true minus sign; genuine differentiability and mean-value yield mollifier constancy; true AE convolution convergence and nonzero volume yield a common constant, including0.
+
+For W C1 with actual integrable positive Gibbs weight and SAME original closable exact compact gradient D, every u in D.closure.domain with D.closure u=0 is weighted-AE a real constant. Derive true ordinary weak zero via actual distributional parent and BOTH correct absolute-continuity transfers. No constant-domain converse or full kernel equality asserted.
+
+Construct actual PBPS common disintegrating/reflected Gaussian kernels J/R/S, C2 W_y and positive integrable partitions, SAME dense closable original exact D_y before ALL closure-domain u, then derive D_y.closure u=0 implies weighted-AE one constant on that actual conditional law.
+
+Samplinglib FunctionalInequalities card and technical README, Probability/SDE plus current WeightedGradient/WeightedGradientDistribution/ConditionalGradient searched. No matching ordinary weak-zero constant producer or same-original closure zero-gradient implication exists; RelativeFisher zero-density-energy statements do not imply constancy.
+
+Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Lean4.33.0: true convolution Frechet derivative, precompL/precompR and convolution_flip, actual ContDiffBump AE convolution convergence with shrinking radii/bounded ratio, mean-value actual differentiability, both tilted absolute-continuity directions and LinearPMap.mem_graph.
+
+Independent primary-first Weighted_kernel_poincare_source_preread.md SHA4fc10905449405d3ceec1e03fb77e8c3059a7f1d8e9842f918fd705610e56701. Raw proposed kernel/residual route, not formal truth. Ignored weakzero/Gibbs/source prototype PASSstandard3 attempt8 only; production/focused/source review not yet admitted.
+
+Full finite real Hilbert/Borel E including0 and actual full-space volume. Genuine locally-volume-L1 u, all C1 compact directional tests with legal integrable products and zero weak derivative imply ONE real constant volume-AE. Actual normalized Gibbs W C1/exp(-W) integrable, SAME original exact compact-smooth graph D and closability give closed-gradient-zero implies weighted-AE constant. Actual PBPS common Gaussian J/R/S and original dense D_y precede ALL closure-domain u; source C2 curvature/eta cap/positive partitions retained but no additional curvature is needed by the generic kernel leaf. Only one direction; constants-domain converse, full kernel equality, centered residual/epsilon0/range/Poincare/BL/core and both main/composition remain open. No global-volume integrability of constants, classical differentiability of rough u, Nontrivial E, final kernel certificate, spectral gap or joint fiber selector. TV never transfers unbounded cost.
+
+Failure policy: retain all focused failures, diagnose exact derivative/sign/API/AE direction; never replace actual differentiability with totalized fderiv zero or assume full kernel/domain/Poincare. Check genuine noncompact constant and zero-dimension stress.
+
+Current local evidence before independent review: three genuine production modules and focused Tests.WeakGradientZeroKernel PASS3304; all three producer and two concrete Test axiom lists are standard3. Noncompact real7 is explicitly not globally volume-L1 but has legal local weak products; actual nonquadratic eta1/2 retains commonJ/R/S/positive partitions/SAMEoriginalD beforeALLdomainu. Only zero-gradient implies AE constant; constants-domain converse/full kernel/Poincare/BL/main/composition remain open. All diagnostics retained; no independent admission yet.

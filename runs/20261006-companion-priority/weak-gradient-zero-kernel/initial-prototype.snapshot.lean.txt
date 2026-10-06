@@ -1,0 +1,191 @@
+import Mathlib.Analysis.Calculus.ContDiff.Convolution
+import Mathlib.Analysis.Calculus.BumpFunction.Convolution
+import Mathlib.Analysis.Calculus.MeanValue
+import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientDistribution
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient
+
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory Filter ContinuousLinearMap
+open scoped Topology Convolution ContDiff
+namespace WeakGradientZeroPrototype
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem convolution_derivative_zero
+    (u φ : E → ℝ) (hu : LocallyIntegrable u)
+    (hφ : ContDiff ℝ 1 φ) (hc : HasCompactSupport φ)
+    (hweak : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => u x * fderiv ℝ ψ x a) volume ∧
+      (∫ x, u x * fderiv ℝ ψ x a) = 0) (x : E) :
+    HasFDerivAt (𝕜 := ℝ) (φ ⋆[lsmul ℝ ℝ (E := ℝ)] u) 0 x := by
+  have hder := hc.hasFDerivAt_convolution_left (lsmul ℝ ℝ (E := ℝ)) hφ hu x
+  have hzero : ((fderiv ℝ φ ⋆[(lsmul ℝ ℝ (E := ℝ)).precompL E] u) x) = 0 := by
+    ext a
+    let ψ := fun y : E => φ (x-y)
+    have hψ : ContDiff ℝ 1 ψ := hφ.comp (contDiff_const.sub contDiff_id)
+    have hψc : HasCompactSupport ψ :=
+      hc.comp_homeomorph (IsometryEquiv.subLeft x).toHomeomorph
+    have hψD (y : E) : fderiv ℝ ψ y a = -(fderiv ℝ φ (x-y) a) := by
+      have h := (hφ.differentiable one_ne_zero (x-y)).hasFDerivAt.comp y
+        ((hasFDerivAt_id y).const_sub x)
+      change HasFDerivAt ψ _ y at h
+      rw [h.fderiv]
+      simp
+    have hweak0 := (hweak ψ hψ hψc a).2
+    simp_rw [hψD] at hweak0
+    have hn : (∫ y, u y * fderiv ℝ φ (x-y) a) = 0 := by
+      simp_rw [mul_neg,integral_neg] at hweak0
+      linarith
+    rw [← convolution_flip]
+    change (u ⋆[(lsmul ℝ ℝ (E := ℝ)).flip.precompR E] fderiv ℝ φ) x a = 0
+    rw [convolution_precompR_apply (lsmul ℝ ℝ (E := ℝ)).flip hu (hc.fderiv ℝ)
+      (hφ.continuous_fderiv one_ne_zero)]
+    simpa only [convolution_def,flip_apply,lsmul_apply,smul_eq_mul,mul_comm] using hn
+  rwa [hzero] at hder
+
+theorem ordinary_weak_zero_gradient_ae_constant
+    (u : E → ℝ) (hu : LocallyIntegrable u)
+    (hweak : ∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => u x * fderiv ℝ ψ x a) volume ∧
+      (∫ x, u x * fderiv ℝ ψ x a) = 0) :
+    ∃ c : ℝ, u =ᵐ[volume] (fun _ => c) := by
+  classical
+  let ρ : ℕ → ContDiffBump (0 : E) := fun n =>
+    {rIn := 1/((n:ℝ)+1), rOut := 2/((n:ℝ)+1),
+      rIn_pos := by positivity,
+      rIn_lt_rOut := by apply div_lt_div_of_pos_right (by norm_num) (by positivity)}
+  have hρ : Tendsto (fun n => (ρ n).rOut) atTop (𝓝 0) :=
+    (tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop).const_div_atTop 2
+  have hratio : ∀ n, (ρ n).rOut ≤ 2*(ρ n).rIn := by intro n; dsimp [ρ]; field_simp; norm_num
+  have ht := ContDiffBump.ae_convolution_tendsto_right_of_locallyIntegrable
+    (μ := (volume : Measure E)) hρ (Eventually.of_forall hratio) hu
+  obtain ⟨x0,hx0⟩ := ht.exists
+  refine ⟨u x0,?_⟩
+  filter_upwards [ht] with x hx
+  have he (n : ℕ) : ((ρ n).normed volume ⋆[lsmul ℝ ℝ] u) x =
+      ((ρ n).normed volume ⋆[lsmul ℝ ℝ] u) x0 := by
+    apply is_const_of_fderiv_eq_zero (𝕜 := ℝ)
+    · intro y
+      exact (convolution_derivative_zero u _ hu
+        (contDiff_infty.mp (ρ n).contDiff_normed 1) (ρ n).hasCompactSupport_normed hweak y).differentiableAt
+    · intro y
+      exact (convolution_derivative_zero u _ hu
+        (contDiff_infty.mp (ρ n).contDiff_normed 1) (ρ n).hasCompactSupport_normed hweak y).fderiv
+  exact tendsto_nhds_unique hx ((tendsto_congr he).mpr hx0)
+
+
+theorem gibbs_closed_gradient_kernel_constants (W : E → ℝ) (hW : ContDiff ℝ 1 W)
+    (hI : Integrable (fun x => Real.exp (-W x))) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔
+        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ) →
+      ∀ u : D.closure.domain, D.closure u = 0 →
+        ∃ c : ℝ, (u : Lp ℝ 2 μ) =ᵐ[μ] (fun _ => c) := by
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  dsimp only
+  intro D hD hgraph u hz
+  obtain ⟨hu,hG,hweak⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradientDistribution.closed_gradient_distributional
+      W hW hI D hD hgraph (u : Lp ℝ 2 μ) (D.closure u) (D.closure.mem_graph u)
+  have hzero : (fun x => D.closure u x) =ᵐ[μ] (fun _ => (0:E)) := by
+    rw [hz]
+    exact Lp.coeFn_zero E 2 μ
+  have hvol : (fun x => D.closure u x) =ᵐ[volume] (fun _ => (0:E)) :=
+    (absolutelyContinuous_tilted hI).ae_eq hzero
+  obtain ⟨c,hc⟩ := ordinary_weak_zero_gradient_ae_constant (fun x => (u : Lp ℝ 2 μ) x) hu (by
+    intro ψ hψ hψc a
+    obtain ⟨hi,hj,he⟩ := hweak ψ hψ hψc a
+    refine ⟨hj,?_⟩
+    have he0 : (∫ x, ψ x * inner ℝ (D.closure u x) a) = 0 := by
+      calc
+        _ = ∫ x : E, (0:ℝ) := integral_congr_ae (by
+          filter_upwards [hvol] with x hx
+          simp [hx])
+        _ = 0 := by simp
+    rw [he0] at he
+    linarith)
+  exact ⟨c,(tilted_absolutelyContinuous (volume : Measure E) (fun x => -W x)).ae_eq hc⟩
+
+
+open ProbabilityTheory
+open scoped NNReal
+
+theorem conditional_gradient_kernel_constants
+    {V : E → ℝ} {α β : NNReal} {η : ℝ}
+    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))
+    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧
+      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧
+        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧
+        0 < (∫ u, Real.exp (-W y u)) ∧
+        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),
+          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧
+          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔
+            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧
+              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧
+          ∀ u : D.closure.domain, D.closure u = 0 →
+            ∃ c : ℝ, (u : Lp ℝ 2 (S y)) =ᵐ[S y] (fun _ => c) := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient.conditional_gradient_closable
+      hα hαβ hV hH hη hβη
+  dsimp only
+  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph⟩ := hfiber y
+  refine ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph,?_⟩
+  have hk := gibbs_closed_gradient_kernel_constants _ (hW.of_le (by norm_num)) hI
+  rw [← hSy] at hk
+  exact hk D hD hgraph
+
+
+theorem actual_noncompact_seven_weak_zero :
+    (¬ Integrable (fun _ : ℝ => (7:ℝ)) volume) ∧
+    ∃ c : ℝ, (fun _ : ℝ => (7:ℝ)) =ᵐ[volume] (fun _ => c) := by
+  have hn : ¬ Integrable (fun _ : ℝ => (7:ℝ)) volume := by
+    intro hi
+    rcases integrable_const_iff.mp hi with hz | hfin
+    · norm_num at hz
+    · letI := hfin
+      have hm := measure_ne_top (volume : Measure ℝ) Set.univ
+      rw [Real.volume_univ] at hm
+      exact hm rfl
+  refine ⟨hn,ordinary_weak_zero_gradient_ae_constant _ continuous_const.locallyIntegrable ?_⟩
+  intro ψ hψ hc a
+  have hd : Continuous (fun x : ℝ => fderiv ℝ ψ x a) :=
+    (hψ.continuous_fderiv one_ne_zero).clm_apply continuous_const
+  have hdc : HasCompactSupport (fun x : ℝ => fderiv ℝ ψ x a) := by
+    apply HasCompactSupport.of_support_subset_isCompact hc.isCompact
+    intro x hx
+    by_contra hn
+    have hz : fderiv ℝ ψ x = 0 := fderiv_of_notMem_tsupport ℝ hn
+    exact hx (by simp [hz])
+  have hi : Integrable (fun x : ℝ => (7:ℝ)*fderiv ℝ ψ x a) volume :=
+    hd.integrable_of_hasCompactSupport hdc |>.const_mul 7
+  refine ⟨hi,?_⟩
+  have h := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable
+    (μ := (volume : Measure ℝ)) (f := fun _ : ℝ => (7:ℝ)) (g := ψ) (v := a)
+    (by simp)
+    hi ((hψ.continuous.integrable_of_hasCompactSupport hc).const_mul 7)
+    (fun _ _ => differentiableAt_const _) (fun x _ => hψ.differentiable one_ne_zero x)
+  simpa using h
+
+#print axioms actual_noncompact_seven_weak_zero
+
+#print axioms conditional_gradient_kernel_constants
+
+#print axioms gibbs_closed_gradient_kernel_constants
+
+#print axioms convolution_derivative_zero
+#print axioms ordinary_weak_zero_gradient_ae_constant
+end WeakGradientZeroPrototype

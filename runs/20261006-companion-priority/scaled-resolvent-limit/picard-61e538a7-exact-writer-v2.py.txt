@@ -1,0 +1,115 @@
+import pathlib,json,hashlib,subprocess,sys,re,datetime
+sys.path.insert(0,'tools')
+import astis,astis_publication as pub
+from astis_semantic_roundtrip_core import sha256_json
+R=pathlib.Path('runs/20261006-companion-priority/scaled-resolvent-limit');C='61e538a7d1682b401008e7733d78cef473e3b80c'
+assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()==C
+paths=set(subprocess.check_output(['git','ls-tree','-r','--name-only',C]).decode().splitlines())
+def rd(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8'))
+def sh(b):return hashlib.sha256(b).hexdigest()
+def fr(p):
+ p=str(p).replace(chr(92),'/');f=pathlib.Path(p);b=f.read_bytes();cur=pathlib.Path('.')
+ for part in f.parts:
+  assert part in [z.name for z in cur.iterdir()],('case',p,part)
+  cur/=part
+ q={'path':p,'raw_sha256':sh(b),'lf_sha256':sh(b.replace(b'\r\n',b'\n')),'bytes':len(b),'exact_case':True}
+ if not p.startswith('.lake/'):
+  assert p in paths,p
+  g=subprocess.check_output(['git','show',C+':'+p])
+  q.update(git_raw_sha256=sh(g),git_lf_sha256=sh(g.replace(b'\r\n',b'\n')),git_raw_equals_worktree=g==b,git_LF_equals_worktree=g.replace(b'\r\n',b'\n')==b.replace(b'\r\n',b'\n'))
+  assert q['git_LF_equals_worktree'],p
+ return q
+def same(x,p=None):
+ q=fr(p or x['path']);assert q['raw_sha256']==x['raw_sha256'] and q['lf_sha256']==x.get('lf_sha256',x.get('normalized_sha256')),(p or x['path']);return q
+def diff(a,b,p=''):
+ if type(a)!=type(b):return[p]
+ if isinstance(a,dict):return sum([diff(a.get(k),b.get(k),p+'/'+k) for k in sorted(set(a)|set(b))],[])
+ return [] if a==b else[p]
+m=rd(R/'math-review.json');assert sh((R/'math-review.json').read_bytes())=='0d0cae559701751697d85c99585082846316c5e8fe029a1f3f6f33dc88d88649'
+stable=[same(x) for x in m['frozen_inputs']];assert len(stable)==43
+oldlogs=[same(x) for x in m['raw_compiler_evidence']];stdin=[same(x) for x in m['stress_stdin']]
+snap=[same(x['snapshot']) for x in m['immutable_metadata_snapshots']]
+allowcell={'/status','/evidence/proof_review','/evidence/development_boundary','/graph_contribution/visual_review'}
+allowaudit={'/reconstruction','/state','/semantic_slots','/deltas','/verdict','/source_review/state','/source_review/reviewer','/source_review/independent_from_decoder','/source_review/independent_from_formalizer','/source_review/evidence','/source_review/review_run_sha256','/source_review/reviewer_packet_sha256','/source_review/run_artifact'}
+admin=[]
+for x in m['immutable_metadata_snapshots']:
+ p=x['original']['path'];d=diff(rd(x['snapshot']['path']),rd(p))
+ assert set(d)<= (allowcell|{'/reuse_plan/planned_consumers'} if '/frontier-cells/' in p else allowaudit),(p,d)
+ admin.append({'path':p,'current':fr(p),'changed_fields':d})
+original=rd(R/'math-freeze.json')['inputs']
+for x in original:
+ if '/frontier-cells/' in x['path'] or '/audits/' in x['path']:
+  p=next(z['snapshot']['path'] for z in m['immutable_metadata_snapshots'] if z['original']['path']==x['path']);same(x,p)
+ else:same(x)
+lc=rd(R/'source-review.lifecycle-reconciliation.json')
+assert lc['administrative_input_count']==len(lc['changes'])==6 and lc['nonadministrative_raw_bytes_unchanged']
+assert sha256_json({k:v for k,v in lc.items() if k!='review_run_sha256'})==lc['review_run_sha256']
+for x in lc['changes']:
+ a=fr(x['before_snapshot']);b=fr(x['current_snapshot'])
+ assert a['raw_sha256']==x['before_raw_sha256'] and a['lf_sha256']==x['before_lf_sha256']
+ assert b['raw_sha256']==x['current_raw_sha256'] and b['lf_sha256']==x['current_lf_sha256']
+ d=diff(rd(a['path']),rd(b['path']));assert set(d)=={'/'+y['path'].replace('.','/') for y in x['diffs']}
+ assert set(d)<= (allowcell if '/frontier-cells/' in x['path'] else {'/state','/reconstruction'})
+cp=rd(R/'consumer-plan-source-review.json')
+assert sh((R/'consumer-plan-source-review.json').read_bytes())=='3aed02fa87d76611390ddfebd608a75e13c97e469c9deac05bdc262380e697f3'
+assert sha256_json({k:v for k,v in cp.items() if k!='review_run_sha256'})==cp['review_run_sha256']=='d3f29777ceea2b1a2b9cc40fe4ff3b08113050a76ee9b3101be1edac1970b218'
+assert cp['verdict']=='accepted-scoped-metadata-only' and not cp['blocking']
+for x in cp['deltas']:
+ a=same(x['before']);b=same(x['current']);same(x['current_snapshot'])
+ assert diff(rd(a['path']),rd(b['path']))==['/reuse_plan/planned_consumers']
+ assert rd(b['path'])['reuse_plan']['planned_consumers'] and all('Proposal-only ASTIS-DISC-20261006-CenteredPoincareResolvent' in s for s in rd(b['path'])['reuse_plan']['planned_consumers'])
+ assert pathlib.Path(b['path']).read_bytes()==pathlib.Path(x['current_snapshot']['path']).read_bytes()
+ids=['ASTIS-RT-20261006-ScaledClosedGraphResolvent','ASTIS-RT-20261006-CenteredGibbsResolventLimit','ASTIS-RT-20261006-PBPSConditionalCenteredResolventLimit']
+runs=['d2cdf703d15ad64f33cff6d63b2d02b3ab9e3c8460b5526fc5997c7d525d602d','4a42eaa4fd8e1547ec2838d289e96a371d6cc931505cb3f3de36847926095e7f','6f3432efc35800e5c0465c7992d396882abc2e4e5e7a38e3aecd04d8c9b7c8fc']
+src=[];union={}
+for i,aid in enumerate(ids):
+ ap='research-wiki/semantic-roundtrip/audits/'+aid+'.json';a=rd(ap);p=rd(R/f'source-review.{i}.json');r=rd(R/f'source-review.{i}.result.json');b=rd(R/f'anonymous.{i}.decoder.json');d=rd(R/f'anonymous.{i}.reconstruction.json')
+ for o,k in [(p,'packet_sha256'),(r,'review_run_sha256'),(b,'packet_sha256'),(d,'decoder_run_sha256')]:assert sha256_json({z:v for z,v in o.items() if z!=k})==o[k],(aid,k)
+ assert a['state']==a['source_review']['state']=='accepted' and a['verdict']==r['verdict']=='equivalent-after-elaboration'
+ assert not r['blocking'] and not r['blocking_flags'] and r['repairs']==r['deltas']==[]
+ assert r['review_run_sha256']==runs[i]==a['source_review']['review_run_sha256']
+ assert p['packet_sha256']==r['reviewer_packet_sha256']==a['source_review']['reviewer_packet_sha256']
+ assert r['publication_binding_sha256']==a['publication_binding_sha256']==p['publication_binding_sha256']
+ assert p['candidate_publication_context']==a['publication_context']
+ assert r['review_context']['candidate_publication_context_sha256']==sha256_json(a['publication_context'])
+ assert r['review_context']['lean_declaration']==a['lean']['declaration'] and r['review_context']['lean_module']==a['lean']['file']
+ assert r['publication_context_sha256']==sha256_json(a['publication_context'])
+ assert r['reviewer']==a['source_review']['reviewer'] and r['reviewer'] not in [p['roles']['formalizer'],p['roles']['blind_decoder'],'picard_commit_verifier_20261005']
+ assert r['independent_from_formalizer'] and r['independent_from_decoder']
+ assert not d['source_text_visible'] and not d['source_consulted'] and not d['blocking']
+ assert d['decoder']==p['roles']['blind_decoder']==a['reconstruction']['decoder']
+ assert r['decoder_run_sha256']==d['decoder_run_sha256']==a['reconstruction']['decoder_run_sha256']
+ assert r['decoder_packet_sha256']==b['packet_sha256']==d['decoder_packet_sha256']==a['reconstruction']['decoder_packet_sha256']
+ assert d['approved_definition_context_sha256']==sha256_json(b['lean']['approved_definition_context'])
+ assert r['source_text_sha256']==a['source']['text_sha256']==sh(a['source']['original_text'].encode())
+ assert r['lean_statement_sha256']==a['lean']['statement_sha256']==b['lean']['statement_sha256']
+ assert r['reconstruction_text_sha256']==a['reconstruction']['text_sha256']==d['reconstructed_text_sha256']==sh(d['reconstructed_theorem_text'].encode())
+ assert set(r['semantic_slots'])=={'objects','domains','quantifiers','assumptions','conclusion','scopes','constant_dependencies'} and r['semantic_slots']==a['semantic_slots']
+ assert all(x['relation']=='equivalent' for x in r['semantic_slots'].values())
+ mod=fr(a['lean']['file']);assert mod['raw_sha256']==r['whole_module_raw_file_sha256'] and mod['lf_sha256']==r['whole_module_file_sha256']==r['whole_module_lf_file_sha256']==a['publication_context']['file']
+ assert r['whole_module_covered'] and r['private_helpers_covered']==[4,0,0][i] and r['test_whole_body_covered']
+ assert pathlib.Path(a['lean']['file']).read_text()==a['publication_context']['current_lean_module']
+ fps=[]
+ for x in r['input_artifacts']:
+  q=same(x,x.get('snapshot',x['path']));p0=x['path']
+  if '/audits/' in p0: assert set(diff(rd(q['path']),rd(p0)))<=allowaudit-{'/reconstruction'}
+  elif '/frontier-cells/' in p0:
+   changes=diff(rd(q['path']),rd(p0));assert set(changes)<= {'/reuse_plan/planned_consumers'}
+  else:same(x)
+  fps.append({'original_path':p0,'snapshot_footprint':q,'current':fr(p0)});union[p0]=fps[-1]
+ src.append({'audit':fr(ap),'source_packet':fr(R/f'source-review.{i}.json'),'source_result':fr(R/f'source-review.{i}.result.json'),'decoder_packet':fr(R/f'anonymous.{i}.decoder.json'),'decoder_result':fr(R/f'anonymous.{i}.reconstruction.json'),'source_run':r['review_run_sha256'],'decoder_run':d['decoder_run_sha256'],'binding':a['publication_binding_sha256'],'module':mod,'source_reviewer':r['reviewer'],'decoder_actor':d['decoder'],'footprints':fps,'evidence':r['review_evidence']})
+pl=rd(R/'proved-local.json');assert set(pl['publication_declarations'])==set(pl['lean_declarations'])==set(m['reviewed_declarations'])
+pub.check_advance(pl['publication_declarations'],reviewed=True)
+immutable=[]
+for p in sorted(paths):
+ if p.startswith(str(R).replace(chr(92),'/')+'/'):
+  q=fr(p);assert q['git_raw_equals_worktree'],p;immutable.append(q)
+hits=[]
+for p in m['fake_closure_scan']['files']:
+ t=astis.strip_lean_comments_and_strings(pathlib.Path(p).read_text())
+ for n,line in enumerate(t.splitlines(),1):
+  if astis.FORBIDDEN_REGEX.search(line):hits.append({'path':p,'line':n,'text':line})
+assert not hits
+out={'schema_version':1,'verification_status':'blocked-metadata','checked_commit':C,'verified_commit':None,'verifier_id':'picard_commit_verifier_20261005','not_certified':True,'blocker':'Fresh frontier check fails literal Samplinglib searches in all3 current cells and at-least2 consuming_routes in two shared cells. Root sole writer must repair truthful metadata; no VERIFIED transition/cell edit permitted.','stable43_rawLF_and_Git':stable,'six_math_snapshots':snap,'original22_freeze_unchanged_math_or_original_snapshot':True,'six_current_admin_deltas_plus_two_proposal_plan_fields':admin,'source_lifecycle':fr(R/'source-review.lifecycle-reconciliation.json'),'proposal_plan_review':fr(R/'consumer-plan-source-review.json'),'source_reviews':src,'source_input_union':list(union.values()),'source_input_union_count':len(union),'immutable_committed_raw_artifacts':immutable,'immutable_raw_artifact_count':len(immutable),'fake_closure':{'status':'passed','file_count':len(m['fake_closure_scan']['files']),'matches':hits},'standard_axioms':['propext','Classical.choice','Quot.sound'],'fresh_focused':'PASS3323','publication':'PASS180','semantic':'PASS240/8','frontier':'FAILED','contributor':'PASS metadata-only current checker classification preserved honestly','source_review_hash_contract':'whole_module_file_sha256 and whole_module_lf_file_sha256 are LF; whole_module_raw_file_sha256 raw. Both frozen bytes validated, no normalization of original receipts.','reused_exact_math_logs':oldlogs,'reused_stress_stdin':stdin,'gates':[{'path':str(R/f'picard-61e538a7-gate-{i}.log'),'sha256':sh((R/f'picard-61e538a7-gate-{i}.log').read_bytes())} for i in range(4)],'remaining_boundary':m['source_boundary'],'excluded_untracked_future_preread':'runs/20261006-companion-priority/centered-poincare-preread/ and ignored future prototypes excluded from exactproof/source coverage; future proposal names add no formal credit.','all_compiler_and_write_leases_closed':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+p=R/'picard-61e538a7.failed-admission.json';assert not p.exists();p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'receipt':str(p),'raw_sha256':sh(p.read_bytes()),'lf_sha256':sh(p.read_bytes().replace(b'\r\n',b'\n')),'source_union':len(union),'raw_artifacts':len(immutable),'stable':len(stable),'fake':17,'status':'blocked-metadata','compiler_write_CLOSED':True}))

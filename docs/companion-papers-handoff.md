@@ -28,8 +28,8 @@ the necessary forcing/kernel boundary. Three distinct sourceblind reconstruction
 primary-first anti-anchored reviews and six administrative binding audits passed;
 mathematical inputs remained frozen. Exact independent VERIFIED proof
 `34be20e35ba8b16c03a121151ff84d37f316d2d9`: `runs/20261006-companion-priority/scaled-resolvent-limit/verified.json`.
-Original sole root stabilization/PR313 lane. Shared aggregate/reader/graph
-checks pending for this packet. Goal remains active.
+Original sole root stabilization/PR313 lane. Exact proof 34be20e35ba8b16c03a121151ff84d37f316d2d9 independently VERIFIED; shared integration b678cc2f111a031720bd7e8a17e2ec2fdaffa640. Full ASTIS gate PASS (9124 root/9382 Tests), publication180, semantic240/8, frontier243, contributor63/59. 95 relevant Python regressions reused after exact unchanged tool/fixture/runtime checks; not rerun. Three actual branch/static source/formula/proof/folded Lean/Test/residual views, full site/official graph freshness/contributor PASS. Graph850 modules/626 public declarations; Registry472 unchanged. Rendered visual/copy/download acceptance open because browser-service bootstrap unavailable.
+`runs/20261006-companion-priority/scaled-resolvent-limit/integration.json`. Goal remains active.
 
 Next bounded route joins residual-converging and global-coercivity witnesses
 using genuine SAME D/epsilon/f variational uniqueness, then tests a truly

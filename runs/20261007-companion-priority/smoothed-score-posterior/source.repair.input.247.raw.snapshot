@@ -1,0 +1,114 @@
+AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMoment.lean
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+theorem gibbs_gradient_moment [CompleteSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (_hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2) :
+    let μ := (volume : Measure E).tilted (fun x => -U x)
+    let H := fun x => ∑ i, fderiv ℝ (fderiv ℝ U) x
+      ((stdOrthonormalBasis ℝ E) i) ((stdOrthonormalBasis ℝ E) i)
+    IsProbabilityMeasure μ ∧ Integrable (fun x => ‖gradient U x‖^2) μ ∧
+      Integrable H μ ∧ (∫ x, ‖gradient U x‖^2 ∂μ) = (∫ x, H x ∂μ) ∧
+      (∫ x, ‖gradient U x‖^2 ∂μ) ≤ (β : ℝ)*Module.finrank ℝ E 
+
+AutoSamplingTheory/TechnicalLemmas/Measure/GaussianConvolutionRegularity.lean
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+variable [MeasurableSpace E] [BorelSpace E] [FiniteDimensional ℝ E]
+theorem gaussian_convolution_derivatives (μ : Measure E) [IsProbabilityMeasure μ] {η C : ℝ} (hη : 0 < η)
+    (hC : 0 < C) :
+    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)
+    (∀ y, IsProbabilityMeasure (R y) ∧ MemLp (fun x : E => x) 2 (R y)) ∧
+    (∀ y v, fderiv ℝ U y v = inner ℝ (y-∫ x, x ∂(R y)) v/η) ∧
+    ∀ y v w, fderiv ℝ (fderiv ℝ U) y v w =
+      inner ℝ v w/η - covarianceBilin (R y) v w/η^2 
+
+AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedGibbsPotential.lean
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+theorem smoothed_gibbs_potential {V : E → ℝ} {α η : ℝ} (hα : 0 < α) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, α*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v) (hη : 0 < η) :
+    let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+    0 < ZV ∧ IsProbabilityMeasure μ ∧
+      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =
+        (volume : Measure E).withDensity
+          (fun y => ENNReal.ofReal (Real.exp (-(-Real.log (A y)))/ZV)) ∧
+      Integrable A (volume : Measure E) ∧
+      (∫ y, A y ∂(volume : Measure E)) = ZV ∧
+      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =
+        (volume : Measure E).tilted (fun y => -(-Real.log (A y))) ∧
+      (∀ y, 0 < A y) ∧
+      ContDiff ℝ 2 (fun y => -Real.log (A y)) ∧
+      ∀ y, -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ) =
+        -Real.log (A y)+Real.log ZV 
+
+AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/StandardizedRGOPositionFisher.lean
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+theorem standardized_rgo_position_and_fisher
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) :
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+      let Q := fun s u => ‖u‖^2/2+rho s u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+      IsProbabilityMeasure mu ∧
+        ∀ s, IsProbabilityMeasure (R s) ∧
+          ContDiff ℝ 2 (rho s) ∧ ContDiff ℝ 2 (Q s) ∧
+          gradient (rho s) 0=0 ∧ gradient (Q s) 0=0 ∧
+          (∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧
+            fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ eta s*‖v‖^2) ∧
+          (∀ u v : E, ‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (Q s)) u v v ∧
+            fderiv ℝ (fderiv ℝ (Q s)) u v v ≤ (1+eta s)*‖v‖^2) ∧
+          r s=(volume : Measure E).tilted (fun u => -Q s u) ∧
+          IsProbabilityMeasure (r s) ∧ MemLp id 2 (r s) ∧
+          Integrable (fun u => ‖u‖^2) (r s) ∧
+          (∫ u, ‖u‖^2 ∂r s) ≤ Module.finrank ℝ E ∧
+          MemLp (gradient (rho s)) 2 (r s) ∧
+          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤
+            (eta s)^2*(∫ u, ‖u‖^2 ∂r s) ∧
+          (∫ u, ‖gradient (rho s) u‖^2 ∂r s) ≤
+            (eta s)^2*Module.finrank ℝ E 
+
+AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean
+
+theorem strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    {U : E → ℝ} {m L r : ℝ≥0}
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E,
+      (m : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ U) x v) v ∧
+      (fderiv ℝ (fderiv ℝ U) x v) v ≤ (L : ℝ) * ‖v‖ ^ 2)
+    (u : E) :
+    let W := fun x => U x + (r : ℝ) / 2 * ‖x - u‖ ^ 2
+    StrongConvexOn Set.univ ((m + r : ℝ≥0) : ℝ) W ∧
+      LipschitzWith (L + r) (gradient W) 
+
+.lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Tilted.lean
+def Measure.tilted (μ : Measure α) (f : α → ℝ) : Measure α :=
+  μ.withDensity (fun x ↦ ENNReal.ofReal (exp (f x) / ∫ x, exp (f x) ∂μ))
+
+.lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean
+def gradient (f : F → 𝕜) (x : F) : F :=
+  (toDual 𝕜 F).symm (fderiv 𝕜 f x)
+
+.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Basic.lean
+class BorelSpace` : a space with `TopologicalSpace` and `MeasurableSpace` structures
+  such that `‹MeasurableSpace α› = borel α`;
+* `class OpensMeasurableSpace` : a space with `TopologicalSpace` and `MeasurableSpace`
+  structures such that all open sets are measurable; equivalently, `borel α ≤ ‹MeasurableSpace α›`.
+* `BorelSpace` instances on `Empty`, `Unit`, `Bool`, `Nat`, `Int`, `Rat`;
+* `MeasurableSpace` and `BorelSpace` instances on `ℝ`, `ℝ≥0`, `ℝ≥0∞`.

@@ -1,0 +1,79 @@
+✖ [3623/3623] Building AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean (8.1s)
+trace: .> LEAN_PATH=E:\Samplinglib\.lake\packages\Cli\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\batteries\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\Qq\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\aesop\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\proofwidgets\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\importGraph\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\LeanSearchClient\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\plausible\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\mathlib\.lake\build\lib\lean;E:\Samplinglib\.lake\build\lib\lean c:\Users\admin\.elan\toolchains\leanprover--lean4---v4.33.0\bin\lean.exe E:\Samplinglib\AutoSamplingTheory\TechnicalLemmas\Analysis\GibbsGradientMean.lean -o E:\Samplinglib\.lake\build\lib\lean\AutoSamplingTheory\TechnicalLemmas\Analysis\GibbsGradientMean.olean -i E:\Samplinglib\.lake\build\lib\lean\AutoSamplingTheory\TechnicalLemmas\Analysis\GibbsGradientMean.ilean -c E:\Samplinglib\.lake\build\ir\AutoSamplingTheory\TechnicalLemmas\Analysis\GibbsGradientMean.c --setup E:\Samplinglib\.lake\build\ir\AutoSamplingTheory\TechnicalLemmas\Analysis\GibbsGradientMean.setup.json --json
+error: AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMean.lean:62:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  fderiv ℝ (fun x => Real.exp ((-U) x)) x
+in the target expression
+  (fderiv ℝ f x) v = -f x * ⟪gradient U x, v⟫
+
+E : Type u_1
+inst✝⁵ : NormedAddCommGroup E
+inst✝⁴ : InnerProductSpace ℝ E
+inst✝³ : CompleteSpace E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+U : E → ℝ
+α β : ℝ≥0
+hα : 0 < α
+hU : ContDiff ℝ 2 U
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ U) x) v) v ∧ ((fderiv ℝ (fderiv ℝ U) x) v) v ≤ ↑β * ‖v‖ ^ 2
+μ : Measure E := volume.tilted fun x => -U x
+hupper :
+  ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ U) x) v) v ∧ ((fderiv ℝ (fderiv ℝ U) x) v) v ≤ ↑(max α β) * ‖v‖ ^ 2
+hm :
+  have μ := volume.tilted fun x => -U x;
+  have H := fun x => ∑ i, ((fderiv ℝ (fderiv ℝ U) x) ((stdOrthonormalBasis ℝ E) i)) ((stdOrthonormalBasis ℝ E) i);
+  IsProbabilityMeasure μ ∧
+    Integrable (fun x => ‖gradient U x‖ ^ 2) μ ∧
+      Integrable H μ ∧
+        ∫ (x : E), ‖gradient U x‖ ^ 2 ∂μ = ∫ (x : E), H x ∂μ ∧
+          ∫ (x : E), ‖gradient U x‖ ^ 2 ∂μ ≤ ↑(max α β) * ↑(Module.finrank ℝ E)
+hμ : IsProbabilityMeasure μ
+this : IsProbabilityMeasure μ := hμ
+hc : Continuous (gradient U)
+hlp : MemLp (gradient U) 2 μ
+hg : Integrable (gradient U) μ
+hd : Differentiable ℝ U
+hs : (StrongConvexOn Set.univ ↑α fun x => U x) ∧ LipschitzWith β (gradient fun x => U x)
+hi : Integrable (fun x => Real.exp (-U x)) volume
+hweighted : Integrable (fun x => Real.exp (-U x) • gradient U x) volume
+v : E
+f : E → ℝ := fun x => Real.exp (-U x)
+hf : Differentiable ℝ f
+x : E
+⊢ (fderiv ℝ f x) v = -f x * ⟪gradient U x, v⟫
+error: AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMean.lean:68:4: Type mismatch: After simplification, term
+  Integrable.inner_const hweighted v
+ has type
+  Integrable (fun x => ⟪Real.exp (-U x) • gradient U x, v⟫_?m.716) volume
+but is expected to have type
+  Integrable (fun x => f x * ⟪gradient U x, v⟫) volume
+error: AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMean.lean:71:4: Type mismatch: After simplification, term
+  Integrable.neg hwv
+ has type
+  @Integrable ℝ PseudoMetricSpace.toUniformSpace.toTopologicalSpace SeminormedAddGroup.toContinuousENorm E
+    measureSpaceOfInnerProductSpace.toMeasurableSpace (-fun x => f x * ⟪gradient U x, v⟫) volume
+but is expected to have type
+  @Integrable ℝ PseudoMetricSpace.toUniformSpace.toTopologicalSpace SeminormedAddGroup.toContinuousENorm E
+    measureSpaceOfInnerProductSpace.toMeasurableSpace (fun x => -(f x * ⟪gradient U x, v⟫)) volume
+error: AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMean.lean:73:4: Application type mismatch: The argument
+  integrable_zero E ℝ volume
+has type
+  Integrable 0 volume
+but is expected to have type
+  Integrable (fun x => f x * (fderiv ℝ (fun x => 1) x) v) volume
+in the application
+  integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hdf (integrable_zero E ℝ volume)
+warning: AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMean.lean:76:29: `ContinuousLinearMap.zero_apply` has been deprecated: Use `zero_apply` instead
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.zero_apply` to `zero_apply x`).
+error: AutoSamplingTheory/TechnicalLemmas/Analysis/GibbsGradientMean.lean:76:4: Type mismatch: After simplification, term
+  Eq.symm hb
+ has type
+  ∫ (a : E), f a * ⟪gradient U a, v⟫ = ∫ (x : E), f x * (fderiv ℝ (fun x => 1) x) v
+but is expected to have type
+  ∫ (x : E), f x * ⟪gradient U x, v⟫ = 0
+error: Lean exited with code 1
+Some required targets logged failures:
+- AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean
+error: build failed

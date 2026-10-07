@@ -1,0 +1,15 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev
+open MeasureTheory ProbabilityTheory
+#check (∀     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E]
+    (f : E → ℝ) (hf : ContDiff ℝ 2 f)
+    (hf2 : MemLp f 2 (ProbabilityTheory.stdGaussian E))
+    (hgrad2 : MemLp (gradient f) 2 (ProbabilityTheory.stdGaussian E))
+    (hentropy : Integrable (fun x => (f x)^2 * Real.log ((f x)^2))
+      (ProbabilityTheory.stdGaussian E)),
+    let γ : Measure E := ProbabilityTheory.stdGaussian E
+    (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -
+      (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ) ≤
+      2 * ∫ x, ‖gradient f x‖^2 ∂γ
+ : Prop)

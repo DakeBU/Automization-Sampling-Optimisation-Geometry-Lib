@@ -1,0 +1,17 @@
+set_option backward.isDefEq.respectTransparency false in
+/-- `b i` is the `i`th basis vector. -/
+instance instFunLike : FunLike (OrthonormalBasis ι 𝕜 E) ι E where
+  coe b i := by classical exact b.repr.symm (EuclideanSpace.single i (1 : 𝕜))
+  coe_injective b b' h := repr_injective <| LinearIsometryEquiv.toLinearEquiv_injective <|
+    LinearEquiv.symm_bijective.injective <| LinearEquiv.toLinearMap_injective <| by
+      classical
+        rw [← LinearMap.cancel_right (WithLp.linearEquiv 2 𝕜 (_ → 𝕜)).symm.surjective]
+        simp +instances only
+        refine LinearMap.pi_ext fun i k => ?_
+        have : k = k • (1 : 𝕜) := by rw [smul_eq_mul, mul_one]
+        rw [this, Pi.single_smul]
+        replace h := congr_fun h i
+        simp only [LinearEquiv.comp_coe, map_smul, LinearEquiv.coe_coe, LinearEquiv.trans_apply,
+          coe_symm_linearEquiv, PiLp.toLp_single,
+          LinearIsometryEquiv.coe_symm_toLinearEquiv] at h ⊢
+        rw [h]

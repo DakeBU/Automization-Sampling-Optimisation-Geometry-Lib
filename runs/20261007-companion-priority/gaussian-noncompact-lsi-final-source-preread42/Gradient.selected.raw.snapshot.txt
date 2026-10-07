@@ -1,0 +1,204 @@
+1: import AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates
+2: import Mathlib.Analysis.Calculus.Gradient.Basic
+3: import Mathlib.Analysis.Calculus.LineDeriv.Basic
+4: import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+5: 
+6: /-!
+7: # Gradient coordinate bridges
+8: 
+9: Small finite-dimensional bridges from Mathlib's gradient API to coordinate
+10: directional derivatives.  These leaves provide the calculus side of the
+11: coordinate representatives used by the Langevin generator algebra.
+12: 
+13: They do not prove divergence identities, weighted product rules, integration by
+14: parts, boundary decay, stationarity, reversibility, or invariant Gibbs laws.
+15: -/
+16: 
+17: namespace AutoSamplingTheory
+18: namespace TechnicalLemmas
+19: namespace Analysis
+20: namespace Calculus
+21: namespace Gradient
+22: 
+23: open scoped BigOperators RealInnerProductSpace
+24: 
+25: /-- Chain rule for the Gibbs weight `exp (-V)` in Mathlib's gradient API.
+26: 
+27: This is the pointwise gradient identity behind the Langevin supplied hypothesis
+28: `∇rho = -rho • ∇V` when `rho x = exp (-V x)`.  It does not prove any weighted
+29: divergence, product-rule, integration-by-parts, stationarity, or invariant-law
+30: statement. -/
+31: theorem hasGradientAt_expNegPotential_of_hasGradientAt
+32:     {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+33:     {V : F → ℝ} {x gradV : F}
+34:     (hV : HasGradientAt V gradV x) :
+35:     HasGradientAt
+36:       (fun y : F => Real.exp (-V y))
+37:       (-(Real.exp (-V x)) • gradV)
+38:       x := by
+39:   rw [hasGradientAt_iff_hasFDerivAt]
+40:   have hmap :
+41:       Real.exp (-V x) • -(InnerProductSpace.toDual ℝ F gradV) =
+42:         InnerProductSpace.toDual ℝ F (-(Real.exp (-V x)) • gradV) := by
+43:     apply ContinuousLinearMap.ext
+44:     intro y
+45:     simp [InnerProductSpace.toDual_apply_apply]
+46:   rw [← hmap]
+47:   exact hV.hasFDerivAt.neg.exp
+48: 
+49: /-- Mathlib-gradient form of the Gibbs weight chain rule from a supplied
+50: potential gradient.
+51: 
+52: This is the same local chain rule as
+53: `hasGradientAt_expNegPotential_of_hasGradientAt`, followed by Mathlib's
+54: uniqueness theorem `HasGradientAt.gradient`. -/
+55: theorem gradient_expNegPotential_eq_of_hasGradientAt
+56:     {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+57:     {V : F → ℝ} {x gradV : F}
+58:     (hV : HasGradientAt V gradV x) :
+59:     gradient (fun y : F => Real.exp (-V y)) x =
+60:       -(Real.exp (-V x)) • gradV := by
+61:   exact (hasGradientAt_expNegPotential_of_hasGradientAt hV).gradient
+62: 
+63: /-- Coordinate form of
+64: `gradient_expNegPotential_eq_of_hasGradientAt` on finite Euclidean space. -/
+65: theorem gradient_expNegPotential_coordinate_eq_of_hasGradientAt
+66:     {ι : Type*} [Fintype ι]
+67:     {V : EuclideanSpace ℝ ι → ℝ} {x gradV : EuclideanSpace ℝ ι}
+68:     (hV : HasGradientAt V gradV x) (i : ι) :
+69:     (gradient (fun y : EuclideanSpace ℝ ι => Real.exp (-V y)) x) i =
+70:       -Real.exp (-V x) * gradV i := by
+71:   have hgrad := gradient_expNegPotential_eq_of_hasGradientAt hV
+72:   calc
+73:     (gradient (fun y : EuclideanSpace ℝ ι => Real.exp (-V y)) x) i =
+74:         (-(Real.exp (-V x)) • gradV) i := by rw [hgrad]
+75:     _ = -Real.exp (-V x) * gradV i := by simp
+76: 
+77: /-- Pointwise Mathlib-gradient form of the Gibbs weight chain rule.
+78: 
+79: If `V` is differentiable at `x`, then Mathlib's total `gradient` of
+80: `fun y => exp (-V y)` agrees with the expected vector
+81: `-exp (-V x) • gradient V x`.  This is still only a pointwise calculus leaf; it
+82: does not prove weighted divergence, product-rule, integration-by-parts,
+83: stationarity, or invariant-law statements. -/
+84: theorem gradient_expNegPotential_eq_of_differentiableAt
+85:     {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+86:     {V : F → ℝ} {x : F}
+87:     (hV : DifferentiableAt ℝ V x) :
+88:     gradient (fun y : F => Real.exp (-V y)) x =
+89:       -(Real.exp (-V x)) • gradient V x := by
+90:   exact gradient_expNegPotential_eq_of_hasGradientAt hV.hasGradientAt
+91: 
+92: /-- Coordinate form of
+93: `gradient_expNegPotential_eq_of_differentiableAt` on finite Euclidean space.
+94: 
+95: This is the narrow reusable leaf that supplies the Gibbs-weight chain-rule
+96: coordinate equality used by the Langevin algebra handoffs. -/
+97: theorem gradient_expNegPotential_coordinate_eq_of_differentiableAt
+98:     {ι : Type*} [Fintype ι]
+99:     {V : EuclideanSpace ℝ ι → ℝ} {x : EuclideanSpace ℝ ι}
+100:     (hV : DifferentiableAt ℝ V x) (i : ι) :
+101:     (gradient (fun y : EuclideanSpace ℝ ι => Real.exp (-V y)) x) i =
+102:       -Real.exp (-V x) * (gradient V x) i := by
+103:   exact gradient_expNegPotential_coordinate_eq_of_hasGradientAt hV.hasGradientAt i
+104: 
+105: /-- A globally `C¹` real-valued function has a continuous Mathlib gradient.
+106: 
+107: This is the reusable regularity handoff from a test-function class to the
+108: component-continuity hypothesis used in the Langevin finite-box trace leaves.
+109: It uses Mathlib's total `gradient = (toDual ℝ F).symm ∘ fderiv ℝ f`.
+110: 
+111: It does not prove any `ContDiffOn` closed-box statement, Hessian regularity,
+112: divergence theorem, weighted integration by parts, boundary cancellation,
+113: generator domains, invariant laws, reversibility, or KL/FI dissipation. -/
+114: theorem continuous_gradient_of_contDiff_one
+115:     {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+116:     {f : F → ℝ} (hf : ContDiff ℝ 1 f) :
+117:     Continuous (fun x : F => gradient f x) := by
+118:   exact ((InnerProductSpace.toDual ℝ F).symm.continuous.comp
+119:     (hf.continuous_fderiv one_ne_zero))
+120: 
+121: /-- Apply the Frechet derivative to a vector when a gradient representative is
+122: supplied.
+123: 
+124: This is the basic bridge from Mathlib's `fderiv` to the inner-product
+125: gradient convention.  It is pointwise only: it does not choose coordinates,
+126: define divergence, prove integration by parts, or assert any global
+127: regularity. -/
+128: theorem fderiv_apply_eq_inner_of_hasGradientAt
+129:     {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+130:     {f : F → ℝ} {x grad v : F}
+131:     (hf : HasGradientAt f grad x) :
+132:     fderiv ℝ f x v = inner ℝ grad v := by
+133:   have hfd : fderiv ℝ f x = InnerProductSpace.toDual ℝ F grad :=
+134:     hf.differentiableAt.hasFDerivAt.unique hf.hasFDerivAt
+135:   calc
+136:     fderiv ℝ f x v = InnerProductSpace.toDual ℝ F grad v := by rw [hfd]
+137:     _ = inner ℝ grad v := by rw [InnerProductSpace.toDual_apply_apply]
+138: 
+139: /-- Apply the Frechet derivative to a vector and rewrite the result using
+140: Mathlib's total `gradient`.
+141: 
+142: This is the pointwise `fderiv`/`gradient` bridge used before finite-coordinate
+143: Langevin displays. -/
+144: theorem fderiv_apply_eq_inner_gradient_of_differentiableAt
+145:     {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+146:     {f : F → ℝ} {x v : F}
+147:     (hf : DifferentiableAt ℝ f x) :
+148:     fderiv ℝ f x v = inner ℝ (gradient f x) v :=
+149:   fderiv_apply_eq_inner_of_hasGradientAt hf.hasGradientAt
+150: 
+151: /-- Euclidean coordinate form of the pointwise `fderiv`/`gradient` bridge.
+152: 
+153: For the coordinate unit `eᵢ`, applying `fderiv ℝ f x` is the corresponding
+154: coordinate of Mathlib's `gradient f x`.  This removes only the local
+155: gradient-coordinate replacement used by finite-dimensional Langevin displays;
+156: divergence, Laplacian identities, integration by parts, generator domains, and
+157: invariant-law statements remain separate obligations. -/
+158: theorem fderiv_apply_coordinate_eq_gradient_coordinate_of_differentiableAt
+159:     {ι : Type*} [Fintype ι] [DecidableEq ι]
+160:     {f : EuclideanSpace ℝ ι → ℝ} {x : EuclideanSpace ℝ ι} (i : ι)
+161:     (hf : DifferentiableAt ℝ f x) :
+162:     fderiv ℝ f x (EuclideanSpace.single i (1 : ℝ)) = (gradient f x) i := by
+163:   have hinner :
+164:       inner ℝ (gradient f x) (EuclideanSpace.single i (1 : ℝ)) =
+165:         (gradient f x) i := by
+166:     simpa [EuclideanSpace.basisFun_apply] using
+167:       (EuclideanSpace.inner_basisFun_real (ι := ι) (x := gradient f x) i)
+168:   calc
+169:     fderiv ℝ f x (EuclideanSpace.single i (1 : ℝ)) =
+170:         inner ℝ (gradient f x) (EuclideanSpace.single i (1 : ℝ)) :=
+171:       fderiv_apply_eq_inner_gradient_of_differentiableAt hf
+172:     _ = (gradient f x) i := hinner
+173: 
+174: /-- A supplied Mathlib gradient gives the line derivative in a coordinate unit
+175: direction, with value equal to that coordinate of the gradient.
+176: 
+177: This is a pointwise Euclidean coordinate bridge.  It does not define divergence,
+178: the Laplacian, or any integration-by-parts identity. -/
+179: theorem hasGradientAt_coordinateUnit_hasLineDerivAt
+180:     {ι : Type*} [Fintype ι] [DecidableEq ι]
+181:     {f : EuclideanSpace ℝ ι → ℝ}
+182:     {x grad : EuclideanSpace ℝ ι}
+183:     (hf : HasGradientAt f grad x) (i : ι) :
+184:     HasLineDerivAt ℝ f (grad i) x
+185:       (WithLp.toLp 2 (Pi.single i (1 : ℝ)) : EuclideanSpace ℝ ι) := by
+186:   let direction : EuclideanSpace ℝ ι := WithLp.toLp 2 (Pi.single i (1 : ℝ))
+187:   have hvalue : (InnerProductSpace.toDual ℝ _ grad) direction = grad i := by
+188:     rw [InnerProductSpace.toDual_apply_apply]
+189:     rw [
+190:       _root_.AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates.euclideanSpace_inner_eq_sum_mul]
+191:     rw [Finset.sum_eq_single i]
+192:     · simp [direction]
+193:     · intro j _ hj
+194:       simp [direction, Pi.single_eq_of_ne hj]
+195:     · intro hi
+196:       exact False.elim (hi (Finset.mem_univ i))
+197:   rw [← hvalue]
+198:   exact hf.hasFDerivAt.hasLineDerivAt direction
+199: 
+200: end Gradient
+201: end Calculus
+202: end Analysis
+203: end TechnicalLemmas
+204: end AutoSamplingTheory

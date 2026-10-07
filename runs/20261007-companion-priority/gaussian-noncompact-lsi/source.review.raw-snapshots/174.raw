@@ -1,0 +1,69 @@
+28: * `GaussianSobolevNorm` - The W^{1,2}(γ) norm: ‖f‖_{L²(γ)}² + ‖∇f‖_{L²(γ)}²
+29: * `MemW12Gaussian` - Predicate for f ∈ W^{1,2}(γ)
+30: * `smoothCutoff` - Standard smooth cutoff χ with χ=1 on |x|≤1, χ=0 on |x|≥2
+31: * `smoothCutoffR` - Rescaled cutoff χ_R(x) = χ(‖x‖/R)
+32: * `stdMollifier` - Standard mollifier ρ with ∫ρ=1, supp ⊆ B(0,1)
+33: * `mollify` - Convolution f ⋆ ρ_ε
+34: 
+35: -/
+36: 
+37: open MeasureTheory ProbabilityTheory Filter Topology GaussianMeasure
+38: open scoped ENNReal NNReal Topology
+39: 
+40: namespace GaussianSobolev
+41: 
+42: variable {n : ℕ}
+43: 
+44: /-- Abbreviation for n-dimensional Euclidean space -/
+45: abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
+46: 
+47: /-! ### Standard Gaussian Measure -/
+48: 
+49: /-- The standard 1D Gaussian measure has IsOpenPosMeasure: it assigns positive mass
+50:     to all nonempty open sets. This follows from `volume ≪ gaussianReal 0 1`
+51:     (via `gaussianReal_absolutelyContinuous'`) and the fact that Lebesgue measure on ℝ
+52:     is IsOpenPosMeasure. -/
+53: instance : (gaussianReal 0 1).IsOpenPosMeasure :=
+54:   (gaussianReal_absolutelyContinuous' 0 one_ne_zero).isOpenPosMeasure
+55: 
+56: /-- The standard Gaussian on EuclideanSpace has IsOpenPosMeasure. -/
+57: instance stdGaussianE_isOpenPosMeasure : (stdGaussianE n).IsOpenPosMeasure := by
+58:   unfold stdGaussianE GaussianMeasure.stdGaussianPi
+59:   apply Continuous.isOpenPosMeasure_map
+60:   · exact (EuclideanSpace.equiv (Fin n) ℝ).symm.continuous
+61:   · exact (EuclideanSpace.equiv (Fin n) ℝ).symm.surjective
+62: 
+63: /-! ### Gaussian Sobolev Space -/
+64: 
+65: /-- The Gaussian Sobolev norm squared: ‖f‖_{L²(γ)}² + ‖∇f‖_{L²(γ)}² -/
+66: noncomputable def GaussianSobolevNormSq (n : ℕ) (f : E n → ℝ)
+67:     (γ : Measure (E n)) : ℝ≥0∞ :=
+68:   eLpNorm f 2 γ ^ 2 + eLpNorm (fun x ↦ ‖fderiv ℝ f x‖) 2 γ ^ 2
+69: 
+70: /-- The Gaussian Sobolev norm: (‖f‖_{L²(γ)}² + ‖∇f‖_{L²(γ)}²)^{1/2} -/
+71: noncomputable def GaussianSobolevNorm (n : ℕ) (f : E n → ℝ)
+72:     (γ : Measure (E n)) : ℝ≥0∞ :=
+73:   (GaussianSobolevNormSq n f γ) ^ (1/2 : ℝ)
+74: 
+75: /-- Membership in W^{1,2}(γ): f ∈ L²(γ) and ∇f ∈ L²(γ) -/
+76: def MemW12Gaussian (n : ℕ) (f : E n → ℝ) (γ : Measure (E n)) : Prop :=
+77:   MemLp f 2 γ ∧ MemLp (fun x ↦ fderiv ℝ f x) 2 γ
+78: 
+79: lemma memW12Gaussian_iff_sobolevNormSq_lt_top {f : E n → ℝ}
+80:     {γ : Measure (E n)} :
+81:     MemW12Gaussian n f γ ↔
+82:       GaussianSobolevNormSq n f γ < ⊤ ∧
+83:       AEStronglyMeasurable f γ ∧
+84:       AEStronglyMeasurable (fun x ↦ fderiv ℝ f x) γ := by
+85:   simp only [MemW12Gaussian, GaussianSobolevNormSq, MemLp]
+86:   -- Use: eLpNorm (‖g ·‖) p μ = eLpNorm g p μ
+87:   have heq : eLpNorm (fun x ↦ ‖fderiv ℝ f x‖) 2 γ = eLpNorm (fun x ↦ fderiv ℝ f x) 2 γ :=
+88:     MeasureTheory.eLpNorm_norm (fun x ↦ fderiv ℝ f x)
+89:   rw [heq]
+90:   constructor
+91:   · rintro ⟨⟨hf_meas, hf_norm⟩, hdf_meas, hdf_norm⟩
+92:     refine ⟨?_, hf_meas, hdf_meas⟩
+93:     exact ENNReal.add_lt_top.mpr ⟨ENNReal.pow_lt_top hf_norm, ENNReal.pow_lt_top hdf_norm⟩
+94:   · rintro ⟨hsum, hf_meas, hdf_meas⟩
+95:     have ⟨h1, h2⟩ := ENNReal.add_lt_top.mp hsum
+96:     refine ⟨⟨hf_meas, ?_⟩, hdf_meas, ?_⟩

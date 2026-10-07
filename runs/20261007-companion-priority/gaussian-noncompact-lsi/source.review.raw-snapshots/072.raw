@@ -1,0 +1,52 @@
+1: import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity
+2: import AutoSamplingTheory.TechnicalLemmas.InformationTheory.TiltedKL
+3: import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity
+4: import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+5: 
+6: /-!
+7: # Actual standardized RGO unique proximal point and canonical finite entropy
+8: 
+9: SPHMC arXiv:2609.06906v1 S3.E2/S4.Ex3 actual proximal point and S4.Ex8
+10: standardized posterior, with omitted canonical entropy prerequisites before
+11: FIRST S4.E6. The measurable family is an authored extension; Unit recovers
+12: fixed parameters. Every positive eta is admitted. Canonical llr is identified
+13: only almost everywhere for integrability and integrals, never differentiated.
+14: Gaussian LSI/T2, weak Sobolev, W2, bias, algorithms and main results remain open.
+15: -/
+16: 
+17: namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGORelativeEntropy
+18: open MeasureTheory InnerProductSpace ProbabilityTheory
+19: open scoped RealInnerProductSpace NNReal
+20: noncomputable section
+21: set_option autoImplicit false
+22: set_option backward.isDefEq.respectTransparency false
+23: 
+24: theorem standardized_rgo_unique_prox_and_finite_entropy
+25:     {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+26:     [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+27:     [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+28:     (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+29:     (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+30:       fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+31:     {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+32:     (hpos : ∀ s, 0 < eta s) :
+33:     ∃ p : S → E, Measurable p ∧
+34:       (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+35:       (∀ s z, z+eta s • gradient V z=y s → z=p s) ∧
+36:       let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+37:         Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+38:       let mu := (volume : Measure E).tilted (fun x => -V x)
+39:       let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+40:       let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+41:       let gamma := stdGaussian E
+42:       let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma
+43:       let q := fun s u => Real.exp (-rho s u)/Z s
+44:       ∀ s, r s ≪ gamma ∧
+45:         _root_.InformationTheory.klDiv (r s) gamma ≠ ⊤ ∧
+46:         Integrable (MeasureTheory.llr (r s) gamma) (r s) ∧
+47:         MeasureTheory.llr (r s) gamma =ᵐ[r s] (fun u => Real.log (q s u)) ∧
+48:         Integrable (rho s) (r s) ∧
+49:         (_root_.InformationTheory.klDiv (r s) gamma).toReal =
+50:           (∫ u, q s u*Real.log (q s u) ∂gamma) ∧
+51:         (_root_.InformationTheory.klDiv (r s) gamma).toReal =
+52:           -(∫ u, rho s u ∂r s)-Real.log (Z s) := by

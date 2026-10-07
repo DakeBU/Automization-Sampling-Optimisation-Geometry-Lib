@@ -1,0 +1,69 @@
+30: 
+31: section mulLog
+32: 
+33: lemma self_sub_one_lt_mul_log {x : ℝ} (h0 : 0 ≤ x) (h1 : x ≠ 1) : x - 1 < x * x.log := by
+34:   by_cases hx_pos : 0 < x
+35:   · nlinarith [Real.log_inv x, Real.log_lt_sub_one_of_pos (inv_pos.mpr hx_pos) (by aesop),
+36:       mul_inv_cancel₀ hx_pos.ne']
+37:   · cases lt_or_eq_of_le h0 <;> aesop
+38: 
+39: lemma self_sub_one_le_mul_log {x : ℝ} (h0 : 0 ≤ x) : x - 1 ≤ x * x.log := by
+40:   rcases eq_or_ne x 1 with rfl | h1
+41:   · simp
+42:   · exact le_of_lt (self_sub_one_lt_mul_log h0 h1)
+43: 
+44: @[fun_prop]
+45: lemma continuous_mul_log : Continuous fun x ↦ x * log x := by
+46:   rw [continuous_iff_continuousAt]
+47:   intro x
+48:   obtain hx | rfl := ne_or_eq x 0
+49:   · exact (continuous_id'.continuousAt).mul (continuousAt_log hx)
+50:   rw [ContinuousAt, zero_mul]
+51:   simp_rw [mul_comm _ (log _)]
+52:   nth_rewrite 1 [← nhdsWithin_univ]
+53:   have : (Set.univ : Set ℝ) = Set.Iio 0 ∪ Set.Ioi 0 ∪ {0} := by ext; simp [em]
+54:   rw [this, nhdsWithin_union, nhdsWithin_union]
+55:   simp only [nhdsWithin_singleton, Filter.tendsto_sup]
+56:   refine ⟨⟨tendsto_log_mul_self_nhdsLT_zero, ?_⟩, ?_⟩
+57:   · simpa only [rpow_one] using tendsto_log_mul_rpow_nhdsGT_zero zero_lt_one
+58:   · convert! tendsto_pure_nhds (fun x ↦ log x * x) 0
+59:     simp
+60: 
+61: @[fun_prop]
+62: lemma Continuous.mul_log {α : Type*} [TopologicalSpace α] {f : α → ℝ} (hf : Continuous f) :
+63:     Continuous fun a ↦ f a * log (f a) := continuous_mul_log.comp hf
+64: 
+164: noncomputable def negMulLog (x : ℝ) : ℝ := - x * log x
+165: 
+166: lemma negMulLog_def : negMulLog = fun x ↦ - x * log x := rfl
+167: 
+168: lemma negMulLog_eq_neg : negMulLog = fun x ↦ -(x * log x) := by simp [negMulLog_def]
+169: 
+170: @[simp] lemma negMulLog_zero : negMulLog (0 : ℝ) = 0 := by simp [negMulLog]
+171: 
+172: @[simp] lemma negMulLog_one : negMulLog (1 : ℝ) = 0 := by simp [negMulLog]
+173: 
+174: lemma negMulLog_nonneg {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) : 0 ≤ negMulLog x := by
+175:   simpa only [negMulLog_eq_neg, neg_nonneg] using mul_log_nonpos h1 h2
+176: 
+177: lemma negMulLog_mul (x y : ℝ) : negMulLog (x * y) = y * negMulLog x + x * negMulLog y := by
+178:   simp only [negMulLog, neg_mul]
+179:   by_cases hx : x = 0
+180:   · simp [hx]
+181:   by_cases hy : y = 0
+182:   · simp [hy]
+183:   rw [log_mul hx hy]
+184:   ring
+185: 
+186: @[fun_prop] lemma continuous_negMulLog : Continuous negMulLog := by
+230: lemma negMulLog_lt_one_sub_self {x : ℝ} (h0 : 0 ≤ x) (h1 : x ≠ 1) : x.negMulLog < 1 - x := by
+231:   unfold negMulLog
+232:   linarith [self_sub_one_lt_mul_log h0 h1]
+233: 
+234: lemma negMulLog_le_one_sub_self {x : ℝ} (h0 : 0 ≤ x) : x.negMulLog ≤ 1 - x :=by
+235:   rcases eq_or_ne x 1 with rfl | h1
+236:   · simp
+237:   · exact le_of_lt (negMulLog_lt_one_sub_self h0 h1)
+238: 
+239: end negMulLog
+240: 

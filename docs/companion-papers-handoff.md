@@ -1,5 +1,77 @@
 # Companion-paper formalization handoff
 
+## Actual noncompact C2 Gaussian LSI (2026-10-07)
+
+The actual noncompact stdGaussian function LSI is independently VERIFIED at 13556ea0eccd0069b83e7f7cb452a4ac7d7105ea.
+Exact691-byte statement admits every finite complete real Hilbert/Borel E including rank0,
+signed C2 f, genuine fL2/true-gradientL2/Phi(f²)L1. Homogeneous entropy <=2 true gradient
+energy retains zero mass. Five private providers prove zero-aware entropy dilation, product
+gradient, cutoff energy bound/eventual gradient plateau and three real DCT integral limits;
+actual compact41 plus continuous massPhi/closed-order passage retain the coefficient.
+No supplied compactness, positivity, normalization, law, limit or desired-bound certificates.
+
+Actual32 supplies the SAME uncut exp(-rho/2)/sqrtZ domains; its genuine posterior Test and
+generic zero/signed constant mass4 Tests pass. Focused3813, independent wholemath/reachability,
+freshblind42, anti-anchored source and exactcommit verification passed, four standard3 axiom
+sets;280ASTIS/Test constants35modules fake0. Source topology436nodes803edges2OR with720 named
+uses preceded proof. Original representation rejection/repair/count correction and one-field
+reviewer API-span correction remain preserved and independently checked.
+
+Serialized shared integration adds Registry486 and production/Test imports. Seven formulas
+and folded actual Lean enter the original companion. Shared gate, reader/graph/repository and
+Exposition seals, full inline private/Test/copy/download/browser, deployment/live/main and
+postmerge PURIFIED remain distinct.
+
+Next mathematical edge aligns actual32/33 witnesses by uniqueness and transports rho/Z/q/f
+AND actual standardized RGO law before canonical KL<=Fisher/2. GaussianT2/W2/FIRST4.6,
+fullW12, SPHMC smoothing/Picard/Wp/proxy-warmness, PBPS reflection/invariance/nonexplosion/
+discrete hypocoercivity/implementation error/cost, both full mains and actual-input expected
+query-cost composition remain OPEN. TV proximity does not transfer unbounded costs. Older
+Chewi/SampleWiki/frontier/cycle/memory, original PhaseKernel sole stabilization owner,
+draftPR313 and single whole-paper Goal remain preserved.
+
+## Actual compact finite-Hilbert Gaussian LSI (2026-10-07)
+
+The compact stdGaussian function LSI is independently VERIFIED at 8c44529058e9a7e3ad58951550f45785639d5036.
+Its exact640-byte statement quantifies over any finite-dimensional real
+Hilbert/Borel space, including rank0, and signed real C2compact f. It internally
+derives all3 square/Phi-square/true-gradient-square L1 domains, then homogeneous
+entropy <=2 integral norm(gradient f)^2, including zero mass.
+
+The actual canonical basis continuous linear homeomorphism identifies the
+literal stdGaussian definition with the independent variance-one coordinate
+Gaussian product. C2compact pullback invokes actual40. The sole private energy
+provider proves true coordinate chain rule/Riesz gradient/orthonormal Parseval,
+with no sup operator-norm shortcut or dimensional loss. Map L1 and map integrals
+transport the real entropy and energy. Actual40 and existing ASTIS gradient
+continuity are genuine direct mathematical dependencies.
+
+The genuine paper Test consumes actual32 standardized RGO square-root density
+with its canonical proximal witness and positive-scale radialSmoothCutoff.
+Generic zero and signed nonzero rank0 Tests also compile. Focused3812, independent
+wholeproof/direct/reachability, freshblind41, anti-anchored source fidelity and
+exactcommit gates passed; standard3 only. Sole private provider is reached;
+264compiled ASTIS/Test constants across34source modules were independently
+scanned fake0. Exact109node328edge2OR source topology preceded proof. Original
+representation-only BLOCKED records and root-created, separately reviewed
+metadata overlay remain preserved. No source convenience certificates.
+
+Serialized shared integration adds Registry485 and real production/Test imports.
+The original companion uses seven formulas and folded actual Lean. Shared gate,
+reader/graph/repository/Exposition seals and full Test/copy/download/bundle/browser
+interactions, deployment/live/main/postmerge PURIFIED remain separate. Prior40
+46b0/63855958 each have four terminal remoteCI successes; deployment skipped.
+
+Next bounded mathematical edge is the actual noncompact C2 Gaussian LSI through
+internally derived cutoff mass/Phi/gradient convergence for actual32 domains.
+Later canonical KL/Fisher from33 requires identical proximal witnesses proved
+by uniqueness. GaussianT2/FIRST4.6, SPHMC smoothing/Picard/Wp/proxy-warmness,
+PBPS reflection/invariance/nonexplosion/discrete hypocoercivity/implementation
+error/cost, both full main results and actual-input expected query-cost
+composition remain OPEN. TV proximity does not transfer unbounded costs. Older
+Chewi/SampleWiki/frontier/cycle memory, original PhaseKernel sole stabilization
+owner, draftPR313 and single whole-paper Goal remain preserved.
+
 ## Actual compact finite-product Gaussian LSI (2026-10-07)
 
 The actual compact finite-Pi Gaussian LSI producer is independently VERIFIED

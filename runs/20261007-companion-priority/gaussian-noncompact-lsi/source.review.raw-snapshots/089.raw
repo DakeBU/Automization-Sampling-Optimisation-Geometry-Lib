@@ -1,0 +1,185 @@
+862:   · -- We need to bound ||∇(f * χ_R - f)|| ≤ ||(1-χ_R)∇f|| + ||f∇χ_R||
+863: 
+864:     -- Get the convergence of the two components
+865:     have hterm1 := cutoff_gradient_error_bound f hf_grad
+866:     have hterm2 := cutoff_gradient_extra_term f hf_L2
+867: 
+868:     -- The sum of two terms both tending to 0 tends to 0
+869:     have hsum_tendsto : Filter.Tendsto (fun R =>
+870:         eLpNorm (fun x => (1 - smoothCutoffR R x) • fderiv ℝ f x) 2 (stdGaussianE n) +
+871:         eLpNorm (fun x => f x • fderiv ℝ (smoothCutoffR R) x) 2 (stdGaussianE n))
+872:       Filter.atTop (nhds 0) := by
+873:       have h0 : (0 : ℝ≥0∞) = 0 + 0 := by simp
+874:       rw [h0]
+875:       exact Filter.Tendsto.add hterm1 hterm2
+876: 
+877:     -- The eLpNorm of the gradient is bounded by this sum (by triangle inequality on fderiv)
+878:     have hgrad_tendsto : Filter.Tendsto (fun R =>
+879:         eLpNorm (fun x => ‖fderiv ℝ (f * smoothCutoffR R - f) x‖) 2 (stdGaussianE n))
+880:       Filter.atTop (nhds 0) := by
+881:       -- Use squeeze theorem with eventual bounds (only need R > 0)
+882:       refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hsum_tendsto ?_ ?_
+883:       · -- Eventually 0 ≤ LHS (always true for eLpNorm)
+884:         filter_upwards with R
+885:         exact zero_le
+886:       · -- Eventually LHS ≤ RHS (only need for R > 0)
+887:         filter_upwards [Filter.eventually_gt_atTop (0 : ℝ)] with R (hR_pos : 0 < R)
+888:         -- Need: ||∇(f * χ_R - f)|| ≤ ||(1-χ_R)∇f|| + ||f∇χ_R||
+889:         rw [eLpNorm_norm (f := fun x => fderiv ℝ (f * smoothCutoffR R - f) x)]
+890:         have hnorm_bound : ∀ x, ‖fderiv ℝ (f * smoothCutoffR R - f) x‖ ≤
+891:             ‖f x • fderiv ℝ (smoothCutoffR R) x‖ + ‖(1 - smoothCutoffR R x) • fderiv ℝ f x‖ := by
+892:           intro x
+893:           -- Now we have hR_pos : 0 < R from the filter
+894:           by_cases hf_diff : DifferentiableAt ℝ f x
+895:           · -- f differentiable: use product rule and triangle inequality
+896:             have hχ_diff : DifferentiableAt ℝ (smoothCutoffR R) x :=
+897:               (smoothCutoffR_contDiff hR_pos).differentiable (WithTop.coe_ne_zero.mpr WithTop.top_ne_zero) x
+898:             have h1 : fderiv ℝ (f * smoothCutoffR R - f) x =
+899:                 fderiv ℝ (f * smoothCutoffR R) x - fderiv ℝ f x :=
+900:               fderiv_sub (hf_diff.mul hχ_diff) hf_diff
+901:             rw [h1, fderiv_mul hf_diff hχ_diff]
+902:             have heq : f x • fderiv ℝ (smoothCutoffR R) x + smoothCutoffR R x • fderiv ℝ f x - fderiv ℝ f x =
+903:                 f x • fderiv ℝ (smoothCutoffR R) x - (1 - smoothCutoffR R x) • fderiv ℝ f x := by
+904:               ext v
+905:               simp only [sub_apply, add_apply,
+906:                 smul_apply, sub_smul, one_smul]
+907:               ring
+908:             rw [heq]
+909:             exact norm_sub_le _ _
+910:           · -- f not differentiable at x: fderiv f x = 0
+911:             have hdf : fderiv ℝ f x = 0 := fderiv_zero_of_not_differentiableAt hf_diff
+912:             simp only [hdf, smul_zero, norm_zero, add_zero]
+913:             -- Need: ‖fderiv (f * χ_R - f) x‖ ≤ ‖f x • fderiv χ_R x‖
+914:             -- Case analysis on whether (f * χ_R - f) is differentiable:
+915:             by_cases hdiff_prod : DifferentiableAt ℝ (f * smoothCutoffR R - f) x
+916:             · -- Product differentiable but f not differentiable at x.
+917:               have hχ_smooth := smoothCutoffR_contDiff (n := n) hR_pos
+918:               have hχ_diff : DifferentiableAt ℝ (smoothCutoffR (n := n) R) x :=
+919:                 hχ_smooth.differentiable (WithTop.coe_ne_zero.mpr WithTop.top_ne_zero) x
+920:               have hχ_eq_one : smoothCutoffR R x = 1 := by
+921:                 by_contra hne
+922:                 have h_nonzero : smoothCutoffR R x - 1 ≠ 0 := sub_ne_zero.mpr hne
+923:                 have heq : f * smoothCutoffR R - f = f * (smoothCutoffR R - 1) := by
+924:                   ext y; simp only [Pi.mul_apply, Pi.sub_apply, Pi.one_apply]; ring
+925:                 have hdiff_prod' := hdiff_prod
+926:                 rw [heq] at hdiff_prod'
+927:                 have hf_diff' : DifferentiableAt ℝ f x := by
+928:                   -- Define the functions explicitly
+929:                   let num : E n → ℝ := fun y => f y * (smoothCutoffR R y - 1)
+930:                   let den : E n → ℝ := fun y => smoothCutoffR R y - 1
+931:                   have hnum : DifferentiableAt ℝ num x := by
+932:                     have heq' : num = (f * (smoothCutoffR R - 1)) := by
+933:                       ext y; simp only [Pi.mul_apply, Pi.sub_apply, Pi.one_apply, num]
+934:                     rw [heq']; exact hdiff_prod'
+935:                   have hden : DifferentiableAt ℝ den x :=
+936:                     hχ_diff.sub (differentiableAt_const 1)
+937:                   have hden_ne : den x ≠ 0 := h_nonzero
+938:                   have hden_inv : DifferentiableAt ℝ (fun y => (den y)⁻¹) x :=
+939:                     hden.inv hden_ne
+940:                   have h_div : DifferentiableAt ℝ (num / den) x := by
+941:                     have heq : num / den = fun y => num y * (den y)⁻¹ := by
+942:                       ext y; simp [div_eq_mul_inv, num, den]
+943:                     rw [heq]
+944:                     exact hnum.mul hden_inv
+945:                   -- num / den = f near x (since den is continuous and nonzero at x)
+946:                   have h_ratio_near : f =ᶠ[nhds x] (num / den) := by
+947:                     have h_cont : ContinuousAt den x := hden.continuousAt
+948:                     have h_nhds : ∀ᶠ y in nhds x, den y ≠ 0 :=
+949:                       h_cont.eventually_ne hden_ne
+950:                     filter_upwards [h_nhds] with y hy
+951:                     simp only [Pi.div_apply, num, den]
+952:                     exact (mul_div_cancel_right₀ (f y) hy).symm
+953:                   exact h_div.congr_of_eventuallyEq h_ratio_near
+954:                 exact hf_diff hf_diff'
+955:               -- χ_R(x) = 1 means ‖x‖ ≤ R. Case split on strict inequality.
+956:               by_cases hnorm_lt : ‖x‖ < R
+957:               · -- Case ‖x‖ < R: χ_R = 1 in a neighborhood, so f * χ_R - f = 0 locally
+958:                 have hball := Metric.ball_mem_nhds x (by linarith : 0 < R - ‖x‖)
+959:                 have h_local_zero : ∀ᶠ y in nhds x, (f * smoothCutoffR (n := n) R - f) y = 0 := by
+960:                   filter_upwards [hball] with y hy
+961:                   simp only [Metric.mem_ball, dist_eq_norm] at hy
+962:                   have hy_norm : ‖y‖ < R := by
+963:                     have h1 : ‖y‖ ≤ ‖x‖ + ‖y - x‖ := norm_le_insert' y x
+964:                     linarith
+965:                   have hχ_y : smoothCutoffR R y = 1 := smoothCutoffR_eq_one_of_norm_le hR_pos (le_of_lt hy_norm)
+966:                   simp only [Pi.mul_apply, Pi.sub_apply, hχ_y, mul_one, sub_self]
+967:                 have hfderiv_zero : fderiv ℝ (f * smoothCutoffR R - f) x = 0 := by
+968:                   have h_eq : (f * smoothCutoffR (n := n) R - f) =ᶠ[nhds x] (fun _ : E n => (0 : ℝ)) := by
+969:                     filter_upwards [h_local_zero] with y hy; exact hy
+970:                   rw [Filter.EventuallyEq.fderiv_eq (𝕜 := ℝ) h_eq]
+971:                   exact fderiv_const_apply (0 : ℝ)
+972:                 simp only [hfderiv_zero, norm_zero]
+973:                 exact norm_nonneg _
+974:               · -- Case ‖x‖ ≥ R: Since χ_R(x) = 1, we have ‖x‖ ≤ R, so ‖x‖ = R
+975:                 push Not at hnorm_lt
+976:                 have hnorm_le : ‖x‖ ≤ R := by
+977:                   by_contra hgt; push Not at hgt
+978:                   -- ‖x‖ > R, so ‖x‖/R > 1
+979:                   have hgt' : ‖x‖ / R > 1 := (one_lt_div hR_pos).mpr hgt
+980:                   -- When ‖x‖/R > 1, smoothCutoff (‖x‖/R) < 1, contradicting χ_R(x) = 1
+981:                   have hlt1 : smoothCutoff (‖x‖ / R) < 1 := by
+982:                     by_cases hge2 : ‖x‖ / R ≥ 2
+983:                     · have h0 := smoothCutoff_eq_zero_of_ge (by
+984:                         rw [abs_of_nonneg (div_nonneg (norm_nonneg x) hR_pos.le)]; exact hge2)
+985:                       simp only [h0]; norm_num
+986:                     · push Not at hge2
+987:                       -- 1 < ‖x‖/R, so smoothCutoff < 1 by the lemma
+988:                       have habs1 : 1 < |‖x‖ / R| := by
+989:                         rw [abs_of_nonneg (div_nonneg (norm_nonneg _) hR_pos.le)]; exact hgt'
+990:                       exact smoothCutoff_lt_one_of_abs_gt_one habs1
+991:                   have hχ_eq : smoothCutoff (‖x‖ / R) = 1 := hχ_eq_one
+992:                   linarith [hlt1, hχ_eq]
+993:                 have hfderiv_prod_zero : fderiv ℝ (f * smoothCutoffR R - f) x = 0 := by
+994:                   -- Define g = χ_R - 1 as an explicit function
+995:                   let g : E n → ℝ := fun y => smoothCutoffR R y - 1
+996:                   have heq' : f * smoothCutoffR R - f = f * g := by
+997:                     ext y; simp only [Pi.mul_apply, Pi.sub_apply]; ring
+998:                   rw [heq'] at hdiff_prod ⊢
+999:                   have hnorm_eq : ‖x‖ = R := le_antisymm hnorm_le hnorm_lt
+1000:                   have hx_ne : x ≠ 0 := by
+1001:                     intro hxz; rw [hxz, norm_zero] at hnorm_eq; linarith
+1002:                   -- The function is 0 on the closed ball (not just interior)
+1003:                   have h_zero_ball : ∀ y, ‖y‖ ≤ R → (f * g) y = 0 := by
+1004:                     intro y hy
+1005:                     simp only [Pi.mul_apply]
+1006:                     have : smoothCutoffR R y = 1 := smoothCutoffR_eq_one_of_norm_le hR_pos hy
+1007:                     simp only [g, this, sub_self, mul_zero]
+1008:                   -- Apply the helper lemma for fderiv at ball boundary
+1009:                   exact fderiv_zero_at_ball_boundary hR_pos hnorm_eq hx_ne h_zero_ball hdiff_prod
+1010:                 simp only [hfderiv_prod_zero, norm_zero]
+1011:                 exact norm_nonneg _
+1012:             · have h0 : fderiv ℝ (f * smoothCutoffR R - f) x = 0 :=
+1013:                 fderiv_zero_of_not_differentiableAt hdiff_prod
+1014:               simp only [h0, norm_zero]
+1015:               exact norm_nonneg _
+1016:         -- Lift pointwise bound to eLpNorm bound via triangle inequality
+1017:         -- Pre-compute continuity for fderiv of cutoff to avoid repeated elaboration
+1018:         have hne : ((⊤ : ℕ∞) : WithTop ℕ∞) ≠ 0 := WithTop.coe_ne_zero.mpr ENat.top_ne_zero
+1019:         have hcont_fderiv : Continuous (fun x : E n => fderiv ℝ (smoothCutoffR (n := n) R) x) :=
+1020:           (smoothCutoffR_contDiff (n := n) hR_pos).continuous_fderiv hne
+1021:         have hcont_cutoff : Continuous (smoothCutoffR (n := n) R) :=
+1022:           (smoothCutoffR_contDiff (n := n) hR_pos).continuous
+1023:         -- Define intermediate terms to avoid repeated elaboration
+1024:         let term1 := fun x : E n => (1 - smoothCutoffR R x) • fderiv ℝ f x
+1025:         let term2 := fun x : E n => f x • fderiv ℝ (smoothCutoffR R) x
+1026:         -- Step 1: Use pointwise bound
+1027:         have hstep1 : eLpNorm (fun x => fderiv ℝ (f * smoothCutoffR R - f) x) 2 (stdGaussianE n)
+1028:             ≤ eLpNorm (fun x => ‖term2 x‖ + ‖term1 x‖) 2 (stdGaussianE n) := by
+1029:           apply eLpNorm_mono_real; intro x; exact hnorm_bound x
+1030:         -- Step 2: Triangle inequality for eLpNorm using helper
+1031:         have hmeas1 : AEStronglyMeasurable term2 (stdGaussianE n) :=
+1032:           hf_L2.aestronglyMeasurable.smul hcont_fderiv.aestronglyMeasurable
+1033:         have hmeas2 : AEStronglyMeasurable term1 (stdGaussianE n) :=
+1034:           ((continuous_const.sub hcont_cutoff).aestronglyMeasurable).smul hf_grad.aestronglyMeasurable
+1035:         have hstep2 := eLpNorm_norm_add_le hmeas1 hmeas2
+1036:         -- Combine and reorder
+1037:         have hreorder : eLpNorm term2 2 (stdGaussianE n) + eLpNorm term1 2 (stdGaussianE n) =
+1038:             eLpNorm term1 2 (stdGaussianE n) + eLpNorm term2 2 (stdGaussianE n) := add_comm _ _
+1039:         exact le_trans hstep1 (hreorder ▸ hstep2)
+1040: 
+1041:     -- Then square the limit using ENNReal.Tendsto.pow
+1042:     have hsq := ENNReal.Tendsto.pow (n := 2) hgrad_tendsto
+1043:     simp only [zero_pow (by norm_num : (2 : ℕ) ≠ 0)] at hsq
+1044:     exact hsq
+1045: 
+1046: end GaussianSobolev

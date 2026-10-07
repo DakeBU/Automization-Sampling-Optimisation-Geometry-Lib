@@ -1,0 +1,28 @@
+set_option backward.isDefEq.respectTransparency false in
+/-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
+a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
+@[simp]
+theorem Basis.equivFun_symm_apply [Fintype ι] (b : Basis ι R M) (x : ι → R) :
+    b.equivFun.symm x = ∑ i, x i • b i := by
+  simp [Basis.equivFun, Finsupp.linearCombination_apply, sum_fintype, equivFunOnFinite]
+
+@[simp]
+theorem Basis.equivFun_apply [Finite ι] (b : Basis ι R M) (u : M) : b.equivFun u = b.repr u :=
+  rfl
+
+@[simp]
+theorem Basis.map_equivFun [Finite ι] (b : Basis ι R M) (f : M ≃ₗ[R] M') :
+    (b.map f).equivFun = f.symm.trans b.equivFun :=
+  rfl
+
+theorem Basis.sum_equivFun [Fintype ι] (b : Basis ι R M) (u : M) :
+    ∑ i, b.equivFun u i • b i = u := by
+  rw [← b.equivFun_symm_apply, b.equivFun.symm_apply_apply]
+
+@[simp]
+theorem Basis.sum_repr [Fintype ι] (b : Basis ι R M) (u : M) : ∑ i, b.repr u i • b i = u :=
+  b.sum_equivFun u
+
+@[simp]
+theorem Basis.equivFun_self [Finite ι] [DecidableEq ι] (b : Basis ι R M) (i j : ι) :
+    b.equivFun (b i) j = if i = j then 1 else 0 := by rw [b.equivFun_apply, b.repr_self_apply]

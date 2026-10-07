@@ -1,0 +1,13 @@
+# Compact finite-Hilbert standard Gaussian LSI
+Target: FunctionalInequalities.GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev. Exact640-byte statement for every finite-dimensional real Hilbert/Borel E, signed C2compact f, including rank0/zero mass. Actual stdGaussian E, true global gradient energy and all3L1 are conclusions. No supplied law, basis, norm, domain or desired bound certificates.
+Source: SPHMC2609.06906v1 FIRST4.6 omitted GaussianLSI background; explicit compact sufficient adapter from actual40. Exact statement and109node328edge2OR source-only topology independently admitted before proof; original metadata/API/direct-use representation BLOCKED records preserved. External fullW12 route and actual32 noncompact cutoff remain separate.
+Reuse: bounded root.reuse-search log/json and Probability/SDE/LogSobolev/StdGaussianMoment/EuclideanSpaceCoordinates cards. Actual40 finitePi LSI and existing ASTIS continuous_gradient_of_contDiff_one are genuine direct mathematical parents. Mathlib canonical law definition, Basis.equivFunL, Riesz/Parseval and map domain/integral APIs are imported primitives, not supplied certificates.
+1. Internally choose finrank and canonical orthonormal basis with continuous linear homeomorphism T from finite Pi to E.
+2. Identify literal stdGaussian E = map T of independent variance-one Gaussian coordinates.
+3. Pull C2compact f to f o T through linear smoothness and homeomorphism; invoke actual40.
+4. Derive T(single i1)=b_i and true chain rule coordinate derivatives = inner(gradient f(Tx),b_i).
+5. Orthonormal Parseval identifies the full coordinate square sum with actual gradient norm squared, coefficient unchanged and rank0 included.
+6. Actual continuity/measurability plus map integrability yields true Hilbert square/Phi/gradient-square L1; map integral identities transport entropy and energy.
+7. Return exact2 compact Hilbert bound. Tests call real32 standardized RGO sqrt-density with actual proximal witness, cut off by canonical radialSmoothCutoff at every positive R, plus generic zero and signed nonzero rank0 observers. No raw32 noncompact application or cutoff-limit claim.
+Failure policy: retained production.0/.1/.2 snapshots/logs; mismatched CLM coercion, implicit API argument, namespace and composed-function elaboration failures are implementation diagnosis only. No unchanged mathematical retry or statement change. Three unchanged route/progress repeats freeze for diagnosis.
+Remaining: independent proof/blind/source/exactcommit/shared admission; actual32 cutoff mass/Phi/gradient limits and coherent33 KL/Fisher, GaussianT2/FIRST4.6, both paper main/true algorithms/errors/work/query-cost composition and full reader/PURIFIED.

@@ -2654,6 +2654,26 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.noncompact-logSobolev"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev.gaussian_logSobolev_of_contDiff"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI; actual compact41 plus cutoff/DCT"
+    upstreamFile := "Mathlib db584cd6 real DCT, Riesz gradient, mul-log and cutoff"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "log-Sobolev", "Hilbert", "gradient", "SPHMC"]
+    saldUse := "SPHMC Gaussian background/raw posterior; no SALD admission"
+    note := "Actual noncompact C2 Gaussian function LSI, true stdGaussian E and Riesz gradient. Genuine fL2/gradientL2/PhiL1 domains. Actual radial cutoff/product-gradient/zero-aware entropy domination, three internal real DCT limits and closed-order passage retain2, signed/zero/rank0. Actual32 raw posterior consumer. Same33 canonicalKL/Fisher, T2/FIRST/fullW12/main/cost remain open. Independently verified 13556ea0eccd0069b83e7f7cb452a4ac7d7105ea."
+  },
+  {
+    key := "gaussian.compact-hilbert-logSobolev"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI; actual ASTIS40 with canonical Hilbert transport"
+    upstreamFile := "Mathlib db584cd6 Gaussian.Multivariate/Basis/Gradient/PiL2/map integrals"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "log-Sobolev", "Hilbert", "gradient", "SPHMC"]
+    saldUse := "Actual SPHMC Gaussian background and standardized posterior cutoff consumer; no SALD admission"
+    note := "Actual signed C2compact finiteHilbert Gaussian LSI. Literal stdGaussian law identified with canonical basis sum-map; continuous inverse basis pulls C2/support to actual40. True chain rule/Riesz/Parseval gives gradient norm squared, no Pi operator-norm shortcut or dimension factor. All3L1 internal, homogeneous entropy coefficient2 including rank0/zero mass. Actual32 posterior square-root-density radial cutoff Test uses same actual proximal witness; noncompact cutoff limits/coherent33KL/Fisher/T2/FIRST/main/cost open. Independently verified 8c44529058e9a7e3ad58951550f45785639d5036."
+  },
+  {
     key := "gaussian.compact-product-logSobolev"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev.compact_gaussian_pi_logSobolev"
     upstreamDecl := "Pinned SLT TensorizedGLSI background; authored compact original-slice induction route"

@@ -1,0 +1,140 @@
+40: -/
+41: 
+42: open MeasureTheory Filter Topology ProbabilityTheory
+43: open scoped ENNReal
+44: 
+45: namespace GaussianSobolevReal
+46: 
+47: open LogSobolev
+48: 
+49: noncomputable section
+50: 
+51: variable {μ : Measure ℝ}
+52: 
+53: /-! ## Entropy density function -/
+54: 
+55: private def phi (t : ℝ) : ℝ := t * Real.log t
+56: 
+57: /-- The entropy density φ(t) = t log t is continuous. -/
+58: lemma phi_continuous : Continuous phi := by
+59:   change Continuous (fun t : ℝ => t * Real.log t)
+60:   exact Real.continuous_mul_log
+61: 
+62: /-- The function phi(t) = t * log(t) is bounded below by -1/e for t ≥ 0.
+63:     This is proven using the fact that the minimum occurs at t = 1/e. -/
+64: lemma mul_log_ge_neg_inv_exp (t : ℝ) (ht : 0 ≤ t) : -(1 / Real.exp 1) ≤ t * Real.log t := by
+65:   by_cases ht0 : t = 0
+66:   · simp only [ht0, zero_mul]
+67:     exact Left.neg_nonpos_iff.mpr (div_nonneg one_pos.le (Real.exp_pos 1).le)
+68:   · have ht_pos : 0 < t := ht.lt_of_ne' ht0
+69:     have hexp_pos : Real.exp 1 > 0 := Real.exp_pos 1
+70:     by_cases ht1 : t > 1
+71:     · have hlog_pos : Real.log t > 0 := Real.log_pos ht1
+72:       have hprod_pos : t * Real.log t > 0 := mul_pos ht_pos hlog_pos
+410: /-- **Gaussian Log-Sobolev Inequality** for W^{1,2} functions.
+411: 
+412: For f in the Gaussian Sobolev space W^{1,2}(γ):
+413:     Ent_γ(f²) ≤ 2 ∫ |f'|² dγ
+414: -/
+415: theorem gaussian_logSobolev_W12_real {f : ℝ → ℝ}
+416:     (hf : MemW12GaussianReal f (gaussianReal 0 1))
+417:     (hf_diff : Differentiable ℝ f) (hf_grad_cont : Continuous (fun x => fderiv ℝ f x)) :
+418:     LogSobolev.entropy GaussianPoincare.stdGaussianMeasure (fun x => (f x)^2) ≤
+419:       2 * ∫ x, ‖fderiv ℝ f x‖^2 ∂GaussianPoincare.stdGaussianMeasure := by
+420:   classical
+421:   let μ : Measure ℝ := gaussianReal 0 1
+422:   have hprob : IsProbabilityMeasure μ := by infer_instance
+423:   obtain ⟨g, hg_smooth, hg_supp, h_sob_tend⟩ :=
+424:     exists_smooth_compactSupport_seq_tendsto_real f hf hf_diff hf_grad_cont
+425:   let q : ℝ → ℝ := fun x => (f x)^2
+426:   let qk : ℕ → ℝ → ℝ := fun k x => (g k x)^2
+427:   have h_L2 : Tendsto (fun k => eLpNorm (f - g k) 2 μ) atTop (nhds 0) :=
+428:     tendsto_eLpNorm_sub_of_sobolev f g μ h_sob_tend
+429:   have h_L1 : Tendsto (fun k => eLpNorm (fun x => qk k x - q x) (1 : ENNReal) μ)
+430:       atTop (nhds 0) := by
+431:     have hf_cont : Continuous f := hf_diff.continuous
+432:     have hg_cont : ∀ k, Continuous (g k) := fun k => (hg_smooth k).continuous
+433:     have hf_mem : MemLp f 2 μ := hf.1
+434:     simpa [q, qk] using
+435:       (tendsto_eLpNorm_sq_sub_of_tendsto_L2 f g μ hf_cont hg_cont hf_mem h_L2)
+436:   have h_int_q : Integrable q μ := hf.1.integrable_sq
+437:   have h_int_qk : ∀ k, Integrable (qk k) μ := by
+438:     intro k
+439:     have hg_cont : Continuous (g k) := (hg_smooth k).continuous
+440:     have hqk_cont : Continuous (fun x => (g k x)^2) := by
+441:       fun_prop
+442:     have hqk_supp : HasCompactSupport (fun x => (g k x)^2) :=
+443:       hasCompactSupport_sq (hg_supp k)
+444:     exact hqk_cont.integrable_of_hasCompactSupport hqk_supp
+445:   have h_int_qk_event : ∀ᶠ k in atTop, Integrable (qk k) μ :=
+470:       simp [integral_const]
+471:     have h_le := integral_mono_ae (integrable_const (-(1 / Real.exp 1)))
+472:       (h_phi_int k) h_nonneg
+473:     linarith [h_le, h_const_int]
+474:   have h_a_bdd_below : IsBoundedUnder (· ≥ ·) atTop a :=
+475:     isBoundedUnder_of_eventually_ge (Eventually.of_forall h_a_lower)
+476:   have hg_compact : ∀ k, EfronSteinApp.CompactlySupportedSmooth (g k) := by
+477:     intro k
+478:     constructor
+479:     · have h2_le : (2 : ℕ∞) ≤ ⊤ := le_top
+480:       exact ContDiff.of_le (hg_smooth k) (WithTop.coe_le_coe.mpr h2_le)
+481:     · exact hg_supp k
+482:   have h_entropy_le :
+483:       ∀ k, LogSobolev.entropy μ (qk k) ≤ 2 * ∫ x, ‖fderiv ℝ (g k) x‖^2 ∂μ := by
+484:     intro k
+485:     have h :=
+486:       GaussianLSI.gaussian_logSobolev_CompSmo_fderiv (f := g k) (hg_compact k)
+487:     simpa [GaussianPoincare.stdGaussianMeasure, GaussianPoincare.stdGaussian, μ, qk] using h
+488:   have h_grad_cont : ∀ k, Continuous (fun x => fderiv ℝ (g k) x) := by
+489:     intro k
+490:     have hg_contdiff1 : ContDiff ℝ 1 (g k) := (hg_smooth k).of_le (by simp)
+491:     exact (contDiff_one_iff_fderiv.mp hg_contdiff1).2
+492:   have h_grad_int_tend :
+493:       Tendsto (fun k => ∫ x, ‖fderiv ℝ (g k) x‖^2 ∂μ) atTop
+494:         (nhds (∫ x, ‖fderiv ℝ f x‖^2 ∂μ)) := by
+495:     have hf_mem : MemLp (fun x => ‖fderiv ℝ f x‖) 2 μ := hf.2.norm
+496:     have hg_mem : ∀ k, MemLp (fun x => ‖fderiv ℝ (g k) x‖) 2 μ := by
+497:       intro k
+498:       obtain ⟨C, hC_nonneg, hC_bound⟩ := TaylorBound.deriv_bounded_of_compactlySupported (hg_compact k)
+499:       have h_bound : ∀ x, ‖fderiv ℝ (g k) x‖ ≤ C := by
+500:         intro x
+501:         have h_deriv : |deriv (g k) x| ≤ C := hC_bound x
+502:         have h_norm : ‖fderiv ℝ (g k) x‖ = |deriv (g k) x| := by
+503:           calc
+504:             ‖fderiv ℝ (g k) x‖ = ‖deriv (g k) x‖ := by
+505:               simp [norm_deriv_eq_norm_fderiv (f := g k) (x := x)]
+506:             _ = |deriv (g k) x| := by
+507:               simp [Real.norm_eq_abs]
+508:         simpa [h_norm] using h_deriv
+509:       have h_aesm :
+510:           AEStronglyMeasurable (fun x => ‖fderiv ℝ (g k) x‖) μ :=
+511:         (h_grad_cont k).aestronglyMeasurable.norm
+512:       have h_bdd : ∀ᵐ x ∂μ, (fun x => ‖fderiv ℝ (g k) x‖) x ∈ Set.Icc 0 C := by
+513:         refine Eventually.of_forall ?_
+514:         intro x
+515:         exact ⟨norm_nonneg _, h_bound x⟩
+516:       exact memLp_of_bounded h_bdd h_aesm 2
+517:     have hf_grad_cont' : Continuous (fun x => ‖fderiv ℝ f x‖) :=
+518:       continuous_norm.comp hf_grad_cont
+519:     have hg_grad_cont' : ∀ k, Continuous (fun x => ‖fderiv ℝ (g k) x‖) :=
+520:       fun k => continuous_norm.comp (h_grad_cont k)
+521:     have h_norm_tend :
+522:         Tendsto
+523:           (fun k =>
+524:             eLpNorm
+525:               (fun x => (‖fderiv ℝ (g k) x‖)^2 - (‖fderiv ℝ f x‖)^2) (1 : ENNReal) μ)
+526:           atTop (nhds 0) := by
+527:       have h_grad_tend :
+528:           Tendsto (fun k =>
+529:             eLpNorm (fun x => ‖fderiv ℝ f x - fderiv ℝ (g k) x‖) 2 μ)
+530:             atTop (nhds 0) :=
+531:         tendsto_eLpNorm_fderiv_sub_of_sobolev f g μ hf_diff (fun k => (contDiff_one_iff_fderiv.mp
+532:           ((hg_smooth k).of_le (by simp))).1) h_sob_tend
+533:       have h_norm_tend' :
+534:           Tendsto (fun k =>
+535:             eLpNorm (fun x => ‖fderiv ℝ f x‖ - ‖fderiv ℝ (g k) x‖) 2 μ)
+536:             atTop (nhds 0) := by
+537:         have h_le : ∀ k,
+538:             eLpNorm (fun x => ‖fderiv ℝ f x‖ - ‖fderiv ℝ (g k) x‖) 2 μ ≤
+539:               eLpNorm (fun x => ‖fderiv ℝ f x - fderiv ℝ (g k) x‖) 2 μ := by
+540:           intro k

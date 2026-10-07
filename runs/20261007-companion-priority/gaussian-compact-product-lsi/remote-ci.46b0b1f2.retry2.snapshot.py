@@ -1,0 +1,20 @@
+exec(open('runs/20261007-companion-priority/gaussian-compact-product-lsi/remote-ci.46b0b1f2.snapshot.py',encoding='utf-8').read().split("put(R/f'{PREFIX}.lease.json'")[0])
+PREFIX='remote-ci.46b0b1f2.retry2'
+initial=[d(p) for p in sorted(R.glob('remote-ci.46b0b1f2.*')) if '.retry2.' not in p.name]
+assert d(R/'remote-ci.46b0b1f2.audit.json')['raw_sha256']=='19f1a27ff0f3904f517ef18e1b891dfe3c8aed31899ef1df4211e78011a1b52a'
+assert d(R/'remote-ci.46b0b1f2.retry1.audit.json')['raw_sha256']=='0305d8d64a8336cbc66fd9c00a259d56fcaf7bc781f4c4b11bd96d616a39139a'
+put(R/f'{PREFIX}.lease.json',dict(status='OPEN',reviewer=V,checked_commit=C,read='OPEN exact old formalization run only',write='OPEN new retry2 artifacts only',compiler='NOT_STARTED_CLOSED',Python='OPEN',canonical_mutations=False))
+raw=R/f'{PREFIX}.formal.raw.json';err=R/f'{PREFIX}.formal.stderr.log';assert not raw.exists() and not err.exists()
+with raw.open('wb') as out,err.open('wb') as log:code=subprocess.run(['gh','api',f'repos/{REPO}/actions/runs/37604865489'],stdout=out,stderr=log).returncode
+assert code==0
+x=json.loads(raw.read_text(encoding='utf-8'));assert x['id']==37604865489 and x['head_sha']==C and x['run_attempt']==1
+formal={k:x.get(k) for k in ['id','name','workflow_id','event','head_branch','head_sha','status','conclusion','run_attempt','created_at','run_started_at','updated_at','html_url']}
+prior=json.loads((R/'remote-ci.46b0b1f2.retry1.audit.json').read_text(encoding='utf-8'));rows=[formal if z['id']==formal['id'] else z for z in prior['exact_runs']]
+new=json.loads((R/'remote-ci.63855958.audit.json').read_text(encoding='utf-8'));assert new['actual_branch_sha']==new['PR']['headRefOid']=='63855958426a195b8444942887a9bd415241ce88'
+terminal=all(z['status']=='completed' for z in rows);success=terminal and all(z['conclusion']=='success' for z in rows)
+state='terminal-four-run-success' if success else 'terminal-with-cancelled-superseded-formal-run' if terminal and formal['conclusion']=='cancelled' else 'terminal-with-nonsuccess' if terminal else 'pending'
+assert all(d(z['path'])==z for z in initial)
+receipt=put(R/f'{PREFIX}.audit.json',dict(schema_version=1,reviewer=V,checked_commit=C,status=state,old_head_superseded=True,current_remote_head=new['actual_branch_sha'],current_branch_PR_snapshot=d(R/'remote-ci.63855958.audit.json'),fresh_formal_run=formal,fresh_formal_raw=d(raw),other_three_states_reused_from_exact_prior_retry1=d(R/'remote-ci.46b0b1f2.retry1.audit.json'),exact_runs=rows,site_deployment_jobs_reused=prior['deployment_jobs'],site_deployment_skipped_confirmed=prior['deployment_skipped_confirmed'],initial_and_retry1_files_byte_exact=initial,success_count=sum(z['status']=='completed' and z['conclusion']=='success' for z in rows),pending_count=sum(z['status']!='completed' for z in rows),cancelled_count=sum(z['conclusion']=='cancelled' for z in rows),bounded_polling='One direct old formalization REST read; three previously terminal successful states and site skipped job reused explicitly. No unchanged loop.',boundary='Old46b0 run states never certify new638 head, and cancellation never counts as success. Superseded head is established by fresh638 branch/PR API; cancellation cause is not inferred from timing. No merge/deployed/live credit.',leases=dict(read='CLOSED',write='CLOSED',compiler='NOT_STARTED_CLOSED',Python='CLOSED'),canonical_mutations=False))
+basis=dict(checked_commit=C,reviewer=V,audit=receipt,status='CLOSED');run=put(R/f'{PREFIX}.run.json',dict(basis,deterministic_run_sha256=sha(json.dumps(basis,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())))
+lp=R/f'{PREFIX}.lease.json';opening=R/f'{PREFIX}.lease.open.raw.snapshot.json';assert not opening.exists();opening.write_bytes(lp.read_bytes());lp.write_bytes((json.dumps(dict(status='CLOSED',reviewer=V,checked_commit=C,read='CLOSED',write='CLOSED',compiler='NOT_STARTED_CLOSED',Python='CLOSED',initial_manifest=d(opening),receipt=receipt,run=run,canonical_mutations=False),indent=2)+'\n').encode())
+print(json.dumps(dict(status=state,receipt=receipt,formal=formal,all_leases='CLOSED'),indent=2))

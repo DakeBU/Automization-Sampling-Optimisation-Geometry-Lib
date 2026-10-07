@@ -1,0 +1,113 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher
+import Mathlib.Tactic
+
+/-!
+# Canonical log-Sobolev to KL--Fisher bridge
+
+This file applies the generator-level density formulation of a log-Sobolev
+inequality to Mathlib's canonical Radon--Nikodym density.  The result records
+both finiteness of the canonical `ENNReal` Kullback--Leibler divergence and the
+usual real-valued KL--Fisher estimate.
+
+The theorem is an interface bridge, not a proof that a particular Gibbs law
+satisfies a log-Sobolev inequality.  A concrete consumer must still establish
+the log-Sobolev predicate, admissibility of the canonical density, the
+generator integration-by-parts domain, and the carré-du-champ/score identity.
+In particular, this file proves neither Bakry--Émery nor Talagrand transport.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace FunctionalInequalities
+namespace CanonicalLogSobolev
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+variable {ι : Type*} [Fintype ι]
+
+/-- Applying a generator log-Sobolev inequality to the canonical density
+`d mu / d pi` gives finite canonical KL together with the KL--Fisher bound.
+
+The constant convention is the one used by `Generator.SatisfiesLogSobolev`:
+if a Gibbs law has curvature `lambda`, then its expected constant here is
+`C = lambda⁻¹`, so the conclusion reads `KL <= FI / (2 * lambda)`.
+
+The finiteness conjunct is essential: `ENNReal.toReal ∞ = 0`, so an inequality
+about `klDiv.toReal` alone would hide a failed entropy-domain obligation.  Its
+proof comes from the entropy-integrability field of `hAdmissible`, not from LSI
+alone.  Chewi and `Generator.SatisfiesLogSobolev` call the constant `C`; SALD
+and Lee--Shen--Tian use the reciprocal rate `c_LSI = lambda = C⁻¹`. -/
+theorem finite_klDiv_and_toReal_le_half_mul_information
+    (mu pi : Measure (EuclideanSpace ℝ ι)) [IsProbabilityMeasure mu]
+    [SigmaFinite mu] [Measure.HaveLebesgueDecomposition mu pi]
+    (generator :
+      (EuclideanSpace ℝ ι → ℝ) →ₗ[ℝ] (EuclideanSpace ℝ ι → ℝ))
+    {C : ℝ}
+    (hLSI : Generator.SatisfiesLogSobolev pi generator C)
+    (hAdmissible : Generator.LogSobolevAdmissible pi generator
+      (InformationTheory.RNLogRatio.density mu pi))
+    (hScore :
+      InformationTheory.CanonicalRelativeFisher.SmoothFiniteScoreDomain mu pi)
+    (hPair :
+      InformationTheory.CanonicalDirichletFisher.DirichletPairDomain
+        mu pi generator)
+    (hGamma :
+      InformationTheory.CanonicalDirichletFisher.HasCanonicalFisherGamma
+        mu pi generator) :
+    _root_.InformationTheory.klDiv mu pi ≠ ∞ ∧
+      (_root_.InformationTheory.klDiv mu pi).toReal ≤
+        (C / 2) *
+          InformationTheory.CanonicalRelativeFisher.information mu pi hScore := by
+  let _ : IsProbabilityMeasure pi := hLSI.1
+  have hLogRatioIntegrable : Integrable (MeasureTheory.llr mu pi) mu := by
+    rw [← MeasureTheory.integrable_rnDeriv_mul_log_iff
+      hScore.absolutelyContinuous]
+    simpa [InformationTheory.RNLogRatio.density] using
+      hAdmissible.2.2.2.1
+  have hFinite : _root_.InformationTheory.klDiv mu pi ≠ ∞ :=
+    _root_.InformationTheory.klDiv_ne_top
+      hScore.absolutelyContinuous hLogRatioIntegrable
+  refine ⟨hFinite, ?_⟩
+  have hApplied := hLSI.2.2
+    (InformationTheory.RNLogRatio.density mu pi) hAdmissible
+  have hEntropy :
+      Generator.densityEntropy pi
+          (InformationTheory.RNLogRatio.density mu pi) =
+        (_root_.InformationTheory.klDiv mu pi).toReal := by
+    unfold Generator.densityEntropy
+    change
+      (∫ x, (mu.rnDeriv pi x).toReal *
+        Real.log (mu.rnDeriv pi x).toReal ∂pi) =
+        (_root_.InformationTheory.klDiv mu pi).toReal
+    rw [MeasureTheory.integral_rnDeriv_mul_log
+      hScore.absolutelyContinuous]
+    simpa [InformationTheory.RNLogRatio.logRatio] using
+      (InformationTheory.RNLogRatio.toReal_klDiv_eq_integral_logRatio_of_probability
+        mu pi hScore.absolutelyContinuous).symm
+  have hDirichlet :
+      Generator.dirichletForm pi generator
+          (InformationTheory.RNLogRatio.density mu pi)
+          (fun x => Real.log
+            (InformationTheory.RNLogRatio.density mu pi x)) =
+        InformationTheory.CanonicalRelativeFisher.information mu pi hScore := by
+    rw [show
+      (fun x => Real.log (InformationTheory.RNLogRatio.density mu pi x)) =
+        InformationTheory.RNLogRatio.logRatio mu pi by
+      funext x
+      exact (InformationTheory.RNLogRatio.logRatio_apply mu pi x).symm]
+    exact
+      InformationTheory.CanonicalDirichletFisher.dirichletForm_density_logRatio_eq_information
+        mu pi generator hScore hPair hGamma
+  rw [hEntropy, hDirichlet] at hApplied
+  exact hApplied
+
+end
+
+end CanonicalLogSobolev
+end FunctionalInequalities
+end TechnicalLemmas
+end AutoSamplingTheory

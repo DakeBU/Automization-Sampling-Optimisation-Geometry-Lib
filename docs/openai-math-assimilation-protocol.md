@@ -297,3 +297,27 @@ Examples at the pinned snapshot include comparator-backed
 `OAI.WeakMTWTransport.uniform_biHolder_transport`, and
 `OAI.binary_sweep_contraction_and_mixing`. A manuscript-only or un-audited
 candidate remains provenance-only until our own local gate is completed.
+
+## Additional audited routes from the catalog sweep
+
+The intake map also records several routes that are too important to leave as
+generic future candidates:
+
+- `OAI/Geometry/WeakHessian`: comparator-backed RCD/metric-measure weak-Hessian,
+  heat-flow and transport infrastructure. Audit it against the existing
+  Riemannian/optimal-transport/Bakry-Emery spine before choosing canonical APIs.
+- `OAI/MathematicalPhysics/CriticalMixing`: comparator-backed heat-bath/Glauber
+  mixing at critical SK. This is a source route for discrete MCMC and a source
+  of candidate Dirichlet-form, entropy, spectral and TV-mixing leaves; do not
+  generalize the spin-glass-specific hypotheses away.
+- *A dimension-free logarithmic Sobolev inequality for subgaussian log-concave
+  measures*: currently manuscript-only in this audit. It belongs in the
+  functional-inequality provenance graph and should be mapped to Chewi/LSI/
+  Bakry-Emery material, but it must not receive a verified-Lean badge until a
+  comparator-backed formalization is located or a local one is completed.
+
+Coordinate sweeps, Switch Chain, and the Thorp developments have explicit
+Comparator-backed endpoints. Their reusable content should be mined below the
+paper-specific theorem level: conditional resampling, finite-law semantics,
+spectral/energy decay, TV conversion, comparison, and routing/compatibility.
+

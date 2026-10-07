@@ -421,3 +421,20 @@ axes. Keep source membership / planned-reuse colour independent of proof status.
 Roberts–Rosenthal math/0404033v4 supplies general-state rigor; it is not merely a
 bibliographic mention. Exact invariance, convergence, estimator error and numerical
 bias are different obligations. Extend existing shared nodes before defining copies.
+
+
+## OpenAI Math upstream assimilation
+
+When using any theorem, definition, proof route, or source package from
+`openai/math`, first read `docs/openai-math-assimilation-protocol.md` and
+`research-wiki/openai-math-2026-intake.json`. The intake is pinned to a reviewed
+upstream commit; a floating upstream `main` is never mathematical evidence.
+
+OpenAI material is subject to the same Statement Seal, proof-ingredient versus
+source-binder invariant, encoder-denoiser round trip, independent source review,
+and three-graph truth separation as native work. An upstream compiling theorem
+does not become a Samplinglib Lean edge until a local theorem or reviewed
+semantic adapter compiles. In particular, do not replace Chewi/SampleWiki source
+identities with an OpenAI source-specific statement, and do not bulk-transplant
+`OAI.*` namespaces. Promote reusable leaves only after Mathlib/local reuse
+search and definition/hypothesis audit.

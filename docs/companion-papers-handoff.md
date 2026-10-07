@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Actual same-prox canonical KL/Fisher (2026-10-07)
+
+The actual standardized RGO canonical KL/Fisher integration is independently VERIFIED at 19b569ae0fe37c97da0f98b4d1f4933ebabc7052.
+Exact1368-byte statement retains normalized globally C2 Hessian source assumptions, every positive eta,
+and explicitly authored measurable-family/rank0 extension. Actual33 produces unique measurable prox;
+actual32 stationarity and33 uniqueness identify its witness and transport rho/Z/q/f/r before any
+entropy calculation. Actual32 provides posterior probability and real sqrt-density domains/mass1/
+quarter-Fisher; actual33 supplies AC/finite canonical KL and actual qlogq identity; actual42LSI2
+yields canonical KL<=half true rho-gradient energy. No coherence or law/domain/bound certificate
+is a public premise, and no pointwise canonical RN version is differentiated.
+
+Focused3826, independent wholemath/reachability, freshblind43, anti-anchored source and exactcommit
+checks passed; fourstandard3 axiom sets,285compiled ASTIS/Test constants51modules fake0. Actual
+eta2, unbounded positive family eta(s)=s²+1 and rank0 true canonicalKL0 Tests pass. Sevenformula
+reader and full folded Lean retained in the original companion. Source-only topology50nodes66edges
+with exhaustive423 selected rows preceded proof. Original topology rejection and minimal source
+representation repair are preserved; separate minimal reader/API attribution overlay was reviewed.
+
+Registry487/ExampleCases/Test imports are serialized through the original PhaseKernel stabilization
+lane. Aggregate/site/graph/repository and Exposition seals, full inline private/Test/copy/download/
+bundles/browser/live/main and postmerge PURIFIED remain distinct.
+
+Actual31 already proves Fisher<=eta²dim; do not duplicate that moment proof. Next mathematical
+edges connect the same-p numeric KL bound and true GaussianT2/W2 to FIRST4.6. SPHMC smoothing/
+Picard/Wp/proxy-warmness and PBPS reflection/invariance/nonexplosion/discrete hypocoercivity/
+implementation error/cost, both full main theorems and actual-input expectedquerycost composition
+remain OPEN. TV proximity does not transfer unbounded costs. Older frontiers/cycles/memory,
+draftPR313 and the single whole-paper Goal remain preserved.
+
 ## Actual noncompact C2 Gaussian LSI (2026-10-07)
 
 The actual noncompact stdGaussian function LSI is independently VERIFIED at 13556ea0eccd0069b83e7f7cb452a4ac7d7105ea.

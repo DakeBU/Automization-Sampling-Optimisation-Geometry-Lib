@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "sphmc.standardizedRGO.canonicalKLFisher"
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher.standardized_rgo_unique_prox_and_kl_le_fisher"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI component and actual S2 RGO"
+    upstreamFile := "arXiv2609.06906v1 normalized C2/Hessian source; actual32/33/42"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "relative-entropy", "Fisher", "RGO", "SPHMC"]
+    saldUse := "SPHMC actual standardized posterior; no SALD admission"
+    note := "Actual same-prox canonical finite KL<=half smooth rho Fisher. Internally reconcile actual32/33 proximal witnesses by uniqueness, transport all rho/Z/q/f/r, use actual42 noncompact GaussianLSI2 and actual32 quarter energy/mass1. True posterior probability/AC/finiteKL/scoreL2 outputs; no supplied law/coherence/domain/inequality certificate or pointwise canonicalRN derivative. Actual eta2/unboundedfamily/rank0 Tests. GaussianT2/FIRST/main/work/cost separate. Independently verified 19b569ae0fe37c97da0f98b4d1f4933ebabc7052."
+  },
+  {
     key := "gaussian.noncompact-logSobolev"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev.gaussian_logSobolev_of_contDiff"
     upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI; actual compact41 plus cutoff/DCT"

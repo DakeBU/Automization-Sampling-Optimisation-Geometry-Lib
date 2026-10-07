@@ -1,0 +1,12 @@
+# Actual PBPS macroscopic gradient-energy blocks
+Exact2907 sealed statement; source B.1-B.9 and smooth C.2. A/B/D are authored aliases for source U_PP/U_QP/U_QQ. Same actual mu/J/nu/Lambda, kernels and literal differentiable Tf; positive Hessian bounds and eta cap unchanged. No certificate binders.
+1. Genuine49 producer supplies actual probabilities, same R/S, density, differentiability, true L2/L1 and sharp energy.
+2. Actual swapped-joint disintegration and measurable reflected map derive Lambda=nu compProd S and its actual first marginal.
+3. Real conditional-kernel uniqueness identifies S and the macroscopic representative parent's S0 only AE[nu]. Lift along snd; transfer means/L2 classes only, not derivatives. Literal49 Tf and its derivative are retained.
+4. Actual reflection-block and macroscopic parents' U agree by AE pullback action and Lp.ext on the SAME J; preserve actual P, involution, self-adjointness, block algebra and norm defect.
+5. Real inner identity/integral plus AE representatives and integral_map under actual nu=J.snd identify both true squared moments. The local norm_snd adapter is scoped to this fixed actual joint/marginal, not a new generic leaf.
+6. Genuine49 variance defect becomes microscopic block norm-square, then sharp gradient energy consumes the actual block norm.
+7. Tests actual Gaussian precision step has true global differentiability/domains/classes/variance and gradient energy0; rank0 constant1 is compact smooth and NONCENTERED with true L2 norm-square1, Ag=g, microscopic block/variance/gradient energy0. Three standard3 closures.
+Reuse search also found ElementaryItoL2.norm_sq_toLp_eq_integral_sq, but its Ito import chain is unnecessary for this actual marginal adapter; existing Mathlib L2.inner_def and integral_map are consumed directly. No new public generic norm lemma or background copy is claimed.
+Original production0 notation error, production1 fst/typed-AE/resource APIs and focused Test0-3 type-index/parser/scalar-mass APIs retained with diagnoses and exact logs/snapshots. Test4 PASS3891. No unchanged retry loop, mathematical/header weakening or discarded verified fragment.
+Boundary: actual smooth compact block integration only. Full rough outer-gradient domain/closedness/H1, literal Gamma positive root, half-turn/main/implementation error/expected cost/composition and four-paper Goal remain open.

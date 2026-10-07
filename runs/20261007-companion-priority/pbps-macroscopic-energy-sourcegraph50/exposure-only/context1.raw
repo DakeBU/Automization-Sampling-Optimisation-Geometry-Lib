@@ -1,0 +1,23 @@
+
+
+open TopologicalSpace Filter
+
+open scoped ENNReal MeasureTheory
+
+namespace MeasureTheory
+
+theorem ae_eq_trim_iff_of_aestronglyMeasurable {α β} [TopologicalSpace β] [MetrizableSpace β]
+    {m m0 : MeasurableSpace α} {μ : Measure α} {f g : α → β} (hm : m ≤ m0)
+    (hfm : AEStronglyMeasurable[m] f μ) (hgm : AEStronglyMeasurable[m] g μ) :
+    hfm.mk f =ᵐ[μ.trim hm] hgm.mk g ↔ f =ᵐ[μ] g :=
+  (hfm.stronglyMeasurable_mk.ae_eq_trim_iff hm hgm.stronglyMeasurable_mk).trans
+    ⟨fun h => hfm.ae_eq_mk.trans (h.trans hgm.ae_eq_mk.symm), fun h =>
+      hfm.ae_eq_mk.symm.trans (h.trans hgm.ae_eq_mk)⟩
+
+theorem AEStronglyMeasurable.comp_ae_measurable' {α β γ : Type*} [TopologicalSpace β]
+    {mα : MeasurableSpace α} {_ : MeasurableSpace γ} {f : α → β} {μ : Measure γ} {g : γ → α}
+    (hf : AEStronglyMeasurable f (μ.map g)) (hg : AEMeasurable g μ) :
+    AEStronglyMeasurable[mα.comap g] (f ∘ g) μ :=
+  ⟨hf.mk f ∘ g, hf.stronglyMeasurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl),
+    ae_eq_comp hg hf.ae_eq_mk⟩
+

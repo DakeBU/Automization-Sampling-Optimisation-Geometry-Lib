@@ -1,0 +1,327 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-macroscopic-energy",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS macroscopic reflection block gradient energy",
+  "mode": "faithfulPaper",
+  "source_anchor": "Fixed PBPS arXiv2609.06905v1 B.1-B.9 actual conditional projection/reflection compression and variance defect; C.1 formula(C.2) smooth compact energy. B.13 rough-domain and B.10-B.11 Gamma excluded.",
+  "target_statement": "theorem actual_macroscopic_gradient_energy_blocks\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E,\n      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧\n      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2, (2 : ℝ) • p.1 - p.2))\n    let F := fun p : E × E => (p.1, (2 : ℝ) • p.1 - p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        let A := P * U.toContinuousLinearMap * P\n        let B := (1-P) * U.toContinuousLinearMap * P\n        let D := (1-P) * U.toContinuousLinearMap * (1-P)\n        star B * B = P - A^2 ∧ star B * D = -(A * star B) ∧\n        (∀ g : Lp ℝ 2 J, P g = g → ‖B g‖^2 = ‖g‖^2 - ‖A g‖^2) ∧\n        ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →\n          let Tf := fun y => ∫ u, f u ∂S y\n          Differentiable ℝ Tf ∧ MemLp f 2 ν ∧ MemLp Tf 2 ν ∧\n          MemLp (gradient Tf) 2 ν ∧\n          Integrable (fun y =>\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n              (S y) f) ν ∧\n          ∃ g : Lp ℝ 2 J,\n            (g : E × E → ℝ) =ᵐ[J] (fun p => f p.2) ∧ P g = g ∧\n            (A g : E × E → ℝ) =ᵐ[J] (fun p => Tf p.2) ∧\n            ‖g‖^2 = (∫ y, (f y)^2 ∂ν) ∧\n            ‖A g‖^2 = (∫ y, (Tf y)^2 ∂ν) ∧\n            (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n              (S y) f ∂ν) = ‖B g‖^2 ∧\n            η * (∫ y, ‖gradient Tf y‖^2 ∂ν) ≤\n              (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) * ‖B g‖^2\n",
+  "status": "proved_locally",
+  "parents": [
+    "ASTIS-SW-PBPS-conditional-gradient-energy",
+    "ASTIS-SW-PBPS-macroscopic-representative",
+    "ASTIS-SW-PBPS-reflection-l2-blocks"
+  ],
+  "consumers": [
+    "PBPS B.9 genuine microscopic-block variance norm and C.2 smooth compact macroscopic energy; necessary smooth-test input to B.13, without rough-domain/Gamma extension."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib ASTIS actual reflected conditional outer energy, macroscopic smooth representative and actual ReflectionL2 block producers; fixed Mathlib conditional-kernel uniqueness, Lp AE extensionality, L2 inner integral and marginal map transport."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks",
+    "canonical_shared_cell": "ASTIS-SW-PBPS-macroscopic-representative",
+    "reason": "Real same-kernel joint-L2 integration node linking existing compiled variance and operator parents."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib ASTIS actual reflected conditional outer energy, macroscopic smooth representative and actual ReflectionL2 block producers; fixed Mathlib conditional-kernel uniqueness, Lp AE extensionality, L2 inner integral and marginal map transport."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRepresentative.macroscopic_reflection_smooth_representative",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS B.9 genuine microscopic-block variance norm and C.2 smooth compact macroscopic energy; necessary smooth-test input to B.13, without rough-domain/Gamma extension."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Produce the actual macroscopic L2 classes, second moments and microscopic norm variance internally; no law, representative, norm or energy certificates among binders."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks"
+    ],
+    "visual_review": "Pending actual compiled block/variance/energy join; no Gamma/rough H1/half-turn/main edge."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261007-PBPSMacroscopicEnergy",
+    "execution_boundary": "Actual joint L2 block and smooth compact energy integration, SAME law/kernels/operators and classical integral representative; actual variance equals microscopic block norm-square. Full rough L2-H1/outer closed-gradient/Gamma/half-turn/main/implementation error/expected costs/composition remain separate. Independent frozen wholeproof, fresh anonymous50 and own-primary-first source1 metadata-repair fidelity accepted; exact-commit verification, shared aggregate/reader/main/PURIFIED remain separate.",
+    "focused_checks": [
+      {
+        "command": "lake build Tests.ProximalBPSMacroscopicEnergy",
+        "result": "PASS3891 tests.4; Gaussian precision actual domains/classes/variance and zero gradient energy; rank0 NONCENTERED constant norm-square1, Ag=g, block/variance/energy0; three standard3 closures"
+      }
+    ],
+    "statement_seal": "runs/20261007-companion-priority/pbps-macroscopic-energy-preproof50/statement-seals.accepted.json",
+    "source_topology_review": "runs/20261007-companion-priority/pbps-macroscopic-energy-topology-review50/source-topology-review.repaired.json",
+    "proof_review": "runs/20261007-companion-priority/pbps-macroscopic-energy/whole-proof-review50/whole-proof-review.json",
+    "source_review": [
+      "runs/20261007-companion-priority/pbps-macroscopic-energy/source.1.review.json"
+    ]
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Exact2907 typed independent StatementSeal and independently accepted source-only topology admitted before proof."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "PBPS arXiv2609.06905v1 / repository-pinned Mathlib",
+    "primary_anchor": "Fixed PBPS arXiv2609.06905v1 B.1-B.9 actual conditional projection/reflection compression and variance defect; C.1 formula(C.2) smooth compact energy. B.13 rough-domain and B.10-B.11 Gamma excluded.",
+    "fidelity_boundary": "Actual joint L2 block and smooth compact energy integration, SAME law/kernels/operators and classical integral representative; actual variance equals microscopic block norm-square. Full rough L2-H1/outer closed-gradient/Gamma/half-turn/main/implementation error/expected costs/composition remain separate.",
+    "detail_status": "cites_external",
+    "gap": "Full rough gradient domain and Gamma excluded.",
+    "consulted": [
+      {
+        "source": "Independent primary50 contract, exact three opaque producer interfaces and independently reviewed source-only graph50.",
+        "anchor": "B.1-B.9 and C.2; same-law/kernel/class/moment adapters explicitly pending Lean proof.",
+        "hypothesis_adapter": "A/B/D are authored block aliases; AE equality transfers integrals/classes only, never all-point derivatives."
+      }
+    ],
+    "source_preread": "runs/20261007-companion-priority/phase-pbps-primary-preread50/primary.contract.json"
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No50 implementation started.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "pbps-same-kernel-real-macroscopic-block-energy"
+      ],
+      "expected_information_gain": "Root sole proof writer; distinct independent source topology, wholeproof, fresh blind/source and exact verification.",
+      "shared_verified_context_digest": "deb282e1258e6f727b03c221725874ed96a2ee5df660ff6ab41907ac1daa9dba"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "pbps-same-kernel-real-macroscopic-block-energy",
+      "selection_reason": "Dependency-ready true B.9/C.2 consumer integration; no unrelated lane."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "S.model",
+        "S.curvature",
+        "S.eta",
+        "S.J",
+        "S.nu",
+        "S.R",
+        "S.reflection",
+        "S.T",
+        "S.var-defect",
+        "S.compact",
+        "S.S",
+        "S.pointwise",
+        "S.integration",
+        "S.C2",
+        "R.rough",
+        "R.operator",
+        "A.Gibbs",
+        "A.reflection",
+        "A.48",
+        "D.tilt",
+        "D.variance",
+        "D.gradient",
+        "I.mu-prob",
+        "I.Jnu-prob",
+        "I.S-prob",
+        "I.same",
+        "I.bound",
+        "I.T-domain",
+        "I.moment-meas",
+        "I.disintegrate",
+        "I.inner-map",
+        "I.second-moment",
+        "I.fiber-var",
+        "I.defect",
+        "I.derivative",
+        "I.grad-meas",
+        "I.grad-domain",
+        "I.integrate",
+        "I.algebra",
+        "I.target",
+        "I.rankzero",
+        "P.disintegration",
+        "P.disintegrate",
+        "P.fubini-domain",
+        "P.fubini",
+        "P.kernel-meas",
+        "P.kernel-prod-meas",
+        "P.fderiv-meas",
+        "P.domination",
+        "P.integral-order",
+        "P.map-integral",
+        "P.bounded-Lp",
+        "P.gradient-L2",
+        "P.var-integral",
+        "P.var-sub",
+        "P.tilt-prob",
+        "P.markov",
+        "P.markov-instance",
+        "P.integral",
+        "P.map",
+        "P.prod",
+        "P.snd",
+        "P.stdGauss",
+        "P.exp",
+        "P.withDensity",
+        "P.ofReal",
+        "P.Riesz",
+        "P.fderiv",
+        "P.typing",
+        "P.prob",
+        "P.sqrt",
+        "P.norm",
+        "P.volume",
+        "P.mathlib-variance",
+        "P.compact-bound",
+        "P.mean-bound",
+        "P.map-prob",
+        "P.fst",
+        "S50.P",
+        "S50.blocks",
+        "S50.U",
+        "S50.ABD",
+        "S50.norm",
+        "S50.consumer",
+        "R50.rough",
+        "R50.Gamma",
+        "R50.halfturn",
+        "A50.energy49",
+        "A50.rep",
+        "A50.blocks",
+        "P50.condunique",
+        "P50.condunique-context",
+        "P50.aemap",
+        "P50.mapmap",
+        "P50.Lpext",
+        "P50.L2inner",
+        "P50.L2inner-context",
+        "P50.realnorm",
+        "P50.integralAE",
+        "P50.integralmap",
+        "D50.condExpL2",
+        "P50.condexp-context",
+        "D50.lpMeas",
+        "P50.lpmeas-context",
+        "D50.IsCondKernel",
+        "P50.disintegrate",
+        "D50.MemLp",
+        "D50.subtypeL",
+        "D50.isometryCLM",
+        "D50.comap",
+        "P50.AEcongr",
+        "P50.AEsmul",
+        "P50.AEadd",
+        "P50.Lpzero",
+        "P50.Lpadd",
+        "P50.Lpsmul",
+        "P50.measzero",
+        "P50.orthProj",
+        "P50.orthProj-context",
+        "P50.operator-types",
+        "P50.outer-integral",
+        "P50.measurable",
+        "P50.domain-types",
+        "P50.AE",
+        "I50.sameS",
+        "I50.uniqueS",
+        "I50.sameU",
+        "I50.meanlift",
+        "I50.normtransport",
+        "I50.defect",
+        "I50.energy",
+        "I50.target",
+        "I50.extension",
+        "P50.condKernel-definition",
+        "P50.eLpNorm-definition"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRepresentative.macroscopic_reflection_smooth_representative",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities"
+    ],
+    "bookkeeping": [
+      "Retain49 SAME S and actual differentiable Tf; conditional-kernel AE uniqueness transports only integral/class values.",
+      "Identify two genuine pullback isometries, actual squared moments and real variance with block norm-square."
+    ],
+    "new_reusable": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks"
+    ],
+    "new_topology": "Actual reflected joint disintegration + macroscopic representative + genuine reflection blocks + outer energy => true block variance/gradient-energy integration."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-macroscopic-energy-preproof50/statement-seals.accepted.json",
+    "source_revision": "PBPS arXiv2609.06905v1; Lean4.33.0 pinned Mathlib",
+    "statement_version": 1,
+    "signature_digest": "478a899effcc46585270420c4db9c42052a5fcfe3adfd8098ea9548d26c61170",
+    "binder_audit": "runs/20261007-companion-priority/pbps-macroscopic-energy-preproof-review50/statement.typed-admission.review.json",
+    "definition_kind": {
+      "laws": "Literal mu, Gaussian augmentation J, actual nu=J.snd and reflected pair Lambda. Every law/conditional relation an output.",
+      "operators": "Actual comap-snd conditional L2 projection P; U literal measure-preserving reflection pullback; local A=PUP alias for source U_PP/T, B=(I-P)UP for source U_QP, D=(I-P)U(I-P) for U_QQ. Aliases are authored notation, not source named objects.",
+      "representatives": "g=[f o snd], Ag=[Tf o snd] only AE[J]; Tf is49 literal differentiable integral under SAME S. AE equality transports means/L2 only, never derivatives.",
+      "domains": "Actual f/Tf/gradient L2 and variance L1 outputs. No closure/Gamma or desired-bound certificate among assumptions."
+    }
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-macroscopic-energy-topology-overlay50/source-proof-graph.after.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-macroscopic-energy-topology-overlay50/caller-inventory.after.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-macroscopic-energy-topology-review50/source-topology-review.repaired.json",
+    "coverage_status": "Independent bounded selected-source/API coverage, inherited49 accepted prefix preserved; not wholepaper coverage."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Checked current graph-memory/Functor families and source-backed correspondences. This actual same-law conditional projection/reflection/variance norm identity joins formal parents in one source setting. Existing family:discrete-hypocoercivity and family:gaussian-law-symmetry capture the mechanism. No new space/metric/oracle/source transport, theorem equivalence or uncertified functor found; this bound is not lower coercivity or a full H1/Gamma extension."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One public exact2907 declaration; fixed actual-J local norm_snd adapter used twice. Three genuine producer parents and actual variance definition consumed. No standalone private/generic leaf; independent complete reachability audit pending.",
+    "duplicate_semantics_audit": "Reuse all three actual producer parents; no alternate target body or wrapper churn.",
+    "canonicalization": "PBPS MacroscopicEnergy genuine joint-L2 integration.",
+    "compressed_spine_delta": "Same actual S -> reflected disintegration -> AE macroscopic class -> true squared moments -> microscopic norm variance -> sharp gradient energy.",
+    "reader_default_view": "Original PBPS companion adjacent formulas/proof/folded Lean/source/Test/remaining rough-domain and main-cost boundaries.",
+    "scope": "Actual joint L2 block and smooth compact energy integration, SAME law/kernels/operators and classical integral representative; actual variance equals microscopic block norm-square. Full rough L2-H1/outer closed-gradient/Gamma/half-turn/main/implementation error/expected costs/composition remain separate. Focused build passed3891; independent wholeproof/blind/source/exactcommit/shared admission pending."
+  }
+}

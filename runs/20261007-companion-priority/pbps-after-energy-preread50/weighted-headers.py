@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+from pathlib import Path
+import re,sys,json,hashlib
+sys.stdout.reconfigure(encoding='utf-8');R=Path('E:/Samplinglib');O=R/'runs/20261007-companion-priority/pbps-after-energy-preread50';pins=[]
+for id,rel,name in [('weighted','AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradient.lean','compact_gradient_closable'),('c1','AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedC1GradientDomain.lean','c1_in_closed_gradient'),('weak','AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradientWeak.lean','closed_gradient_weighted_ibp'),('distribution','AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradientDistribution.lean','closed_gradient_distributional')]:
+ p=R/rel;b=p.read_bytes();a=b.index(('theorem '+name).encode());z=b.index(b':= by',a);f=b[a:z];(O/('public-'+id+'.raw')).write_bytes(f);(O/('public-'+id+'.lf')).write_bytes(f.replace(b'\r\n',b'\n'));pins.append(dict(id=id,path=str(p),whole_raw_sha256=hashlib.sha256(b).hexdigest(),whole_lf_sha256=hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),fragment_raw_sha256=hashlib.sha256(f).hexdigest(),fragment_lf_sha256=hashlib.sha256(f.replace(b'\r\n',b'\n')).hexdigest(),physical_lines1=[b[:a].count(b'\n')+1,b[:z].count(b'\n')+1],raw_snapshot='public-'+id+'.raw',lf_snapshot='public-'+id+'.lf'));print('\nPUBLIC',id);print(f.decode('utf-8'))
+(O/'weighted-public-bindings.json').write_text(json.dumps(pins,indent=2)+'\n',encoding='utf-8')

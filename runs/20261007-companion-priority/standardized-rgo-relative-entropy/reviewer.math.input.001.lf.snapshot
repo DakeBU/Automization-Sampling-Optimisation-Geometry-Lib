@@ -1,0 +1,119 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGORelativeEntropy
+import Mathlib.Analysis.InnerProductSpace.PiL2
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+open MeasureTheory InnerProductSpace ProbabilityTheory
+open scoped RealInnerProductSpace NNReal
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGORelativeEntropy
+namespace Tests.StandardizedRGORelativeEntropy
+
+private def quadratic (c : ℝ) (x : ℝ) : ℝ := c*x^2/2
+private theorem quadratic_gradient (c : ℝ) : gradient (quadratic c) = fun x => c*x := by
+  funext x
+  have h : HasDerivAt (quadratic c) (c*x) x := by
+    convert (((hasDerivAt_id x).pow 2).const_mul c).div_const 2 using 1 <;>
+      first | rfl | (simp only [id_eq]; ring)
+  exact h.hasGradientAt.gradient
+
+private theorem quadratic_curvature (c x v : ℝ) :
+    fderiv ℝ (fderiv ℝ (quadratic c)) x v v = c*‖v‖^2 := by
+  have hd (z : ℝ) : HasDerivAt (quadratic c) (c*z) z := by
+    convert (((hasDerivAt_id z).pow 2).const_mul c).div_const 2 using 1 <;>
+      first | rfl | (simp only [id_eq]; ring)
+  have hf : fderiv ℝ (quadratic c) = fun z => (c*z) • ContinuousLinearMap.id ℝ ℝ := by
+    funext z
+    ext
+    rw [fderiv_eq_smul_deriv,(hd z).deriv]
+    simp
+  have hh : deriv (fun z : ℝ => (c*z) • ContinuousLinearMap.id ℝ ℝ) x =
+      c • ContinuousLinearMap.id ℝ ℝ := by
+    simpa only [id_eq,mul_one] using
+      (((hasDerivAt_id x).const_mul c).smul_const (ContinuousLinearMap.id ℝ ℝ)).deriv
+  rw [hf,fderiv_eq_smul_deriv,hh]
+  simp [Real.norm_eq_abs,pow_two]
+  ring
+
+-- The exact same actual eta2/y3 posterior is used by the canonical KL/llr.
+-- Uniqueness identifies the internal proximal point with 1; no selector is supplied.
+theorem quadratic_eta_two_entropy :
+    let gamma := stdGaussian ℝ
+    let R := ((volume : Measure ℝ).tilted (fun x => -x^2/2)).tilted
+      (fun x => -‖x-3‖^2/4)
+    let r := R.map (fun x => (Real.sqrt 2)⁻¹*(x-1))
+    let Z := ∫ u,Real.exp (-u^2) ∂gamma
+    let q := fun u => Real.exp (-u^2)/Z
+    _root_.InformationTheory.klDiv r gamma ≠ ⊤ ∧
+      Integrable (MeasureTheory.llr r gamma) r ∧
+      MeasureTheory.llr r gamma =ᵐ[r] (fun u => -u^2-Real.log Z) ∧
+      Integrable (fun u => u^2) r ∧
+      (_root_.InformationTheory.klDiv r gamma).toReal=
+        (∫ u,q u*Real.log (q u) ∂gamma) ∧
+      (_root_.InformationTheory.klDiv r gamma).toReal=
+        -(∫ u,u^2 ∂r)-Real.log Z := by
+  have hV : ContDiff ℝ 2 (quadratic 1) := by unfold quadratic; fun_prop
+  have hH : ∀ x v : ℝ, (1 : ℝ)⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (quadratic 1)) x v v ∧
+      fderiv ℝ (fderiv ℝ (quadratic 1)) x v v ≤ ‖v‖^2 := by
+    intro x v; rw [quadratic_curvature]; norm_num
+  obtain ⟨p,_hpm,_hstat,hunique,hdata⟩ := standardized_rgo_unique_prox_and_finite_entropy
+    (κ := 1) (eta := fun _ : Unit => (2 : ℝ)) (y := fun _ : Unit => (3 : ℝ))
+    (by norm_num) hV hH measurable_const measurable_const (by intro s; norm_num)
+  have hp : p ()=1 := (hunique () 1 (by rw [quadratic_gradient]; norm_num)).symm
+  have hρ : (fun u => quadratic 1 (p ()+Real.sqrt 2 • u)-quadratic 1 (p ())-
+      Real.sqrt 2*inner ℝ (gradient (quadratic 1) (p ())) u)=(fun u : ℝ => u^2) := by
+    funext u
+    rw [quadratic_gradient]
+    simp only [quadratic,one_mul,smul_eq_mul,real_inner_comm]
+    change (p ()+Real.sqrt 2*u)^2/2-(p ())^2/2-Real.sqrt 2*(p ()*u)=u^2
+    nlinarith [Real.sq_sqrt (by norm_num : (0 : ℝ)≤2)]
+  have hρpoint (u : ℝ) : quadratic 1 (p ()+Real.sqrt 2 • u)-quadratic 1 (p ())-
+      Real.sqrt 2*inner ℝ (gradient (quadratic 1) (p ())) u=u^2 := congrFun hρ u
+  have hs := hdata ()
+  dsimp only at hs
+  simp only [hρpoint] at hs
+  obtain ⟨_hac,hfinite,hllri,hae,hρi,hentropy,hformula⟩ := hs
+  have hZ : 0 < ∫ u : ℝ,Real.exp (-u^2) ∂stdGaussian ℝ := by
+    have hi : Integrable (fun u : ℝ => Real.exp (-u^2)) (stdGaussian ℝ) := by
+      refine Integrable.mono' (integrable_const (1 : ℝ)) (by fun_prop) ?_
+      filter_upwards with u
+      simp only [Real.norm_eq_abs,abs_of_pos (Real.exp_pos _)]
+      exact Real.exp_le_one_iff.mpr (neg_nonpos.mpr (sq_nonneg u))
+    exact integral_exp_pos hi
+  have hlog (u : ℝ) : Real.log (Real.exp (-u^2)/(∫ z,Real.exp (-z^2) ∂stdGaussian ℝ))=
+      -u^2-Real.log (∫ z : ℝ,Real.exp (-z^2) ∂stdGaussian ℝ) := by
+    rw [Real.log_div (Real.exp_ne_zero _) hZ.ne',Real.log_exp]
+  simp only [hlog] at hae
+  simp only [quadratic,one_mul,neg_div,hp,smul_eq_mul,
+    show 2*(2 : ℝ)=4 by norm_num] at hfinite hllri hae hρi hentropy hformula
+  simp only [neg_div]
+  exact ⟨hfinite,hllri,hae,hρi,hentropy,hformula⟩
+
+abbrev E0 := EuclideanSpace ℝ (Fin 0)
+theorem zero_dimension_entropy :
+    ∃ p : E0, p=0 ∧
+      let R := ((volume : Measure E0).tilted (fun _ => (0 : ℝ))).tilted
+        (fun x => -‖x‖^2/4)
+      let r := R.map (fun x => (Real.sqrt 2)⁻¹ • (x-p))
+      _root_.InformationTheory.klDiv r (stdGaussian E0) ≠ ⊤ ∧
+        (_root_.InformationTheory.klDiv r (stdGaussian E0)).toReal=0 := by
+  have hH : ∀ x v : E0, (1 : ℝ)⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (fun _ : E0 => (0 : ℝ))) x v v ∧
+      fderiv ℝ (fderiv ℝ (fun _ : E0 => (0 : ℝ))) x v v ≤ ‖v‖^2 := by
+    intro x v
+    have hv : v=0 := Subsingleton.elim _ _
+    simp [hv]
+  obtain ⟨p,_hpm,_hstat,_hunique,hdata⟩ := standardized_rgo_unique_prox_and_finite_entropy
+    (V := fun _ : E0 => (0 : ℝ)) (κ := 1)
+    (eta := fun _ : Unit => (2 : ℝ)) (y := fun _ : Unit => (0 : E0))
+    (by norm_num) contDiff_const hH measurable_const measurable_const (by intro s; norm_num)
+  have hs := hdata ()
+  dsimp only at hs
+  have hp : p ()=0 := Subsingleton.elim _ _
+  obtain ⟨_hac,hfinite,_hllri,_hae,_hρi,_hentropy,hformula⟩ := hs
+  refine ⟨p (),hp,?_,?_⟩
+  · simpa only [neg_zero,sub_zero,show 2*(2 : ℝ)=4 by norm_num] using hfinite
+  · simpa [hp,show 2*(2 : ℝ)=4 by norm_num] using hformula
+
+#print axioms AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGORelativeEntropy.standardized_rgo_unique_prox_and_finite_entropy
+#print axioms quadratic_eta_two_entropy
+#print axioms zero_dimension_entropy
+end Tests.StandardizedRGORelativeEntropy

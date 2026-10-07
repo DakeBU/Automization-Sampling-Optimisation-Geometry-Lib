@@ -1,0 +1,139 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.RNLogRatio
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.RelativeFisher
+import Mathlib.Tactic
+
+/-!
+# Canonical smooth finite branch of relative Fisher information
+
+This file connects the canonical measure-level log-likelihood ratio
+
+`llr mu pi = log (d mu / d pi)`
+
+from `RNLogRatio` to the reusable density-energy layer in `RelativeFisher`.
+
+The bridge is deliberately *domain guarded*.  Mathlib's real Bochner integral is
+a total function, so defining Fisher information by an unconditional real
+integral would silently turn a non-integrable score into a finite real number.
+For the smooth finite branch used by the Chapter 1.2 KL-dissipation route we
+therefore require, explicitly:
+
+* `mu ≪ pi`;
+* differentiability of the canonical log-ratio `mu`-a.e.;
+* integrability of the squared relative score.
+
+This is not yet Chewi's full extended-valued Sobolev/Dirichlet-domain
+formalization.  It is the smooth finite branch that later KL-dissipation and
+source-facing theorems may consume without hiding analytic obligations.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace CanonicalRelativeFisher
+
+open MeasureTheory
+open scoped RealInnerProductSpace
+
+noncomputable section
+
+variable {ι : Type*} [Fintype ι]
+
+abbrev State := EuclideanSpace ℝ ι
+
+/-- The squared canonical relative score. -/
+noncomputable def scoreSq
+    (mu pi : Measure (State (ι := ι)))
+    (x : State (ι := ι)) : ℝ :=
+  ‖gradient (RNLogRatio.logRatio mu pi) x‖ ^ 2
+
+/-- Explicit regularity contract for the smooth finite branch of relative
+Fisher information.
+
+The future Sobolev/Dirichlet-energy extension should map into this contract on
+its smooth finite subdomain; it should not weaken or erase these obligations. -/
+structure SmoothFiniteScoreDomain
+    (mu pi : Measure (State (ι := ι))) : Prop where
+  absolutelyContinuous : mu ≪ pi
+  differentiable_ae :
+    ∀ᵐ x ∂mu, DifferentiableAt ℝ (RNLogRatio.logRatio mu pi) x
+  scoreSq_integrable : Integrable (scoreSq mu pi) mu
+
+/-- Canonical relative Fisher information on the explicit smooth finite score
+domain.
+
+It is exactly the existing `RelativeFisher.information` with base measure `mu`
+and density `1`, so no second Fisher hierarchy is introduced. -/
+noncomputable def information
+    (mu pi : Measure (State (ι := ι)))
+    (_h : SmoothFiniteScoreDomain mu pi) : ℝ :=
+  RelativeFisher.information mu (fun _ => 1) (RNLogRatio.logRatio mu pi)
+
+/-- The canonical guarded definition is definitionally the shared
+`RelativeFisher` object. -/
+theorem information_eq_relativeFisher
+    (mu pi : Measure (State (ι := ι)))
+    (h : SmoothFiniteScoreDomain mu pi) :
+    information mu pi h =
+      RelativeFisher.information mu (fun _ => 1) (RNLogRatio.logRatio mu pi) := by
+  rfl
+
+/-- On the guarded smooth finite domain, the canonical Fisher information has
+the expected measure-level formula
+
+`FI(mu || pi) = integral ||grad log(d mu / d pi)||^2 dmu`. -/
+theorem information_eq_integral_scoreSq
+    (mu pi : Measure (State (ι := ι)))
+    (h : SmoothFiniteScoreDomain mu pi) :
+    information mu pi h = ∫ x, scoreSq mu pi x ∂mu := by
+  simp [information, RelativeFisher.information, RelativeFisher.densityEnergy, scoreSq]
+
+/-- The same canonical Fisher information rewritten against the reference
+measure using Mathlib's Radon--Nikodym integral formula:
+
+`FI(mu || pi) = integral density(mu|pi) * scoreSq(mu|pi) dpi`.
+
+Crucially, this changes only the integration measure.  The integrand keeps the
+original `mu` parameter; rewriting `mu` itself as a `withDensity` measure would
+incorrectly rewrite the score object as well. -/
+theorem information_eq_integral_density_mul_scoreSq
+    (mu pi : Measure (State (ι := ι)))
+    [SigmaFinite mu] [Measure.HaveLebesgueDecomposition mu pi]
+    (h : SmoothFiniteScoreDomain mu pi) :
+    information mu pi h =
+      ∫ x, RNLogRatio.density mu pi x * scoreSq mu pi x ∂pi := by
+  rw [information_eq_integral_scoreSq mu pi h]
+  simpa [RNLogRatio.density] using
+    (MeasureTheory.integral_toReal_rnDeriv_mul
+      (f := scoreSq mu pi) h.absolutelyContinuous).symm
+
+/-- The squared score is integrable by the domain contract, rather than by an
+implicit convention of the total integral. -/
+theorem scoreSq_integrable
+    (mu pi : Measure (State (ι := ι)))
+    (h : SmoothFiniteScoreDomain mu pi) :
+    Integrable (scoreSq mu pi) mu :=
+  h.scoreSq_integrable
+
+/-- Canonical relative Fisher information is nonnegative on its guarded smooth
+finite domain. -/
+theorem information_nonneg
+    (mu pi : Measure (State (ι := ι)))
+    (h : SmoothFiniteScoreDomain mu pi) :
+    0 ≤ information mu pi h := by
+  rw [information_eq_integral_scoreSq mu pi h]
+  exact integral_nonneg (fun x => sq_nonneg ‖gradient (RNLogRatio.logRatio mu pi) x‖)
+
+/-- The guarded value does not depend on the proof witness used to establish the
+same smooth finite score domain. -/
+theorem information_proof_irrel
+    (mu pi : Measure (State (ι := ι)))
+    (h₁ h₂ : SmoothFiniteScoreDomain mu pi) :
+    information mu pi h₁ = information mu pi h₂ := by
+  rfl
+
+end
+
+end CanonicalRelativeFisher
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,47 @@
+/-- The product space for n independent Rademacher variables. -/
+abbrev RademacherSpace (n : ℕ) := Fin n → ℝ
+
+/-- Product measure for n copies of rademacherMeasure. -/
+def rademacherProductMeasure (n : ℕ) : Measure (RademacherSpace n) :=
+  Measure.pi (fun _ : Fin n => rademacherMeasure)
+
+instance isProbabilityMeasure_rademacherProduct (n : ℕ) :
+    IsProbabilityMeasure (rademacherProductMeasure n) :=
+  Measure.pi.instIsProbabilityMeasure _
+
+/-- Coordinate projection is measurable. -/
+lemma measurable_coord (i : Fin n) : Measurable (fun x : RademacherSpace n => x i) :=
+  measurable_pi_apply i
+
+/-- Coordinate projection is a Rademacher random variable. -/
+lemma coord_isRademacher (i : Fin n) :
+    IsRademacher (rademacherProductMeasure n) (fun x : RademacherSpace n => x i) := by
+  unfold IsRademacher rademacherProductMeasure
+  -- Use that Measure.map (eval i) (Measure.pi μ) = (∏ j ≠ i, μ j univ) • μ i
+  -- For probability measures, this simplifies to μ i
+  have h := MeasureTheory.Measure.pi_map_eval (fun _ : Fin n => rademacherMeasure) i
+  simp only [Finset.prod_eq_one (fun j _ => measure_univ), one_smul] at h
+  exact h
+
+/-- Coordinate projections are independent. -/
+lemma coord_indep : iIndepFun (fun i : Fin n => (fun x : RademacherSpace n => x i))
+    (rademacherProductMeasure n) := by
+  unfold rademacherProductMeasure
+  -- Apply iIndepFun_pi with identity functions
+  have h := ProbabilityTheory.iIndepFun_pi (𝓧 := fun _ => ℝ) (Ω := fun _ => ℝ)
+    (μ := fun _ : Fin n => rademacherMeasure) (X := fun _ => id)
+    (fun _ => aemeasurable_id)
+  simp only [id_eq] at h
+  exact h
+
+/-- The Rademacher sum on the product space. -/
+def rademacherSumProd (x : RademacherSpace n) : ℝ :=
+  (√n)⁻¹ * ∑ i : Fin n, x i
+
+/-- The Rademacher sum is measurable. -/
+lemma measurable_rademacherSumProd : Measurable (rademacherSumProd n) := by
+  unfold rademacherSumProd
+  apply Measurable.const_mul
+  apply Finset.measurable_sum
+  intro i _
+  exact measurable_pi_apply i

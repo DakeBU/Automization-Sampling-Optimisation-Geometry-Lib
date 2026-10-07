@@ -1,0 +1,75 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT
+
+noncomputable section
+set_option backward.isDefEq.respectTransparency false
+open MeasureTheory ProbabilityTheory Filter
+open scoped ENNReal BigOperators Topology
+open AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT
+namespace Tests.BalancedRademacherCLT
+
+private def law (n : ℕ) : Measure (Fin n → Bool) :=
+  (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • Measure.count
+
+private theorem integral_one (f : (Fin 1 → Bool) → ℝ) :
+    (∫ x, f x ∂law 1) = (f (fun _ => true) + f (fun _ => false))/2 := by
+  unfold law
+  rw [integral_smul_measure, integral_fintype (Integrable.of_finite)]
+  simp only [Fintype.card_fun, Fintype.card_fin, Fintype.card_bool,
+    pow_one, count_real_singleton, one_mul, smul_eq_mul]
+  have he : (∑ x : Fin 1 → Bool, f x) =
+      f (fun _ => true) + f (fun _ => false) := by
+    calc
+      _ = ∑ b : Bool, f ((Equiv.funUnique (Fin 1) Bool).symm b) :=
+        (Fintype.sum_equiv (Equiv.funUnique (Fin 1) Bool).symm
+          (fun b => f ((Equiv.funUnique (Fin 1) Bool).symm b)) f (fun _ => rfl)).symm
+      _ = _ := by
+        simp only [Fintype.sum_bool]
+        change f (uniqueElim true) + f (uniqueElim false) = _
+        have ht : (uniqueElim true : Fin 1 → Bool) = (fun _ => true) := by
+          funext i
+          exact uniqueElim_const true i
+        have hf : (uniqueElim false : Fin 1 → Bool) = (fun _ => false) := by
+          funext i
+          exact uniqueElim_const false i
+        rw [ht, hf]
+  rw [he]
+  norm_num
+  ring
+
+/-- The same actual family has mean0/secondmoment1 at the first nonzero index,
+while retaining its genuine zero law and variance-one Gaussian weak limit. -/
+theorem actual_first_moments_and_limit :
+    ∃ laws : ℕ → ProbabilityMeasure ℝ,
+      (laws 0 : Measure ℝ) = Measure.dirac 0 ∧
+      (∫ x, x ∂(laws 1 : Measure ℝ)) = 0 ∧
+      (∫ x, x ^ 2 ∂(laws 1 : Measure ℝ)) = 1 ∧
+      Tendsto (fun n : ℕ => laws (n + 1)) atTop
+        (𝓝 (⟨gaussianReal 0 1, inferInstance⟩ : ProbabilityMeasure ℝ)) := by
+  obtain ⟨laws, hmap, hzero, hlimit⟩ := balanced_count_sum_tendsto_gaussian
+  refine ⟨laws, hzero, ?_, ?_, hlimit⟩
+  · rw [hmap 1, integral_map (measurable_of_countable _).aemeasurable (by fun_prop)]
+    change (∫ ε : Fin 1 → Bool,
+      (Real.sqrt ((1 : ℕ) : ℝ))⁻¹ * ∑ j : Fin 1, if ε j then (1 : ℝ) else -1 ∂law 1) = 0
+    rw [integral_one]
+    norm_num [Fin.sum_univ_one]
+  · rw [hmap 1, integral_map (measurable_of_countable _).aemeasurable (by fun_prop)]
+    change (∫ ε : Fin 1 → Bool,
+      ((Real.sqrt ((1 : ℕ) : ℝ))⁻¹ * ∑ j : Fin 1, if ε j then (1 : ℝ) else -1) ^ 2 ∂law 1) = 1
+    rw [integral_one]
+    norm_num [Fin.sum_univ_one]
+
+/-- N0 is actually concentrated at0 and has zero secondmoment, rather than an
+arbitrarily chosen Gaussian law at the totalized square-root inverse. -/
+theorem actual_zero_second_moment :
+    ∃ laws : ℕ → ProbabilityMeasure ℝ,
+      (laws 0 : Measure ℝ) = Measure.dirac 0 ∧
+      (∫ x, x ^ 2 ∂(laws 0 : Measure ℝ)) = 0 := by
+  obtain ⟨laws, _hmap, hzero, _hlimit⟩ := balanced_count_sum_tendsto_gaussian
+  refine ⟨laws, hzero, ?_⟩
+  rw [hzero]
+  simp
+
+end Tests.BalancedRademacherCLT
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT.balanced_count_sum_tendsto_gaussian
+#print axioms Tests.BalancedRademacherCLT.actual_first_moments_and_limit
+#print axioms Tests.BalancedRademacherCLT.actual_zero_second_moment

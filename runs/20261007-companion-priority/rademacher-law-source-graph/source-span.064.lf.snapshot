@@ -1,0 +1,30 @@
+
+/-- `√·` tends to `atTop`. -/
+lemma tendsto_sqrt_atTop : Tendsto (√·) atTop atTop := by
+  simp_rw [Real.sqrt_eq_rpow]
+  exact tendsto_rpow_atTop (by norm_num)
+
+/-- `(1 + t/n + o(1/n)) ^ n → exp t` for `t ∈ ℂ`. -/
+lemma tendsto_pow_exp_of_isLittleO {f : ℕ → ℂ} (t : ℂ)
+    (hf : (fun n ↦ f n - (1 + t / n)) =o[atTop] fun n ↦ 1 / (n : ℝ)) :
+    Tendsto (fun n ↦ f n ^ n) atTop (𝓝 (exp t)) := by
+  let g n := f n - 1
+  have fg n : f n = 1 + g n := by ring
+  simp_rw [fg, add_sub_add_left_eq_sub] at hf ⊢
+  apply Complex.tendsto_one_add_pow_exp_of_tendsto
+  rw [← tendsto_sub_nhds_zero_iff]
+  apply hf.tendsto_inv_smul_nhds_zero.congr'
+  filter_upwards [eventually_ne_atTop 0] with n h0
+  have hn0R : (n : ℝ) ≠ 0 := by
+    exact_mod_cast h0
+  have hn0C : (n : ℂ) ≠ 0 := by
+    exact_mod_cast h0
+  have hcoef : (((1 / (n : ℝ))⁻¹ : ℝ) : ℂ) = (n : ℂ) := by
+    field_simp [hn0R]
+    norm_num
+  calc
+    (1 / (n : ℝ))⁻¹ • (g n - t / (n : ℂ))
+        = (((1 / (n : ℝ))⁻¹ : ℝ) : ℂ) * (g n - t / (n : ℂ)) := by
+          exact RCLike.real_smul_eq_coe_mul ((1 / (n : ℝ))⁻¹) (g n - t / (n : ℂ))
+    _ = (n : ℂ) * (g n - t / (n : ℂ)) := by rw [hcoef]
+    _ = (n : ℂ) * g n - t := by rw [mul_sub, mul_div_cancel₀ t hn0C]

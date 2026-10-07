@@ -1,0 +1,18 @@
+variable [IsProbabilityMeasure P']
+
+/-- **Central Limit Theorem:** Given a sequence of random variables `X : ℕ → Ω → ℝ` that are
+independent, identically distributed, centered and with variance `1` and a random variable
+`Y : Ω' → ℝ` following `gaussianReal 0 1`, the sequence
+`n ↦ (√n)⁻¹ * ∑ k ∈ Finset.range n, X k` converges to `Y` in distribution. -/
+theorem tendstoInDistribution_inv_sqrt_mul_sum (hY : HasLaw Y (gaussianReal 0 1) P')
+    (h0 : P[X 0] = 0) (h1 : P[X 0 ^ 2] = 1) (hindep : iIndepFun X P)
+    (hident : ∀ (i : ℕ), IdentDistrib (X i) (X 0) P P) :
+    TendstoInDistribution (fun (n : ℕ) ω ↦ (√n)⁻¹ * ∑ k ∈ Finset.range n, X k ω) atTop Y
+      (fun _ ↦ P) P' where
+  forall_aemeasurable n :=
+    .const_mul (Finset.aemeasurable_fun_sum _ fun _ _ ↦ (hident _).aemeasurable_fst) _
+  tendsto := by
+    refine ProbabilityMeasure.tendsto_iff_tendsto_charFun.2 fun t ↦ ?_
+    rw! [hY.map_eq]
+    simpa [charFun_inv_sqrt_mul_sum hindep hident, charFun_gaussianReal, neg_div] using
+      tendsto_charFun_inv_sqrt_mul_pow (hident 0).aemeasurable_fst h0 h1 t

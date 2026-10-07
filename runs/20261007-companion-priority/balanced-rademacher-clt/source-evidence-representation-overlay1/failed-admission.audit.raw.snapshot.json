@@ -1,0 +1,267 @@
+{
+  "id": "ASTIS-RT-20261007-BalancedRademacherCLT",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion-background:balanced-rademacher-count-clt",
+    "anchor": "tendsto_charFun_inv_sqrt_mul_pow L59-L76; LevyConvergence L215; authored actual Bool-count specialization; SPHMC FIRST S4.E6 GaussianLSI omitted background",
+    "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/CentralLimitTheorem.lean#L59",
+    "original_text": "ASTIS-authored actual finite-count specialization independently sealed before proof.\nThere exists a family of real probability laws lambda_N, for every natural N, equal to the actual pushforward of normalized counting measure on all Fin N -> Bool configurations by the signed sum divided by sqrt(N). The true sign is +1 and the false sign is -1. Its zero law is dirac0, and the successor sequence lambda_(N+1) converges weakly to gaussianReal0,1 (mean0, variance1). No law, normalization, moment, independence or CLT certificate is supplied.\nExact scope: Actual finite Bool count/card map for all N, signs true1 false-1, inverse sqrtN; N0 dirac0 and positive successor weak-law Gaussian0,1. No input law/moment/limit certificate. No Gaussian entropy/energy/LSI/T2/paper completion.\nExternal supporting scalar CLT source (not asserted to be a printed SPHMC theorem):\n/-\nCopyright (c) 2024 Thomas Zhu. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\nAuthors: Thomas Zhu, Etienne Marion\n-/\nmodule\n\npublic import Mathlib.Probability.Distributions.Gaussian.Real\npublic import Mathlib.MeasureTheory.Function.ConvergenceInDistribution\n\nimport Mathlib.MeasureTheory.Measure.CharacteristicFunction.TaylorExpansion\nimport Mathlib.MeasureTheory.Measure.LevyConvergence\nimport Mathlib.Probability.Independence.CharacteristicFunction\n\n/-!\n# Central limit theorem\n\nWe prove the central limit theorem in dimension 1.\n\n## Main statement\n\n* `tendstoInDistribution_inv_sqrt_mul_sum_sub`: Given a sequence of random variables\n  `X : ℕ → Ω → ℝ` that are independent, identically distributed with mean `μ` and variance `v`,\n  and a random variable `Y : Ω' → ℝ` following `gaussianReal 0 v`, the sequence\n  `n ↦ (√n)⁻¹ * (∑ k ∈ Finset.range n, X k ω - n * μ)` converges to `Y` in distribution.\n\n## Tags\n\ncentral limit theorem\n-/\n\npublic section\n\nnoncomputable section\n\nopen MeasureTheory ProbabilityTheory Complex Filter\nopen scoped Real Topology\n\nnamespace ProbabilityTheory\n\nvariable {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}\n  {P : Measure Ω} {P' : Measure Ω'} {X : ℕ → Ω → ℝ} {Y : Ω' → ℝ}\n\nlemma charFun_inv_sqrt_mul_sum (hindep : iIndepFun X P)\n    (hident : ∀ (i : ℕ), IdentDistrib (X i) (X 0) P P) {n : ℕ} {t : ℝ} :\n    charFun (P.map (fun ω ↦ (√n)⁻¹ * ∑ k ∈ Finset.range n, X k ω)) t =\n      (charFun (P.map (X 0)) ((√n)⁻¹ * t)) ^ n := by\n  have mX n := (hident n).aemeasurable_fst\n  rw [charFun_map_mul_comp, (hindep.restrict _).charFun_map_fun_finsetSum_eq_prod (fun _ _ ↦ mX _)]\n  · simp [fun i ↦ (hident i).map_eq]\n  · exact Finset.aemeasurable_fun_sum _ fun _ _ ↦ mX _\n\nvariable [IsProbabilityMeasure P]\n\nlemma tendsto_charFun_inv_sqrt_mul_pow {X : Ω → ℝ}\n    (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] = 1) (t : ℝ) :\n    Tendsto (fun (n : ℕ) ↦ (charFun (P.map X) ((√n)⁻¹ * t)) ^ n) atTop (𝓝 (exp (- t ^ 2 / 2))) := by\n  apply tendsto_pow_exp_of_isLittleO_sub_add_div\n  suffices (fun (n : ℕ) ↦ charFun (Measure.map X P) ((√n)⁻¹ * t) -\n      (1 + (-(((√n)⁻¹ * t) ^ 2 / 2) : ℂ))) =o[atTop] fun n ↦ ((√n)⁻¹ * t) ^ 2 by\n    have aux : (fun (n : ℕ) ↦ ‖(1 / n : ℂ)‖) = fun (n : ℕ) ↦ ‖(1 / n : ℝ)‖ := by simp\n    rw [← Asymptotics.isLittleO_norm_right, aux, Asymptotics.isLittleO_norm_right]\n    refine .of_const_mul_right (c := t ^ 2) ?_\n    convert! this using 4 with n <;> norm_cast <;> simp [field]\n  have : Tendsto (fun (n : ℕ) ↦ (√n)⁻¹ * t) atTop (𝓝 0) := by\n    rw [← zero_mul t]\n    exact .mul_const t (tendsto_inv_atTop_zero.comp <| Real.tendsto_sqrt_atTop.comp <|\n      tendsto_natCast_atTop_atTop)\n  convert! (taylor_charFun_two hX h0 h1).comp_tendsto this using 2\n  simp\n  ring\n\nvariable [IsProbabilityMeasure P']\n\n/-- **Central Limit Theorem:** Given a sequence of random variables `X : ℕ → Ω → ℝ` that are\nindependent, identically distributed, centered and with variance `1` and a random variable\n`Y : Ω' → ℝ` following `gaussianReal 0 1`, the sequence\n`n ↦ (√n)⁻¹ * ∑ k ∈ Finset.range n, X k` converges to `Y` in distribution. -/\ntheorem tendstoInDistribution_inv_sqrt_mul_sum (hY : HasLaw Y (gaussianReal 0 1) P')\n    (h0 : P[X 0] = 0) (h1 : P[X 0 ^ 2] = 1) (hindep : iIndepFun X P)\n    (hident : ∀ (i : ℕ), IdentDistrib (X i) (X 0) P P) :\n    TendstoInDistribution (fun (n : ℕ) ω ↦ (√n)⁻¹ * ∑ k ∈ Finset.range n, X k ω) atTop Y\n      (fun _ ↦ P) P' where\n  forall_aemeasurable n :=\n    .const_mul (Finset.aemeasurable_fun_sum _ fun _ _ ↦ (hident _).aemeasurable_fst) _\n  tendsto := by\n    refine ProbabilityMeasure.tendsto_iff_tendsto_charFun.2 fun t ↦ ?_\n    rw! [hY.map_eq]\n    simpa [charFun_inv_sqrt_mul_sum hindep hident, charFun_gaussianReal, neg_div] using\n      tendsto_charFun_inv_sqrt_mul_pow (hident 0).aemeasurable_fst h0 h1 t\n\n/-- **Central Limit Theorem:** Given a sequence of random variables `X : ℕ → Ω → ℝ` that are\nindependent, identically distributed with mean `μ` and non-zero variance `v`, and a random variable\n`Y : Ω' → ℝ` following `gaussianReal 0 1`, the sequence\n`n ↦ (√(n * v)⁻¹ * (∑ k ∈ Finset.range n, X k ω - n * μ)` converges to `Y` in distribution. -/\nprivate theorem tendstoInDistribution_inv_sqrt_mul_var_mul_sum_sub\n    (hY : HasLaw Y (gaussianReal 0 1) P')\n    (hX : Var[X 0; P] ≠ 0) (hindep : iIndepFun X P)\n    (hident : ∀ (i : ℕ), IdentDistrib (X i) (X 0) P P) :\n    TendstoInDistribution\n      (fun (n : ℕ) ω ↦ (√(n * Var[X 0; P]))⁻¹ * (∑ k ∈ Finset.range n, X k ω - n * P[X 0]))\n      atTop Y (fun _ ↦ P) P' := by\n  have mX0 := (hident 0).aemeasurable_fst\n  have intX0 : Integrable (X 0) P := memLp_one_iff_integrable.1 <|\n    (memLp_two_of_variance_ne_zero mX0.aestronglyMeasurable hX).mono_exponent (by simp)\n  have (n : ℕ) ω : (√(n * Var[X 0; P]))⁻¹ * (∑ k ∈ Finset.range n, X k ω - n * P[X 0]) =\n      (√n)⁻¹ * ∑ k ∈ Finset.range n, (X k ω - P[X 0]) / √Var[X 0; P] := by\n    rw [← Finset.sum_div, Finset.sum_sub_distrib]\n    simp [field]\n  simp_rw [this]\n  convert! tendstoInDistribution_inv_sqrt_mul_sum hY ?_ ?_ ?_ ?_\n  · rw [integral_div, integral_sub intX0 (by simp)]\n    simp\n  · simp only [Pi.pow_apply, div_pow]\n    rw [integral_div, ← variance_eq_integral mX0, Real.sq_sqrt (variance_nonneg _ _), div_self hX]\n  · exact hindep.comp (fun _ x ↦ (x - P[X 0]) / √Var[X 0; P]) (by fun_prop)\n  · convert! fun n ↦ (hident n).comp (u := fun x ↦ (x - P[X 0]) / √Var[X 0; P]) (by fun_prop)\n\n/-- **Central Limit Theorem:** Given a sequence of random variables `X : ℕ → Ω → ℝ` that are\nindependent, identically distributed with mean `μ` and variance `v`, and a random variable\n`Y : Ω' → ℝ` following `gaussianReal 0 v`, the sequence\n`n ↦ (√n)⁻¹ * (∑ k ∈ Finset.range n, X k ω - n * μ)` converges to `Y` in distribution. -/\n@[wikidata Q190391]\ntheorem tendstoInDistribution_inv_sqrt_mul_sum_sub\n    (hY : HasLaw Y (gaussianReal 0 Var[X 0; P].toNNReal) P')\n    (hX : MemLp (X 0) 2 P) (hindep : iIndepFun X P)\n    (hident : ∀ (i : ℕ), IdentDistrib (X i) (X 0) P P) :\n    TendstoInDistribution\n      (fun (n : ℕ) ω ↦ (√n)⁻¹ * (∑ k ∈ Finset.range n, X k ω - n * P[X 0]))\n      atTop Y (fun _ ↦ P) P' := by\n  obtain h | h := eq_or_ne Var[X 0; P] 0\n  · have : ∀ᵐ ω ∂P, ∀ n, X n ω = P[X 0] := by\n      refine ae_all_iff.2 fun n ↦ ?_\n      convert! (ae_eq_integral_of_variance_eq_zero ((hident n).memLp_iff.2 hX)) ?_ using 3\n      · rw [(hident n).integral_eq]\n      · rwa [(hident n).variance_eq]\n    have mX (n : ℕ) := (hident n).aemeasurable_fst\n    refine tendstoInDistribution_of_identDistrib 0 (fun n ↦ ?_) ?_\n    · refine ⟨by fun_prop, by fun_prop, Measure.map_congr ?_⟩\n      filter_upwards [this] with ω hω\n      simp [hω]\n    · exact ⟨by fun_prop, by fun_prop, by simp [hY.map_eq, h]⟩\n  have : HasLaw (fun ω ↦ Y ω / √Var[X 0; P]) (gaussianReal 0 1) P' := by\n    convert! gaussianReal_div_const hY _\n    · simp\n    · ext; simp [h]\n  convert!\n    (tendstoInDistribution_inv_sqrt_mul_var_mul_sum_sub this h hindep hident).continuous_comp (g :=\n      (√Var[X 0; P] * ·)) (by fun_prop)\n  · simp [field] -- simp [field, hX] triggers the unused simp arguments linter\n    field_simp [h]\n  · ext\n    simp [field] -- simp [field, hX] triggers the unused simp arguments linter\n    field_simp [h]\n\nend ProbabilityTheory\n",
+    "text_sha256": "00d01e93819b8fb0d90a7ef509430dabbb1148633a32ad0d4c17577eb43b7e82"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT.balanced_count_sum_tendsto_gaussian",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/BalancedRademacherCLT.lean",
+    "statement": ":\n    ∃ laws : ℕ → ProbabilityMeasure ℝ,\n      (∀ n : ℕ, (laws n : Measure ℝ) =\n        (((Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ •\n          (Measure.count : Measure (Fin n → Bool))).map\n          (fun ε : Fin n → Bool => (Real.sqrt (n : ℝ))⁻¹ *\n            ∑ j : Fin n, if ε j then (1 : ℝ) else -1))) ∧\n      (laws 0 : Measure ℝ) = Measure.dirac 0 ∧\n      Tendsto (fun n : ℕ => laws (n + 1)) atTop\n        (𝓝 (⟨gaussianReal 0 1, inferInstance⟩ : ProbabilityMeasure ℝ))",
+    "statement_sha256": "fea18bac8ce658a4bd35581a8fb112216e0fdfc56b8d2437313d3d9e92a8b91e",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "Fin n is the finite type of indices smaller than n; Bool has two elements. All Fin n -> Bool configurations have their canonical finite measurable structure. The actual count/card law is counting measure scaled by the inverse actual carrier cardinal in ENNReal.",
+      "The map is literal: true gives real1 and false gives real-1, summed over every coordinate, scaled by inverse Real.sqrt of n. The inverse is totalized with inverse0=0; the sum over Fin0 is empty.",
+      "ProbabilityMeasure Real is the subtype of genuine real Borel probability measures equipped with its canonical weak measure topology. A witness in this subtype has total mass1. Measure.map is the actual measurable pushforward; Measure.dirac0 is the unit atom at real0.",
+      "gaussianReal0 1 is the real Gaussian with mean0 and varianceNNReal1; it is a genuine probability measure. Tendsto with atTop and nhds on ProbabilityMeasure means weak-law convergence, and the displayed sequence uses n+1.",
+      "The proposition is closed with no caller premises. The law family, all map equalities and the zero law and limit are outputs. No law, independence, moment, CLT, entropy, regularity or transport certificate is supplied."
+    ],
+    "compiler_evidence": "runs/20261007-companion-priority/balanced-rademacher-clt/tests.2.log PASS3160 three standard3; local-only."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": [
+      {
+        "path": "runs/20261007-companion-priority/balanced-rademacher-clt/source.review.checks.json",
+        "bytes": 3090,
+        "raw_sha256": "09e97c2ffa238a2b2b610c80fc8d8f254a523d7d20ff6290b7153dfe9a06d665",
+        "lf_sha256": "09e97c2ffa238a2b2b610c80fc8d8f254a523d7d20ff6290b7153dfe9a06d665"
+      },
+      {
+        "independent_primary_contract": {
+          "path": "runs/20261007-companion-priority/rademacher-law-source-graph-review/reviewer.primary.contract.json",
+          "bytes": 3627,
+          "raw_sha256": "86853435e28d31a6e95b742181bdd006a2cbf61c07a884ea4582d7a0fee894a9",
+          "lf_sha256": "86853435e28d31a6e95b742181bdd006a2cbf61c07a884ea4582d7a0fee894a9"
+        },
+        "distinct_source_topology": {
+          "path": "runs/20261007-companion-priority/rademacher-law-source-graph-review/source-topology-review.repaired.json",
+          "bytes": 46989,
+          "raw_sha256": "8e3f959674f5e27f177fda71cd0332bdef37f132f1404ef0b66db0081f7f5121",
+          "lf_sha256": "8e3f959674f5e27f177fda71cd0332bdef37f132f1404ef0b66db0081f7f5121"
+        },
+        "reuse": "Independent source contract and repaired exhaustive coverage frozen/CLOSED before current35 implementation exposure. Explicit reuse, no invented new full-primary reread or proof credit."
+      },
+      "Entire production, all14 private providers and entire Test independently inspected. Finite true count probability, sign moments and characteristic-function factorization supply the genuine same-family weak Gaussian limit and zero index.",
+      "All five formula proof steps, actual direct ASTIS/Mathlib provenance and remaining source obligations agree. No caller law/moment/independence/CLT certificate or extra premise.",
+      "Canonical packet hash, current publication/lesson binding payload and complete publication context independently recomputed. Exact573-byte LF signature agrees with production. Decoder canonical basis is acyclic and reproducible; recovered initial lease matches original raw603bytes and LF footprint without reconstruction rewrite.",
+      "Existing focused Test log is auxiliary evidence only: exit0 with three standard axiom sets. No compiler or whole-math verdict used as source admission."
+    ],
+    "review_run_sha256": "d11da9791c1b81624d79ef3fe88a45a674d11c0447b9c024fe578d9388cd2092",
+    "reviewer_packet_sha256": "7f5fa748bb3045739805717e6b9942c621e6d58bca2e7b09e7b53385405e7977",
+    "run_artifact": "runs/20261007-companion-priority/balanced-rademacher-clt/source.0.review.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "ad147c02c52437bec33fc23ef6ab0fc14b24f1a4ecfdb06aed483a52c8287d91",
+  "publication_context": {
+    "file": "c6ffd8e5af9733eeb7fc19fbdb0591f0dcc67dd54c6b48685d0fec65394ca282",
+    "current_lean_module": "import Mathlib.Probability.CentralLimitTheorem\nimport Mathlib.MeasureTheory.Measure.Count\nimport Mathlib.Algebra.BigOperators.Ring.Finset\n\n/-!\n# Actual finite balanced-count normalized sums\n\nThe finite laws are literal normalized counting measures. The characteristic\nfunction adapter below is authored for these laws; the scalar CLT and Levy\nconvergence are reused from the repository-pinned Mathlib. Weak convergence\nalone provides no entropy, coordinate-energy, LSI, T2 or cost conclusion.\n-/\n\nopen MeasureTheory ProbabilityTheory Filter\nopen scoped ENNReal NNReal BigOperators Topology\nnoncomputable section\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT\n\nprivate def countLaw (α : Type*) [Fintype α] [MeasurableSpace α] : Measure α :=\n  (Fintype.card α : ℝ≥0∞)⁻¹ • Measure.count\n\nprivate instance countLaw_probability (α : Type*) [Fintype α] [Nonempty α]\n    [MeasurableSpace α] [MeasurableSingletonClass α] : IsProbabilityMeasure (countLaw α) := by\n  constructor\n  unfold countLaw\n  simp only [Measure.smul_apply, smul_eq_mul]\n  rw [Measure.count_apply_finite Set.univ Set.finite_univ]\n  simp only [Set.Finite.toFinset_univ, Finset.card_univ]\n  exact ENNReal.inv_mul_cancel (by exact_mod_cast Fintype.card_ne_zero)\n    (by simp)\n\nprivate theorem countLaw_integral {α : Type*} [Fintype α] [MeasurableSpace α]\n    [MeasurableSingletonClass α] {E : Type*} [NormedAddCommGroup E]\n    [NormedSpace ℝ E] [CompleteSpace E] (f : α → E) :\n    (∫ a, f a ∂countLaw α) = (Fintype.card α : ℝ)⁻¹ • ∑ a : α, f a := by\n  unfold countLaw\n  rw [integral_smul_measure, integral_fintype (Integrable.of_finite : Integrable f Measure.count)]\n  simp\n\nprivate def sign (b : Bool) : ℝ := if b then 1 else -1\n\nprivate theorem sign_mean : (∫ b, sign b ∂countLaw Bool) = 0 := by\n  rw [countLaw_integral]\n  norm_num [Fintype.sum_bool, sign]\n\nprivate theorem sign_second_moment : (∫ b, (sign b) ^ 2 ∂countLaw Bool) = 1 := by\n  rw [countLaw_integral]\n  norm_num [Fintype.sum_bool, sign]\n\nprivate def coordinateLaw : Measure ℝ := (countLaw Bool).map sign\n\nprivate theorem coordinate_charFun (t : ℝ) :\n    charFun coordinateLaw t =\n      (2 : ℂ)⁻¹ * ∑ b : Bool, Complex.exp ((t : ℂ) * (sign b : ℂ) * Complex.I) := by\n  rw [coordinateLaw, charFun_apply_real,\n    integral_map (measurable_of_countable sign).aemeasurable (by fun_prop),\n    countLaw_integral]\n  simp only [Fintype.card_bool, Nat.cast_ofNat, Complex.real_smul, Complex.ofReal_inv,\n    Complex.ofReal_ofNat]\n\nprivate theorem unscaled_charFun (n : ℕ) (t : ℝ) :\n    charFun ((countLaw (Fin n → Bool)).map (fun ε => ∑ j : Fin n, sign (ε j))) t =\n      (charFun coordinateLaw t) ^ n := by\n  rw [charFun_apply_real,\n    integral_map (measurable_of_countable _).aemeasurable (by fun_prop),\n    countLaw_integral, coordinate_charFun]\n  have hexp (ε : Fin n → Bool) :\n      Complex.exp ((t : ℂ) * ((∑ j : Fin n, sign (ε j) : ℝ) : ℂ) * Complex.I) =\n        ∏ j : Fin n, Complex.exp ((t : ℂ) * (sign (ε j) : ℂ) * Complex.I) := by\n    rw [← Complex.exp_sum]\n    congr 1\n    simp only [Complex.ofReal_sum, Finset.mul_sum,\n      Finset.sum_mul]\n  simp_rw [hexp]\n  rw [← Fintype.sum_pow\n    (fun b : Bool => Complex.exp ((t : ℂ) * (sign b : ℂ) * Complex.I)) n]\n  simp only [Fintype.card_fun, Fintype.card_fin, Fintype.card_bool, Nat.cast_pow,\n    Nat.cast_ofNat, Complex.real_smul, Complex.ofReal_inv, Complex.ofReal_pow,\n    Complex.ofReal_ofNat, inv_pow, mul_pow]\n\nprivate def normalizedSum (n : ℕ) (ε : Fin n → Bool) : ℝ :=\n  (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, sign (ε j)\n\nprivate def actualLaw (n : ℕ) : ProbabilityMeasure ℝ :=\n  ⟨(countLaw (Fin n → Bool)).map (normalizedSum n),\n    (countLaw (Fin n → Bool)).isProbabilityMeasure_map\n      (measurable_of_countable (normalizedSum n)).aemeasurable⟩\n\nprivate theorem actualLaw_zero : (actualLaw 0 : Measure ℝ) = Measure.dirac 0 := by\n  have hzero : normalizedSum 0 = fun _ => 0 := by\n    funext ε\n    simp [normalizedSum]\n  change (countLaw (Fin 0 → Bool)).map (normalizedSum 0) = Measure.dirac 0\n  rw [hzero]\n  simp\n\nprivate theorem normalized_charFun (n : ℕ) (t : ℝ) :\n    charFun (actualLaw n) t =\n      (charFun coordinateLaw ((Real.sqrt (n : ℝ))⁻¹ * t)) ^ n := by\n  change charFun ((countLaw (Fin n → Bool)).map\n    (fun ε => (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, sign (ε j))) t = _\n  rw [charFun_map_mul_comp (measurable_of_countable _).aemeasurable]\n  exact unscaled_charFun n _\n\nprivate theorem actualLaw_tendsto :\n    Tendsto actualLaw atTop\n      (𝓝 (⟨gaussianReal 0 1, inferInstance⟩ : ProbabilityMeasure ℝ)) := by\n  apply ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr\n  intro t\n  simp_rw [normalized_charFun]\n  have hlim := tendsto_charFun_inv_sqrt_mul_pow\n    (measurable_of_countable sign).aemeasurable sign_mean\n    (by simpa only [Pi.pow_apply] using sign_second_moment) t\n  simpa [coordinateLaw, charFun_gaussianReal, neg_div] using hlim\n\ntheorem balanced_count_sum_tendsto_gaussian :\n    ∃ laws : ℕ → ProbabilityMeasure ℝ,\n      (∀ n : ℕ, (laws n : Measure ℝ) =\n        (((Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ •\n          (Measure.count : Measure (Fin n → Bool))).map\n          (fun ε : Fin n → Bool => (Real.sqrt (n : ℝ))⁻¹ *\n            ∑ j : Fin n, if ε j then (1 : ℝ) else -1))) ∧\n      (laws 0 : Measure ℝ) = Measure.dirac 0 ∧\n      Tendsto (fun n : ℕ => laws (n + 1)) atTop\n        (𝓝 (⟨gaussianReal 0 1, inferInstance⟩ : ProbabilityMeasure ℝ)) := by\n  refine ⟨actualLaw, ?_, actualLaw_zero, ?_⟩\n  · intro n\n    rfl\n  · exact actualLaw_tendsto.comp (tendsto_add_atTop_nat 1)\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/CentralLimitTheorem.lean#L59",
+      "edition": "Pinned Mathlib db584cd6; Lean4.33.0. SPHMC arXiv2609.06906v1 background, not its printed theorem.",
+      "anchor": "tendsto_charFun_inv_sqrt_mul_pow L59-L76; LevyConvergence L215; authored actual Bool-count specialization; SPHMC FIRST S4.E6 GaussianLSI omitted background",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Mathlib Thomas Zhu and Etienne Marion scalar CLT; ASTIS-authored actual count-law/zero-index adapter. Independent source-first exact StatementSeal; Gaussian function entropy and full flip-energy limits remain separate."
+    },
+    "statement": "There exists a family of real probability laws lambda_N, for every natural N, equal to the actual pushforward of normalized counting measure on all Fin N -> Bool configurations by the signed sum divided by sqrt(N). The true sign is +1 and the false sign is -1. Its zero law is dirac0, and the successor sequence lambda_(N+1) converges weakly to gaussianReal0,1 (mean0, variance1). No law, normalization, moment, independence or CLT certificate is supplied.",
+    "formulae": [
+      {
+        "label": "Actual finite-count Rademacher sums converge weakly to the unit Gaussian",
+        "tex": "\\mu_N=2^{-N}\\sum_{\\varepsilon\\in\\{0,1\\}^N}\\delta_\\varepsilon,\\quad S_N(\\varepsilon)=N^{-1/2}\\sum_{j=1}^N\\sigma(\\varepsilon_j),\\quad\\lambda_N=(S_N)_\\#\\mu_N,\\quad\\lambda_0=\\delta_0,\\quad\\lambda_{N+1}\\Rightarrow\\mathcal N(0,1)."
+      }
+    ],
+    "assumptions": [
+      "Closed authored background specialization; no caller mathematical premises.",
+      "Actual finite carrier and normalized count law, literal sign true1/false-1, totalized inverse square root and empty zero sum. All probability, measurability and finite moment domains are produced internally.",
+      "ProbabilityMeasure Real has the canonical weak law topology. gaussianReal0,1 uses varianceNNReal1. No entropy, energy, W2, LSI, T2 or cost upgrade is implied."
+    ],
+    "obligations": [
+      {
+        "id": "actual-law-limit",
+        "label": "Actual finite count normalized-sum law and Gaussian weak limit"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Entropy/full-flip-energy/GaussianLSI/T2/paper main remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT.balanced_count_sum_tendsto_gaussian",
+      "title": "Actual finite-count Rademacher sums converge weakly to the unit Gaussian",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/CentralLimitTheorem.lean#L59",
+          "label": "tendsto_charFun_inv_sqrt_mul_pow L59-L76; LevyConvergence L215; authored actual Bool-count specialization; SPHMC FIRST S4.E6 GaussianLSI omitted background",
+          "scope": "Actual finite Bool count/card map for all N, signs true1 false-1, inverse sqrtN; N0 dirac0 and positive successor weak-law Gaussian0,1. No input law/moment/limit certificate. No Gaussian entropy/energy/LSI/T2/paper completion. Focused3160PASS: actual N1 mean0/secondmoment1 and actual N0secondmoment0, three standard3 prints. Independent wholeproof/blind/source/topology/commit admission and shared integration remain separate."
+        },
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.E6",
+          "label": "Actual SPHMC omitted GaussianLSI background consumer",
+          "scope": "Not printedFIRST4.6 or GaussianLSI proof."
+        }
+      ],
+      "tests": [
+        "lake build Tests.BalancedRademacherCLT"
+      ],
+      "assumptions": [
+        "Closed authored background specialization; no caller mathematical premises.",
+        "Actual finite carrier and normalized count law, literal sign true1/false-1, totalized inverse square root and empty zero sum. All probability, measurability and finite moment domains are produced internally.",
+        "ProbabilityMeasure Real has the canonical weak law topology. gaussianReal0,1 uses varianceNNReal1. No entropy, energy, W2, LSI, T2 or cost upgrade is implied."
+      ],
+      "statement": "There exists a family of real probability laws lambda_N, for every natural N, equal to the actual pushforward of normalized counting measure on all Fin N -> Bool configurations by the signed sum divided by sqrt(N). The true sign is +1 and the false sign is -1. Its zero law is dirac0, and the successor sequence lambda_(N+1) converges weakly to gaussianReal0,1 (mean0, variance1). No law, normalization, moment, independence or CLT certificate is supplied.",
+      "formula": "\\mu_N=2^{-N}\\sum_{\\varepsilon\\in\\{0,1\\}^N}\\delta_\\varepsilon,\\quad S_N(\\varepsilon)=N^{-1/2}\\sum_{j=1}^N\\sigma(\\varepsilon_j),\\quad\\lambda_N=(S_N)_\\#\\mu_N,\\quad\\lambda_0=\\delta_0,\\quad\\lambda_{N+1}\\Rightarrow\\mathcal N(0,1).",
+      "steps": [
+        {
+          "title": "Build the actual laws, including zero",
+          "text": "The finite carrier has positive cardinal2^N. Scaling counting measure by its reciprocal gives mass1. All finite functions are measurable and Bochner integrable; each normalized sum is pushed forward to a genuine probability law. AtN0 the empty sum is0, so its map law is the unit atom at0, without any fallback.",
+          "formula": "\\mu_N(\\{0,1\\}^N)=2^{-N}2^N=1,\\qquad S_0=0,\\quad\\lambda_0=\\delta_0.",
+          "lean": "private countLaw_probability; countLaw_integral; actualLaw; actualLaw_zero"
+        },
+        {
+          "title": "Produce the single-coordinate moments",
+          "text": "Use the actual balanced Bool count law and sigma(true)=1, sigma(false)=-1. The finite integral is the two-value average; hence the coordinate has mean0 and secondmoment1. These moments and measurable sign map are proof ingredients, never target premises.",
+          "formula": "\\mathbb E\\sigma=\\tfrac12(1-1)=0,\\qquad\\mathbb E\\sigma^2=\\tfrac12(1+1)=1.",
+          "lean": "private sign_mean; sign_second_moment; measurable_of_countable"
+        },
+        {
+          "title": "Prove the finite characteristic-function product",
+          "text": "For every configuration, exp(i t sum sigma_j) is the product of exp(i t sigma_j). Sum over all configurations using Fintype.sum_pow; multiplying by2^-N gives the Nth power of the actual single-coordinate characteristic function. This is an authored count-law adapter, not an assumed independence or copied infinite-iid construction.",
+          "formula": "\\widehat\\lambda_N(t)=\\left[\\tfrac12\\sum_{b\\in\\{0,1\\}}\\exp(i t\\sigma(b)/\\sqrt N)\\right]^N.",
+          "lean": "private coordinate_charFun; unscaled_charFun; normalized_charFun; Complex.exp_sum; Fintype.sum_pow"
+        },
+        {
+          "title": "Apply the pinned scalar CLT to the derived moments",
+          "text": "Mathlib characteristic-function CLT applies to this actual measurable balanced coordinate with its internally derived mean0 and secondmoment1. It yields convergence of the same Nth-power expression to exp(-t^2/2), the exact characteristic function of mean0 variance1 Gaussian.",
+          "formula": "\\widehat\\lambda_N(t)\\longrightarrow\\exp(-t^2/2)=\\widehat{\\mathcal N(0,1)}(t).",
+          "lean": "ProbabilityTheory.tendsto_charFun_inv_sqrt_mul_pow; ProbabilityTheory.charFun_gaussianReal"
+        },
+        {
+          "title": "Return weak convergence and the actual successor family",
+          "text": "Levy convergence upgrades the pointwise characteristic-function limit of genuine probability measures to weak convergence. Composition with the cofinal n->n+1 sequence gives the sealed positive-index limit. The same family supplies every literal map equality and its zero atom.",
+          "formula": "\\lambda_N\\Rightarrow\\mathcal N(0,1)\\quad\\Longrightarrow\\quad\\lambda_{N+1}\\Rightarrow\\mathcal N(0,1).",
+          "lean": "MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun; private actualLaw_tendsto; Filter.tendsto_add_atTop_nat"
+        }
+      ],
+      "lean_statement": "There exists a family of real probability laws lambda_N, for every natural N, equal to the actual pushforward of normalized counting measure on all Fin N -> Bool configurations by the signed sum divided by sqrt(N). The true sign is +1 and the false sign is -1. Its zero law is dirac0, and the successor sequence lambda_(N+1) converges weakly to gaussianReal0,1 (mean0, variance1). No law, normalization, moment, independence or CLT certificate is supplied.",
+      "lean_proof": "Build the actual laws, including zero; Produce the single-coordinate moments; Prove the finite characteristic-function product; Apply the pinned scalar CLT to the derived moments; Return weak convergence and the actual successor family",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.tendsto_charFun_inv_sqrt_mul_pow",
+        "MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun",
+        "MeasureTheory.charFun_map_mul_comp",
+        "Fintype.sum_pow",
+        "Complex.exp_sum",
+        "MeasureTheory.integral_fintype"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT.balanced_count_sum_tendsto_gaussian",
+      "role": "proof-edge",
+      "supports": [
+        "actual-law-limit"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Pinned scalar characteristic-function CLT requires measurable coordinate, mean0 and secondmoment1.",
+        "lean": "Closed actual balanced finite-count specialization derives those ingredients internally."
+      },
+      {
+        "source": "Finite Boolean normalized sum and variance-one real Gaussian background.",
+        "lean": "All N actual map laws; N0 actual dirac0; cofinal successor weak convergence."
+      },
+      {
+        "source": "Gaussian entropy/full-flip-energy limit, LSI, dimension/cutoff extension and Talagrand transport.",
+        "lean": "Actual finite Bool count/card map for all N, signs true1 false-1, inverse sqrtN; N0 dirac0 and positive successor weak-law Gaussian0,1. No input law/moment/limit certificate. No Gaussian entropy/energy/LSI/T2/paper completion. Focused3160PASS: actual N1 mean0/secondmoment1 and actual N0secondmoment0, three standard3 prints. Independent wholeproof/blind/source/topology/commit admission and shared integration remain separate."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "There exists a single family (mu_n) indexed by all natural numbers n including zero, with each mu_n a genuine Borel probability measure on the real line, having the following three properties simultaneously. For every natural n, let C_n be the finite carrier of all Boolean functions on the indices {0,...,n-1}, let N_n = |C_n| (hence N_n = 2^n), and let U_n = (N_n)^(-1) times counting measure on C_n, where the cardinal and its inverse are taken in the extended nonnegative reals. Define s(true)=1 and s(false)=-1 in the reals and T_n(epsilon) = (sqrt(n))^(-1) times the sum of s(epsilon(j)) over all j<n. The underlying measure of mu_n is exactly the measurable pushforward (T_n)_* U_n. In addition, the underlying measure of mu_0 is the Dirac probability measure at real zero. Finally, as n tends to infinity through the natural numbers, mu_(n+1) converges to the real Gaussian probability measure with mean zero and variance one in the canonical weak topology on real Borel probability measures. Equivalently, for every bounded continuous real test function f, the integrals of f against mu_(n+1) converge to its integral against that Gaussian. The formula defining T_n uses the totalized real inverse, so inverse zero is zero and the empty coordinate sum at n=0 is zero; C_0 consists of its unique empty Boolean configuration and its counting/cardinality law has mass one. The theorem has no caller-supplied premises: the probability-law family, its pushforward identities, its zero-index identity, and its successor-indexed weak convergence are all asserted outputs.",
+    "text_sha256": "0ef21c303d8dedd4a39b4b8bae9ed5ca563f8e81ac3e10b3e00a6799264964cc",
+    "decoder": "Fresh source-blind mathematical statement decoder /root/blind_statement_decoder_35; run_id ASTIS-BLIND-fea18bac8ce658a4-decoder35. Only packet0.json and the initial lease.json were read. Reconstruction uses the anonymous proposition and approved definition context; no source text, compiler, proof body, external source, fidelity verdict, or parent outcome was inspected.",
+    "decoder_run_sha256": "5ab168ec3f30b9e9a0612b31a69d6bc96c386b186e555f8fd3496740bfe133d3",
+    "decoder_packet_sha256": "a9bfc2f3a8fb994d7434d7dd2320dba3343426010f5dd91e5ee440c93f82d1ad",
+    "source_text_visible": false,
+    "lean_statement_sha256": "fea18bac8ce658a4bd35581a8fb112216e0fdfc56b8d2437313d3d9e92a8b91e",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": ".astis/decoder-35/packet0.json",
+        "raw_sha256": "3d4275b075b58b3a5e929aefd8071e6f69c76b2dc39c2075e592d742c372e92a",
+        "lf_sha256": "6cd53c878fe1fd9a19785002e15eee1d209fe2f734ffcf8a6bd47919596c9f16",
+        "bytes": 3088
+      },
+      {
+        "path": ".astis/decoder-35/lease.json",
+        "raw_sha256": "9f9c36eeb63d256b7880c9d230777d4ae9f10934f6854e6243355c3de473801c",
+        "lf_sha256": "3c646624be709f4e12f8fcf89759f835d6839366cf0bd1b832356837612bc2e5",
+        "bytes": 603
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/balanced-rademacher-clt/anonymous-decoder/result0.json",
+    "original_run_artifact": "runs/20261007-companion-priority/balanced-rademacher-clt/anonymous-decoder/result0.json",
+    "run_binding": "runs/20261007-companion-priority/balanced-rademacher-clt/anonymous-decoder/run.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual A_N=Fin N→Bool, actual normalized count μ_N, true sign±1, S_N=(sqrt N)^-1 sum signs, actual pushforward probability laws; literal gaussianReal0,1 target. Standardized RGO rho/r is ultimate separate context.",
+      "reconstructed": "One existential family mu: N -> ProbabilityMeasure(R); its underlying Borel measures; the actual finite carriers C_n = (Fin n -> Bool); actual counting measures and their inverse-cardinality normalizations U_n; the literal maps T_n(epsilon) = (sqrt(n))^(-1) * sum_{j in Fin n} (if epsilon(j) then 1 else -1); the real-zero Dirac law; and the genuine real Gaussian law of mean 0 and variance 1. ProbabilityMeasure membership gives total mass 1 for every witness mu_n. Uniform Boolean configurations encode independent symmetric coordinate signs as a consequence of the explicit carrier law, rather than as supplied probabilistic assumptions.",
+      "relation": "equivalent",
+      "evidence": "Actual countLaw is inverse carrier cardinal times count, sign is Bool true1/false-1, normalizedSum and one actualLaw ProbabilityMeasure family. The public witness is that same family."
+    },
+    "domains": {
+      "original": "Every natural N including0; successor n+1 positive for variance-one normalization. Finite discrete canonical carrier, real output/Borel weak topology, real/complex Bochner integrals genuinely finite internally.",
+      "reconstructed": "Indices n range over all natural numbers, including 0. For fixed n, j ranges over Fin n = {0,...,n-1}; epsilon ranges over all Boolean functions on that whole finite index set. Counting/cardinality scaling is in ENNReal; map values, signs, sums, sqrt, and the inverse-sqrt scaling are real. Pushforwards and Dirac measures live on the real Borel space. The variance parameter of gaussianReal is the nonnegative real 1. The family and limit live in the canonical weak topology of ProbabilityMeasure(R); atTop is the natural-number tail filter.",
+      "relation": "equivalent",
+      "evidence": "Every natural index, finite canonical discrete measurable carrier, real Borel probability weak topology. The private generic Bochner helper uses CompleteSpace for its real/complex instantiations; this is not a public premise."
+    },
+    "quantifiers": {
+      "original": "One actual family of laws for all N, exact map equality for all N, law0=dirac0, successor weak convergence; no random iid law, actual map identity, mean/second moment or limit supplied by a caller.",
+      "reconstructed": "The outer existential quantifies one complete family mu, shared by all three conjuncts. The first conjunct universally quantifies every n in N and asserts an equality of underlying measures. The epsilon and j variables are locally bound by the pushforward map and finite sum at this same n. The second conjunct specializes the same family at n=0. In the third conjunct the locally bound sequence variable n ranges over N and selects mu_(n+1); Tendsto asserts convergence along every sufficiently large natural-number tail to the fixed Gaussian law. No free variables or quantified caller hypotheses remain. The bounded-continuous-test-function description quantifies arbitrary bounded continuous real test functions only as a semantic equivalent of the stated weak-topology convergence.",
+      "relation": "equivalent",
+      "evidence": "The closed theorem first produces one whole law family, then all-N map identity, its own zero law and its own successor-index limit. No ambient parameter or free variable adds a premise."
+    },
+    "assumptions": {
+      "original": "Scalar actual-count background is unconditional apart from canonical typing. Source potential/eta assumptions stay on future SPHMC consumer; single balanced-law probability/L1/mean0/moment1 and adapters are internal obligations.",
+      "reconstructed": "None at the theorem boundary: this is a closed proposition. The approved definitions fix the finite measurable structure on C_n, real Borel probabilities and their canonical weak topology, totalized real inversion, literal sign-map semantics, actual measurable pushforward, and the Gaussian mean/variance convention. They do not supply a law family or an independence, moment, central-limit, entropy, regularity, or transport certificate as a premise. The packet compiled flag is not independently checked by this decoder.",
+      "relation": "equivalent",
+      "evidence": "Probability, finite Bochner integrals, measurability and sign mean/secondmoment are internally derived. The scalar CLT consumes sign_mean/sign_second_moment, not caller certificates."
+    },
+    "conclusion": {
+      "original": "Only actual law family and weak gaussianReal0,1 convergence; no entropy/energy/LSI/T2/W2/main/cost output.",
+      "reconstructed": "There exists a family of genuine probabilities whose underlying measures equal the explicit normalized-counting pushforward for every n >= 0, whose zero member is exactly delta_0, and whose sequence of positive-index members mu_(n+1) tends weakly to N(0,1). All three claims refer to the same existential family. The limit is weak probability-law convergence, not convergence of sampled values, densities, moments, total variation, entropy, or a transport metric; no rate is asserted.",
+      "relation": "equivalent",
+      "evidence": "Actual count integrals and exp_sum/sum_pow produce finite characteristic-function factorization; scalar CLT plus Levy gives weak convergence, then cofinal n+1 composition. No stronger convergence conclusion."
+    },
+    "scopes": {
+      "original": "External SLT real product has NeZero N and no Boolean-count/N0 result. Direct finite-count factorization and finite real-product transport are authored alternatives. Infinite-iid route has genuine construction/prefix-law gaps. Existing compiled Mathlib scalar leaf is not ASTIS producer.",
+      "reconstructed": "The universal n in the first conjunct does not bind the other conjuncts; their zero index and separate successor-indexed lambda are explicit. At n=0 the carrier is a singleton, normalization is inverse 1, sum is empty, and (sqrt(0))^(-1)=0, so the map sends its sole configuration to real zero. For positive n the scale is 1/sqrt(n), multiplying the entire signed sum with true -> +1 and false -> -1. The limit lambda uses n+1 both when selecting the family and, through that family member identity, in its carrier and normalization: its configuration count is 2^(n+1) and its scale is 1/sqrt(n+1). The finite counting normalization uses the actual number of configurations, not n. The limit Gaussian and its mean 0/variance 1 are fixed outside all sequence variables. ProbabilityMeasure weak neighborhoods are used, not an unspecified topology on raw measures.",
+      "relation": "equivalent",
+      "evidence": "All-N map equality includes0. totalized inverse0 and empty sum give actualLaw_zero. Same family uses n+1 consistently. Actual finite-count adapter is authored background, distinct from external SLT product/infinite-iid gaps."
+    },
+    "constant_dependencies": {
+      "original": "Actual mass2^-N, normalization1/sqrt N, variance1 Gaussian. N0 second moment0. Future full-flip factor4 and finite half-to-Gaussian2 energy transfer are external residuals, not consequences of weak CLT.",
+      "reconstructed": "All objects depend solely on their explicit index n and fixed definitions. Carrier cardinal N_n=2^n and U_n normalization 1/2^n depend on n; T_n depends on n and epsilon, with fixed signs +1 and -1 and real inverse-square-root scaling. The zero Dirac location is fixed at 0. The Gaussian mean is fixed 0 and its variance is fixed 1 (hence standard deviation 1); no n-dependent Gaussian, auxiliary parameter, hidden constant, convergence rate, or caller data occurs. No external theorem or proof body is consulted.",
+      "relation": "equivalent",
+      "evidence": "Actual mass2^-N, scale inverse sqrtN, signs±1, internally derived coordinate mean0/secondmoment1 and fixed Gaussian0/variance1. N0 secondmoment0 retained; no rate, flip4, entropy or GaussianLSI constant follows."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration"
+}

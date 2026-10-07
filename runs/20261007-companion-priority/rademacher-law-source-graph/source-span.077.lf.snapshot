@@ -1,0 +1,49 @@
+private def bernoulliUniform (n : ℕ) : Measure (Fin n → Bool) :=
+  ((Finset.univ : Finset (Fin n → Bool)).card : ℝ≥0∞)⁻¹ • Measure.count
+
+private theorem card_fin_bool (n : ℕ) : Finset.card (Finset.univ : Finset (Fin n → Bool)) = 2^n := by
+  simp only [Finset.card_univ, Fintype.card_fun, Fintype.card_fin, Fintype.card_bool]
+
+private theorem bernoulli_integral_eq_sum {n : ℕ} (f : (Fin n → Bool) → ℝ) :
+    ∫ ε, f ε ∂(bernoulliUniform n) = (∑ ε : Fin n → Bool, f ε) / 2^n := by
+  unfold bernoulliUniform
+  rw [integral_smul_measure]
+  rw [MeasureTheory.integral_fintype (Integrable.of_finite : Integrable f Measure.count)]
+  rw [card_fin_bool n]
+  simp only [Nat.cast_pow, Nat.cast_ofNat, smul_eq_mul, count_real_singleton, one_mul]
+  rw [ENNReal.toReal_inv, ENNReal.toReal_pow, ENNReal.toReal_ofNat]
+  ring
+
+private theorem sum_fin_succ_bool_eq_sum_snoc {n : ℕ} (f : (Fin (n+1) → Bool) → ℝ) :
+    ∑ ε : Fin (n+1) → Bool, f ε =
+    ∑ ε' : Fin n → Bool, (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) := by
+  -- Use Fin.snocEquiv: (Fin (n+1) → α) ≃ α × (Fin n → α) at last position
+  -- But we need (Fin n → α) × α, so use Prod.swap
+  let h_equiv : (Fin (n+1) → Bool) ≃ (Fin n → Bool) × Bool :=
+    (Fin.snocEquiv (fun _ => Bool)).symm.trans (Equiv.prodComm _ _)
+  calc ∑ ε : Fin (n+1) → Bool, f ε
+      = ∑ p : (Fin n → Bool) × Bool, f (h_equiv.symm p) := by
+          rw [Fintype.sum_equiv h_equiv.symm]
+          simp
+    _ = ∑ ε' : Fin n → Bool, ∑ b : Bool, f (h_equiv.symm (ε', b)) := by
+          rw [Fintype.sum_prod_type]
+    _ = ∑ ε' : Fin n → Bool, (f (h_equiv.symm (ε', true)) + f (h_equiv.symm (ε', false))) := by
+          congr 1
+          ext ε'
+          simp only [Fintype.sum_bool]
+    _ = ∑ ε' : Fin n → Bool, (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) := by
+          congr 1
+
+private theorem bernoulli_integral_succ_split {n : ℕ} (f : (Fin (n+1) → Bool) → ℝ) :
+    ∫ ε, f ε ∂(bernoulliUniform (n+1)) =
+    ∫ ε', (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) / 2 ∂(bernoulliUniform n) := by
+  rw [bernoulli_integral_eq_sum, bernoulli_integral_eq_sum]
+  rw [sum_fin_succ_bool_eq_sum_snoc]
+  rw [pow_succ]
+  rw [Finset.sum_div]
+  -- Goal: ∑ i, (f true + f false) / (2^n * 2) = (∑ i, (f true + f false) / 2) / 2^n
+  -- Rewrite RHS: (∑ (x/2)) / 2^n = ∑ (x / (2 * 2^n)) = ∑ (x / (2^n * 2))
+  rw [Finset.sum_div]
+  congr 1
+  ext i
+  ring

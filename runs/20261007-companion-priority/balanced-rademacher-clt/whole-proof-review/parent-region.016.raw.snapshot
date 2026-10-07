@@ -1,0 +1,24 @@
+variable {μ : ℕ → ProbabilityMeasure E}
+
+/-- If the characteristic functions of a sequence of probability measures converge pointwise to
+the characteristic function of a probability measure, then the measures converge weakly. -/
+lemma ProbabilityMeasure.tendsto_of_tendsto_charFun
+    (h : ∀ t : E, Tendsto (fun n ↦ charFun (μ n) t) atTop (𝓝 (charFun μ₀ t))) :
+    Tendsto μ atTop (𝓝 μ₀) := by
+  have h_tight : IsTightMeasureSet (𝓧 := E) {μ n | n} :=
+    isTightMeasureSet_of_tendsto_charFun (by fun_prop) h
+  refine tendsto_of_tight_of_separatesPoints h_tight (𝕜 := ℂ)
+    (A := charPoly continuous_probChar (L := innerₗ E) continuous_inner) ?_ ?_
+  · refine separatesPoints_charPoly continuous_probChar probChar_ne_one _ ?_
+    exact fun v hv ↦ DFunLike.ne_iff.mpr ⟨v, inner_self_ne_zero.mpr hv⟩
+  · exact fun g ↦ tendsto_charPoly_of_tendsto_charFun h
+
+/-- The **Lévy convergence theorem**: the weak convergence of probability measures is equivalent
+to the pointwise convergence of their characteristic functions. -/
+theorem ProbabilityMeasure.tendsto_iff_tendsto_charFun :
+    Tendsto μ atTop (𝓝 μ₀) ↔
+      ∀ t : E, Tendsto (fun n ↦ charFun (μ n) t) atTop (𝓝 (charFun μ₀ t)) := by
+  refine ⟨fun h t ↦ ?_, tendsto_of_tendsto_charFun⟩
+  rw [ProbabilityMeasure.tendsto_iff_forall_integral_rclike_tendsto ℂ] at h
+  simp_rw [charFun_eq_integral_innerProbChar]
+  exact h (innerProbChar t)

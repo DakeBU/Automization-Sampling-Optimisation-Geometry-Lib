@@ -1,0 +1,15 @@
+
+lemma charFunDual_map_sum_pi_eq_prod [Fintype ι] [NormedSpace ℝ E] {μ : ι → Measure E}
+    [∀ i, IsProbabilityMeasure (μ i)] :
+    charFunDual ((Measure.pi μ).map (fun p ↦ ∑ i, p i)) = ∏ i, charFunDual (μ i) := by
+  rw [iIndepFun.charFunDual_map_fun_sum_eq_prod]
+  · refine Finset.prod_congr rfl fun i _ ↦ ?_
+    rw [(measurePreserving_eval μ i).map_eq]
+  · exact aemeasurable_id.eval
+  · exact iIndepFun_pi (X := fun _ ↦ id) (fun _ ↦ aemeasurable_id)
+
+lemma iIndepFun.charFun_map_finsetSum_eq_prod [InnerProductSpace ℝ E]
+    (mX : ∀ i ∈ s, AEMeasurable (X i) P) (hX : iIndepFun (s.restrict X) P) :
+    charFun (P.map (∑ i ∈ s, X i)) = ∏ i ∈ s, charFun (P.map (X i)) := by
+  ext
+  simp [charFun_eq_charFunDual_toDualMap, hX.charFunDual_map_finsetSum_eq_prod mX]

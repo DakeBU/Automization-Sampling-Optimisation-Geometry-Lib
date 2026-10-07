@@ -1,0 +1,13 @@
+lemma charFun_map_sum_pi_const (μ : Measure ℝ) [IsFiniteMeasure μ] (n : ℕ) (t : ℝ) :
+    charFun ((Measure.pi fun (_ : Fin n) ↦ μ).map fun x ↦ ∑ i, x i) t = charFun μ t ^ n := by
+  induction n with
+  | zero => simp [Measure.map_const, charFun_apply]
+  | succ n ih =>
+    rw [pow_succ', ← ih, ← charFun_conv]
+    congr 1
+    have h := (measurePreserving_piFinSuccAbove (fun (_ : Fin (n + 1)) ↦ μ) 0).map_eq
+    nth_rw 2 [← μ.map_id]
+    rw [Measure.conv, Measure.map_prod_map, ← h, Measure.map_map, Measure.map_map]
+    · congr 1 with x
+      apply Fin.sum_univ_succ
+    all_goals { fun_prop }

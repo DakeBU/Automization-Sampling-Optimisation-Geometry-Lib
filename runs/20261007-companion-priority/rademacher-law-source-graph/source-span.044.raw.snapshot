@@ -1,0 +1,21 @@
+variable {ι E Ω' Ω'' : Type*} {Ω : ι → Type*} {m : ∀ i, MeasurableSpace (Ω i)}
+  {μ : (i : ι) → Measure (Ω i)} [∀ i, IsProbabilityMeasure (μ i)]
+  {m' : MeasurableSpace Ω'} {μ' : Measure Ω'} [IsProbabilityMeasure μ']
+  {m'' : MeasurableSpace Ω''} {μ'' : Measure Ω''} [IsProbabilityMeasure μ'']
+  {mE : MeasurableSpace E} {X Y : (i : ι) → Ω i → E} {Z : Ω' → E} {l : Filter ι}
+
+section TendstoInDistribution
+
+variable [TopologicalSpace E]
+
+/-- Convergence in distribution of random variables.
+This is the weak convergence of the laws of the random variables: `Tendsto` in the
+`ProbabilityMeasure` type. -/
+structure TendstoInDistribution [OpensMeasurableSpace E] (X : (i : ι) → Ω i → E) (l : Filter ι)
+    (Z : Ω' → E) (μ : (i : ι) → Measure (Ω i)) [∀ i, IsProbabilityMeasure (μ i)]
+    (μ' : Measure Ω' := by volume_tac) [IsProbabilityMeasure μ'] : Prop where
+  forall_aemeasurable : ∀ i, AEMeasurable (X i) (μ i)
+  aemeasurable_limit : AEMeasurable Z μ' := by fun_prop
+  tendsto : Tendsto (β := ProbabilityMeasure E)
+      (fun n ↦ ⟨(μ n).map (X n), Measure.isProbabilityMeasure_map (forall_aemeasurable n)⟩) l
+      (𝓝 ⟨μ'.map Z, Measure.isProbabilityMeasure_map aemeasurable_limit⟩)

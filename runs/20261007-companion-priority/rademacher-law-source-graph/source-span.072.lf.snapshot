@@ -1,0 +1,70 @@
+
+/-! ### Rademacher Measure -/
+
+/-- The Rademacher measure: probability measure on ℝ assigning probability 1/2 to both -1 and 1. -/
+def rademacherMeasure : Measure ℝ :=
+  (1/2 : ℝ≥0∞) • Measure.dirac (-1 : ℝ) + (1/2 : ℝ≥0∞) • Measure.dirac (1 : ℝ)
+
+instance isProbabilityMeasure_rademacherMeasure : IsProbabilityMeasure rademacherMeasure := by
+  constructor
+  simp only [rademacherMeasure, Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply,
+    smul_eq_mul]
+  simp only [Measure.dirac_apply_of_mem (Set.mem_univ _)]
+  simp only [one_div, mul_one]
+  exact ENNReal.inv_two_add_inv_two
+
+/-- The Rademacher measure as a probability measure. -/
+def rademacherProbMeasure : ProbabilityMeasure ℝ :=
+  ⟨rademacherMeasure, inferInstance⟩
+
+/-! ### Basic Properties of Rademacher Random Variables -/
+
+/-- Integrability of identity on the Rademacher measure. -/
+lemma integrable_id_rademacherMeasure : Integrable id rademacherMeasure := by
+  simp only [rademacherMeasure]
+  apply Integrable.add_measure
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+
+/-- Integrability of square on the Rademacher measure. -/
+lemma integrable_sq_rademacherMeasure : Integrable (fun x => x^2) rademacherMeasure := by
+  simp only [rademacherMeasure]
+  apply Integrable.add_measure
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+
+/-- The expectation of a Rademacher random variable is 0. -/
+theorem rademacher_expectation_zero : ∫ x, x ∂rademacherMeasure = 0 := by
+  simp only [rademacherMeasure]
+  rw [integral_add_measure, integral_smul_measure, integral_smul_measure]
+  · rw [integral_dirac' (fun x => x) (-1) stronglyMeasurable_id,
+        integral_dirac' (fun x => x) (1) stronglyMeasurable_id]
+    norm_num
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+
+/-- The second moment of a Rademacher random variable is 1. -/
+theorem rademacher_second_moment : ∫ x, x^2 ∂rademacherMeasure = 1 := by
+  simp only [rademacherMeasure]
+  rw [integral_add_measure, integral_smul_measure, integral_smul_measure]
+  · rw [integral_dirac' (fun x => x^2) (-1) (stronglyMeasurable_id.pow _),
+        integral_dirac' (fun x => x^2) (1) (stronglyMeasurable_id.pow _)]
+    norm_num
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp
+  · apply Integrable.smul_measure _ (by simp)
+    apply integrable_dirac
+    simp

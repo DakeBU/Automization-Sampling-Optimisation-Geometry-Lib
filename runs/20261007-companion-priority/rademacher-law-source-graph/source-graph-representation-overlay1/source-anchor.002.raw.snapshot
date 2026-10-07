@@ -1,0 +1,26 @@
+lemma charFun_rademacherMeasure (t : ℝ) : charFun rademacherMeasure t = Real.cos t := by
+  simp only [rademacherMeasure, charFun_apply_real]
+  rw [integral_add_measure, integral_smul_measure, integral_smul_measure]
+  · rw [integral_dirac, integral_dirac]
+    simp only [ENNReal.toReal_inv, ENNReal.toReal_ofNat, one_div, ofReal_neg,
+      ofReal_one, neg_mul, mul_neg, mul_one]
+    -- Goal: 2⁻¹ • exp(-it) + 2⁻¹ • exp(it) = cos(t) where 2⁻¹ : ℝ
+    calc
+      (2 : ℝ)⁻¹ • Complex.exp (-(↑t * I)) + (2 : ℝ)⁻¹ • Complex.exp (↑t * I)
+          = Complex.ofReal ((2 : ℝ)⁻¹) * Complex.exp (-(↑t * I)) +
+              Complex.ofReal ((2 : ℝ)⁻¹) * Complex.exp (↑t * I) := by
+            exact congrArg₂ (fun x y : ℂ => x + y)
+              (RCLike.real_smul_eq_coe_mul ((2 : ℝ)⁻¹) (Complex.exp (-(↑t * I))))
+              (RCLike.real_smul_eq_coe_mul ((2 : ℝ)⁻¹) (Complex.exp (↑t * I)))
+      _ = ↑(Real.cos t) := by
+        rw [add_comm, ← mul_add]
+        -- Use Complex.two_cos: 2 * cos x = exp(x*I) + exp(-x*I)
+        rw [ofReal_inv]
+        have h := Complex.two_cos (↑t)
+        rw [neg_mul] at h
+        rw [← h]
+        simp only [ofReal_ofNat]
+        rw [show ((2 : ℂ))⁻¹ * ((2 : ℂ) * Complex.cos ↑t) = Complex.cos ↑t by field_simp]
+        exact (Complex.ofReal_cos t).symm
+  · exact Integrable.smul_measure (integrable_dirac (by simp : ‖_‖ₑ < ⊤)) (by simp)
+  · exact Integrable.smul_measure (integrable_dirac (by simp : ‖_‖ₑ < ⊤)) (by simp)

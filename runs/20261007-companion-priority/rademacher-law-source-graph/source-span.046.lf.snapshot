@@ -1,0 +1,19 @@
+theorem count_apply (hs : MeasurableSet s) : count s = s.encard := by
+  simp [count, hs, ← tsum_subtype]
+
+@[simp]
+theorem count_apply_finset' {s : Finset α} (hs : MeasurableSet (s : Set α)) :
+    count (↑s : Set α) = #s := by simp [count_apply hs]
+
+@[simp]
+theorem count_apply_finset [MeasurableSingletonClass α] (s : Finset α) :
+    count (↑s : Set α) = #s :=
+  count_apply_finset' s.measurableSet
+
+theorem count_apply_finite' {s : Set α} (s_fin : s.Finite) (s_mble : MeasurableSet s) :
+    count s = #s_fin.toFinset := by
+  simp [←
+    @count_apply_finset' _ _ s_fin.toFinset (by simpa only [Finite.coe_toFinset] using s_mble)]
+
+theorem count_apply_finite [MeasurableSingletonClass α] (s : Set α) (hs : s.Finite) :
+    count s = #hs.toFinset := by rw [← count_apply_finset, Finite.coe_toFinset]

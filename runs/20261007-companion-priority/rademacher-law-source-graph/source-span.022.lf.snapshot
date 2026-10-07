@@ -1,0 +1,15 @@
+/-- The characteristic function of a measure with all moments is `C^∞`. See `contDiff_charFun`
+for the version proving only `C^n` by only assuming that the moment of order `n` exists. -/
+@[fun_prop]
+theorem contDiff_charFun' {n : ℕ∞} (hint : ∀ (k : ℕ), MemLp id k μ) :
+    ContDiff ℝ n (charFun μ) := by
+  simp_rw [funext charFun_eq_fourierIntegral']
+  refine (contDiff_fourierIntegral (L := innerSL ℝ) fun k hk ↦ ?_).comp (by fun_prop)
+  simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
+  refine MemLp.integrable_norm_pow' ((hint k).mono_exponent (by simp_all))
+
+@[fun_prop]
+lemma continuous_charFun : Continuous (charFun μ) := by
+  refine contDiff_zero.1 (contDiff_charFun ?_)
+  simpa using by fun_prop
+

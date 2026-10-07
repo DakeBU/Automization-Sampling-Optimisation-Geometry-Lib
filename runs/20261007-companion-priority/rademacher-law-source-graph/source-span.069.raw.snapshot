@@ -1,0 +1,25 @@
+/-- **Central Limit Theorem for Rademacher Product Space**:
+The law of Sₙ under the n-fold product Rademacher measure converges weakly to stdGaussian. -/
+theorem rademacherLaw_tendsto_stdGaussian :
+    Tendsto (fun n : ℕ => rademacherLaw (n + 1)) atTop (𝓝 stdGaussian) := by
+  rw [ProbabilityMeasure.tendsto_iff_tendsto_charFun]
+  intro t
+  -- Characteristic function of rademacherLaw (n+1) equals (cos(t/√(n+1)))^(n+1)
+  have hcf (n : ℕ) : charFun (rademacherLaw (n + 1)).toMeasure t =
+      (↑(Real.cos (t / Real.sqrt (n + 1))) : ℂ)^(n + 1) := by
+    rw [charFun_rademacherLaw]
+    simp only [Nat.cast_add, Nat.cast_one]
+  -- Characteristic function of stdGaussian equals exp(-t²/2)
+  have hstd : charFun stdGaussian.toMeasure t = Complex.exp (-(t^2 / 2)) := charFun_stdGaussian t
+  -- Rewrite goal using these facts
+  simp_rw [hcf, hstd]
+  -- The goal is: Tendsto (fun n ↦ cos(t/√(↑n+1))^(n+1)) atTop (𝓝 (exp(-t²/2)))
+  -- We have tendsto_cos_pow_exp: Tendsto (fun n ↦ cos(t/√↑n)^n) atTop (𝓝 (exp(-t²/2)))
+  -- Need to show (↑n + 1) = ↑(n+1)
+  have heq : (fun n : ℕ => (↑(Real.cos (t / Real.sqrt ((n : ℝ) + 1))) : ℂ) ^ (n + 1)) =
+      (fun n : ℕ => (↑(Real.cos (t / Real.sqrt (n : ℝ))) : ℂ) ^ n) ∘ (fun n : ℕ => n + 1) := by
+    ext n
+    simp only [Function.comp_apply, Nat.cast_add, Nat.cast_one]
+  rw [heq]
+  exact (tendsto_cos_pow_exp t).comp (tendsto_add_atTop_nat 1)
+

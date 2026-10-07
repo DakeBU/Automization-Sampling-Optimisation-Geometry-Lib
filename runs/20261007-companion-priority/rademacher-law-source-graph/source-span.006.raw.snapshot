@@ -1,0 +1,34 @@
+lemma IndepFun.charFun_map_add_eq_mul {Y : Ω → E}
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : X ⟂ᵢ[P] Y) :
+    charFun (P.map (X + Y)) = charFun (P.map X) * charFun (P.map Y) := by
+  ext t
+  rw [hXY.map_add_eq_map_conv_map₀ mX mY, charFun_conv, Pi.mul_apply]
+
+lemma IndepFun.charFun_map_fun_add_eq_mul {Y : Ω → E}
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : X ⟂ᵢ[P] Y) :
+    charFun (P.map (fun ω ↦ X ω + Y ω)) = charFun (P.map X) * charFun (P.map Y) :=
+  hXY.charFun_map_add_eq_mul mX mY
+
+lemma charFun_map_add_prod_eq_mul {μ ν : Measure E}
+    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
+    charFun ((μ.prod ν).map (fun p ↦ p.1 + p.2)) = charFun μ * charFun ν := by
+  rw [IndepFun.charFun_map_fun_add_eq_mul, measurePreserving_fst.map_eq,
+    measurePreserving_snd.map_eq]
+  any_goals fun_prop
+  exact indepFun_prod (X := id) (Y := id) measurable_id measurable_id
+
+/-- Two random variables are independent if and only if their joint characteristic function is equal
+to the product of the characteristic functions. This is the version for Hilbert spaces, see
+`indepFun_iff_charFunDual_prod` for the Banach space version. -/
+lemma indepFun_iff_charFun_prod [CompleteSpace E] (hX : AEMeasurable X P) (hY : AEMeasurable Y P) :
+    X ⟂ᵢ[P] Y ↔ ∀ t, charFun (P.map (fun ω ↦ toLp 2 (X ω, Y ω))) t =
+      charFun (P.map X) t.ofLp.1 * charFun (P.map Y) t.ofLp.2 := by
+  rw [indepFun_iff_map_prod_eq_prod_map_map hX hY, ← charFun_eq_prod_iff,
+    AEMeasurable.map_map_of_aemeasurable (by fun_prop) (by fun_prop), Function.comp_def]
+
+end InnerProductSpace
+
+section NormedSpace
+
+variable [NormedSpace ℝ E] [NormedSpace ℝ F]
+

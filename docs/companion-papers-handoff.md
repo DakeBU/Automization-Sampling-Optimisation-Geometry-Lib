@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Actual compact finite-product Gaussian LSI (2026-10-07)
+
+The actual compact finite-Pi Gaussian LSI producer is independently VERIFIED
+at eaf29841eab8b3d4df5b9419f658fbcc1dda39f3. The exact678-byte statement takes only arbitrary n (including0),
+signed f, real C2 regularity and compact support. It produces true square,
+square-tlogt, every coordinate derivative square and full finite-sum L1, then
+homogeneous entropy <=2 integral sum_i (D_i f)^2. The Gaussian law is literally
+Measure.pi of centered variance-one scalar Gaussian laws. The literal coordinate
+energy is distinct from the default Pi supremum-norm derivative operator norm.
+
+Actual scalar38 and boundedbinary39 are its two direct mathematical parents.
+True Fin.cons Gaussian law, closed-embedding original-slice compact regularity,
+actual coordinate-update derivative identities and genuine outer entropy/energy
+L1 precede Fubini/integral monotonicity. Strict dimension induction uses original
+slices; no RMS marginal smoothness or extra certificate is assumed. All8 private
+providers are reachable. All-dimensional zero, n0positive constant, n1signed
+scalar and n2coupled signed compact consumers compile; independent n0negative
+constant stress verifies mass4, phi integral4log4 and entropy/empty energy0.
+Wholemath, fresh source-blind40 reconstruction, anti-anchored source review and
+exactcommit verification are distinct. The authored compact sufficient OR is
+separate from upstream W12/tower sources and printed FIRST4.6. Original
+representation-only source-topology BLOCKED and reviewed repair remain intact.
+
+Serialized shared integration adds Registry484 and genuine production/Test
+imports. Seven mathematical formula proof steps and folded actual Lean use the
+original SPHMC companion. Shared gate, graph/static/repository/Exposition and full
+reader Test/copy/download/bundles/browser/live/postmerge PURIFIED remain separate.
+Own39 1eb2e293 has four terminal remoteCI successes; deployment was skipped.
+
+Next mathematical dependency: actual finite-Hilbert stdGaussian law transport and
+orthonormal gradient Parseval, then one true radial noncompact C2 cutoff using
+the actual32/33 standardized posterior square-root/entropy domains. GaussianT2
+and FIRST4.6 remain separate. SPHMC smoothing/Picard/Wp/proxy-warmness, PBPS
+reflection/invariance/nonexplosion/hypocoercivity/implementation/cost, both full
+main results and actual-input expected query-cost composition remain open.
+TV proximity does not transfer unbounded costs. Older Chewi/SampleWiki/cycle
+memory, original PhaseKernel sole stabilization owner and draftPR313 are
+preserved. The single whole-paper Goal continues.
+
 ## Actual bounded binary product entropy (2026-10-07)
 
 The actual bounded heterogeneous binary probability-product entropy producer

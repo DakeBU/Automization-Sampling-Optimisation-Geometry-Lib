@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.compact-product-logSobolev"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev.compact_gaussian_pi_logSobolev"
+    upstreamDecl := "Pinned SLT TensorizedGLSI background; authored compact original-slice induction route"
+    upstreamFile := "SLT d0f506f0 external reference; Mathlib db584cd6 Pi/FDeriv/Prod"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "log-Sobolev", "coordinate-energy", "SPHMC"]
+    saldUse := "Actual SPHMC finite GaussianLSI background consumer; no SALD/second-route admission"
+    note := "Actual signed compact C2 all-dimensional product Gaussian function LSI. True square/Phi/all-coordinate/fullsum L1, Fin.cons Gaussian law and original-slice C2compact domains internally produced. Actual compactscalar38 and boundedbinary39 with strict dimensionIH preserve literal coordinate-square energy2, including0 dimension/mass. No public domain/slice/law/desiredinequality/limit certificates. FiniteHilbert/Parseval/noncompact32/33/T2/FIRST/main/cost open. Independently verified eaf29841eab8b3d4df5b9419f658fbcc1dda39f3."
+  },
+  {
     key := "entropy.product.bounded-subadditivity"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy.bounded_product_entropy_subadditivity"
     upstreamDecl := "Pinned SLT SubAddEnt source; authored bounded heterogeneous binary regularization route"

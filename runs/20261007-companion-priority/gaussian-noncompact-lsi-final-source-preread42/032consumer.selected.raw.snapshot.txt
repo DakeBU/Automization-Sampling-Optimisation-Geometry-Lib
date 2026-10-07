@@ -1,0 +1,53 @@
+1: import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain
+2: import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher
+3: 
+4: /-!
+5: # Actual standardized RGO square-root density and energy domains
+6: 
+7: SPHMC arXiv:2609.06906v1 S4.Ex8 / FIRST S4.E6 analytic prerequisites.
+8: The posterior is the true RGO, standardized by its genuine proximal stationary
+9: point. All positive step sizes are admitted. The measurable family is an
+10: explicit authored extension; Unit specialization recovers fixed parameters.
+11: Gaussian LSI/T2, weak Sobolev/KL adapters, W2 and bias bounds remain open.
+12: -/
+13: 
+14: namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity
+15: open MeasureTheory InnerProductSpace ProbabilityTheory
+16: open scoped RealInnerProductSpace NNReal
+17: noncomputable section
+18: set_option autoImplicit false
+19: set_option backward.isDefEq.respectTransparency false
+20: 
+21: theorem standardized_rgo_sqrt_density_domain
+22:     {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+23:     [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+24:     [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+25:     (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+26:     (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+27:       fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+28:     {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+29:     (hpos : ∀ s, 0 < eta s) :
+30:     ∃ p : S → E, Measurable p ∧
+31:       (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+32:       let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+33:         Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+34:       let mu := (volume : Measure E).tilted (fun x => -V x)
+35:       let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+36:       let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+37:       let gamma := stdGaussian E
+38:       let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma
+39:       let q := fun s u => Real.exp (-rho s u)/Z s
+40:       let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)
+41:       ∀ s, 0 < Z s ∧ Z s ≤ 1 ∧
+42:         r s = gamma.tilted (fun u => -rho s u) ∧
+43:         r s = gamma.withDensity (fun u => ENNReal.ofReal (q s u)) ∧
+44:         IsProbabilityMeasure (r s) ∧
+45:         (∀ u, 0 < q s u ∧ f s u^2 = q s u) ∧
+46:         (∫ u, q s u ∂gamma) = 1 ∧
+47:         ContDiff ℝ 2 (f s) ∧ MemLp (f s) 2 gamma ∧
+48:         MemLp (gradient (f s)) 2 gamma ∧ MemLp (gradient (rho s)) 2 (r s) ∧
+49:         Integrable (fun u => q s u*Real.log (q s u)) gamma ∧
+50:         (∀ u, gradient (f s) u = -(f s u/2) • gradient (rho s) u) ∧
+51:         (∀ u, gradient (fun z => Real.log (q s z)) u = -gradient (rho s) u) ∧
+52:         (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =
+53:           (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s) := by

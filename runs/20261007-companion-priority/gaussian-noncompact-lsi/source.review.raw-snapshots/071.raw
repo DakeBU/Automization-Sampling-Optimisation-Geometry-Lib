@@ -1,0 +1,53 @@
+1: import AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity
+2: import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
+3: import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization
+4: import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+5: import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+6: import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+7: import Mathlib.MeasureTheory.Measure.Tilted
+8: 
+9: /-!
+10: # Actual Gaussian-Gibbs relative-density domains
+11: 
+12: Authored analytic background for SPHMC arXiv:2609.06906v1 S4.Ex8 and the
+13: Gaussian LSI/T2 invocation for FIRST(4.6). Exact statements were independently
+14: sealed before implementation. The actual relative normalizer, positive density,
+15: square-root gradients, integrability and energy are internal conclusions.
+16: Gaussian LSI/T2, weak Sobolev/KL adapters and the W2 inequality remain separate.
+17: -/
+18: 
+19: namespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain
+20: 
+21: open MeasureTheory InnerProductSpace ProbabilityTheory Set
+22: open scoped RealInnerProductSpace NNReal
+23: noncomputable section
+24: set_option autoImplicit false
+25: set_option backward.isDefEq.respectTransparency false
+26: 
+27: variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+28:   [CompleteSpace E]
+211: theorem gaussian_sqrt_density_domain
+212:     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+213:     [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+214:     {rho : E → ℝ} {L : ℝ≥0} (hrho : ContDiff ℝ 2 rho)
+215:     (hrho0 : rho 0 = 0) (hgrad0 : gradient rho 0 = 0)
+216:     (hH : ∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ rho) u v v ∧
+217:       fderiv ℝ (fderiv ℝ rho) u v v ≤ (L : ℝ)*‖v‖^2) :
+218:     let gamma := stdGaussian E
+219:     let Z := ∫ u, Real.exp (-rho u) ∂gamma
+220:     let q := fun u => Real.exp (-rho u)/Z
+221:     let f := fun u => Real.exp (-rho u/2)/Real.sqrt Z
+222:     let r := gamma.tilted (fun u => -rho u)
+223:     0 < Z ∧ Z ≤ 1 ∧
+224:       r = (volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho u)) ∧
+225:       r = gamma.withDensity (fun u => ENNReal.ofReal (q u)) ∧
+226:       IsProbabilityMeasure r ∧
+227:       (∀ u, 0 < q u ∧ f u^2 = q u) ∧
+228:       (∫ u, q u ∂gamma) = 1 ∧
+229:       ContDiff ℝ 2 f ∧ MemLp f 2 gamma ∧
+230:       MemLp (gradient f) 2 gamma ∧ MemLp (gradient rho) 2 r ∧
+231:       Integrable (fun u => q u*Real.log (q u)) gamma ∧
+232:       (∀ u, gradient f u = -(f u/2) • gradient rho u) ∧
+233:       (∀ u, gradient (fun z => Real.log (q z)) u = -gradient rho u) ∧
+234:       (∫ u, ‖gradient f u‖^2 ∂gamma) =
+235:         (1/4 : ℝ)*(∫ u, ‖gradient rho u‖^2 ∂r) := by

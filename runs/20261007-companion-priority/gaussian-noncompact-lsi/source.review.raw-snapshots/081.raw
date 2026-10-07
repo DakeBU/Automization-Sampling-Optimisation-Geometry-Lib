@@ -1,0 +1,94 @@
+50: 
+51: variable {𝕜 F : Type*} [RCLike 𝕜]
+52: variable [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]
+53: variable {f : F → 𝕜} {f' x y : F}
+54: 
+55: /-- A function `f` has the gradient `f'` as derivative along the filter `L` if
+56:   `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` when `x'` converges along the filter `L`. -/
+57: def HasGradientAtFilter (f : F → 𝕜) (f' x : F) (L : Filter F) :=
+58:   HasFDerivAtFilter f (toDual 𝕜 F f') (L ×ˢ pure x)
+59: 
+60: /-- `f` has the gradient `f'` at the point `x` within the subset `s` if
+61:   `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/
+62: def HasGradientWithinAt (f : F → 𝕜) (f' : F) (s : Set F) (x : F) :=
+63:   HasGradientAtFilter f f' x (𝓝[s] x)
+64: 
+65: /-- `f` has the gradient `f'` at the point `x` if
+66:   `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/
+67: def HasGradientAt (f : F → 𝕜) (f' x : F) :=
+68:   HasGradientAtFilter f f' x (𝓝 x)
+69: 
+70: /-- Gradient of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.
+71: 
+72: If the derivative exists (i.e., `∃ f', HasGradientWithinAt f f' s x`), then
+73: `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/
+74: def gradientWithin (f : F → 𝕜) (s : Set F) (x : F) : F :=
+75:   (toDual 𝕜 F).symm (fderivWithin 𝕜 f s x)
+76: 
+77: /-- Gradient of `f` at the point `x`, if it exists.  Zero otherwise.
+78: Denoted as `∇` within the Gradient namespace.
+79: 
+80: If the derivative exists (i.e., `∃ f', HasGradientAt f f' x`), then
+81: `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/
+82: def gradient (f : F → 𝕜) (x : F) : F :=
+83:   (toDual 𝕜 F).symm (fderiv 𝕜 f x)
+84: 
+85: @[inherit_doc]
+86: scoped[Gradient] notation "∇" => gradient
+87: 
+88: local notation "⟪" x ", " y "⟫" => inner 𝕜 x y
+122: lemma toDual_gradientWithin :
+123:     (toDual 𝕜 F) (gradientWithin f s x) = fderivWithin 𝕜 f s x := by
+124:   rw [gradientWithin, (toDual 𝕜 F).apply_symm_apply]
+125: 
+126: @[simp]
+127: lemma toDual_gradient : (toDual 𝕜 F) (∇ f x) = fderiv 𝕜 f x := by
+128:   rw [gradient, (toDual 𝕜 F).apply_symm_apply]
+129: 
+130: @[simp]
+131: lemma toDual_comp_gradientWithin :
+132:     (toDual 𝕜 F) ∘ gradientWithin f s = fderivWithin 𝕜 f s :=
+133:   funext fun _ => toDual_gradientWithin
+134: 
+135: @[simp]
+136: lemma toDual_comp_gradient : (toDual 𝕜 F) ∘ ∇ f = fderiv 𝕜 f :=
+137:   funext fun _ => toDual_gradient
+138: 
+139: theorem HasGradientAt.unique {gradf gradg : F}
+140:     (hf : HasGradientAt f gradf x) (hg : HasGradientAt f gradg x) :
+141:     gradf = gradg :=
+142:   (toDual 𝕜 F).injective (hf.hasFDerivAt.unique hg.hasFDerivAt)
+143: 
+144: theorem DifferentiableAt.hasGradientAt (h : DifferentiableAt 𝕜 f x) :
+145:     HasGradientAt f (∇ f x) x := by
+146:   simpa [hasGradientAt_iff_hasFDerivAt] using h.hasFDerivAt
+147: 
+148: theorem HasGradientAt.differentiableAt (h : HasGradientAt f f' x) :
+149:     DifferentiableAt 𝕜 f x :=
+150:   h.hasFDerivAt.differentiableAt
+151: 
+152: theorem DifferentiableWithinAt.hasGradientWithinAt (h : DifferentiableWithinAt 𝕜 f s x) :
+153:     HasGradientWithinAt f (gradientWithin f s x) s x := by
+154:   simpa [hasGradientWithinAt_iff_hasFDerivWithinAt] using h.hasFDerivWithinAt
+155: 
+156: theorem HasGradientWithinAt.differentiableWithinAt (h : HasGradientWithinAt f f' s x) :
+168: 
+169: theorem DifferentiableOn.hasGradientAt (h : DifferentiableOn 𝕜 f s) (hs : s ∈ 𝓝 x) :
+170:     HasGradientAt f (∇ f x) x :=
+171:   (h.hasFDerivAt hs).hasGradientAt
+172: 
+173: theorem HasGradientAt.gradient (h : HasGradientAt f f' x) : ∇ f x = f' :=
+174:   h.differentiableAt.hasGradientAt.unique h
+175: 
+176: theorem gradient_eq {f' : F → F} (h : ∀ x, HasGradientAt f (f' x) x) : ∇ f = f' :=
+177:   funext fun x => (h x).gradient
+178: 
+340:     HasGradientAt f₁ f' x :=
+341:   HasGradientAtFilter.congr_of_eventuallyEq h h₁ (mem_of_mem_nhds h₁ :)
+342: 
+343: theorem Filter.EventuallyEq.gradient_eq (hL : f₁ =ᶠ[𝓝 x] f) : ∇ f₁ x = ∇ f x := by
+344:   unfold gradient
+345:   rwa [Filter.EventuallyEq.fderiv_eq]
+346: 
+347: protected theorem Filter.EventuallyEq.gradient (h : f₁ =ᶠ[𝓝 x] f) : ∇ f₁ =ᶠ[𝓝 x] ∇ f :=
+348:   h.eventuallyEq_nhds.mono fun _ h => h.gradient_eq

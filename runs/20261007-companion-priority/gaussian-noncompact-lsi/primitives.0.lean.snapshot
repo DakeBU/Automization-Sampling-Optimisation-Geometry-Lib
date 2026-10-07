@@ -1,0 +1,85 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.Topology.Order.OrderClosed
+
+/-! Noncompact C2 Gaussian function LSI through actual radial cutoff exhaustion.
+The three analytic domains are genuine inputs; cutoff limits and the inequality
+are internal obligations. Coherent posterior KL/Fisher and Gaussian T2 are separate. -/
+
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory Filter
+open scoped Topology RealInnerProductSpace
+
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev
+open Analysis.Calculus.Cutoff
+
+private theorem entropy_dilation_bound {a q : ℝ}
+    (ha : a ∈ Set.Icc (0 : ℝ) 1) (hq : 0 ≤ q) :
+    |(a*q) * Real.log (a*q)| ≤ |q * Real.log q| + q := by
+  have hmul : (a*q) * Real.log (a*q) =
+      a * (q * Real.log q) + q * (a * Real.log a) := by
+    have h := Real.negMulLog_mul a q
+    simp only [Real.negMulLog_eq_neg] at h
+    linarith
+  have hab : |a * Real.log a| ≤ 1 := by
+    apply abs_le.mpr
+    constructor
+    · have h := Real.self_sub_one_le_mul_log ha.1
+      linarith [ha.1]
+    · exact (Real.mul_log_nonpos ha.1 ha.2).trans zero_le_one
+  rw [hmul]
+  calc
+    |a * (q * Real.log q) + q * (a * Real.log a)|
+        ≤ |a| * |q * Real.log q| + |q| * |a * Real.log a| := by
+          simpa only [abs_mul] using abs_add_le (a * (q * Real.log q)) (q * (a * Real.log a))
+    _ ≤ 1 * |q * Real.log q| + q * 1 := by
+      rw [abs_of_nonneg ha.1, abs_of_nonneg hq]
+      exact add_le_add (mul_le_mul_of_nonneg_right ha.2 (abs_nonneg _))
+        (mul_le_mul_of_nonneg_left hab hq)
+    _ = |q * Real.log q| + q := by ring
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem gradient_mul (c f : E → ℝ) (x : E)
+    (hc : DifferentiableAt ℝ c x) (hf : DifferentiableAt ℝ f x) :
+    gradient (fun y => c y * f y) x =
+      c x • gradient f x + f x • gradient c x := by
+  simp only [gradient, fderiv_fun_mul hc hf, map_add, map_smul]
+
+private theorem cutoff_energy_bound (f : E → ℝ) (hf : ContDiff ℝ 2 f)
+    {R C : ℝ} (hR : 1 ≤ R) (hC : 0 ≤ C)
+    (hb : ∀ x : E, ‖fderiv ℝ (radialSmoothCutoff R : E → ℝ) x‖ ≤ C / R)
+    (x : E) :
+    ‖gradient (fun y => radialSmoothCutoff R y * f y) x‖^2 ≤
+      2 * ‖gradient f x‖^2 + 2 * C^2 * (f x)^2 := by
+  have hRp : 0 < R := lt_of_lt_of_le zero_lt_one hR
+  have hc := (radialSmoothCutoff_contDiff (E := E) hRp).differentiable
+    (WithTop.coe_ne_zero.mpr WithTop.top_ne_zero)
+  rw [gradient_mul _ _ x (hc x) (hf.differentiable (by norm_num) x)]
+  have hcg : ‖gradient (radialSmoothCutoff R : E → ℝ) x‖ ≤ C := by
+    change ‖(InnerProductSpace.toDual ℝ E).symm
+      (fderiv ℝ (radialSmoothCutoff R : E → ℝ) x)‖ ≤ C
+    rw [(InnerProductSpace.toDual ℝ E).symm.norm_map]
+    exact (hb x).trans (div_le_self hC hR)
+  have hcc := radialSmoothCutoff_mem_Icc R x
+  have hn : ‖radialSmoothCutoff R x • gradient f x +
+      f x • gradient (radialSmoothCutoff R : E → ℝ) x‖ ≤
+        ‖gradient f x‖ + C * |f x| := by
+    calc
+      _ ≤ ‖radialSmoothCutoff R x • gradient f x‖ +
+          ‖f x • gradient (radialSmoothCutoff R : E → ℝ) x‖ := norm_add_le _ _
+      _ ≤ ‖gradient f x‖ + C * |f x| := by
+        simp only [norm_smul, Real.norm_eq_abs, abs_of_nonneg hcc.1]
+        have h1 := mul_le_mul_of_nonneg_right hcc.2 (norm_nonneg (gradient f x))
+        have h2 := mul_le_mul_of_nonneg_left hcg (abs_nonneg (f x))
+        nlinarith
+  have hs := (sq_le_sq₀ (norm_nonneg _) (by positivity :
+    0 ≤ ‖gradient f x‖ + C * |f x|)).mpr hn
+  nlinarith [sq_nonneg (‖gradient f x‖ - C * |f x|), sq_abs (f x)]
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev

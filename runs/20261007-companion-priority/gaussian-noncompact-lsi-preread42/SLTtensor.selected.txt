@@ -1,0 +1,39 @@
+45: /-- The partial derivative of `g` at `x` along coordinate `i`. -/
+46: noncomputable def partialDeriv {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+47:   fun x => fderiv ℝ g x (Pi.single i 1)
+48: 
+49: /-- Squared Euclidean gradient norm: `‖∇g(x)‖² = ∑ᵢ (∂g/∂xᵢ)²`. -/
+50: noncomputable def gradNormSq (n : ℕ) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+51:   fun x => ∑ i : Fin n, (partialDeriv i g x)^2
+52: 
+53: /-- Sobolev W^{1,2} membership: `g ∈ L²(μ)` and all partial derivatives in `L²(μ)`. -/
+54: def MemW12GaussianPi (n : ℕ) (g : (Fin n → ℝ) → ℝ) (μ : Measure (Fin n → ℝ)) : Prop :=
+55:   MemLp g 2 μ ∧ ∀ i : Fin n, MemLp (fun x => partialDeriv i g x) 2 μ
+56: 
+57: /-- Slice function `gᵢˣ(y) = g(x₁,...,y,...,xₙ)` with `y` at position `i`. -/
+58: def sliceFunction {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) (x : Fin n → ℝ) : ℝ → ℝ :=
+456:     _ = 2 * ∫ z, gradNormSq n g z ∂(GaussianMeasure.stdGaussianPi n) := by
+457:       simp [h_sum_integral, gradNormSq]
+458: 
+459: /-- Dimension-free Gaussian log-Sobolev inequality: `Ent_μ(g²) ≤ 2∫‖∇g‖² dμ`. -/
+460: theorem gaussian_logSobolev_W12_pi {n : ℕ} {g : (Fin n → ℝ) → ℝ}
+461:     (hg : MemW12GaussianPi n g (GaussianMeasure.stdGaussianPi n))
+462:     (hg_diff : Differentiable ℝ g)
+463:     (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+464:     (hg_log_int :
+465:       Integrable (fun x => (g x)^2 * log ((g x)^2)) (GaussianMeasure.stdGaussianPi n)) :
+466:     LogSobolev.entropy (GaussianMeasure.stdGaussianPi n) (fun x => (g x)^2) ≤
+467:       2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) := by
+468:   have hf_meas : Measurable (fun x => (g x)^2) :=
+469:     hg_diff.continuous.measurable.pow_const 2
+470:   have hf_nn : 0 ≤ᵐ[GaussianMeasure.stdGaussianPi n] (fun x => (g x)^2) :=
+471:     Eventually.of_forall (fun x => sq_nonneg (g x))
+472:   have hf_int : Integrable (fun x => (g x)^2) (GaussianMeasure.stdGaussianPi n) :=
+473:     (hg.1).integrable_sq
+474:   have h_subadd :=
+475:     SubAddEnt.entropy_subadditive (μs := fun _ : Fin n => gaussianReal 0 1)
+476:       (f := fun x => (g x)^2) hf_meas hf_nn hf_int (by
+477:         simpa [GaussianMeasure.stdGaussianPi] using hg_log_int)
+478:   have h_bound :=
+479:     sum_expected_condEnt_le_grad_norm n g hg hg_diff hg_grad_cont hg_log_int
+480:   calc

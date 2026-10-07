@@ -1,0 +1,97 @@
+  -- First, show that each term equals the corresponding term with aPlusProd/aMinusProd
+  have hsum_convert : ∀ n : ℕ,
+      ∑ i : Fin (n + 1), ∫ x,
+        (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+      ∑ i : Fin (n + 1), ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+    intro n
+    -- By symmetry, all terms are equal, so we can relate both sums to n+1 times the i=0 term
+    -- First, show all terms in the LHS sum are equal (to the i=0 term)
+    have hlhs_eq : ∀ i ∈ Finset.univ, ∫ x,
+        (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+      intro i _
+      -- Use coordinate swap symmetry
+      let σ : Equiv.Perm (Fin (n + 1)) := Equiv.swap 0 i
+      let swapEquiv := MeasurableEquiv.piCongrLeft (fun _ : Fin (n + 1) => ℝ) σ
+      have hσ_symm : σ.symm = σ := Equiv.symm_swap 0 i
+      have hσ_i : σ i = 0 := Equiv.swap_apply_right 0 i
+      -- rademacherSumProd is invariant under coordinate permutation
+      have hsum_inv : ∀ x, rademacherSumProd (n + 1) (swapEquiv x) = rademacherSumProd (n + 1) x := by
+        intro x
+        unfold rademacherSumProd
+        rw [MeasurableEquiv.coe_piCongrLeft]
+        simp only [Equiv.piCongrLeft_apply_eq_cast, hσ_symm, cast_eq]
+        rw [← Finset.sum_equiv σ (g := fun j => x j)]
+        · simp only [Finset.mem_univ, implies_true]
+        · intro j _; rfl
+      have hswap_i : ∀ x, (swapEquiv x) i = x 0 := by
+        intro x
+        show (Equiv.piCongrLeft (fun _ => ℝ) σ) x i = x 0
+        simp only [Equiv.piCongrLeft_apply_eq_cast, cast_eq, hσ_symm, hσ_i]
+      have hShifted : ∀ x, rademacherSumShifted (n + 1) i (swapEquiv x) =
+          rademacherSumShifted (n + 1) 0 x := by
+        intro x; unfold rademacherSumShifted; rw [hsum_inv, hswap_i]
+      have hpreserves : MeasurePreserving swapEquiv (rademacherProductMeasure (n + 1))
+          (rademacherProductMeasure (n + 1)) := by
+        unfold rademacherProductMeasure
+        exact measurePreserving_piCongrLeft (fun _ => rademacherMeasure) σ
+      rw [← hpreserves.integral_comp']
+      congr 1
+      ext x
+      rw [hsum_inv, hShifted]
+    -- Similarly for RHS
+    have hrhs_eq : ∀ i ∈ Finset.univ, ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+      intro i _
+      let σ : Equiv.Perm (Fin (n + 1)) := Equiv.swap 0 i
+      let swapEquiv := MeasurableEquiv.piCongrLeft (fun _ : Fin (n + 1) => ℝ) σ
+      have hσ_symm : σ.symm = σ := Equiv.symm_swap 0 i
+      have hσ_i : σ i = 0 := Equiv.swap_apply_right 0 i
+      have hsum_inv : ∀ x, rademacherSumProd (n + 1) (swapEquiv x) = rademacherSumProd (n + 1) x := by
+        intro x
+        unfold rademacherSumProd
+        rw [MeasurableEquiv.coe_piCongrLeft]
+        simp only [Equiv.piCongrLeft_apply_eq_cast, hσ_symm, cast_eq]
+        rw [← Finset.sum_equiv σ (g := fun j => x j)]
+        · simp only [Finset.mem_univ, implies_true]
+        · intro j _; rfl
+      have hswap_i : ∀ x, (swapEquiv x) i = x 0 := by
+        intro x
+        show (Equiv.piCongrLeft (fun _ => ℝ) σ) x i = x 0
+        simp only [Equiv.piCongrLeft_apply_eq_cast, cast_eq, hσ_symm, hσ_i]
+      have haPlus : ∀ x, aPlusProd (n + 1) i (swapEquiv x) = aPlusProd (n + 1) 0 x := by
+        intro x; unfold aPlusProd; rw [hsum_inv, hswap_i]
+      have haMinus : ∀ x, aMinusProd (n + 1) i (swapEquiv x) = aMinusProd (n + 1) 0 x := by
+        intro x; unfold aMinusProd; rw [hsum_inv, hswap_i]
+      have hpreserves : MeasurePreserving swapEquiv (rademacherProductMeasure (n + 1))
+          (rademacherProductMeasure (n + 1)) := by
+        unfold rademacherProductMeasure
+        exact measurePreserving_piCongrLeft (fun _ => rademacherMeasure) σ
+      rw [← hpreserves.integral_comp']
+      congr 1
+      ext x
+      rw [haPlus, haMinus]
+    -- Both sums equal (n+1) times their respective i=0 terms
+    rw [Finset.sum_eq_card_nsmul hlhs_eq, Finset.sum_eq_card_nsmul hrhs_eq]
+    simp only [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    congr 1
+    -- Now show the i=0 terms are equal
+    exact (integral_sq_diff_eq_integral_sq_shifted (n + 1) f).symm
+  simp_rw [hsum_convert]
+  exact tendsto_sum_sq_diff_four_deriv_sq hf
+
+/-! ### Section 10: Entropy Convergence -/
+
+/-- The function x * log x is bounded on [0, C²] for any C ≥ 0.
+    This is because x * log x → 0 as x → 0⁺ and is continuous on (0, ∞). -/
+lemma mul_log_bounded_on_Icc (C : ℝ) (_ : 0 ≤ C) :
+    ∃ M : ℝ, ∀ x ∈ Set.Icc 0 (C^2), |x * Real.log x| ≤ M := by
+  -- The function x * log x is continuous on ℝ (with convention 0 * log 0 = 0)

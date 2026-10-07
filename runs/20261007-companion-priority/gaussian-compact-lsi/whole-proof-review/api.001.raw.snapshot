@@ -1,0 +1,53 @@
+
+/-- Compact C2 core: actual Gaussian and every finite-count L1 domain,
+and successor mass/log-entropy/derivative-observer and homogeneous entropy limits.
+Zero mass is included; the full flip energy and noncompact extension are separate. -/
+theorem compact_count_gaussian_entropy_limits
+    (f : ℝ → ℝ) (hf : ContDiff ℝ 2 f) (hs : HasCompactSupport f) :
+    let μ : (n : ℕ) → Measure (Fin n → Bool) := fun n =>
+      (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • Measure.count
+    let S : (n : ℕ) → (Fin n → Bool) → ℝ := fun n ε =>
+      (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, if ε j then (1 : ℝ) else -1
+    let γ : Measure ℝ := gaussianReal 0 1
+    Integrable (fun x => (f x)^2) γ ∧
+    Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) γ ∧
+    Integrable (fun x => (deriv f x)^2) γ ∧
+    (∀ n : ℕ,
+      Integrable (fun ε => (f (S n ε))^2) (μ n) ∧
+      Integrable (fun ε => (f (S n ε))^2 * Real.log ((f (S n ε))^2)) (μ n) ∧
+      Integrable (fun ε => (deriv f (S n ε))^2) (μ n)) ∧
+    Tendsto (fun n : ℕ => ∫ ε, (f (S (n+1) ε))^2 ∂μ (n+1)) atTop
+      (𝓝 (∫ x, (f x)^2 ∂γ)) ∧
+    Tendsto (fun n : ℕ => ∫ ε,
+      (f (S (n+1) ε))^2 * Real.log ((f (S (n+1) ε))^2) ∂μ (n+1)) atTop
+      (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ)) ∧
+    Tendsto (fun n : ℕ => ∫ ε, (deriv f (S (n+1) ε))^2 ∂μ (n+1)) atTop
+      (𝓝 (∫ x, (deriv f x)^2 ∂γ)) ∧
+    Tendsto (fun n : ℕ =>
+      (∫ ε, (f (S (n+1) ε))^2 * Real.log ((f (S (n+1) ε))^2) ∂μ (n+1)) -
+      (∫ ε, (f (S (n+1) ε))^2 ∂μ (n+1)) *
+        Real.log (∫ ε, (f (S (n+1) ε))^2 ∂μ (n+1))) atTop
+      (𝓝 ((∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -
+        (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ))) := by
+  have hA : Continuous (fun x => (f x)^2) := hf.continuous.pow 2
+  have sA : HasCompactSupport (fun x => (f x)^2) := by
+    simpa only [Function.comp_def] using hs.comp_left (g := fun t : ℝ => t^2) (by simp)
+  have hB : Continuous (fun x => (f x)^2 * Real.log ((f x)^2)) :=
+    Real.continuous_mul_log.comp hA
+  have sB : HasCompactSupport (fun x => (f x)^2 * Real.log ((f x)^2)) := by
+    simpa only [Function.comp_def] using
+      sA.comp_left (g := fun t : ℝ => t * Real.log t) (by simp)
+  have hC : Continuous (fun x => (deriv f x)^2) :=
+    (hf.continuous_deriv (by norm_num)).pow 2
+  have sC : HasCompactSupport (fun x => (deriv f x)^2) := by
+    simpa only [Function.comp_def] using
+      hs.deriv.comp_left (g := fun t : ℝ => t^2) (by simp)
+  rcases compact_observer (fun x => (f x)^2) hA sA with ⟨iA, jA, tA⟩
+  rcases compact_observer (fun x => (f x)^2 * Real.log ((f x)^2)) hB sB
+    with ⟨iB, jB, tB⟩
+  rcases compact_observer (fun x => (deriv f x)^2) hC sC with ⟨iC, jC, tC⟩
+  have tE := tB.sub ((Real.continuous_mul_log.continuousAt.tendsto).comp tA)
+  exact ⟨iA, iB, iC, fun n => ⟨jA n, jB n, jC n⟩, tA, tB, tC, tE⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactEntropy
+

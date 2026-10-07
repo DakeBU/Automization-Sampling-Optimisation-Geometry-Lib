@@ -1,0 +1,18 @@
+lemma deriv_sq_eq_norm_fderiv_sq (f : ℝ → ℝ) (x : ℝ) :
+    (deriv f x)^2 = ‖fderiv ℝ f x‖^2 := by
+  have hnorm : ‖deriv f x‖ = ‖fderiv ℝ f x‖ := by
+    simp [norm_deriv_eq_norm_fderiv (f := f) (x := x)]
+  calc
+    (deriv f x)^2 = ‖deriv f x‖^2 := by
+      simp [Real.norm_eq_abs, sq_abs]
+    _ = ‖fderiv ℝ f x‖^2 := by
+      simp [hnorm]
+
+theorem gaussian_logSobolev_CompSmo_fderiv {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    LogSobolev.entropy stdGaussianMeasure (fun x => (f x)^2) ≤
+    2 * ∫ x, ‖fderiv ℝ f x‖^2 ∂stdGaussianMeasure := by
+  simpa [deriv_sq_eq_norm_fderiv_sq] using (gaussian_logSobolev_CompSmo (f := f) hf)
+
+end GaussianLSI
+
+end

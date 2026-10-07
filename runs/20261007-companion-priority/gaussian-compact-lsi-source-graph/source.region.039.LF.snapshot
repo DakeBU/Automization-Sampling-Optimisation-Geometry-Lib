@@ -1,0 +1,21 @@
+  -- Step 1: Transfer entropy from rademacherLaw to rademacherProductMeasure
+  rw [entropy_map_eq hf.continuous]
+  -- Step 2: Transfer from rademacherProductMeasure to bernoulliUniform via toRademacher
+  have hg_cont : Continuous (fun x => f (rademacherSumProd (n + 1) x)) :=
+    hf.continuous.comp (continuous_rademacherSumProd (n + 1))
+  rw [← entropy_bernoulli_eq_rademacher hg_cont]
+  -- Step 3: Apply the discrete Bernoulli log-Sobolev inequality
+  have hbound := bernoulli_logSobolev (n + 1)
+    (fun ε => f (rademacherSumProd (n + 1) (toRademacher ε)))
+  -- Step 4: Transform the RHS to the sum of squared differences
+  calc LogSobolev.entropy (bernoulliUniform (n + 1))
+        (fun ε => (f (rademacherSumProd (n + 1) (toRademacher ε)))^2)
+      ≤ (1/2) * ∫ ε, gradientNormSq (n + 1)
+          (fun ε' => f (rademacherSumProd (n + 1) (toRademacher ε'))) ε
+          ∂(bernoulliUniform (n + 1)) := hbound
+    _ = (1/2) * ∑ i : Fin (n + 1), ∫ x,
+          (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) i x))^2
+            ∂rademacherProductMeasure (n + 1) := by
+        rw [gradient_eq_sum_shifted hf.continuous]
+
+end BernoulliLSI

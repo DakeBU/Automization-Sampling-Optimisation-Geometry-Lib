@@ -1,0 +1,57 @@
+/-- The genuine sum over every Boolean coordinate has Gaussian limit four times
+the derivative-square integral. All finite-count L1 domains, including n=0,
+are conclusions; no bound, probability or convergence certificate is supplied. -/
+theorem compact_count_gaussian_flip_energy_limit
+    (f : ℝ → ℝ) (hf : ContDiff ℝ 2 f) (hs : HasCompactSupport f) :
+    let μ : (n : ℕ) → Measure (Fin n → Bool) := fun n =>
+      (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • Measure.count
+    let S : (n : ℕ) → (Fin n → Bool) → ℝ := fun n ε =>
+      (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, if ε j then (1 : ℝ) else -1
+    let γ : Measure ℝ := gaussianReal 0 1
+    Integrable (fun x => (deriv f x)^2) γ ∧
+    (∀ n : ℕ, Integrable
+      (fun ε : Fin n → Bool => ∑ j : Fin n,
+        (f (S n (Function.update ε j (!ε j))) - f (S n ε))^2) (μ n)) ∧
+    Tendsto (fun n : ℕ => ∫ ε : Fin (n+1) → Bool,
+      (∑ j : Fin (n+1),
+        (f (S (n+1) (Function.update ε j (!ε j))) - f (S (n+1) ε))^2)
+      ∂μ (n+1)) atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂γ)) := by
+  change Integrable (fun x => (deriv f x)^2) (gaussianReal 0 1) ∧
+    (∀ n, Integrable (flipEnergy f n) (countLaw n)) ∧
+    Tendsto (fun n => ∫ ε, flipEnergy f (n+1) ε ∂countLaw (n+1)) atTop
+      (𝓝 (4 * ∫ x, (deriv f x)^2 ∂gaussianReal 0 1))
+  rcases GaussianCompactEntropy.compact_count_gaussian_entropy_limits f hf hs
+    with ⟨_, _, iC, jC, _, _, tC, _⟩
+  change Tendsto (fun n => ∫ ε, (deriv f (normalizedSum (n+1) ε))^2 ∂countLaw (n+1))
+    atTop (𝓝 (∫ x, (deriv f x)^2 ∂gaussianReal 0 1)) at tC
+  have iE (n : ℕ) : Integrable (flipEnergy f n) (countLaw n) := Integrable.of_finite
+  have iD (n : ℕ) : Integrable (fun ε => (deriv f (normalizedSum n ε))^2) (countLaw n) :=
+    (jC n).2.2
+  obtain ⟨B, K, hB0, hK0, hB, hK⟩ := compact_derivative_bounds f hf hs
+  have hi (n : ℕ) :
+      ‖(∫ ε, flipEnergy f (n+1) ε ∂countLaw (n+1)) -
+        4 * (∫ ε, (deriv f (normalizedSum (n+1) ε))^2 ∂countLaw (n+1))‖ ≤
+        16 * B * K * (Real.sqrt ((n+1 : ℕ) : ℝ))⁻¹ := by
+    rw [← integral_const_mul, ← integral_sub (iE (n+1)) ((iD (n+1)).const_mul 4)]
+    have hp (ε : Fin (n+1) → Bool) :
+        ‖flipEnergy f (n+1) ε - 4 * (deriv f (normalizedSum (n+1) ε))^2‖ ≤
+          16 * B * K * (Real.sqrt ((n+1 : ℕ) : ℝ))⁻¹ := by
+      simpa only [flipEnergy, Real.norm_eq_abs] using
+        full_flip_pointwise_error f (hf.differentiable (by norm_num)) B K hB0 hK0 hB hK
+          (n+1) (Nat.succ_pos n) ε
+    have h := norm_integral_le_of_norm_le_const (μ := countLaw (n+1))
+      (Filter.Eventually.of_forall hp)
+    simpa only [measureReal_def, measure_univ, ENNReal.toReal_one, mul_one] using h
+  have tr : Tendsto (fun n : ℕ => (Real.sqrt ((n+1 : ℕ) : ℝ))⁻¹) atTop (𝓝 0) :=
+    tendsto_inv_atTop_zero.comp
+      (Real.tendsto_sqrt_atTop.comp
+        (tendsto_natCast_atTop_atTop.comp (tendsto_add_atTop_nat 1)))
+  have te : Tendsto (fun n : ℕ =>
+      (∫ ε, flipEnergy f (n+1) ε ∂countLaw (n+1)) -
+        4 * (∫ ε, (deriv f (normalizedSum (n+1) ε))^2 ∂countLaw (n+1)))
+      atTop (𝓝 0) := squeeze_zero_norm hi (by simpa using tr.const_mul (16*B*K))
+  have t := te.add (tC.const_mul 4)
+  simp only [zero_add, sub_add_cancel] at t
+  exact ⟨iC, iE, t⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianFlipEnergy

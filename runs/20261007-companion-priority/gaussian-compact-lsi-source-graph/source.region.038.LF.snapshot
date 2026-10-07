@@ -1,0 +1,19 @@
+  -- Entropy = ∫ f² log f² - (∫ f²) log (∫ f²)
+  -- Both terms converge separately
+  unfold LogSobolev.entropy
+  -- Term 1: ∫ f² log f² converges
+  have h1 : Tendsto (fun n => ∫ x, (f x)^2 * Real.log ((f x)^2) ∂(rademacherLaw (n + 1)).toMeasure)
+      atTop (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂stdGaussianMeasure)) :=
+    tendsto_integral_f_sq_mul_log hf
+  -- Term 2: ∫ f² converges
+  have h2 : Tendsto (fun n => ∫ x, (f x)^2 ∂(rademacherLaw (n + 1)).toMeasure)
+      atTop (𝓝 (∫ x, (f x)^2 ∂stdGaussianMeasure)) :=
+    tendsto_integral_f_sq hf
+  -- Term 3: (∫ f²) * log(∫ f²) converges (composition of h2 with continuous function x * log x)
+  have h3 : Tendsto (fun n => (∫ x, (f x)^2 ∂(rademacherLaw (n + 1)).toMeasure) *
+      Real.log (∫ x, (f x)^2 ∂(rademacherLaw (n + 1)).toMeasure))
+      atTop (𝓝 ((∫ x, (f x)^2 ∂stdGaussianMeasure) * Real.log (∫ x, (f x)^2 ∂stdGaussianMeasure))) := by
+    -- Use that x * log x is continuous, so g(aₙ) → g(a) when aₙ → a
+    exact Real.continuous_mul_log.continuousAt.tendsto.comp h2
+  -- Combine: entropy = term1 - term3
+  exact h1.sub h3

@@ -1,0 +1,9 @@
+  rcases Metric.mem_nhds_iff.1 hs with ⟨ε, ε_pos, hε⟩
+  have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos
+  have diff_x₀ : ∀ᵐ a ∂μ, HasFDerivAt (F · a) (F' x₀ a) x₀ :=
+    h_diff.mono fun a ha ↦ ha x₀ (hε x₀_in)
+  have : ∀ᵐ a ∂μ, LipschitzOnWith (Real.nnabs (bound a)) (F · a) (ball x₀ ε) := by
+    apply (h_diff.and h_bound).mono
+    rintro a ⟨ha_deriv, ha_bound⟩
+    refine (convex_ball _ _).lipschitzOnWith_of_nnnorm_hasFDerivWithin_le
+      (fun x x_in ↦ (ha_deriv x (hε x_in)).hasFDerivWithinAt) fun x x_in ↦ ?_

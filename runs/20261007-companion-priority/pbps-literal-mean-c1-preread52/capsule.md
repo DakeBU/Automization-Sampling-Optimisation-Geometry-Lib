@@ -1,0 +1,9 @@
+Recommend gaussian_reflected_mean_c1 for actual posterior/reflection laws, with μ probability, η>0, C1 compact f only. The real new ingredient is C1 of N(y)=∫f(2x−y)exp(−||y−x||²/(2η))dμ. No moment or supplied derivative/domination/closure certificate is needed.
+
+Compact C1 f and fderiv have global finite bounds Mf,Mf′. Exact parameter derivative G is bounded uniformly by Mf′+Mf(1+2η)/η. Pinned dominated differentiation and dominated continuity yield C1N; existing true Gaussian convolution producer gives positive C2Z, and literal normalized posterior/reflection mean=N/Z gives C1 actualmean. PrivateGaussian bounds are not callable exports: the needed calculus bound must be produced/factored internally.
+
+Actual50 SAME-S connection is pointwise, not AE: its every-y volume-tilt density equals reflection of the actual Gibbs posterior. Existing ConditionalScore local58–151 contains the exact normalization/affine-Haar argument using real public APIs, but the helper is local, so it is an internal integration obligation. Function extensionality then transfers C1 to literalTf. This also reconciles the source score-covariance derivative with the authored Gaussian numerator route without changing the law or sharp coefficient.
+
+c1_in_closed_gradient requires only actualfiniteν, genuineclosableD/exactgraph, C1Tf and the two trueLp outputs. Actual50 supplies the latter; independentlyverified51D will supply the former. It needs no extra compactness ofTf or H1 certificate. 51is still pending, and fullroughB13 remains excluded.
+
+The complete ≤7-step route, exact prospective shape, source anchors, actual/rawLF APIs and all parent/private exposures are recorded. No compiler/proof/claim/canonical changes or formal truth admission. Strictly smaller fallback is C1N under the same real binders, not a wrapper assuming derivative continuity.

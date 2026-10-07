@@ -1,0 +1,100 @@
+import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.Calculus.ParametricIntegral
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.Probability.Moments.CovarianceBilin
+import Mathlib.Tactic
+import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianAugmentation
+
+open MeasureTheory ProbabilityTheory Filter Set
+open scoped Topology InnerProductSpace
+/-!
+# Actual Gaussian convolution potential regularity
+
+The actual independent Gaussian add-noise marginal has a positive density
+C_eta Z_eta. Derive global C2 regularity of its negative logarithm, with no
+input density or moment assumption, from explicit Gaussian first/second
+derivative domination against the probability input law.
+
+This is the analytic producer behind SPHMC2609.06906v1 Section4.1 smoothing
+and PBPS2609.06905v1 Section2.2 augmentation normalization. Actual posterior
+score and covariance derivative identities are proved below. Quantitative
+covariance inequalities/curvature, higher regularity, invariance, algorithm
+error and either main theorem remain separate. The exact density prefactor
+includes dimension zero.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity
+
+noncomputable section
+set_option backward.isDefEq.respectTransparency false
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+private local instance : NormedSpace ℝ ℝ := NormedField.toNormedSpace
+private local instance : NormedAddCommGroup (E →L[ℝ] ℝ) := ContinuousLinearMap.toNormedAddCommGroup
+private local instance : NormedSpace ℝ (E →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace
+
+private def gaussianWeight (η : ℝ) (y x : E) : ℝ := Real.exp (-‖y-x‖^2/(2*η))
+private def gaussianFirst (η : ℝ) (y x : E) : E →L[ℝ] ℝ :=
+  (-gaussianWeight η y x/η) • innerSL ℝ (y-x)
+
+private theorem gaussianDeriv (η : ℝ) (y x : E) :
+    HasFDerivAt (fun z => gaussianWeight η z x) (gaussianFirst η y x) y := by
+  have hd := (((hasFDerivAt_id y).sub_const x).norm_sq.const_mul (-1/(2*η))).exp
+  convert hd using 1
+  · funext z
+    dsimp only [gaussianWeight, id]
+    congr 1
+    ring
+  · ext v
+    dsimp only [id]
+    have he : -‖y-x‖^2/(2*η) = (-1/(2*η))*‖y-x‖^2 := by ring
+    simp only [gaussianFirst,gaussianWeight,he,smul_apply,
+      ContinuousLinearMap.comp_apply,ContinuousLinearMap.id_apply,smul_eq_mul,
+      innerSL_apply_apply]
+    ring
+
+private theorem gaussianSmooth (η : ℝ) (x : E) : ContDiff ℝ 2 (fun y => gaussianWeight η y x) := by
+  have hn : ContDiff ℝ 2 (fun y : E => ‖y-x‖^2) :=
+    (contDiff_id.sub contDiff_const).norm_sq (𝕜 := ℝ)
+  have hm : ContDiff ℝ 2 (fun y : E => (-1/(2*η))*‖y-x‖^2) := contDiff_const.mul hn
+  convert hm.exp using 1 <;> try rfl
+  funext y
+  dsimp only [gaussianWeight, id]
+  congr 1
+  ring
+
+private theorem weight_bounds {η : ℝ} (hη : 0 < η) (y x : E) :
+    0 < gaussianWeight η y x ∧ gaussianWeight η y x ≤ 1 ∧
+      gaussianWeight η y x * ‖y-x‖^2 ≤ 2*η := by
+  have hw := Real.exp_pos (-‖y-x‖^2/(2*η))
+  have h1 : gaussianWeight η y x ≤ 1 := Real.exp_le_one_iff.mpr
+    (div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity))
+  have hb := Real.mul_exp_neg_le_exp_neg_one (‖y-x‖^2/(2*η))
+  have he : Real.exp (-1) ≤ 1 := Real.exp_le_one_iff.mpr (by norm_num)
+  have hb' : gaussianWeight η y x * (‖y-x‖^2/(2*η)) ≤ 1 := by
+    dsimp [gaussianWeight]; simpa [mul_comm, neg_div] using hb.trans he
+  have heq : gaussianWeight η y x * (‖y-x‖^2/(2*η)) =
+      (gaussianWeight η y x * ‖y-x‖^2)/(2*η) := by ring
+  rw [heq, div_le_iff₀ (by positivity)] at hb'
+  exact ⟨hw,h1,by simpa using hb'⟩
+
+private theorem first_bound {η : ℝ} (hη : 0 < η) (y x : E) :
+    ‖gaussianFirst η y x‖ ≤ (1+2*η)/η := by
+  obtain ⟨hw,h1,h2⟩ := weight_bounds hη y x
+  have hr : ‖y-x‖ ≤ 1+‖y-x‖^2 := by nlinarith [sq_nonneg (‖y-x‖-1)]
+  have hb : gaussianWeight η y x * ‖y-x‖ ≤ 1+2*η := by
+    calc
+      _ ≤ gaussianWeight η y x * (1+‖y-x‖^2) := mul_le_mul_of_nonneg_left hr hw.le
+      _ ≤ 1+2*η := by nlinarith
+  rw [gaussianFirst, norm_smul, Real.norm_eq_abs, abs_div,
+    abs_neg, abs_of_pos hw, abs_of_pos hη, innerSL_apply_norm]
+  rw [div_mul_eq_mul_div, div_le_div_iff_of_pos_right hη]
+  exact hb
+
+private def realDual : E →L[ℝ] (E →L[ℝ] ℝ) := innerSL ℝ
+
+private def gaussianSecond (η : ℝ) (y x : E) : E →L[ℝ] (E →L[ℝ] ℝ) :=
+  (-gaussianWeight η y x/η) • realDual +
+    ((-1/η) • gaussianFirst η y x).smulRight (innerSL ℝ (y-x))

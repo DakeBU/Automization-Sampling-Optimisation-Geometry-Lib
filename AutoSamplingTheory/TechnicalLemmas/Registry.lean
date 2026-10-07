@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.reflectedPosterior.compactMeanC1"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianReflectedMean.gaussian_reflected_mean_c1"
+    upstreamDecl := "Authored literal Gaussian posterior-reflection compact-observer regularity for PBPS C.1"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gaussian", "conditional-mean", "C1"]
+    saldUse := "Shared Gaussian posterior compact-observer regularity; no SALD admission"
+    note := "Any probability mu on finite real Hilbert/Borel E, eta>0 and signed compact C1 observer f, including rank0. Literal R_y=mu.tilted(-norm(x-y)^2/(2eta)), S_y=R_y.map(2x-y): its exact every-y mean is C1. Compact observer/fderiv bounds, genuine dominated Frechet numerator derivative and its continuity, likelihood/posterior/map L1, positive C2 normalizer and actual N/Z identity are produced internally. No moment/density/domination/normalizer/derivative-continuity/closed-gradient certificate. Actual PBPS same mu/J conditional-kernel consumer retains source curvature/step assumptions; noncentered rank0 constant has real mean1 and actual derivative0. Authored analytic background generalization for C.1. Source-volume SAME-S identity, Tf closure/full rough B13/Gamma/main/errors/expected costs/composition remain separate. Independently verified a18cd1cf8e8310f228391d4c53a2ac8f1a8900ec."
+  },
+  {
     key := "entropy.two-point.signed-squared"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.TwoPointEntropy.two_point_squared_entropy_le_half_sq_sub"
     upstreamDecl := "Pinned SLT TwoPoint.rothaus_lemma / BernoulliLSI.bernoulli_logSobolev; ASTIS authored signed extension / RMS induction"

@@ -1,5 +1,47 @@
 # Companion-paper formalization handoff
 
+## Literal reflected Gaussian posterior mean C1 (2026-10-08)
+
+Exact497 is independently VERIFIED at a18cd1cf8e8310f228391d4c53a2ac8f1a8900ec. For any probability mu,
+eta>0, compact C1 signed f and finite real Hilbert/Borel E including rank0,
+the literal posterior R_y=mu.tilted(-norm(x-y)^2/(2eta)) reflected by
+x->2x-y has a globally C1 exact mean. Compact f/fderiv bounds, Gaussian
+derivative domination, genuine numerator differentiation, continuous
+integrated derivative, genuine likelihood/posterior/mapped L1 and positive
+C2 normalized N/Z identity are all internal. No analytic certificate is a binder.
+
+Actual PBPS Tests produce Gibbs probability internally under unchanged
+source Hessian/step assumptions and consume the SAME mu/J everywhere-defined
+conditional R. Rank0 NONCENTERED constant1 has mean1 and actual derivative0.
+Focused3893, independent complete mathematics, fresh anonymous statement/
+source-text-blind reconstruction, own-primary-first source0 and exact-commit
+verification passed in their named scopes. Only standard3 axioms occur.
+Inherited general AGENTS source identities were disclosed by the decoder;
+strict source-identity blindness is not claimed. Its native plain-string
+identity required no projection. All actual early API/typeclass negatives,
+compiled smaller chain-rule diagnosis and source-topology negative/minimal
+separately reviewed repair are preserved. No exploratory local structure
+instances or private theorem providers remain in production.
+
+Registry493 and root/Test imports enter the original PhaseKernel sole
+serialized lane; aggregate52 and scoped graph/reader seals follow this
+checkpoint. Prior51 aggregate and independent scoped Proof/Exposition seals
+passed, with presentation debt; all four actual796ba69c remote workflows
+reached SUCCESS. Deployment was skipped. Main/live/postmerge PURIFIED and
+full-reader completion remain distinct.
+
+The next bounded edge is EVERY-y equality to the paper's source-volume
+S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)), then actual literal Tf C1.
+Existing exported AffineGibbs is a candidate reuse, not a new proof receipt.
+AE conditional-law uniqueness cannot transfer pointwise derivatives.
+Actual Tf closed-gradient membership requires its already produced scalar/
+vector Lp representatives and the existing C1 domain adapter. Full rough
+B13, Gamma/half-turn/hypocoercivity/nonexplosion/implementation/error/cost,
+SPHMC main results and actual-input composition remain open. Gaussian Cloud
+and midpoint follow the existing four-paper Goal. Older Chewi/frontiers/
+cycles/memory are preserved. TV proximity does not transfer unbounded costs.
+This result completes no paper or Goal.
+
 ## Actual Gaussian outer-gradient domain (2026-10-08)
 
 The exact 697-byte statement is independently VERIFIED at 19f7e6bed7975fac9b7e1ea0b0b95d0c084083f6.

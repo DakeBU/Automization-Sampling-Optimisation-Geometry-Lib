@@ -204,6 +204,7 @@ import Tests.ProximalBPSConditionalGradientVariance
 import Tests.ProximalBPSConditionalGradientEnergy
 import Tests.ProximalBPSMacroscopicEnergy
 import Tests.ProximalBPSGaussianMarginalGradient
+import Tests.ProximalBPSGaussianReflectedMean
 import Tests.ProximalBPSMacroscopicRepresentative
 import Tests.ProximalBPSConditionalScoreDomain
 import Tests.ProximalBPSConditionalBochner

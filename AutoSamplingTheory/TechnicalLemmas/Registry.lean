@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "entropy.gaussian.compact-logSobolev"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactLogSobolev.compact_gaussian_logSobolev"
+    upstreamDecl := "Pinned compact GaussianLSI source route; actual ASTIS34/36/37 and Mathlib closed-order limit"
+    upstreamFile := "SLT d0f506f0 external reference; Mathlib db584cd6 OrderClosed/RingCommute/MonoidDefs"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "Gaussian-LSI-background", "compact-support", "SPHMC"]
+    saldUse := "Actual SPHMC omitted Gaussian LSI background; no SALD/second-route admission"
+    note := "Actual compact C2 scalar Gaussian homogeneous entropy<=2 derivative-square integral, signed/zero mass included. Internally consumes actual half Bernoulli LSI, true entropy convergence and fullflip limit4; only f/C2/compact caller inputs. Exact variance1; no law/domain/inequality/limit certificate. Continuous product/Hilbert/noncompact/T2/FIRST/main/cost open. Independently verified d8cbf270a3627d99971023d783c785d0585be18a."
+  },
+  {
     key := "energy.gaussian.compact-count-full-flip-limit"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianFlipEnergy.compact_count_gaussian_flip_energy_limit"
     upstreamDecl := "Pinned Mathlib compact derivative/MVT/count integral APIs; SLT full shift-energy source reference"

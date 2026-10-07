@@ -1,5 +1,35 @@
 # Companion-paper formalization handoff
 
+## Actual compact scalar Gaussian log-Sobolev inequality (2026-10-07)
+
+The exact compact-C2 scalar homogeneous Gaussian inequality is independently
+VERIFIED at d8cbf270a3627d99971023d783c785d0585be18a. Actual34 half Boolean LSI,36 entropy convergence and37
+fullflip energy4 are its three genuine direct ASTIS parents. Pointwise square
+orientation and scalar factor1/2*4=2 are internal, then true closed real order
+passes the finite inequalities to their limits. Only f/C2/compact support are
+public analytic inputs; signed and zero mass are included. Actual Test consumers
+are the zero observer and the signed nonzero x times smoothUnitCutoff.
+Exact308-byte StatementSeal and separately validated61node169edge2OR source
+topology preceded proof; wholeproof/freshblind/source/exactcommit reviews are
+independent. No normalization/domain/LSI/limit certificate is supplied.
+
+Shared stabilization adds Registry leaf482, genuine production/Test imports
+and four mathematical formula steps plus folded actual Lean in the original
+companion. Aggregate/source/graph/static/repository/Exposition receipts remain
+separate. Full Test/copy/download/bundles/rendered/live and postmerge PURIFIED
+delivery are open; no full GaussianLSI or paper-completion badge changes.
+
+Next needed edge: bounded nonnegative continuous-product entropy subadditivity,
+with zero fibers/mass and actual L1 domains, not two applications of KL DPI or
+Boolean induction. Its prospective1029-byte statement has only type-only probe
+and source review in progress; no claim/proof. Then actual finite Gaussian
+tensorization, finite-Hilbert law/Parseval transport and one radial C2 cutoff
+for actual32/33, separate GaussianT2/FIRST4.6, Wp/proxy-warmness, full algorithms,
+main results and expected-query-cost composition remain open. TV proximity
+does not transfer unbounded expected costs. Older Chewi/SampleWiki/cycle memory,
+original PhaseKernel sole stabilization owner and draftPR313 are preserved.
+The single whole-paper Goal continues.
+
 ## Actual full Boolean flip-energy Gaussian limit (2026-10-07)
 
 The compact-C2 scalar full energy producer is independently VERIFIED at c3bbf938a6d46de7d43036d9f066ba68a3e6be6f.

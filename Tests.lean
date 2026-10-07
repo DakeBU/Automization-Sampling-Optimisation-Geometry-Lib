@@ -264,6 +264,7 @@ import Tests.BernoulliLogSobolev
 import Tests.BalancedRademacherCLT
 import Tests.GaussianCompactEntropy
 import Tests.GaussianFlipEnergy
+import Tests.GaussianCompactLogSobolev
 import Tests.GradientAECongruence
 import Tests.FinitePowerSeries
 import Tests.UnitSphere

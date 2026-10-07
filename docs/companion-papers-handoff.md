@@ -1,5 +1,42 @@
 # Companion-paper formalization handoff
 
+## Actual bounded binary product entropy (2026-10-07)
+
+The actual bounded heterogeneous binary probability-product entropy producer
+is independently VERIFIED at 913438726472dcac2483cefbe6b4b2f4746cbe74. Its exact1029-byte statement supplies
+real joint/all-slice/marginal function and tlogt integrability, then
+J_A+J_B<=J_F+phi(m). Nonnegativity and an existential upper bound are pointwise;
+zero fibers/mass are included. All domains, positive regularization, actual
+AB/m comparison mass, weighted-log Fubini and bounded continuous tlogt DCT
+are internally produced. The public caller supplies no positivity, normalization,
+integrability, desired-inequality or limit certificate. The authored bounded
+binary sufficient route is explicitly distinct from upstream unbounded AE
+Fin-coordinate entropy and printed FIRST4.6. Exact StatementSeal plus independently
+accepted repaired55node100edge2OR source topology preceded proof; original
+four-edge BLOCKED retained. Wholemath/freshblind39/source/exactcommit are separate.
+All15 private providers are reachable. Independent zero-mass/nonzero-null-slice
+stress and actual zero/nonseparable signed C2 compact product consumers pass.
+
+Serialized shared integration adds Registry483 and genuine production/Test
+imports; six formula proof steps and folded actual Lean use the original
+SPHMC companion. Static graph/site/repository/Exposition and full reader
+Test/copy/download/bundles/browser/live/PURIFIED acceptance remain distinct.
+Actual38 c4ec7d26 has four terminal remoteCI successes; site deployment skipped.
+Upstream main01851dc0 protocol-only OpenAI Math intake is synchronized, without
+using its mathematics or changing this Goal's companion priority.
+
+Next mathematical consumer: true finite-coordinate compact Gaussian entropy
+assembly using this binary producer and actual38 scalarLSI. Do not assume an
+RMS marginal square root is C2; actual fixed-coordinate slice regularity/support,
+partial energy domains and true Fubini must be proved. Actual finite-Hilbert
+Gaussian law/orthonormal Parseval and one radial noncompact C2 cutoff for32/33,
+separate GaussianT2/FIRST4.6, smoothing/Picard/Wp/warmness, PBPS reflection/
+invariance/nonexplosion/hypocoercivity/implementation/cost, both full paper
+results and actual-input expected query-cost composition remain open.
+TV proximity does not transfer unbounded expected costs. Older Chewi/
+SampleWiki/cycle memory, original PhaseKernel sole stabilization owner and
+draftPR313 remain preserved. The single whole-paper Goal continues.
+
 ## Actual compact scalar Gaussian log-Sobolev inequality (2026-10-07)
 
 The exact compact-C2 scalar homogeneous Gaussian inequality is independently

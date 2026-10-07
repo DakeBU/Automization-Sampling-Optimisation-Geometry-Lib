@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "entropy.product.bounded-subadditivity"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy.bounded_product_entropy_subadditivity"
+    upstreamDecl := "Pinned SLT SubAddEnt source; authored bounded heterogeneous binary regularization route"
+    upstreamFile := "SLT d0f506f0 external reference; Mathlib db584cd6 Prod/NegMulLog/DominatedConvergence"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "probability-product", "zero-fibers", "SPHMC"]
+    saldUse := "Actual SPHMC finite GaussianLSI background consumer; no SALD/second-route admission"
+    note := "Actual bounded measurable nonnegative binary probability-product entropy with joint/all-slice/marginal L1 and zero mass/fibers. Positive AB/m comparison, logsum, genuine Fubini and xlogx DCT internally produced. No public positivity/domain/normalization/desired-inequality certificate. Finite tensorization/GaussianLSI/Hilbert/cutoff/T2/FIRST/main/cost open. Independently verified 913438726472dcac2483cefbe6b4b2f4746cbe74."
+  },
+  {
     key := "entropy.gaussian.compact-logSobolev"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactLogSobolev.compact_gaussian_logSobolev"
     upstreamDecl := "Pinned compact GaussianLSI source route; actual ASTIS34/36/37 and Mathlib closed-order limit"

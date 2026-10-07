@@ -64,6 +64,7 @@ import Tests.GibbsGradientMean
 import Tests.SmoothedScorePosterior
 import Tests.GaussianSqrtDensityDomain
 import Tests.StandardizedRGOSqrtDensity
+import Tests.StandardizedRGORelativeEntropy
 import Tests.GibbsCovarianceLower
 import Tests.IsotropicGaussianDensity
 import Tests.ProximalBPSGaussianAugmentation

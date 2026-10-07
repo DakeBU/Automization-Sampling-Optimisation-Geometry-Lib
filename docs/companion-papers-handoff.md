@@ -1,5 +1,40 @@
 # Companion-paper formalization handoff
 
+## Actual standardized posterior finite entropy 2026-10-07
+
+`ASTIS-SA-20261007-StandardizedRGORelativeEntropy` is independently VERIFIED at
+`3f01c4be14739067fc458033a74fa3937367fa61`. The actual internally produced stationary proximal
+point is unique. One parent32 witness supplies the SAME p, true quadratic RGO R,
+actual affine standardized r, literal residual rho, Gaussian partition Z and
+relative density q. No selector, partition/domain, KL, LSI or T2 certificate
+is supplied by the caller. All eta>0 and dimension0 remain supported.
+
+Canonical `klDiv r gamma` is genuinely finite, and its canonical llr is
+integrable under r. The equality llr=log q is only r-almost-everywhere.
+The literal residual is integrable and the exact two formulas are
+KL.toReal = integral_gamma(q log q) = -integral_r rho - log Z.
+Derived uniqueness may identify separately produced stationary witnesses;
+it never licenses differentiating a merely AE canonical representative.
+
+Focused3759 includes actual eta2/y3 proximalp1/residualu-square and canonical
+finite entropy, plus actual zero-dimensional entropy0; all3 printed targets
+use only standard3 axioms. Independent wholeproof, fresh blind33 plus its
+separately reviewed verbatim metadata adapter, anti-anchored source and exact
+commit gates are retained under `standardized-rgo-relative-entropy/`.
+Shared integration adds only the genuine source module and its Test import;
+the generic Registry remains476. Aggregate/site/graph/seals/own-headCI are
+separate until their exact receipts exist; draft PR313 remains unmerged.
+
+Next dependency is genuine Gaussian function LSI, then independent Gaussian T2.
+The positive noncompact C2 square root already has genuine L2/entropy domains.
+The compact-only external1D LSI cannot consume it without a genuine extension.
+A bounded independent preread finds a shorter actual C2 route: compact1D LSI,
+finite product/orthonormal transport, then smooth cutoff entropy/energy limits.
+No general W12 or canonicalRN gradient premise is silently introduced.
+FIRST(4.6), vector-mean/bias(4.2), fullLemma4.2, actual algorithms/main/work and
+composition remain OPEN. PBPS and older frontiers are preserved. TV proximity
+does not transfer unbounded expected cost. The whole Goal continues.
+
 ## Actual Gaussian square-root density domains 2026-10-07
 
 `ASTIS-SA-20261007-GaussianSqrtDensityDomain` is independently VERIFIED at

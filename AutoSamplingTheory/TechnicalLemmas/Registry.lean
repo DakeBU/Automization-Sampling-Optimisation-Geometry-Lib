@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "entropy.gaussian.compact-count-observer-limits"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactEntropy.compact_count_gaussian_entropy_limits"
+    upstreamDecl := "Pinned Mathlib weak-integral/compact support APIs; SLT compact entropy background reference"
+    upstreamFile := "Mathlib db584cd6; ASTIS authored actual count adapter; SLT d0f506f0 external reference only"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "Gaussian-background", "compact-support", "SPHMC"]
+    saldUse := "Actual SPHMC omitted Gaussian LSI background; no SALD/second-route admission"
+    note := "Actual compact C2 Gaussian and allN normalized Bool-count L1 domains for f squared, f squared log f squared and derivative squared; successor three integral limits and homogeneous entropy limit. Actual35 law internally called, no caller domain/law/limit/positive-mass certificate. Fullflip-energy4, GaussianLSI/noncompact/T2/main/cost remain open. Independently verified 421496a5de7355830c0b4904ea10f33722ed3602."
+  },
+  {
     key := "functional-inequality.gibbs-local-l2",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume",
     upstreamDecl := "memLp_two_iff_integrable_sq_norm; integrable_tilted_iff; absolutelyContinuous_tilted",

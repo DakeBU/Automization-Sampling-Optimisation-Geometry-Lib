@@ -1,5 +1,33 @@
 # Companion-paper formalization handoff
 
+## Actual compact Gaussian observer and entropy integration (2026-10-07)
+
+The exact compact-C2 scalar integration is independently VERIFIED at 421496a5de7355830c0b4904ea10f33722ed3602.
+It internally consumes the actual35 count-law CLT and produces three Gaussian
+and everyN finite-count L1 domains, three successor observer integral limits,
+and the homogeneous entropy limit including zero mass. No law, integrability,
+positivity or limit certificate is a public premise. N0 derivative energy can
+be nonzero: actual Test evaluation and independent compact probe confirm this.
+The exact StatementSeal preceded proof, source topology was separately repaired
+and independently checked, and wholeproof/freshblind/source review are distinct.
+
+Shared stabilization adds one Registry leaf (480 total), production and Test
+imports and the original companion's five formula steps with folded actual Lean.
+Aggregate/source/graph/static checks and independent repository/ExpositionSeal
+require their own exact receipts; full Test/copy/download/rendered/live and
+postmerge PURIFIED delivery remain separate and open. No paper badge changes.
+
+The next bounded mathematical edge is the ACTUAL FULL coordinate-flip-energy
+factor4 limit. The derivative-observer limit proved here is only one input;
+full Boolean flips shift the normalized sum by2/sqrtN and require a genuine
+uniform secant error argument. Combining that separate limit with actual34
+one-half Bernoulli LSI and the new entropy limit gives compact GaussianLSI.
+Finite-Hilbert/noncompact cutoff for actual SPHMC32, GaussianT2/FIRST4.6, Wp,
+algorithms/main/work and actual-input cost composition still remain open.
+PBPS and older Chewi/SampleWiki frontiers remain intact; TV proximity does not
+transfer unbounded expected costs. Original sole PhaseKernel stabilization owner
+and draft PR313 are preserved. The single whole-paper Goal continues.
+
 ## Actual balanced count-law CLT and joint Bernoulli stabilization (2026-10-07)
 
 The actual allN Bool-count law producer is independently VERIFIED at 4d9e71a6b835b54453a5cfd2d132f9a51f66f69c.

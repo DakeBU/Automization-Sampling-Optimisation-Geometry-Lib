@@ -262,6 +262,7 @@ import Tests.QuadraticTiltFisher
 import Tests.CanonicalLogSobolev
 import Tests.BernoulliLogSobolev
 import Tests.BalancedRademacherCLT
+import Tests.GaussianCompactEntropy
 import Tests.GradientAECongruence
 import Tests.FinitePowerSeries
 import Tests.UnitSphere

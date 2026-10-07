@@ -31,6 +31,7 @@ import implicit_prerequisites  # noqa: E402
 import information_architecture  # noqa: E402
 import lean_tutor  # noqa: E402
 import library_shelves  # noqa: E402
+import openai_math_intake  # noqa: E402
 import reader_contract_final  # noqa: E402
 import research_workspace  # noqa: E402
 import samplewiki_audit_queue  # noqa: E402
@@ -203,6 +204,7 @@ def main() -> int:
 
     write_underlying_graph_alias(output)
     library_shelves.enrich_site(output)
+    openai_math_intake.enrich_site(output)
 
     # Mathematical provenance comes before the final Current Progress overlay.
     # source_lineage still owns the primary/supplement/background source layers

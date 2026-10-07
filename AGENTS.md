@@ -427,7 +427,10 @@ bias are different obligations. Extend existing shared nodes before defining cop
 
 When using any theorem, definition, proof route, or source package from
 `openai/math`, first read `docs/openai-math-assimilation-protocol.md` and
-`research-wiki/openai-math-2026-intake.json`. The intake is pinned to a reviewed
+`research-wiki/openai-math-2026-intake.json`. Before assigning it to a textbook
+or research surface, also read `research-wiki/openai-math-textbook-coverage.json`
+and `docs/openai-math-textbook-coverage.md`; these are the canonical seven-library
+chapter/extended-chapter placement map. The intake is pinned to a reviewed
 upstream commit; a floating upstream `main` is never mathematical evidence.
 
 OpenAI material is subject to the same Statement Seal, proof-ingredient versus

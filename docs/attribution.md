@@ -36,6 +36,24 @@ Beck is therefore an important background and theorem cross-check, but it is **n
 
 The relevant surfaces are probability/stochastic analysis for the SampleWiki and sampling floor, differential/manifold geometry for Riemannian Optimization, and convexity/duality/algorithmic material for Optimisation. These are retrieval candidates, not claims of theorem equivalence with Chewi or Boumal.
 
+### OpenAI Math external proof memory
+
+- **Source:** [openai/math](https://github.com/openai/math), pinned for the
+  current intake at commit `adc7f1241b42e322a6451854ab7e4b4c146bf78a`
+  (October 6, 2026).
+- **License:** Apache-2.0 for the published repository. Individual manuscript
+  citation instructions and source provenance remain attached to their upstream
+  directories.
+- **ASTIS use:** proof-route retrieval, statement and definition comparison,
+  candidate reusable leaves, and external conceptual/source graph nodes. The
+  seven-library placement map is
+  `research-wiki/openai-math-textbook-coverage.json`.
+- **Truth boundary:** upstream Comparator evidence or compiling `OAI.*` code is
+  not an ASTIS-owned theorem, does not become a solid local Lean edge, and does
+  not imply that a whole manuscript family has been formalized. Local blue
+  status still requires an ASTIS-owned declaration passing the current Lean,
+  source-fidelity and publication gates.
+
 ### Source/copyright boundary
 
 The public reader distinguishes:

@@ -4,6 +4,13 @@ Status: active intake protocol, 2026-10-07.
 
 This protocol governs material taken from `openai/math` into Samplinglib. It extends, rather than replaces, the theorem-publication, proof-digestion, evidence-routed-memory, encoder-denoiser, and Functor-Hypergraph rules already required by this repository.
 
+The domain-complete placement layer is
+`research-wiki/openai-math-textbook-coverage.json`, documented in
+`docs/openai-math-textbook-coverage.md`. It maps relevant upstream routes to the
+seven Samplinglib reader libraries and distinguishes primary chapter extensions,
+named ASTIS extended chapters, and cross-references. The generated website is a
+reader projection of that metadata, never a second proof-status source.
+
 ## 1. Upstream pin and trust boundary
 
 The first reviewed upstream snapshot is:

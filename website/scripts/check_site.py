@@ -25,6 +25,7 @@ import lean_tutor  # noqa: E402
 import reader_contract_final  # noqa: E402
 import source_foundations  # noqa: E402
 import cross_domain  # noqa: E402
+import openai_math_intake  # noqa: E402
 import proof_readers  # noqa: E402
 import declaration_lessons  # noqa: E402
 import publication_reader  # noqa: E402
@@ -272,6 +273,13 @@ def main() -> int:
         cross_domain.validate_site(output)
     except Exception as exc:
         print(f"Cross-domain source/route/hypergraph check failed: {exc}", file=sys.stderr)
+        return 1
+
+    openai_errors = openai_math_intake.validate_site(output)
+    if openai_errors:
+        print("OpenAI Math intake site check failed:", file=sys.stderr)
+        for error in openai_errors:
+            print(f"- {error}", file=sys.stderr)
         return 1
 
     tutor_errors = lean_tutor.validate_site(output)

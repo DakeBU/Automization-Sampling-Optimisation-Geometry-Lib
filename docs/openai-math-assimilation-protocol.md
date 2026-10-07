@@ -283,3 +283,17 @@ Never silently advance the pin. A later snapshot is a new intake event:
 
 This makes upstream evolution auditable and prevents a moving external branch
 from mutating Samplinglib's mathematical meaning.
+
+## Upstream verification-status gate
+
+The OpenAI repository explicitly contains results at different verification
+stages. File presence is not a proof-status badge. For each source route, inspect
+`lean/formalization.yaml`, its Comparator challenge/config when present, and
+the exact solution declaration. Record one of: `comparator-backed`,
+`lean-present-not-comparator-audited`, or `manuscript-only`.
+
+Examples at the pinned snapshot include comparator-backed
+`OAI.LogConcaveSampling.exact_source_main`,
+`OAI.WeakMTWTransport.uniform_biHolder_transport`, and
+`OAI.binary_sweep_contraction_and_mixing`. A manuscript-only or un-audited
+candidate remains provenance-only until our own local gate is completed.

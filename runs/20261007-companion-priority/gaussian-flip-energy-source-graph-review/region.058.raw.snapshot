@@ -1,0 +1,23 @@
+/-- The derivative of a C² compactly supported function is bounded. -/
+theorem deriv_bounded_of_compactlySupported {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ x : ℝ, |deriv f x| ≤ C := by
+  have hcont := deriv_continuous_of_compactlySupported hf
+  have hsupp := deriv_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  use max 0 C, le_max_left 0 C
+  intro x
+  calc |deriv f x| = ‖deriv f x‖ := (Real.norm_eq_abs _).symm
+    _ ≤ C := hC x
+    _ ≤ max 0 C := le_max_right 0 C
+
+/-- The bound on the first derivative. -/
+def firstDerivBound (f : ℝ → ℝ) (hf : CompactlySupportedSmooth f) : ℝ :=
+  (deriv_bounded_of_compactlySupported hf).choose
+
+lemma firstDerivBound_nonneg {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    0 ≤ firstDerivBound f hf :=
+  (deriv_bounded_of_compactlySupported hf).choose_spec.1
+
+lemma firstDerivBound_spec {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    |deriv f x| ≤ firstDerivBound f hf :=
+  (deriv_bounded_of_compactlySupported hf).choose_spec.2 x

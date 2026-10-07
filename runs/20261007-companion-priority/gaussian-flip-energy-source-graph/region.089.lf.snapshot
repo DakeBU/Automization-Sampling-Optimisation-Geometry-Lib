@@ -1,0 +1,61 @@
+/-- **Main Intermediate Result (sum version)**:
+
+For f ∈ C_c²(ℝ), as n → ∞:
+  ∑ᵢ E[(f(Sₙ + (1-εᵢ)/√n) - f(Sₙ - (1+εᵢ)/√n))²] → 4 · E[f'(X)²]
+
+where X ~ N(0,1).
+
+This follows from the n-times version by symmetry: all terms in the sum are equal. -/
+theorem tendsto_sum_sq_diff_four_deriv_sq {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n => ∑ i : Fin (n + 1), ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+  -- By symmetry, all terms are equal (same argument as in variance_rademacherSum_efronStein)
+  have hsum_eq : ∀ n : ℕ, ∑ i : Fin (n + 1), ∫ x,
+      (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+        ∂rademacherProductMeasure (n + 1) =
+      (↑(n + 1) : ℝ) * ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+        ∂rademacherProductMeasure (n + 1) := by
+    intro n
+    -- All terms are equal by symmetry
+    have hall_eq : ∀ i ∈ Finset.univ, ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+      intro i _
+      -- Use coordinate swap symmetry
+      let σ : Equiv.Perm (Fin (n + 1)) := Equiv.swap 0 i
+      let swapEquiv := MeasurableEquiv.piCongrLeft (fun _ : Fin (n + 1) => ℝ) σ
+      have hσ_symm : σ.symm = σ := Equiv.symm_swap 0 i
+      have hσ_i : σ i = 0 := Equiv.swap_apply_right 0 i
+      -- rademacherSumProd is invariant under coordinate permutation
+      have hsum_inv : ∀ x, rademacherSumProd (n + 1) (swapEquiv x) = rademacherSumProd (n + 1) x := by
+        intro x
+        unfold rademacherSumProd
+        rw [MeasurableEquiv.coe_piCongrLeft]
+        simp only [Equiv.piCongrLeft_apply_eq_cast, hσ_symm, cast_eq]
+        rw [← Finset.sum_equiv σ (g := fun j => x j)]
+        · simp only [Finset.mem_univ, implies_true]
+        · intro j _; rfl
+      have hswap_i : ∀ x, (swapEquiv x) i = x 0 := by
+        intro x
+        show (Equiv.piCongrLeft (fun _ => ℝ) σ) x i = x 0
+        simp only [Equiv.piCongrLeft_apply_eq_cast, cast_eq, hσ_symm, hσ_i]
+      have haPlus : ∀ x, aPlusProd (n + 1) i (swapEquiv x) = aPlusProd (n + 1) 0 x := by
+        intro x; unfold aPlusProd; rw [hsum_inv, hswap_i]
+      have haMinus : ∀ x, aMinusProd (n + 1) i (swapEquiv x) = aMinusProd (n + 1) 0 x := by
+        intro x; unfold aMinusProd; rw [hsum_inv, hswap_i]
+      have hpreserves : MeasurePreserving swapEquiv (rademacherProductMeasure (n + 1))
+          (rademacherProductMeasure (n + 1)) := by
+        unfold rademacherProductMeasure
+        exact measurePreserving_piCongrLeft (fun _ => rademacherMeasure) σ
+      rw [← hpreserves.integral_comp']
+      congr 1
+      ext x
+      rw [haPlus, haMinus]
+    rw [Finset.sum_eq_card_nsmul hall_eq]
+    simp only [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  simp_rw [hsum_eq]
+  exact tendsto_n_times_sq_diff hf

@@ -1,0 +1,55 @@
+  exact ContDiffWithinAt.comp _ (by fun_prop) (g := fun f ↦ f 1) (t := .univ)
+    (H.fderivWithin_right hs hmn hx) (fun _ _ ↦ trivial)
+
+/-- A function is `C^(n + 1)` if and only if it is differentiable,
+  and its derivative (formulated in terms of `deriv`) is `C^n`. -/
+theorem contDiff_succ_iff_deriv :
+    ContDiff 𝕜 (n + 1) f ↔ Differentiable 𝕜 f ∧ (n = ω → AnalyticOn 𝕜 f univ) ∧
+      ContDiff 𝕜 n (deriv f) := by
+  simp only [← contDiffOn_univ, contDiffOn_succ_iff_deriv_of_isOpen, isOpen_univ,
+    differentiableOn_univ]
+
+theorem contDiff_one_iff_deriv :
+    ContDiff 𝕜 1 f ↔ Differentiable 𝕜 f ∧ Continuous (deriv f) := by
+  rw [show (1 : ℕ∞ω) = 0 + 1 from rfl, contDiff_succ_iff_deriv]
+  simp
+
+theorem contDiff_infty_iff_deriv :
+    ContDiff 𝕜 ∞ f ↔ Differentiable 𝕜 f ∧ ContDiff 𝕜 ∞ (deriv f) := by
+  rw [show (∞ : ℕ∞ω) = ∞ + 1 from rfl, contDiff_succ_iff_deriv]
+  simp
+
+theorem ContDiff.continuous_deriv (h : ContDiff 𝕜 n f) (hn : 1 ≤ n) : Continuous (deriv f) := by
+  rw [show (1 : ℕ∞ω) = 0 + 1 from rfl] at hn
+  exact (contDiff_succ_iff_deriv.mp (h.of_le hn)).2.2.continuous
+
+@[fun_prop]
+theorem ContDiff.continuous_deriv_one (h : ContDiff 𝕜 1 f) : Continuous (deriv f) :=
+  ContDiff.continuous_deriv h (le_refl 1)
+
+@[fun_prop]
+theorem ContDiff.differentiable_deriv_two (h : ContDiff 𝕜 2 f) : Differentiable 𝕜 (deriv f) := by
+  unfold deriv; fun_prop
+
+@[fun_prop]
+protected lemma ContDiffAt.derivWithin {x : 𝕜} (H : ContDiffAt 𝕜 n f x) (hmn : m + 1 ≤ n) :
+    ContDiffAt 𝕜 m (deriv f) x := by
+  simpa using! ContDiffWithinAt.derivWithin (s := .univ) H.contDiffWithinAt (by simp) hmn
+
+@[fun_prop]
+theorem ContDiff.deriv' (h : ContDiff 𝕜 (n + 1) f) : ContDiff 𝕜 n (deriv f) := by
+  unfold deriv; fun_prop
+
+@[fun_prop]
+theorem ContDiff.iterate_deriv :
+    ∀ (n : ℕ) {f : 𝕜 → F}, ContDiff 𝕜 ∞ f → ContDiff 𝕜 ∞ (deriv^[n] f)
+  | 0, _, hf => hf
+  | n + 1, _, hf => ContDiff.iterate_deriv n (contDiff_infty_iff_deriv.mp hf).2
+
+@[fun_prop]
+theorem ContDiff.iterate_deriv' (n : ℕ) :
+    ∀ (k : ℕ) {f : 𝕜 → F}, ContDiff 𝕜 (n + k : ℕ) f → ContDiff 𝕜 n (deriv^[k] f)
+  | 0, _, hf => hf
+  | k + 1, _, hf => ContDiff.iterate_deriv' _ k (contDiff_succ_iff_deriv.mp hf).2.2
+
+end

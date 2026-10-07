@@ -1,0 +1,48 @@
+/-- **Main Intermediate Result (n times single term version)**:
+
+For f ∈ C_c²(ℝ), as n → ∞:
+  n · E[(f(a⁺₀) - f(a⁻₀))²] → 4 · E[f'(X)²]
+
+This is equivalent to the sum version by symmetry of Rademacher variables. -/
+theorem tendsto_n_times_sq_diff {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+  -- We show this by writing aₙ = (aₙ - bₙ) + bₙ where
+  -- aₙ = n * E[(f(a⁺) - f(a⁻))²]
+  -- bₙ = 4 * E[(f'(Sₙ))²]
+  -- We've shown aₙ - bₙ → 0 and bₙ → 4 * E[(f'(X))²]
+  have h1 : Tendsto (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) -
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 0) := tendsto_n_sq_diff_sub_four_deriv_sq hf
+  have h2 : Tendsto (fun n => 4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2
+        ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+    apply Tendsto.const_mul
+    -- Use change of variables: ∫ g(Sₙ) dμ = ∫ g d(law of Sₙ)
+    have hcov : ∀ n, ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2
+        ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (deriv f x)^2 ∂(rademacherLaw (n + 1)).toMeasure := by
+      intro n
+      have hrademacherLaw : (rademacherLaw (n + 1)).toMeasure =
+          (rademacherProductMeasure (n + 1)).map (rademacherSumProd (n + 1)) := rfl
+      rw [hrademacherLaw]
+      exact (integral_map (measurable_rademacherSumProd (n + 1)).aemeasurable
+        ((deriv_continuous_of_compactlySupported hf).pow 2).aestronglyMeasurable).symm
+    simp_rw [hcov]
+    exact tendsto_integral_deriv_sq hf
+  -- Combine: aₙ = (aₙ - bₙ) + bₙ
+  have heq : (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1)) =
+      (fun n : ℕ => ((↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) -
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1)) +
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1)) := by
+    ext n; ring
+  rw [heq]
+  simpa using h1.add h2

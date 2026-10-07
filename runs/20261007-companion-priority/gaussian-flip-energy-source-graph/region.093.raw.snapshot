@@ -1,0 +1,63 @@
+/-- Key identity: When εᵢ = 1, we have aPlusProd = Sₙ and aMinusProd = Sₙ - 2/√n = shifted. -/
+lemma aPlusProd_aMinusProd_eq_when_eps_pos (n : ℕ) [NeZero n] (x : RademacherSpace n)
+    (hx : x 0 = 1) :
+    aPlusProd n 0 x = rademacherSumProd n x ∧
+    aMinusProd n 0 x = rademacherSumShifted n 0 x := by
+  constructor
+  · unfold aPlusProd; simp [hx]
+  · unfold aMinusProd rademacherSumShifted; simp [hx]; ring
+
+/-- Key identity: When εᵢ = -1, we have aPlusProd = Sₙ + 2/√n = shifted, and aMinusProd = Sₙ. -/
+lemma aPlusProd_aMinusProd_eq_when_eps_neg (n : ℕ) [NeZero n] (x : RademacherSpace n)
+    (hx : x 0 = -1) :
+    aPlusProd n 0 x = rademacherSumShifted n 0 x ∧
+    aMinusProd n 0 x = rademacherSumProd n x := by
+  constructor
+  · -- aPlusProd = Sₙ + (1-(-1))/√n = Sₙ + 2/√n
+    -- rademacherSumShifted = Sₙ - 2*(-1)/√n = Sₙ + 2/√n
+    unfold aPlusProd rademacherSumShifted; simp [hx]; ring
+  · unfold aMinusProd; simp [hx]
+
+/-- **Key Identity**: The squared difference (f(a⁺) - f(a⁻))² equals (f(Sₙ) - f(Sₙ - 2εᵢ/√n))² a.s.
+
+This is because:
+- When εᵢ = 1: a⁺ = Sₙ, a⁻ = Sₙ - 2/√n = shifted, so the differences are equal.
+- When εᵢ = -1: a⁺ = Sₙ + 2/√n, a⁻ = Sₙ, shifted = Sₙ + 2/√n.
+  f(a⁺) - f(a⁻) = f(Sₙ + 2/√n) - f(Sₙ)
+  f(Sₙ) - f(shifted) = f(Sₙ) - f(Sₙ + 2/√n) = -(f(a⁺) - f(a⁻))
+  But the squares are equal. -/
+lemma sq_aPlusMinus_eq_sq_shifted (n : ℕ) [NeZero n] {f : ℝ → ℝ} (x : RademacherSpace n)
+    (hx : x 0 = 1 ∨ x 0 = -1) :
+    (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 =
+    (f (rademacherSumProd n x) - f (rademacherSumShifted n 0 x))^2 := by
+  rcases hx with hpos | hneg
+  · -- Case εᵢ = 1: a⁺ = Sₙ, a⁻ = shifted
+    obtain ⟨haplus, haminus⟩ := aPlusProd_aMinusProd_eq_when_eps_pos n x hpos
+    rw [haplus, haminus]
+  · -- Case εᵢ = -1: a⁺ = shifted + offset, a⁻ = Sₙ
+    -- We have a⁺ - a⁻ = 2/√n (constant), so a⁺ = Sₙ + 2/√n, a⁻ = Sₙ
+    -- shifted = Sₙ - 2*(-1)/√n = Sₙ + 2/√n = a⁺
+    have hshifted_eq_aplus : rademacherSumShifted n 0 x = aPlusProd n 0 x := by
+      unfold rademacherSumShifted aPlusProd
+      simp [hneg]; ring
+    have haminus_eq_sum : aMinusProd n 0 x = rademacherSumProd n x := by
+      unfold aMinusProd; simp [hneg]
+    rw [hshifted_eq_aplus, haminus_eq_sum]
+    ring
+
+/-- Almost everywhere version of the squared difference identity. -/
+lemma sq_aPlusMinus_eq_sq_shifted_ae (n : ℕ) [NeZero n] {f : ℝ → ℝ} :
+    ∀ᵐ x ∂(rademacherProductMeasure n),
+    (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 =
+    (f (rademacherSumProd n x) - f (rademacherSumShifted n 0 x))^2 := by
+  filter_upwards [coord_values_ae n 0] with x hx
+  exact sq_aPlusMinus_eq_sq_shifted n x hx
+
+/-- The integral of the squared difference using aPlusProd/aMinusProd equals
+the integral using rademacherSumProd/rademacherSumShifted. -/
+lemma integral_sq_diff_eq_integral_sq_shifted (n : ℕ) [NeZero n] (f : ℝ → ℝ) :
+    ∫ x, (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 ∂(rademacherProductMeasure n) =
+    ∫ x, (f (rademacherSumProd n x) - f (rademacherSumShifted n 0 x))^2
+      ∂(rademacherProductMeasure n) := by
+  apply integral_congr_ae
+  exact sq_aPlusMinus_eq_sq_shifted_ae n

@@ -1,0 +1,165 @@
+
+/-! ### Boundedness of Second Derivative -/
+
+/-- The second derivative of a C² compactly supported function is continuous. -/
+lemma deriv2_continuous {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Continuous (deriv (deriv f)) := by
+  have h2 : ContDiff ℝ 2 f := hf.1
+  have hc0 : ContDiff ℝ 0 (deriv^[2] f) := h2.iterate_deriv' 0 2
+  simp only [Function.iterate_succ, Function.iterate_zero, Function.comp_apply] at hc0
+  exact hc0.continuous
+
+/-- The second derivative of a C² compactly supported function has compact support. -/
+lemma deriv2_hasCompactSupport {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    HasCompactSupport (deriv (deriv f)) := by
+  have hsupp := hf.2
+  apply HasCompactSupport.of_support_subset_isCompact hsupp.isCompact
+  intro x hx
+  by_contra h
+  have hout : x ∉ tsupport f := h
+  -- x is in the complement of the closed set tsupport f
+  have hopen : IsOpen (tsupport f)ᶜ := (isClosed_tsupport f).isOpen_compl
+  have hmem : (tsupport f)ᶜ ∈ 𝓝 x := hopen.mem_nhds hout
+  -- On the complement, f = 0 because tsupport f ⊇ support f
+  have hzero : f =ᶠ[𝓝 x] 0 := by
+    filter_upwards [hmem] with y hy
+    simp only [Pi.zero_apply]
+    have hnotsupp : y ∉ tsupport f := hy
+    rw [tsupport] at hnotsupp
+    simp only [mem_closure_iff_nhds, not_forall, not_nonempty_iff_eq_empty] at hnotsupp
+    obtain ⟨U, hUmem, hUempty⟩ := hnotsupp
+    have hy_in_U : y ∈ U := mem_of_mem_nhds hUmem
+    have hynot : y ∉ support f := by
+      intro hyin
+      have : y ∈ U ∩ support f := ⟨hy_in_U, hyin⟩
+      rw [hUempty] at this
+      exact this
+    exact notMem_support.mp hynot
+  have hderiv1 : deriv f =ᶠ[𝓝 x] 0 := by
+    have h1 := hzero.deriv
+    have hzero_eq : (0 : ℝ → ℝ) = fun _ => 0 := rfl
+    rw [hzero_eq] at h1
+    simp only [deriv_const'] at h1
+    exact h1
+  have hderiv2 : deriv (deriv f) =ᶠ[𝓝 x] 0 := by
+    have h2 := hderiv1.deriv
+    have hzero_eq : (0 : ℝ → ℝ) = fun _ => 0 := rfl
+    rw [hzero_eq] at h2
+    simp only [deriv_const'] at h2
+    exact h2
+  have heq : deriv (deriv f) x = 0 := hderiv2.self_of_nhds
+  rw [mem_support] at hx
+  exact hx heq
+
+/-- For `f ∈ C_c²(ℝ)`, the supremum `K := sup|f''|` is finite.
+This follows from the Extreme Value Theorem: f'' is continuous and compactly supported,
+hence bounded. -/
+theorem deriv2_bounded_of_compactlySupported {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ x : ℝ, |deriv (deriv f) x| ≤ K := by
+  have hcont : Continuous (deriv (deriv f)) := deriv2_continuous hf
+  have hsupp : HasCompactSupport (deriv (deriv f)) := deriv2_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  use max 0 C
+  constructor
+  · exact le_max_left 0 C
+  · intro x
+    calc |deriv (deriv f) x| = ‖deriv (deriv f) x‖ := (Real.norm_eq_abs _).symm
+      _ ≤ C := hC x
+      _ ≤ max 0 C := le_max_right 0 C
+
+/-- The bound K on the second derivative. -/
+def secondDerivBound (f : ℝ → ℝ) (hf : CompactlySupportedSmooth f) : ℝ :=
+  (deriv2_bounded_of_compactlySupported hf).choose
+
+lemma secondDerivBound_nonneg {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    0 ≤ secondDerivBound f hf :=
+  (deriv2_bounded_of_compactlySupported hf).choose_spec.1
+
+lemma secondDerivBound_spec {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    |deriv (deriv f) x| ≤ secondDerivBound f hf :=
+  (deriv2_bounded_of_compactlySupported hf).choose_spec.2 x
+
+/-! ### The derivative of a compactly supported C² function -/
+
+/-- The derivative of a C² function is continuous. -/
+lemma deriv_continuous_of_compactlySupported {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Continuous (deriv f) := by
+  have : ContDiff ℝ 1 (deriv f) := hf.1.iterate_deriv' 1 1
+  exact this.continuous
+
+/-- The derivative of a C² compactly supported function has compact support. -/
+lemma deriv_hasCompactSupport {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    HasCompactSupport (deriv f) := by
+  apply HasCompactSupport.of_support_subset_isCompact hf.2.isCompact
+  intro x hx
+  by_contra h
+  have hout : x ∉ tsupport f := h
+  have hopen : IsOpen (tsupport f)ᶜ := (isClosed_tsupport f).isOpen_compl
+  have hmem : (tsupport f)ᶜ ∈ 𝓝 x := hopen.mem_nhds hout
+  have hzero : f =ᶠ[𝓝 x] 0 := by
+    filter_upwards [hmem] with y hy
+    simp only [Pi.zero_apply]
+    have hnotsupp : y ∉ tsupport f := hy
+    rw [tsupport] at hnotsupp
+    simp only [mem_closure_iff_nhds, not_forall, not_nonempty_iff_eq_empty] at hnotsupp
+    obtain ⟨U, hUmem, hUempty⟩ := hnotsupp
+    have hy_in_U : y ∈ U := mem_of_mem_nhds hUmem
+    have hynot : y ∉ support f := by
+      intro hyin
+      have : y ∈ U ∩ support f := ⟨hy_in_U, hyin⟩
+      rw [hUempty] at this
+      exact this
+    exact notMem_support.mp hynot
+  have hderiv1 : deriv f =ᶠ[𝓝 x] 0 := by
+    have h1 := hzero.deriv
+    have hzero_eq : (0 : ℝ → ℝ) = fun _ => 0 := rfl
+    rw [hzero_eq] at h1
+    simp only [deriv_const'] at h1
+    exact h1
+  have heq : deriv f x = 0 := hderiv1.self_of_nhds
+  rw [mem_support] at hx
+  exact hx heq
+
+/-- The derivative of a C² compactly supported function is bounded. -/
+theorem deriv_bounded_of_compactlySupported {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ x : ℝ, |deriv f x| ≤ C := by
+  have hcont := deriv_continuous_of_compactlySupported hf
+  have hsupp := deriv_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  use max 0 C, le_max_left 0 C
+  intro x
+  calc |deriv f x| = ‖deriv f x‖ := (Real.norm_eq_abs _).symm
+    _ ≤ C := hC x
+    _ ≤ max 0 C := le_max_right 0 C
+
+/-- The bound on the first derivative. -/
+def firstDerivBound (f : ℝ → ℝ) (hf : CompactlySupportedSmooth f) : ℝ :=
+  (deriv_bounded_of_compactlySupported hf).choose
+
+lemma firstDerivBound_nonneg {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    0 ≤ firstDerivBound f hf :=
+  (deriv_bounded_of_compactlySupported hf).choose_spec.1
+
+lemma firstDerivBound_spec {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    |deriv f x| ≤ firstDerivBound f hf :=
+  (deriv_bounded_of_compactlySupported hf).choose_spec.2 x
+
+/-! ### Taylor's Theorem and Difference Bound -/
+
+/-- iteratedDeriv 2 f = deriv (deriv f) -/
+lemma iteratedDeriv_two (f : ℝ → ℝ) : iteratedDeriv 2 f = deriv (deriv f) := by
+  rw [iteratedDeriv_eq_iterate]
+  rfl
+
+/-- A C² function is differentiable. -/
+lemma differentiable_of_contDiff2 {f : ℝ → ℝ} (hf : ContDiff ℝ 2 f) :
+    Differentiable ℝ f :=
+  hf.differentiable two_ne_zero
+
+/-- The derivative of a C² function is differentiable. -/
+lemma deriv_differentiable_of_contDiff2 {f : ℝ → ℝ} (hf : ContDiff ℝ 2 f) :
+    Differentiable ℝ (deriv f) := by
+  have : ContDiff ℝ 1 (deriv f) := hf.iterate_deriv' 1 1
+  exact this.differentiable one_ne_zero
+
+/-- Taylor's theorem with Lagrange remainder for order 1 (giving second derivative term).

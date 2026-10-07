@@ -1,0 +1,15 @@
+/-! ### The Final Variance Bound (Simplified Version) -/
+
+/-- Integrability of the derivative squared. -/
+lemma integrable_deriv_sq (n : ℕ) {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Integrable (fun x : RademacherSpace n => (deriv f (rademacherSumProd n x))^2)
+      (rademacherProductMeasure n) := by
+  have hcont := deriv_continuous_of_compactlySupported hf
+  have hsupp := deriv_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  apply integrable_sq_of_bounded (C := max 0 C)
+  · exact hcont.aestronglyMeasurable.comp_aemeasurable
+      (measurable_rademacherSumProd n).aemeasurable
+  · exact le_max_left 0 C
+  · filter_upwards with x
+    exact (hC _).trans (le_max_right 0 C)

@@ -1,0 +1,13 @@
+∀ (f : ℝ → ℝ),
+  ContDiff ℝ 2 f →
+    HasCompactSupport f →
+      let μ := fun n => (↑(Fintype.card (Fin n → Bool)))⁻¹ • Measure.count;
+      let S := fun n ε => (√↑n)⁻¹ * ∑ j, if ε j = true then 1 else -1;
+      let γ := gaussianReal 0 1;
+      Integrable (fun x => deriv f x ^ 2) γ ∧
+        (∀ (n : ℕ), Integrable (fun ε => ∑ j, (f (S n (Function.update ε j !ε j)) - f (S n ε)) ^ 2) (μ n)) ∧
+          Tendsto
+            (fun n =>
+              ∫ (ε : Fin (n + 1) → Bool),
+                ∑ j, (f (S (n + 1) (Function.update ε j !ε j)) - f (S (n + 1) ε)) ^ 2 ∂μ (n + 1))
+            atTop (𝓝 (4 * ∫ (x : ℝ), deriv f x ^ 2 ∂γ)) : Prop

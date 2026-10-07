@@ -1,0 +1,532 @@
+
+/-! ### Section 9: The Limit of Sum of Squared Differences -/
+
+/-- The rescaled difference function: g(x) = (√n / 2) * (f(a⁺) - f(a⁻)).
+By MVT, g(x) = f'(ξ) for some ξ between a⁻ and a⁺. -/
+def rescaledDiff (n : ℕ) [NeZero n] (f : ℝ → ℝ) (x : RademacherSpace n) : ℝ :=
+  Real.sqrt n / 2 * (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))
+
+/-- The rescaled difference equals f'(ξ) for some ξ between a⁻ and a⁺.
+This is a consequence of MVT. -/
+lemma rescaledDiff_eq_deriv_at_intermediate {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f)
+    (n : ℕ) [NeZero n] (x : RademacherSpace n) :
+    ∃ ξ : ℝ, ξ ∈ Set.Ioo (aMinusProd n 0 x) (aPlusProd n 0 x) ∧
+      rescaledDiff n f x = deriv f ξ := by
+  have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne n))
+  have hsqrt_pos : 0 < Real.sqrt n := Real.sqrt_pos.mpr hn_pos
+  have hdiff := aPlusProd_sub_aMinusProd n x
+  have hlt : aMinusProd n 0 x < aPlusProd n 0 x := by
+    have hpos : (2 : ℝ) / Real.sqrt n > 0 := div_pos (by norm_num) hsqrt_pos
+    linarith [hdiff]
+  have hdiff_f := TaylorBound.differentiable_of_contDiff2 hf.1
+  obtain ⟨ξ, hξ_mem, hξ_eq⟩ := exists_deriv_eq_slope f hlt
+    hdiff_f.continuous.continuousOn (hdiff_f.differentiableOn.mono Set.Ioo_subset_Icc_self)
+  use ξ, hξ_mem
+  unfold rescaledDiff
+  have hne : aPlusProd n 0 x - aMinusProd n 0 x ≠ 0 := by
+    rw [hdiff]
+    exact ne_of_gt (div_pos (by norm_num) hsqrt_pos)
+  calc Real.sqrt n / 2 * (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))
+      = Real.sqrt n / 2 * (deriv f ξ * (aPlusProd n 0 x - aMinusProd n 0 x)) := by
+          congr 1
+          field_simp [hne] at hξ_eq ⊢
+          linarith
+    _ = Real.sqrt n / 2 * deriv f ξ * (2 / Real.sqrt n) := by rw [hdiff]; ring
+    _ = deriv f ξ := by field_simp
+
+/-- The rescaled difference is bounded by the first derivative bound. -/
+lemma rescaledDiff_bounded {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f)
+    (n : ℕ) [NeZero n] (x : RademacherSpace n) :
+    |rescaledDiff n f x| ≤ firstDerivBound f hf := by
+  obtain ⟨ξ, _, heq⟩ := rescaledDiff_eq_deriv_at_intermediate hf n x
+  rw [heq]
+  exact firstDerivBound_spec hf ξ
+
+/-- The difference between the rescaled difference squared and (f'(Sₙ))² is O(1/√n).
+This is the key estimate: |g² - (f'(Sₙ))²| ≤ 4KC'/√n where K = sup|f''|, C' = sup|f'|. -/
+lemma sq_rescaledDiff_sub_sq_deriv_bound {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f)
+    (n : ℕ) [NeZero n] (x : RademacherSpace n) (hx : x 0 = 1 ∨ x 0 = -1) :
+    |(rescaledDiff n f x)^2 - (deriv f (rademacherSumProd n x))^2| ≤
+    4 * secondDerivBound f hf * firstDerivBound f hf / Real.sqrt n := by
+  let g := rescaledDiff n f x
+  let S := rademacherSumProd n x
+  let K := secondDerivBound f hf
+  let C' := firstDerivBound f hf
+  have hK_nonneg := secondDerivBound_nonneg hf
+  have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne n))
+  have hsqrt_pos : 0 < Real.sqrt n := Real.sqrt_pos.mpr hn_pos
+  -- Get ξ such that g = f'(ξ)
+  obtain ⟨ξ, hξ_mem, hg_eq⟩ := rescaledDiff_eq_deriv_at_intermediate hf n x
+  -- Bound |ξ - S| ≤ 2/√n (from TaylorBound)
+  have hξ_bound : |ξ - S| ≤ 2 / Real.sqrt n := by
+    rcases hx with hpos | hneg
+    · -- x 0 = 1: a⁺ = S, a⁻ = S - 2/√n
+      have haplus_eq : aPlusProd n 0 x = S := by
+        simp only [aPlusProd, hpos, sub_self, zero_div, add_zero]; rfl
+      have haminus_eq : aMinusProd n 0 x = S - 2 / Real.sqrt n := by
+        simp only [aMinusProd, hpos]
+        ring
+      rw [haplus_eq, haminus_eq] at hξ_mem
+      have h1 : S - ξ > 0 := sub_pos.mpr hξ_mem.2
+      have h2 : S - ξ < 2 / Real.sqrt n := by linarith [hξ_mem.1]
+      calc |ξ - S| = |-(S - ξ)| := by ring_nf
+        _ = S - ξ := by rw [abs_neg, abs_of_pos h1]
+        _ ≤ 2 / Real.sqrt n := le_of_lt h2
+    · -- x 0 = -1: a⁺ = S + 2/√n, a⁻ = S
+      have haplus_eq : aPlusProd n 0 x = S + 2 / Real.sqrt n := by
+        simp only [aPlusProd, hneg]
+        ring
+      have haminus_eq : aMinusProd n 0 x = S := by
+        simp only [aMinusProd, hneg, add_neg_cancel, zero_div, sub_zero]; rfl
+      rw [haplus_eq, haminus_eq] at hξ_mem
+      have h1 : ξ - S > 0 := sub_pos.mpr hξ_mem.1
+      have h2 : ξ - S < 2 / Real.sqrt n := by linarith [hξ_mem.2]
+      calc |ξ - S| = ξ - S := abs_of_pos h1
+        _ ≤ 2 / Real.sqrt n := le_of_lt h2
+  -- Bound |f'(ξ) - f'(S)| ≤ K * |ξ - S| ≤ 2K/√n
+  have hderiv_diff : |deriv f ξ - deriv f S| ≤ 2 * K / Real.sqrt n := by
+    by_cases hξS : ξ = S
+    · simp only [hξS, sub_self, abs_zero]
+      exact div_nonneg (mul_nonneg (by norm_num) hK_nonneg) (le_of_lt hsqrt_pos)
+    · rcases Ne.lt_or_gt hξS with hlt | hlt
+      · obtain ⟨η, _, hη_eq⟩ := exists_deriv_eq_slope (deriv f) hlt
+          (TaylorBound.deriv_differentiable_of_contDiff2 hf.1).continuous.continuousOn
+          ((TaylorBound.deriv_differentiable_of_contDiff2 hf.1).differentiableOn.mono
+            Set.Ioo_subset_Icc_self)
+        calc |deriv f ξ - deriv f S|
+            = |deriv f S - deriv f ξ| := abs_sub_comm _ _
+          _ = |deriv (deriv f) η * (S - ξ)| := by
+              have hne : S - ξ ≠ 0 := sub_ne_zero.mpr (ne_of_gt hlt)
+              rw [hη_eq]; field_simp
+          _ = |deriv (deriv f) η| * |S - ξ| := abs_mul _ _
+          _ ≤ K * |S - ξ| := mul_le_mul_of_nonneg_right (secondDerivBound_spec hf η) (abs_nonneg _)
+          _ = K * |ξ - S| := by rw [abs_sub_comm]
+          _ ≤ K * (2 / Real.sqrt n) := mul_le_mul_of_nonneg_left hξ_bound hK_nonneg
+          _ = 2 * K / Real.sqrt n := by ring
+      · obtain ⟨η, _, hη_eq⟩ := exists_deriv_eq_slope (deriv f) hlt
+          (TaylorBound.deriv_differentiable_of_contDiff2 hf.1).continuous.continuousOn
+          ((TaylorBound.deriv_differentiable_of_contDiff2 hf.1).differentiableOn.mono
+            Set.Ioo_subset_Icc_self)
+        calc |deriv f ξ - deriv f S|
+            = |deriv (deriv f) η * (ξ - S)| := by
+                have hne : ξ - S ≠ 0 := sub_ne_zero.mpr (ne_of_gt hlt)
+                rw [hη_eq]; field_simp
+          _ = |deriv (deriv f) η| * |ξ - S| := abs_mul _ _
+          _ ≤ K * |ξ - S| := mul_le_mul_of_nonneg_right (secondDerivBound_spec hf η) (abs_nonneg _)
+          _ ≤ K * (2 / Real.sqrt n) := mul_le_mul_of_nonneg_left hξ_bound hK_nonneg
+          _ = 2 * K / Real.sqrt n := by ring
+  -- Now bound |g² - (f'(S))²| = |g - f'(S)| * |g + f'(S)|
+  have hg_bound : |g| ≤ C' := rescaledDiff_bounded hf n x
+  have hfS_bound : |deriv f S| ≤ C' := firstDerivBound_spec hf S
+  calc |g^2 - (deriv f S)^2|
+      = |(g - deriv f S) * (g + deriv f S)| := by ring_nf
+    _ = |g - deriv f S| * |g + deriv f S| := abs_mul _ _
+    _ = |deriv f ξ - deriv f S| * |g + deriv f S| := by
+        rw [show g = deriv f ξ from hg_eq]
+    _ ≤ (2 * K / Real.sqrt n) * |g + deriv f S| :=
+        mul_le_mul_of_nonneg_right hderiv_diff (abs_nonneg _)
+    _ ≤ (2 * K / Real.sqrt n) * (|g| + |deriv f S|) :=
+        mul_le_mul_of_nonneg_left (abs_add_le _ _)
+          (div_nonneg (mul_nonneg (by norm_num) hK_nonneg) (le_of_lt hsqrt_pos))
+    _ ≤ (2 * K / Real.sqrt n) * (C' + C') := by
+        apply mul_le_mul_of_nonneg_left (add_le_add hg_bound hfS_bound)
+        exact div_nonneg (mul_nonneg (by norm_num) hK_nonneg) (le_of_lt hsqrt_pos)
+    _ = 4 * K * C' / Real.sqrt n := by ring
+
+/-- The integral of n * (f(a⁺) - f(a⁻))² equals 4 times the integral of (rescaledDiff)². -/
+lemma integral_n_sq_diff_eq_four_sq_rescaledDiff {f : ℝ → ℝ} (_ : CompactlySupportedSmooth f)
+    (n : ℕ) [NeZero n] :
+    (n : ℝ) * ∫ x, (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 ∂rademacherProductMeasure n =
+    4 * ∫ x, (rescaledDiff n f x)^2 ∂rademacherProductMeasure n := by
+  have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne n))
+  have hsqrt_sq : (Real.sqrt n)^2 = n := Real.sq_sqrt (le_of_lt hn_pos)
+  -- rescaledDiff² = (√n/2)² * (f(a⁺)-f(a⁻))² = (n/4) * (f(a⁺)-f(a⁻))²
+  have heq_pointwise : ∀ x, (rescaledDiff n f x)^2 =
+      (n : ℝ) / 4 * (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 := by
+    intro x
+    simp only [rescaledDiff, mul_pow, div_pow]
+    rw [hsqrt_sq]
+    ring
+  simp_rw [heq_pointwise, MeasureTheory.integral_const_mul]
+  ring
+
+/-- **Key Intermediate Result**: The difference between n * E[(f(a⁺)-f(a⁻))²] and 4*E[(f'(Sₙ))²]
+tends to zero as n → ∞.
+
+This follows from the MVT: f(a⁺) - f(a⁻) = f'(ξ) * (2/√n) where |ξ - Sₙ| ≤ 2/√n,
+and the Lipschitz continuity of f'. -/
+theorem tendsto_n_sq_diff_sub_four_deriv_sq {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) -
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 0) := by
+  let K := secondDerivBound f hf
+  let C' := firstDerivBound f hf
+  have hC'_nonneg := firstDerivBound_nonneg hf
+  -- The bound is 16KC'/√(n+1) which tends to 0 (4 from inside integral bound × 4 from outside)
+  have hbound : Tendsto (fun n : ℕ => 16 * K * C' / Real.sqrt (↑(n + 1) : ℝ)) atTop (𝓝 0) := by
+    have hsqrt_tendsto : Tendsto (fun n : ℕ => (Real.sqrt (↑(n + 1) : ℝ))⁻¹) atTop (𝓝 0) := by
+      have h' : Tendsto (fun n : ℕ => (↑(n + 1) : ℝ)) atTop atTop := by
+        simp only [Nat.cast_add, Nat.cast_one]
+        exact Filter.tendsto_atTop_add_const_right atTop 1 tendsto_natCast_atTop_atTop
+      exact tendsto_inv_atTop_zero.comp (tendsto_sqrt_atTop.comp h')
+    have h16KC' : Tendsto (fun n : ℕ => 16 * K * C' * (Real.sqrt (↑(n + 1) : ℝ))⁻¹) atTop (𝓝 0) := by
+      simpa using hsqrt_tendsto.const_mul (16 * K * C')
+    simp_rw [div_eq_mul_inv]
+    exact h16KC'
+  apply squeeze_zero_norm _ hbound
+  intro n
+  rw [Real.norm_eq_abs]
+  -- Rewrite using rescaledDiff
+  have heq : (↑(n + 1) : ℝ) * ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+        ∂rademacherProductMeasure (n + 1) =
+      4 * ∫ x, (rescaledDiff (n + 1) f x)^2 ∂rademacherProductMeasure (n + 1) :=
+    integral_n_sq_diff_eq_four_sq_rescaledDiff hf (n + 1)
+  rw [heq]
+  -- Now bound |4 * ∫ g² - 4 * ∫ (f'(S))²| = 4 * |∫ (g² - (f'(S))²)|
+  have hint_diff : Integrable (fun x => (rescaledDiff (n + 1) f x)^2 -
+      (deriv f (rademacherSumProd (n + 1) x))^2) (rademacherProductMeasure (n + 1)) := by
+    apply Integrable.sub
+    · -- rescaledDiff² is integrable (bounded by C'²)
+      apply integrable_sq_of_bounded (C := C')
+      · unfold rescaledDiff
+        apply AEStronglyMeasurable.mul aestronglyMeasurable_const
+        apply AEStronglyMeasurable.sub
+        · exact hf.continuous.aestronglyMeasurable.comp_aemeasurable
+            ((measurable_rademacherSumProd (n + 1)).add
+              ((measurable_const.sub (measurable_pi_apply 0)).div measurable_const)).aemeasurable
+        · exact hf.continuous.aestronglyMeasurable.comp_aemeasurable
+            ((measurable_rademacherSumProd (n + 1)).sub
+              ((measurable_const.add (measurable_pi_apply 0)).div measurable_const)).aemeasurable
+      · exact hC'_nonneg
+      · filter_upwards with x
+        exact rescaledDiff_bounded hf (n + 1) x
+    · -- (f'(S))² is integrable
+      exact integrable_deriv_sq (n + 1) hf
+  calc |4 * ∫ x, (rescaledDiff (n + 1) f x)^2 ∂rademacherProductMeasure (n + 1) -
+        4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1)|
+      = |4 * (∫ x, (rescaledDiff (n + 1) f x)^2 ∂rademacherProductMeasure (n + 1) -
+          ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1))| := by
+          ring_nf
+    _ = 4 * |∫ x, ((rescaledDiff (n + 1) f x)^2 - (deriv f (rademacherSumProd (n + 1) x))^2)
+          ∂rademacherProductMeasure (n + 1)| := by
+          rw [abs_mul, abs_of_nonneg (by norm_num : (4 : ℝ) ≥ 0)]
+          congr 1
+          rw [← MeasureTheory.integral_sub]
+          · apply integrable_sq_of_bounded (C := C')
+            · unfold rescaledDiff
+              apply AEStronglyMeasurable.mul aestronglyMeasurable_const
+              apply AEStronglyMeasurable.sub
+              · exact hf.continuous.aestronglyMeasurable.comp_aemeasurable
+                  ((measurable_rademacherSumProd (n + 1)).add
+                    ((measurable_const.sub (measurable_pi_apply 0)).div measurable_const)).aemeasurable
+              · exact hf.continuous.aestronglyMeasurable.comp_aemeasurable
+                  ((measurable_rademacherSumProd (n + 1)).sub
+                    ((measurable_const.add (measurable_pi_apply 0)).div measurable_const)).aemeasurable
+            · exact hC'_nonneg
+            · filter_upwards with x
+              exact rescaledDiff_bounded hf (n + 1) x
+          · exact integrable_deriv_sq (n + 1) hf
+    _ ≤ 4 * ∫ x, |((rescaledDiff (n + 1) f x)^2 - (deriv f (rademacherSumProd (n + 1) x))^2)|
+          ∂rademacherProductMeasure (n + 1) := by
+          apply mul_le_mul_of_nonneg_left abs_integral_le_integral_abs (by norm_num)
+    _ ≤ 4 * ∫ _, (4 * K * C' / Real.sqrt (↑(n + 1) : ℝ)) ∂rademacherProductMeasure (n + 1) := by
+          apply mul_le_mul_of_nonneg_left _ (by norm_num)
+          apply integral_mono_ae
+          · exact hint_diff.abs
+          · exact integrable_const _
+          · filter_upwards [coord_values_ae (n + 1) 0] with x hx
+            exact sq_rescaledDiff_sub_sq_deriv_bound hf (n + 1) x hx
+    _ = 16 * K * C' / Real.sqrt (↑(n + 1) : ℝ) := by simp; ring
+
+/-- **Main Intermediate Result (n times single term version)**:
+
+For f ∈ C_c²(ℝ), as n → ∞:
+  n · E[(f(a⁺₀) - f(a⁻₀))²] → 4 · E[f'(X)²]
+
+This is equivalent to the sum version by symmetry of Rademacher variables. -/
+theorem tendsto_n_times_sq_diff {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+  -- We show this by writing aₙ = (aₙ - bₙ) + bₙ where
+  -- aₙ = n * E[(f(a⁺) - f(a⁻))²]
+  -- bₙ = 4 * E[(f'(Sₙ))²]
+  -- We've shown aₙ - bₙ → 0 and bₙ → 4 * E[(f'(X))²]
+  have h1 : Tendsto (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) -
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 0) := tendsto_n_sq_diff_sub_four_deriv_sq hf
+  have h2 : Tendsto (fun n => 4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2
+        ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+    apply Tendsto.const_mul
+    -- Use change of variables: ∫ g(Sₙ) dμ = ∫ g d(law of Sₙ)
+    have hcov : ∀ n, ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2
+        ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (deriv f x)^2 ∂(rademacherLaw (n + 1)).toMeasure := by
+      intro n
+      have hrademacherLaw : (rademacherLaw (n + 1)).toMeasure =
+          (rademacherProductMeasure (n + 1)).map (rademacherSumProd (n + 1)) := rfl
+      rw [hrademacherLaw]
+      exact (integral_map (measurable_rademacherSumProd (n + 1)).aemeasurable
+        ((deriv_continuous_of_compactlySupported hf).pow 2).aestronglyMeasurable).symm
+    simp_rw [hcov]
+    exact tendsto_integral_deriv_sq hf
+  -- Combine: aₙ = (aₙ - bₙ) + bₙ
+  have heq : (fun n : ℕ => (↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1)) =
+      (fun n : ℕ => ((↑(n + 1) : ℝ) *
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) -
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1)) +
+      4 * ∫ x, (deriv f (rademacherSumProd (n + 1) x))^2 ∂rademacherProductMeasure (n + 1)) := by
+    ext n; ring
+  rw [heq]
+  simpa using h1.add h2
+
+/-- **Main Intermediate Result (sum version)**:
+
+For f ∈ C_c²(ℝ), as n → ∞:
+  ∑ᵢ E[(f(Sₙ + (1-εᵢ)/√n) - f(Sₙ - (1+εᵢ)/√n))²] → 4 · E[f'(X)²]
+
+where X ~ N(0,1).
+
+This follows from the n-times version by symmetry: all terms in the sum are equal. -/
+theorem tendsto_sum_sq_diff_four_deriv_sq {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n => ∑ i : Fin (n + 1), ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+  -- By symmetry, all terms are equal (same argument as in variance_rademacherSum_efronStein)
+  have hsum_eq : ∀ n : ℕ, ∑ i : Fin (n + 1), ∫ x,
+      (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+        ∂rademacherProductMeasure (n + 1) =
+      (↑(n + 1) : ℝ) * ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+        ∂rademacherProductMeasure (n + 1) := by
+    intro n
+    -- All terms are equal by symmetry
+    have hall_eq : ∀ i ∈ Finset.univ, ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+      intro i _
+      -- Use coordinate swap symmetry
+      let σ : Equiv.Perm (Fin (n + 1)) := Equiv.swap 0 i
+      let swapEquiv := MeasurableEquiv.piCongrLeft (fun _ : Fin (n + 1) => ℝ) σ
+      have hσ_symm : σ.symm = σ := Equiv.symm_swap 0 i
+      have hσ_i : σ i = 0 := Equiv.swap_apply_right 0 i
+      -- rademacherSumProd is invariant under coordinate permutation
+      have hsum_inv : ∀ x, rademacherSumProd (n + 1) (swapEquiv x) = rademacherSumProd (n + 1) x := by
+        intro x
+        unfold rademacherSumProd
+        rw [MeasurableEquiv.coe_piCongrLeft]
+        simp only [Equiv.piCongrLeft_apply_eq_cast, hσ_symm, cast_eq]
+        rw [← Finset.sum_equiv σ (g := fun j => x j)]
+        · simp only [Finset.mem_univ, implies_true]
+        · intro j _; rfl
+      have hswap_i : ∀ x, (swapEquiv x) i = x 0 := by
+        intro x
+        show (Equiv.piCongrLeft (fun _ => ℝ) σ) x i = x 0
+        simp only [Equiv.piCongrLeft_apply_eq_cast, cast_eq, hσ_symm, hσ_i]
+      have haPlus : ∀ x, aPlusProd (n + 1) i (swapEquiv x) = aPlusProd (n + 1) 0 x := by
+        intro x; unfold aPlusProd; rw [hsum_inv, hswap_i]
+      have haMinus : ∀ x, aMinusProd (n + 1) i (swapEquiv x) = aMinusProd (n + 1) 0 x := by
+        intro x; unfold aMinusProd; rw [hsum_inv, hswap_i]
+      have hpreserves : MeasurePreserving swapEquiv (rademacherProductMeasure (n + 1))
+          (rademacherProductMeasure (n + 1)) := by
+        unfold rademacherProductMeasure
+        exact measurePreserving_piCongrLeft (fun _ => rademacherMeasure) σ
+      rw [← hpreserves.integral_comp']
+      congr 1
+      ext x
+      rw [haPlus, haMinus]
+    rw [Finset.sum_eq_card_nsmul hall_eq]
+    simp only [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  simp_rw [hsum_eq]
+  exact tendsto_n_times_sq_diff hf
+
+/-- The shifted Rademacher sum: `Sₙ - 2εᵢ/√n`.
+This represents Sₙ with coordinate i's contribution subtracted twice. -/
+def rademacherSumShifted (n : ℕ) [NeZero n] (i : Fin n) (x : RademacherSpace n) : ℝ :=
+  rademacherSumProd n x - 2 * x i / Real.sqrt n
+
+/-- The shifted sum is measurable. -/
+lemma measurable_rademacherSumShifted (n : ℕ) [NeZero n] (i : Fin n) :
+    Measurable (rademacherSumShifted n i) := by
+  unfold rademacherSumShifted
+  apply Measurable.sub (measurable_rademacherSumProd n)
+  apply Measurable.div (Measurable.const_mul (measurable_pi_apply i) 2) measurable_const
+
+/-- Key identity: When εᵢ = 1, we have aPlusProd = Sₙ and aMinusProd = Sₙ - 2/√n = shifted. -/
+lemma aPlusProd_aMinusProd_eq_when_eps_pos (n : ℕ) [NeZero n] (x : RademacherSpace n)
+    (hx : x 0 = 1) :
+    aPlusProd n 0 x = rademacherSumProd n x ∧
+    aMinusProd n 0 x = rademacherSumShifted n 0 x := by
+  constructor
+  · unfold aPlusProd; simp [hx]
+  · unfold aMinusProd rademacherSumShifted; simp [hx]; ring
+
+/-- Key identity: When εᵢ = -1, we have aPlusProd = Sₙ + 2/√n = shifted, and aMinusProd = Sₙ. -/
+lemma aPlusProd_aMinusProd_eq_when_eps_neg (n : ℕ) [NeZero n] (x : RademacherSpace n)
+    (hx : x 0 = -1) :
+    aPlusProd n 0 x = rademacherSumShifted n 0 x ∧
+    aMinusProd n 0 x = rademacherSumProd n x := by
+  constructor
+  · -- aPlusProd = Sₙ + (1-(-1))/√n = Sₙ + 2/√n
+    -- rademacherSumShifted = Sₙ - 2*(-1)/√n = Sₙ + 2/√n
+    unfold aPlusProd rademacherSumShifted; simp [hx]; ring
+  · unfold aMinusProd; simp [hx]
+
+/-- **Key Identity**: The squared difference (f(a⁺) - f(a⁻))² equals (f(Sₙ) - f(Sₙ - 2εᵢ/√n))² a.s.
+
+This is because:
+- When εᵢ = 1: a⁺ = Sₙ, a⁻ = Sₙ - 2/√n = shifted, so the differences are equal.
+- When εᵢ = -1: a⁺ = Sₙ + 2/√n, a⁻ = Sₙ, shifted = Sₙ + 2/√n.
+  f(a⁺) - f(a⁻) = f(Sₙ + 2/√n) - f(Sₙ)
+  f(Sₙ) - f(shifted) = f(Sₙ) - f(Sₙ + 2/√n) = -(f(a⁺) - f(a⁻))
+  But the squares are equal. -/
+lemma sq_aPlusMinus_eq_sq_shifted (n : ℕ) [NeZero n] {f : ℝ → ℝ} (x : RademacherSpace n)
+    (hx : x 0 = 1 ∨ x 0 = -1) :
+    (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 =
+    (f (rademacherSumProd n x) - f (rademacherSumShifted n 0 x))^2 := by
+  rcases hx with hpos | hneg
+  · -- Case εᵢ = 1: a⁺ = Sₙ, a⁻ = shifted
+    obtain ⟨haplus, haminus⟩ := aPlusProd_aMinusProd_eq_when_eps_pos n x hpos
+    rw [haplus, haminus]
+  · -- Case εᵢ = -1: a⁺ = shifted + offset, a⁻ = Sₙ
+    -- We have a⁺ - a⁻ = 2/√n (constant), so a⁺ = Sₙ + 2/√n, a⁻ = Sₙ
+    -- shifted = Sₙ - 2*(-1)/√n = Sₙ + 2/√n = a⁺
+    have hshifted_eq_aplus : rademacherSumShifted n 0 x = aPlusProd n 0 x := by
+      unfold rademacherSumShifted aPlusProd
+      simp [hneg]; ring
+    have haminus_eq_sum : aMinusProd n 0 x = rademacherSumProd n x := by
+      unfold aMinusProd; simp [hneg]
+    rw [hshifted_eq_aplus, haminus_eq_sum]
+    ring
+
+/-- Almost everywhere version of the squared difference identity. -/
+lemma sq_aPlusMinus_eq_sq_shifted_ae (n : ℕ) [NeZero n] {f : ℝ → ℝ} :
+    ∀ᵐ x ∂(rademacherProductMeasure n),
+    (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 =
+    (f (rademacherSumProd n x) - f (rademacherSumShifted n 0 x))^2 := by
+  filter_upwards [coord_values_ae n 0] with x hx
+  exact sq_aPlusMinus_eq_sq_shifted n x hx
+
+/-- The integral of the squared difference using aPlusProd/aMinusProd equals
+the integral using rademacherSumProd/rademacherSumShifted. -/
+lemma integral_sq_diff_eq_integral_sq_shifted (n : ℕ) [NeZero n] (f : ℝ → ℝ) :
+    ∫ x, (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 ∂(rademacherProductMeasure n) =
+    ∫ x, (f (rademacherSumProd n x) - f (rademacherSumShifted n 0 x))^2
+      ∂(rademacherProductMeasure n) := by
+  apply integral_congr_ae
+  exact sq_aPlusMinus_eq_sq_shifted_ae n
+
+/-- **Main Intermediate Result (refactored formulation)**:
+
+For f ∈ C_c²(ℝ), as n → ∞:
+  ∑ᵢ E[(f(Sₙ) - f(Sₙ - 2εᵢ/√n))²] → 4 · E[f'(X)²]
+
+where X ~ N(0,1).
+
+This is the refactored version of `tendsto_sum_sq_diff_four_deriv_sq`,
+using the shifted sum formulation instead of aPlusProd/aMinusProd. -/
+theorem tendsto_sum_sq_shifted_four_deriv_sq {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n => ∑ i : Fin (n + 1), ∫ x,
+        (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1))
+    atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂stdGaussianMeasure)) := by
+  -- First, show that each term equals the corresponding term with aPlusProd/aMinusProd
+  have hsum_convert : ∀ n : ℕ,
+      ∑ i : Fin (n + 1), ∫ x,
+        (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+      ∑ i : Fin (n + 1), ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+    intro n
+    -- By symmetry, all terms are equal, so we can relate both sums to n+1 times the i=0 term
+    -- First, show all terms in the LHS sum are equal (to the i=0 term)
+    have hlhs_eq : ∀ i ∈ Finset.univ, ∫ x,
+        (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (f (rademacherSumProd (n + 1) x) - f (rademacherSumShifted (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+      intro i _
+      -- Use coordinate swap symmetry
+      let σ : Equiv.Perm (Fin (n + 1)) := Equiv.swap 0 i
+      let swapEquiv := MeasurableEquiv.piCongrLeft (fun _ : Fin (n + 1) => ℝ) σ
+      have hσ_symm : σ.symm = σ := Equiv.symm_swap 0 i
+      have hσ_i : σ i = 0 := Equiv.swap_apply_right 0 i
+      -- rademacherSumProd is invariant under coordinate permutation
+      have hsum_inv : ∀ x, rademacherSumProd (n + 1) (swapEquiv x) = rademacherSumProd (n + 1) x := by
+        intro x
+        unfold rademacherSumProd
+        rw [MeasurableEquiv.coe_piCongrLeft]
+        simp only [Equiv.piCongrLeft_apply_eq_cast, hσ_symm, cast_eq]
+        rw [← Finset.sum_equiv σ (g := fun j => x j)]
+        · simp only [Finset.mem_univ, implies_true]
+        · intro j _; rfl
+      have hswap_i : ∀ x, (swapEquiv x) i = x 0 := by
+        intro x
+        show (Equiv.piCongrLeft (fun _ => ℝ) σ) x i = x 0
+        simp only [Equiv.piCongrLeft_apply_eq_cast, cast_eq, hσ_symm, hσ_i]
+      have hShifted : ∀ x, rademacherSumShifted (n + 1) i (swapEquiv x) =
+          rademacherSumShifted (n + 1) 0 x := by
+        intro x; unfold rademacherSumShifted; rw [hsum_inv, hswap_i]
+      have hpreserves : MeasurePreserving swapEquiv (rademacherProductMeasure (n + 1))
+          (rademacherProductMeasure (n + 1)) := by
+        unfold rademacherProductMeasure
+        exact measurePreserving_piCongrLeft (fun _ => rademacherMeasure) σ
+      rw [← hpreserves.integral_comp']
+      congr 1
+      ext x
+      rw [hsum_inv, hShifted]
+    -- Similarly for RHS
+    have hrhs_eq : ∀ i ∈ Finset.univ, ∫ x,
+        (f (aPlusProd (n + 1) i x) - f (aMinusProd (n + 1) i x))^2
+          ∂rademacherProductMeasure (n + 1) =
+        ∫ x, (f (aPlusProd (n + 1) 0 x) - f (aMinusProd (n + 1) 0 x))^2
+          ∂rademacherProductMeasure (n + 1) := by
+      intro i _
+      let σ : Equiv.Perm (Fin (n + 1)) := Equiv.swap 0 i
+      let swapEquiv := MeasurableEquiv.piCongrLeft (fun _ : Fin (n + 1) => ℝ) σ
+      have hσ_symm : σ.symm = σ := Equiv.symm_swap 0 i
+      have hσ_i : σ i = 0 := Equiv.swap_apply_right 0 i
+      have hsum_inv : ∀ x, rademacherSumProd (n + 1) (swapEquiv x) = rademacherSumProd (n + 1) x := by
+        intro x
+        unfold rademacherSumProd
+        rw [MeasurableEquiv.coe_piCongrLeft]
+        simp only [Equiv.piCongrLeft_apply_eq_cast, hσ_symm, cast_eq]
+        rw [← Finset.sum_equiv σ (g := fun j => x j)]
+        · simp only [Finset.mem_univ, implies_true]
+        · intro j _; rfl
+      have hswap_i : ∀ x, (swapEquiv x) i = x 0 := by
+        intro x
+        show (Equiv.piCongrLeft (fun _ => ℝ) σ) x i = x 0
+        simp only [Equiv.piCongrLeft_apply_eq_cast, cast_eq, hσ_symm, hσ_i]
+      have haPlus : ∀ x, aPlusProd (n + 1) i (swapEquiv x) = aPlusProd (n + 1) 0 x := by
+        intro x; unfold aPlusProd; rw [hsum_inv, hswap_i]
+      have haMinus : ∀ x, aMinusProd (n + 1) i (swapEquiv x) = aMinusProd (n + 1) 0 x := by
+        intro x; unfold aMinusProd; rw [hsum_inv, hswap_i]
+      have hpreserves : MeasurePreserving swapEquiv (rademacherProductMeasure (n + 1))
+          (rademacherProductMeasure (n + 1)) := by
+        unfold rademacherProductMeasure
+        exact measurePreserving_piCongrLeft (fun _ => rademacherMeasure) σ
+      rw [← hpreserves.integral_comp']
+      congr 1
+      ext x
+      rw [haPlus, haMinus]
+    -- Both sums equal (n+1) times their respective i=0 terms
+    rw [Finset.sum_eq_card_nsmul hlhs_eq, Finset.sum_eq_card_nsmul hrhs_eq]
+    simp only [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    congr 1
+    -- Now show the i=0 terms are equal
+    exact (integral_sq_diff_eq_integral_sq_shifted (n + 1) f).symm
+  simp_rw [hsum_convert]
+  exact tendsto_sum_sq_diff_four_deriv_sq hf

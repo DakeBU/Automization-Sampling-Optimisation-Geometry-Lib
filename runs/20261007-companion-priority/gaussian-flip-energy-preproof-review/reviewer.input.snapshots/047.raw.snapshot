@@ -1,0 +1,39 @@
+include hab hfc hff' in
+/-- Lagrange's Mean Value Theorem, `HasDerivAt` version -/
+theorem exists_hasDerivAt_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) := by
+  obtain ⟨c, cmem, hc⟩ : ∃ c ∈ Ioo a b, (b - a) * f' c = (f b - f a) * 1 :=
+    exists_ratio_hasDerivAt_eq_ratio_slope f f' hab hfc hff' id 1 continuousOn_id
+      fun x _ => hasDerivAt_id x
+  use c, cmem
+  rwa [mul_one, mul_comm, ← eq_div_iff (sub_ne_zero.2 hab.ne')] at hc
+
+include hab hfc hgc hgd hfd in
+/-- Cauchy's Mean Value Theorem, `deriv` version. -/
+@[wikidata Q189136]
+theorem exists_ratio_deriv_eq_ratio_slope :
+    ∃ c ∈ Ioo a b, (g b - g a) * deriv f c = (f b - f a) * deriv g c :=
+  exists_ratio_hasDerivAt_eq_ratio_slope f (deriv f) hab hfc
+    (fun x hx => ((hfd x hx).differentiableAt <| IsOpen.mem_nhds isOpen_Ioo hx).hasDerivAt) g
+    (deriv g) hgc fun x hx =>
+    ((hgd x hx).differentiableAt <| IsOpen.mem_nhds isOpen_Ioo hx).hasDerivAt
+
+include hab in
+/-- Cauchy's Mean Value Theorem, extended `deriv` version. -/
+theorem exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+    (hdf : DifferentiableOn ℝ f <| Ioo a b) (hdg : DifferentiableOn ℝ g <| Ioo a b)
+    (hfa : Tendsto f (𝓝[>] a) (𝓝 lfa)) (hga : Tendsto g (𝓝[>] a) (𝓝 lga))
+    (hfb : Tendsto f (𝓝[<] b) (𝓝 lfb)) (hgb : Tendsto g (𝓝[<] b) (𝓝 lgb)) :
+    ∃ c ∈ Ioo a b, (lgb - lga) * deriv f c = (lfb - lfa) * deriv g c :=
+  exists_ratio_hasDerivAt_eq_ratio_slope' _ _ hab _ _
+    (fun x hx => ((hdf x hx).differentiableAt <| Ioo_mem_nhds hx.1 hx.2).hasDerivAt)
+    (fun x hx => ((hdg x hx).differentiableAt <| Ioo_mem_nhds hx.1 hx.2).hasDerivAt) hfa hga hfb hgb
+
+include hab hfc hfd in
+/-- Lagrange's **Mean Value Theorem**, `deriv` version. -/
+theorem exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
+  exists_hasDerivAt_eq_slope f (deriv f) hab hfc fun x hx =>
+    ((hfd x hx).differentiableAt <| IsOpen.mem_nhds isOpen_Ioo hx).hasDerivAt
+
+include hab hfc hfd in
+/-- Lagrange's **Mean Value Theorem**, `deriv` version. -/
+theorem exists_deriv_eq_slope' : ∃ c ∈ Ioo a b, deriv f c = slope f a b := by

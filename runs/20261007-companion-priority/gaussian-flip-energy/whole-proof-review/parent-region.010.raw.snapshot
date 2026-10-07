@@ -1,0 +1,26 @@
+  simpa only [dist_one_right] using nhds_comap_dist (1 : E)
+
+/-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
+function `a` which tends to `0`, then `f` tends to `1` (neutral element of `SeminormedGroup`).
+In this pair of lemmas (`squeeze_one_norm'` and `squeeze_one_norm`), following a convention of
+similar lemmas in `Topology.MetricSpace.Basic` and `Topology.Algebra.Order`, the `'` version is
+phrased using "eventually" and the non-`'` version is phrased absolutely. -/
+@[to_additive /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by
+a real function `a` which tends to `0`, then `f` tends to `0`. In this pair of lemmas
+(`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of similar lemmas in
+`Topology.MetricSpace.Pseudo.Defs` and `Topology.Algebra.Order`, the `'` version is phrased using
+"eventually" and the non-`'` version is phrased absolutely. -/]
+theorem squeeze_one_norm' {f : α → E} {a : α → ℝ} {t₀ : Filter α} (h : ∀ᶠ n in t₀, ‖f n‖ ≤ a n)
+    (h' : Tendsto a t₀ (𝓝 0)) : Tendsto f t₀ (𝓝 1) :=
+  tendsto_one_iff_norm_tendsto_zero.2 <|
+    squeeze_zero' (Eventually.of_forall fun _n => norm_nonneg' _) h h'
+
+/-- Special case of the sandwich theorem: if the norm of `f` is bounded by a real function `a` which
+tends to `0`, then `f` tends to `1`. -/
+@[to_additive /-- Special case of the sandwich theorem: if the norm of `f` is bounded by a real
+function `a` which tends to `0`, then `f` tends to `0`. -/]
+theorem squeeze_one_norm {f : α → E} {a : α → ℝ} {t₀ : Filter α} (h : ∀ n, ‖f n‖ ≤ a n) :
+    Tendsto a t₀ (𝓝 0) → Tendsto f t₀ (𝓝 1) :=
+  squeeze_one_norm' <| Eventually.of_forall h
+
+@[to_additive]

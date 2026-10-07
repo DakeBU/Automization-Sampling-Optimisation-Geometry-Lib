@@ -1,0 +1,14 @@
+lemma integrable_sq_of_bounded {P : Measure Ω} [IsFiniteMeasure P]
+    {g : Ω → ℝ} (hg : AEStronglyMeasurable g P) {C : ℝ} (hC : 0 ≤ C)
+    (hbdd : ∀ᵐ ω ∂P, ‖g ω‖ ≤ C) :
+    Integrable (fun ω => (g ω)^2) P := by
+  apply Integrable.of_bound (hg.pow 2) (C^2)
+  filter_upwards [hbdd] with ω hω
+  simp only [Pi.pow_apply, Real.norm_eq_abs]
+  rw [abs_pow]
+  calc |g ω|^2 ≤ ‖g ω‖^2 := by rw [Real.norm_eq_abs]
+    _ ≤ C^2 := by
+        apply sq_le_sq'
+        · calc -C ≤ 0 := neg_nonpos.mpr hC
+            _ ≤ ‖g ω‖ := norm_nonneg _
+        · exact hω

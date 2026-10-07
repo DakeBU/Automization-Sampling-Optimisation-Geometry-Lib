@@ -1,0 +1,28 @@
+
+/-- A continuous compactly supported function is bounded.
+This follows from the Extreme Value Theorem: continuous functions on compact sets attain
+their maximum. -/
+theorem compactlySupported_continuous_bounded {f : ℝ → ℝ}
+    (hcont : Continuous f) (hsupp : HasCompactSupport f) :
+    ∃ C : ℝ, ∀ x : ℝ, ‖f x‖ ≤ C :=
+  hsupp.exists_bound_of_continuous hcont
+
+/-- A compactly supported smooth function is bounded. -/
+theorem CompactlySupportedSmooth.bounded {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    ∃ C : ℝ, ∀ x : ℝ, ‖f x‖ ≤ C :=
+  compactlySupported_continuous_bounded hf.continuous hf.2
+
+/-- The composition of a bounded measurable function with any random variable is bounded. -/
+lemma bounded_comp_bounded {f : ℝ → ℝ} {X : Ω → ℝ} {C : ℝ}
+    (hbdd : ∀ x : ℝ, ‖f x‖ ≤ C) :
+    ∀ ω : Ω, ‖f (X ω)‖ ≤ C := fun ω => hbdd (X ω)
+
+variable [MeasurableSpace Ω]
+
+/-- A compactly supported smooth function composed with any random variable is bounded a.e. -/
+lemma CompactlySupportedSmooth.ae_bounded {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f)
+    {P : Measure Ω} {X : Ω → ℝ} :
+    ∃ C : ℝ, ∀ᵐ ω ∂P, ‖f (X ω)‖ ≤ C := by
+  obtain ⟨C, hC⟩ := hf.bounded
+  exact ⟨C, ae_of_all P (bounded_comp_bounded hC)⟩
+

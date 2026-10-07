@@ -1,0 +1,27 @@
+/-- For `f ∈ C_c²(ℝ)`, the supremum `K := sup|f''|` is finite.
+This follows from the Extreme Value Theorem: f'' is continuous and compactly supported,
+hence bounded. -/
+theorem deriv2_bounded_of_compactlySupported {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ x : ℝ, |deriv (deriv f) x| ≤ K := by
+  have hcont : Continuous (deriv (deriv f)) := deriv2_continuous hf
+  have hsupp : HasCompactSupport (deriv (deriv f)) := deriv2_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  use max 0 C
+  constructor
+  · exact le_max_left 0 C
+  · intro x
+    calc |deriv (deriv f) x| = ‖deriv (deriv f) x‖ := (Real.norm_eq_abs _).symm
+      _ ≤ C := hC x
+      _ ≤ max 0 C := le_max_right 0 C
+
+/-- The bound K on the second derivative. -/
+def secondDerivBound (f : ℝ → ℝ) (hf : CompactlySupportedSmooth f) : ℝ :=
+  (deriv2_bounded_of_compactlySupported hf).choose
+
+lemma secondDerivBound_nonneg {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    0 ≤ secondDerivBound f hf :=
+  (deriv2_bounded_of_compactlySupported hf).choose_spec.1
+
+lemma secondDerivBound_spec {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    |deriv (deriv f) x| ≤ secondDerivBound f hf :=
+  (deriv2_bounded_of_compactlySupported hf).choose_spec.2 x

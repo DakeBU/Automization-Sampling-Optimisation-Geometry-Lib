@@ -1,0 +1,24 @@
+    (nhdsGT_basis _).congr (by simp) fun a ha ↦ by simp [inv_Ioi₀ (inv_pos.2 ha)]
+
+@[simp]
+lemma inv_nhdsGT_zero : (𝓝[>] (0 : 𝕜))⁻¹ = atTop := by rw [← inv_atTop₀, inv_inv]
+
+/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
+theorem tendsto_inv_nhdsGT_zero : Tendsto (fun x : 𝕜 => x⁻¹) (𝓝[>] (0 : 𝕜)) atTop :=
+  inv_nhdsGT_zero.le
+
+/-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
+theorem tendsto_inv_atTop_nhdsGT_zero : Tendsto (fun r : 𝕜 => r⁻¹) atTop (𝓝[>] (0 : 𝕜)) :=
+  inv_atTop₀.le
+
+theorem tendsto_nhdsGT_zero_of_comp_inv_tendsto_atTop {f : 𝕜 → α}
+    (h : Tendsto (fun x ↦ f x⁻¹) atTop l) :
+    Tendsto f (𝓝[>] 0) l := by
+  convert! h.comp tendsto_inv_nhdsGT_zero
+  grind [inv_inv]
+
+theorem tendsto_inv_atTop_zero : Tendsto (fun r : 𝕜 => r⁻¹) atTop (𝓝 0) :=
+  tendsto_inv_atTop_nhdsGT_zero.mono_right inf_le_left
+
+theorem Filter.Tendsto.inv_tendsto_atTop (h : Tendsto f l atTop) : Tendsto f⁻¹ l (𝓝 0) :=
+  tendsto_inv_atTop_zero.comp h

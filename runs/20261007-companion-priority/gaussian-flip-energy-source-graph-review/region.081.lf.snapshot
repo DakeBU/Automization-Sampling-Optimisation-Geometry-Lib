@@ -1,0 +1,89 @@
+This is the key estimate: |g² - (f'(Sₙ))²| ≤ 4KC'/√n where K = sup|f''|, C' = sup|f'|. -/
+lemma sq_rescaledDiff_sub_sq_deriv_bound {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f)
+    (n : ℕ) [NeZero n] (x : RademacherSpace n) (hx : x 0 = 1 ∨ x 0 = -1) :
+    |(rescaledDiff n f x)^2 - (deriv f (rademacherSumProd n x))^2| ≤
+    4 * secondDerivBound f hf * firstDerivBound f hf / Real.sqrt n := by
+  let g := rescaledDiff n f x
+  let S := rademacherSumProd n x
+  let K := secondDerivBound f hf
+  let C' := firstDerivBound f hf
+  have hK_nonneg := secondDerivBound_nonneg hf
+  have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne n))
+  have hsqrt_pos : 0 < Real.sqrt n := Real.sqrt_pos.mpr hn_pos
+  -- Get ξ such that g = f'(ξ)
+  obtain ⟨ξ, hξ_mem, hg_eq⟩ := rescaledDiff_eq_deriv_at_intermediate hf n x
+  -- Bound |ξ - S| ≤ 2/√n (from TaylorBound)
+  have hξ_bound : |ξ - S| ≤ 2 / Real.sqrt n := by
+    rcases hx with hpos | hneg
+    · -- x 0 = 1: a⁺ = S, a⁻ = S - 2/√n
+      have haplus_eq : aPlusProd n 0 x = S := by
+        simp only [aPlusProd, hpos, sub_self, zero_div, add_zero]; rfl
+      have haminus_eq : aMinusProd n 0 x = S - 2 / Real.sqrt n := by
+        simp only [aMinusProd, hpos]
+        ring
+      rw [haplus_eq, haminus_eq] at hξ_mem
+      have h1 : S - ξ > 0 := sub_pos.mpr hξ_mem.2
+      have h2 : S - ξ < 2 / Real.sqrt n := by linarith [hξ_mem.1]
+      calc |ξ - S| = |-(S - ξ)| := by ring_nf
+        _ = S - ξ := by rw [abs_neg, abs_of_pos h1]
+        _ ≤ 2 / Real.sqrt n := le_of_lt h2
+    · -- x 0 = -1: a⁺ = S + 2/√n, a⁻ = S
+      have haplus_eq : aPlusProd n 0 x = S + 2 / Real.sqrt n := by
+        simp only [aPlusProd, hneg]
+        ring
+      have haminus_eq : aMinusProd n 0 x = S := by
+        simp only [aMinusProd, hneg, add_neg_cancel, zero_div, sub_zero]; rfl
+      rw [haplus_eq, haminus_eq] at hξ_mem
+      have h1 : ξ - S > 0 := sub_pos.mpr hξ_mem.1
+      have h2 : ξ - S < 2 / Real.sqrt n := by linarith [hξ_mem.2]
+      calc |ξ - S| = ξ - S := abs_of_pos h1
+        _ ≤ 2 / Real.sqrt n := le_of_lt h2
+  -- Bound |f'(ξ) - f'(S)| ≤ K * |ξ - S| ≤ 2K/√n
+  have hderiv_diff : |deriv f ξ - deriv f S| ≤ 2 * K / Real.sqrt n := by
+    by_cases hξS : ξ = S
+    · simp only [hξS, sub_self, abs_zero]
+      exact div_nonneg (mul_nonneg (by norm_num) hK_nonneg) (le_of_lt hsqrt_pos)
+    · rcases Ne.lt_or_gt hξS with hlt | hlt
+      · obtain ⟨η, _, hη_eq⟩ := exists_deriv_eq_slope (deriv f) hlt
+          (TaylorBound.deriv_differentiable_of_contDiff2 hf.1).continuous.continuousOn
+          ((TaylorBound.deriv_differentiable_of_contDiff2 hf.1).differentiableOn.mono
+            Set.Ioo_subset_Icc_self)
+        calc |deriv f ξ - deriv f S|
+            = |deriv f S - deriv f ξ| := abs_sub_comm _ _
+          _ = |deriv (deriv f) η * (S - ξ)| := by
+              have hne : S - ξ ≠ 0 := sub_ne_zero.mpr (ne_of_gt hlt)
+              rw [hη_eq]; field_simp
+          _ = |deriv (deriv f) η| * |S - ξ| := abs_mul _ _
+          _ ≤ K * |S - ξ| := mul_le_mul_of_nonneg_right (secondDerivBound_spec hf η) (abs_nonneg _)
+          _ = K * |ξ - S| := by rw [abs_sub_comm]
+          _ ≤ K * (2 / Real.sqrt n) := mul_le_mul_of_nonneg_left hξ_bound hK_nonneg
+          _ = 2 * K / Real.sqrt n := by ring
+      · obtain ⟨η, _, hη_eq⟩ := exists_deriv_eq_slope (deriv f) hlt
+          (TaylorBound.deriv_differentiable_of_contDiff2 hf.1).continuous.continuousOn
+          ((TaylorBound.deriv_differentiable_of_contDiff2 hf.1).differentiableOn.mono
+            Set.Ioo_subset_Icc_self)
+        calc |deriv f ξ - deriv f S|
+            = |deriv (deriv f) η * (ξ - S)| := by
+                have hne : ξ - S ≠ 0 := sub_ne_zero.mpr (ne_of_gt hlt)
+                rw [hη_eq]; field_simp
+          _ = |deriv (deriv f) η| * |ξ - S| := abs_mul _ _
+          _ ≤ K * |ξ - S| := mul_le_mul_of_nonneg_right (secondDerivBound_spec hf η) (abs_nonneg _)
+          _ ≤ K * (2 / Real.sqrt n) := mul_le_mul_of_nonneg_left hξ_bound hK_nonneg
+          _ = 2 * K / Real.sqrt n := by ring
+  -- Now bound |g² - (f'(S))²| = |g - f'(S)| * |g + f'(S)|
+  have hg_bound : |g| ≤ C' := rescaledDiff_bounded hf n x
+  have hfS_bound : |deriv f S| ≤ C' := firstDerivBound_spec hf S
+  calc |g^2 - (deriv f S)^2|
+      = |(g - deriv f S) * (g + deriv f S)| := by ring_nf
+    _ = |g - deriv f S| * |g + deriv f S| := abs_mul _ _
+    _ = |deriv f ξ - deriv f S| * |g + deriv f S| := by
+        rw [show g = deriv f ξ from hg_eq]
+    _ ≤ (2 * K / Real.sqrt n) * |g + deriv f S| :=
+        mul_le_mul_of_nonneg_right hderiv_diff (abs_nonneg _)
+    _ ≤ (2 * K / Real.sqrt n) * (|g| + |deriv f S|) :=
+        mul_le_mul_of_nonneg_left (abs_add_le _ _)
+          (div_nonneg (mul_nonneg (by norm_num) hK_nonneg) (le_of_lt hsqrt_pos))
+    _ ≤ (2 * K / Real.sqrt n) * (C' + C') := by
+        apply mul_le_mul_of_nonneg_left (add_le_add hg_bound hfS_bound)
+        exact div_nonneg (mul_nonneg (by norm_num) hK_nonneg) (le_of_lt hsqrt_pos)
+    _ = 4 * K * C' / Real.sqrt n := by ring

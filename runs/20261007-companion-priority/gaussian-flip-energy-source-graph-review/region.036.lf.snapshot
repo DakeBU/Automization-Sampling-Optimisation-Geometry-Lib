@@ -1,0 +1,25 @@
+
+/-- Rademacher random variables take values in {-1, 1} almost surely. -/
+lemma rademacher_values_ae {Ω : Type*} [MeasurableSpace Ω]
+    {P : Measure Ω} {ε : Ω → ℝ} (hε : IsRademacher P ε) :
+    ∀ᵐ ω ∂P, ε ω = 1 ∨ ε ω = -1 := by
+  unfold IsRademacher at hε
+  -- rademacherMeasure is supported on {-1, 1}
+  have hsupp : ∀ᵐ x ∂rademacherMeasure, x = 1 ∨ x = -1 := by
+    simp only [rademacherMeasure]
+    rw [ae_add_measure_iff]
+    have hmeas : MeasurableSet {x : ℝ | x = 1 ∨ x = -1} := by measurability
+    constructor <;> {
+      have hhalf : (1 / 2 : ℝ≥0∞) ≠ 0 := by
+        exact ne_of_gt <| ENNReal.half_pos (by simp)
+      rw [Measure.ae_ennreal_smul_measure_iff hhalf]
+      rw [ae_dirac_iff hmeas]
+      simp
+    }
+  rw [← hε] at hsupp
+  -- ε is measurable since map ε P = rademacherMeasure ≠ 0
+  have hmeas' : AEMeasurable ε P := by
+    apply AEMeasurable.of_map_ne_zero
+    rw [hε]
+    exact IsProbabilityMeasure.ne_zero rademacherMeasure
+  exact ae_of_ae_map hmeas' hsupp

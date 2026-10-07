@@ -1,0 +1,95 @@
+/-- Integrability of the absolute value of the derivative. -/
+lemma integrable_deriv_abs (n : ℕ) {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Integrable (fun x : RademacherSpace n => |deriv f (rademacherSumProd n x)|)
+      (rademacherProductMeasure n) := by
+  have hcont := deriv_continuous_of_compactlySupported hf
+  have hsupp := deriv_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  apply Integrable.abs
+  apply Integrable.of_bound
+    (hcont.aestronglyMeasurable.comp_aemeasurable
+      (measurable_rademacherSumProd n).aemeasurable)
+    C (ae_of_all _ (fun x => hC _))
+
+/-- **Main Theorem (Simplified)**: A variance bound using the first derivative bound.
+
+For `f ∈ C_c²(ℝ)` and C' = sup|f'|:
+  Var(f(Sₙ)) ≤ C'²
+-/
+theorem variance_rademacherSum_simple_bound {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    variance (fun x : RademacherSpace n => f (rademacherSumProd n x)) (rademacherProductMeasure n) ≤
+    (firstDerivBound f hf)^2 := by
+  let C' := firstDerivBound f hf
+  let μ := rademacherProductMeasure n
+  have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne n))
+  have hsqrt_sq : (Real.sqrt n)^2 = n := Real.sq_sqrt (le_of_lt hn_pos)
+
+  -- Start with the Efron-Stein bound
+  have hES := variance_rademacherSum_efronStein n f hf
+
+  calc variance (fun x => f (rademacherSumProd n x)) μ
+      ≤ (n : ℝ) / 4 * ∫ x, (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2 ∂μ := hES
+    _ ≤ (n : ℝ) / 4 * ∫ _, (2 * C' / Real.sqrt n)^2 ∂μ := by
+        apply mul_le_mul_of_nonneg_left _ (div_nonneg (Nat.cast_nonneg n) (by norm_num))
+        apply integral_mono_ae
+        · -- Integrability of LHS
+          obtain ⟨C, hC⟩ := hf.bounded
+          apply integrable_sq_of_bounded (C := 2 * C)
+          · apply AEStronglyMeasurable.sub
+            · exact hf.continuous.aestronglyMeasurable.comp_aemeasurable
+                ((measurable_rademacherSumProd n).add
+                  ((measurable_const.sub (measurable_pi_apply 0)).div measurable_const)).aemeasurable
+            · exact hf.continuous.aestronglyMeasurable.comp_aemeasurable
+                ((measurable_rademacherSumProd n).sub
+                  ((measurable_const.add (measurable_pi_apply 0)).div measurable_const)).aemeasurable
+          · linarith [hC 0, norm_nonneg (f 0)]
+          · filter_upwards with x
+            calc ‖f (aPlusProd n 0 x) - f (aMinusProd n 0 x)‖
+                ≤ ‖f (aPlusProd n 0 x)‖ + ‖f (aMinusProd n 0 x)‖ := norm_sub_le _ _
+              _ ≤ C + C := add_le_add (hC _) (hC _)
+              _ = 2 * C := by ring
+        · exact integrable_const _
+        · filter_upwards with x
+          have h := taylor_diff_abs_bound_simple n hf x
+          have h_nonneg : (0 : ℝ) ≤ |f (aPlusProd n 0 x) - f (aMinusProd n 0 x)| := abs_nonneg _
+          have h_bound : |f (aPlusProd n 0 x) - f (aMinusProd n 0 x)| ≤ 2 * C' / Real.sqrt n := h
+          calc (f (aPlusProd n 0 x) - f (aMinusProd n 0 x))^2
+              = |f (aPlusProd n 0 x) - f (aMinusProd n 0 x)|^2 := (sq_abs _).symm
+            _ ≤ (2 * C' / Real.sqrt n)^2 := by
+                apply sq_le_sq' _ h_bound
+                linarith [h_nonneg]
+    _ = (n : ℝ) / 4 * ((2 * C')^2 / n) := by
+        rw [integral_const]
+        have hμ_real_univ : μ.real univ = 1 := by
+          rw [Measure.real_def, measure_univ, ENNReal.toReal_one]
+        simp only [smul_eq_mul, hμ_real_univ, one_mul, div_pow, hsqrt_sq]
+    _ = C'^2 := by field_simp; ring
+
+/-- **Main Theorem**: The variance bound using Taylor expansion analysis.
+
+For `f ∈ C_c²(ℝ)`, K = sup|f''|, and the normalized Rademacher sum Sₙ:
+  Var(f(Sₙ)) ≤ E[f'(Sₙ)²] + (4K/√n)·E[|f'(Sₙ)|] + 4K²/n
+
+This follows the structure from the documentation. The constants (4 instead of 2)
+are slightly different due to the MVT-based approach used in the proof.
+-/
+theorem variance_rademacherSum_taylor_bound {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    variance (fun x : RademacherSpace n => f (rademacherSumProd n x)) (rademacherProductMeasure n) ≤
+    ∫ x, (deriv f (rademacherSumProd n x))^2 ∂(rademacherProductMeasure n) +
+    4 * secondDerivBound f hf / Real.sqrt n *
+      ∫ x, |deriv f (rademacherSumProd n x)| ∂(rademacherProductMeasure n) +
+    4 * (secondDerivBound f hf)^2 / n := by
+  let K := secondDerivBound f hf
+  let μ := rademacherProductMeasure n
+  have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne n))
+  have hsqrt_pos : 0 < Real.sqrt n := Real.sqrt_pos.mpr hn_pos
+  have hsqrt_sq : (Real.sqrt n)^2 = n := Real.sq_sqrt (le_of_lt hn_pos)
+  have hK_nonneg := secondDerivBound_nonneg hf
+
+  -- Start with the Efron-Stein bound
+  have hES := variance_rademacherSum_efronStein n f hf
+
+  -- Use taylor_diff_abs_bound to bound the difference squared
+  -- |f(a⁺) - f(a⁻)| ≤ (2/√n)|f'(S)| + 4K/n
+  -- So (f(a⁺) - f(a⁻))² ≤ ((2/√n)|f'(S)| + 4K/n)²
+

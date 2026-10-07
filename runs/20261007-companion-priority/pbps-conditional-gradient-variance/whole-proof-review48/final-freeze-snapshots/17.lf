@@ -1,0 +1,56 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance
+
+namespace Tests.ProximalBPSConditionalGradientVariance
+noncomputable section
+set_option autoImplicit false
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ContDiff RealInnerProductSpace NNReal
+
+-- At the exact Gaussian precision step, the pointwise coefficient vanishes.
+-- The actual conditional mean derivative must consequently be zero, rather
+-- than a totalized gradient of a nondifferentiable function.
+theorem gaussian_precision_step
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] :
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x-y)) ∧
+      ∀ f : E → ℝ, ContDiff ℝ ∞ f → HasCompactSupport f → ∀ y,
+        DifferentiableAt ℝ (fun z => ∫ u, f u ∂S z) y ∧
+        gradient (fun z => ∫ u, f u ∂S z) y = 0 := by
+  let V := fun x : E => (1/2 : ℝ)*‖x‖^2
+  have hV : ContDiff ℝ 2 V := contDiff_const.mul (contDiff_id.norm_sq (𝕜 := ℝ))
+  have hfd (x : E) : fderiv ℝ V x = innerSL ℝ x := by
+    have h := ((hasFDerivAt_id x).norm_sq).const_mul (1/2 : ℝ)
+    convert h.fderiv using 1 <;> first | rfl | (ext v; simp)
+  have hH (x a : E) : fderiv ℝ (fderiv ℝ V) x a a = ‖a‖^2 := by
+    rw [show fderiv ℝ V = innerSL ℝ from funext hfd]
+    rw [(innerSL ℝ (E := E)).hasFDerivAt.fderiv]
+    exact real_inner_self_eq_norm_sq a
+  obtain ⟨R, S, hR, hS, _, hSR, _, hf⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance
+      (V := V) (α := 1) (β := 1) (η := 1) (by norm_num) (by rfl) hV
+      (by intro x a; simp only [hH, NNReal.coe_one, one_mul]; exact ⟨le_rfl, le_rfl⟩)
+      (by norm_num) (by norm_num)
+  refine ⟨R, S, hR, hS, hSR, ?_⟩
+  intro f hfc hfs y
+  obtain ⟨hd, hb⟩ := hf f hfc hfs y
+  refine ⟨hd, ?_⟩
+  norm_num at hb
+  exact hb
+
+-- A true rank-zero law exercises all kernel outputs and source constants
+-- without a positive-rank or Nontrivial premise.
+theorem rank_zero_actual_kernel :
+    let E := EuclideanSpace ℝ (Fin 0)
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (∀ y, S y=(R y).map (fun x => (2:ℝ) • x-y)) ∧
+      ∀ f : E → ℝ, ContDiff ℝ ∞ f → HasCompactSupport f → ∀ y,
+        DifferentiableAt ℝ (fun z => ∫ u, f u ∂S z) y ∧
+        gradient (fun z => ∫ u, f u ∂S z) y=0 :=
+  gaussian_precision_step
+
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance
+#print axioms gaussian_precision_step
+#print axioms rank_zero_actual_kernel
+end
+end Tests.ProximalBPSConditionalGradientVariance

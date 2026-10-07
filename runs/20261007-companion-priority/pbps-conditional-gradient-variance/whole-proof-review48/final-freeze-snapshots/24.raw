@@ -1,0 +1,47 @@
+from pathlib import Path
+import json,hashlib,subprocess,datetime,sys
+sys.path.insert(0,str(Path.cwd()))
+from tools import astis_advance as adv
+base=Path('runs/20261007-companion-priority');pre=base/'pbps-conditional-gradient-preproof48';src=base/'next-ready-preread47';j=lambda p:json.loads(Path(p).read_text(encoding='utf-8'));w=lambda p,d:Path(p).write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+assert j(src/'lease.json')['state']=='CLOSED';assert j(base/'phase-pbps-primary-preread48/reviewer.primary.lease.json')['status']=='CLOSED'
+assert j(base/'standardized-rgo-kl-dimension/root.integration.lease.json')['status']=='CLOSED'
+if pre.exists():assert set(q.name for q in pre.iterdir())=={'prospective-statement.txt','prepare.attempt0.py'}
+else:pre.mkdir()
+name='reflected_conditional_gradient_variance';decl='AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.'+name
+sig='''theorem reflected_conditional_gradient_variance
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E,
+      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧
+      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧
+      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →
+        ∀ y, DifferentiableAt ℝ (fun z => ∫ u, f u ∂S z) y ∧
+          ‖gradient (fun z => ∫ u, f u ∂S z) y‖^2 ≤
+            (1/η-(α : ℝ))^2/(4*((α : ℝ)+1/η)) *
+              AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+                (S y) f
+'''
+if (pre/'prospective-statement.txt').exists():assert (pre/'prospective-statement.txt').read_bytes()==sig.encode()
+else:(pre/'prospective-statement.txt').write_text(sig,encoding='utf-8')
+digest=hashlib.sha256(sig.encode()).hexdigest();states=adv.current_advances()
+parents=['AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScore.reflected_conditional_covariance','AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance.conditional_centered_domain_and_score_variance']
+parent_states={n:[dict(id=k,state=v['state']) for k,v in states.items() if n in v.get('target_declarations',[])] for n in parents}
+assert all(any(v['state'] in ['VERIFIED','STABILIZING','MERGED'] for v in xs) for xs in parent_states.values()),parent_states
+files=['AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean','Tests/ProximalBPSConditionalGradientVariance.lean'];assert all(not Path(p).exists() for p in files)
+w(pre/'root.statement-proposal.json',dict(status='SOURCE_STATEMENT_ONLY_NOT_SEALED_NOT_CLAIMED_NOT_PROVED',declaration=decl,proposed_files=files,signature_LF_sha256=digest,signature_bytes=len(sig.encode()),source_anchor='PBPS arXiv2609.06905v1 AppendixC.1 A3.Ex7 physical4646-4653; C.1 density/score/derivative A3.Ex1/Ex2/A3.E1; standing0<alpha<=beta C2 and betaeta<=1.',parents=parents,parent_admissions=parent_states,definitions=dict(law='Literal actual Gaussian-augmentation conditional R, reflected S_y density at every y, probability internally produced.',gradient='True total Mathlib gradient with actual differentiability produced; no derivative or score bound certificate.',variance='Actual integral centered square Poincare.variance at identical S_y, not an abstract variance certificate.'),source_boundary='Printed smooth-compact pointwise gradient-variance ingredient, exact quarter coefficient. FiniteHilbert/rank0 explicitly authored extension. Formula(C.2) outer integration/B.13 and rough-domain density/closedgradient extension remain separate, as do full PBPS/SPHMC/kernel runtime/error/cost/composition/main/live/PURIFIED.',own_exposure='Root read only full public47 score/variance headers before successful own primary text read; bs4 unavailable and stdoutGBK adapters failed without proof work. Independent phase48 primary-beforecandidate already sealed. No parent body/new proof/Test/other48review read.',proof_search_started=False,implementation_started=False,utc=datetime.datetime.now(datetime.timezone.utc).isoformat()))
+imports='import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScore\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped RealInnerProductSpace NNReal\nset_option autoImplicit false\n'
+probe=sig[len('theorem '+name):].strip();assert probe.count('(hβη : (β : ℝ) * η ≤ 1) :\n')==1;probe=probe.replace('(hβη : (β : ℝ) * η ≤ 1) :\n','(hβη : (β : ℝ) * η ≤ 1),\n',1)
+Path('.astis/pbps-gradient48/StatementProbe.lean').write_text(imports+'#check (∀ '+probe+')\n',encoding='utf-8')
+w(pre/'control.before.json',dict(head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),origin_main=subprocess.check_output(['git','rev-parse','origin/main'],text=True).strip(),sole_stabilization_owner=[k for k,v in states.items() if v['state']=='STABILIZING'],scope='48 prospective anonymousProp only, no claim/sourcegraph admission/proof.45 actualsharedgate CLOSED; independent45repository/staticExposition only no compiler.'))
+print('Prospective48 exact bytes',len(sig.encode()),'LF',digest,'actual parents',parent_states)

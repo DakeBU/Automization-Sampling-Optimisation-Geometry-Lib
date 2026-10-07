@@ -1,0 +1,18 @@
+  · intro f g hfg _ hf
+    convert! hf using 1 <;> clear hf
+    · exact integral_congr_ae (hfg.fun_comp L).symm
+    · rw [integral_congr_ae hfg.symm]
+
+theorem integral_comp_comm [CompleteSpace E] (L : E →L[𝕜] Fₗ) {φ : X → E} (φ_int : Integrable φ μ) :
+    ∫ x, L (φ x) ∂μ = L (∫ x, φ x ∂μ) := integral_comp_commSL (by simp) L φ_int
+
+theorem integral_apply {H : Type*} [NormedAddCommGroup H] [NormedSpace 𝕜 H] {φ : X → H →L[𝕜] E}
+    (φ_int : Integrable φ μ) (v : H) : (∫ x, φ x ∂μ) v = ∫ x, φ x v ∂μ := by
+  by_cases hE : CompleteSpace E
+  · exact ((ContinuousLinearMap.apply 𝕜 E v).integral_comp_comm φ_int).symm
+  · rcases subsingleton_or_nontrivial H with hH | hH
+    · simp [Subsingleton.eq_zero v]
+    · have : ¬(CompleteSpace (H →L[𝕜] E)) := by
+        rwa [SeparatingDual.completeSpace_continuousLinearMap_iff]
+      simp [integral, hE, this]
+

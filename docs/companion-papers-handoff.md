@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Actual full Boolean flip-energy Gaussian limit (2026-10-07)
+
+The compact-C2 scalar full energy producer is independently VERIFIED at c3bbf938a6d46de7d43036d9f066ba68a3e6be6f.
+It internally derives nonnegative derivative bounds and Lipschitz control,
+the actual Boolean displacement, signed MVT secants and all-coordinate error
+16 B K / sqrt(N). True normalized-count probability, allN energy L1 and the
+integral-error limit join actual36 derivative-observer convergence to give
+the full energy limit FOUR times the Gaussian derivative-square integral.
+No law/domain/bound/limit certificate is a public premise. N0 fullflip0 is
+distinct from a potentially nonzero derivative observer; N1 has no half factor.
+Independent real compact stress confirmed N0 flip0/derivative1 and N1 mean4.
+Exact StatementSeal preceded proof; independent repaired source topology,
+wholeproof, freshblind and anti-anchored source review retain separate receipts.
+
+Shared stabilization adds one Registry leaf (481 total), actual production/Test
+imports and the original companion's five formula steps with folded actual Lean.
+Aggregate/source/graph/static checks and repository/ExpositionSeal require their
+own receipts. Full Test/copy/download/bundles/rendered/live and postmerge PURIFIED
+delivery remain separate; no paper-completion badge changes.
+
+The next dependency-ready mathematical edge is compact scalar GaussianLSI:
+actual34 half Bernoulli LSI + actual36 entropy limit + actual37 fullenergy4.
+Its exact constant is2, signed functions and zero mass included. Finite-Hilbert
+and noncompact cutoff for actual SPHMC32/33, GaussianT2/FIRST4.6, Wp/proxy-warmness,
+actual algorithms, main results and expected query-cost composition remain open.
+PBPS and older Chewi/SampleWiki frontiers remain intact. TV proximity does not
+transfer unbounded expected costs. Original PhaseKernel sole stabilization owner
+and draft PR313 remain; the single whole-paper Goal continues.
+
 ## Actual compact Gaussian observer and entropy integration (2026-10-07)
 
 The exact compact-C2 scalar integration is independently VERIFIED at 421496a5de7355830c0b4904ea10f33722ed3602.

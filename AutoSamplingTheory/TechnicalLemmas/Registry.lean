@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "energy.gaussian.compact-count-full-flip-limit"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianFlipEnergy.compact_count_gaussian_flip_energy_limit"
+    upstreamDecl := "Pinned Mathlib compact derivative/MVT/count integral APIs; SLT full shift-energy source reference"
+    upstreamFile := "Mathlib db584cd6; ASTIS authored Boolean secant alternative; SLT d0f506f0 reference only"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["energy", "Gaussian-background", "compact-support", "SPHMC"]
+    saldUse := "Actual SPHMC omitted Gaussian LSI background; no SALD/second-route admission"
+    note := "Actual compact C2 full Boolean coordinate-flip energy Gaussian limit4; true Gaussian derivative-square and allN finite-count full energy L1, N0 included. Internally produced derivative bounds/Lipschitz, actual signed displacement and secants, uniform16BK/sqrtN error and true integral passage. Sole direct ASTIS36 parent, no caller law/domain/bound/limit certificate. Compact GaussianLSI/Hilbert/noncompact/T2/main/cost remain open. Independently verified c3bbf938a6d46de7d43036d9f066ba68a3e6be6f."
+  },
+  {
     key := "entropy.gaussian.compact-count-observer-limits"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactEntropy.compact_count_gaussian_entropy_limits"
     upstreamDecl := "Pinned Mathlib weak-integral/compact support APIs; SLT compact entropy background reference"

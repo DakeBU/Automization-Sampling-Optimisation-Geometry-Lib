@@ -1,0 +1,31 @@
+theorem rademacherSumProd_flip_eq_shifted {n : ℕ} [NeZero n] (j : Fin n)
+    (x : RademacherSpace n) (_hx : x j = 1 ∨ x j = -1) :
+    rademacherSumProd n (Function.update x j (-x j)) = rademacherSumShifted n j x := by
+  unfold rademacherSumProd rademacherSumShifted
+  have hsum : ∑ i : Fin n, Function.update x j (-x j) i =
+      (∑ i : Fin n, x i) - 2 * x j := by
+    have h1 : Function.update x j (-x j) j = -x j := Function.update_self j (-x j) x
+    have h2 : ∀ i ∈ Finset.univ, i ≠ j → Function.update x j (-x j) i = x i :=
+      fun i _ hi => Function.update_of_ne hi (-x j) x
+    calc ∑ i : Fin n, Function.update x j (-x j) i
+        = Function.update x j (-x j) j +
+            ∑ i ∈ Finset.univ.erase j, Function.update x j (-x j) i := by
+          exact (Finset.add_sum_erase Finset.univ
+            (fun i : Fin n => Function.update x j (-x j) i) (Finset.mem_univ j)).symm
+      _ = -x j + ∑ i ∈ Finset.univ.erase j, x i := by
+          rw [h1]
+          congr 1
+          apply Finset.sum_congr rfl
+          intro i hi
+          exact h2 i (Finset.mem_of_mem_erase hi) (Finset.ne_of_mem_erase hi)
+      _ = -x j + (∑ i : Fin n, x i - x j) := by
+          have hsum_erase : ∑ i ∈ Finset.univ.erase j, x i = ∑ i : Fin n, x i - x j := by
+            have hsplit := Finset.add_sum_erase Finset.univ (fun i : Fin n => x i) (Finset.mem_univ j)
+            linarith
+          rw [hsum_erase]
+      _ = (∑ i : Fin n, x i) - 2 * x j := by ring
+  rw [hsum]
+  unfold rademacherSumProd
+  ring
+
+/-- toRademacher is measurable since Fin n → Bool is finite -/

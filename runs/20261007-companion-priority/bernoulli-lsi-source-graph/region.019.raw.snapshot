@@ -1,0 +1,79 @@
+theorem phi_nonneg {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) : 0 ≤ phi t := by
+  -- φ(t) ≥ 0 follows from strict convexity: φ''(t) > 0, φ(0) = 0, φ'(0) = 0
+  -- The minimum of a strictly convex function is where the derivative vanishes
+  -- Since φ'(0) = 0, t = 0 is the minimum, and φ(0) = 0, so φ(t) ≥ 0
+  by_cases ht0 : t = 0
+  · simp [ht0]
+  -- For t ≠ 0, use that φ is strictly increasing for t > 0 and strictly decreasing for t < 0
+  -- (since φ'(t) = log(1+t) - log(1-t) which is positive for t > 0 and negative for t < 0)
+  rcases lt_trichotomy t 0 with ht_neg | ht_zero | ht_pos
+  · -- Case t < 0: φ'(t) < 0, so φ is decreasing. Since t < 0 and φ(0) = 0, we have φ(t) > φ(0) = 0
+    -- Use MVT: φ(0) - φ(t) = φ'(ξ) * (0 - t) for some ξ ∈ (t, 0)
+    have hcont : ContinuousOn phi (Icc t 0) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hx.1], by linarith [hx.2]⟩
+      exact (differentiableAt_phi hx_mem).continuousAt.continuousWithinAt
+    have hdiff : DifferentiableOn ℝ phi (Ioo t 0) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hx.1], by linarith [hx.2]⟩
+      exact (differentiableAt_phi hx_mem).differentiableWithinAt
+    obtain ⟨ξ, hξ_mem, hξ_eq⟩ := exists_deriv_eq_slope phi (by linarith : t < 0) hcont hdiff
+    rw [phi_zero] at hξ_eq
+    have hξ_in : ξ ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hξ_mem.1], by linarith [hξ_mem.2]⟩
+    have hderiv_ξ : deriv phi ξ < 0 := by
+      rw [deriv_phi hξ_in]
+      have h1' : 0 < 1 + ξ := by linarith [hξ_in.1]
+      have hξ_neg : ξ < 0 := hξ_mem.2
+      have : log (1 + ξ) < log (1 - ξ) := by
+        apply log_lt_log h1'
+        linarith
+      linarith
+    have ht_ne : t ≠ 0 := by linarith
+    have hphi_eq : phi t = deriv phi ξ * t := by
+      have h := hξ_eq
+      field_simp [ht_ne] at h
+      -- h : deriv phi ξ * t = phi t
+      linarith
+    rw [hphi_eq]
+    -- deriv phi ξ < 0 and t < 0, so their product is positive
+    exact le_of_lt (mul_pos_of_neg_of_neg hderiv_ξ ht_neg)
+  · exact absurd ht_zero ht0
+  · -- Case t > 0: φ'(t) > 0, so φ is increasing. Use MVT similarly.
+    have hcont : ContinuousOn phi (Icc 0 t) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hx.1], by linarith [ht.2, hx.2]⟩
+      exact (differentiableAt_phi hx_mem).continuousAt.continuousWithinAt
+    have hdiff : DifferentiableOn ℝ phi (Ioo 0 t) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hx.1], by linarith [ht.2, hx.2]⟩
+      exact (differentiableAt_phi hx_mem).differentiableWithinAt
+    obtain ⟨ξ, hξ_mem, hξ_eq⟩ := exists_deriv_eq_slope phi ht_pos hcont hdiff
+    rw [phi_zero] at hξ_eq
+    have hξ_in : ξ ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hξ_mem.1], by linarith [ht.2, hξ_mem.2]⟩
+    have hderiv_ξ : 0 < deriv phi ξ := by
+      rw [deriv_phi hξ_in]
+      have h2' : 0 < 1 - ξ := by linarith [hξ_in.2]
+      have hξ_pos : 0 < ξ := hξ_mem.1
+      have : log (1 - ξ) < log (1 + ξ) := by
+        apply log_lt_log h2'
+        linarith
+      linarith
+    -- From hξ_eq: deriv phi ξ = (phi t - 0) / (t - 0)
+    -- Multiply both sides by t to get: deriv phi ξ * t = phi t
+    have ht_ne : t ≠ 0 := by linarith
+    have hphi_eq : phi t = deriv phi ξ * t := by
+      have h := hξ_eq
+      field_simp [ht_ne] at h
+      -- h : deriv phi ξ * t = phi t
+      linarith
+    rw [hphi_eq]
+    exact le_of_lt (mul_pos hderiv_ξ ht_pos)
+
+/-!
+## Part 9: Main Two-Point Inequality
+-/
+
+/-- The two-point inequality:
+    For a, b > 0, the midpoint entropy excess is bounded by the squared root difference.
+
+    (a+b)/2 * log((a+b)/2) - (a*log(a) + b*log(b))/2 ≤ (√a - √b)²/2 -/

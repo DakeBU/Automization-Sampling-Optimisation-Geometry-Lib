@@ -1,0 +1,111 @@
+theorem han_inequality {n : ℕ} (h : (Fin n → Bool) → ℝ) :
+    LogSobolev.entropy (bernoulliUniform n) (fun ε => (h ε)^2) ≤
+    ∑ j : Fin n, ∫ ε, twoPointEntropyCoord j h ε ∂(bernoulliUniform n) := by
+  -- Proof by induction on n
+  induction n with
+  | zero =>
+    -- For n = 0, both sides are 0
+    simp only [Finset.univ_eq_empty, Finset.sum_empty]
+    -- LHS: entropy of constant function = 0
+    have hconst : ∀ ε₁ ε₂ : Fin 0 → Bool, ε₁ = ε₂ := fun ε₁ ε₂ => by
+      ext i; exact Fin.elim0 i
+    have hval : ∃ c, ∀ ε, (h ε)^2 = c := ⟨(h default)^2, fun ε => by rw [hconst ε default]⟩
+    obtain ⟨c, hc⟩ := hval
+    simp only [hc]
+    exact le_of_eq (LogSobolev.entropy_const (bernoulliUniform 0) c)
+  | succ n ih =>
+    -- For n+1, use chain rule decomposition
+    -- Ent_{n+1}(h²) = E[twoPointEntropyLast (h²)] + Ent_n(condMeanLast (h²))
+
+    -- Define the squared function
+    set f := fun ε => (h ε)^2
+
+    -- Step 1: Apply chain rule
+    have hchain := entropy_chain_rule_succ f
+
+    -- Step 2: Relate first term to twoPointEntropyCoord at last
+    -- E[twoPointEntropyLast f] = E[twoPointEntropyCoord (last n) h]
+    have hfirst : ∫ ε', twoPointEntropyLast f ε' ∂(bernoulliUniform n) =
+        ∫ ε, twoPointEntropyCoord (Fin.last n) h ε ∂(bernoulliUniform (n+1)) := by
+      rw [bernoulli_integral_succ_split]
+      congr 1
+      ext ε'
+      rw [← avg_twoPointEntropyCoord_last h ε']
+
+    -- Step 3: Relate condMeanLast f to (condMeanSqrt h)²
+    have hcond_eq : condMeanLast f = fun ε' => (condMeanSqrt h ε')^2 := by
+      ext ε'
+      exact condMeanLast_eq_condMeanSqrt_sq h ε'
+
+    -- Step 4: Apply IH to condMeanSqrt h (no nonnegativity hypothesis needed)
+    have hih := ih (condMeanSqrt h)
+
+    -- Step 5: Use convexity bound
+    -- twoPointEntropyCoord j (condMeanSqrt h) ≤ (twoPointEntropyCoord j hT + ... hF)/2
+    have hconv_bound : ∀ j : Fin n,
+        ∫ ε', twoPointEntropyCoord j (condMeanSqrt h) ε' ∂(bernoulliUniform n) ≤
+        ∫ ε, twoPointEntropyCoord (Fin.castSucc j) h ε ∂(bernoulliUniform (n+1)) := by
+      intro j
+      -- Pointwise bound from joint convexity
+      have hpw : ∀ ε', twoPointEntropyCoord j (condMeanSqrt h) ε' ≤
+          (twoPointEntropyCoord j (sliceTrue h) ε' +
+           twoPointEntropyCoord j (sliceFalse h) ε') / 2 :=
+        twoPointEntropyCoord_condMeanSqrt_le j h
+      -- Integrate
+      calc ∫ ε', twoPointEntropyCoord j (condMeanSqrt h) ε' ∂(bernoulliUniform n)
+          ≤ ∫ ε', (twoPointEntropyCoord j (sliceTrue h) ε' +
+                   twoPointEntropyCoord j (sliceFalse h) ε') / 2 ∂(bernoulliUniform n) := by
+            apply integral_mono_of_nonneg
+            · apply Eventually.of_forall; intro ε'
+              exact twoPointEntropyCoord_nonneg j (condMeanSqrt h) ε'
+            · exact Integrable.of_finite
+            · exact Eventually.of_forall hpw
+        _ = (∫ ε', twoPointEntropyCoord j (sliceTrue h) ε' ∂(bernoulliUniform n) +
+             ∫ ε', twoPointEntropyCoord j (sliceFalse h) ε' ∂(bernoulliUniform n)) / 2 := by
+            rw [integral_div, integral_add (Integrable.of_finite) (Integrable.of_finite)]
+        _ = ∫ ε, twoPointEntropyCoord (Fin.castSucc j) h ε ∂(bernoulliUniform (n+1)) := by
+            rw [bernoulli_integral_succ_split]
+            -- Goal: (∫ sliceTrue + ∫ sliceFalse) / 2 = ∫ (castSucc true + castSucc false) / 2
+            -- First simplify LHS
+            have h_sliceTrue : ∫ ε', twoPointEntropyCoord j (sliceTrue h) ε' ∂(bernoulliUniform n) =
+                ∫ ε', twoPointEntropyCoord (Fin.castSucc j) h (Fin.snoc ε' true) ∂(bernoulliUniform n) := by
+              apply integral_congr_ae
+              filter_upwards with ε'
+              rw [twoPointEntropyCoord_castSucc_eq_slice j h ε' true]
+              simp only [ite_true]
+            have h_sliceFalse : ∫ ε', twoPointEntropyCoord j (sliceFalse h) ε' ∂(bernoulliUniform n) =
+                ∫ ε', twoPointEntropyCoord (Fin.castSucc j) h (Fin.snoc ε' false) ∂(bernoulliUniform n) := by
+              apply integral_congr_ae
+              filter_upwards with ε'
+              rw [twoPointEntropyCoord_castSucc_eq_slice j h ε' false]
+              simp only [Bool.false_eq_true, ↓reduceIte]
+            rw [h_sliceTrue, h_sliceFalse]
+            rw [← integral_add Integrable.of_finite Integrable.of_finite]
+            rw [integral_div]
+
+    -- Step 6: Sum over j < n
+    have hsum_bound : ∑ j : Fin n, ∫ ε', twoPointEntropyCoord j (condMeanSqrt h) ε' ∂(bernoulliUniform n) ≤
+        ∑ j : Fin n, ∫ ε, twoPointEntropyCoord (Fin.castSucc j) h ε ∂(bernoulliUniform (n+1)) := by
+      apply Finset.sum_le_sum
+      intro j _
+      exact hconv_bound j
+
+    -- Step 7: Combine everything
+    calc LogSobolev.entropy (bernoulliUniform (n + 1)) f
+        = ∫ ε', twoPointEntropyLast f ε' ∂(bernoulliUniform n) +
+          LogSobolev.entropy (bernoulliUniform n) (condMeanLast f) := hchain
+      _ = ∫ ε, twoPointEntropyCoord (Fin.last n) h ε ∂(bernoulliUniform (n+1)) +
+          LogSobolev.entropy (bernoulliUniform n) (fun ε' => (condMeanSqrt h ε')^2) := by
+          rw [hfirst, hcond_eq]
+      _ ≤ ∫ ε, twoPointEntropyCoord (Fin.last n) h ε ∂(bernoulliUniform (n+1)) +
+          ∑ j : Fin n, ∫ ε', twoPointEntropyCoord j (condMeanSqrt h) ε' ∂(bernoulliUniform n) := by
+          exact add_le_add_right hih _
+      _ ≤ ∫ ε, twoPointEntropyCoord (Fin.last n) h ε ∂(bernoulliUniform (n+1)) +
+          ∑ j : Fin n, ∫ ε, twoPointEntropyCoord (Fin.castSucc j) h ε ∂(bernoulliUniform (n+1)) := by
+          exact add_le_add_right hsum_bound _
+      _ = ∑ j : Fin (n+1), ∫ ε, twoPointEntropyCoord j h ε ∂(bernoulliUniform (n+1)) := by
+          -- Split sum over Fin (n+1) into castSucc terms plus last term
+          rw [Fin.sum_univ_castSucc]
+          ring
+
+/-- The main subadditivity bound combining Han's inequality with Rothaus -/

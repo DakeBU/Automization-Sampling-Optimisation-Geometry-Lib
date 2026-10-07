@@ -1,0 +1,16 @@
+theorem flipCoord_last_snoc {n : ℕ} (ε' : Fin n → Bool) (b : Bool) :
+    flipCoord (Fin.last n) (Fin.snoc ε' b) = Fin.snoc ε' (!b) := by
+  ext i
+  by_cases h : i = Fin.last n
+  · simp only [h, flipCoord_same, Fin.snoc_last]
+  · have hi : i.val < n := by
+      have hlt := i.isLt
+      have hne : i.val ≠ n := by
+        intro heq
+        apply h; ext; simp [Fin.last, heq]
+      omega
+    have hne' : i ≠ Fin.last n := fun heq => h heq
+    rw [flipCoord_noteq (Fin.last n) i _ hne']
+    simp only [Fin.snoc, hi, ↓reduceDIte]
+
+/-- Flipping a coordinate in the first n doesn't affect the last coordinate -/

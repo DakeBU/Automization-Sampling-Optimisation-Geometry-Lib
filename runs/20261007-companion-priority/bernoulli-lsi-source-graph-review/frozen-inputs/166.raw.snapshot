@@ -1,0 +1,46 @@
+theorem twoPointEntropyCoord_condMeanSqrt_le {n : ℕ} (j : Fin n)
+    (h : (Fin (n+1) → Bool) → ℝ) (ε' : Fin n → Bool) :
+    twoPointEntropyCoord j (condMeanSqrt h) ε' ≤
+    (twoPointEntropyCoord j (sliceTrue h) ε' + twoPointEntropyCoord j (sliceFalse h) ε') / 2 := by
+  -- Use joint convexity of twoPointEnt
+  unfold twoPointEntropyCoord
+  set a₀ := (sliceTrue h ε')^2 with ha₀
+  set a₁ := (sliceTrue h (flipCoord j ε'))^2 with ha₁
+  set b₀ := (sliceFalse h ε')^2 with hb₀
+  set b₁ := (sliceFalse h (flipCoord j ε'))^2 with hb₁
+  have ha₀_nn : 0 ≤ a₀ := sq_nonneg _
+  have ha₁_nn : 0 ≤ a₁ := sq_nonneg _
+  have hb₀_nn : 0 ≤ b₀ := sq_nonneg _
+  have hb₁_nn : 0 ≤ b₁ := sq_nonneg _
+  -- condMeanSqrt h ε' squared equals (a₀ + b₀)/2
+  have hcond_sq : (condMeanSqrt h ε')^2 = (a₀ + b₀) / 2 := by
+    unfold condMeanSqrt
+    simp only [div_pow, sq_sqrt (by positivity : (0:ℝ) ≤ 2)]
+    have hsum_nn : 0 ≤ (h (Fin.snoc ε' true))^2 + (h (Fin.snoc ε' false))^2 := by positivity
+    rw [sq_sqrt hsum_nn]
+    simp only [sliceTrue, sliceFalse] at ha₀ hb₀
+    rw [← ha₀, ← hb₀]
+  have hcond_flip_sq : (condMeanSqrt h (flipCoord j ε'))^2 = (a₁ + b₁) / 2 := by
+    unfold condMeanSqrt
+    simp only [div_pow, sq_sqrt (by positivity : (0:ℝ) ≤ 2)]
+    have hsum_nn : 0 ≤ (h (Fin.snoc (flipCoord j ε') true))^2 +
+                       (h (Fin.snoc (flipCoord j ε') false))^2 := by positivity
+    rw [sq_sqrt hsum_nn]
+    simp only [sliceTrue, sliceFalse] at ha₁ hb₁
+    rw [← ha₁, ← hb₁]
+  rw [hcond_sq, hcond_flip_sq]
+  -- Now apply twoPointEnt_midpoint_convex
+  have h_conv := twoPointEnt_midpoint_convex a₀ b₀ a₁ b₁ ha₀_nn hb₀_nn ha₁_nn hb₁_nn
+  -- h_conv: twoPointEnt ((a₀+b₀)/2) ((a₁+b₁)/2) ≤ (twoPointEnt a₀ a₁ + twoPointEnt b₀ b₁) / 2
+  change twoPointEnt ((a₀ + b₀) / 2) ((a₁ + b₁) / 2) ≤
+    (twoPointEnt a₀ a₁ + twoPointEnt b₀ b₁) / 2
+  exact h_conv
+
+/-- Han's inequality for the hypercube: entropy is bounded by sum of conditional entropies.
+
+This is the key subadditivity result. For independent coordinates with product measure:
+  Ent(f) ≤ Σᵢ E[Ent^(i)(f)]
+
+For f = h² on the hypercube, Ent^(i)(f) = twoPointEntropyCoord i h.
+
+The proof uses the chain rule for entropy and the data processing inequality. -/

@@ -1,0 +1,13 @@
+    · -- Both positive: apply Rothaus lemma
+      have hrothaus := LogSobolev.rothaus_lemma ha_pos hb_pos
+      -- √a = |h(ε)| and √b = |h(flip ε)| (using sqrt_sq_eq_abs, no nonnegativity needed)
+      have hsqrt_a : sqrt a = |h ε| := sqrt_sq_eq_abs (h ε)
+      have hsqrt_b : sqrt b = |h (flipCoord j ε)| := sqrt_sq_eq_abs (h (flipCoord j ε))
+      -- Use reverse triangle inequality: ||x| - |y|| ≤ |x - y|, then square both sides
+      have h_rev_tri : (|h ε| - |h (flipCoord j ε)|)^2 ≤ (h ε - h (flipCoord j ε))^2 := by
+        rw [sq_le_sq]
+        exact abs_abs_sub_abs_le_abs_sub (h ε) (h (flipCoord j ε))
+      calc (a * log a + b * log b) / 2 - (a + b) / 2 * log ((a + b) / 2)
+          ≤ (sqrt a - sqrt b)^2 / 2 := hrothaus
+        _ = (|h ε| - |h (flipCoord j ε)|)^2 / 2 := by rw [hsqrt_a, hsqrt_b]
+        _ ≤ (h ε - h (flipCoord j ε))^2 / 2 := by linarith [h_rev_tri]

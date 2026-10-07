@@ -1,0 +1,13 @@
+theorem twoPointEntropyCoord_nonneg {n : ℕ} (j : Fin n) (h : (Fin n → Bool) → ℝ)
+    (ε : Fin n → Bool) :
+    0 ≤ twoPointEntropyCoord j h ε := by
+  unfold twoPointEntropyCoord
+  set a := (h ε)^2
+  set b := (h (flipCoord j ε))^2
+  have ha_nn : 0 ≤ a := sq_nonneg _
+  have hb_nn : 0 ≤ b := sq_nonneg _
+  -- By Jensen: (a+b)/2 * log((a+b)/2) ≤ (a log a + b log b)/2
+  have hconv := phi_convex_avg a b ha_nn hb_nn
+  linarith
+
+/-- The average two-point entropy over all ε is bounded by the average gradient term -/

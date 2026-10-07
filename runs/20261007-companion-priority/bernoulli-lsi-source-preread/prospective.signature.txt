@@ -1,0 +1,11 @@
+theorem bernoulli_logSobolev (n : ℕ) (h : (Fin n → Bool) → ℝ) :
+    let μ : MeasureTheory.Measure (Fin n → Bool) :=
+      (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • MeasureTheory.Measure.count
+    let D := fun ε : Fin n → Bool =>
+      ∑ j : Fin n, (h ε - h (Function.update ε j (!ε j))) ^ 2
+    MeasureTheory.Integrable (fun ε => (h ε) ^ 2) μ ∧
+    MeasureTheory.Integrable (fun ε => (h ε) ^ 2 * Real.log ((h ε) ^ 2)) μ ∧
+    MeasureTheory.Integrable D μ ∧
+    (∫ ε, (h ε) ^ 2 * Real.log ((h ε) ^ 2) ∂μ) -
+      (∫ ε, (h ε) ^ 2 ∂μ) * Real.log (∫ ε, (h ε) ^ 2 ∂μ) ≤
+        (1 / 2 : ℝ) * (∫ ε, D ε ∂μ)

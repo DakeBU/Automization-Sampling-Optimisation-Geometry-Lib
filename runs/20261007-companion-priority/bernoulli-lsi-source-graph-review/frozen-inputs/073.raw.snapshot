@@ -1,0 +1,11 @@
+theorem differentiableAt_rothausDefect {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    DifferentiableAt ℝ rothausDefect t := by
+  unfold rothausDefect
+  have h1 : 0 < 1 - t^2 := by nlinarith [ht.1, ht.2, sq_nonneg t]
+  have hd1 : DifferentiableAt ℝ (fun s => 2 - 2 * sqrt (1 - s^2)) t := by
+    have h' : DifferentiableAt ℝ (fun s => 1 - s^2) t :=
+      differentiableAt_const 1 |>.sub (differentiableAt_pow 2)
+    exact (differentiableAt_const 2).sub (h'.sqrt h1.ne' |>.const_mul 2)
+  exact hd1.sub (differentiableAt_phi ht)
+
+/-- The derivative of rothausDefect -/

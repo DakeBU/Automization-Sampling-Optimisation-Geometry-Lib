@@ -1,0 +1,35 @@
+theorem deriv2_phi {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    deriv (deriv phi) t = 2 / (1 - t^2) := by
+  have h1 : 0 < 1 + t := by linarith [ht.1]
+  have h2 : 0 < 1 - t := by linarith [ht.2]
+  have hdiff : (fun s => deriv phi s) =ᶠ[𝓝 t] (fun s => log (1 + s) - log (1 - s)) := by
+    have hopen : Ioo (-1 : ℝ) 1 ∈ 𝓝 t := Ioo_mem_nhds ht.1 ht.2
+    filter_upwards [hopen] with s hs
+    exact deriv_phi hs
+  rw [Filter.EventuallyEq.deriv_eq hdiff]
+  have hd1 : DifferentiableAt ℝ (fun s => 1 + s) t := differentiableAt_id.const_add 1
+  have hd2 : DifferentiableAt ℝ (fun s => 1 - s) t := differentiableAt_id.const_sub 1
+  have hlog1_diff : DifferentiableAt ℝ (fun s => log (1 + s)) t := (differentiableAt_log h1.ne').comp t hd1
+  have hlog2_diff : DifferentiableAt ℝ (fun s => log (1 - s)) t := (differentiableAt_log h2.ne').comp t hd2
+  have h_deriv_sub : deriv (fun s => log (1 + s) - log (1 - s)) t =
+      deriv (fun s => log (1 + s)) t - deriv (fun s => log (1 - s)) t :=
+    deriv_sub hlog1_diff hlog2_diff
+  rw [h_deriv_sub, deriv.log hd1 h1.ne', deriv.log hd2 h2.ne']
+  have dd1 : deriv (fun s => 1 + s) t = 1 := by
+    have hd : HasDerivAt (fun s => 1 + s) 1 t := by
+      simpa [id] using (hasDerivAt_id t).const_add (1 : ℝ)
+    exact hd.deriv
+  have dd2 : deriv (fun s => 1 - s) t = -1 := by
+    have hd : HasDerivAt (fun s => 1 - s) (-1) t := by
+      simpa [id] using (hasDerivAt_id t).const_sub (1 : ℝ)
+    exact hd.deriv
+  rw [dd1, dd2]
+  have h3 : (1 : ℝ) - t ^ 2 = (1 + t) * (1 - t) := by ring
+  rw [h3]
+  field_simp [h1.ne', h2.ne']
+  ring
+
+/-!
+## Part 7: Key bound on second derivative
+-/
+

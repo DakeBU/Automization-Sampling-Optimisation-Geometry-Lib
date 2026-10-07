@@ -1,0 +1,29 @@
+theorem jensen_mul_log [IsProbabilityMeasure μ] {f : Ω → ℝ}
+    (hf_nn : 0 ≤ᵐ[μ] f)
+    (hf_int : Integrable f μ)
+    (hf_log_int : Integrable (fun ω => f ω * log (f ω)) μ) :
+    (∫ ω, f ω ∂μ) * log (∫ ω, f ω ∂μ) ≤ ∫ ω, f ω * log (f ω) ∂μ := by
+  -- The function φ(x) = x * log(x) is convex on [0, ∞)
+  have hφ_convex : ConvexOn ℝ (Ici 0) (fun x => x * log x) := Real.convexOn_mul_log
+  -- Apply Jensen's inequality
+  by_cases hf_zero : ∫ ω, f ω ∂μ = 0
+  · -- If ∫ f = 0, then f = 0 a.e., so both sides are 0
+    simp only [hf_zero, zero_mul, log_zero]
+    have hf_ae_zero : f =ᵐ[μ] 0 := (integral_eq_zero_iff_of_nonneg_ae hf_nn hf_int).mp hf_zero
+    have : ∫ ω, f ω * log (f ω) ∂μ = 0 := by
+      calc ∫ ω, f ω * log (f ω) ∂μ
+          = ∫ ω, (0 : ℝ) * log 0 ∂μ := by
+            apply integral_congr_ae
+            filter_upwards [hf_ae_zero] with ω hω
+            simp [hω]
+        _ = 0 := by simp
+    linarith
+  · -- If ∫ f > 0, apply convexity: φ(∫ f) ≤ ∫ φ(f) when f maps into the convex domain
+    have hcont : ContinuousOn (fun x => x * log x) (Ici 0) :=
+      Real.continuous_mul_log.continuousOn
+    have hclosed : IsClosed (Ici (0 : ℝ)) := isClosed_Ici
+    have hmem : ∀ᵐ x ∂μ, f x ∈ Ici (0 : ℝ) := hf_nn
+    exact hφ_convex.map_integral_le hcont hclosed hmem hf_int hf_log_int
+
+/-- Entropy is nonnegative for probability measures and nonnegative integrands.
+    This is the fundamental property of entropy. -/

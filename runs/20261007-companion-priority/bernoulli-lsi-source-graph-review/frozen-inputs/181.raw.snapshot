@@ -1,0 +1,33 @@
+theorem entropy_map_eq {n : ℕ} [NeZero n] {f : ℝ → ℝ} (hf : Continuous f) :
+    LogSobolev.entropy (rademacherLaw n).toMeasure (fun x => (f x)^2) =
+    LogSobolev.entropy (rademacherProductMeasure n) (fun x => (f (rademacherSumProd n x))^2) := by
+  -- The law of S_n is the pushforward of the product measure
+  -- Entropy(μ.map g)(φ) = Entropy(μ)(φ ∘ g) by the pushforward property
+  unfold rademacherLaw LogSobolev.entropy
+  simp only [ProbabilityMeasure.coe_mk]
+  have hmeas : Measurable (rademacherSumProd n) := measurable_rademacherSumProd n
+  have haem : AEMeasurable (rademacherSumProd n) (rademacherProductMeasure n) := hmeas.aemeasurable
+  -- For the integrands, we need AEStronglyMeasurable
+  have hfsq : Continuous (fun x => (f x)^2) := hf.pow 2
+  have hlog : Continuous (fun x => (f x)^2 * Real.log ((f x)^2)) :=
+    hfsq.mul_log
+  -- Both integrals are over finite measures, so use integral_map
+  congr 1
+  · -- The f*log(f) integral
+    rw [integral_map haem hlog.aestronglyMeasurable]
+  · -- The mean integral
+    congr 1
+    · rw [integral_map haem hfsq.aestronglyMeasurable]
+    · rw [integral_map haem hfsq.aestronglyMeasurable]
+
+/-- **Application of Bernoulli Log-Sobolev to Compactly Supported Smooth Functions**
+
+For f ∈ C_c²(ℝ) (compactly supported, twice continuously differentiable), the entropy
+of f² under the law of the Rademacher sum S_{n+1} is bounded by half the expected
+sum of squared differences:
+
+  Ent_{S_{n+1}}(f²) ≤ (1/2) · ∑ᵢ E[(f(S_{n+1}) - f(S_{n+1} with coord i flipped))²]
+
+This is the continuous-function version of the Bernoulli log-Sobolev inequality,
+which serves as a key intermediate step toward the Gaussian log-Sobolev inequality
+via the central limit theorem. -/

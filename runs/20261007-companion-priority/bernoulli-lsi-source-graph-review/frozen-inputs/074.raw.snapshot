@@ -1,0 +1,20 @@
+theorem deriv_rothausDefect {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    deriv rothausDefect t = 2 * t / sqrt (1 - t^2) - (log (1 + t) - log (1 - t)) := by
+  unfold rothausDefect
+  have h1 : 0 < 1 - t^2 := by nlinarith [ht.1, ht.2, sq_nonneg t]
+  have hd1 : DifferentiableAt ℝ (fun s => 2 - 2 * sqrt (1 - s^2)) t := by
+    have h' : DifferentiableAt ℝ (fun s => 1 - s^2) t :=
+      differentiableAt_const 1 |>.sub (differentiableAt_pow 2)
+    exact (differentiableAt_const 2).sub (h'.sqrt h1.ne' |>.const_mul 2)
+  -- Compute the derivative as difference of derivatives
+  have h_deriv : deriv (fun s => 2 - 2 * sqrt (1 - s^2) - phi s) t =
+      deriv (fun s => 2 - 2 * sqrt (1 - s^2)) t - deriv phi t :=
+    deriv_sub hd1 (differentiableAt_phi ht)
+  rw [h_deriv]
+  -- deriv sqrtTerm = 2t/√(1-t²) and deriv phi = log(1+t) - log(1-t)
+  have h_sqrtTerm_eq : deriv (fun s => 2 - 2 * sqrt (1 - s^2)) t = deriv sqrtTerm t := by
+    have : (fun s => 2 - 2 * sqrt (1 - s^2)) = sqrtTerm := by ext s; simp only [sqrtTerm]
+    rw [this]
+  rw [h_sqrtTerm_eq, deriv_sqrtTerm ht, deriv_phi ht]
+
+/-- The derivative of rothausDefect at 0 is 0 -/

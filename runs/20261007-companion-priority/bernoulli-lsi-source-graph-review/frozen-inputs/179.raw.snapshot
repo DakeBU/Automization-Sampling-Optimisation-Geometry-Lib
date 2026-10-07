@@ -1,0 +1,21 @@
+theorem entropy_bernoulli_eq_rademacher {n : ℕ} [NeZero n]
+    {g : RademacherSpace n → ℝ} (hg : Continuous g) :
+    LogSobolev.entropy (bernoulliUniform n) (fun ε => (g (toRademacher ε))^2) =
+    LogSobolev.entropy (rademacherProductMeasure n) (fun x => (g x)^2) := by
+  -- Use the measure isomorphism: bernoulliUniform.map toRademacher = rademacherProductMeasure
+  unfold LogSobolev.entropy
+  -- The function g² is continuous, hence strongly measurable
+  have hgsq : Continuous (fun x => (g x)^2) := hg.pow 2
+  have hglog : Continuous (fun x => (g x)^2 * log ((g x)^2)) := hgsq.mul_log
+  -- We show each integral part is equal using integral_map
+  have h1 : ∫ x, (g x)^2 * log ((g x)^2) ∂(rademacherProductMeasure n) =
+            ∫ ε, (g (toRademacher ε))^2 * log ((g (toRademacher ε))^2) ∂(bernoulliUniform n) := by
+    rw [← bernoulliUniform_map_toRademacher]
+    rw [integral_map measurable_toRademacher.aemeasurable hglog.aestronglyMeasurable]
+  have h2 : ∫ x, (g x)^2 ∂(rademacherProductMeasure n) =
+            ∫ ε, (g (toRademacher ε))^2 ∂(bernoulliUniform n) := by
+    rw [← bernoulliUniform_map_toRademacher]
+    rw [integral_map measurable_toRademacher.aemeasurable hgsq.aestronglyMeasurable]
+  rw [h1, h2]
+
+/-- Key lemma: The gradient term transforms correctly. -/

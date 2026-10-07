@@ -1,0 +1,16 @@
+theorem avg_twoPointEntropyCoord_le {n : ℕ} (j : Fin n)
+    (h : (Fin n → Bool) → ℝ) :
+    ∫ ε, twoPointEntropyCoord j h ε ∂(bernoulliUniform n) ≤
+    ∫ ε, (h ε - h (flipCoord j ε))^2 / 2 ∂(bernoulliUniform n) := by
+  apply integral_mono_of_nonneg
+  · -- The two-point entropy is nonneg (a.e.)
+    filter_upwards with ε
+    exact twoPointEntropyCoord_nonneg j h ε
+  · -- The RHS is integrable
+    apply Integrable.of_finite
+  · -- Pointwise bound
+    apply Eventually.of_forall
+    intro ε
+    exact twoPointEntropyCoord_le_gradientTerm j h ε
+
+/-- The total two-point entropy summed over all coordinates -/

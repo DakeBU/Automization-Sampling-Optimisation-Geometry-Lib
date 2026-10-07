@@ -1,0 +1,15 @@
+theorem binaryKLfromUniform_convexOn :
+    ConvexOn ℝ (Set.Icc (0 : ℝ) 1) binaryKLfromUniform := by
+  have hconc := Real.strictConcave_binEntropy.concaveOn
+  -- -binEntropy is convex, so log 2 - binEntropy is also convex
+  have h1 : ConvexOn ℝ (Set.Icc (0 : ℝ) 1) (fun p => -Real.binEntropy p) := hconc.neg
+  have h2 : ConvexOn ℝ (Set.Icc (0 : ℝ) 1) (fun _ => Real.log 2) :=
+    convexOn_const _ (convex_Icc (0 : ℝ) 1)
+  have h3 : ConvexOn ℝ (Set.Icc (0 : ℝ) 1) (fun p => Real.log 2 + (-Real.binEntropy p)) :=
+    h2.add h1
+  convert h3 using 1
+  ext p
+  unfold binaryKLfromUniform
+  ring
+
+/-- The midpoint inequality for binaryKLfromUniform -/

@@ -1,0 +1,20 @@
+theorem entropy_congr {f g : Ω → ℝ}
+    (hfg : f =ᵐ[μ] g) : entropy μ f = entropy μ g := by
+  unfold entropy
+  have h1 : ∫ ω, f ω * log (f ω) ∂μ = ∫ ω, g ω * log (g ω) ∂μ := by
+    apply integral_congr_ae
+    filter_upwards [hfg] with ω hω
+    rw [hω]
+  have h2 : ∫ ω, f ω ∂μ = ∫ ω, g ω ∂μ := integral_congr_ae hfg
+  rw [h1, h2]
+
+/-!
+## Nonnegativity of Entropy
+
+The key insight is that x * log(x) is convex on [0, ∞), so by Jensen's inequality,
+∫ f log f dμ ≥ (∫ f dμ) log(∫ f dμ) when μ is a probability measure and f ≥ 0.
+-/
+
+/-- Jensen's inequality for the convex function x * log(x).
+    For a probability measure μ and nonnegative integrable f,
+    (∫ f dμ) * log(∫ f dμ) ≤ ∫ f * log(f) dμ. -/

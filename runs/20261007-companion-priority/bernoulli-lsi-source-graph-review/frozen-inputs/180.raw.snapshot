@@ -1,0 +1,48 @@
+theorem gradient_eq_sum_shifted {n : ℕ} [NeZero n] {f : ℝ → ℝ} (hf : Continuous f) :
+    ∫ ε, gradientNormSq n (fun ε' => f (rademacherSumProd n (toRademacher ε'))) ε
+      ∂(bernoulliUniform n) =
+    ∑ j : Fin n, ∫ x, (f (rademacherSumProd n x) - f (rademacherSumShifted n j x))^2
+      ∂(rademacherProductMeasure n) := by
+  -- Step 1: Expand gradientNormSq
+  simp only [gradientNormSq]
+  -- Step 2: Exchange integral and sum (integral of sum = sum of integrals for finite sums)
+  rw [integral_finsetSum Finset.univ (fun j _ => Integrable.of_finite)]
+  -- Step 3: For each term, show the integrand is the same after using flip-to-shifted correspondence
+  congr 1
+  ext j
+  have hflip : ∀ ε, rademacherSumProd n (toRademacher (flipCoord j ε)) =
+                   rademacherSumShifted n j (toRademacher ε) := by
+    intro ε
+    rw [toRademacher_flipCoord]
+    apply rademacherSumProd_flip_eq_shifted
+    -- Need to show toRademacher ε j = 1 ∨ toRademacher ε j = -1
+    unfold toRademacher signValue
+    simp only [ite_eq_left_iff, ite_eq_right_iff]
+    by_cases h : ε j
+    · left; simp [h]
+    · right; simp [h]
+  -- Rewrite the integrand
+  have heq : ∀ ε, (f (rademacherSumProd n (toRademacher ε)) -
+                  f (rademacherSumProd n (toRademacher (flipCoord j ε))))^2 =
+                 (f (rademacherSumProd n (toRademacher ε)) -
+                  f (rademacherSumShifted n j (toRademacher ε)))^2 := by
+    intro ε; rw [hflip]
+  simp_rw [heq]
+  -- Step 4: Transfer integral from bernoulliUniform to rademacherProductMeasure
+  -- Use bernoulliUniform_map_toRademacher and integral_map (in symmetric form)
+  symm
+  rw [← bernoulliUniform_map_toRademacher]
+  -- The integrand is continuous, hence AEStronglyMeasurable
+  have hcont_sum : Continuous (rademacherSumProd n) := continuous_rademacherSumProd n
+  have hcont_shifted : Continuous (rademacherSumShifted n j) := by
+    unfold rademacherSumShifted
+    apply Continuous.sub hcont_sum
+    apply Continuous.div_const
+    exact continuous_const.mul (continuous_apply j)
+  have hcont_integrand : Continuous (fun x => (f (rademacherSumProd n x) -
+                                               f (rademacherSumShifted n j x))^2) := by
+    apply Continuous.pow
+    apply Continuous.sub (hf.comp hcont_sum) (hf.comp hcont_shifted)
+  rw [integral_map measurable_toRademacher.aemeasurable hcont_integrand.aestronglyMeasurable]
+
+/-- Key lemma: Entropy under pushforward for continuous functions. -/

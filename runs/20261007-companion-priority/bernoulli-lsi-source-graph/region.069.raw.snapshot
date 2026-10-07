@@ -1,0 +1,81 @@
+theorem two_point_rothaus_bound {n : ℕ} (h : (Fin (n + 1) → Bool) → ℝ)
+    (hh_nn : ∀ ε, 0 ≤ h ε)
+    (ε' : Fin n → Bool) :
+    let a := (h (Fin.snoc ε' true))^2
+    let b := (h (Fin.snoc ε' false))^2
+    -- Two-point log-Sobolev (Rothaus lemma): entropy ≤ gradient term
+    (a * log a + b * log b) / 2 - (a + b) / 2 * log ((a + b) / 2) ≤
+      (h (Fin.snoc ε' true) - h (Fin.snoc ε' false))^2 / 2 := by
+  set a := (h (Fin.snoc ε' true))^2 with ha_def
+  set b := (h (Fin.snoc ε' false))^2 with hb_def
+  have ha_nn : 0 ≤ a := sq_nonneg _
+  have hb_nn : 0 ≤ b := sq_nonneg _
+  have h_diff_sq_nn : 0 ≤ (h (Fin.snoc ε' true) - h (Fin.snoc ε' false))^2 / 2 :=
+    div_nonneg (sq_nonneg _) (by norm_num : (0 : ℝ) ≤ 2)
+  -- Helper for log 2 ≤ 1
+  have hlog2_le : log 2 ≤ 1 := by
+    have h1 : (2 : ℝ) < exp 1 := by
+      have : (2.7182818283 : ℝ) < exp 1 := Real.exp_one_gt_d9
+      linarith
+    have h2 : log 2 < log (exp 1) := log_lt_log (by norm_num) h1
+    simp at h2
+    linarith
+  by_cases ha_pos : 0 < a
+  · by_cases hb_pos : 0 < b
+    · -- Both positive: apply Rothaus lemma and simplify
+      have hrothaus := LogSobolev.rothaus_lemma ha_pos hb_pos
+      -- Need to show (√a - √b)² = (h(+) - h(-))² when h ≥ 0
+      have hsqrt_a : sqrt a = h (Fin.snoc ε' true) := by
+        rw [ha_def]
+        exact sqrt_sq (hh_nn _)
+      have hsqrt_b : sqrt b = h (Fin.snoc ε' false) := by
+        rw [hb_def]
+        exact sqrt_sq (hh_nn _)
+      calc (a * log a + b * log b) / 2 - (a + b) / 2 * log ((a + b) / 2)
+          ≤ (sqrt a - sqrt b)^2 / 2 := hrothaus
+        _ = (h (Fin.snoc ε' true) - h (Fin.snoc ε' false))^2 / 2 := by rw [hsqrt_a, hsqrt_b]
+    · -- b = 0: a > 0, b = 0
+      have hb_zero : b = 0 := le_antisymm (not_lt.mp hb_pos) hb_nn
+      simp only [hb_zero, add_zero, mul_zero, log_zero]
+      by_cases ha_zero : a = 0
+      · -- a = 0 and b = 0: contradiction with ha_pos
+        exact absurd (ha_zero ▸ ha_pos) (lt_irrefl 0)
+      · -- LHS = a * log a / 2 - a / 2 * log (a / 2)
+        --     = a/2 * (log a - log (a/2)) = a/2 * log 2
+        -- RHS = (h(true) - 0)^2 / 2 = a / 2
+        have h_lhs : a * log a / 2 - a / 2 * log (a / 2) = a / 2 * log 2 := by
+          rw [log_div ha_zero (by norm_num : (2 : ℝ) ≠ 0)]
+          ring
+        rw [h_lhs]
+        -- h(false)^2 = 0 means h(false) = 0 since h ≥ 0
+        have h_false_zero : h (Fin.snoc ε' false) = 0 := sq_eq_zero_iff.mp hb_zero
+        rw [h_false_zero, sub_zero, sq]
+        -- Need: a/2 * log 2 ≤ a / 2, i.e., log 2 ≤ 1
+        calc a / 2 * log 2 ≤ a / 2 * 1 := by nlinarith [hlog2_le, ha_nn]
+          _ = a / 2 := by ring
+          _ = h (Fin.snoc ε' true) * h (Fin.snoc ε' true) / 2 := by rw [ha_def]; ring
+  · -- a = 0
+    have ha_zero : a = 0 := le_antisymm (not_lt.mp ha_pos) ha_nn
+    simp only [ha_zero, zero_add, zero_mul, log_zero]
+    by_cases hb_zero : b = 0
+    · -- a = 0 and b = 0: both h values are 0, so LHS = RHS = 0
+      simp only [hb_zero, mul_zero, log_zero, zero_div, sub_zero]
+      exact h_diff_sq_nn
+    · -- a = 0, b > 0
+      have h_lhs : b * log b / 2 - b / 2 * log (b / 2) = b / 2 * log 2 := by
+        rw [log_div hb_zero (by norm_num : (2 : ℝ) ≠ 0)]
+        ring
+      rw [h_lhs]
+      have h_true_zero : h (Fin.snoc ε' true) = 0 := sq_eq_zero_iff.mp ha_zero
+      rw [h_true_zero, zero_sub]
+      -- (0 - h(false))² = h(false)² = b
+      have hsq_neg : (-h (Fin.snoc ε' false))^2 = b := by
+        rw [neg_sq, hb_def]
+      rw [hsq_neg]
+      linarith [mul_le_of_le_one_right (div_nonneg hb_nn (by norm_num : (0 : ℝ) ≤ 2)) hlog2_le]
+
+/-!
+## Part 5: Decomposition lemmas for the induction
+-/
+
+/-- The sum over coordinates decomposes: first n coordinates plus the last one -/

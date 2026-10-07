@@ -1,0 +1,39 @@
+theorem entropy_le_half_gradient {n : ℕ} (h : (Fin n → Bool) → ℝ) :
+    LogSobolev.entropy (bernoulliUniform n) (fun ε => (h ε)^2) ≤
+    (1/2) * ∫ ε, gradientNormSq n h ε ∂(bernoulliUniform n) := by
+  calc LogSobolev.entropy (bernoulliUniform n) (fun ε => (h ε)^2)
+      ≤ ∑ j : Fin n, ∫ ε, twoPointEntropyCoord j h ε ∂(bernoulliUniform n) := by
+        exact han_inequality h
+    _ ≤ ∑ j : Fin n, ∫ ε, (h ε - h (flipCoord j ε))^2 / 2 ∂(bernoulliUniform n) := by
+        apply Finset.sum_le_sum
+        intro j _
+        exact avg_twoPointEntropyCoord_le j h
+    _ = ∫ ε, ∑ j : Fin n, (h ε - h (flipCoord j ε))^2 / 2 ∂(bernoulliUniform n) := by
+        rw [← integral_finsetSum]
+        intro j _
+        exact Integrable.of_finite
+    _ = ∫ ε, (∑ j : Fin n, (h ε - h (flipCoord j ε))^2) / 2 ∂(bernoulliUniform n) := by
+        congr 1
+        ext ε
+        rw [Finset.sum_div]
+    _ = (1/2) * ∫ ε, ∑ j : Fin n, (h ε - h (flipCoord j ε))^2 ∂(bernoulliUniform n) := by
+        rw [← integral_const_mul]
+        congr 1
+        ext ε
+        ring
+    _ = (1/2) * ∫ ε, gradientNormSq n h ε ∂(bernoulliUniform n) := by
+        rfl
+
+/-!
+## Part 6: Main Theorem - Bernoulli Log-Sobolev Inequality
+-/
+
+/-- The Bernoulli log-Sobolev inequality (Theorem 5.1).
+
+For any function h : {±1}^n → ℝ,
+  Ent_μ(h²) ≤ (1/2) · E_μ[Σⱼ (h(ε) - h(flip_j ε))²]
+
+where μ is the uniform measure on the hypercube.
+
+Note: The nonnegativity hypothesis was removed using the reverse triangle inequality
+to show that (|h(ε)| - |h(flip_j ε)|)² ≤ (h(ε) - h(flip_j ε))². -/

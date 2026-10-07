@@ -1,0 +1,21 @@
+theorem deriv_deriv_gPlus {t : ℝ} (ht : -1 < t) : deriv (deriv gPlus) t = 1 / (1 + t) := by
+  have h : 0 < 1 + t := by linarith
+  have hdiff : (fun s => deriv gPlus s) =ᶠ[𝓝 t] (fun s => log (1 + s) + 1) := by
+    have hopen : Ioi (-1 : ℝ) ∈ 𝓝 t := Ioi_mem_nhds ht
+    filter_upwards [hopen] with s hs
+    exact deriv_gPlus hs
+  rw [Filter.EventuallyEq.deriv_eq hdiff]
+  have h1 : DifferentiableAt ℝ (fun s => 1 + s) t := differentiableAt_id.const_add 1
+  have hlog_diff : DifferentiableAt ℝ (fun s => log (1 + s)) t := (differentiableAt_log h.ne').comp t h1
+  have h_deriv_add : deriv (fun s => log (1 + s) + 1) t =
+      deriv (fun s => log (1 + s)) t + deriv (fun _ => (1 : ℝ)) t :=
+    deriv_add hlog_diff (differentiableAt_const 1)
+  rw [h_deriv_add]
+  simp only [deriv_const, add_zero]
+  rw [deriv.log h1 h.ne']
+  have d1 : deriv (fun s => 1 + s) t = 1 := by
+    have hd : HasDerivAt (fun s => 1 + s) 1 t := by
+      simpa [id] using (hasDerivAt_id t).const_add (1 : ℝ)
+    exact hd.deriv
+  rw [d1]
+

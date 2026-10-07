@@ -1,0 +1,21 @@
+    · -- b = 0
+      have hb_zero : b = 0 := le_antisymm (not_lt.mp hb_pos) hb_nn
+      simp only [hb_zero, add_zero, mul_zero, log_zero]
+      by_cases ha_zero : a = 0
+      · simp [ha_zero]; positivity
+      · have h_lhs : a * log a / 2 - a / 2 * log (a / 2) = a / 2 * log 2 := by
+          rw [log_div ha_zero (by norm_num : (2 : ℝ) ≠ 0)]
+          ring
+        rw [h_lhs]
+        have h_flip_zero : h (flipCoord j ε) = 0 := sq_eq_zero_iff.mp hb_zero
+        rw [h_flip_zero, sub_zero, sq]
+        have hlog2_le : log 2 ≤ 1 := by
+          have h1 : (2 : ℝ) < exp 1 := by
+            have : (2.7182818283 : ℝ) < exp 1 := Real.exp_one_gt_d9
+            linarith
+          have h2 : log 2 < log (exp 1) := log_lt_log (by norm_num : (0 : ℝ) < 2) h1
+          simp only [log_exp] at h2
+          linarith
+        calc a / 2 * log 2 ≤ a / 2 * 1 := by nlinarith [hlog2_le, ha_nn]
+          _ = a / 2 := by ring
+          _ = h ε * h ε / 2 := by rw [ha_def]; ring_nf

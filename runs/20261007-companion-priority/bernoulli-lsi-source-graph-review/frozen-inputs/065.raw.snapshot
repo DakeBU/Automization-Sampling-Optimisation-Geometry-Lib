@@ -1,0 +1,15 @@
+theorem sqrt_diff_sq_eq {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    (sqrt (1 + t) - sqrt (1 - t))^2 = 2 - 2 * sqrt (1 - t^2) := by
+  have h1 : 0 ≤ 1 + t := by linarith [ht.1]
+  have h2 : 0 ≤ 1 - t := by linarith [ht.2]
+  rw [sub_sq, sq_sqrt h1, sq_sqrt h2]
+  -- Goal: 1 + t - 2 * √(1+t) * √(1-t) + (1 - t) = 2 - 2 * √(1 - t²)
+  have hsqrt_mul : sqrt (1 + t) * sqrt (1 - t) = sqrt ((1 + t) * (1 - t)) :=
+    (sqrt_mul h1 (1 - t)).symm
+  have hmul : (1 + t) * (1 - t) = 1 - t^2 := by ring
+  calc 1 + t - 2 * sqrt (1 + t) * sqrt (1 - t) + (1 - t)
+      = 2 - 2 * (sqrt (1 + t) * sqrt (1 - t)) := by ring
+    _ = 2 - 2 * sqrt ((1 + t) * (1 - t)) := by rw [hsqrt_mul]
+    _ = 2 - 2 * sqrt (1 - t^2) := by rw [hmul]
+
+/-- Key function: g(t) = 2 - 2√(1-t²) - φ(t). The Rothaus lemma says g ≥ 0. -/

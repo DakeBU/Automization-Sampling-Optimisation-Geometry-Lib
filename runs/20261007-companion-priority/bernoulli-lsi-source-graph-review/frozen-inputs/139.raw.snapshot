@@ -1,0 +1,25 @@
+theorem entropy_chain_rule_succ {n : ℕ} (f : (Fin (n + 1) → Bool) → ℝ) :
+    LogSobolev.entropy (bernoulliUniform (n + 1)) f =
+    ∫ ε', twoPointEntropyLast f ε' ∂(bernoulliUniform n) +
+    LogSobolev.entropy (bernoulliUniform n) (condMeanLast f) := by
+  -- Unfold entropy on both sides
+  unfold LogSobolev.entropy
+  -- Use the integral decomposition lemmas
+  rw [integral_flogf_decomp, integral_eq_integral_condMeanLast]
+  -- The key is to combine the twoPointEntropyLast and entropy of condMeanLast correctly
+  -- Algebraic manipulation
+  have key : ∀ ε' : Fin n → Bool,
+      (f (Fin.snoc ε' true) * log (f (Fin.snoc ε' true)) +
+       f (Fin.snoc ε' false) * log (f (Fin.snoc ε' false))) / 2 =
+      twoPointEntropyLast f ε' + condMeanLast f ε' * log (condMeanLast f ε') := by
+    intro ε'
+    unfold twoPointEntropyLast condMeanLast
+    ring
+  rw [show (fun ε' => (f (Fin.snoc ε' true) * log (f (Fin.snoc ε' true)) +
+           f (Fin.snoc ε' false) * log (f (Fin.snoc ε' false))) / 2) =
+      (fun ε' => twoPointEntropyLast f ε' + condMeanLast f ε' * log (condMeanLast f ε'))
+    from funext key]
+  rw [integral_add Integrable.of_finite Integrable.of_finite]
+  ring
+
+/-- The two-point entropy function -/

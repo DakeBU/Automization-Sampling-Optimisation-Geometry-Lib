@@ -1,0 +1,176 @@
+theorem jensenGap_joint_convex (x₀ x₁ y₀ y₁ : ℝ)
+    (hx₀ : 0 ≤ x₀) (hx₁ : 0 ≤ x₁) (hy₀ : 0 ≤ y₀) (hy₁ : 0 ≤ y₁) :
+    2 * jensenGap ((x₀ + x₁) / 2) ((y₀ + y₁) / 2) ≤ jensenGap x₀ y₀ + jensenGap x₁ y₁ := by
+
+  set s₀ := x₀ + y₀ with hs₀
+  set s₁ := x₁ + y₁ with hs₁
+  set xbar := (x₀ + x₁) / 2 with hxbar
+  set ybar := (y₀ + y₁) / 2 with hybar
+  set sbar := xbar + ybar with hsbar
+
+  have hsbar_eq : sbar = (s₀ + s₁) / 2 := by simp only [hsbar, hxbar, hybar, hs₀, hs₁]; ring
+
+  -- Handle degenerate cases
+  by_cases hs₀_zero : s₀ = 0
+  · -- If s₀ = 0, then x₀ = y₀ = 0, so jensenGap(x₀, y₀) = 0
+    have hx₀_zero : x₀ = 0 := by linarith
+    have hy₀_zero : y₀ = 0 := by linarith
+    rw [hx₀_zero, hy₀_zero]
+    simp only [zero_add, jensenGap_self]
+    -- Unfold xbar, ybar to get explicit expressions
+    simp only [hxbar, hybar, hx₀_zero, hy₀_zero, zero_add]
+    -- Now goal is: 2 * jensenGap (x₁/2) (y₁/2) ≤ jensenGap x₁ y₁
+    by_cases hs₁_zero : s₁ = 0
+    · have hx₁_zero : x₁ = 0 := by linarith
+      have hy₁_zero : y₁ = 0 := by linarith
+      simp [hx₁_zero, hy₁_zero, jensenGap_self]
+    · -- s₁ > 0, so we can use the KL representation
+      have hs₁_pos : 0 < s₁ := by
+        rcases hx₁.lt_or_eq with h | h
+        · linarith
+        · -- h : 0 = x₁, so x₁ = 0
+          have hx₁_eq : x₁ = 0 := h.symm
+          -- s₁ = x₁ + y₁ = 0 + y₁ = y₁, but s₁ ≠ 0, so y₁ > 0
+          simp only [hs₁, hx₁_eq, zero_add] at hs₁_zero
+          linarith [hy₁.lt_of_ne' hs₁_zero]
+      -- jensenGap(x₁/2, y₁/2) = (s₁/4) * D(p₁) and jensenGap(x₁, y₁) = (s₁/2) * D(p₁)
+      have hsum_half_pos : 0 < x₁/2 + y₁/2 := by linarith
+      rw [jensenGap_eq_scaled_binaryKL (by linarith : 0 ≤ x₁/2) (by linarith : 0 ≤ y₁/2) hsum_half_pos]
+      rw [jensenGap_eq_scaled_binaryKL hx₁ hy₁ hs₁_pos]
+      -- Goal: 2 * ((x₁/2 + y₁/2) / 2 * D(...)) ≤ (x₁ + y₁) / 2 * D(x₁/(x₁+y₁))
+      -- Note: (x₁/2 + y₁/2) / 2 = (x₁ + y₁) / 4 and (x₁/2)/(x₁/2 + y₁/2) = x₁/(x₁+y₁)
+      have hp₁_eq' : x₁ / 2 / (x₁ / 2 + y₁ / 2) = x₁ / (x₁ + y₁) := by field_simp
+      rw [hp₁_eq']
+      -- Now: 2 * ((x₁/2 + y₁/2) / 2 * D(x₁/(x₁+y₁))) ≤ (x₁+y₁) / 2 * D(x₁/(x₁+y₁))
+      have hsimp : (x₁ / 2 + y₁ / 2) / 2 = (x₁ + y₁) / 4 := by ring
+      rw [hsimp]
+      -- Now: 2 * ((x₁+y₁)/4 * D(...)) ≤ (x₁+y₁)/2 * D(...)
+      linarith
+
+  by_cases hs₁_zero : s₁ = 0
+  · -- If s₁ = 0, then x₁ = y₁ = 0, so jensenGap(x₁, y₁) = 0
+    have hx₁_zero : x₁ = 0 := by linarith
+    have hy₁_zero : y₁ = 0 := by linarith
+    rw [hx₁_zero, hy₁_zero]
+    simp only [add_zero, jensenGap_self]
+    -- Unfold xbar, ybar to get explicit expressions
+    simp only [hxbar, hybar, hx₁_zero, hy₁_zero, add_zero]
+    -- Now goal is: 2 * jensenGap (x₀/2) (y₀/2) ≤ jensenGap x₀ y₀
+    have hs₀_pos : 0 < s₀ := by
+      rcases hx₀.lt_or_eq with h | h
+      · linarith
+      · -- h : 0 = x₀, so x₀ = 0
+        have hx₀_eq : x₀ = 0 := h.symm
+        simp only [hs₀, hx₀_eq, zero_add] at hs₀_zero
+        linarith [hy₀.lt_of_ne' hs₀_zero]
+    have hsum_half_pos₀ : 0 < x₀/2 + y₀/2 := by linarith
+    rw [jensenGap_eq_scaled_binaryKL (by linarith : 0 ≤ x₀/2) (by linarith : 0 ≤ y₀/2) hsum_half_pos₀]
+    rw [jensenGap_eq_scaled_binaryKL hx₀ hy₀ hs₀_pos]
+    -- Similar simplification as the s₁ case
+    have hp₀_eq' : x₀ / 2 / (x₀ / 2 + y₀ / 2) = x₀ / (x₀ + y₀) := by field_simp
+    rw [hp₀_eq']
+    have hsimp₀ : (x₀ / 2 + y₀ / 2) / 2 = (x₀ + y₀) / 4 := by ring
+    rw [hsimp₀]
+    linarith
+
+  -- Main case: s₀ > 0 and s₁ > 0
+  have hs₀_pos : 0 < s₀ := by
+    rcases hx₀.lt_or_eq with h | h
+    · linarith
+    · have hx₀_eq : x₀ = 0 := h.symm
+      simp only [hs₀, hx₀_eq, zero_add] at hs₀_zero
+      linarith [hy₀.lt_of_ne' hs₀_zero]
+  have hs₁_pos : 0 < s₁ := by
+    rcases hx₁.lt_or_eq with h | h
+    · linarith
+    · have hx₁_eq : x₁ = 0 := h.symm
+      simp only [hs₁, hx₁_eq, zero_add] at hs₁_zero
+      linarith [hy₁.lt_of_ne' hs₁_zero]
+  have hsbar_pos : 0 < sbar := by rw [hsbar_eq]; linarith
+
+  -- Define the probabilities
+  set p₀ := x₀ / s₀ with hp₀_def
+  set p₁ := x₁ / s₁ with hp₁_def
+  set pbar := xbar / sbar with hpbar_def
+
+  -- p₀, p₁ ∈ [0, 1]
+  have hp₀_mem : p₀ ∈ Set.Icc (0 : ℝ) 1 := by
+    constructor
+    · exact div_nonneg hx₀ (le_of_lt hs₀_pos)
+    · rw [div_le_one hs₀_pos]; linarith
+  have hp₁_mem : p₁ ∈ Set.Icc (0 : ℝ) 1 := by
+    constructor
+    · exact div_nonneg hx₁ (le_of_lt hs₁_pos)
+    · rw [div_le_one hs₁_pos]; linarith
+
+  -- Define the weights
+  set w₀ := s₀ / (s₀ + s₁) with hw₀_def
+  set w₁ := s₁ / (s₀ + s₁) with hw₁_def
+
+  have hw₀_nonneg : 0 ≤ w₀ := div_nonneg (le_of_lt hs₀_pos) (by linarith)
+  have hw₁_nonneg : 0 ≤ w₁ := div_nonneg (le_of_lt hs₁_pos) (by linarith)
+  have hs_sum_ne : s₀ + s₁ ≠ 0 := by linarith
+  have hw_sum : w₀ + w₁ = 1 := by
+    simp only [hw₀_def, hw₁_def]
+    rw [← add_div, div_self hs_sum_ne]
+
+  -- Key: pbar is a weighted average of p₀ and p₁
+  have hs₀_ne : s₀ ≠ 0 := ne_of_gt hs₀_pos
+  have hs₁_ne : s₁ ≠ 0 := ne_of_gt hs₁_pos
+  have hpbar_eq : pbar = w₀ * p₀ + w₁ * p₁ := by
+    have hLHS : pbar = (x₀ + x₁) / (s₀ + s₁) := by
+      simp only [hpbar_def, hxbar, hsbar_eq]
+      field_simp [hs_sum_ne]
+    have hw₀p₀ : w₀ * p₀ = x₀ / (s₀ + s₁) := by
+      simp only [hw₀_def, hp₀_def]
+      field_simp [hs₀_ne, hs_sum_ne]
+    have hw₁p₁ : w₁ * p₁ = x₁ / (s₀ + s₁) := by
+      simp only [hw₁_def, hp₁_def]
+      field_simp [hs₁_ne, hs_sum_ne]
+    rw [hLHS, hw₀p₀, hw₁p₁, ← add_div]
+
+  -- Express jensenGaps using binaryKLfromUniform
+  have hxbar_nonneg : 0 ≤ xbar := by simp only [hxbar]; linarith
+  have hybar_nonneg : 0 ≤ ybar := by simp only [hybar]; linarith
+
+  rw [jensenGap_eq_scaled_binaryKL hxbar_nonneg hybar_nonneg hsbar_pos]
+  rw [jensenGap_eq_scaled_binaryKL hx₀ hy₀ hs₀_pos]
+  rw [jensenGap_eq_scaled_binaryKL hx₁ hy₁ hs₁_pos]
+
+  -- Simplify sbar and pbar
+  have hsbar_simp : sbar = (s₀ + s₁) / 2 := hsbar_eq
+  have hpbar_simp : xbar / sbar = pbar := by
+    simp only [hpbar_def, hxbar, hsbar_eq, hs₀, hs₁]
+
+  -- First replace xbar + ybar with sbar, then apply simplifications
+  simp only [← hsbar]
+  rw [hpbar_simp, hsbar_simp]
+
+  -- Now we have: 2 * ((s₀+s₁)/2 / 2) * D(pbar) ≤ (s₀/2) * D(p₀) + (s₁/2) * D(p₁)
+  -- Which simplifies to: ((s₀+s₁)/2) * D(pbar) ≤ (s₀/2) * D(p₀) + (s₁/2) * D(p₁)
+
+  have hLHS_simp : 2 * ((s₀ + s₁) / 2 / 2 * binaryKLfromUniform pbar) =
+                   ((s₀ + s₁) / 2) * binaryKLfromUniform pbar := by ring
+  rw [hLHS_simp]
+
+  -- Apply convexity: D(pbar) ≤ w₀ * D(p₀) + w₁ * D(p₁)
+  have hconv := binaryKLfromUniform_weighted_le hp₀_mem hp₁_mem hw₀_nonneg hw₁_nonneg hw_sum
+  rw [← hpbar_eq] at hconv
+
+  -- Multiply by ((s₀ + s₁) / 2)
+  have hscale : ((s₀ + s₁) / 2) * binaryKLfromUniform pbar ≤
+                ((s₀ + s₁) / 2) * (w₀ * binaryKLfromUniform p₀ + w₁ * binaryKLfromUniform p₁) := by
+    apply mul_le_mul_of_nonneg_left hconv
+    linarith
+
+  calc ((s₀ + s₁) / 2) * binaryKLfromUniform pbar
+      ≤ ((s₀ + s₁) / 2) * (w₀ * binaryKLfromUniform p₀ + w₁ * binaryKLfromUniform p₁) := hscale
+    _ = ((s₀ + s₁) / 2) * w₀ * binaryKLfromUniform p₀ +
+        ((s₀ + s₁) / 2) * w₁ * binaryKLfromUniform p₁ := by ring
+    _ = (s₀ / 2) * binaryKLfromUniform p₀ + (s₁ / 2) * binaryKLfromUniform p₁ := by
+        simp only [hw₀_def, hw₁_def]; field_simp
+
+/-- Two-point entropy is jointly convex: the midpoint inequality.
+
+This is the key lemma for Han's inequality. For nonnegative a₀, a₁, b₀, b₁:
+  twoPointEnt((a₀+a₁)/2, (b₀+b₁)/2) ≤ (twoPointEnt(a₀,b₀) + twoPointEnt(a₁,b₁))/2 -/

@@ -1,0 +1,35 @@
+theorem bernoulli_flip_invariance (j : Fin n) :
+    (bernoulliUniform n).map (flipCoord j) = bernoulliUniform n := by
+  -- flipCoord j is a bijection (involutive) and count is invariant under bijections
+  unfold bernoulliUniform
+  have hinv : (flipCoord j).Involutive := fun ε => by
+    simp only [flipCoord]
+    ext i
+    by_cases h : i = j
+    · subst h; simp only [update_self, Bool.not_not]
+    · rw [update_of_ne h, update_of_ne h]
+  rw [Measure.map_smul]
+  congr 1
+  -- Show count measure is invariant under bijection
+  ext s hs
+  have hmeas : Measurable (flipCoord j) := measurable_of_finite _
+  rw [Measure.map_apply hmeas hs]
+  have hs1 : (flipCoord j ⁻¹' s).Finite := Set.toFinite _
+  have hs2 : s.Finite := Set.toFinite _
+  rw [Measure.count_apply_finite _ hs1]
+  rw [Measure.count_apply_finite _ hs2]
+  -- Need: hs1.toFinset.card = hs2.toFinset.card
+  -- This follows from bijection: preimage of s under bijection has same cardinality
+  have h_eq : hs1.toFinset = hs2.toFinset.image (flipCoord j) := by
+    ext x
+    simp only [Set.Finite.mem_toFinset, Set.mem_preimage, Finset.mem_image]
+    constructor
+    · intro hx
+      exact ⟨flipCoord j x, hx, hinv x⟩
+    · rintro ⟨y, hy, rfl⟩
+      convert hy using 1
+      exact hinv y
+  rw [h_eq, Finset.card_image_of_injective _ hinv.injective]
+
+/-- Integral over bernoulliUniform equals sum divided by 2^n.
+    This is the fundamental property of the uniform measure on finite types. -/

@@ -1,0 +1,81 @@
+theorem rothaus_lemma {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    (a * log a + b * log b) / 2 - (a + b) / 2 * log ((a + b) / 2) ≤
+    (sqrt a - sqrt b)^2 / 2 := by
+  -- Define key quantities
+  set m := (a + b) / 2 with hm_def
+  set t := (a - b) / (a + b) with ht_def
+  -- Basic inequalities
+  have hab_pos : 0 < a + b := by linarith
+  have hm_pos : 0 < m := by rw [hm_def]; linarith
+  have hab_ne : a + b ≠ 0 := hab_pos.ne'
+  -- Bounds on t
+  have ht_upper : t < 1 := by
+    rw [ht_def, div_lt_one hab_pos]
+    linarith
+  have ht_lower : -1 < t := by
+    rw [ht_def, lt_div_iff₀ hab_pos]
+    linarith
+  have ht_mem : t ∈ Ioo (-1 : ℝ) 1 := ⟨ht_lower, ht_upper⟩
+  -- Express a, b in terms of m, t
+  have ha_eq : a = m * (1 + t) := by
+    rw [hm_def, ht_def]
+    field_simp
+    ring
+  have hb_eq : b = m * (1 - t) := by
+    rw [hm_def, ht_def]
+    field_simp
+    ring
+  have h1pt_pos : 0 < 1 + t := by linarith [ht_lower]
+  have h1mt_pos : 0 < 1 - t := by linarith [ht_upper]
+  -- The LHS equals m * phi(t) / 2
+  have hLHS : (a * log a + b * log b) / 2 - (a + b) / 2 * log ((a + b) / 2) =
+      m * phi t / 2 := by
+    rw [ha_eq, hb_eq]
+    simp only [phi, gPlus, gMinus]
+    have hlog_a : log (m * (1 + t)) = log m + log (1 + t) := by
+      rw [log_mul hm_pos.ne' h1pt_pos.ne']
+    have hlog_b : log (m * (1 - t)) = log m + log (1 - t) := by
+      rw [log_mul hm_pos.ne' h1mt_pos.ne']
+    rw [hlog_a, hlog_b]
+    have hsum : m * (1 + t) + m * (1 - t) = 2 * m := by ring
+    rw [hsum]
+    have hmid : (2 * m) / 2 = m := by ring
+    rw [hmid]
+    ring
+  -- The RHS equals m * sqrtTerm(t) / 2
+  have hRHS : (sqrt a - sqrt b)^2 / 2 = m * sqrtTerm t / 2 := by
+    rw [ha_eq, hb_eq]
+    have hsqrt_a : sqrt (m * (1 + t)) = sqrt m * sqrt (1 + t) :=
+      sqrt_mul hm_pos.le (1 + t)
+    have hsqrt_b : sqrt (m * (1 - t)) = sqrt m * sqrt (1 - t) :=
+      sqrt_mul hm_pos.le (1 - t)
+    rw [hsqrt_a, hsqrt_b]
+    have hsqrt_factor : (sqrt m * sqrt (1 + t) - sqrt m * sqrt (1 - t))^2 =
+        m * (sqrt (1 + t) - sqrt (1 - t))^2 := by
+      have hsq : sqrt m * sqrt m = m := Real.mul_self_sqrt hm_pos.le
+      calc (sqrt m * sqrt (1 + t) - sqrt m * sqrt (1 - t))^2
+          = (sqrt m * (sqrt (1 + t) - sqrt (1 - t)))^2 := by ring
+        _ = sqrt m * sqrt m * (sqrt (1 + t) - sqrt (1 - t))^2 := by ring
+        _ = m * (sqrt (1 + t) - sqrt (1 - t))^2 := by rw [hsq]
+    rw [hsqrt_factor]
+    -- Now show (sqrt (1 + t) - sqrt (1 - t))^2 = sqrtTerm t
+    have hst : (sqrt (1 + t) - sqrt (1 - t))^2 = sqrtTerm t := by
+      rw [sqrt_diff_sq_eq ht_mem, sqrtTerm]
+    rw [hst]
+  -- Now we need: m * phi(t) / 2 ≤ m * sqrtTerm(t) / 2
+  rw [hLHS, hRHS]
+  -- Since m > 0, this is equivalent to phi(t) ≤ sqrtTerm(t)
+  have h := rothausDefect_nonneg ht_mem
+  -- rothausDefect(t) = sqrtTerm(t) - phi(t) ≥ 0, so phi(t) ≤ sqrtTerm(t)
+  unfold rothausDefect at h
+  have h_ineq : phi t ≤ 2 - 2 * sqrt (1 - t^2) := by linarith
+  -- 2 - 2 * sqrt (1 - t^2) = sqrtTerm t
+  have h_eq : 2 - 2 * sqrt (1 - t^2) = sqrtTerm t := by simp [sqrtTerm]
+  rw [h_eq] at h_ineq
+  calc m * phi t / 2
+      ≤ m * sqrtTerm t / 2 := by nlinarith [hm_pos, h_ineq]
+
+end LogSobolev
+
+end
+

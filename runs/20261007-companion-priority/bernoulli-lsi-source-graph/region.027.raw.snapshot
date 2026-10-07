@@ -1,0 +1,34 @@
+theorem deriv_sqrtTerm {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    deriv sqrtTerm t = 2 * t / sqrt (1 - t^2) := by
+  have h1 : 0 < 1 - t^2 := by nlinarith [ht.1, ht.2, sq_nonneg t]
+  unfold sqrtTerm
+  have hd1 : DifferentiableAt ℝ (fun s => 1 - s^2) t := by
+    apply DifferentiableAt.sub
+    · exact differentiableAt_const 1
+    · exact differentiableAt_pow 2
+  have hd2 : DifferentiableAt ℝ (fun s => sqrt (1 - s^2)) t :=
+    hd1.sqrt h1.ne'
+  -- Compute the derivative using the chain rule
+  have h_deriv : deriv (fun s => 2 - 2 * sqrt (1 - s^2)) t =
+      deriv (fun _ => (2 : ℝ)) t - deriv (fun s => 2 * sqrt (1 - s^2)) t := by
+    have hd_const : DifferentiableAt ℝ (fun _ : ℝ => (2 : ℝ)) t := differentiableAt_const 2
+    have hd_mul : DifferentiableAt ℝ (fun s => 2 * sqrt (1 - s^2)) t := hd2.const_mul 2
+    exact deriv_sub hd_const hd_mul
+  -- Explicitly compute deriv (fun s => 1 - s^2) t
+  have hd_inner_val : deriv (fun s => 1 - s^2) t = -2 * t := by
+    have hd_const : DifferentiableAt ℝ (fun _ : ℝ => (1 : ℝ)) t := differentiableAt_const 1
+    have hd_pow : DifferentiableAt ℝ (fun s => s^2) t := differentiableAt_pow 2
+    have h_sub_deriv : deriv (fun s => 1 - s^2) t = deriv (fun _ => (1 : ℝ)) t - deriv (fun s => s^2) t :=
+      deriv_sub hd_const hd_pow
+    -- Compute deriv (fun s => s^2) t explicitly using HasDerivAt
+    have hd_sq : deriv (fun s : ℝ => s^2) t = 2 * t := by
+      have h := hasDerivAt_pow 2 t
+      rw [h.deriv]
+      ring
+    rw [h_sub_deriv, deriv_const, hd_sq]
+    ring
+  rw [h_deriv, deriv_const, deriv_const_mul _ hd2, deriv_sqrt hd1 h1.ne', hd_inner_val]
+  field_simp [(sqrt_pos.mpr h1).ne']
+  ring
+
+/-- sqrtTerm is nonnegative for all reals (minimum value 0 at t = 0) -/

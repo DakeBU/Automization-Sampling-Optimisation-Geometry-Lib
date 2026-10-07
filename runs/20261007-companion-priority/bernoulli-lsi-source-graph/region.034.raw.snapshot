@@ -1,0 +1,57 @@
+theorem deriv2_rothausDefect_nonneg {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    0 ≤ deriv (deriv rothausDefect) t := by
+  have h1 : 0 < 1 - t^2 := by nlinarith [ht.1, ht.2, sq_nonneg t]
+  have hsqrt_pos : 0 < sqrt (1 - t^2) := sqrt_pos.mpr h1
+  have hsqrt_le_one : sqrt (1 - t^2) ≤ 1 := by
+    rw [sqrt_le_one]
+    nlinarith [sq_nonneg t]
+  -- Compute deriv (deriv rothausDefect) = deriv (deriv sqrtTerm) - deriv (deriv phi)
+  have heq : (fun s => deriv rothausDefect s) =ᶠ[𝓝 t]
+      (fun s => deriv sqrtTerm s - deriv phi s) := by
+    have hopen : Ioo (-1 : ℝ) 1 ∈ 𝓝 t := Ioo_mem_nhds ht.1 ht.2
+    filter_upwards [hopen] with s hs
+    rw [deriv_rothausDefect hs, deriv_sqrtTerm hs, deriv_phi hs]
+  -- Use the filter equality to compute the second derivative
+  have hderiv_eq : deriv (deriv rothausDefect) t =
+      deriv (fun s => deriv sqrtTerm s - deriv phi s) t :=
+    Filter.EventuallyEq.deriv_eq heq
+  -- Need differentiability of deriv sqrtTerm and deriv phi
+  have hd_sqrtTerm' : DifferentiableAt ℝ (deriv sqrtTerm) t := by
+    have hopen : Ioo (-1 : ℝ) 1 ∈ 𝓝 t := Ioo_mem_nhds ht.1 ht.2
+    have heq2 : (fun s => deriv sqrtTerm s) =ᶠ[𝓝 t] (fun s => 2 * s / sqrt (1 - s^2)) := by
+      filter_upwards [hopen] with s hs; exact deriv_sqrtTerm hs
+    have hd_num : DifferentiableAt ℝ (fun s => (2 : ℝ) * s) t :=
+      differentiableAt_const (2 : ℝ) |>.mul differentiableAt_id
+    have hd_inner : DifferentiableAt ℝ (fun s => 1 - s^2) t :=
+      differentiableAt_const 1 |>.sub (differentiableAt_pow 2)
+    have hdiff_rhs : DifferentiableAt ℝ (fun s => 2 * s / sqrt (1 - s^2)) t :=
+      hd_num.div (hd_inner.sqrt h1.ne') (sqrt_ne_zero'.mpr h1)
+    exact hdiff_rhs.congr_of_eventuallyEq heq2
+  have hd_phi' : DifferentiableAt ℝ (deriv phi) t := by
+    have hopen : Ioo (-1 : ℝ) 1 ∈ 𝓝 t := Ioo_mem_nhds ht.1 ht.2
+    have heq2 : (fun s => deriv phi s) =ᶠ[𝓝 t] (fun s => log (1 + s) - log (1 - s)) := by
+      filter_upwards [hopen] with s hs; exact deriv_phi hs
+    have h1p : 0 < 1 + t := by linarith [ht.1]
+    have h1m : 0 < 1 - t := by linarith [ht.2]
+    have hd1 : DifferentiableAt ℝ (fun s => 1 + s) t := differentiableAt_id.const_add 1
+    have hd2 : DifferentiableAt ℝ (fun s => 1 - s) t := differentiableAt_id.const_sub 1
+    have hdiff_rhs : DifferentiableAt ℝ (fun s => log (1 + s) - log (1 - s)) t :=
+      ((differentiableAt_log h1p.ne').comp t hd1).sub ((differentiableAt_log h1m.ne').comp t hd2)
+    exact hdiff_rhs.congr_of_eventuallyEq heq2
+  -- Apply deriv_sub and the second derivative formulas
+  have hderiv_sub : deriv (fun s => deriv sqrtTerm s - deriv phi s) t =
+      deriv (deriv sqrtTerm) t - deriv (deriv phi) t :=
+    deriv_sub hd_sqrtTerm' hd_phi'
+  rw [hderiv_eq, hderiv_sub, deriv2_sqrtTerm ht, deriv2_phi ht]
+  -- Goal: 0 ≤ 2/(1-t²) * (1/√(1-t²)) - 2/(1-t²)
+  --     = 2/(1-t²) * (1/√(1-t²) - 1)
+  have hfactor : 2 / (1 - t^2) * (1 / sqrt (1 - t^2)) - 2 / (1 - t^2) =
+      2 / (1 - t^2) * (1 / sqrt (1 - t^2) - 1) := by
+    field_simp [h1.ne', hsqrt_pos.ne']
+  rw [hfactor]
+  apply mul_nonneg
+  · exact div_nonneg (by norm_num : (0 : ℝ) ≤ 2) h1.le
+  · rw [sub_nonneg, one_le_div hsqrt_pos]
+    exact hsqrt_le_one
+
+/-- Differentiability of deriv rothausDefect on (-1, 1) -/

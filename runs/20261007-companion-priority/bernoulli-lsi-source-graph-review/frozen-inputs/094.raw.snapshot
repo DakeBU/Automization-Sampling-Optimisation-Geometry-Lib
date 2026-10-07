@@ -1,0 +1,57 @@
+/-
+Copyright (c) 2026 Yuanhe Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuanhe Zhang, Jason D. Lee, Fanghui Liu
+-/
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.MeasureTheory.Measure.Prod
+import Mathlib.MeasureTheory.Measure.Count
+import Mathlib.Probability.ProbabilityMassFunction.Basic
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Analysis.SpecialFunctions.BinaryEntropy
+import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.Logic.Function.Basic
+import SLT.GaussianLSI.Entropy
+import SLT.GaussianLSI.TwoPoint
+import SLT.GaussianPoincare.Limit
+
+/-!
+# Bernoulli Log-Sobolev Inequality
+
+This file proves the Bernoulli log-Sobolev inequality on the hypercube {±1}^n.
+
+## Main definitions
+
+* `flipCoord j ε`: Flip the j-th coordinate of ε, replacing ε_j with -ε_j
+* `bernoulliUniform n`: The uniform measure on {±1}^n (balanced Bernoulli product)
+* `signValue`: Maps Bool to ±1 ∈ ℝ
+
+## Main results
+
+* `han_inequality`: Han's subadditivity for entropy on the hypercube:
+  Ent_μ(h²) ≤ Σⱼ E_μ[Ent^(j)(h²)] where Ent^(j) is the conditional two-point entropy
+* `bernoulli_logSobolev`: For any h : {±1}^n → ℝ,
+  Ent_μ(h²) ≤ (1/2) · E_μ[Σⱼ (h(ε) - h(flip_j ε))²]
+* `bernoulli_logSobolev_app`: Application to compactly supported smooth functions f:
+  Ent_{S_n}(f²) ≤ (1/2) · Σᵢ E[(f(S_n) - f(S_n with coord i flipped))²]
+
+## Proof approach (Rothaus-based)
+
+We prove this by induction on n:
+- Base case (n = 0): Both sides are 0
+- Inductive step: Use the conditional entropy decomposition and the Rothaus lemma
+  (two-point inequality) for the last coordinate
+-/
+
+open MeasureTheory ProbabilityTheory Real Set Filter Function
+open scoped ENNReal NNReal BigOperators Topology
+
+noncomputable section
+
+namespace BernoulliLSI
+
+/-!
+## Part 1: Sign values and coordinate flips
+-/
+
+/-- Map Bool to ±1 ∈ ℝ: True ↦ +1, False ↦ -1 -/

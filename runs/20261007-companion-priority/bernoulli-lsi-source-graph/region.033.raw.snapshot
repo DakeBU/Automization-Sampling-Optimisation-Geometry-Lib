@@ -1,0 +1,51 @@
+theorem deriv2_sqrtTerm {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    deriv (deriv sqrtTerm) t = 2 / (1 - t^2) * (1 / sqrt (1 - t^2)) := by
+  have h1 : 0 < 1 - t^2 := by nlinarith [ht.1, ht.2, sq_nonneg t]
+  -- First, establish that deriv sqrtTerm is 2s/√(1-s²) in a neighborhood
+  have hdiff : (fun s => deriv sqrtTerm s) =ᶠ[𝓝 t] (fun s => 2 * s / sqrt (1 - s^2)) := by
+    have hopen : Ioo (-1 : ℝ) 1 ∈ 𝓝 t := Ioo_mem_nhds ht.1 ht.2
+    filter_upwards [hopen] with s hs
+    exact deriv_sqrtTerm hs
+  -- Use the filter equality to compute the second derivative
+  have hderiv_eq : deriv (deriv sqrtTerm) t = deriv (fun s => 2 * s / sqrt (1 - s^2)) t :=
+    Filter.EventuallyEq.deriv_eq hdiff
+  -- Compute d/ds[2s/√(1-s²)]
+  have hd_inner : DifferentiableAt ℝ (fun s => 1 - s^2) t :=
+    differentiableAt_const 1 |>.sub (differentiableAt_pow 2)
+  have hd_sqrt : DifferentiableAt ℝ (fun s => sqrt (1 - s^2)) t := hd_inner.sqrt h1.ne'
+  have hd_num : DifferentiableAt ℝ (fun s => (2 : ℝ) * s) t :=
+    differentiableAt_const (2 : ℝ) |>.mul differentiableAt_id
+  -- Apply deriv_div with explicit equality
+  have h_deriv_div : deriv (fun s => 2 * s / sqrt (1 - s^2)) t =
+      (deriv (fun s => (2 : ℝ) * s) t * sqrt (1 - t^2) -
+       (2 : ℝ) * t * deriv (fun s => sqrt (1 - s^2)) t) / (sqrt (1 - t^2))^2 :=
+    deriv_div hd_num hd_sqrt (sqrt_ne_zero'.mpr h1)
+  rw [hderiv_eq, h_deriv_div]
+  -- Simplify the derivatives
+  have d_num : deriv (fun s => (2 : ℝ) * s) t = 2 := by
+    have : deriv (fun s => (2 : ℝ) * s) t = 2 * deriv id t := deriv_const_mul 2 differentiableAt_id
+    simp [this]
+  have d_inner : deriv (fun s => 1 - s^2) t = -2 * t := by
+    have hd_const : DifferentiableAt ℝ (fun _ : ℝ => (1 : ℝ)) t := differentiableAt_const 1
+    have hd_pow : DifferentiableAt ℝ (fun s => s^2) t := differentiableAt_pow 2
+    have h_sub_deriv : deriv (fun s => 1 - s^2) t = deriv (fun _ => (1 : ℝ)) t - deriv (fun s => s^2) t :=
+      deriv_sub hd_const hd_pow
+    have hd_sq : deriv (fun s : ℝ => s^2) t = 2 * t := by
+      have h := hasDerivAt_pow 2 t
+      rw [h.deriv]
+      ring
+    rw [h_sub_deriv, deriv_const, hd_sq]
+    ring
+  have d_sqrt : deriv (fun s => sqrt (1 - s^2)) t = -t / sqrt (1 - t^2) := by
+    rw [deriv_sqrt hd_inner h1.ne', d_inner]
+    field_simp [(sqrt_pos.mpr h1).ne']
+  rw [d_num, d_sqrt]
+  field_simp [(sqrt_pos.mpr h1).ne']
+  -- Goal: (1 - t ^ 2) * (√(1 - t ^ 2) ^ 2 - -t ^ 2) = √(1 - t ^ 2) ^ 2
+  -- Using √(1 - t ^ 2) ^ 2 = 1 - t ^ 2 since h1 : 0 < 1 - t^2
+  have hsq : sqrt (1 - t^2) ^ 2 = 1 - t^2 := sq_sqrt h1.le
+  rw [hsq]
+  ring
+
+/-- The second derivative of rothausDefect is nonnegative:
+    g''(t) = 2/(1-t²)^(3/2) - 2/(1-t²) = 2/(1-t²) · (1/√(1-t²) - 1) ≥ 0 -/

@@ -1,0 +1,24 @@
+theorem deriv_deriv_gMinus {t : ℝ} (ht : t < 1) : deriv (deriv gMinus) t = 1 / (1 - t) := by
+  have h : 0 < 1 - t := by linarith
+  have hdiff : (fun s => deriv gMinus s) =ᶠ[𝓝 t] (fun s => -log (1 - s) - 1) := by
+    have hopen : Iio (1 : ℝ) ∈ 𝓝 t := Iio_mem_nhds ht
+    filter_upwards [hopen] with s hs
+    exact deriv_gMinus hs
+  rw [Filter.EventuallyEq.deriv_eq hdiff]
+  have h1 : DifferentiableAt ℝ (fun s => 1 - s) t := differentiableAt_id.const_sub 1
+  have hlog_diff : DifferentiableAt ℝ (fun s => log (1 - s)) t := (differentiableAt_log h.ne').comp t h1
+  have h_deriv_sub : deriv (fun s => -log (1 - s) - 1) t =
+      deriv (fun y => -log (1 - y)) t - deriv (fun _ => (1 : ℝ)) t :=
+    deriv_sub hlog_diff.neg (differentiableAt_const 1)
+  rw [h_deriv_sub]
+  simp only [deriv_const, sub_zero]
+  have hd_neg : deriv (fun y => -log (1 - y)) t = -deriv (fun s => log (1 - s)) t :=
+    hlog_diff.hasDerivAt.neg.deriv
+  rw [hd_neg, deriv.log h1 h.ne']
+  have d1 : deriv (fun s => 1 - s) t = -1 := by
+    have hd : HasDerivAt (fun s => 1 - s) (-1) t := by
+      simpa [id] using (hasDerivAt_id t).const_sub (1 : ℝ)
+    exact hd.deriv
+  rw [d1]
+  ring
+

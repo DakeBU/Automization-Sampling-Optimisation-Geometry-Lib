@@ -1,0 +1,113 @@
+theorem rothausDefect_nonneg {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) : 0 ≤ rothausDefect t := by
+  by_cases ht0 : t = 0
+  · simp [ht0]
+  -- For t ≠ 0, use MVT twice
+  rcases lt_trichotomy t 0 with ht_neg | ht_zero | ht_pos
+  · -- Case t < 0: use MVT on [t, 0]
+    have hcont : ContinuousOn rothausDefect (Icc t 0) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hx.1], by linarith [hx.2]⟩
+      exact (differentiableAt_rothausDefect hx_mem).continuousAt.continuousWithinAt
+    have hdiff : DifferentiableOn ℝ rothausDefect (Ioo t 0) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hx.1], by linarith [hx.2]⟩
+      exact (differentiableAt_rothausDefect hx_mem).differentiableWithinAt
+    obtain ⟨ξ₁, hξ₁_mem, hξ₁_eq⟩ := exists_deriv_eq_slope rothausDefect ht_neg hcont hdiff
+    simp only [rothausDefect_zero] at hξ₁_eq
+    -- rothausDefect(0) - rothausDefect(t) = deriv rothausDefect(ξ₁) * (0 - t)
+    -- So rothausDefect(t) = -deriv rothausDefect(ξ₁) * (-t) = deriv rothausDefect(ξ₁) * t
+    -- Now apply MVT again to deriv rothausDefect on [ξ₁, 0]
+    have hξ₁_neg : ξ₁ < 0 := hξ₁_mem.2
+    have hcont' : ContinuousOn (deriv rothausDefect) (Icc ξ₁ 0) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hξ₁_mem.1, hx.1], by linarith [hx.2]⟩
+      exact (differentiableAt_deriv_rothausDefect hx_mem).continuousAt.continuousWithinAt
+    have hdiff' : DifferentiableOn ℝ (deriv rothausDefect) (Ioo ξ₁ 0) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hξ₁_mem.1, hx.1], by linarith [hx.2]⟩
+      exact (differentiableAt_deriv_rothausDefect hx_mem).differentiableWithinAt
+    obtain ⟨ξ₂, hξ₂_mem, hξ₂_eq⟩ := exists_deriv_eq_slope (deriv rothausDefect) hξ₁_neg hcont' hdiff'
+    simp only [deriv_rothausDefect_zero] at hξ₂_eq
+    -- deriv rothausDefect(0) - deriv rothausDefect(ξ₁) = deriv² rothausDefect(ξ₂) * (0 - ξ₁)
+    -- So deriv rothausDefect(ξ₁) = -deriv² rothausDefect(ξ₂) * (-ξ₁) = deriv² rothausDefect(ξ₂) * ξ₁
+    have hξ₂_in : ξ₂ ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [ht.1, hξ₁_mem.1, hξ₂_mem.1], by linarith [hξ₂_mem.2]⟩
+    have h_deriv_ξ₁ : deriv rothausDefect ξ₁ = deriv (deriv rothausDefect) ξ₂ * ξ₁ := by
+      -- hξ₂_eq : deriv (deriv rothausDefect) ξ₂ = (0 - deriv rothausDefect ξ₁) / (0 - ξ₁)
+      have hξ₁_ne : ξ₁ ≠ 0 := ne_of_lt hξ₁_neg
+      have h1 : deriv (deriv rothausDefect) ξ₂ * (0 - ξ₁) = 0 - deriv rothausDefect ξ₁ := by
+        rw [hξ₂_eq, div_mul_cancel₀]
+        exact sub_ne_zero.mpr hξ₁_ne.symm
+      simp only [zero_sub] at h1
+      linarith
+    -- Now combine: rothausDefect(t) = deriv rothausDefect(ξ₁) * t / t = -deriv rothausDefect(ξ₁) * (-t) / (-t)
+    have h_rothausDefect_t : rothausDefect t = deriv (deriv rothausDefect) ξ₂ * ξ₁ * t := by
+      -- hξ₁_eq : deriv rothausDefect ξ₁ = (0 - rothausDefect t) / (0 - t)
+      have ht_ne : t ≠ 0 := ne_of_lt ht_neg
+      have h1 : deriv rothausDefect ξ₁ * (0 - t) = 0 - rothausDefect t := by
+        rw [hξ₁_eq, div_mul_cancel₀]
+        exact sub_ne_zero.mpr ht_ne.symm
+      simp only [zero_sub] at h1
+      rw [h_deriv_ξ₁] at h1
+      linarith
+    rw [h_rothausDefect_t]
+    -- deriv² rothausDefect(ξ₂) ≥ 0, ξ₁ < 0, t < 0
+    -- So deriv² rothausDefect(ξ₂) * ξ₁ ≤ 0
+    -- And deriv² rothausDefect(ξ₂) * ξ₁ * t ≥ 0
+    have h_d2_nonneg : 0 ≤ deriv (deriv rothausDefect) ξ₂ := deriv2_rothausDefect_nonneg hξ₂_in
+    have h_ξ₁_neg' : ξ₁ < 0 := hξ₁_mem.2
+    have h_t_neg : t < 0 := ht_neg
+    have h_mid : deriv (deriv rothausDefect) ξ₂ * ξ₁ ≤ 0 :=
+      mul_nonpos_of_nonneg_of_nonpos h_d2_nonneg (le_of_lt h_ξ₁_neg')
+    exact mul_nonneg_of_nonpos_of_nonpos h_mid (le_of_lt h_t_neg)
+  · exact absurd ht_zero ht0
+  · -- Case t > 0: use MVT on [0, t]
+    have hcont : ContinuousOn rothausDefect (Icc 0 t) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hx.1], by linarith [ht.2, hx.2]⟩
+      exact (differentiableAt_rothausDefect hx_mem).continuousAt.continuousWithinAt
+    have hdiff : DifferentiableOn ℝ rothausDefect (Ioo 0 t) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hx.1], by linarith [ht.2, hx.2]⟩
+      exact (differentiableAt_rothausDefect hx_mem).differentiableWithinAt
+    obtain ⟨ξ₁, hξ₁_mem, hξ₁_eq⟩ := exists_deriv_eq_slope rothausDefect ht_pos hcont hdiff
+    simp only [rothausDefect_zero] at hξ₁_eq
+    -- Now apply MVT again to deriv rothausDefect on [0, ξ₁]
+    have hξ₁_pos : 0 < ξ₁ := hξ₁_mem.1
+    have hcont' : ContinuousOn (deriv rothausDefect) (Icc 0 ξ₁) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hx.1], by linarith [ht.2, hξ₁_mem.2, hx.2]⟩
+      exact (differentiableAt_deriv_rothausDefect hx_mem).continuousAt.continuousWithinAt
+    have hdiff' : DifferentiableOn ℝ (deriv rothausDefect) (Ioo 0 ξ₁) := by
+      intro x hx
+      have hx_mem : x ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hx.1], by linarith [ht.2, hξ₁_mem.2, hx.2]⟩
+      exact (differentiableAt_deriv_rothausDefect hx_mem).differentiableWithinAt
+    obtain ⟨ξ₂, hξ₂_mem, hξ₂_eq⟩ := exists_deriv_eq_slope (deriv rothausDefect) hξ₁_pos hcont' hdiff'
+    simp only [deriv_rothausDefect_zero] at hξ₂_eq
+    have hξ₂_in : ξ₂ ∈ Ioo (-1 : ℝ) 1 := ⟨by linarith [hξ₂_mem.1], by linarith [ht.2, hξ₁_mem.2, hξ₂_mem.2]⟩
+    have h_deriv_ξ₁ : deriv rothausDefect ξ₁ = deriv (deriv rothausDefect) ξ₂ * ξ₁ := by
+      -- hξ₂_eq : deriv (deriv rothausDefect) ξ₂ = (deriv rothausDefect ξ₁ - 0) / (ξ₁ - 0)
+      have hξ₁_ne : ξ₁ ≠ 0 := ne_of_gt hξ₁_pos
+      have h1 : deriv (deriv rothausDefect) ξ₂ * (ξ₁ - 0) = deriv rothausDefect ξ₁ - 0 := by
+        rw [hξ₂_eq, div_mul_cancel₀]
+        exact sub_ne_zero.mpr hξ₁_ne
+      simp only [sub_zero] at h1
+      linarith
+    have h_rothausDefect_t : rothausDefect t = deriv (deriv rothausDefect) ξ₂ * ξ₁ * t := by
+      -- hξ₁_eq : deriv rothausDefect ξ₁ = (rothausDefect t - 0) / (t - 0)
+      have ht_ne : t ≠ 0 := ne_of_gt ht_pos
+      have h1 : deriv rothausDefect ξ₁ * (t - 0) = rothausDefect t - 0 := by
+        rw [hξ₁_eq, div_mul_cancel₀]
+        exact sub_ne_zero.mpr ht_ne
+      simp only [sub_zero] at h1
+      rw [h_deriv_ξ₁] at h1
+      linarith
+    rw [h_rothausDefect_t]
+    have h_d2_nonneg : 0 ≤ deriv (deriv rothausDefect) ξ₂ := deriv2_rothausDefect_nonneg hξ₂_in
+    have h_ξ₁_pos' : 0 < ξ₁ := hξ₁_mem.1
+    have h_t_pos : 0 < t := ht_pos
+    exact mul_nonneg (mul_nonneg h_d2_nonneg (le_of_lt h_ξ₁_pos')) (le_of_lt h_t_pos)
+
+/-- The Rothaus lemma: entropy of the two-point distribution is bounded ABOVE.
+
+    For a, b > 0:
+    (a * log a + b * log b) / 2 - (a + b) / 2 * log ((a + b) / 2) ≤ (√a - √b)² / 2 -/

@@ -1,0 +1,16 @@
+    · have h_lhs : b * log b / 2 - b / 2 * log (b / 2) = b / 2 * log 2 := by
+        rw [log_div hb_zero (by norm_num : (2 : ℝ) ≠ 0)]
+        ring
+      rw [h_lhs]
+      have h_ε_zero : h ε = 0 := sq_eq_zero_iff.mp ha_zero
+      rw [h_ε_zero, zero_sub, neg_sq]
+      have hlog2_le : log 2 ≤ 1 := by
+        have h1 : (2 : ℝ) < exp 1 := by
+          have : (2.7182818283 : ℝ) < exp 1 := Real.exp_one_gt_d9
+          linarith
+        have h2 : log 2 < log (exp 1) := log_lt_log (by norm_num : (0 : ℝ) < 2) h1
+        simp only [log_exp] at h2
+        linarith
+      calc b / 2 * log 2 ≤ b / 2 * 1 := by nlinarith [hlog2_le, hb_nn]
+        _ = b / 2 := by ring
+        _ = h (flipCoord j ε) ^ 2 / 2 := by rw [hb_def]

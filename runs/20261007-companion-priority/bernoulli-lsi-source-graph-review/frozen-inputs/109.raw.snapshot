@@ -1,0 +1,23 @@
+theorem sum_fin_succ_bool_eq_sum_snoc {n : ℕ} (f : (Fin (n+1) → Bool) → ℝ) :
+    ∑ ε : Fin (n+1) → Bool, f ε =
+    ∑ ε' : Fin n → Bool, (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) := by
+  -- Use Fin.snocEquiv: (Fin (n+1) → α) ≃ α × (Fin n → α) at last position
+  -- But we need (Fin n → α) × α, so use Prod.swap
+  let h_equiv : (Fin (n+1) → Bool) ≃ (Fin n → Bool) × Bool :=
+    (Fin.snocEquiv (fun _ => Bool)).symm.trans (Equiv.prodComm _ _)
+  calc ∑ ε : Fin (n+1) → Bool, f ε
+      = ∑ p : (Fin n → Bool) × Bool, f (h_equiv.symm p) := by
+          rw [Fintype.sum_equiv h_equiv.symm]
+          simp
+    _ = ∑ ε' : Fin n → Bool, ∑ b : Bool, f (h_equiv.symm (ε', b)) := by
+          rw [Fintype.sum_prod_type]
+    _ = ∑ ε' : Fin n → Bool, (f (h_equiv.symm (ε', true)) + f (h_equiv.symm (ε', false))) := by
+          congr 1
+          ext ε'
+          simp only [Fintype.sum_bool]
+    _ = ∑ ε' : Fin n → Bool, (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) := by
+          congr 1
+
+/-- Integral over bernoulliUniform (n+1) splits into average over slices.
+    This expresses that summing over (Fin (n+1) → Bool) equals summing over
+    pairs (ε', b) with ε' : Fin n → Bool and b : Bool, weighted by 1/2 each. -/

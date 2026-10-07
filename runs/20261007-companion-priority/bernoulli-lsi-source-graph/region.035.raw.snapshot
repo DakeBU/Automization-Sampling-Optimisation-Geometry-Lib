@@ -1,0 +1,22 @@
+theorem differentiableAt_deriv_rothausDefect {t : ℝ} (ht : t ∈ Ioo (-1 : ℝ) 1) :
+    DifferentiableAt ℝ (deriv rothausDefect) t := by
+  have h1 : 0 < 1 - t^2 := by nlinarith [ht.1, ht.2, sq_nonneg t]
+  have hopen : Ioo (-1 : ℝ) 1 ∈ 𝓝 t := Ioo_mem_nhds ht.1 ht.2
+  have heq : (fun s => deriv rothausDefect s) =ᶠ[𝓝 t]
+      (fun s => 2 * s / sqrt (1 - s^2) - (log (1 + s) - log (1 - s))) := by
+    filter_upwards [hopen] with s hs
+    rw [deriv_rothausDefect hs]
+  have h1p : 0 < 1 + t := by linarith [ht.1]
+  have h1m : 0 < 1 - t := by linarith [ht.2]
+  have hd_num : DifferentiableAt ℝ (fun s => (2 : ℝ) * s) t :=
+    differentiableAt_const (2 : ℝ) |>.mul differentiableAt_id
+  have hd_inner : DifferentiableAt ℝ (fun s => 1 - s^2) t :=
+    differentiableAt_const 1 |>.sub (differentiableAt_pow 2)
+  have hd1 : DifferentiableAt ℝ (fun s => 1 + s) t := differentiableAt_id.const_add 1
+  have hd2 : DifferentiableAt ℝ (fun s => 1 - s) t := differentiableAt_id.const_sub 1
+  have hdiff_rhs : DifferentiableAt ℝ (fun s => 2 * s / sqrt (1 - s^2) - (log (1 + s) - log (1 - s))) t :=
+    (hd_num.div (hd_inner.sqrt h1.ne') (sqrt_ne_zero'.mpr h1)).sub
+      (((differentiableAt_log h1p.ne').comp t hd1).sub ((differentiableAt_log h1m.ne').comp t hd2))
+  exact hdiff_rhs.congr_of_eventuallyEq heq
+
+/-- The Rothaus defect is nonnegative: 2 - 2√(1-t²) ≥ φ(t). -/

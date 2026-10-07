@@ -1,0 +1,23 @@
+theorem deriv_gMinus {t : ℝ} (ht : t < 1) : deriv gMinus t = -log (1 - t) - 1 := by
+  unfold gMinus
+  have h : 0 < 1 - t := by linarith
+  have h1 : DifferentiableAt ℝ (fun s => 1 - s) t := differentiableAt_id.const_sub 1
+  have h2 : DifferentiableAt ℝ (fun s => log (1 - s)) t :=
+    (differentiableAt_log h.ne').comp t h1
+  -- Apply deriv_mul with explicit equality
+  have h_deriv : deriv (fun t => (1 - t) * log (1 - t)) t =
+      deriv (fun s => 1 - s) t * log (1 - t) + (1 - t) * deriv (fun s => log (1 - s)) t :=
+    deriv_mul h1 h2
+  rw [h_deriv]
+  -- Derivative of (1 - s) is -1
+  have d1 : deriv (fun s => 1 - s) t = -1 := by
+    have hd : HasDerivAt (fun s => 1 - s) (-1) t := by
+      simpa [id] using (hasDerivAt_id t).const_sub (1 : ℝ)
+    exact hd.deriv
+  -- Derivative of log(1 - s) using chain rule
+  have d2 : deriv (fun s => log (1 - s)) t = -1 / (1 - t) := by
+    rw [deriv.log h1 h.ne', d1]
+  rw [d1, d2]
+  field_simp
+  ring
+

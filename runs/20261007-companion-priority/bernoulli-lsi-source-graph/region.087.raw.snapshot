@@ -1,0 +1,22 @@
+theorem phi_convex_avg (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) :
+    (a + b) / 2 * log ((a + b) / 2) ≤ (a * log a + b * log b) / 2 := by
+  by_cases hab : a + b = 0
+  · -- If a + b = 0, then a = b = 0
+    have ha0 : a = 0 := by linarith
+    have hb0 : b = 0 := by linarith
+    simp [ha0, hb0]
+  · -- Otherwise, use convexity of x log x
+    have hconv := Real.convexOn_mul_log
+    have ha_mem : a ∈ Set.Ici (0 : ℝ) := Set.mem_Ici.mpr ha
+    have hb_mem : b ∈ Set.Ici (0 : ℝ) := Set.mem_Ici.mpr hb
+    have h12 : (0 : ℝ) ≤ 1/2 := by norm_num
+    have h12' : (1/2 : ℝ) + 1/2 = 1 := by norm_num
+    have hkey := hconv.2 ha_mem hb_mem h12 h12 h12'
+    simp only [smul_eq_mul] at hkey
+    have hmid_eq : (1/2 : ℝ) * a + (1/2) * b = (a + b) / 2 := by ring
+    rw [hmid_eq] at hkey
+    calc (a + b) / 2 * log ((a + b) / 2)
+        ≤ (1/2) * (a * log a) + (1/2) * (b * log b) := hkey
+      _ = (a * log a + b * log b) / 2 := by ring
+
+/-- The two-point entropy is always nonnegative (consequence of Jensen) -/

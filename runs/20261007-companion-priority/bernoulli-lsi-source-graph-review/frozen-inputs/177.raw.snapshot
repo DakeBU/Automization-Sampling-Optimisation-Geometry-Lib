@@ -1,0 +1,171 @@
+theorem bernoulliUniform_map_toRademacher {n : ℕ} :
+    (bernoulliUniform n).map toRademacher = rademacherProductMeasure n := by
+  -- Both measures are probability measures supported on {±1}^n with equal weights
+  -- We prove equality by showing they agree on all measurable rectangles
+  ext s hs
+  -- Use induction on n via product measure structure
+  induction n with
+  | zero =>
+    -- For n = 0, both spaces are singletons
+    simp only [bernoulliUniform, rademacherProductMeasure, Measure.map_apply measurable_toRademacher hs]
+    -- Simplify LHS: (1⁻¹ • count) = count since 1⁻¹ = 1 in ENNReal
+    simp only [Finset.card_univ, Fintype.card_fun, Fintype.card_fin, Fintype.card_bool,
+      pow_zero, Nat.cast_one, inv_one, one_smul]
+    -- For n = 0, Measure.pi of empty gives Dirac at the unique point
+    rw [Measure.pi_of_empty (fun _ : Fin 0 => RademacherApprox.rademacherMeasure)]
+    -- Now: count (toRademacher⁻¹' s) = dirac (fun _ => 1) s
+    -- The unique element of Fin 0 → Bool maps to fun _ => 1 under toRademacher
+    have huniq : ∀ ε : Fin 0 → Bool, toRademacher ε = fun _ : Fin 0 => (1 : ℝ) := by
+      intro ε; ext i; exact Fin.elim0 i
+    -- The unique element of Fin 0 → ℝ
+    have helem : (fun _ : Fin 0 => (1 : ℝ)) = (fun a : Fin 0 => isEmptyElim a) := by
+      ext i; exact Fin.elim0 i
+    by_cases h : (fun _ : Fin 0 => (1 : ℝ)) ∈ s
+    · have hpre : toRademacher⁻¹' s = Set.univ := by
+        ext ε; simp only [Set.mem_preimage, Set.mem_univ, huniq ε, h]
+      rw [hpre]
+      simp only [Measure.count_univ]
+      rw [Measure.dirac_apply' _ hs]
+      have hmem : (fun a : Fin 0 => isEmptyElim a) ∈ s := by rw [← helem]; exact h
+      rw [Set.indicator_of_mem hmem, Pi.one_apply]
+      simp only [ENat.card_eq_coe_fintype_card, Fintype.card_fun, Fintype.card_fin,
+        Fintype.card_bool, pow_zero, Nat.cast_one]
+      norm_cast
+    · have hpre : toRademacher⁻¹' s = ∅ := by
+        ext ε; simp only [Set.mem_preimage, Set.mem_empty_iff_false, huniq ε, h]
+      rw [hpre, measure_empty]
+      rw [Measure.dirac_apply' _ hs]
+      have hnotmem : (fun a : Fin 0 => isEmptyElim a) ∉ s := by rw [← helem]; exact h
+      simp only [Set.indicator_of_notMem hnotmem]
+  | succ n ih =>
+    -- Both measures are discrete probability measures with equal weights on {±1}^{n+1}
+    -- Expand the LHS using map_apply
+    simp only [Measure.map_apply measurable_toRademacher hs]
+    -- Now: bernoulliUniform (n+1) (toRademacher⁻¹' s) = rademacherProductMeasure (n+1) s
+    unfold bernoulliUniform
+    simp only [Finset.card_univ, Fintype.card_fun, Fintype.card_fin, Fintype.card_bool,
+      Measure.smul_apply, smul_eq_mul]
+    -- Rewrite using count on finite preimage
+    rw [Measure.count_apply (measurable_toRademacher hs)]
+    -- Step 1: Show (rademacherProductMeasure (n+1)) {toRademacher ε} = 2^{-(n+1)} for each ε
+    have hsingleton : ∀ ε : Fin (n+1) → Bool,
+        (rademacherProductMeasure (n+1)) {toRademacher ε} = ((2 : ℝ≥0∞)^(n+1))⁻¹ := by
+      intro ε
+      rw [← Set.univ_pi_singleton (toRademacher ε)]
+      unfold rademacherProductMeasure
+      rw [Measure.pi_pi (fun _ => RademacherApprox.rademacherMeasure)]
+      -- Each factor is rademacherMeasure {toRademacher ε i} = 1/2
+      have h_each : ∀ i : Fin (n+1), RademacherApprox.rademacherMeasure {toRademacher ε i} = 1/2 := by
+        intro i
+        unfold toRademacher signValue RademacherApprox.rademacherMeasure
+        simp only [Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+        rw [Measure.dirac_apply' _ (measurableSet_singleton _)]
+        rw [Measure.dirac_apply' _ (measurableSet_singleton _)]
+        simp only [Set.indicator_apply, Set.mem_singleton_iff]
+        by_cases hb : ε i
+        · -- Case ε i = true, so value is 1
+          simp only [hb]
+          norm_num
+        · -- Case ε i = false, so value is -1
+          simp only [hb]
+          norm_num
+      simp_rw [h_each]
+      simp only [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
+      -- (1/2)^(n+1) = (2^{n+1})⁻¹
+      simp only [one_div, ENNReal.inv_pow]
+    -- Key: Show that toRademacher is a bijection onto the support of rademacherProductMeasure
+    -- and both measures assign weight 2^{-(n+1)} to each point
+    have hrange_char : ∀ x : RademacherSpace (n+1),
+        x ∈ Set.range toRademacher ↔ ∀ i, x i = 1 ∨ x i = -1 := by
+      intro x
+      constructor
+      · rintro ⟨ε, rfl⟩ i
+        unfold toRademacher signValue
+        by_cases h : ε i <;> simp [h]
+      · intro hx
+        -- Construct the preimage
+        use fun i => x i = 1
+        ext i
+        unfold toRademacher signValue
+        simp only []
+        cases hx i with
+        | inl h => simp [h]
+        | inr h => simp only [h, decide_eq_false (by linarith : ¬(-1 : ℝ) = 1)]; rfl
+    -- The measure is concentrated on the range
+    have hsupp : (rademacherProductMeasure (n+1)) (Set.range toRademacher)ᶜ = 0 := by
+      -- Every coordinate is ±1 a.e., so a.e. x is in range
+      have hae : ∀ᵐ x ∂(rademacherProductMeasure (n+1)), x ∈ Set.range toRademacher := by
+        -- Use hrange_char: x ∈ range ↔ ∀ i, x i = 1 ∨ x i = -1
+        simp only [hrange_char]
+        -- Need to show: ∀ᵐ x, ∀ i, x i = 1 ∨ x i = -1
+        rw [ae_all_iff]
+        intro i
+        exact coord_values_ae (n+1) i
+      -- If a.e. x ∈ S, then μ(Sᶜ) = 0
+      exact mem_ae_iff.mp hae
+    have hsum : (rademacherProductMeasure (n+1)) s =
+        ∑ ε : Fin (n+1) → Bool, (rademacherProductMeasure (n+1)) (s ∩ {toRademacher ε}) := by
+      -- μ s = μ (s ∩ range) = ∑_{ε} μ (s ∩ {toRademacher ε})
+      have heq : (rademacherProductMeasure (n+1)) s =
+          (rademacherProductMeasure (n+1)) (s ∩ Set.range toRademacher) := by
+        rw [← measure_inter_add_sdiff s (Set.finite_range toRademacher).measurableSet]
+        have h0 : (rademacherProductMeasure (n+1)) (s \ Set.range toRademacher) = 0 := by
+          apply measure_mono_null (Set.sdiff_subset_compl _ _) hsupp
+        rw [h0, add_zero]
+      rw [heq]
+      -- range toRademacher = ⋃ ε, {toRademacher ε}
+      have hrange_eq : Set.range toRademacher =
+          ⋃ ε : Fin (n+1) → Bool, {toRademacher ε} := by
+        ext x; simp only [Set.mem_range, Set.mem_iUnion, Set.mem_singleton_iff, eq_comm]
+      rw [hrange_eq, Set.inter_iUnion]
+      rw [measure_iUnion]
+      · exact tsum_fintype _
+      · -- Disjoint singletons
+        intro i j hij
+        simp only [Set.disjoint_iff]
+        intro x ⟨h1, h2⟩
+        simp only [Set.mem_inter_iff, Set.mem_singleton_iff] at h1 h2
+        have heq : toRademacher i = toRademacher j := h1.2.symm.trans h2.2
+        exact hij (toRademacher_injective (n+1) heq)
+      · -- Measurable singletons
+        intro i
+        exact hs.inter (measurableSet_singleton _)
+    -- Now compute each term: μ(s ∩ {toRademacher ε}) = indicator(toRademacher ε ∈ s) * 2^{-(n+1)}
+    have hterm : ∀ ε : Fin (n+1) → Bool, (rademacherProductMeasure (n+1)) (s ∩ {toRademacher ε}) =
+        Set.indicator s (fun _ => ((2 : ℝ≥0∞)^(n+1))⁻¹) (toRademacher ε) := by
+      intro ε
+      by_cases h : toRademacher ε ∈ s
+      · have heq : s ∩ {toRademacher ε} = {toRademacher ε} := by
+          ext x; simp only [Set.mem_inter_iff, Set.mem_singleton_iff]
+          constructor
+          · exact And.right
+          · intro hx; exact ⟨hx ▸ h, hx⟩
+        rw [heq, hsingleton, Set.indicator_of_mem h]
+      · have heq : s ∩ {toRademacher ε} = ∅ := by
+          ext x; simp only [Set.mem_inter_iff, Set.mem_singleton_iff, Set.mem_empty_iff_false,
+            iff_false, not_and]
+          intro hx hxs; exact h (hxs ▸ hx)
+        rw [heq, measure_empty, Set.indicator_of_notMem h]
+    simp_rw [hsum, hterm]
+    -- ∑ ε, indicator s _ (toRademacher ε) = 2^{-(n+1)} * |toRademacher⁻¹' s|
+    haveI : DecidablePred fun i => toRademacher i ∈ s := Classical.decPred _
+    rw [Finset.sum_indicator_eq_sum_filter, Finset.sum_const]
+    -- Convert nsmul to mul and relate cardinalities
+    rw [nsmul_eq_mul, mul_comm]
+    congr 1
+    -- Show (toRademacher ⁻¹' s).encard = ↑(filter card)
+    · -- The filter is equivalent to the preimage
+      have hfinite : (toRademacher ⁻¹' s).Finite := Set.toFinite _
+      have heq_card : (Finset.filter (fun i => toRademacher i ∈ s) Finset.univ).card =
+          hfinite.toFinset.card := by
+        congr 1
+        ext ε
+        simp only [Finset.mem_filter, Finset.mem_univ, true_and, Set.Finite.mem_toFinset,
+          Set.mem_preimage]
+      rw [heq_card, hfinite.encard_eq_coe_toFinset_card]
+      simp only [ENat.toENNReal_coe]
+    -- Show (↑(2 ^ (n + 1)))⁻¹ = (2 ^ (n + 1))⁻¹
+    · simp only [Nat.cast_pow, Nat.cast_ofNat, ENNReal.inv_pow]
+
+/-- Key lemma: The integral of f(S_n(toRademacher ε)) over bernoulliUniform equals
+    the integral of f(S_n(x)) over rademacherProductMeasure. -/

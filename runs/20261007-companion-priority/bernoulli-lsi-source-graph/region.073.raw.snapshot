@@ -1,0 +1,43 @@
+theorem flipCoord_castSucc_snoc {n : ℕ} (j : Fin n) (ε' : Fin n → Bool) (b : Bool) :
+    flipCoord (Fin.castSucc j) (Fin.snoc ε' b) = Fin.snoc (flipCoord j ε') b := by
+  ext i
+  by_cases hi_last : i = Fin.last n
+  · -- i is the last index
+    simp only [hi_last, Fin.snoc_last]
+    have hne : Fin.last n ≠ Fin.castSucc j := by
+      intro heq
+      have hval : (Fin.last n).val = (Fin.castSucc j).val := congrArg Fin.val heq
+      simp only [Fin.last, Fin.val_castSucc] at hval
+      omega
+    rw [flipCoord_noteq (Fin.castSucc j) (Fin.last n) _ hne]
+    simp [Fin.snoc]
+  · -- i is not the last index
+    have hi : i.val < n := by
+      have hlt := i.isLt
+      have hne : i.val ≠ n := by
+        intro heq
+        apply hi_last; ext; simp [Fin.last, heq]
+      omega
+    by_cases hj : i = Fin.castSucc j
+    · -- i = castSucc j
+      subst hj
+      simp only [flipCoord_same, Fin.snoc]
+      have hi' : (Fin.castSucc j).val < n := by simp [Fin.val_castSucc]
+      simp only [hi', ↓reduceDIte]
+      -- Need to show !ε'(castLT (castSucc j)) = flipCoord j ε' (castLT (castSucc j))
+      have hcast_eq : Fin.castLT (Fin.castSucc j) hi' = j := by
+        ext; simp [Fin.castLT, Fin.castSucc]
+      simp only [hcast_eq, flipCoord_same, cast_eq]
+    · -- i ≠ castSucc j
+      have hne' : i ≠ Fin.castSucc j := hj
+      rw [flipCoord_noteq (Fin.castSucc j) i _ hne']
+      simp only [Fin.snoc, hi, ↓reduceDIte]
+      have hj' : Fin.castLT i hi ≠ j := by
+        intro heq
+        apply hj
+        ext
+        simp only [Fin.val_castSucc]
+        exact congrArg Fin.val heq
+      rw [flipCoord_noteq j (Fin.castLT i hi) _ hj']
+
+/-- Key bound: The gradient contribution from the last coordinate equals the difference squared -/

@@ -1,0 +1,49 @@
+theorem jensenGap_eq_scaled_binaryKL {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : 0 < x + y) :
+    jensenGap x y = ((x + y) / 2) * binaryKLfromUniform (x / (x + y)) := by
+  have hxy_ne : x + y ≠ 0 := ne_of_gt hxy
+  -- Expand and simplify
+  by_cases hx_zero : x = 0
+  · -- Case x = 0: jensenGap(0, y) = (y/2) * binaryKL(0) = (y/2) * log 2
+    subst hx_zero
+    simp only [zero_add] at hxy_ne hxy ⊢
+    simp only [binaryKLfromUniform, zero_div, Real.binEntropy_zero, sub_zero]
+    simp only [jensenGap, zero_mul, Real.log_zero, zero_add]
+    -- Need: y * log y / 2 - (y/2) * log(y/2) = (y/2) * log 2
+    have hy_pos : 0 < y := hxy
+    have hlog_half : Real.log (y / 2) = Real.log y - Real.log 2 := by
+      rw [Real.log_div (ne_of_gt hy_pos) (by norm_num : (2 : ℝ) ≠ 0)]
+    rw [hlog_half]
+    ring
+  by_cases hy_zero : y = 0
+  · -- Case y = 0: jensenGap(x, 0) = (x/2) * binaryKL(1) = (x/2) * log 2
+    subst hy_zero
+    simp only [add_zero] at hxy_ne hxy ⊢
+    simp only [binaryKLfromUniform, div_self hxy_ne, Real.binEntropy_one, sub_zero]
+    simp only [jensenGap, mul_zero, Real.log_zero, add_zero]
+    -- Need: x * log x / 2 - (x/2) * log(x/2) = (x/2) * log 2
+    have hx_pos : 0 < x := hxy
+    have hlog_half : Real.log (x / 2) = Real.log x - Real.log 2 := by
+      rw [Real.log_div (ne_of_gt hx_pos) (by norm_num : (2 : ℝ) ≠ 0)]
+    rw [hlog_half]
+    ring
+  -- General case: x > 0 and y > 0
+  have hx_pos : 0 < x := hx.lt_of_ne' hx_zero
+  have hy_pos : 0 < y := hy.lt_of_ne' hy_zero
+  have hyd_eq : y / (x + y) = 1 - x / (x + y) := by field_simp; ring
+  -- Expand using binEntropy definition
+  simp only [binaryKLfromUniform, jensenGap]
+  rw [Real.binEntropy_eq_negMulLog_add_negMulLog_one_sub]
+  simp only [Real.negMulLog]
+  rw [← hyd_eq]
+  have hlog_half : Real.log ((x + y) / 2) = Real.log (x + y) - Real.log 2 := by
+    rw [Real.log_div (ne_of_gt hxy) (by norm_num : (2 : ℝ) ≠ 0)]
+  have hlog_x : Real.log (x / (x + y)) = Real.log x - Real.log (x + y) := by
+    rw [Real.log_div (ne_of_gt hx_pos) hxy_ne]
+  have hlog_y : Real.log (y / (x + y)) = Real.log y - Real.log (x + y) := by
+    rw [Real.log_div (ne_of_gt hy_pos) hxy_ne]
+  rw [hlog_half, hlog_x, hlog_y]
+  field_simp
+  ring
+
+/-- Jensen gap vanishes when both arguments are equal -/
+@[simp]

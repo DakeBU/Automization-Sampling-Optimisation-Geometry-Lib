@@ -1,0 +1,13 @@
+∀ (a b : ℝ),
+  (a ^ 2 * Real.log (a ^ 2) + b ^ 2 * Real.log (b ^ 2)) / 2 - (a ^ 2 + b ^ 2) / 2 * Real.log ((a ^ 2 + b ^ 2) / 2) ≤
+    (a - b) ^ 2 / 2 : Prop
+∀ (n : ℕ) (h : (Fin n → Bool) → ℝ),
+  let μ := (↑(Fintype.card (Fin n → Bool)))⁻¹ • Measure.count;
+  let D := fun ε => ∑ j, (h ε - h (Function.update ε j !ε j)) ^ 2;
+  IsProbabilityMeasure μ ∧
+    Integrable (fun ε => h ε ^ 2) μ ∧
+      Integrable (fun ε => h ε ^ 2 * Real.log (h ε ^ 2)) μ ∧
+        Integrable D μ ∧
+          ∫ (ε : Fin n → Bool), h ε ^ 2 * Real.log (h ε ^ 2) ∂μ -
+              (∫ (ε : Fin n → Bool), h ε ^ 2 ∂μ) * Real.log (∫ (ε : Fin n → Bool), h ε ^ 2 ∂μ) ≤
+            1 / 2 * ∫ (ε : Fin n → Bool), D ε ∂μ : Prop

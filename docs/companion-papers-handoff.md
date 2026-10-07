@@ -1,5 +1,39 @@
 # Companion-paper formalization handoff
 
+## Actual standardized RGO numerical canonical KL (2026-10-07)
+
+The actual numerical canonical KL leaf is independently VERIFIED at 76373366787499ebbc9e778fe568d0332233aef0.
+Exact1357-byte statement preserves source globally C2 normalized Hessian assumptions and every
+positive eta, with explicit measurable-family/rank0 extension. Actual43 produces the unique
+measurable proximal witness; actual31 stationarity identifies its witness by that uniqueness.
+The entire actual31 dependent rho/Q/r output is transported before using its numerical Fisher
+bound. Retain actual43 probability, AC, finite canonical KL and true-gradient L2 domains;
+combine canonical KL<=half Fisher and Fisher<=eta²dim to yield canonical KL<=eta²dim/2.
+No public law/coherence/domain/numerical inequality certificate, new private provider or wrapper.
+
+Focused3827, independent wholemath/reachability, fresh anonymous45, anti-anchored source and
+exactcommit checks passed. Four standard3 axiom sets;286 compiled ASTIS/Test constants across
+52 modules; fake closure scan zero. Actual eta2, unbounded positive family eta(s)=s²+1 and
+rank0 true finite canonical KL0 Tests pass. Sixformula lesson/full public Lean proof remains
+in the original companion. Independent source-only graph41nodes44edges and exhaustive314
+selected rows preceded proof; original rejection and two separately reviewed citation/locator
+repairs are preserved. Original decoder and review bytes remain immutable.
+
+Registry488/ExampleCases/Test imports are serialized through the original PhaseKernel single
+stabilization lane. Actual mandatory aggregate45 passed root9150/Tests9429; all nine publication/
+semantic/frontier/contributor/site/graph checks passed. Repository/Exposition seals, complete inline imports/
+Tests, copy/download/bundles/browser/live/main and postmerge PURIFIED remain distinct pending
+checks. Current draftPR315 contains canonical KL/Fisher and numerical KL work; priorPR313 was
+externally merged into main and is preserved as history. This checkpoint claims no main merge.
+
+GaussianT2/W2/FIRST4.6 remains a separate actual producer obligation. Source-only44/46 API
+findings are typed research evidence, not Lean truth: generic static transport still needs actual
+vector derivative/PSD and a compatible representative/Jacobian passage; dynamic flow has its
+own contracts. SPHMC smoothing/Picard/Wp/proxy-warmness, PBPS reflection/invariance/nonexplosion/
+discrete hypocoercivity/implementation error/cost, both full main results and actual-input
+expected-query-cost composition remain OPEN. TV proximity does not transfer unbounded costs.
+Older frontiers/cycles/memory and the single whole-paper Goal remain preserved.
+
 ## Actual same-prox canonical KL/Fisher (2026-10-07)
 
 The actual standardized RGO canonical KL/Fisher integration is independently VERIFIED at 19b569ae0fe37c97da0f98b4d1f4933ebabc7052.

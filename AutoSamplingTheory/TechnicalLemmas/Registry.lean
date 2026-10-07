@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "sphmc.standardizedRGO.canonicalKLDimension"
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLDimension.standardized_rgo_unique_prox_and_kl_le_dimension"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI and moment component"
+    upstreamFile := "arXiv2609.06906v1 normalized C2/Hessian source; actual31/43"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "relative-entropy", "dimension", "RGO", "SPHMC"]
+    saldUse := "SPHMC actual standardized posterior; no SALD admission"
+    note := "Actual same-prox canonical finite KL<=eta^2 real finrank/2. Actual43 unique proximal witness internally identifies actual31 stationary witness, transporting entire rho/Q/r/Fisher output. Retain true posterior probability/AC/finiteKL/gradientL2; compose actual halfFisher and actual numerical Fisher. Every positive eta, measurable family and rank0; no supplied law/coherence/domain/bound certificate. Actual eta2/unboundedfamily/rank0 Tests. GaussianT2/W2/FIRST/main/work/cost separate. Independently verified 76373366787499ebbc9e778fe568d0332233aef0."
+  },
+  {
     key := "sphmc.standardizedRGO.canonicalKLFisher"
     localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher.standardized_rgo_unique_prox_and_kl_le_fisher"
     upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI component and actual S2 RGO"

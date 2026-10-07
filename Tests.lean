@@ -66,6 +66,7 @@ import Tests.GaussianSqrtDensityDomain
 import Tests.StandardizedRGOSqrtDensity
 import Tests.StandardizedRGORelativeEntropy
 import Tests.StandardizedRGOKLFisher
+import Tests.StandardizedRGOKLDimension
 import Tests.GibbsCovarianceLower
 import Tests.IsotropicGaussianDensity
 import Tests.ProximalBPSGaussianAugmentation

@@ -266,6 +266,7 @@ import Tests.GaussianCompactEntropy
 import Tests.GaussianFlipEnergy
 import Tests.GaussianCompactLogSobolev
 import Tests.GaussianCompactProductLogSobolev
+import Tests.GaussianCompactHilbertLogSobolev
 import Tests.ProductEntropy
 import Tests.GradientAECongruence
 import Tests.FinitePowerSeries

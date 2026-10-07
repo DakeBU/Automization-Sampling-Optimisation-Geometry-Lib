@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.reflectedConditional.outerGradientEnergy"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy"
+    upstreamDecl := "PBPS Appendix C.1 formula C.2 smooth compact outer energy; B.9 variance defect"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "conditional-gradient", "outer-energy", "variance-defect"]
+    saldUse := "PBPS actual outer gradient energy; no SALD admission"
+    note := "Actual same reflected R/S with genuine probability laws and every-y density. For every signed smooth compact f, produce true differentiability, f/Tf/gradient L2, conditional variance L1 and exact variance defect. Genuine disintegration, reflection invariance and finite-domain Fubini give integrated variance=integral f squared minus integral Tf squared. Integrate true pointwise gradient domination to exact eta coefficient (1-alpha eta)^2/[4(1+alpha eta)]. Positive alpha<=beta, global C2 Hessian bounds, eta>0 and beta eta<=1; finite Hilbert/rank0 extension explicit. No supplied law, domain or desired-bound certificate. Full rough L2-to-H1/closed-gradient and literal block/Gamma adapters, mains/errors/cost/composition remain separate. Independently verified 5ba91a1c9a553b13a38d48f02f0725a69af146a4."
+  },
+  {
     key := "pbps.reflectedConditional.gradientVariance"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance"
     upstreamDecl := "PBPS Appendix C.1 A3.Ex7 pointwise gradient variance ingredient"

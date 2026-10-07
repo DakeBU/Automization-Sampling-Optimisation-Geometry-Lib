@@ -1,5 +1,42 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS smooth outer gradient energy (2026-10-08)
+
+The smooth compact C.2 integral ingredient is independently VERIFIED at
+5ba91a1c9a553b13a38d48f02f0725a69af146a4. The exact1795-byte sealed statement produces the real
+mu/J/nu probabilities, one common R/S with genuine disintegration and every-y
+reflected density, and every signed smooth compact observable's differentiability,
+f/Tf/gradient L2 and conditional variance L1. It proves
+integral Var(S_y,f) dnu = integral f^2 dnu - integral Tf^2 dnu and
+eta integral |gradient Tf|^2 dnu <= (1-alpha eta)^2/[4(1+alpha eta)]
+times this actual defect. Source global C2 Hessian bounds, 0<alpha<=beta,
+eta>0 and beta eta<=1 remain exact; finite Hilbert/rank0 are explicit extensions.
+
+Focused3888, whole mathematical review, fresh source-blind49 reconstruction,
+own-primary-first source0 fidelity and exact-commit verification passed within
+their recorded scopes. The single private second-moment helper is consumed.
+Actual Gaussian precision retains every domain/defect and has zero gradient
+energy; actual rank0 passes. Three axiom sets contain only standard3 axioms.
+Original compiler/API/parser and publication enum negatives, source-topology
+negative plus separate repair reviews and immutable raw-byte whitespace diagnosis
+are retained. No mathematical/source premise was added during repair.
+
+Registry490/root imports enter through the original PhaseKernel sole serialized
+lane. Aggregate49, graph/reader seals, main merge/live and postmerge PURIFIED
+remain separate pending checks. Prior aggregate48 and four remote8c CI checks
+passed; prior79 CI fixture failures and their reviewed8c repair remain history.
+
+Next bounded mathematical edge: actual joint L2 macroscopic energy/block join.
+Identify the same conditional variance as ||(I-P)UP g||^2 and the actual PUP norm
+defect, keeping this differentiable integral representative. AE kernel equality
+transports means/L2 classes only, never pointwise derivatives. Full rough L2-to-H1
+needs actual outer-law closure and domain producers; literal Gamma remains separate.
+PBPS half-turn/invariance/nonexplosion/hypocoercivity/implementation error/cost,
+SPHMC smoothing/Picard/Wp/proxy-warmness and actual-input expected-query composition
+remain OPEN. Gaussian Cloud and midpoint follow under the existing unbudgeted
+four-paper Goal; preserve older frontiers/cycles/memory. TV proximity does not
+transfer unbounded expected cost. This leaf completes no paper or Goal.
+
 ## Actual PBPS conditional gradient variance (2026-10-08)
 
 The actual pointwise source ingredient is independently VERIFIED at 8d950c37e41bd5d816c4132c6a5cdde0e30dcbee.

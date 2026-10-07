@@ -1,0 +1,21 @@
+lemma condExpExceptCoord_integrable (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_int : Integrable f μˢ) :
+    Integrable (condExpExceptCoord (μs := μs) i f) μˢ := by
+  -- condExpExceptCoord i f x = ∫ y, f (update x i y) dμs
+  -- Use Fubini: show f ∘ update is integrable on μˢ.prod μ, then apply integral_prod_left
+  have hmp : MeasurePreserving (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2)
+             (μˢ.prod (μs i)) μˢ := by
+    constructor
+    · exact measurable_update' (a := i)
+    · have hg : Measurable (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) :=
+        (measurable_update' (a := i)).comp measurable_swap
+      calc Measure.map (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2) (μˢ.prod (μs i))
+        _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1)
+            (Measure.map Prod.swap (μˢ.prod (μs i))) := (Measure.map_map hg measurable_swap).symm
+        _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) ((μs i).prod μˢ) := by
+            rw [Measure.prod_swap]
+        _ = μˢ := map_update_prod_pi i
+  have hg_int : Integrable (fun p : (Fin n → Ω) × Ω => f (Function.update p.1 i p.2)) (μˢ.prod (μs i)) :=
+    hmp.integrable_comp hf_int.aestronglyMeasurable |>.mpr hf_int
+  unfold condExpExceptCoord
+  simpa [Pi.pow_apply] using hg_int.integral_prod_left

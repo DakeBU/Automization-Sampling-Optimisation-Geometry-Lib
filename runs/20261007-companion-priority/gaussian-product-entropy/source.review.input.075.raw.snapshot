@@ -1,0 +1,116 @@
+48: 
+49: /-- Squared Euclidean gradient norm: `‖∇g(x)‖² = ∑ᵢ (∂g/∂xᵢ)²`. -/
+50: noncomputable def gradNormSq (n : ℕ) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+51:   fun x => ∑ i : Fin n, (partialDeriv i g x)^2
+52: 
+53: /-- Sobolev W^{1,2} membership: `g ∈ L²(μ)` and all partial derivatives in `L²(μ)`. -/
+54: def MemW12GaussianPi (n : ℕ) (g : (Fin n → ℝ) → ℝ) (μ : Measure (Fin n → ℝ)) : Prop :=
+55:   MemLp g 2 μ ∧ ∀ i : Fin n, MemLp (fun x => partialDeriv i g x) 2 μ
+56: 
+57: /-- Slice function `gᵢˣ(y) = g(x₁,...,y,...,xₙ)` with `y` at position `i`. -/
+58: def sliceFunction {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) (x : Fin n → ℝ) : ℝ → ℝ :=
+59:   fun y => g (Function.update x i y)
+60: 
+61: /-! ## Slice function properties -/
+62: 
+63: /-- Slices of differentiable functions are differentiable. -/
+64: lemma sliceFunction_differentiable {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+65:     (hg_diff : Differentiable ℝ g) (x : Fin n → ℝ) :
+66:     Differentiable ℝ (sliceFunction i g x) := by
+67:   intro y
+68:   have h_update : DifferentiableAt ℝ (fun y => Function.update x i y) y :=
+69:     (hasFDerivAt_update (x := x) (i := i) (y := y)).differentiableAt
+70:   exact (hg_diff (Function.update x i y)).comp y h_update
+71: 
+72: /-- Derivative of slice equals partial derivative at updated point. -/
+73: lemma deriv_sliceFunction_eq_partialDeriv {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+74:     (hg_diff : Differentiable ℝ g) (x : Fin n → ℝ) (y : ℝ) :
+75:     deriv (sliceFunction i g x) y = partialDeriv i g (Function.update x i y) := by
+76:   have h_update : HasFDerivAt (fun y => Function.update x i y)
+77:       (ContinuousLinearMap.pi (Pi.single i (ContinuousLinearMap.id ℝ ℝ))) y := by
+78:     simpa using (hasFDerivAt_update (x := x) (i := i) (y := y))
+79:   have h_g : HasFDerivAt g (fderiv ℝ g (Function.update x i y)) (Function.update x i y) :=
+80:     (hg_diff (Function.update x i y)).hasFDerivAt
+81:   have h_comp : HasFDerivAt (sliceFunction i g x)
+82:       ((fderiv ℝ g (Function.update x i y)).comp
+83:         (ContinuousLinearMap.pi (Pi.single i (ContinuousLinearMap.id ℝ ℝ)))) y :=
+84:     h_g.comp y h_update
+85:   have h_update_apply :
+86:       (ContinuousLinearMap.pi (Pi.single i (ContinuousLinearMap.id ℝ ℝ))) 1 =
+87:         (Pi.single (M := fun _ : Fin n => ℝ) i 1) := by
+88:     ext j
+89:     by_cases hji : j = i
+90:     · subst hji
+91:       simp [ContinuousLinearMap.pi_apply, Pi.single]
+92:     · simp [ContinuousLinearMap.pi_apply, Pi.single, hji]
+193:     exact (MeasureTheory.memLp_two_iff_integrable_sq_norm h_fderiv_aesm).2 h_deriv_sq
+194:   exact ⟨h_slice_mem, h_slice_deriv_mem⟩
+195: 
+196: /-- Conditional entropy of `g²` bounded by `2∫(∂ᵢg)²` via one-dimensional LSI. -/
+197: lemma condEnt_sq_le_partial_deriv_sq {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+198:     (hg_diff : Differentiable ℝ g)
+199:     (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+200:     (x : Fin n → ℝ)
+201:     (hslice : GaussianSobolevReal.MemW12GaussianReal (sliceFunction i g x) (gaussianReal 0 1)) :
+202:     SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+203:         (fun z => (g z)^2) x ≤
+204:       2 * ∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1) := by
+205:   have h_diff : Differentiable ℝ (sliceFunction i g x) :=
+206:     sliceFunction_differentiable i g hg_diff x
+207:   have h_grad_cont : Continuous (fun y => fderiv ℝ (sliceFunction i g x) y) :=
+208:     slice_fderiv_continuous i g hg_diff hg_grad_cont x
+209:   have h_lsi :=
+210:     GaussianSobolevReal.gaussian_logSobolev_W12_real
+211:       (f := sliceFunction i g x) hslice h_diff h_grad_cont
+212:   have h_lsi' :
+213:       LogSobolev.entropy (gaussianReal 0 1) (fun y => (sliceFunction i g x y)^2) ≤
+214:         2 * ∫ y, ‖fderiv ℝ (sliceFunction i g x) y‖^2 ∂(gaussianReal 0 1) := by
+215:     simpa [GaussianPoincare.stdGaussianMeasure, GaussianPoincare.stdGaussian] using h_lsi
+216:   have h_ent_eq := condEntExceptCoord_sq_eq_slice_entropy (i := i) (g := g) (x := x)
+217:   have h_lsi'' :
+218:       SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+219:           (fun z => (g z)^2) x ≤
+220:         2 * ∫ y, ‖fderiv ℝ (sliceFunction i g x) y‖^2 ∂(gaussianReal 0 1) := by
+221:     simpa [h_ent_eq] using h_lsi'
+222:   have h_integral_eq :
+223:       ∫ y, ‖fderiv ℝ (sliceFunction i g x) y‖^2 ∂(gaussianReal 0 1) =
+224:         ∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1) := by
+225:     apply integral_congr_ae
+226:     refine Eventually.of_forall ?_
+227:     intro y
+228:     have h_norm : ‖fderiv ℝ (sliceFunction i g x) y‖ =
+229:         ‖deriv (sliceFunction i g x) y‖ := by
+455:       h_sum_bound
+456:     _ = 2 * ∫ z, gradNormSq n g z ∂(GaussianMeasure.stdGaussianPi n) := by
+457:       simp [h_sum_integral, gradNormSq]
+458: 
+459: /-- Dimension-free Gaussian log-Sobolev inequality: `Ent_μ(g²) ≤ 2∫‖∇g‖² dμ`. -/
+460: theorem gaussian_logSobolev_W12_pi {n : ℕ} {g : (Fin n → ℝ) → ℝ}
+461:     (hg : MemW12GaussianPi n g (GaussianMeasure.stdGaussianPi n))
+462:     (hg_diff : Differentiable ℝ g)
+463:     (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+464:     (hg_log_int :
+465:       Integrable (fun x => (g x)^2 * log ((g x)^2)) (GaussianMeasure.stdGaussianPi n)) :
+466:     LogSobolev.entropy (GaussianMeasure.stdGaussianPi n) (fun x => (g x)^2) ≤
+467:       2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) := by
+468:   have hf_meas : Measurable (fun x => (g x)^2) :=
+469:     hg_diff.continuous.measurable.pow_const 2
+470:   have hf_nn : 0 ≤ᵐ[GaussianMeasure.stdGaussianPi n] (fun x => (g x)^2) :=
+471:     Eventually.of_forall (fun x => sq_nonneg (g x))
+472:   have hf_int : Integrable (fun x => (g x)^2) (GaussianMeasure.stdGaussianPi n) :=
+473:     (hg.1).integrable_sq
+474:   have h_subadd :=
+475:     SubAddEnt.entropy_subadditive (μs := fun _ : Fin n => gaussianReal 0 1)
+476:       (f := fun x => (g x)^2) hf_meas hf_nn hf_int (by
+477:         simpa [GaussianMeasure.stdGaussianPi] using hg_log_int)
+478:   have h_bound :=
+479:     sum_expected_condEnt_le_grad_norm n g hg hg_diff hg_grad_cont hg_log_int
+480:   calc
+481:     LogSobolev.entropy (GaussianMeasure.stdGaussianPi n) (fun x => (g x)^2)
+482:         ≤ ∑ i : Fin n,
+483:             ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+484:               (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) := by
+485:           simpa [GaussianMeasure.stdGaussianPi] using h_subadd
+486:     _ ≤ 2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) := h_bound
+487: 
+488: end GaussianLSI

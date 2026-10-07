@@ -1,0 +1,139 @@
+33: variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
+34: variable {μs : Fin n → Measure Ω} [∀ i, IsProbabilityMeasure (μs i)]
+35: 
+36: -- Product measure notation (consistent with EfronStein.lean)
+37: local notation "μˢ" => Measure.pi μs
+38: 
+39: /-!
+40: ## Definition of Conditional Entropy
+41: -/
+42: 
+43: /-- Conditional entropy Ent^{(i)}(f)(x) = E^{(i)}[f log f](x) - E^{(i)}[f](x) · log(E^{(i)}[f](x)). -/
+44: noncomputable def condEntExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ) : (Fin n → Ω) → ℝ :=
+45:   fun x => condExpExceptCoord (μs := μs) i (fun z => f z * log (f z)) x -
+46:            condExpExceptCoord (μs := μs) i f x * log (condExpExceptCoord (μs := μs) i f x)
+118: lemma condExpExceptCoord_integrable (i : Fin n) (f : (Fin n → Ω) → ℝ)
+119:     (hf_int : Integrable f μˢ) :
+120:     Integrable (condExpExceptCoord (μs := μs) i f) μˢ := by
+121:   -- condExpExceptCoord i f x = ∫ y, f (update x i y) dμs
+122:   -- Use Fubini: show f ∘ update is integrable on μˢ.prod μ, then apply integral_prod_left
+123:   have hmp : MeasurePreserving (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2)
+124:              (μˢ.prod (μs i)) μˢ := by
+125:     constructor
+126:     · exact measurable_update' (a := i)
+127:     · have hg : Measurable (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) :=
+128:         (measurable_update' (a := i)).comp measurable_swap
+129:       calc Measure.map (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2) (μˢ.prod (μs i))
+130:         _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1)
+131:             (Measure.map Prod.swap (μˢ.prod (μs i))) := (Measure.map_map hg measurable_swap).symm
+132:         _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) ((μs i).prod μˢ) := by
+133:             rw [Measure.prod_swap]
+134:         _ = μˢ := map_update_prod_pi i
+135:   have hg_int : Integrable (fun p : (Fin n → Ω) × Ω => f (Function.update p.1 i p.2)) (μˢ.prod (μs i)) :=
+136:     hmp.integrable_comp hf_int.aestronglyMeasurable |>.mpr hf_int
+137:   unfold condExpExceptCoord
+138:   simpa [Pi.pow_apply] using hg_int.integral_prod_left
+139: 
+140: /-- Helper: if f is integrable over the product, slices are integrable -/
+141: lemma integrable_update_slice (i : Fin n) (f : (Fin n → Ω) → ℝ)
+142:     (hf_int : Integrable f μˢ) :
+143:     ∀ᵐ x ∂μˢ, Integrable (fun y => f (Function.update x i y)) (μs i) := by
+144:   -- This follows from Fubini: if f is integrable over the product,
+145:   -- then a.e. slice is integrable
+146:   have hmp : MeasurePreserving (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2)
+147:              (μˢ.prod (μs i)) μˢ := by
+148:     constructor
+149:     · exact measurable_update' (a := i)
+150:     · have hg : Measurable (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) :=
+151:         (measurable_update' (a := i)).comp measurable_swap
+152:       calc Measure.map (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2) (μˢ.prod (μs i))
+153:         _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1)
+154:             (Measure.map Prod.swap (μˢ.prod (μs i))) := (Measure.map_map hg measurable_swap).symm
+155:         _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) ((μs i).prod μˢ) := by
+156:             rw [Measure.prod_swap]
+157:         _ = μˢ := map_update_prod_pi i
+158:   have hg_int : Integrable (fun p : (Fin n → Ω) × Ω => f (Function.update p.1 i p.2)) (μˢ.prod (μs i)) :=
+159:     hmp.integrable_comp hf_int.aestronglyMeasurable |>.mpr hf_int
+160:   exact hg_int.prod_right_ae
+161: 
+162: /-- A.e. nonnegativity of slice functions from global nonnegativity -/
+163: lemma ae_nonneg_slice_of_ae_nonneg (i : Fin n) (f : (Fin n → Ω) → ℝ)
+164:     (hf_nn : 0 ≤ᵐ[μˢ] f) :
+165:     ∀ᵐ x ∂μˢ, ∀ᵐ y ∂(μs i), 0 ≤ f (Function.update x i y) := by
+166:   -- The map (x, y) ↦ update x i y pushes forward μˢ × (μs i) to μˢ
+167:   -- So if f ≥ 0 a.e. on μˢ, then f ∘ update ≥ 0 a.e. on μˢ × (μs i)
+168:   have hmp : MeasurePreserving (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2)
+169:              (μˢ.prod (μs i)) μˢ := by
+170:     constructor
+171:     · exact measurable_update' (a := i)
+172:     · have hg : Measurable (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) :=
+173:         (measurable_update' (a := i)).comp measurable_swap
+174:       calc Measure.map (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2) (μˢ.prod (μs i))
+175:         _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1)
+176:             (Measure.map Prod.swap (μˢ.prod (μs i))) := (Measure.map_map hg measurable_swap).symm
+177:         _ = Measure.map (fun q : Ω × (Fin n → Ω) => Function.update q.2 i q.1) ((μs i).prod μˢ) := by
+178:             rw [Measure.prod_swap]
+179:         _ = μˢ := map_update_prod_pi i
+180:   -- Transfer the a.e. condition through the measure-preserving map
+181:   have hprod_ae : ∀ᵐ p ∂(μˢ.prod (μs i)), 0 ≤ f (Function.update p.1 i p.2) := by
+182:     -- Direct proof: preimage of null set under measure-preserving map is null
+183:     -- hf_nn: μˢ {z | ¬(0 ≤ f z)} = 0
+184:     have h_null : μˢ {z | ¬(0 ≤ f z)} = 0 := ae_iff.mp hf_nn
+185:     have h_preimage : (fun p : (Fin n → Ω) × Ω => Function.update p.1 i p.2) ⁻¹' {z | ¬(0 ≤ f z)} =
+186:                       {p | ¬(0 ≤ f (Function.update p.1 i p.2))} := rfl
+187:     rw [ae_iff]
+188:     show (μˢ.prod (μs i)) {p | ¬(0 ≤ f (Function.update p.1 i p.2))} = 0
+189:     rw [← h_preimage]
+190:     -- Use measure_preimage: for measure-preserving f, μa(f⁻¹'(s)) = μb(s) when s is null-measurable
+191:     have hs_null_meas : NullMeasurableSet {z | ¬(0 ≤ f z)} μˢ :=
+192:       NullMeasurableSet.of_null h_null
+193:     rw [hmp.measure_preimage hs_null_meas]
+194:     exact h_null
+195:   -- By Fubini (ae_ae_of_ae_prod), this gives the desired a.e. a.e. property
+196:   exact Measure.ae_ae_of_ae_prod hprod_ae
+197: 
+198: /-- E^{(i)}[f] ≥ 0 a.e. when f ≥ 0 a.e. -/
+199: lemma condExpExceptCoord_nonneg_ae (i : Fin n) (f : (Fin n → Ω) → ℝ)
+200:     (hf_nn : 0 ≤ᵐ[μˢ] f) :
+201:     0 ≤ᵐ[μˢ] condExpExceptCoord (μs := μs) i f := by
+202:   have hslice_nn := ae_nonneg_slice_of_ae_nonneg i f hf_nn
+203:   filter_upwards [hslice_nn] with x hx
+204:   exact integral_nonneg_of_ae hx
+205: 
+206: /-- Integrability of E^{(i)}[f] · log(E^{(i)}[f]) via Jensen's inequality. -/
+207: lemma condExpExceptCoord_mul_log_integrable (i : Fin n) (f : (Fin n → Ω) → ℝ)
+208:     (hf_meas : Measurable f)
+209:     (hf_nn : 0 ≤ᵐ[μˢ] f)
+210:     (hf_int : Integrable f μˢ)
+211:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+212:     Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+213:                          log (condExpExceptCoord (μs := μs) i f x)) μˢ := by
+214:   -- Define g = condExpExceptCoord i f for readability
+215:   set g := condExpExceptCoord (μs := μs) i f
+216:   -- Define h = condExpExceptCoord i (f * log f)
+217:   set h := condExpExceptCoord (μs := μs) i (fun z => f z * log (f z))
+218: 
+279: lemma integral_condExpExceptCoord_mul_log (i : Fin n) (f : (Fin n → Ω) → ℝ)
+280:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+281:     ∫ x, condExpExceptCoord (μs := μs) i (fun z => f z * log (f z)) x ∂μˢ =
+282:     ∫ x, f x * log (f x) ∂μˢ :=
+283:   condExpExceptCoord_expectation i (fun z => f z * log (f z)) hf_log_int
+284: 
+285: /-!
+286: ## Conditional Entropy Integrable
+287: -/
+288: 
+289: /-- The conditional entropy is integrable when f and f log f are integrable -/
+290: lemma condEntExceptCoord_integrable' (i : Fin n) (f : (Fin n → Ω) → ℝ)
+291:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+292:     (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+293:                                         log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+294:     Integrable (condEntExceptCoord (μs := μs) i f) μˢ := by
+295:   unfold condEntExceptCoord
+296:   apply Integrable.sub
+297:   · -- E^{(i)}[f log f] is integrable
+298:     exact condExpExceptCoord_integrable i (fun z => f z * log (f z)) hf_log_int
+299:   · -- E^{(i)}[f] * log(E^{(i)}[f]) is integrable
+300:     exact hEf_log_int
+301: 
+302: end SubAddEnt

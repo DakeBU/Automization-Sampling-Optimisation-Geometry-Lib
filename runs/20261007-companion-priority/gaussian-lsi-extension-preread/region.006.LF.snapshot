@@ -1,0 +1,32 @@
+  let q : ℝ → ℝ := fun x => (f x)^2
+  let qk : ℕ → ℝ → ℝ := fun k x => (g k x)^2
+  have h_L2 : Tendsto (fun k => eLpNorm (f - g k) 2 μ) atTop (nhds 0) :=
+    tendsto_eLpNorm_sub_of_sobolev f g μ h_sob_tend
+  have h_L1 : Tendsto (fun k => eLpNorm (fun x => qk k x - q x) (1 : ENNReal) μ)
+      atTop (nhds 0) := by
+    have hf_cont : Continuous f := hf_diff.continuous
+    have hg_cont : ∀ k, Continuous (g k) := fun k => (hg_smooth k).continuous
+    have hf_mem : MemLp f 2 μ := hf.1
+    simpa [q, qk] using
+      (tendsto_eLpNorm_sq_sub_of_tendsto_L2 f g μ hf_cont hg_cont hf_mem h_L2)
+  have h_int_q : Integrable q μ := hf.1.integrable_sq
+  have h_int_qk : ∀ k, Integrable (qk k) μ := by
+    intro k
+    have hg_cont : Continuous (g k) := (hg_smooth k).continuous
+    have hqk_cont : Continuous (fun x => (g k x)^2) := by
+      fun_prop
+    have hqk_supp : HasCompactSupport (fun x => (g k x)^2) :=
+      hasCompactSupport_sq (hg_supp k)
+    exact hqk_cont.integrable_of_hasCompactSupport hqk_supp
+  have h_int_qk_event : ∀ᶠ k in atTop, Integrable (qk k) μ :=
+    Eventually.of_forall h_int_qk
+  have h_m_tend :
+      Tendsto (fun k => ∫ x, qk k x ∂μ) atTop (nhds (∫ x, q x ∂μ)) := by
+    have h_int_tend := tendsto_integral_of_L1' (f := q)
+      h_int_q.aestronglyMeasurable h_int_qk_event h_L1
+    simpa [q, qk] using h_int_tend
+  have h_mlog_tend :
+      Tendsto (fun k =>
+        (∫ x, qk k x ∂μ) * Real.log (∫ x, qk k x ∂μ))
+        atTop (nhds ((∫ x, q x ∂μ) * Real.log (∫ x, q x ∂μ))) := by
+    exact (Real.continuous_mul_log.continuousAt.tendsto).comp h_m_tend

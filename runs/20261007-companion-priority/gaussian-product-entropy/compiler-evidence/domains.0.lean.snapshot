@@ -1,0 +1,53 @@
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.Analysis.Normed.Group.Bounded
+
+/-! Bounded nonnegative product entropy background. The source-sealed endpoint
+is under construction; these internal domains are not a tensorization result. -/
+
+noncomputable section
+open MeasureTheory Filter
+open scoped Topology
+
+namespace AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+
+private def phi (t : ℝ) : ℝ := t * Real.log t
+
+private theorem continuous_phi : Continuous phi := Real.continuous_mul_log
+
+private theorem phi_bound (C : ℝ) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ t : ℝ, 0 ≤ t → t ≤ C → |phi t| ≤ K := by
+  obtain ⟨K, hK⟩ := (isCompact_Icc : IsCompact (Set.Icc (0 : ℝ) C)).exists_bound_of_continuousOn
+    continuous_phi.continuousOn
+  refine ⟨max K 0, le_max_right _ _, ?_⟩
+  intro t ht0 htC
+  exact (by simpa only [Real.norm_eq_abs] using hK t ⟨ht0, htC⟩).trans (le_max_left _ _)
+
+private theorem bounded_integrable {T : Type*} [MeasurableSpace T]
+    (ρ : Measure T) [IsFiniteMeasure ρ] (g : T → ℝ) (hg : Measurable g)
+    (C : ℝ) (hC : ∀ t, ‖g t‖ ≤ C) : Integrable g ρ :=
+  ⟨hg.aestronglyMeasurable, HasFiniteIntegral.of_bounded (ae_of_all _ hC)⟩
+
+private theorem bounded_phi_domains {T : Type*} [MeasurableSpace T]
+    (ρ : Measure T) [IsFiniteMeasure ρ] (g : T → ℝ) (hg : Measurable g)
+    (h0 : ∀ t, 0 ≤ g t) (C : ℝ) (hC : ∀ t, g t ≤ C) :
+    Integrable g ρ ∧ Integrable (fun t => phi (g t)) ρ := by
+  obtain ⟨K, _, hK⟩ := phi_bound C
+  refine ⟨bounded_integrable ρ g hg C ?_,
+    bounded_integrable ρ (fun t => phi (g t)) (continuous_phi.measurable.comp hg) K ?_⟩
+  · intro t
+    simpa only [Real.norm_eq_abs, abs_of_nonneg (h0 t)] using hC t
+  · intro t
+    simpa only [Real.norm_eq_abs] using hK (g t) (h0 t) (hC t)
+
+private theorem integral_bounds {T : Type*} [MeasurableSpace T]
+    (ρ : Measure T) [IsProbabilityMeasure ρ] (g : T → ℝ) (ig : Integrable g ρ)
+    (h0 : ∀ t, 0 ≤ g t) (C : ℝ) (hC : ∀ t, g t ≤ C) :
+    0 ≤ ∫ t, g t ∂ρ ∧ (∫ t, g t ∂ρ) ≤ C := by
+  refine ⟨integral_nonneg h0, ?_⟩
+  calc
+    (∫ t, g t ∂ρ) ≤ ∫ _ : T, C ∂ρ := integral_mono ig (integrable_const C) hC
+    _ = C := by simp
+
+end AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy

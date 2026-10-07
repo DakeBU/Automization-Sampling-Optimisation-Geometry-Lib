@@ -1,0 +1,123 @@
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.Analysis.Normed.Group.Bounded
+
+/-! Bounded nonnegative product entropy background. The source-sealed endpoint
+is under construction; these internal domains are not a tensorization result. -/
+
+noncomputable section
+open MeasureTheory Filter
+open scoped Topology
+
+namespace AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+
+private def phi (t : ℝ) : ℝ := t * Real.log t
+
+private theorem continuous_phi : Continuous phi := Real.continuous_mul_log
+
+private theorem phi_bound (C : ℝ) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ t : ℝ, 0 ≤ t → t ≤ C → |phi t| ≤ K := by
+  obtain ⟨K, hK⟩ := (isCompact_Icc : IsCompact (Set.Icc (0 : ℝ) C)).exists_bound_of_continuousOn
+    continuous_phi.continuousOn
+  refine ⟨max K 0, le_max_right _ _, ?_⟩
+  intro t ht0 htC
+  have ht : |phi t| ≤ K := by simpa only [Real.norm_eq_abs] using hK t ⟨ht0, htC⟩
+  exact ht.trans (le_max_left _ _)
+
+private theorem bounded_integrable {T : Type*} [MeasurableSpace T]
+    (ρ : Measure T) [IsFiniteMeasure ρ] (g : T → ℝ) (hg : Measurable g)
+    (C : ℝ) (hC : ∀ t, ‖g t‖ ≤ C) : Integrable g ρ :=
+  ⟨hg.aestronglyMeasurable, HasFiniteIntegral.of_bounded (ae_of_all _ hC)⟩
+
+private theorem bounded_phi_domains {T : Type*} [MeasurableSpace T]
+    (ρ : Measure T) [IsFiniteMeasure ρ] (g : T → ℝ) (hg : Measurable g)
+    (h0 : ∀ t, 0 ≤ g t) (C : ℝ) (hC : ∀ t, g t ≤ C) :
+    Integrable g ρ ∧ Integrable (fun t => phi (g t)) ρ := by
+  obtain ⟨K, _, hK⟩ := phi_bound C
+  refine ⟨bounded_integrable ρ g hg C ?_,
+    bounded_integrable ρ (fun t => phi (g t)) (continuous_phi.measurable.comp hg) K ?_⟩
+  · intro t
+    simpa only [Real.norm_eq_abs, abs_of_nonneg (h0 t)] using hC t
+  · intro t
+    simpa only [Real.norm_eq_abs] using hK (g t) (h0 t) (hC t)
+
+private theorem integral_bounds {T : Type*} [MeasurableSpace T]
+    (ρ : Measure T) [IsProbabilityMeasure ρ] (g : T → ℝ) (ig : Integrable g ρ)
+    (h0 : ∀ t, 0 ≤ g t) (C : ℝ) (hC : ∀ t, g t ≤ C) :
+    0 ≤ ∫ t, g t ∂ρ ∧ (∫ t, g t ∂ρ) ≤ C := by
+  refine ⟨integral_nonneg h0, ?_⟩
+  calc
+    (∫ t, g t ∂ρ) ≤ ∫ _ : T, C ∂ρ := integral_mono ig (integrable_const C) hC
+    _ = C := by simp
+
+private theorem product_domains {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+    (μ : Measure X) (ν : Measure Y) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (F : X × Y → ℝ) (hF : Measurable F) (h0 : ∀ z, 0 ≤ F z)
+    (C : ℝ) (hC : ∀ z, F z ≤ C) :
+    let A : X → ℝ := fun x => ∫ y, F (x, y) ∂ν
+    let B : Y → ℝ := fun y => ∫ x, F (x, y) ∂μ
+    let m : ℝ := ∫ z, F z ∂μ.prod ν
+    Integrable F (μ.prod ν) ∧ Integrable (fun z => phi (F z)) (μ.prod ν) ∧
+    (∀ x, Integrable (fun y => F (x, y)) ν ∧
+      Integrable (fun y => phi (F (x, y))) ν) ∧
+    (∀ y, Integrable (fun x => F (x, y)) μ ∧
+      Integrable (fun x => phi (F (x, y))) μ) ∧
+    Integrable A μ ∧ Integrable B ν ∧
+    Integrable (fun x => phi (A x)) μ ∧ Integrable (fun y => phi (B y)) ν ∧
+    (∀ x, 0 ≤ A x ∧ A x ≤ C) ∧ (∀ y, 0 ≤ B y ∧ B y ≤ C) ∧
+    0 ≤ m ∧ m ≤ C := by
+  dsimp only
+  have d := bounded_phi_domains (μ.prod ν) F hF h0 C hC
+  have sx (x : X) := bounded_phi_domains ν (fun y => F (x, y))
+    (hF.comp (measurable_const.prodMk measurable_id)) (fun y => h0 (x, y)) C
+    (fun y => hC (x, y))
+  have sy (y : Y) := bounded_phi_domains μ (fun x => F (x, y))
+    (hF.comp (measurable_id.prodMk measurable_const)) (fun x => h0 (x, y)) C
+    (fun x => hC (x, y))
+  have ba (x : X) := integral_bounds ν (fun y => F (x, y)) (sx x).1
+    (fun y => h0 (x, y)) C (fun y => hC (x, y))
+  have bb (y : Y) := integral_bounds μ (fun x => F (x, y)) (sy y).1
+    (fun x => h0 (x, y)) C (fun x => hC (x, y))
+  have da := bounded_phi_domains μ (fun x => ∫ y, F (x, y) ∂ν)
+    hF.stronglyMeasurable.integral_prod_right'.measurable (fun x => (ba x).1) C
+    (fun x => (ba x).2)
+  have db := bounded_phi_domains ν (fun y => ∫ x, F (x, y) ∂μ)
+    hF.stronglyMeasurable.integral_prod_left'.measurable (fun y => (bb y).1) C
+    (fun y => (bb y).2)
+  exact ⟨d.1, d.2, sx, sy, da.1, db.1, da.2, db.2, ba, bb,
+    integral_bounds (μ.prod ν) F d.1 h0 C hC⟩
+
+private theorem log_bound {δ C : ℝ} (hδ : 0 < δ) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ t : ℝ, δ ≤ t → t ≤ C → |Real.log t| ≤ K := by
+  have hc : ContinuousOn Real.log (Set.Icc δ C) := by
+    intro t ht
+    exact (Real.continuousAt_log (ne_of_gt (hδ.trans_le ht.1))).continuousWithinAt
+  obtain ⟨K, hK⟩ := (isCompact_Icc : IsCompact (Set.Icc δ C)).exists_bound_of_continuousOn hc
+  refine ⟨max K 0, le_max_right _ _, ?_⟩
+  intro t htδ htC
+  have ht : |Real.log t| ≤ K := by simpa only [Real.norm_eq_abs] using hK t ⟨htδ, htC⟩
+  exact ht.trans (le_max_left _ _)
+
+private theorem scalar_logsum {a b c m : ℝ}
+    (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) (hm : 0 < m) :
+    a - b * c / m ≤ phi a - a * Real.log b - a * Real.log c + a * Real.log m := by
+  let r := b * c / m
+  have hr : 0 < r := div_pos (mul_pos hb hc) hm
+  have hh := mul_le_mul_of_nonneg_left
+    (Real.self_sub_one_le_mul_log (le_of_lt (div_pos ha hr))) (le_of_lt hr)
+  have hl : Real.log (a / r) = Real.log a - Real.log b - Real.log c + Real.log m := by
+    rw [Real.log_div ha.ne' hr.ne']
+    dsimp only [r]
+    rw [Real.log_div (mul_pos hb hc).ne' hm.ne', Real.log_mul hb.ne' hc.ne']
+    ring
+  rw [hl] at hh
+  have he : r * (a / r - 1) = a - r := by field_simp; ring
+  have he' : r * (a / r * (Real.log a - Real.log b - Real.log c + Real.log m)) =
+      phi a - a * Real.log b - a * Real.log c + a * Real.log m := by
+    dsimp only [phi]
+    field_simp
+    ring
+  rwa [he, he'] at hh
+
+end AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy

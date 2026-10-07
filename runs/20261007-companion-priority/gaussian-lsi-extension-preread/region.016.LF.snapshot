@@ -1,0 +1,19 @@
+lemma condEnt_sq_le_partial_deriv_sq {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+    (hg_diff : Differentiable ℝ g)
+    (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+    (x : Fin n → ℝ)
+    (hslice : GaussianSobolevReal.MemW12GaussianReal (sliceFunction i g x) (gaussianReal 0 1)) :
+    SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+        (fun z => (g z)^2) x ≤
+      2 * ∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1) := by
+  have h_diff : Differentiable ℝ (sliceFunction i g x) :=
+    sliceFunction_differentiable i g hg_diff x
+  have h_grad_cont : Continuous (fun y => fderiv ℝ (sliceFunction i g x) y) :=
+    slice_fderiv_continuous i g hg_diff hg_grad_cont x
+  have h_lsi :=
+    GaussianSobolevReal.gaussian_logSobolev_W12_real
+      (f := sliceFunction i g x) hslice h_diff h_grad_cont
+  have h_lsi' :
+      LogSobolev.entropy (gaussianReal 0 1) (fun y => (sliceFunction i g x y)^2) ≤
+        2 * ∫ y, ‖fderiv ℝ (sliceFunction i g x) y‖^2 ∂(gaussianReal 0 1) := by
+    simpa [GaussianPoincare.stdGaussianMeasure, GaussianPoincare.stdGaussian] using h_lsi

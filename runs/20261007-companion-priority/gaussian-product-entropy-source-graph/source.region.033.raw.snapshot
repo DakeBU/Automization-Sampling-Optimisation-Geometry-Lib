@@ -1,0 +1,19 @@
+    **For conditional expectations:** If T = E[f | F] for some σ-algebra F,
+    then T > 0 on {f > 0} automatically (conditional expectation preserves
+    positivity on fibers). So this version applies to entropy subadditivity proofs. -/
+theorem entropy_ge_integral_log_real [IsProbabilityMeasure μ]
+    (Y : Ω → ℝ) (hY_meas : Measurable Y)
+    (hY_nn : 0 ≤ᵐ[μ] Y)
+    (hY_int : Integrable Y μ)
+    (hY_log_int : Integrable (fun ω => Y ω * Real.log (Y ω)) μ)
+    (T : Ω → ℝ) (hT_meas : Measurable T)
+    (hT_nn : 0 ≤ᵐ[μ] T)
+    (hT_int : Integrable T μ)
+    (hT_mean_pos : 0 < ∫ ω, T ω ∂μ)
+    (hT_pos_on_Y : ∀ᵐ ω ∂μ, 0 < Y ω → 0 < T ω) :
+    (∫ ω, Y ω * (Real.log (T ω) - Real.log (∫ ω', T ω' ∂μ)) ∂μ) ≤ entropy μ Y := by
+  -- When T > 0 on {Y > 0}, integralYLogT equals the Bochner integral
+  have h_eq := integralYLogT_of_pos_on_Y Y T hT_pos_on_Y
+  have h_le := entropy_ge_integral_log Y hY_meas hY_nn hY_int hY_log_int T hT_meas hT_nn hT_int hT_mean_pos
+  rw [h_eq] at h_le
+  exact EReal.coe_le_coe_iff.mp h_le

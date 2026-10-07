@@ -1,0 +1,27 @@
+import Tests.ProductEntropy
+noncomputable section
+open MeasureTheory
+open AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+namespace Independent39
+private def q (z : Bool × Bool) : ℝ := if z.1 then 1 else 0
+theorem zero_mass_nonzero_null_slice :
+    Integrable q ((Measure.dirac false).prod (Measure.dirac false)) ∧
+    (∀ x : Bool, Integrable (fun y => q (x,y)) (Measure.dirac false)) ∧
+    (∫ z, q z ∂(Measure.dirac false).prod (Measure.dirac false)) = 0 ∧
+    (∫ y, q (true,y) ∂Measure.dirac false) = 1 ∧
+    (let Φ : ℝ → ℝ := fun t => t * Real.log t
+     (∫ x, Φ (∫ y, q (x,y) ∂Measure.dirac false) ∂Measure.dirac false) +
+     (∫ y, Φ (∫ x, q (x,y) ∂Measure.dirac false) ∂Measure.dirac false) ≤
+     (∫ z, Φ (q z) ∂(Measure.dirac false).prod (Measure.dirac false)) +
+       Φ (∫ z, q z ∂(Measure.dirac false).prod (Measure.dirac false))) := by
+  have h := bounded_product_entropy_subadditivity (Measure.dirac false) (Measure.dirac false)
+    q (measurable_of_countable q) (by intro z; simp only [q]; split <;> norm_num)
+    ⟨1, by intro z; simp only [q]; split <;> norm_num⟩
+  refine ⟨h.1, fun x => (h.2.2.1 x).1, ?_, ?_, h.2.2.2.2.2.2.2.2⟩
+  · rw [Measure.dirac_prod_dirac, integral_dirac]; norm_num [q]
+  · rw [integral_dirac]; norm_num [q]
+#print axioms zero_mass_nonzero_null_slice
+#print axioms Tests.ProductEntropy.compact_zero_fiber
+#print axioms Tests.ProductEntropy.actual_probe_signed
+#print axioms Tests.ProductEntropy.actual_probe_C2_compact
+end Independent39

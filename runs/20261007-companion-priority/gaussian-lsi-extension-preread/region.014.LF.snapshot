@@ -1,0 +1,15 @@
+/-- The partial derivative of `g` at `x` along coordinate `i`. -/
+noncomputable def partialDeriv {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+  fun x => fderiv ℝ g x (Pi.single i 1)
+
+/-- Squared Euclidean gradient norm: `‖∇g(x)‖² = ∑ᵢ (∂g/∂xᵢ)²`. -/
+noncomputable def gradNormSq (n : ℕ) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+  fun x => ∑ i : Fin n, (partialDeriv i g x)^2
+
+/-- Sobolev W^{1,2} membership: `g ∈ L²(μ)` and all partial derivatives in `L²(μ)`. -/
+def MemW12GaussianPi (n : ℕ) (g : (Fin n → ℝ) → ℝ) (μ : Measure (Fin n → ℝ)) : Prop :=
+  MemLp g 2 μ ∧ ∀ i : Fin n, MemLp (fun x => partialDeriv i g x) 2 μ
+
+/-- Slice function `gᵢˣ(y) = g(x₁,...,y,...,xₙ)` with `y` at position `i`. -/
+def sliceFunction {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) (x : Fin n → ℝ) : ℝ → ℝ :=
+  fun y => g (Function.update x i y)

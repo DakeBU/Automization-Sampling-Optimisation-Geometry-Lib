@@ -1,0 +1,24 @@
+section mulLog
+
+lemma self_sub_one_lt_mul_log {x : ℝ} (h0 : 0 ≤ x) (h1 : x ≠ 1) : x - 1 < x * x.log := by
+  by_cases hx_pos : 0 < x
+  · nlinarith [Real.log_inv x, Real.log_lt_sub_one_of_pos (inv_pos.mpr hx_pos) (by aesop),
+      mul_inv_cancel₀ hx_pos.ne']
+  · cases lt_or_eq_of_le h0 <;> aesop
+
+lemma self_sub_one_le_mul_log {x : ℝ} (h0 : 0 ≤ x) : x - 1 ≤ x * x.log := by
+  rcases eq_or_ne x 1 with rfl | h1
+  · simp
+  · exact le_of_lt (self_sub_one_lt_mul_log h0 h1)
+
+@[fun_prop]
+lemma continuous_mul_log : Continuous fun x ↦ x * log x := by
+  rw [continuous_iff_continuousAt]
+  intro x
+  obtain hx | rfl := ne_or_eq x 0
+  · exact (continuous_id'.continuousAt).mul (continuousAt_log hx)
+  rw [ContinuousAt, zero_mul]
+  simp_rw [mul_comm _ (log _)]
+  nth_rewrite 1 [← nhdsWithin_univ]
+  have : (Set.univ : Set ℝ) = Set.Iio 0 ∪ Set.Ioi 0 ∪ {0} := by ext; simp [em]
+  rw [this, nhdsWithin_union, nhdsWithin_union]

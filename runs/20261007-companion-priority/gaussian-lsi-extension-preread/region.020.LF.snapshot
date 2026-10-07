@@ -1,0 +1,19 @@
+/-- For a nonnegative measurable function f of n independent random variables,
+    the entropy is bounded by the sum of expected conditional entropies:
+
+    Ent(f) ≤ ∑_{i=0}^{n-1} E[Ent^{(i)}(f)] -/
+theorem entropy_subadditive (f : (Fin n → Ω) → ℝ)
+    (hf_meas : Measurable f)
+    (hf_nn : 0 ≤ᵐ[μˢ] f)
+    (hf_int : Integrable f μˢ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+    LogSobolev.entropy μˢ f ≤ ∑ i : Fin n, ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ := by
+  unfold LogSobolev.entropy
+
+  rcases Nat.eq_zero_or_pos n with hn | hn
+  · -- n = 0: f is constant on the trivial space, so Ent(f) = 0
+    subst hn
+    simp only [Fin.sum_univ_zero]
+    have h_const : ∀ x y : Fin 0 → Ω, x = y := fun x y => funext (fun i => Fin.elim0 i)
+    have hf_const_val : ∀ x y : Fin 0 → Ω, f x = f y := fun x y => by rw [h_const x y]
+    have pt : Fin 0 → Ω := Fin.elim0

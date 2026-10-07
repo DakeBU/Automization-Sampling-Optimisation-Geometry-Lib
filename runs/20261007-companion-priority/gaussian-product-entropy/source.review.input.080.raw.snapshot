@@ -1,0 +1,78 @@
+70: _ = ∫ p, log ((∂μ/∂ν) p.1).toReal ∂(μ ⊗ₘ κ) + ∫ p, log ((∂μ ⊗ₘ κ/∂μ ⊗ₘ η) p).toReal ∂(μ ⊗ₘ κ)
+71: _ = ∫ a, llr μ ν a ∂μ + ∫ p, llr (μ ⊗ₘ κ) (μ ⊗ₘ η) p ∂(μ ⊗ₘ κ)
+72: ```
+73: 
+74: ## TODO
+75: 
+76: Add a version of the chain rule for the integral form of the contional KL divergence, i.e.
+77: `μ[fun x ↦ klDiv (κ x) (η x)]`.
+78: 
+79: -/
+80: 
+81: public section
+82: 
+83: open Real MeasureTheory Set ProbabilityTheory
+84: open scoped ENNReal
+85: 
+86: namespace InformationTheory
+87: 
+88: variable {𝓧 𝓨 : Type*} {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨}
+89:   {μ ν : Measure 𝓧} {κ η : Kernel 𝓧 𝓨}
+90:   [IsFiniteMeasure μ] [IsFiniteMeasure ν] [IsMarkovKernel κ] [IsMarkovKernel η]
+91: 
+92: /-- If the log-likelihood ration between two composition-products is integrable, then so is the
+93: log-likelihood ratio between the two measures on the first space. -/
+94: lemma integrable_llr_of_integrable_llr_compProd
+95:     (h_ac : μ ⊗ₘ κ ≪ ν ⊗ₘ η) (h_int : Integrable (llr (μ ⊗ₘ κ) (ν ⊗ₘ η)) (μ ⊗ₘ κ)) :
+96:     Integrable (llr μ ν) μ := by
+97:   have ⟨hμν_ac, hκη_ac⟩ := Measure.absolutelyContinuous_compProd_iff.mp h_ac
+98:   rw [← integrable_rnDeriv_mul_log_iff h_ac] at h_int
+99:   replace h_int := convexOn_mul_log.integrable_apply_rnDeriv_of_integrable_compProd
+151: lemma integral_llr_compProd_eq_add (h_ac : μ ⊗ₘ κ ≪ ν ⊗ₘ η)
+152:     (h_int : Integrable (llr (μ ⊗ₘ κ) (ν ⊗ₘ η)) (μ ⊗ₘ κ)) :
+153:     ∫ p, llr (μ ⊗ₘ κ) (ν ⊗ₘ η) p ∂μ ⊗ₘ κ =
+154:       ∫ a, llr μ ν a ∂μ + ∫ p, llr (μ ⊗ₘ κ) (μ ⊗ₘ η) p ∂(μ ⊗ₘ κ) := by
+155:   have ⟨h_ac_μν, h_ac_κη⟩ := Measure.absolutelyContinuous_compProd_iff.mp h_ac
+156:   have ⟨h_int_μν, h_int_κη⟩ := (integrable_llr_compProd_iff h_ac).mp h_int
+157:   have h_int1 : Integrable (fun p ↦ log ((∂μ/∂ν) p.1).toReal) (μ ⊗ₘ κ) := by
+158:     rw [Measure.integrable_compProd_iff]
+159:     · simp only [ne_eq, enorm_ne_top, not_false_eq_true, integrable_const_enorm,
+160:       Filter.eventually_true, integral_const, probReal_univ, smul_eq_mul, one_mul, true_and]
+161:       rwa [← integrable_norm_iff (by fun_prop)] at h_int_μν
+162:     · exact StronglyMeasurable.aestronglyMeasurable (by fun_prop)
+163:   calc ∫ p, llr (μ ⊗ₘ κ) (ν ⊗ₘ η) p ∂μ ⊗ₘ κ
+164:   _ = ∫ p, ((∂μ ⊗ₘ κ/∂ν ⊗ₘ η) p).toReal * log ((∂μ ⊗ₘ κ/∂ν ⊗ₘ η) p).toReal ∂(ν ⊗ₘ η) := by
+165:     rw [integral_rnDeriv_mul_log h_ac]
+166:   _ = ∫ p, ((∂μ ⊗ₘ κ/∂ν ⊗ₘ η) p).toReal *
+167:       (log ((∂μ/∂ν) p.1).toReal + log ((∂μ ⊗ₘ κ/∂μ ⊗ₘ η) p).toReal) ∂(ν ⊗ₘ η) :=
+195:     filter_upwards [rnDeriv_measure_compProd_left μ ν κ] with p hp using by simp_rw [hp]
+196:   _ = ∫⁻ x, ENNReal.ofReal (klFun ((∂μ/∂ν) x).toReal) ∂ν := by
+197:     rw [Measure.lintegral_compProd (by fun_prop)]
+198:     simp
+199: 
+200: variable (μ ν κ η) in
+201: /-- **Chain rule** for the Kullback-Leibler divergence, with conditional KL expressed using
+202: composition-products.
+203: This version holds without any assumption on the measurable spaces. -/
+204: theorem klDiv_compProd_eq_add : klDiv (μ ⊗ₘ κ) (ν ⊗ₘ η) = klDiv μ ν + klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η) := by
+205:   -- first, if we don't have absolute continuity, both sides are `∞`
+206:   by_cases h_ac : μ ⊗ₘ κ ≪ ν ⊗ₘ η
+207:   swap
+208:   · rw [klDiv_of_not_ac h_ac]
+209:     rw [Measure.absolutelyContinuous_compProd_iff] at h_ac
+210:     simp only [not_and_or] at h_ac
+211:     cases h_ac with
+212:     | inl h => simp [h]
+213:     | inr h => simp [h]
+214:   -- same if we don't have integrability
+215:   by_cases h_int : Integrable (llr (μ ⊗ₘ κ) (ν ⊗ₘ η)) (μ ⊗ₘ κ)
+216:   swap
+217:   · rw [klDiv_of_not_integrable h_int]
+218:     rw [integrable_llr_compProd_iff h_ac] at h_int
+219:     simp only [not_and_or] at h_int
+220:     cases h_int with
+221:     | inl h => simp [h]
+222:     | inr h => simp [h]
+223:   -- now we can use express the KL divergences with an integral of a log-likelihood ratio
+224:   have ⟨h_ac_μν, h_ac_κη⟩ := Measure.absolutelyContinuous_compProd_iff.mp h_ac
+225:   have ⟨h_int_μν, h_int_κη⟩ := (integrable_llr_compProd_iff h_ac).mp h_int

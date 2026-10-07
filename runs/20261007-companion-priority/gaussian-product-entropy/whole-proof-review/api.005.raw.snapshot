@@ -1,0 +1,17 @@
+  by_cases h : Integrable (fun z : α × β => f z.1 • g z.2) (μ.prod ν)
+  · rw [integral_prod _ h]
+    simp_rw [integral_smul, integral_smul_const]
+  have H : ¬Integrable f μ ∨ ¬Integrable g ν := by
+    contrapose! h
+    exact h.1.smul_prod h.2
+  rcases H with H | H <;> simp [integral_undef h, integral_undef H]
+
+theorem integral_prod_mul {L : Type*} [RCLike L] (f : α → L) (g : β → L) :
+    ∫ z, f z.1 * g z.2 ∂μ.prod ν = (∫ x, f x ∂μ) * ∫ y, g y ∂ν :=
+  integral_prod_smul f g
+
+theorem setIntegral_prod_mul {L : Type*} [RCLike L] (f : α → L) (g : β → L) (s : Set α)
+    (t : Set β) :
+    ∫ z in s ×ˢ t, f z.1 * g z.2 ∂μ.prod ν = (∫ x in s, f x ∂μ) * ∫ y in t, g y ∂ν := by
+  rw [← Measure.prod_restrict s t]
+  apply integral_prod_mul

@@ -1,0 +1,21 @@
+theorem integral_dirac' [MeasurableSpace α] (f : α → E) (a : α) (hfm : StronglyMeasurable f) :
+    ∫ x, f x ∂Measure.dirac a = f a := by
+  borelize E
+  calc
+    ∫ x, f x ∂Measure.dirac a = ∫ _, f a ∂Measure.dirac a :=
+      integral_congr_ae <| ae_eq_dirac' hfm.measurable
+    _ = f a := by simp
+
+@[simp]
+theorem integral_dirac [MeasurableSpace α] [MeasurableSingletonClass α] (f : α → E) (a : α) :
+    ∫ x, f x ∂Measure.dirac a = f a :=
+  calc
+    ∫ x, f x ∂Measure.dirac a = ∫ _, f a ∂Measure.dirac a := integral_congr_ae <| ae_eq_dirac f
+    _ = f a := by simp
+
+theorem setIntegral_dirac' {mα : MeasurableSpace α} {f : α → E} (hf : StronglyMeasurable f) (a : α)
+    {s : Set α} (hs : MeasurableSet s) [Decidable (a ∈ s)] :
+    ∫ x in s, f x ∂Measure.dirac a = if a ∈ s then f a else 0 := by
+  rw [restrict_dirac' hs]
+  split_ifs
+  · exact integral_dirac' _ _ hf

@@ -1,0 +1,58 @@
+34: 
+35: -/
+36: 
+37: public section
+38: 
+39: open Real MeasureTheory Set ProbabilityTheory
+40: open scoped ENNReal
+41: 
+42: namespace ConvexOn
+43: 
+44: variable {𝓧 𝓨 : Type*} {m m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨}
+45:   {μ ν : Measure 𝓧} [IsFiniteMeasure μ] [IsFiniteMeasure ν] {f : ℝ → ℝ} {g : 𝓧 → 𝓨}
+46: 
+47: lemma map_condExp_rnDeriv_le (hm : m ≤ m𝓧) (hf : StronglyMeasurable f)
+130: lemma integrable_llr_map (hμν : μ ≪ ν) (hg : Measurable g)
+131:     (h_int : Integrable (llr μ ν) μ) :
+132:     Integrable (llr (μ.map g) (ν.map g)) (μ.map g) := by
+133:   rw [← integrable_klFun_rnDeriv_iff (hμν.map hg)]
+134:   refine convexOn_klFun.integrable_comp_rnDeriv_map hμν hg (by fun_prop) (by fun_prop) ?_
+135:   rwa [integrable_klFun_rnDeriv_iff hμν]
+136: 
+137: lemma toReal_klDiv_map_of_ac (hμν : μ ≪ ν) (hg : Measurable g) :
+138:     (klDiv (μ.map g) (ν.map g)).toReal =
+139:       ∫ x, klFun ((ν[fun x ↦ (μ.rnDeriv ν x).toReal | m𝓨.comap g]) x) ∂ν := by
+140:   rw [toReal_klDiv_eq_integral_klFun (hμν.map hg), integral_map hg.aemeasurable
+141:       (StronglyMeasurable.aestronglyMeasurable (by fun_prop))]
+142:   refine integral_congr_ae ?_
+143:   filter_upwards [toReal_rnDeriv_map hμν hg] with a ha using by rw [ha]
+144: 
+145: lemma klDiv_map_of_ac (hμν : μ ≪ ν) (hg : Measurable g) (h_int : Integrable (llr μ ν) μ) :
+146:     klDiv (μ.map g) (ν.map g) =
+147:       ENNReal.ofReal (∫ x, klFun ((ν[fun x ↦ (μ.rnDeriv ν x).toReal | m𝓨.comap g]) x) ∂ν) := by
+148:   rw [klDiv_eq_integral_klFun, if_pos ⟨hμν.map hg, integrable_llr_map hμν hg h_int⟩]
+149:   congr
+150:   rw [← toReal_klDiv_eq_integral_klFun (hμν.map hg), toReal_klDiv_map_of_ac hμν hg]
+151: 
+152: lemma toReal_klDiv_trim_of_ac (hm : m ≤ m𝓧) (hμν : μ ≪ ν) :
+153:     (klDiv (μ.trim hm) (ν.trim hm)).toReal =
+154:       ∫ x, klFun ((ν[fun x ↦ (μ.rnDeriv ν x).toReal | m]) x) ∂ν := by
+155:   simp [trim_eq_map, toReal_klDiv_map_of_ac hμν (measurable_id'' hm)]
+156: 
+157: variable (μ ν) in
+158: /-- **Data processing inequality** for the Kullback-Leibler divergence and measurable functions. -/
+159: theorem klDiv_map_le (hg : Measurable g) : klDiv (μ.map g) (ν.map g) ≤ klDiv μ ν := by
+160:   by_cases hμν : μ ≪ ν
+161:   swap; · simp [hμν]
+162:   by_cases h_int : Integrable (llr μ ν) μ
+163:   swap; · simp [klDiv_of_not_integrable h_int]
+164:   rw [klDiv_map_of_ac hμν hg h_int, klDiv_eq_integral_klFun]
+165:   simp only [hμν, h_int, and_self, ↓reduceIte]
+166:   conv_rhs => rw [← integral_condExp hg.comap_le]
+167:   gcongr 1
+168:   have hf : StronglyMeasurable klFun := by fun_prop
+169:   have hf_cont : ContinuousWithinAt klFun (Ici 0) 0 := by fun_prop
+170:   have h_int' : Integrable (fun x ↦ klFun (μ.rnDeriv ν x).toReal) ν := by
+171:     rwa [integrable_klFun_rnDeriv_iff hμν]
+172:   refine integral_mono_ae ?_ integrable_condExp ?_
+173:   · exact convexOn_klFun.integrable_comp_condExp_rnDeriv hg.comap_le hμν hf hf_cont h_int'

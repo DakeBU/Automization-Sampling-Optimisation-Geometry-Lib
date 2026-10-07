@@ -1,0 +1,37 @@
+48:   [NormedAddCommGroup E] [NormedSpace ℝ E]
+49:   [NormedAddCommGroup G] [NormedSpace ℝ G]
+50:   {m : MeasurableSpace α} {μ : Measure α}
+51: 
+52: /-- **Lebesgue dominated convergence theorem** provides sufficient conditions under which almost
+53:   everywhere convergence of a sequence of functions implies the convergence of their integrals.
+54:   We could weaken the condition `bound_integrable` to require `HasFiniteIntegral bound μ` instead
+55:   (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
+56:   is easier. -/
+57: theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → G} {f : α → G} (bound : α → ℝ)
+58:     (F_measurable : ∀ n, AEStronglyMeasurable (F n) μ) (bound_integrable : Integrable bound μ)
+59:     (h_bound : ∀ n, ∀ᵐ a ∂μ, ‖F n a‖ ≤ bound a)
+60:     (h_lim : ∀ᵐ a ∂μ, Tendsto (fun n => F n a) atTop (𝓝 (f a))) :
+61:     Tendsto (fun n => ∫ a, F n a ∂μ) atTop (𝓝 <| ∫ a, f a ∂μ) := by
+62:   simp only [integral_eq_setToFun]
+63:   exact tendsto_setToFun_of_dominated_convergence (dominatedFinMeasAdditive_weightedSMul μ)
+64:     bound F_measurable bound_integrable h_bound h_lim
+65: 
+66: /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
+67: theorem tendsto_integral_filter_of_dominated_convergence {ι} {l : Filter ι} [l.IsCountablyGenerated]
+68:     {F : ι → α → G} {f : α → G} (bound : α → ℝ) (hF_meas : ∀ᶠ n in l, AEStronglyMeasurable (F n) μ)
+69:     (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ‖F n a‖ ≤ bound a) (bound_integrable : Integrable bound μ)
+70:     (h_lim : ∀ᵐ a ∂μ, Tendsto (fun n => F n a) l (𝓝 (f a))) :
+71:     Tendsto (fun n => ∫ a, F n a ∂μ) l (𝓝 <| ∫ a, f a ∂μ) := by
+72:   simp only [integral_eq_setToFun]
+73:   exact tendsto_setToFun_filter_of_dominated_convergence (dominatedFinMeasAdditive_weightedSMul μ)
+74:     bound hF_meas h_bound bound_integrable h_lim
+75: 
+76: /-- Lebesgue dominated convergence theorem for series. -/
+77: theorem hasSum_integral_of_dominated_convergence {ι} [Countable ι] {F : ι → α → G} {f : α → G}
+78:     (bound : ι → α → ℝ) (hF_meas : ∀ n, AEStronglyMeasurable (F n) μ)
+79:     (h_bound : ∀ n, ∀ᵐ a ∂μ, ‖F n a‖ ≤ bound n a)
+80:     (bound_summable : ∀ᵐ a ∂μ, Summable fun n => bound n a)
+81:     (bound_integrable : Integrable (fun a => ∑' n, bound n a) μ)
+82:     (h_lim : ∀ᵐ a ∂μ, HasSum (fun n => F n a) (f a)) :
+83:     HasSum (fun n => ∫ a, F n a ∂μ) (∫ a, f a ∂μ) := by
+84:   simp only [integral_eq_setToFun]

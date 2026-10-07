@@ -1,0 +1,16 @@
+/-- The integral of f * (log E_{i+1}[f] - log E_i[f]) is bounded by E[Ent^{(i)}(f)].
+
+    This follows from applying entropy duality on each slice (fixing all coords except i). -/
+theorem term_le_expected_condEnt (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_meas : Measurable f)
+    (hf_nn : 0 ≤ᵐ[μˢ] f)
+    (hf_int : Integrable f μˢ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+    ∫ x, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+                log (condExpFirstK (μs := μs) i.castSucc f x)) ∂μˢ ≤
+    ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ := by
+  -- Derive integrability hypotheses from lemmas
+  have hflogT_int : Integrable (fun x => f x * log (condExpFirstK (μs := μs) i.succ f x)) μˢ :=
+    f_mul_log_condExpFirstK_integrable i.succ f hf_meas hf_nn hf_int hf_log_int
+  have hflogET_int : Integrable (fun x => f x *
+      log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x)) μˢ :=

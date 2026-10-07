@@ -1,0 +1,23 @@
+/-- The radial cutoff at scale `R`, given by `x ↦ smoothUnitCutoff (‖x‖ / R)`. -/
+noncomputable def radialSmoothCutoff (R : ℝ) (x : E) : ℝ :=
+  smoothUnitCutoff (‖x‖ / R)
+
+/-- The radial cutoff is one on the closed ball of radius `R`. -/
+theorem radialSmoothCutoff_eq_one_of_norm_le {R : ℝ} (hR : 0 < R) {x : E}
+    (hx : ‖x‖ ≤ R) : radialSmoothCutoff R x = 1 := by
+  apply smoothUnitCutoff_eq_one_of_abs_le_one
+  rw [abs_of_nonneg (div_nonneg (norm_nonneg x) hR.le)]
+  exact div_le_one_of_le₀ hx hR.le
+
+/-- The radial cutoff vanishes when `2 * R <= ||x||`. -/
+theorem radialSmoothCutoff_eq_zero_of_two_mul_le_norm {R : ℝ} (hR : 0 < R) {x : E}
+    (hx : 2 * R ≤ ‖x‖) : radialSmoothCutoff R x = 0 := by
+  apply smoothUnitCutoff_eq_zero_of_two_le_abs
+  rw [abs_of_nonneg (div_nonneg (norm_nonneg x) hR.le)]
+  calc
+    (2 : ℝ) = 2 * R / R := by field_simp
+    _ ≤ ‖x‖ / R := div_le_div_of_nonneg_right hx hR.le
+
+/-- Every radial cutoff value lies in `[0, 1]`, for any scale `R`. -/
+theorem radialSmoothCutoff_mem_Icc (R : ℝ) (x : E) :
+    radialSmoothCutoff R x ∈ Set.Icc (0 : ℝ) 1 :=

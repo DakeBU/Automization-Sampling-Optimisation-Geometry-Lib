@@ -1,0 +1,49 @@
+      EflogT x - Ef x * log (ET x) ≤ Eflogf x - Ef x * log (Ef x) := by
+    filter_upwards [hnn_ae, hint_ae, hlogint_ae, hT_slice_nn_ae, hT_slice_int_ae, hflogT_slice_int_ae, condExpFirstK_pos_on_slice_ae i f hf_meas hf_nn hf_int] with x hnn hint hlogint hT'_nn_ae hT'_int hYlogT'_int_x hT'_pos_on_Y_raw
+    set Y := fun y => f (Function.update x i y) with hY_def
+    set T' := fun y => T (Function.update x i y) with hT'_def
+    have hEf_eq : Ef x = ∫ y, Y y ∂(μs i) := rfl
+    have hET_eq : ET x = ∫ y, T' y ∂(μs i) := rfl
+    have hEflogT_eq : EflogT x = ∫ y, Y y * log (T' y) ∂(μs i) := rfl
+    have hEflogf_eq : Eflogf x = ∫ y, Y y * log (Y y) ∂(μs i) := rfl
+    have hT'_nn : ∀ᵐ y ∂(μs i), 0 ≤ T' y := hT'_nn_ae
+    by_cases hET_pos : 0 < ET x
+    · -- Case: E[T'] > 0, apply entropy_ge_integral_log (Gibbs inequality)
+      have hRHS_eq : Eflogf x - Ef x * log (Ef x) = condEntExceptCoord (μs := μs) i f x := rfl
+      have hY_meas : Measurable Y := by
+        apply hf_meas.comp
+        apply measurable_pi_lambda
+        intro j
+        by_cases hj : j = i
+        · subst hj; simp only [Function.update_self]; exact measurable_id
+        · simp only [Function.update_of_ne hj]; exact measurable_const
+      have hT'_meas : Measurable T' := by
+        have hT_meas : Measurable T := by
+          simp only [T]
+          let g : (Fin n → Ω) → (Fin n → Ω) → ℝ := fun w z =>
+              f (fun j => if j.val < (Fin.succ i).val then w j else z j)
+          have hg_sm : StronglyMeasurable (Function.uncurry g) := by
+            apply StronglyMeasurable.comp_measurable hf_meas.stronglyMeasurable
+            apply measurable_pi_lambda
+            intro j
+            by_cases hj : j.val < (Fin.succ i).val
+            · simp only [hj, ↓reduceIte]; exact measurable_fst.eval
+            · simp only [hj, ↓reduceIte]; exact measurable_snd.eval
+          exact (hg_sm.integral_prod_right).measurable
+        apply hT_meas.comp
+        apply measurable_pi_lambda
+        intro j
+        by_cases hj : j = i
+        · subst hj; simp only [Function.update_self]; exact measurable_id
+        · simp only [Function.update_of_ne hj]; exact measurable_const
+
+      have h_ereal_bound := LogSobolev.entropy_ge_integral_log (μ := μs i)
+        Y hY_meas hnn hint hlogint T' hT'_meas hT'_nn hT'_int hET_pos
+      have hT'_pos_on_Y : ∀ᵐ y ∂(μs i), 0 < Y y → 0 < T' y := hT'_pos_on_Y_raw
+      rw [LogSobolev.integralYLogT_of_pos_on_Y Y T' hT'_pos_on_Y] at h_ereal_bound
+      have h_real_bound : ∫ y, Y y * (log (T' y) - log (∫ y', T' y' ∂μs i)) ∂μs i ≤
+          LogSobolev.entropy (μs i) Y := EReal.coe_le_coe_iff.mp h_ereal_bound
+      have hYlogT'_int : Integrable (fun y => Y y * log (T' y)) (μs i) := hYlogT'_int_x
+      set c := log (∫ y', T' y' ∂μs i)
+      calc EflogT x - Ef x * log (ET x)
+          = ∫ y, Y y * log (T' y) ∂μs i - Ef x * log (ET x) := by rw [hEflogT_eq]

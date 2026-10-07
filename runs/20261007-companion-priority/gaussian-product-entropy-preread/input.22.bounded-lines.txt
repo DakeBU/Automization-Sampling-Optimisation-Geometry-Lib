@@ -1,0 +1,107 @@
+159: theorem radialSmoothCutoff_eq_one_of_norm_le {R : ℝ} (hR : 0 < R) {x : E}
+160:     (hx : ‖x‖ ≤ R) : radialSmoothCutoff R x = 1 := by
+161:   apply smoothUnitCutoff_eq_one_of_abs_le_one
+162:   rw [abs_of_nonneg (div_nonneg (norm_nonneg x) hR.le)]
+163:   exact div_le_one_of_le₀ hx hR.le
+164: 
+165: /-- The radial cutoff vanishes when `2 * R <= ||x||`. -/
+166: theorem radialSmoothCutoff_eq_zero_of_two_mul_le_norm {R : ℝ} (hR : 0 < R) {x : E}
+167:     (hx : 2 * R ≤ ‖x‖) : radialSmoothCutoff R x = 0 := by
+168:   apply smoothUnitCutoff_eq_zero_of_two_le_abs
+169:   rw [abs_of_nonneg (div_nonneg (norm_nonneg x) hR.le)]
+170:   calc
+171:     (2 : ℝ) = 2 * R / R := by field_simp
+172:     _ ≤ ‖x‖ / R := div_le_div_of_nonneg_right hx hR.le
+173: 
+174: /-- Every radial cutoff value lies in `[0, 1]`, for any scale `R`. -/
+175: theorem radialSmoothCutoff_mem_Icc (R : ℝ) (x : E) :
+198: theorem radialSmoothCutoff_contDiff [InnerProductSpace ℝ E] {R : ℝ} (hR : 0 < R) :
+199:     ContDiff ℝ (⊤ : ℕ∞) (radialSmoothCutoff R : E → ℝ) := by
+200:   rw [contDiff_iff_contDiffAt]
+201:   intro x
+202:   by_cases hx : ‖x‖ < R
+203:   · have heq : ∀ᶠ y in 𝓝 x, radialSmoothCutoff R y = 1 := by
+204:       have hball : Metric.ball x (R - ‖x‖) ∈ 𝓝 x :=
+205:         Metric.ball_mem_nhds x (sub_pos.mpr hx)
+206:       filter_upwards [hball] with y hy
+207:       apply radialSmoothCutoff_eq_one_of_norm_le hR
+208:       rw [Metric.mem_ball, dist_eq_norm] at hy
+209:       have hynorm : ‖y‖ ≤ ‖x‖ + ‖y - x‖ := by
+210:         calc
+211:           ‖y‖ = ‖x + (y - x)‖ := by congr 1; abel
+212:           _ ≤ ‖x‖ + ‖y - x‖ := norm_add_le x (y - x)
+213:       linarith
+214:     have hconst : ContDiffAt ℝ (⊤ : ℕ∞) (fun _ : E => (1 : ℝ)) x :=
+215:       contDiffAt_const
+216:     apply hconst.congr_of_eventuallyEq
+217:     filter_upwards [heq] with y hy
+218:     simp [hy]
+219:   · push Not at hx
+220:     have hx_ne : x ≠ 0 := by
+221:       intro hzero
+222:       rw [hzero, norm_zero] at hx
+223:       linarith
+224:     have hnorm : ContDiffAt ℝ (⊤ : ℕ∞) (fun y : E => ‖y‖) x :=
+225:       contDiffAt_norm ℝ hx_ne
+226:     have hdiv : ContDiff ℝ (⊤ : ℕ∞) (fun t : ℝ => t / R) :=
+227:       contDiff_id.div_const R
+228:     have hscaled : ContDiffAt ℝ (⊤ : ℕ∞) (fun y : E => ‖y‖ / R) x :=
+229:       hdiv.contDiffAt.comp x hnorm
+230:     exact smoothUnitCutoff_contDiff.contDiffAt.comp x hscaled
+231: 
+232: /-- A single positive constant controls the first derivative of every
+233: positive-scale radial cutoff by `C / R`.  The quantifier order records the
+234: scale-uniformity needed by cutoff exhaustion arguments. -/
+235: theorem radialSmoothCutoff_fderiv_bound [InnerProductSpace ℝ E] :
+236:     ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 0 < R → ∀ x : E,
+237:       ‖fderiv ℝ (radialSmoothCutoff R : E → ℝ) x‖ ≤ C / R := by
+238:   obtain ⟨C, hC_pos, hC_bound⟩ := smoothUnitCutoff_deriv_bounded
+239:   refine ⟨C, hC_pos, ?_⟩
+240:   intro R hR x
+296: theorem radialSmoothCutoff_fderiv_eq_zero_of_two_mul_le_norm [NormedSpace ℝ E]
+297:     {R : ℝ} (hR : 0 < R) {x : E} (hx : 2 * R ≤ ‖x‖) :
+298:     fderiv ℝ (radialSmoothCutoff R : E → ℝ) x = 0 := by
+299:   apply IsLocalMin.fderiv_eq_zero
+300:   change ∀ᶠ y in 𝓝 x, radialSmoothCutoff R x ≤ radialSmoothCutoff R y
+301:   rw [radialSmoothCutoff_eq_zero_of_two_mul_le_norm hR hx]
+302:   exact Filter.Eventually.of_forall fun y => (radialSmoothCutoff_mem_Icc R y).1
+303: 
+304: /-- The support of the radial cutoff lies in the closed ball of radius `2 * R`. -/
+305: theorem radialSmoothCutoff_support_subset_closedBall {R : ℝ} (hR : 0 < R) :
+306:     Function.support (radialSmoothCutoff R : E → ℝ) ⊆
+307:       Metric.closedBall 0 (2 * R) := by
+308:   intro x hx
+309:   rw [Metric.mem_closedBall, dist_zero_right]
+310:   by_contra hout
+311:   push Not at hout
+312:   have hzero : radialSmoothCutoff R x = 0 :=
+313:     radialSmoothCutoff_eq_zero_of_two_mul_le_norm hR hout.le
+314:   exact hx hzero
+315: 
+316: /-- The topological support of the radial cutoff lies in the same closed ball. -/
+317: theorem radialSmoothCutoff_tsupport_subset_closedBall {R : ℝ} (hR : 0 < R) :
+318:     tsupport (radialSmoothCutoff R : E → ℝ) ⊆
+319:       Metric.closedBall 0 (2 * R) := by
+320:   exact closure_minimal
+321:     (radialSmoothCutoff_support_subset_closedBall hR) Metric.isClosed_closedBall
+322: 
+323: /-- In finite dimension, a positive-scale radial cutoff has compact support. -/
+324: theorem radialSmoothCutoff_hasCompactSupport [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+325:     {R : ℝ} (hR : 0 < R) :
+326:     HasCompactSupport (radialSmoothCutoff R : E → ℝ) := by
+327:   rw [hasCompactSupport_def]
+328:   exact IsCompact.of_isClosed_subset
+329:     (isCompact_closedBall (0 : E) (2 * R)) isClosed_closure
+330:     (radialSmoothCutoff_tsupport_subset_closedBall hR)
+331: 
+332: /-- A single positive constant controls the second iterated Fréchet
+390: theorem radialSmoothCutoff_tendsto_one (x : E) :
+391:     Tendsto (fun R : ℝ => radialSmoothCutoff R x) atTop (𝓝 1) := by
+392:   apply tendsto_atTop_of_eventually_const (i₀ := ‖x‖ + 1)
+393:   intro R hR
+394:   have hR_pos : 0 < R := by
+395:     calc
+396:       0 < ‖x‖ + 1 := by positivity
+397:       _ ≤ R := hR
+398:   apply radialSmoothCutoff_eq_one_of_norm_le hR_pos
+399:   linarith

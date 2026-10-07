@@ -1,0 +1,12 @@
+  have hg_compact : ∀ k, EfronSteinApp.CompactlySupportedSmooth (g k) := by
+    intro k
+    constructor
+    · have h2_le : (2 : ℕ∞) ≤ ⊤ := le_top
+      exact ContDiff.of_le (hg_smooth k) (WithTop.coe_le_coe.mpr h2_le)
+    · exact hg_supp k
+  have h_entropy_le :
+      ∀ k, LogSobolev.entropy μ (qk k) ≤ 2 * ∫ x, ‖fderiv ℝ (g k) x‖^2 ∂μ := by
+    intro k
+    have h :=
+      GaussianLSI.gaussian_logSobolev_CompSmo_fderiv (f := g k) (hg_compact k)
+    simpa [GaussianPoincare.stdGaussianMeasure, GaussianPoincare.stdGaussian, μ, qk] using h

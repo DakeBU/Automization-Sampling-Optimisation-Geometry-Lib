@@ -1,0 +1,50 @@
+lemma lintegral_gaussianPDF_eq_one (μ : ℝ) {v : ℝ≥0} (h : v ≠ 0) :
+    ∫⁻ x, gaussianPDF μ v x = 1 :=
+  lintegral_gaussianPDFReal_eq_one μ h
+
+end GaussianPDF
+
+section GaussianReal
+
+/-- A Gaussian distribution on `ℝ` with mean `μ` and variance `v`. -/
+@[wikidata Q133871]
+noncomputable
+def gaussianReal (μ : ℝ) (v : ℝ≥0) : Measure ℝ :=
+  if v = 0 then Measure.dirac μ else volume.withDensity (gaussianPDF μ v)
+
+lemma gaussianReal_of_var_ne_zero (μ : ℝ) {v : ℝ≥0} (hv : v ≠ 0) :
+    gaussianReal μ v = volume.withDensity (gaussianPDF μ v) := if_neg hv
+
+@[simp]
+lemma gaussianReal_zero_var (μ : ℝ) : gaussianReal μ 0 = Measure.dirac μ := if_pos rfl
+
+instance instIsProbabilityMeasureGaussianReal (μ : ℝ) (v : ℝ≥0) :
+    IsProbabilityMeasure (gaussianReal μ v) where
+  measure_univ := by by_cases h : v = 0 <;> simp [gaussianReal_of_var_ne_zero, h]
+
+lemma nullSingletonClass_gaussianReal {μ : ℝ} {v : ℝ≥0} (h : v ≠ 0) :
+    NullSingletonClass (gaussianReal μ v) := by
+  rw [gaussianReal_of_var_ne_zero _ h]
+  infer_instance
+
+@[deprecated (since := "2026-06-09")]
+alias noAtoms_gaussianReal := nullSingletonClass_gaussianReal
+
+lemma gaussianReal_apply (μ : ℝ) {v : ℝ≥0} (hv : v ≠ 0) (s : Set ℝ) :
+    gaussianReal μ v s = ∫⁻ x in s, gaussianPDF μ v x := by
+  rw [gaussianReal_of_var_ne_zero _ hv, withDensity_apply' _ s]
+
+lemma gaussianReal_apply_eq_integral (μ : ℝ) {v : ℝ≥0} (hv : v ≠ 0) (s : Set ℝ) :
+    gaussianReal μ v s = ENNReal.ofReal (∫ x in s, gaussianPDFReal μ v x) := by
+  rw [gaussianReal_apply _ hv s, ofReal_integral_eq_lintegral_ofReal]
+  · rfl
+  · exact (integrable_gaussianPDFReal _ _).restrict
+  · exact ae_of_all _ (gaussianPDFReal_nonneg _ _)
+
+lemma gaussianReal_absolutelyContinuous (μ : ℝ) {v : ℝ≥0} (hv : v ≠ 0) :
+    gaussianReal μ v ≪ volume := by
+  rw [gaussianReal_of_var_ne_zero _ hv]
+  exact withDensity_absolutelyContinuous _ _
+
+lemma gaussianReal_absolutelyContinuous' (μ : ℝ) {v : ℝ≥0} (hv : v ≠ 0) :
+    volume ≪ gaussianReal μ v := by

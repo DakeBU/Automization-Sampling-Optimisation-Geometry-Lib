@@ -1,0 +1,17 @@
+/-- Integrability of f * log(E^{(i)}[T_{i+1}]) where T_{i+1} = condExpFirstK (i+1) f. -/
+lemma f_mul_log_condExpExceptCoord_condExpFirstK_integrable (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_meas : Measurable f) (hf_nn : 0 ≤ᵐ[μˢ] f) (hf_int : Integrable f μˢ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+    Integrable (fun x => f x *
+        log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x)) μˢ := by
+  -- By tower property: condExpFirstK i.castSucc f =ᵐ condExpExceptCoord i (condExpFirstK i.succ f)
+  have h_tower := condExpFirstK_tower i f hf_meas hf_nn hf_int
+
+  -- The target function is a.e. equal to f * log(condExpFirstK i.castSucc f)
+  have h_ae_eq : (fun x => f x * log (condExpFirstK (μs := μs) i.castSucc f x)) =ᵐ[μˢ]
+      (fun x => f x *
+      log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x)) := by
+    filter_upwards [h_tower] with x hx
+    rw [hx]
+
+  -- Apply integrability for f * log(condExpFirstK i.castSucc f)

@@ -1,0 +1,63 @@
+open scoped Topology
+
+/-- A smooth real cutoff equal to one on `[-1, 1]` and zero outside `(-2, 2)`. -/
+noncomputable def smoothUnitCutoff : ℝ → ℝ :=
+  (ContDiffBumpBase.ofInnerProductSpace ℝ).toFun 2
+
+/-- The unit cutoff written using Mathlib's smooth transition function. -/
+theorem smoothUnitCutoff_eq_smoothTransition (x : ℝ) :
+    smoothUnitCutoff x = Real.smoothTransition (2 - |x|) := by
+  have hden : (2 : ℝ) - 1 = 1 := by norm_num
+  simp [smoothUnitCutoff, ContDiffBumpBase.ofInnerProductSpace, Real.norm_eq_abs, hden]
+
+/-- The unit cutoff is infinitely differentiable. -/
+theorem smoothUnitCutoff_contDiff : ContDiff ℝ (⊤ : ℕ∞) smoothUnitCutoff := by
+  rw [contDiff_iff_contDiffAt]
+  intro x
+  have hmem :
+      ((2 : ℝ), x) ∈ (Set.Ioi (1 : ℝ) ×ˢ (Set.univ : Set ℝ)) := by
+    exact ⟨by norm_num, Set.mem_univ x⟩
+  have hnhds :
+      (Set.Ioi (1 : ℝ) ×ˢ (Set.univ : Set ℝ)) ∈ 𝓝 ((2 : ℝ), x) := by
+    exact (isOpen_Ioi.prod isOpen_univ).mem_nhds hmem
+  have hbase :
+      ContDiffAt ℝ (⊤ : ℕ∞)
+        (Function.uncurry (ContDiffBumpBase.ofInnerProductSpace ℝ).toFun)
+        ((2 : ℝ), x) :=
+    (ContDiffBumpBase.ofInnerProductSpace ℝ).smooth.contDiffAt hnhds
+  have hpair : ContDiffAt ℝ (⊤ : ℕ∞) (fun y : ℝ => ((2 : ℝ), y)) x :=
+    (contDiffAt_const (c := (2 : ℝ))).prodMk contDiffAt_id
+  change ContDiffAt ℝ (⊤ : ℕ∞)
+    (fun y : ℝ =>
+      Function.uncurry (ContDiffBumpBase.ofInnerProductSpace ℝ).toFun ((2 : ℝ), y)) x
+  exact hbase.comp x hpair
+
+/-- The unit cutoff is one when `|x| <= 1`. -/
+theorem smoothUnitCutoff_eq_one_of_abs_le_one {x : ℝ} (hx : |x| ≤ 1) :
+    smoothUnitCutoff x = 1 := by
+  have h : (1 : ℝ) ≤ 2 - |x| := by linarith
+  simpa [smoothUnitCutoff_eq_smoothTransition] using
+    (Real.smoothTransition.one_of_one_le (x := 2 - |x|) h)
+
+/-- The unit cutoff vanishes when `2 <= |x|`. -/
+theorem smoothUnitCutoff_eq_zero_of_two_le_abs {x : ℝ} (hx : 2 ≤ |x|) :
+    smoothUnitCutoff x = 0 := by
+  have h : 2 - |x| ≤ 0 := by linarith
+  simpa [smoothUnitCutoff_eq_smoothTransition] using
+    (Real.smoothTransition.zero_of_nonpos (x := 2 - |x|) h)
+
+/-- The unit cutoff takes values in `[0, 1]`. -/
+theorem smoothUnitCutoff_mem_Icc (x : ℝ) : smoothUnitCutoff x ∈ Set.Icc (0 : ℝ) 1 := by
+  exact (ContDiffBumpBase.ofInnerProductSpace ℝ).mem_Icc 2 x
+
+/-- The one-dimensional unit cutoff has compact support. -/
+theorem smoothUnitCutoff_hasCompactSupport : HasCompactSupport smoothUnitCutoff := by
+  apply HasCompactSupport.of_support_subset_isCompact
+    (K := Set.Icc (-2 : ℝ) 2) isCompact_Icc
+  intro x hx
+  rw [Function.mem_support] at hx
+  simp only [Set.mem_Icc]
+  constructor
+  · by_contra hleft
+    push Not at hleft
+    apply hx

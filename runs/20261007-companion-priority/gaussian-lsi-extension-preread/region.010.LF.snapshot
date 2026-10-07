@@ -1,0 +1,18 @@
+theorem exists_smooth_compactSupport_seq_tendsto_real (f : ℝ → ℝ)
+    (hf : MemW12GaussianReal f (gaussianReal 0 1))
+    (hf_diff : Differentiable ℝ f) (hf_grad_cont : Continuous (fun x => fderiv ℝ f x)) :
+    ∃ g : ℕ → (ℝ → ℝ),
+      (∀ k, ContDiff ℝ (⊤ : ℕ∞) (g k)) ∧
+      (∀ k, HasCompactSupport (g k)) ∧
+      Tendsto (fun k => GaussianSobolevNormSqReal (f - g k) (gaussianReal 0 1)) atTop (nhds 0) := by
+  -- Transform f to E 1
+  let f' := toE1Fun f
+  -- Verify hypotheses for the general theorem
+  have hf' : GaussianSobolev.MemW12Gaussian 1 f' (stdGaussianE 1) :=
+    memW12Gaussian_toE1Fun f hf hf_diff
+  have hf'_diff : Differentiable ℝ f' := differentiable_toE1Fun f hf_diff
+  have hf'_grad_cont : Continuous (fun x => fderiv ℝ f' x) :=
+    continuous_fderiv_toE1Fun f hf_diff hf_grad_cont
+  -- Apply the general density theorem
+  obtain ⟨g', hg'_smooth, hg'_supp, hg'_conv⟩ :=
+    GaussianSobolev.exists_smooth_compactSupport_seq_tendsto f' hf' hf'_diff hf'_grad_cont

@@ -1,0 +1,25 @@
+450:     **For conditional expectations:** If T = E[f | F] for some σ-algebra F,
+451:     then T > 0 on {f > 0} automatically (conditional expectation preserves
+452:     positivity on fibers). So this version applies to entropy subadditivity proofs. -/
+453: theorem entropy_ge_integral_log_real [IsProbabilityMeasure μ]
+454:     (Y : Ω → ℝ) (hY_meas : Measurable Y)
+455:     (hY_nn : 0 ≤ᵐ[μ] Y)
+456:     (hY_int : Integrable Y μ)
+457:     (hY_log_int : Integrable (fun ω => Y ω * Real.log (Y ω)) μ)
+458:     (T : Ω → ℝ) (hT_meas : Measurable T)
+459:     (hT_nn : 0 ≤ᵐ[μ] T)
+460:     (hT_int : Integrable T μ)
+461:     (hT_mean_pos : 0 < ∫ ω, T ω ∂μ)
+462:     (hT_pos_on_Y : ∀ᵐ ω ∂μ, 0 < Y ω → 0 < T ω) :
+463:     (∫ ω, Y ω * (Real.log (T ω) - Real.log (∫ ω', T ω' ∂μ)) ∂μ) ≤ entropy μ Y := by
+464:   -- When T > 0 on {Y > 0}, integralYLogT equals the Bochner integral
+465:   have h_eq := integralYLogT_of_pos_on_Y Y T hT_pos_on_Y
+466:   have h_le := entropy_ge_integral_log Y hY_meas hY_nn hY_int hY_log_int T hT_meas hT_nn hT_int hT_mean_pos
+467:   rw [h_eq] at h_le
+468:   exact EReal.coe_le_coe_iff.mp h_le
+469: 
+470: end MainTheorem
+471: 
+472: end LogSobolev
+473: 
+474: end

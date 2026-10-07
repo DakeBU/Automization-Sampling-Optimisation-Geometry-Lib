@@ -1,0 +1,29 @@
+
+/-- A binary function is integrable if the function `y ↦ f (x, y)` is integrable for almost every
+  `x` and the function `x ↦ ∫ ‖f (x, y)‖ dy` is integrable. -/
+theorem integrable_prod_iff ⦃f : α × β → E⦄ (h1f : AEStronglyMeasurable f (μ.prod ν)) :
+    Integrable f (μ.prod ν) ↔
+      (∀ᵐ x ∂μ, Integrable (fun y => f (x, y)) ν) ∧ Integrable (fun x => ∫ y, ‖f (x, y)‖ ∂ν) μ := by
+  simp [Integrable, h1f, hasFiniteIntegral_prod_iff', h1f.norm.integral_prod_right',
+    h1f.prodMk_left]
+
+/-- A binary function is integrable if the function `x ↦ f (x, y)` is integrable for almost every
+  `y` and the function `y ↦ ∫ ‖f (x, y)‖ dx` is integrable. -/
+theorem integrable_prod_iff' [SFinite μ] ⦃f : α × β → E⦄
+    (h1f : AEStronglyMeasurable f (μ.prod ν)) :
+    Integrable f (μ.prod ν) ↔
+      (∀ᵐ y ∂ν, Integrable (fun x => f (x, y)) μ) ∧ Integrable (fun y => ∫ x, ‖f (x, y)‖ ∂μ) ν := by
+  convert! integrable_prod_iff h1f.prod_swap using 1
+  rw [funext fun _ => Function.comp_apply.symm, integrable_swap_iff]
+
+theorem Integrable.prod_left_ae [SFinite μ] ⦃f : α × β → E⦄ (hf : Integrable f (μ.prod ν)) :
+    ∀ᵐ y ∂ν, Integrable (fun x => f (x, y)) μ :=
+  ((integrable_prod_iff' hf.aestronglyMeasurable).mp hf).1
+
+theorem Integrable.prod_right_ae [SFinite μ] ⦃f : α × β → E⦄ (hf : Integrable f (μ.prod ν)) :
+    ∀ᵐ x ∂μ, Integrable (fun y => f (x, y)) ν :=
+  hf.swap.prod_left_ae
+
+theorem Integrable.integral_norm_prod_left ⦃f : α × β → E⦄ (hf : Integrable f (μ.prod ν)) :
+    Integrable (fun x => ∫ y, ‖f (x, y)‖ ∂ν) μ :=
+  ((integrable_prod_iff hf.aestronglyMeasurable).mp hf).2

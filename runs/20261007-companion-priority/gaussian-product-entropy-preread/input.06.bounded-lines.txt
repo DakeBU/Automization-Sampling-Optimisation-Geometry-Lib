@@ -1,0 +1,192 @@
+1030: /-- The integral of f * (log E_{i+1}[f] - log E_i[f]) is bounded by E[Ent^{(i)}(f)].
+1031: 
+1032:     This follows from applying entropy duality on each slice (fixing all coords except i). -/
+1033: theorem term_le_expected_condEnt (i : Fin n) (f : (Fin n → Ω) → ℝ)
+1034:     (hf_meas : Measurable f)
+1035:     (hf_nn : 0 ≤ᵐ[μˢ] f)
+1036:     (hf_int : Integrable f μˢ)
+1037:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+1038:     ∫ x, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1039:                 log (condExpFirstK (μs := μs) i.castSucc f x)) ∂μˢ ≤
+1040:     ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ := by
+1041:   -- Derive integrability hypotheses from lemmas
+1042:   have hflogT_int : Integrable (fun x => f x * log (condExpFirstK (μs := μs) i.succ f x)) μˢ :=
+1043:     f_mul_log_condExpFirstK_integrable i.succ f hf_meas hf_nn hf_int hf_log_int
+1044:   have hflogET_int : Integrable (fun x => f x *
+1045:       log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x)) μˢ :=
+1046:     f_mul_log_condExpExceptCoord_condExpFirstK_integrable i f hf_meas hf_nn hf_int hf_log_int
+1047:   have hEflogET_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+1048:       log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x)) μˢ :=
+1049:     condExpExceptCoord_mul_log_condExpFirstK_integrable i f hf_meas hf_nn hf_int hf_log_int
+1050:   have hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+1051:       log (condExpExceptCoord (μs := μs) i f x)) μˢ :=
+1052:     condExpExceptCoord_mul_log_integrable i f hf_meas hf_nn hf_int hf_log_int
+1053:   have h_tower : (fun x => condExpFirstK (μs := μs) i.castSucc f x) =ᵐ[μˢ]
+1054:       (fun x => condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x) :=
+1055:     condExpFirstK_tower i f hf_meas hf_nn hf_int
+1056: 
+1057:   have h_rw : (fun x => f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1058:                           log (condExpFirstK (μs := μs) i.castSucc f x))) =ᵐ[μˢ]
+1059:               (fun x => f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1060:                      log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x))) := by
+1061:     filter_upwards [h_tower] with x hx
+1062:     rw [hx]
+1063: 
+1064:   rw [integral_congr_ae h_rw]
+1065: 
+1066:   have h_indep : ∀ x y : Fin n → Ω,
+1067:       condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x =
+1068:       condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) (Function.update x i (y i)) := by
+1069:     intro x y
+1070:     rw [condExpExceptCoord_update]
+1071: 
+1072:   -- Slice-by-slice application of entropy duality via Fubini
+1073:   have hnn_ae := ae_nonneg_slice_of_ae_nonneg i f hf_nn
+1074:   have hint_ae := integrable_update_slice i f hf_int
+1075:   have hlogint_ae := integrable_update_slice i (fun z => f z * log (f z)) hf_log_int
+1076: 
+1077:   set T := condExpFirstK (μs := μs) i.succ f with hT_def
+1078:   have hT_int : Integrable T μˢ := condExpFirstK_integrable i.succ f hf_int
+1079: 
+1080:   have hT_slice_int_ae := integrable_update_slice i T hT_int
+1081:   have h_condEnt_nonneg := integral_condEntExceptCoord_nonneg i f hf_nn hf_int hf_log_int
+1082: 
+1083:   have h_log_factor : ∀ᵐ x ∂μˢ, f x * log (condExpExceptCoord (μs := μs) i T x) =
+1084:       f x * log (condExpFirstK (μs := μs) i.castSucc f x) := by
+1085:     filter_upwards [h_tower] with x hx
+1086:     rw [← hx]
+1087: 
+1088:   have h_nonneg_ae : ∀ᵐ x ∂μˢ, 0 ≤ condEntExceptCoord (μs := μs) i f x := by
+1089:     filter_upwards [hnn_ae, hint_ae, hlogint_ae] with x hnn hint hlogint
+1090:     exact condEntExceptCoord_nonneg_at i f x hnn hint hlogint
+1091:   have h_log_const_factor : ∀ x, ∫ y, f (Function.update x i y) * log (condExpExceptCoord (μs := μs) i T x) ∂(μs i) =
+1092:       log (condExpExceptCoord (μs := μs) i T x) * condExpExceptCoord (μs := μs) i f x := by
+1093:     intro x
+1094:     have h_comm : ∀ y, f (Function.update x i y) * log (condExpExceptCoord (μs := μs) i T x) =
+1095:         log (condExpExceptCoord (μs := μs) i T x) * f (Function.update x i y) := by
+1096:       intro y; ring
+1097:     simp_rw [h_comm, integral_const_mul]
+1098:     rfl
+1099: 
+1100:   let Ef := condExpExceptCoord (μs := μs) i f
+1101:   let ET := condExpExceptCoord (μs := μs) i T
+1102:   let EflogT := condExpExceptCoord (μs := μs) i (fun x => f x * log (T x))
+1103:   let Eflogf := condExpExceptCoord (μs := μs) i (fun x => f x * log (f x))
+1104: 
+1105:   have hT_nn_ae : 0 ≤ᵐ[μˢ] T := condExpFirstK_nonneg_ae i.succ f hf_nn
+1106:   have hT_slice_nn_ae := ae_nonneg_slice_of_ae_nonneg i T hT_nn_ae
+1107:   have hflogT_slice_int_ae := integrable_update_slice i (fun z => f z * log (T z)) hflogT_int
+1108: 
+1260: /-!
+1261: ## Main Theorem: Subadditivity of Entropy
+1262: -/
+1263: 
+1264: /-- For a nonnegative measurable function f of n independent random variables,
+1265:     the entropy is bounded by the sum of expected conditional entropies:
+1266: 
+1267:     Ent(f) ≤ ∑_{i=0}^{n-1} E[Ent^{(i)}(f)] -/
+1268: theorem entropy_subadditive (f : (Fin n → Ω) → ℝ)
+1269:     (hf_meas : Measurable f)
+1270:     (hf_nn : 0 ≤ᵐ[μˢ] f)
+1271:     (hf_int : Integrable f μˢ)
+1272:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+1273:     LogSobolev.entropy μˢ f ≤ ∑ i : Fin n, ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ := by
+1274:   unfold LogSobolev.entropy
+1275: 
+1276:   rcases Nat.eq_zero_or_pos n with hn | hn
+1277:   · -- n = 0: f is constant on the trivial space, so Ent(f) = 0
+1278:     subst hn
+1279:     simp only [Fin.sum_univ_zero]
+1280:     have h_const : ∀ x y : Fin 0 → Ω, x = y := fun x y => funext (fun i => Fin.elim0 i)
+1281:     have hf_const_val : ∀ x y : Fin 0 → Ω, f x = f y := fun x y => by rw [h_const x y]
+1282:     have pt : Fin 0 → Ω := Fin.elim0
+1283:     have hf_eq_pt : ∀ x, f x = f pt := fun x => hf_const_val x pt
+1284:     have hflog_eq_pt : ∀ x, f x * log (f x) = f pt * log (f pt) := fun x => by rw [hf_eq_pt x]
+1285:     conv_lhs =>
+1286:       arg 1
+1287:       rw [integral_eq_const (Eventually.of_forall hflog_eq_pt)]
+1288:     conv_lhs =>
+1289:       arg 2
+1290:       arg 1
+1291:       rw [integral_eq_const (Eventually.of_forall hf_eq_pt)]
+1292:     conv_lhs =>
+1293:       arg 2
+1294:       arg 2
+1295:       arg 1
+1296:       rw [integral_eq_const (Eventually.of_forall hf_eq_pt)]
+1297:     ring_nf
+1298:     exact le_refl 0
+1299: 
+1300:   · -- n > 0: use telescoping + term bounds
+1301:     have h_tele := entropy_telescoping_pointwise (μs := μs) f
+1302: 
+1303:     have h_term_bound : ∀ i : Fin n,
+1304:         ∫ x, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1305:                     log (condExpFirstK (μs := μs) i.castSucc f x)) ∂μˢ ≤
+1306:         ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ := by
+1307:       intro i
+1308:       exact term_le_expected_condEnt i f hf_meas hf_nn hf_int hf_log_int
+1309: 
+1310:     have h_sum_eq_ent : ∫ x, f x * (log (f x) - log (∫ z, f z ∂μˢ)) ∂μˢ =
+1311:         ∑ i : Fin n, ∫ x, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1312:                                   log (condExpFirstK (μs := μs) i.castSucc f x)) ∂μˢ := by
+1313:       have h_ae : ∀ x, f x * (log (f x) - log (∫ z, f z ∂μˢ)) =
+1314:           ∑ i : Fin n, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1315:                                log (condExpFirstK (μs := μs) i.castSucc f x)) := h_tele
+1316:       rw [integral_congr_ae (Eventually.of_forall h_ae)]
+1317:       have h_term_int : ∀ i : Fin n, Integrable (fun x => f x *
+1318:           (log (condExpFirstK (μs := μs) i.succ f x) -
+1319:            log (condExpFirstK (μs := μs) i.castSucc f x))) μˢ := by
+1320:         intro i
+1321:         have h_tower : (fun x => condExpFirstK (μs := μs) i.castSucc f x) =ᵐ[μˢ]
+1322:             (fun x => condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x) :=
+1323:           condExpFirstK_tower i f hf_meas hf_nn hf_int
+1324:         have h_eq : (fun x => f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1325:                      log (condExpFirstK (μs := μs) i.castSucc f x))) =ᵐ[μˢ]
+1326:             (fun x => f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1327:                      log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x))) := by
+1328:           filter_upwards [h_tower] with x hx
+1329:           rw [hx]
+1330:         apply Integrable.congr _ h_eq.symm
+1331:         have h_decomp : ∀ x, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+1332:             log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x)) =
+1333:             f x * log (condExpFirstK (μs := μs) i.succ f x) -
+1334:             f x * log (condExpExceptCoord (μs := μs) i (condExpFirstK (μs := μs) i.succ f) x) := by
+1335:           intro x; ring
+1336:         simp_rw [h_decomp]
+1337:         exact Integrable.sub
+1338:           (f_mul_log_condExpFirstK_integrable i.succ f hf_meas hf_nn hf_int hf_log_int)
+1339:           (f_mul_log_condExpExceptCoord_condExpFirstK_integrable i f hf_meas hf_nn hf_int hf_log_int)
+1340:       rw [integral_finsetSum Finset.univ (fun i _ => h_term_int i)]
+1341: 
+1342:     have h_ent_eq : LogSobolev.entropy μˢ f =
+1343:         ∫ x, f x * (log (f x) - log (∫ z, f z ∂μˢ)) ∂μˢ := by
+1344:       unfold LogSobolev.entropy
+1345:       rw [sub_eq_iff_eq_add]
+1346:       have h_const_factor : ∫ x, f x * log (∫ z, f z ∂μˢ) ∂μˢ =
+1347:           log (∫ z, f z ∂μˢ) * ∫ x, f x ∂μˢ := by
+1348:         have h1 : ∫ x, f x * log (∫ z, f z ∂μˢ) ∂μˢ = ∫ x, log (∫ z, f z ∂μˢ) * f x ∂μˢ := by
+1349:           apply integral_congr_ae
+1350:           filter_upwards with x
+1351:           ring
+1352:         rw [h1, integral_const_mul]
+1353:       have h_decomp : ∫ x, f x * (log (f x) - log (∫ z, f z ∂μˢ)) ∂μˢ =
+1354:           ∫ x, f x * log (f x) ∂μˢ - ∫ x, f x * log (∫ z, f z ∂μˢ) ∂μˢ := by
+1355:         rw [← integral_sub hf_log_int]
+1356:         · apply integral_congr_ae
+1357:           filter_upwards with x
+1358:           ring
+1359:         · exact hf_int.mul_const _
+1360:       rw [h_decomp, h_const_factor]
+1361:       ring
+1362: 
+1363:     have h_goal : ∫ x, f x * log (f x) ∂μˢ - (∫ x, f x ∂μˢ) * log (∫ x, f x ∂μˢ) =
+1364:         LogSobolev.entropy μˢ f := rfl
+1365:     rw [h_goal, h_ent_eq, h_sum_eq_ent]
+1366:     apply Finset.sum_le_sum
+1367:     intro i _
+1368:     exact h_term_bound i
+1369: 
+1370: end SubAddEnt
+1371: 
+1372: end

@@ -1,0 +1,76 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+import Mathlib.Probability.Distributions.Gaussian.Real
+
+noncomputable section
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+open AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+namespace Tests.ProductEntropy
+
+/-- The actual zero density exercises zero mass and every zero fiber. -/
+theorem zero_product_entropy :
+    let γ : Measure ℝ := gaussianReal 0 1
+    let Φ : ℝ → ℝ := fun t => t * Real.log t
+    Integrable (fun _ : ℝ × ℝ => (0 : ℝ)) (γ.prod γ) ∧
+    (∫ _x : ℝ, Φ (∫ _y : ℝ, (0 : ℝ) ∂γ) ∂γ) +
+      (∫ _y : ℝ, Φ (∫ _x : ℝ, (0 : ℝ) ∂γ) ∂γ) ≤
+    (∫ _z : ℝ × ℝ, Φ 0 ∂γ.prod γ) + Φ (∫ _z : ℝ × ℝ, (0 : ℝ) ∂γ.prod γ) := by
+  have h := bounded_product_entropy_subadditivity (gaussianReal 0 1) (gaussianReal 0 1)
+    (fun _ : ℝ × ℝ => (0 : ℝ)) measurable_const (fun _ => le_refl 0) ⟨0, fun _ => le_refl 0⟩
+  exact ⟨h.1, h.2.2.2.2.2.2.2.2⟩
+
+private def g (x : ℝ) : ℝ := x * smoothUnitCutoff x
+private def signedProbe (z : ℝ × ℝ) : ℝ := g z.1 * g z.2 + (g z.1 * g z.2)^2
+private def F (z : ℝ × ℝ) : ℝ := (signedProbe z)^2
+
+/-- A concrete nonseparable squared signed compact observer. Its upper bound
+and measurability are constructed here, without entropy/domain certificates. -/
+theorem actual_compact_product_entropy :
+    let γ : Measure ℝ := gaussianReal 0 1
+    let Φ : ℝ → ℝ := fun t => t * Real.log t
+    (∫ x, Φ (∫ y, F (x, y) ∂γ) ∂γ) + (∫ y, Φ (∫ x, F (x, y) ∂γ) ∂γ) ≤
+      (∫ z, Φ (F z) ∂γ.prod γ) + Φ (∫ z, F z ∂γ.prod γ) := by
+  have cg : Continuous g := continuous_id.mul smoothUnitCutoff_contDiff.continuous
+  have sg : HasCompactSupport g := smoothUnitCutoff_hasCompactSupport.mul_left
+  obtain ⟨D, hD⟩ := sg.exists_bound_of_continuous cg
+  let K := max D 0
+  have hK : 0 ≤ K := le_max_right _ _
+  have bg (x : ℝ) : ‖g x‖ ≤ K := (hD x).trans (le_max_left _ _)
+  have bu (z : ℝ × ℝ) : ‖g z.1 * g z.2‖ ≤ K^2 := by
+    rw [norm_mul, pow_two]
+    exact mul_le_mul (bg z.1) (bg z.2) (norm_nonneg _) hK
+  have bs (z : ℝ × ℝ) : ‖signedProbe z‖ ≤ K^2 + (K^2)^2 := by
+    calc
+      ‖signedProbe z‖ ≤ ‖g z.1 * g z.2‖ + ‖(g z.1 * g z.2)^2‖ := norm_add_le _ _
+      _ ≤ K^2 + (K^2)^2 := by
+        rw [norm_pow]
+        exact add_le_add (bu z) (pow_le_pow_left₀ (norm_nonneg _) (bu z) 2)
+  have cb : ∃ C : ℝ, ∀ z, F z ≤ C := by
+    refine ⟨(K^2 + (K^2)^2)^2, ?_⟩
+    intro z
+    simpa only [F, Real.norm_eq_abs, sq_abs] using
+      pow_le_pow_left₀ (norm_nonneg (signedProbe z)) (bs z) 2
+  have mf : Measurable F := by
+    apply Continuous.measurable
+    exact ((cg.comp continuous_fst).mul (cg.comp continuous_snd) |>.add
+      (((cg.comp continuous_fst).mul (cg.comp continuous_snd)).pow 2)).pow 2
+  have h := bounded_product_entropy_subadditivity (gaussianReal 0 1) (gaussianReal 0 1)
+    F mf (fun z => sq_nonneg (signedProbe z)) cb
+  exact h.2.2.2.2.2.2.2.2
+
+/-- A genuine zero fiber of the compact observer. -/
+theorem compact_zero_fiber (y : ℝ) : F (0, y) = 0 := by simp [F, signedProbe, g]
+
+/-- The observer really changes sign, while its square is nonnegative. -/
+theorem actual_probe_signed : 0 < signedProbe (1, 1) ∧ signedProbe (1/2, -1/2) < 0 := by
+  norm_num [signedProbe, g,
+    smoothUnitCutoff_eq_one_of_abs_le_one (x := 1) (by norm_num),
+    smoothUnitCutoff_eq_one_of_abs_le_one (x := 1/2) (by norm_num),
+    smoothUnitCutoff_eq_one_of_abs_le_one (x := -1/2) (by norm_num)]
+
+#print axioms bounded_product_entropy_subadditivity
+#print axioms zero_product_entropy
+#print axioms actual_compact_product_entropy
+
+end Tests.ProductEntropy

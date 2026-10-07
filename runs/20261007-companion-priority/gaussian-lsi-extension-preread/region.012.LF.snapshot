@@ -1,0 +1,14 @@
+lemma cutoff_product_rule (f : E n → ℝ) (hf : Differentiable ℝ f) (R : ℝ) (hR : 0 < R) (x : E n) :
+    fderiv ℝ (f * smoothCutoffR R) x =
+      f x • fderiv ℝ (smoothCutoffR R) x + smoothCutoffR R x • fderiv ℝ f x := by
+  have hf_at : DifferentiableAt ℝ f x := hf x
+  have hχ_at : DifferentiableAt ℝ (smoothCutoffR R) x :=
+    (smoothCutoffR_contDiff hR).differentiable (WithTop.coe_ne_zero.mpr WithTop.top_ne_zero) x
+  exact fderiv_mul hf_at hχ_at
+
+/-- The gradient error term from (1-χ_R)·∇f converges to 0 as R → ∞. -/
+lemma cutoff_gradient_error_bound (f : E n → ℝ)
+    (hf_grad : MemLp (fun x => fderiv ℝ f x) 2 (stdGaussianE n)) :
+    Filter.Tendsto (fun R =>
+        eLpNorm (fun x => (1 - smoothCutoffR R x) • fderiv ℝ f x) 2 (stdGaussianE n))
+      Filter.atTop (nhds 0) := by

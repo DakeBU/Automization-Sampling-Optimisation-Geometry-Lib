@@ -1,0 +1,27 @@
+variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+
+/-!
+## Definition of Entropy
+-/
+
+/-- The entropy of a nonnegative function f with respect to measure μ.
+    Ent_μ(f) = ∫ f * log(f) dμ - (∫ f dμ) * log(∫ f dμ)
+
+    This measures the "spread" of f relative to a constant function with the same integral.
+    When ∫ f dμ = 1 (f is a probability density), this reduces to the negative
+    of Shannon entropy: Ent_μ(f) = ∫ f log f dμ. -/
+def entropy (μ : Measure Ω) (f : Ω → ℝ) : ℝ :=
+  ∫ ω, f ω * log (f ω) ∂μ - (∫ ω, f ω ∂μ) * log (∫ ω, f ω ∂μ)
+
+/-- Alternative notation: Ent_μ(f) -/
+notation "Ent[" f "; " μ "]" => entropy μ f
+
+/-!
+## Basic Properties
+-/
+
+/-- Entropy of a constant function is zero. -/
+theorem entropy_const (μ : Measure Ω) [IsProbabilityMeasure μ] (c : ℝ) :
+    entropy μ (fun _ => c) = 0 := by
+  simp only [entropy, integral_const, probReal_univ, smul_eq_mul, one_mul]
+  ring

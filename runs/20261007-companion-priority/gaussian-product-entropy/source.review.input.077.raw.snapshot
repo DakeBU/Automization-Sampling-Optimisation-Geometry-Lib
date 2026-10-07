@@ -1,0 +1,32 @@
+17: noncomputable section
+18: 
+19: variable {X : Type*} [MeasurableSpace X]
+20: 
+21: /-- If the explicit normalized log-ratio of two integrable exponential tilts
+22: is integrable under the left tilt, then their canonical KL divergence is
+23: finite and its real value is the integral of that explicit representative.
+24: 
+25: The integrability premise is deliberately stated for the displayed
+26: representative.  Almost-everywhere equality is used only to transfer
+27: integrability and the integral, never to transfer classical derivatives. -/
+28: theorem finite_klDiv_and_toReal_eq_integral_normalizedLogRatio
+29:     (mu : Measure X) [SigmaFinite mu] [NeZero mu] (f g : X → ℝ)
+30:     (hf : Measurable f)
+31:     (hfi : Integrable (fun x => Real.exp (f x)) mu)
+32:     (hgi : Integrable (fun x => Real.exp (g x)) mu)
+33:     (hrep : Integrable
+34:       (fun x =>
+35:         f x - Real.log (∫ z, Real.exp (f z) ∂mu) - g x +
+36:           Real.log (∫ z, Real.exp (g z) ∂mu))
+37:       (mu.tilted f)) :
+38:     InformationTheory.klDiv (mu.tilted f) (mu.tilted g) ≠ ⊤ ∧
+39:       (InformationTheory.klDiv (mu.tilted f) (mu.tilted g)).toReal =
+40:         ∫ x,
+41:           (f x - Real.log (∫ z, Real.exp (f z) ∂mu) - g x +
+42:             Real.log (∫ z, Real.exp (g z) ∂mu)) ∂(mu.tilted f) := by
+43:   let _ : IsProbabilityMeasure (mu.tilted f) := isProbabilityMeasure_tilted hfi
+44:   let _ : IsProbabilityMeasure (mu.tilted g) := isProbabilityMeasure_tilted hgi
+45:   have hae := TiltedLogRatio.llr_tilted_tilted_ae mu f g hf hfi hgi
+46:   have hac : mu.tilted f ≪ mu.tilted g :=
+47:     (tilted_absolutelyContinuous mu f).trans (absolutelyContinuous_tilted hgi)
+48:   have hllr : Integrable (MeasureTheory.llr (mu.tilted f) (mu.tilted g))

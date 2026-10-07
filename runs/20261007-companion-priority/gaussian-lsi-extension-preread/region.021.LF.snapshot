@@ -1,0 +1,16 @@
+namespace SubAddEnt
+
+variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
+variable {μs : Fin n → Measure Ω} [∀ i, IsProbabilityMeasure (μs i)]
+
+-- Product measure notation (consistent with EfronStein.lean)
+local notation "μˢ" => Measure.pi μs
+
+/-!
+## Definition of Conditional Entropy
+-/
+
+/-- Conditional entropy Ent^{(i)}(f)(x) = E^{(i)}[f log f](x) - E^{(i)}[f](x) · log(E^{(i)}[f](x)). -/
+noncomputable def condEntExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ) : (Fin n → Ω) → ℝ :=
+  fun x => condExpExceptCoord (μs := μs) i (fun z => f z * log (f z)) x -
+           condExpExceptCoord (μs := μs) i f x * log (condExpExceptCoord (μs := μs) i f x)

@@ -1,0 +1,25 @@
+/-- Relative entropy of a density `rho` with respect to its reference
+probability measure.  Mathlib's totalized `Real.log 0 = 0` gives the standard
+zero-density convention in the product `rho * log rho`. -/
+noncomputable def densityEntropy (mu : Measure E) (rho : E → ℝ) : ℝ :=
+  ∫ x, rho x * Real.log (rho x) ∂mu
+
+/-- Domain conditions for the density formulation of log-Sobolev. -/
+def LogSobolevAdmissible
+    (mu : Measure E) (generator : (E → ℝ) → E → ℝ)
+    (rho : E → ℝ) : Prop :=
+  (0 ≤ rho) ∧
+    Integrable rho mu ∧
+    (∫ x, rho x ∂mu) = 1 ∧
+    Integrable (fun x => rho x * Real.log (rho x)) mu ∧
+    Integrable (fun x => rho x * generator (fun y => Real.log (rho y)) x) mu
+
+/-- Chewi Definition 1.2.25: the density log-Sobolev inequality
+`KL(rho mu || mu) <= (C/2) E(rho, log rho)`. -/
+def SatisfiesLogSobolev
+    (mu : Measure E) (generator : (E → ℝ) → E → ℝ)
+    (C : ℝ) : Prop :=
+  IsProbabilityMeasure mu ∧ 0 < C ∧
+    ∀ rho : E → ℝ, LogSobolevAdmissible mu generator rho →
+      densityEntropy mu rho ≤
+        (C / 2) * dirichletForm mu generator rho (fun x => Real.log (rho x))

@@ -1,0 +1,85 @@
+29: namespace SubAddEnt
+30: 
+31: variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
+32: variable {μs : Fin n → Measure Ω} [∀ i, IsProbabilityMeasure (μs i)]
+33: 
+34: -- Product measure notation
+35: local notation "μˢ" => Measure.pi μs
+36: 
+37: /-! ## Key Identities -/
+38: 
+39: /-- The integral ∫ E^{(i)}[f] · log(E^{(i)}[f]) dμ. -/
+40: def integralCondExpMulLog (i : Fin n) (f : (Fin n → Ω) → ℝ) : ℝ :=
+41:   ∫ x, condExpExceptCoord (μs := μs) i f x * log (condExpExceptCoord (μs := μs) i f x) ∂μˢ
+42: 
+43: /-!
+44: ## Entropy Decomposition
+45: -/
+46: 
+47: /-- ∫ Ent^{(i)}(f) dμ = ∫ f log f dμ - ∫ E^{(i)}[f] · log(E^{(i)}[f]) dμ. -/
+48: theorem integral_condEntExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ)
+49:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+50:     (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+51:                                         log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+52:     ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ =
+53:     ∫ x, f x * log (f x) ∂μˢ - integralCondExpMulLog (μs := μs) i f := by
+54:   unfold condEntExceptCoord integralCondExpMulLog
+55:   rw [integral_sub]
+56:   · -- Apply tower property to the first integral
+57:     rw [integral_condExpExceptCoord_mul_log i f hf_log_int]
+58:   · -- E^{(i)}[f log f] is integrable
+59:     exact condExpExceptCoord_integrable i (fun z => f z * log (f z)) hf_log_int
+60:   · -- E^{(i)}[f] * log(E^{(i)}[f]) is integrable
+61:     exact hEf_log_int
+62: 
+63: /-- Ent(E^{(i)}[f]) = ∫ E^{(i)}[f] · log(E^{(i)}[f]) dμ - (∫ f dμ) · log(∫ f dμ). -/
+64: theorem entropy_condExpExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ)
+65:     (hf_int : Integrable f μˢ) :
+66:     LogSobolev.entropy μˢ (condExpExceptCoord (μs := μs) i f) =
+67:     integralCondExpMulLog (μs := μs) i f - (∫ x, f x ∂μˢ) * log (∫ x, f x ∂μˢ) := by
+68:   unfold LogSobolev.entropy integralCondExpMulLog
+69:   -- Use tower property: ∫ E^{(i)}[f] dμˢ = ∫ f dμˢ
+70:   rw [condExpExceptCoord_expectation i f hf_int]
+71: 
+72: /-- **Entropy Decomposition**: Ent(f) = E[Ent^{(i)}(f)] + Ent(E^{(i)}[f]). -/
+73: theorem entropy_decomposition (i : Fin n) (f : (Fin n → Ω) → ℝ)
+74:     (hf_int : Integrable f μˢ)
+75:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+76:     (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+77:                                         log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+78:     LogSobolev.entropy μˢ f =
+79:     ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ +
+80:     LogSobolev.entropy μˢ (condExpExceptCoord (μs := μs) i f) := by
+81:   -- LHS = ∫ f log f - (∫ f) * log(∫ f)
+82:   -- RHS = (∫ f log f - ∫ E[f] log E[f]) + (∫ E[f] log E[f] - (∫ f) * log(∫ f))
+83:   -- These are equal by cancellation
+84:   rw [integral_condEntExceptCoord i f hf_log_int hEf_log_int]
+85:   rw [entropy_condExpExceptCoord i f hf_int]
+86:   unfold LogSobolev.entropy
+87:   ring
+88: 
+89: /-!
+90: ## Corollaries
+91: -/
+92: 
+93: /-- E[Ent^{(i)}(f)] = Ent(f) - Ent(E^{(i)}[f]). -/
+94: theorem integral_condEntExceptCoord_eq_entropy_sub (i : Fin n) (f : (Fin n → Ω) → ℝ)
+95:     (hf_int : Integrable f μˢ)
+96:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+97:     (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+98:                                         log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+99:     ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ =
+100:     LogSobolev.entropy μˢ f -
+101:     LogSobolev.entropy μˢ (condExpExceptCoord (μs := μs) i f) := by
+102:   have h := entropy_decomposition i f hf_int hf_log_int hEf_log_int
+103:   linarith
+104: 
+105: /-- Nonnegativity of expected conditional entropy -/
+106: theorem integral_condEntExceptCoord_nonneg (i : Fin n) (f : (Fin n → Ω) → ℝ)
+107:     (hf_nn : 0 ≤ᵐ[μˢ] f)
+108:     (hf_int : Integrable f μˢ)
+109:     (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+110:     0 ≤ ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ := by
+111:   -- Get the slice hypotheses as a.e. statements
+112:   have hnn_ae := ae_nonneg_slice_of_ae_nonneg i f hf_nn
+113:   have hint_ae := integrable_update_slice i f hf_int

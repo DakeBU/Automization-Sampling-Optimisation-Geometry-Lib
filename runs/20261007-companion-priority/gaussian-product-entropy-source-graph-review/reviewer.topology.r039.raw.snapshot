@@ -1,0 +1,28 @@
+/-- Dimension-free Gaussian log-Sobolev inequality: `Ent_μ(g²) ≤ 2∫‖∇g‖² dμ`. -/
+theorem gaussian_logSobolev_W12_pi {n : ℕ} {g : (Fin n → ℝ) → ℝ}
+    (hg : MemW12GaussianPi n g (GaussianMeasure.stdGaussianPi n))
+    (hg_diff : Differentiable ℝ g)
+    (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+    (hg_log_int :
+      Integrable (fun x => (g x)^2 * log ((g x)^2)) (GaussianMeasure.stdGaussianPi n)) :
+    LogSobolev.entropy (GaussianMeasure.stdGaussianPi n) (fun x => (g x)^2) ≤
+      2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) := by
+  have hf_meas : Measurable (fun x => (g x)^2) :=
+    hg_diff.continuous.measurable.pow_const 2
+  have hf_nn : 0 ≤ᵐ[GaussianMeasure.stdGaussianPi n] (fun x => (g x)^2) :=
+    Eventually.of_forall (fun x => sq_nonneg (g x))
+  have hf_int : Integrable (fun x => (g x)^2) (GaussianMeasure.stdGaussianPi n) :=
+    (hg.1).integrable_sq
+  have h_subadd :=
+    SubAddEnt.entropy_subadditive (μs := fun _ : Fin n => gaussianReal 0 1)
+      (f := fun x => (g x)^2) hf_meas hf_nn hf_int (by
+        simpa [GaussianMeasure.stdGaussianPi] using hg_log_int)
+  have h_bound :=
+    sum_expected_condEnt_le_grad_norm n g hg hg_diff hg_grad_cont hg_log_int
+  calc
+    LogSobolev.entropy (GaussianMeasure.stdGaussianPi n) (fun x => (g x)^2)
+        ≤ ∑ i : Fin n,
+            ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+              (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) := by
+          simpa [GaussianMeasure.stdGaussianPi] using h_subadd
+    _ ≤ 2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) := h_bound

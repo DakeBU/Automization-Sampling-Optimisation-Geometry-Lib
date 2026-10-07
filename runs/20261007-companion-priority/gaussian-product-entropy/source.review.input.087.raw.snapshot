@@ -1,0 +1,36 @@
+120: 
+121: set_option backward.isDefEq.respectTransparency false in
+122: lemma covarianceBilin_stdGaussian :
+123:     covarianceBilin (stdGaussian E) = innerSL ℝ := by
+124:   refine gaussian_charFun_congr 0 _ ?_ ?_ |>.2.symm
+125:   · exact LinearMap.BilinForm.isPosSemidef_iff.2 isPosSemidef_inner
+126:   · simp [charFun_stdGaussian, neg_div, innerSL_apply_apply ℝ]
+127: 
+128: lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
+129:     [BorelSpace F] (f : E ≃ₗᵢ[ℝ] F) :
+130:     haveI := f.finiteDimensional; (stdGaussian E).map f = stdGaussian F := by
+131:   have := f.finiteDimensional
+132:   apply Measure.ext_of_charFunDual
+133:   ext L
+134:   simp_rw [show ⇑f = f.toContinuousLinearEquiv.toContinuousLinearMap from rfl, charFunDual_map,
+135:     charFunDual_stdGaussian, L.opNorm_comp_linearIsometryEquiv]
+136: 
+137: lemma map_pi_eq_stdGaussian :
+138:     (Measure.pi (fun _ ↦ gaussianReal 0 1)).map (toLp 2) = stdGaussian (EuclideanSpace ℝ ι) := by
+139:   apply Measure.ext_of_charFun (E := EuclideanSpace ℝ ι)
+140:   ext t
+141:   simp_rw [charFun_stdGaussian, charFun_pi, charFun_gaussianReal, ← exp_sum, ← ofReal_pow,
+142:     EuclideanSpace.real_norm_sq_eq]
+143:   simp [Finset.sum_div, neg_div]
+144: 
+145: /-- The definition of `stdGaussian` does not depend on the basis. -/
+146: lemma stdGaussian_eq_map_pi_orthonormalBasis (b : OrthonormalBasis ι ℝ E) :
+147:     stdGaussian E = (Measure.pi fun _ : ι ↦ gaussianReal 0 1).map (fun x ↦ ∑ i, x i • b i) := by
+148:   have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
+149:       ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) ∘ (toLp 2) := by
+150:     simp_rw [← b.equiv_apply_euclideanSpace]
+151:     rfl
+152:   rw [this, ← Measure.map_map, map_pi_eq_stdGaussian, stdGaussian_map]
+153:   all_goals fun_prop
+154: 
+155: end stdGaussian

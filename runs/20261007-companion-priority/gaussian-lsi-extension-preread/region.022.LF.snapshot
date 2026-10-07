@@ -1,0 +1,37 @@
+/-- Standard Gaussian product measure: the product of n independent standard Gaussians N(0,1) -/
+noncomputable def stdGaussianPi (n : ℕ) : Measure (Fin n → ℝ) :=
+  Measure.pi fun _ : Fin n => gaussianReal 0 1
+
+/-! ## Gaussian Measure Properties -/
+
+/-- `stdGaussianPi` is a probability measure. -/
+instance stdGaussianPi_isProbabilityMeasure : IsProbabilityMeasure (stdGaussianPi n) := by
+  unfold stdGaussianPi
+  infer_instance
+
+/-- `stdGaussianPi` is a finite measure. -/
+instance stdGaussianPi_isFiniteMeasure : IsFiniteMeasure (stdGaussianPi n) :=
+  inferInstance
+
+/-- `stdGaussianPi` is sigma-finite. -/
+instance stdGaussianPi_isSigmaFinite : SigmaFinite (stdGaussianPi n) := by
+  unfold stdGaussianPi
+  infer_instance
+
+/-! ## Standard Gaussian on EuclideanSpace -/
+
+/-- The standard Gaussian on EuclideanSpace as pushforward of stdGaussianPi via the equivalence. -/
+noncomputable def stdGaussianE (n : ℕ) : Measure (EuclideanSpace ℝ (Fin n)) :=
+  Measure.map (EuclideanSpace.equiv (Fin n) ℝ).symm (stdGaussianPi n)
+
+/-- `stdGaussianE` is a probability measure. -/
+instance stdGaussianE_isProbabilityMeasure : IsProbabilityMeasure (stdGaussianE n) := by
+  unfold stdGaussianE
+  apply MeasureTheory.Measure.isProbabilityMeasure_map
+  exact (EuclideanSpace.equiv (Fin n) ℝ).symm.continuous.measurable.aemeasurable
+
+/-- Transfer of integrals: integrating f over stdGaussianE equals integrating f ∘ e.symm over stdGaussianPi. -/
+lemma integral_stdGaussianE_eq (f : EuclideanSpace ℝ (Fin n) → ℝ) :
+    ∫ x, f x ∂(stdGaussianE n) = ∫ w, f ((EuclideanSpace.equiv (Fin n) ℝ).symm w) ∂(stdGaussianPi n) := by
+  unfold stdGaussianE
+  exact integral_map_equiv (EuclideanSpace.equiv (Fin n) ℝ).symm.toHomeomorph.toMeasurableEquiv f

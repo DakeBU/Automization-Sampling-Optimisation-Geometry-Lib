@@ -1,0 +1,67 @@
+63:     klDiv μ ν = ENNReal.ofReal (∫ x, llr μ ν x ∂μ + ν.real univ - μ.real univ) := by
+64:   rw [klDiv_def]
+65:   exact if_pos ⟨h1, h2⟩
+66: 
+67: @[simp]
+68: lemma klDiv_of_not_ac (h : ¬ μ ≪ ν) : klDiv μ ν = ∞ := by
+69:   rw [klDiv_def]
+70:   exact if_neg (not_and_of_not_left _ h)
+71: 
+72: @[simp]
+73: lemma klDiv_of_not_integrable (h : ¬ Integrable (llr μ ν) μ) : klDiv μ ν = ∞ := by
+74:   rw [klDiv_def]
+75:   exact if_neg (not_and_of_not_right _ h)
+76: 
+77: @[simp]
+78: lemma klDiv_self (μ : Measure α) [SigmaFinite μ] : klDiv μ μ = 0 := by
+79:   have h := llr_self μ
+80:   rw [klDiv_def, if_pos]
+81:   · simp [integral_congr_ae h]
+82:   · rw [integrable_congr h]
+83:     exact ⟨Measure.AbsolutelyContinuous.rfl, integrable_zero _ _ μ⟩
+84: 
+85: @[simp]
+86: lemma klDiv_zero_left [IsFiniteMeasure ν] : klDiv 0 ν = ν univ := by
+87:   convert! klDiv_of_ac_of_integrable (Measure.AbsolutelyContinuous.zero _) integrable_zero_measure
+88:   simp
+89: 
+90: @[simp]
+91: lemma klDiv_zero_right [NeZero μ] : klDiv μ 0 = ∞ :=
+92:   klDiv_of_not_ac (Measure.absolutelyContinuous_zero_iff.mp.mt (NeZero.ne _))
+93: 
+94: lemma klDiv_eq_top_iff : klDiv μ ν = ∞ ↔ μ ≪ ν → ¬ Integrable (llr μ ν) μ := by
+95:   constructor <;> intro h
+96:   · contrapose! h
+97:     simp [klDiv_of_ac_of_integrable h.1 h.2]
+98:   · rcases or_not_of_imp h with (h | h) <;> simp [h]
+99: 
+100: lemma klDiv_ne_top_iff : klDiv μ ν ≠ ∞ ↔ μ ≪ ν ∧ Integrable (llr μ ν) μ := by
+101:   simp [ne_eq, klDiv_eq_top_iff]
+102: 
+103: lemma klDiv_ne_top (hμν : μ ≪ ν) (h_int : Integrable (llr μ ν) μ) : klDiv μ ν ≠ ∞ :=
+104:   klDiv_ne_top_iff.mpr ⟨hμν, h_int⟩
+105: 
+106: section AlternativeFormulas
+107: 
+108: variable [IsFiniteMeasure μ] [IsFiniteMeasure ν]
+151: is also nonnegative. -/
+152: lemma integral_llr_add_sub_measure_univ_nonneg (hμν : μ ≪ ν) (h_int : Integrable (llr μ ν) μ) :
+153:     0 ≤ ∫ x, llr μ ν x ∂μ + ν.real univ - μ.real univ := by
+154:   rw [← integral_klFun_rnDeriv hμν h_int]
+155:   exact integral_nonneg fun x ↦ klFun_nonneg ENNReal.toReal_nonneg
+156: 
+157: lemma toReal_klDiv (h : μ ≪ ν) (h_int : Integrable (llr μ ν) μ) :
+158:     (klDiv μ ν).toReal = ∫ a, llr μ ν a ∂μ + ν.real univ - μ.real univ := by
+159:   rw [klDiv_of_ac_of_integrable h h_int, ENNReal.toReal_ofReal]
+160:   exact integral_llr_add_sub_measure_univ_nonneg h h_int
+161: 
+162: /-- If `μ ≪ ν` and `μ univ = ν univ`, then `toReal` of the Kullback-Leibler divergence is equal to
+163: an integral, without any integrability condition. -/
+164: lemma toReal_klDiv_of_measure_eq (h : μ ≪ ν) (h_eq : μ univ = ν univ) :
+165:     (klDiv μ ν).toReal = ∫ a, llr μ ν a ∂μ := by
+166:   by_cases h_int : Integrable (llr μ ν) μ
+167:   · simp [toReal_klDiv h h_int, h_eq, measureReal_def]
+168:   · rw [klDiv_of_not_integrable h_int, integral_undef h_int, ENNReal.toReal_top]
+169: 
+170: lemma toReal_klDiv_eq_integral_klFun (h : μ ≪ ν) :
+171:     (klDiv μ ν).toReal = ∫ x, klFun (μ.rnDeriv ν x).toReal ∂ν := by

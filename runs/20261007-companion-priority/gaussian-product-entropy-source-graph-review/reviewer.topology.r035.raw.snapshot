@@ -1,0 +1,23 @@
+  rcases Nat.eq_zero_or_pos n with hn | hn
+  · -- n = 0: f is constant on the trivial space, so Ent(f) = 0
+    subst hn
+    simp only [Fin.sum_univ_zero]
+    have h_const : ∀ x y : Fin 0 → Ω, x = y := fun x y => funext (fun i => Fin.elim0 i)
+    have hf_const_val : ∀ x y : Fin 0 → Ω, f x = f y := fun x y => by rw [h_const x y]
+    have pt : Fin 0 → Ω := Fin.elim0
+    have hf_eq_pt : ∀ x, f x = f pt := fun x => hf_const_val x pt
+    have hflog_eq_pt : ∀ x, f x * log (f x) = f pt * log (f pt) := fun x => by rw [hf_eq_pt x]
+    conv_lhs =>
+      arg 1
+      rw [integral_eq_const (Eventually.of_forall hflog_eq_pt)]
+    conv_lhs =>
+      arg 2
+      arg 1
+      rw [integral_eq_const (Eventually.of_forall hf_eq_pt)]
+    conv_lhs =>
+      arg 2
+      arg 2
+      arg 1
+      rw [integral_eq_const (Eventually.of_forall hf_eq_pt)]
+    ring_nf
+    exact le_refl 0

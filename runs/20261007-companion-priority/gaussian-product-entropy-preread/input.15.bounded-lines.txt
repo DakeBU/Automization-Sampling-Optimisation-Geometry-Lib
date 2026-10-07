@@ -1,0 +1,31 @@
+188: theorem ConcaveOn.le_map_set_average (hg : ConcaveOn ℝ s g) (hgc : ContinuousOn g s)
+189:     (hsc : IsClosed s) (h0 : μ t ≠ 0) (ht : μ t ≠ ∞) (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s)
+190:     (hfi : IntegrableOn f t μ) (hgi : IntegrableOn (g ∘ f) t μ) :
+191:     (⨍ x in t, g (f x) ∂μ) ≤ g (⨍ x in t, f x ∂μ) :=
+192:   (hg.set_average_mem_hypograph hgc hsc h0 ht hfs hfi hgi).2
+193: 
+194: /-- **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex closed
+195: set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.  points
+196: to `s`, then the value of `g` at the expected value of `f` is less than or equal to the expected
+197: value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
+198: `ConvexOn.map_centerMass_le` for a finite sum version of this lemma. -/
+199: theorem ConvexOn.map_integral_le [IsProbabilityMeasure μ] (hg : ConvexOn ℝ s g)
+200:     (hgc : ContinuousOn g s) (hsc : IsClosed s) (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : Integrable f μ)
+201:     (hgi : Integrable (g ∘ f) μ) : g (∫ x, f x ∂μ) ≤ ∫ x, g (f x) ∂μ := by
+202:   simpa only [average_eq_integral] using hg.map_average_le hgc hsc hfs hfi hgi
+203: 
+204: /-- **Jensen's inequality**: if a function `g : E → ℝ` is concave and continuous on a convex closed
+205: set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.  points
+206: to `s`, then the expected value of `g ∘ f` is less than or equal to the value of `g` at the expected
+207: value of `f` provided that both `f` and `g ∘ f` are integrable. -/
+208: theorem ConcaveOn.le_map_integral [IsProbabilityMeasure μ] (hg : ConcaveOn ℝ s g)
+209:     (hgc : ContinuousOn g s) (hsc : IsClosed s) (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : Integrable f μ)
+210:     (hgi : Integrable (g ∘ f) μ) : (∫ x, g (f x) ∂μ) ≤ g (∫ x, f x ∂μ) := by
+211:   simpa only [average_eq_integral] using hg.le_map_average hgc hsc hfs hfi hgi
+212: 
+213: /-!
+214: ### Strict Jensen's inequality
+215: -/
+216: 
+217: 
+218: /-- If `f : α → E` is an integrable function, then either it is a.e. equal to the constant

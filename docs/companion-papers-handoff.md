@@ -1,5 +1,35 @@
 # Companion-paper formalization handoff
 
+## Actual noncompact C2 Gaussian LSI (2026-10-07)
+
+The actual noncompact stdGaussian function LSI is independently VERIFIED at 13556ea0eccd0069b83e7f7cb452a4ac7d7105ea.
+Exact691-byte statement admits every finite complete real Hilbert/Borel E including rank0,
+signed C2 f, genuine fL2/true-gradientL2/Phi(f²)L1. Homogeneous entropy <=2 true gradient
+energy retains zero mass. Five private providers prove zero-aware entropy dilation, product
+gradient, cutoff energy bound/eventual gradient plateau and three real DCT integral limits;
+actual compact41 plus continuous massPhi/closed-order passage retain the coefficient.
+No supplied compactness, positivity, normalization, law, limit or desired-bound certificates.
+
+Actual32 supplies the SAME uncut exp(-rho/2)/sqrtZ domains; its genuine posterior Test and
+generic zero/signed constant mass4 Tests pass. Focused3813, independent wholemath/reachability,
+freshblind42, anti-anchored source and exactcommit verification passed, four standard3 axiom
+sets;280ASTIS/Test constants35modules fake0. Source topology436nodes803edges2OR with720 named
+uses preceded proof. Original representation rejection/repair/count correction and one-field
+reviewer API-span correction remain preserved and independently checked.
+
+Serialized shared integration adds Registry486 and production/Test imports. Seven formulas
+and folded actual Lean enter the original companion. Shared gate, reader/graph/repository and
+Exposition seals, full inline private/Test/copy/download/browser, deployment/live/main and
+postmerge PURIFIED remain distinct.
+
+Next mathematical edge aligns actual32/33 witnesses by uniqueness and transports rho/Z/q/f
+AND actual standardized RGO law before canonical KL<=Fisher/2. GaussianT2/W2/FIRST4.6,
+fullW12, SPHMC smoothing/Picard/Wp/proxy-warmness, PBPS reflection/invariance/nonexplosion/
+discrete hypocoercivity/implementation error/cost, both full mains and actual-input expected
+query-cost composition remain OPEN. TV proximity does not transfer unbounded costs. Older
+Chewi/SampleWiki/frontier/cycle/memory, original PhaseKernel sole stabilization owner,
+draftPR313 and single whole-paper Goal remain preserved.
+
 ## Actual compact finite-Hilbert Gaussian LSI (2026-10-07)
 
 The compact stdGaussian function LSI is independently VERIFIED at 8c44529058e9a7e3ad58951550f45785639d5036.

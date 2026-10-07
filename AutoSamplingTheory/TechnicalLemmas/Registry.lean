@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.noncompact-logSobolev"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev.gaussian_logSobolev_of_contDiff"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI; actual compact41 plus cutoff/DCT"
+    upstreamFile := "Mathlib db584cd6 real DCT, Riesz gradient, mul-log and cutoff"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "log-Sobolev", "Hilbert", "gradient", "SPHMC"]
+    saldUse := "SPHMC Gaussian background/raw posterior; no SALD admission"
+    note := "Actual noncompact C2 Gaussian function LSI, true stdGaussian E and Riesz gradient. Genuine fL2/gradientL2/PhiL1 domains. Actual radial cutoff/product-gradient/zero-aware entropy domination, three internal real DCT limits and closed-order passage retain2, signed/zero/rank0. Actual32 raw posterior consumer. Same33 canonicalKL/Fisher, T2/FIRST/fullW12/main/cost remain open. Independently verified 13556ea0eccd0069b83e7f7cb452a4ac7d7105ea."
+  },
+  {
     key := "gaussian.compact-hilbert-logSobolev"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev"
     upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI; actual ASTIS40 with canonical Hilbert transport"

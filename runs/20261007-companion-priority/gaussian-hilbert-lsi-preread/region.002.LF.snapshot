@@ -1,0 +1,33 @@
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- Scaling the standard Gaussian by `sqrt η` gives the explicit isotropic
+Gaussian density relative to the canonical volume measure of `E`. The inverse
+square-root normalizer is raised to the natural-number dimension, so the
+statement also includes the zero-dimensional space without a separate case. -/
+theorem map_sqrt_smul_stdGaussian_eq_withDensity (η : ℝ) (hη : 0 < η) :
+    (stdGaussian E).map (fun z : E => Real.sqrt η • z) =
+      (volume : Measure E).withDensity (fun z =>
+        ENNReal.ofReal
+          (((Real.sqrt (2 * Real.pi * η))⁻¹) ^ Module.finrank ℝ E *
+            Real.exp (-‖z‖ ^ 2 / (2 * η)))) := by
+  classical
+  let ι := Fin (Module.finrank ℝ E)
+  let b := stdOrthonormalBasis ℝ E
+  let v : ℝ≥0 := ⟨η, hη.le⟩
+  have hvcoe : (v : ℝ) = η := rfl
+  have hv : v ≠ 0 := by
+    intro h
+    have : η = 0 := congrArg (fun x : ℝ≥0 => (x : ℝ)) h
+    exact hη.ne' this
+  let e : (ι → ℝ) ≃ᵐ E :=
+    (MeasurableEquiv.toLp 2 (ι → ℝ)).trans b.measurableEquiv.symm
+  let T : (ι → ℝ) → (ι → ℝ) := fun x i => Real.sqrt η * x i
+  have he (x : ι → ℝ) : e x = ∑ i, x i • b i := by
+    exact (b.sum_repr_symm (WithLp.toLp 2 x)).symm
+  have hstd : stdGaussian E =
+      (Measure.pi (fun _ : ι => gaussianReal 0 1)).map e := by
+    rw [stdGaussian_eq_map_pi_orthonormalBasis b]
+    congr 1
+    funext x
+    exact (he x).symm

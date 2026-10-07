@@ -1,0 +1,34 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance
+import AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation
+import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection
+import Mathlib.Probability.Kernel.MeasurableIntegral
+import Mathlib.Probability.Kernel.Composition.IntegralCompProd
+import Mathlib.Analysis.Calculus.FDeriv.Measurable
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace NNReal ContDiff
+set_option autoImplicit false
+noncomputable section
+example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α η : ℝ} (hα : 0 < α) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E, α * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a)
+    (hη : 0 < η) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure J.snd := by
+  dsimp only
+  obtain ⟨hZ,hJ,_⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation.normalized_augmentation_density
+      hα hV hH hη
+  have hi : Integrable (fun x => Real.exp (-V x)) (volume : Measure E) := by
+    by_contra hn
+    exact (ne_of_gt hZ) (integral_undef hn)
+  have hμ := isProbabilityMeasure_tilted hi
+  letI := hJ
+  exact ⟨hμ,hJ,inferInstance⟩
+#check MeasureTheory.MemLp.integrable_sq
+#check MeasureTheory.Integrable.mono_nonneg
+#check MeasureTheory.MemLp.norm
+#check MeasureTheory.memLp_two_iff_integrable_sq_norm
+#check MeasureTheory.Measure.fst_map_swap

@@ -1,0 +1,8 @@
+
+namespace MeasureTheory.Measure
+variable (ρ : Measure (α × Ω)) (ρCond : Kernel α Ω)
+
+/-- A kernel `ρCond` is a conditional kernel for a measure `ρ` if it disintegrates it in the sense
+that `ρ.fst ⊗ₘ ρCond = ρ`. -/
+class IsCondKernel : Prop where
+  disintegrate : ρ.fst ⊗ₘ ρCond = ρ

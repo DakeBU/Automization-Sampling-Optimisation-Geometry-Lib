@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS macroscopic block energy (2026-10-08)
+
+The exact2907-byte sealed statement is independently VERIFIED at
+864ff305b78030d9e1c840938e82fefcf4185515. On the actual joint law J it produces one common genuine
+reflection U and conditional projection P, with A=PUP, B=(I-P)UP,
+D=(I-P)U(I-P). For each signed smooth compact f, g=[f o snd], Pg=g,
+Ag=[Tf o snd], both genuine squared norms are the corresponding nu second
+moments, and integral Var(S_y,f) dnu = ||Bg||^2. The sharp smooth energy is
+eta integral |gradient Tf|^2 dnu <= (1-alpha eta)^2/[4(1+alpha eta)] ||Bg||^2.
+Actual reflected-pair disintegration and AE kernel uniqueness identify only
+means/L2 classes; pointwise derivatives remain those of the original literal Tf.
+Global C2 Hessian bounds, 0<alpha<=beta, eta>0 and beta eta<=1 are unchanged.
+Finite Hilbert/rank0 and A/B/D aliases are disclosed authored elaborations.
+
+Focused3891, whole mathematical review, fresh source-blind50 reconstruction,
+own-primary-first source0 review and separate one-label metadata-only source1
+repair review, then exact-commit verification, passed in their recorded scopes.
+The original source0 provenance negative is preserved: its direct Mathlib
+label was corrected from IsCondKernel.disintegrate to Measure.disintegrate.
+Header, whole proof, Tests, eight formula steps and native decoder were unchanged.
+Gaussian precision gives zero true gradient energy. The rank0 noncentered
+constant has norm-square one and Ag=g; its block/variance/energy vanish.
+Three printed closures contain only standard3 axioms. All compiler/API and
+source-topology negatives and separately accepted repairs are preserved.
+
+Registry491/root imports enter through the original PhaseKernel sole serialized
+lane. Aggregate50, graph/reader seals, main merge/live and postmerge PURIFIED
+remain separate pending checks. Aggregate49/ProofSeal49/ExpositionSeal49 passed
+in their scopes and all four remote88 workflows completed successfully.
+
+Next bounded edge is selected from exact primary-source/pinned API pre-read:
+produce actual closed-gradient/H1 domain extension or the real positive-root
+Gamma adapter, without inserting their certificates as public premises.
+Full PBPS rough domain/half-turn/hypocoercivity/event nonexplosion/implementation
+error/expected cost, SPHMC main algorithms/proxy-warmness and actual-input
+composition remain OPEN. Gaussian Cloud and midpoint follow the existing four
+paper Goal; older Chewi/frontiers/cycles/memory remain preserved. TV proximity
+does not transfer unbounded expected costs. This SAU completes no paper or Goal.
+
 ## Actual PBPS smooth outer gradient energy (2026-10-08)
 
 The smooth compact C.2 integral ingredient is independently VERIFIED at

@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.reflectedConditional.macroscopicBlockEnergy"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks"
+    upstreamDecl := "PBPS Appendix B.1-B.9 genuine joint blocks and C.1 C.2 smooth energy"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "macroscopic-energy", "joint-blocks", "variance-defect"]
+    saldUse := "PBPS actual macroscopic block energy; no SALD admission"
+    note := "Actual same J/nu/Lambda/R/S and joint L2 conditional projection P and selfadjoint involution U. Produce actual A=PUP, B=(I-P)UP, D=(I-P)U(I-P), block adjoint identities and norm defect. For every signed smooth compact f, produce true differentiability/all L2/L1 domains, g=[f o snd], Pg=g, Ag=[Tf o snd], genuine second moments and integrated conditional variance=normBg squared. Sharp eta integral gradientTf squared <= (1-alpha eta)^2/[4(1+alpha eta)] normBg squared. AE S=S0 only transports means/classes, no derivative version transport. Positive alpha<=beta, global C2 Hessian bounds, eta>0 and beta eta<=1; finite Hilbert/rank0 extension explicit. No supplied law/operator/domain/bound or centering certificate. Full rough H1/closed-gradient/Gamma/half-turn/mains/errors/cost/composition remain separate. Independently verified 864ff305b78030d9e1c840938e82fefcf4185515."
+  },
+  {
     key := "pbps.reflectedConditional.outerGradientEnergy"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy"
     upstreamDecl := "PBPS Appendix C.1 formula C.2 smooth compact outer energy; B.9 variance defect"

@@ -1,0 +1,49 @@
+/-
+Copyright (c) 2026 Yuanhe Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuanhe Zhang, Jason D. Lee, Fanghui Liu
+-/
+import SLT.GaussianPoincare.Limit
+import SLT.GaussianLSI.BernoulliLSI
+
+/-!
+# 1-Dimensional Gaussian Log-Sobolev Inequality
+
+This file proves the 1-dimensional Gaussian log-Sobolev inequality for compactly
+supported smooth functions by taking the limit of the Bernoulli log-Sobolev inequality.
+
+## Main results
+
+* `gaussian_logSobolev_CompSmo`: For `f ∈ C_c²(ℝ)` and `X ~ N(0,1)`:
+  `Ent_μ(f²) ≤ 2 · E[f'(X)²]`
+
+## Proof strategy
+
+We pass n → ∞ in the Bernoulli log-Sobolev inequality:
+  `Ent_{S_{n+1}}(f²) ≤ (1/2) · ∑ᵢ E[(f(S_{n+1}) - f(S_{n+1} with coord i flipped))²]`
+
+By the CLT, the law of `S_{n+1}` converges weakly to `N(0,1)`. We have:
+- `tendsto_entropy_f_sq`: The LHS converges to `Ent_{N(0,1)}(f²)`
+- `tendsto_sum_sq_shifted_four_deriv_sq`: The RHS sum converges to `4 · E[f'(X)²]`
+
+Taking the limit of the inequality yields:
+  `Ent_{N(0,1)}(f²) ≤ (1/2) · 4 · E[f'(X)²] = 2 · E[f'(X)²]`
+-/
+
+noncomputable section
+
+open MeasureTheory ProbabilityTheory Real Filter Set Function Topology
+open scoped ENNReal Topology
+
+open EfronSteinApp GaussianPoincare BernoulliLSI
+
+namespace GaussianLSI
+
+/-- **1-Dimensional Gaussian Log-Sobolev Inequality for Compactly Supported Smooth Functions**
+
+For f ∈ C_c²(ℝ) (compactly supported, twice continuously differentiable), the entropy
+of f² under the standard Gaussian measure is bounded by twice the expected squared derivative:
+
+  Ent_{N(0,1)}(f²) ≤ 2 · E[f'(X)²]
+
+where Ent_μ(g) = ∫ g log g dμ - (∫ g dμ) log(∫ g dμ). -/

@@ -1,0 +1,23 @@
+lemma sq_mul_log_sq_bounded_of_compactlySupported {f : ℝ → ℝ}
+    (hf : CompactlySupportedSmooth f) :
+    ∃ M : ℝ, ∀ x : ℝ, |(f x)^2 * Real.log ((f x)^2)| ≤ M := by
+  obtain ⟨C, hC⟩ := hf.bounded
+  have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (hC 0)
+  -- Get bound M on x * log x for x ∈ [0, C²]
+  obtain ⟨M, hM⟩ := mul_log_bounded_on_Icc C hCnonneg
+  use M
+  intro x
+  -- (f x)² ∈ [0, C²] since |f x| ≤ C
+  have hfx_bound : (f x)^2 ∈ Set.Icc 0 (C^2) := by
+    constructor
+    · exact sq_nonneg _
+    · have h := hC x
+      rw [Real.norm_eq_abs] at h
+      have habs : |f x| ≤ C := h
+      calc (f x)^2 = |f x|^2 := (sq_abs (f x)).symm
+        _ ≤ C^2 := by
+          apply sq_le_sq'
+          · calc -C ≤ 0 := neg_nonpos_of_nonneg hCnonneg
+              _ ≤ |f x| := abs_nonneg _
+          · exact habs
+  exact hM _ hfx_bound

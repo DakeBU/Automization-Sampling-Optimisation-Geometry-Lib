@@ -1,0 +1,31 @@
+
+
+section Support
+
+open Function
+
+theorem HasStrictDerivAt.of_notMem_tsupport (h : x ∉ tsupport f) : HasStrictDerivAt f 0 x := by
+  rw [notMem_tsupport_iff_eventuallyEq] at h
+  exact (hasStrictDerivAt_const x 0).congr_of_eventuallyEq h.symm
+
+theorem HasDerivAt.of_notMem_tsupport (h : x ∉ tsupport f) : HasDerivAt f 0 x :=
+  (HasStrictDerivAt.of_notMem_tsupport h).hasDerivAt
+
+theorem HasDerivWithinAt.of_notMem_tsupport {s : Set 𝕜} (h : x ∉ tsupport f) :
+    HasDerivWithinAt f 0 s x :=
+  (HasDerivAt.of_notMem_tsupport h).hasDerivWithinAt
+
+theorem deriv_of_notMem_tsupport (h : x ∉ tsupport f) : deriv f x = 0 := by
+  rw [notMem_tsupport_iff_eventuallyEq] at h
+  simp [h.deriv_eq]
+
+theorem support_deriv_subset : support (deriv f) ⊆ tsupport f := fun x ↦ by
+  rw [← not_imp_not, notMem_support]
+  exact deriv_of_notMem_tsupport
+
+theorem tsupport_deriv_subset : tsupport (deriv f) ⊆ tsupport f :=
+  closure_minimal support_deriv_subset isClosed_closure
+
+protected theorem HasCompactSupport.deriv (hf : HasCompactSupport f) :
+    HasCompactSupport (deriv f) :=
+  hf.mono' support_deriv_subset

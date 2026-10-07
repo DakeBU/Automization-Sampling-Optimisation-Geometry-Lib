@@ -1,0 +1,18 @@
+def compactlySupportedSqToBCF {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    BoundedContinuousFunction ℝ ℝ :=
+  let C := Classical.choose hf.bounded
+  BoundedContinuousFunction.ofNormedAddCommGroup (fun x => (f x)^2)
+    (hf.continuous.pow 2) (C^2) (fun x => by
+      simp only [Real.norm_eq_abs]
+      rw [abs_pow]
+      have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (Classical.choose_spec hf.bounded 0)
+      have habs := Classical.choose_spec hf.bounded x
+      rw [Real.norm_eq_abs] at habs
+      refine sq_le_sq' ?_ habs
+      calc -C ≤ 0 := neg_nonpos_of_nonneg hCnonneg
+           _ ≤ |f x| := abs_nonneg _)
+
+lemma compactlySupportedSqToBCF_apply {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    compactlySupportedSqToBCF hf x = (f x)^2 := by
+  simp only [compactlySupportedSqToBCF]
+  rw [BoundedContinuousFunction.coe_ofNormedAddCommGroup]

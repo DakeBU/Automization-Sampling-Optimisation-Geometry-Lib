@@ -1,0 +1,32 @@
+
+/-- The derivative of a C_c² function is also bounded continuous. -/
+def derivToBCF {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    BoundedContinuousFunction ℝ ℝ :=
+  let C := Classical.choose (deriv_bounded_of_compactlySupported hf)
+  BoundedContinuousFunction.ofNormedAddCommGroup (deriv f)
+    (deriv_continuous_of_compactlySupported hf) C
+    (fun x => by
+      rw [Real.norm_eq_abs]
+      exact (Classical.choose_spec (deriv_bounded_of_compactlySupported hf)).2 x)
+
+lemma derivToBCF_apply {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    derivToBCF hf x = deriv f x := by
+  simp only [derivToBCF]
+  rw [BoundedContinuousFunction.coe_ofNormedAddCommGroup]
+
+/-- The absolute value of the derivative of a C_c² function is bounded continuous. -/
+def derivAbsToBCF {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    BoundedContinuousFunction ℝ ℝ :=
+  let C := Classical.choose (deriv_bounded_of_compactlySupported hf)
+  BoundedContinuousFunction.ofNormedAddCommGroup (fun x => |deriv f x|)
+    ((deriv_continuous_of_compactlySupported hf).abs) C
+    (fun x => by
+      simp only [Real.norm_eq_abs, abs_abs]
+      exact (Classical.choose_spec (deriv_bounded_of_compactlySupported hf)).2 x)
+
+lemma derivAbsToBCF_apply {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    derivAbsToBCF hf x = |deriv f x| := by
+  simp only [derivAbsToBCF]
+  rw [BoundedContinuousFunction.coe_ofNormedAddCommGroup]
+
+/-- The squared derivative of a C_c² function is bounded continuous. -/

@@ -1,0 +1,10 @@
+theorem deriv_bounded_of_compactlySupported {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ x : ℝ, |deriv f x| ≤ C := by
+  have hcont := deriv_continuous_of_compactlySupported hf
+  have hsupp := deriv_hasCompactSupport hf
+  obtain ⟨C, hC⟩ := hsupp.exists_bound_of_continuous hcont
+  use max 0 C, le_max_left 0 C
+  intro x
+  calc |deriv f x| = ‖deriv f x‖ := (Real.norm_eq_abs _).symm
+    _ ≤ C := hC x
+    _ ≤ max 0 C := le_max_right 0 C

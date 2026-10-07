@@ -1,0 +1,93 @@
+✖ [3162/3162] Building Tests.GaussianCompactEntropy (7.3s)
+trace: .> LEAN_PATH=E:\Samplinglib\.lake\packages\Cli\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\batteries\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\Qq\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\aesop\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\proofwidgets\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\importGraph\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\LeanSearchClient\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\plausible\.lake\build\lib\lean;E:\Samplinglib\.lake\packages\mathlib\.lake\build\lib\lean;E:\Samplinglib\.lake\build\lib\lean c:\Users\admin\.elan\toolchains\leanprover--lean4---v4.33.0\bin\lean.exe E:\Samplinglib\Tests\GaussianCompactEntropy.lean -o E:\Samplinglib\.lake\build\lib\lean\Tests\GaussianCompactEntropy.olean -i E:\Samplinglib\.lake\build\lib\lean\Tests\GaussianCompactEntropy.ilean -c E:\Samplinglib\.lake\build\ir\Tests\GaussianCompactEntropy.c --setup E:\Samplinglib\.lake\build\ir\Tests\GaussianCompactEntropy.setup.json --json
+error: Tests/GaussianCompactEntropy.lean:13:36: Unknown identifier `hasCompactSupport_zero`
+warning: Tests/GaussianCompactEntropy.lean:14:2: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+error: Tests/GaussianCompactEntropy.lean:27:10: Application type mismatch: The argument
+  (h.right.right.right.left 0).right.right
+has type
+  Integrable (fun ε => deriv f ((fun n ε => (√↑n)⁻¹ * ∑ j, if ε j = true then 1 else -1) 0 ε) ^ 2)
+    ((fun n => (↑(Fintype.card (Fin n → Bool)))⁻¹ • Measure.count) 0)
+but is expected to have type
+  Integrable (fun ε => deriv f ((fun ε => (√0)⁻¹ * ∑ j, if ε j = true then 1 else -1) ε) ^ 2)
+    ((↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count)
+in the application
+  And.intro (h.right.right.right.left 0).right.right
+error: Tests/GaussianCompactEntropy.lean:38:6: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  Measure.map (fun ε => (√↑0)⁻¹ * ∑ j, if ε j = true then 1 else -1)
+    ((↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count)
+in the target expression
+  ∫ (y : ℝ),
+      deriv f y ^
+        2 ∂Measure.map (fun ε => (√0)⁻¹ * ∑ j, if ε j = true then 1 else -1)
+        ((↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count) =
+    ∫ (x : Fin 0 → Bool),
+      deriv f ((√0)⁻¹ * ∑ j, if x j = true then 1 else -1) ^ 2 ∂(↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count
+
+f : ℝ → ℝ
+hf : ContDiff ℝ 2 f
+hs : HasCompactSupport f
+h :
+  have μ := fun n => (↑(Fintype.card (Fin n → Bool)))⁻¹ • Measure.count;
+  have S := fun n ε => (√↑n)⁻¹ * ∑ j, if ε j = true then 1 else -1;
+  have γ := gaussianReal 0 1;
+  Integrable (fun x => f x ^ 2) γ ∧
+    Integrable (fun x => f x ^ 2 * Real.log (f x ^ 2)) γ ∧
+      Integrable (fun x => deriv f x ^ 2) γ ∧
+        (∀ (n : ℕ),
+            Integrable (fun ε => f (S n ε) ^ 2) (μ n) ∧
+              Integrable (fun ε => f (S n ε) ^ 2 * Real.log (f (S n ε) ^ 2)) (μ n) ∧
+                Integrable (fun ε => deriv f (S n ε) ^ 2) (μ n)) ∧
+          Tendsto (fun n => ∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 ∂μ (n + 1)) atTop
+              (𝓝 (∫ (x : ℝ), f x ^ 2 ∂γ)) ∧
+            Tendsto
+                (fun n => ∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 * Real.log (f (S (n + 1) ε) ^ 2) ∂μ (n + 1))
+                atTop (𝓝 (∫ (x : ℝ), f x ^ 2 * Real.log (f x ^ 2) ∂γ)) ∧
+              Tendsto (fun n => ∫ (ε : Fin (n + 1) → Bool), deriv f (S (n + 1) ε) ^ 2 ∂μ (n + 1)) atTop
+                  (𝓝 (∫ (x : ℝ), deriv f x ^ 2 ∂γ)) ∧
+                Tendsto
+                  (fun n =>
+                    ∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 * Real.log (f (S (n + 1) ε) ^ 2) ∂μ (n + 1) -
+                      (∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 ∂μ (n + 1)) *
+                        Real.log (∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 ∂μ (n + 1)))
+                  atTop
+                  (𝓝
+                    (∫ (x : ℝ), f x ^ 2 * Real.log (f x ^ 2) ∂γ -
+                      (∫ (x : ℝ), f x ^ 2 ∂γ) * Real.log (∫ (x : ℝ), f x ^ 2 ∂γ)))
+laws : ℕ → ProbabilityMeasure ℝ
+hlaws :
+  ∀ (n : ℕ),
+    ↑(laws n) =
+      Measure.map (fun ε => (√↑n)⁻¹ * ∑ j, if ε j = true then 1 else -1)
+        ((↑(Fintype.card (Fin n → Bool)))⁻¹ • Measure.count)
+hzero : ↑(laws 0) = Measure.dirac 0
+right✝ : Tendsto (fun n => laws (n + 1)) atTop (𝓝 ⟨gaussianReal 0 1, ⋯⟩)
+hm : Measurable fun ε => (√0)⁻¹ * ∑ j, if ε j = true then 1 else -1
+hd : Continuous fun x => deriv f x ^ 2
+hI :
+  ∫ (y : ℝ),
+      deriv f y ^
+        2 ∂Measure.map (fun ε => (√0)⁻¹ * ∑ j, if ε j = true then 1 else -1)
+        ((↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count) =
+    ∫ (x : Fin 0 → Bool),
+      deriv f ((√0)⁻¹ * ∑ j, if x j = true then 1 else -1) ^ 2 ∂(↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count
+⊢ ∫ (ε : Fin 0 → Bool),
+      deriv f ((fun ε => (√0)⁻¹ * ∑ j, if ε j = true then 1 else -1) ε) ^
+        2 ∂(↑(Fintype.card (Fin 0 → Bool)))⁻¹ • Measure.count =
+    deriv f 0 ^ 2
+info: Tests/GaussianCompactEntropy.lean:41:0: 'AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactEntropy.compact_count_gaussian_entropy_limits' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+info: Tests/GaussianCompactEntropy.lean:42:0: 'Tests.GaussianCompactEntropy.zero_mass_entropy_limit' depends on axioms: [propext,
+ sorryAx,
+ Classical.choice,
+ Quot.sound]
+info: Tests/GaussianCompactEntropy.lean:43:0: 'Tests.GaussianCompactEntropy.zero_count_derivative_domain_and_value' depends on axioms: [propext,
+ sorryAx,
+ Classical.choice,
+ Quot.sound]
+error: Lean exited with code 1
+Some required targets logged failures:
+- Tests.GaussianCompactEntropy
+error: build failed

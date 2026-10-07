@@ -1,0 +1,10 @@
+theorem integral_map_of_stronglyMeasurable {β} [MeasurableSpace β] {φ : α → β} (hφ : Measurable φ)
+    {f : β → G} (hfm : StronglyMeasurable f) : ∫ y, f y ∂Measure.map φ μ = ∫ x, f (φ x) ∂μ := by
+  by_cases hfi : Integrable f (Measure.map φ μ); swap
+  · rw [integral_undef hfi, integral_undef]
+    exact fun hfφ => hfi ((integrable_map_measure hfm.aestronglyMeasurable hφ.aemeasurable).2 hfφ)
+  simp only [integral_eq_setToFun]
+  apply setToFun_of_le_map_of_stronglyMeasurable _ _
+    ((integrable_map_measure hfm.aestronglyMeasurable hφ.aemeasurable).1 hfi) hfm hφ le_rfl
+  intro s x hs
+  simp [weightedSMul_apply, map_measureReal_apply, hs, hφ]

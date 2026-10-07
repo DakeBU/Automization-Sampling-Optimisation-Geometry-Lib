@@ -1,0 +1,31 @@
+lemma deriv_hasCompactSupport {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    HasCompactSupport (deriv f) := by
+  apply HasCompactSupport.of_support_subset_isCompact hf.2.isCompact
+  intro x hx
+  by_contra h
+  have hout : x ∉ tsupport f := h
+  have hopen : IsOpen (tsupport f)ᶜ := (isClosed_tsupport f).isOpen_compl
+  have hmem : (tsupport f)ᶜ ∈ 𝓝 x := hopen.mem_nhds hout
+  have hzero : f =ᶠ[𝓝 x] 0 := by
+    filter_upwards [hmem] with y hy
+    simp only [Pi.zero_apply]
+    have hnotsupp : y ∉ tsupport f := hy
+    rw [tsupport] at hnotsupp
+    simp only [mem_closure_iff_nhds, not_forall, not_nonempty_iff_eq_empty] at hnotsupp
+    obtain ⟨U, hUmem, hUempty⟩ := hnotsupp
+    have hy_in_U : y ∈ U := mem_of_mem_nhds hUmem
+    have hynot : y ∉ support f := by
+      intro hyin
+      have : y ∈ U ∩ support f := ⟨hy_in_U, hyin⟩
+      rw [hUempty] at this
+      exact this
+    exact notMem_support.mp hynot
+  have hderiv1 : deriv f =ᶠ[𝓝 x] 0 := by
+    have h1 := hzero.deriv
+    have hzero_eq : (0 : ℝ → ℝ) = fun _ => 0 := rfl
+    rw [hzero_eq] at h1
+    simp only [deriv_const'] at h1
+    exact h1
+  have heq : deriv f x = 0 := hderiv1.self_of_nhds
+  rw [mem_support] at hx
+  exact hx heq

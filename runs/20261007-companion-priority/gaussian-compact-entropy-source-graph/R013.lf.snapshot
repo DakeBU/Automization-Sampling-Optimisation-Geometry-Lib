@@ -1,0 +1,18 @@
+def derivSqToBCF {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    BoundedContinuousFunction ℝ ℝ :=
+  let C := Classical.choose (deriv_bounded_of_compactlySupported hf)
+  BoundedContinuousFunction.ofNormedAddCommGroup (fun x => (deriv f x)^2)
+    ((deriv_continuous_of_compactlySupported hf).pow 2) (C^2)
+    (fun x => by
+      simp only [Real.norm_eq_abs]
+      rw [abs_pow]
+      have hCnonneg : 0 ≤ C := (Classical.choose_spec (deriv_bounded_of_compactlySupported hf)).1
+      have habs := (Classical.choose_spec (deriv_bounded_of_compactlySupported hf)).2 x
+      refine sq_le_sq' ?_ habs
+      calc -C ≤ 0 := neg_nonpos_of_nonneg hCnonneg
+           _ ≤ |deriv f x| := abs_nonneg _)
+
+lemma derivSqToBCF_apply {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) (x : ℝ) :
+    derivSqToBCF hf x = (deriv f x)^2 := by
+  simp only [derivSqToBCF]
+  rw [BoundedContinuousFunction.coe_ofNormedAddCommGroup]

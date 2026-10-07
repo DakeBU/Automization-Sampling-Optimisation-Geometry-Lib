@@ -1,0 +1,21 @@
+/-- Probability measures are defined as the subtype of measures that have the property of being
+probability measures (i.e., their total mass is one). -/
+def ProbabilityMeasure (Ω : Type*) [MeasurableSpace Ω] : Type _ :=
+  { μ : Measure Ω // IsProbabilityMeasure μ }
+
+namespace ProbabilityMeasure
+
+variable {Ω : Type*} [MeasurableSpace Ω]
+
+instance [Inhabited Ω] : Inhabited (ProbabilityMeasure Ω) :=
+  ⟨⟨Measure.dirac default, Measure.dirac.isProbabilityMeasure⟩⟩
+
+/-- Coercion from `MeasureTheory.ProbabilityMeasure Ω` to `MeasureTheory.Measure Ω`. -/
+@[coe]
+def toMeasure : ProbabilityMeasure Ω → Measure Ω := Subtype.val
+
+/-- A probability measure can be interpreted as a measure. -/
+instance : Coe (ProbabilityMeasure Ω) (MeasureTheory.Measure Ω) := { coe := toMeasure }
+
+instance (μ : ProbabilityMeasure Ω) : IsProbabilityMeasure (μ : Measure Ω) :=
+  μ.prop

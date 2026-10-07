@@ -1,0 +1,39 @@
+/-- **Entropy Convergence Theorem**
+
+For f ∈ C_c²(ℝ), as n → ∞:
+  Ent[f(Sₙ)² ; μₙ] → Ent[f(X)² ; N(0,1)]
+
+where Sₙ = (1/√n) ∑ᵢ εᵢ is the normalized Rademacher sum and X ~ N(0,1).
+
+This follows from weak convergence (CLT): since f² * log(f²) is bounded continuous
+for compactly supported smooth f, the expectations converge.
+
+The entropy is defined as:
+  Ent_μ(g) = ∫ g log g dμ - (∫ g dμ) log(∫ g dμ)
+
+For g = (f ∘ Sₙ)², both terms converge:
+- ∫ (f(x))² log((f(x))²) d(law of Sₙ) → ∫ (f(x))² log((f(x))²) d(Gaussian)
+- ∫ (f(x))² d(law of Sₙ) → ∫ (f(x))² d(Gaussian)
+-/
+theorem tendsto_entropy_f_sq {f : ℝ → ℝ} (hf : CompactlySupportedSmooth f) :
+    Tendsto (fun n => LogSobolev.entropy (rademacherLaw (n + 1)).toMeasure (fun x => (f x)^2))
+      atTop (𝓝 (LogSobolev.entropy stdGaussianMeasure (fun x => (f x)^2))) := by
+  -- Entropy = ∫ f² log f² - (∫ f²) log (∫ f²)
+  -- Both terms converge separately
+  unfold LogSobolev.entropy
+  -- Term 1: ∫ f² log f² converges
+  have h1 : Tendsto (fun n => ∫ x, (f x)^2 * Real.log ((f x)^2) ∂(rademacherLaw (n + 1)).toMeasure)
+      atTop (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂stdGaussianMeasure)) :=
+    tendsto_integral_f_sq_mul_log hf
+  -- Term 2: ∫ f² converges
+  have h2 : Tendsto (fun n => ∫ x, (f x)^2 ∂(rademacherLaw (n + 1)).toMeasure)
+      atTop (𝓝 (∫ x, (f x)^2 ∂stdGaussianMeasure)) :=
+    tendsto_integral_f_sq hf
+  -- Term 3: (∫ f²) * log(∫ f²) converges (composition of h2 with continuous function x * log x)
+  have h3 : Tendsto (fun n => (∫ x, (f x)^2 ∂(rademacherLaw (n + 1)).toMeasure) *
+      Real.log (∫ x, (f x)^2 ∂(rademacherLaw (n + 1)).toMeasure))
+      atTop (𝓝 ((∫ x, (f x)^2 ∂stdGaussianMeasure) * Real.log (∫ x, (f x)^2 ∂stdGaussianMeasure))) := by
+    -- Use that x * log x is continuous, so g(aₙ) → g(a) when aₙ → a
+    exact Real.continuous_mul_log.continuousAt.tendsto.comp h2
+  -- Combine: entropy = term1 - term3
+  exact h1.sub h3

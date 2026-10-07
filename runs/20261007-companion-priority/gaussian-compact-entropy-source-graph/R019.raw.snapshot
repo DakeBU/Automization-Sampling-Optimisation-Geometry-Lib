@@ -1,0 +1,11 @@
+lemma mul_log_bounded_on_Icc (C : ℝ) (_ : 0 ≤ C) :
+    ∃ M : ℝ, ∀ x ∈ Set.Icc 0 (C^2), |x * Real.log x| ≤ M := by
+  -- The function x * log x is continuous on ℝ (with convention 0 * log 0 = 0)
+  -- and [0, C²] is compact, so it attains a maximum
+  have hcont : ContinuousOn (fun x => x * Real.log x) (Set.Icc 0 (C^2)) :=
+    Real.continuous_mul_log.continuousOn
+  have hcompact : IsCompact (Set.Icc 0 (C^2)) := isCompact_Icc
+  obtain ⟨M, hM⟩ := hcompact.exists_bound_of_continuousOn hcont
+  use M
+  intro x hx
+  exact hM x hx

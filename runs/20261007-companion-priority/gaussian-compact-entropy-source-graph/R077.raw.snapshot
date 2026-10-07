@@ -1,0 +1,19 @@
+lemma continuous_mul_log : Continuous fun x ↦ x * log x := by
+  rw [continuous_iff_continuousAt]
+  intro x
+  obtain hx | rfl := ne_or_eq x 0
+  · exact (continuous_id'.continuousAt).mul (continuousAt_log hx)
+  rw [ContinuousAt, zero_mul]
+  simp_rw [mul_comm _ (log _)]
+  nth_rewrite 1 [← nhdsWithin_univ]
+  have : (Set.univ : Set ℝ) = Set.Iio 0 ∪ Set.Ioi 0 ∪ {0} := by ext; simp [em]
+  rw [this, nhdsWithin_union, nhdsWithin_union]
+  simp only [nhdsWithin_singleton, Filter.tendsto_sup]
+  refine ⟨⟨tendsto_log_mul_self_nhdsLT_zero, ?_⟩, ?_⟩
+  · simpa only [rpow_one] using tendsto_log_mul_rpow_nhdsGT_zero zero_lt_one
+  · convert! tendsto_pure_nhds (fun x ↦ log x * x) 0
+    simp
+
+@[fun_prop]
+lemma Continuous.mul_log {α : Type*} [TopologicalSpace α] {f : α → ℝ} (hf : Continuous f) :
+    Continuous fun a ↦ f a * log (f a) := continuous_mul_log.comp hf

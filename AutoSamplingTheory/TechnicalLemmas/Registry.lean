@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.reflectedConditional.gradientVariance"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance"
+    upstreamDecl := "PBPS Appendix C.1 A3.Ex7 pointwise gradient variance ingredient"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "conditional-gradient", "variance", "Poincare"]
+    saldUse := "PBPS actual reflected conditional mean; no SALD admission"
+    note := "Actual reflected conditional kernel and every-y density; true differentiability and exact pointwise gradient variance bound for every smooth compact observable. Identify both parent S internally from density, produce centered L2 domains, evaluate derivative at actual gradient and cancel zero-aware. Positive alpha<=beta, eta>0, beta*eta<=1; finite Hilbert/rank0 extension explicit. Actual Gaussian precision/rank0 Tests. No supplied law/coherence/domain/desired inequality certificate. Outer C.2/B.13/full L2-H1 and mains/error/cost separate. Independently verified 8d950c37e41bd5d816c4132c6a5cdde0e30dcbee."
+  },
+  {
     key := "sphmc.standardizedRGO.canonicalKLDimension"
     localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLDimension.standardized_rgo_unique_prox_and_kl_le_dimension"
     upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI and moment component"

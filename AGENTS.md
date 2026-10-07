@@ -7,9 +7,20 @@ claims must compile in Lean and match their cited source boundary.
 ## Current user-directed priority
 
 Read `website/content/samplewiki_companion_frontiers.json` → `execution` before
-scheduling. The two September 2026 companion papers are the first mathematical
-priority. Preserve older frontiers; work on them only when they supply a needed
-paper dependency. Correct Lean/source results come before new graph, citation or
+scheduling. Continue the existing four-paper Goal in order: PBPS
+(arXiv:2609.06905v1) and SPHMC (2609.06906v1), including their actual-input
+composition; then Gaussian Cloud (2609.38710v1), including Section6 recursion,
+errors/caps and expected-query costs; then midpoint (2610.06308v1), including
+deterministic upper bounds, deterministic/randomized lower bounds and finite-step
+initialization. These priorities do not invent proof dependencies: a later-paper
+shared result may come first only when it removes a current blocker with a real
+consumer and recorded reason. Preserve all older frontiers/cycles/memory.
+Use the fixed Lean4.33.0 and lake-manifest; do not create a parallel Goal, reset
+the existing Goal, or run detached/background ASTIS. Readability follows Chapter1.3:
+complete attributed statements/conditions and stepwise formula proofs, with exact
+initially folded Lean adjacent to each statement/proof. Full paper results,
+composition, source fidelity and reader delivery must all be accepted before
+whole-Goal completion. Midpoint may not acquire extra higher-derivative bounds. Correct Lean/source results come before new graph, citation or
 download features. This is scheduling, never a theorem-completion badge.
 
 Current collaborator checkpoint: read `docs/companion-papers-handoff.md` before

@@ -200,6 +200,7 @@ import Tests.SmoothedPicardRecursiveDepth
 import Tests.SmoothedPicardLogarithmicDepth
 import Tests.ProximalBPSReflectionL2
 import Tests.ProximalBPSConditionalScore
+import Tests.ProximalBPSConditionalGradientVariance
 import Tests.ProximalBPSMacroscopicRepresentative
 import Tests.ProximalBPSConditionalScoreDomain
 import Tests.ProximalBPSConditionalBochner

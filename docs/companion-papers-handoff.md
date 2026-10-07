@@ -1,5 +1,39 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS conditional gradient variance (2026-10-08)
+
+The actual pointwise source ingredient is independently VERIFIED at 8d950c37e41bd5d816c4132c6a5cdde0e30dcbee.
+The exact1356-byte statement produces the genuine reflected conditional law, every-y
+density and differentiability, with gradient norm squared bounded by
+(eta^-1-alpha)^2/[4(alpha+eta^-1)] times its actual conditional variance.
+Source globally C2 Hessian assumptions, positive alpha<=beta, eta>0 and beta*eta<=1
+are preserved; finite Hilbert and rank0 are explicitly authored extensions.
+Both genuine conditional-score and centered-score-variance producers are joined
+internally at the same S using literal densities. Centered L2 Cauchy-Schwarz and
+Riesz gradient evaluation close the bound with the zero case retained.
+
+Focused3886, independent full mathematical review, fresh source-blind48 decoder,
+anti-anchored source review and exact-commit validation passed. Original source0
+metadata rejection, three-field source1 repair and exact53 contributor rejection
+are immutable evidence; the latter is corrected only by recording the existing
+direct variance_nonneg dependency in the cell reuse_plan. Production/Test/sealed
+statement/formula proof remain unchanged. Gaussian precision gradient0 and actual
+rank0 kernel tests pass; three axiom sets contain only standard3 axioms.
+
+Registry489 and shared imports are serialized through the original PhaseKernel
+single stabilization lane. Mandatory aggregate48, graph/reader seals, main merge,
+live delivery and postmerge PURIFIED remain separate pending checks. This is the
+printed smooth-compact pointwise ingredient, not outer(C.2), B.13 or a main result.
+
+Next bounded mathematical edge: integrate against actual nu=J.snd and establish
+the conditional variance identity and true gradient-energy domain before C.2.
+Full L2-to-H1 density/closed-gradient extension is separate. PBPS invariance/
+nonexplosion/hypocoercivity/implementation error/cost, SPHMC smoothing/Picard/Wp/
+proxy-warmness and actual-input expected-query composition remain OPEN.
+The existing unbudgeted Goal also includes subsequent Gaussian Cloud and midpoint
+phases. Preserve all older frontiers/cycles/memory; TV proximity never transfers
+unbounded expected cost. Single leaves do not complete any paper or this Goal.
+
 ## Actual standardized RGO numerical canonical KL (2026-10-07)
 
 The actual numerical canonical KL leaf is independently VERIFIED at 76373366787499ebbc9e778fe568d0332233aef0.

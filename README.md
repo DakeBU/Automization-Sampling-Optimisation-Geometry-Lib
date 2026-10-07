@@ -28,6 +28,12 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 | Discrete Sampling | Zongchen Chen, Daniel Štefankovič, Eric Vigoda, *Spectral Independence and Local-to-Global Techniques for Optimal Mixing of Markov Chains* (arXiv:2307.13826v4) |
 | Markov Chain Monte Carlo | Fearnhead, Nemeth, Oates, Sherlock, *Scalable Monte Carlo for Bayesian Learning* (arXiv:2407.12751) |
 
+## Current four-paper priority
+
+Continue one existing unbudgeted Goal: **PBPS2609.06905v1 + SPHMC2609.06906v1 and their composition**, then **Gaussian Cloud2609.38710v1**, then **midpoint2610.06308v1**. Read [the current handoff](docs/companion-papers-handoff.md), [execution metadata](website/content/samplewiki_companion_frontiers.json) and `python tools/astis_advance.py capsule`; old result counts are historical. Priorities are scheduling, not invented dependencies or completed theorem badges. Preserve older frontiers and collaborator changes.
+
+Each paper has a stable reader page with complete attributed source conditions, a small proof route, layered lemmas and stepwise formula proofs. Exact Lean is folded beside each statement/proof; [Chapter1.3](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/textbook/chapter-01/section-1-3.html) is the reading standard. Local compile, independent review, stabilization, merge, purification and whole-paper completion remain distinct. [Midpoint v1](https://arxiv.org/html/2610.06308v1) assumes C2 Hessian bounds, without added third-or-higher derivative bounds; TV proximity never transfers unbounded expected oracle cost.
+
 ## News
 
 - **2026-10-06:** Extended Statement Seal / Proof Digestion with evidence-routed memory: failed routes receive typed failure and salvage audits, verified negative knowledge can prevent repeated dead ends, parallel proof directions require distinct uncertainty and a common-blind-spot review, and PURIFIED pages require an Exposition Seal.

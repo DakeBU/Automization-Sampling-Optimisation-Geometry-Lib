@@ -1,3 +1,9 @@
+# Four-paper phased formalization priority (2026-10-08)
+
+The existing Goal was expanded without reset: phase1 PBPS2609.06905v1/SPHMC2609.06906v1 and actual-input composition; phase2 Gaussian Cloud2609.38710v1 with Section6 recursive requests/errors/caps/expectedqueries; phase3 midpoint2610.06308v1 with deterministic upper and deterministic/randomized lower bounds and finite-step initialization. Use current capsule/handoff and execution metadata. Later-paper shared facts may come first only to remove a current blocker; all older frontiers/cycles/memory remain. Local leaves do not complete any paper. Reader follows Chapter1.3 with exact folded Lean adjacent to full source restatements/proofs; no hidden higher-derivative premise or TV-to-unbounded-cost transfer.
+
+The older dated planning records below are preserved as historical context; they do not reset the current Goal or set scheduling.
+
 # SPHMC / Proximal BPS: source-first dependency plan
 
 The user selected these papers as the first mathematical priority on 2026-09-10

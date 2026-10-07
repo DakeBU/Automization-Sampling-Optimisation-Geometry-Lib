@@ -1,0 +1,40 @@
+theorem integral_condEntExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+    (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+                                        log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+    ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ =
+    ∫ x, f x * log (f x) ∂μˢ - integralCondExpMulLog (μs := μs) i f := by
+  unfold condEntExceptCoord integralCondExpMulLog
+  rw [integral_sub]
+  · -- Apply tower property to the first integral
+    rw [integral_condExpExceptCoord_mul_log i f hf_log_int]
+  · -- E^{(i)}[f log f] is integrable
+    exact condExpExceptCoord_integrable i (fun z => f z * log (f z)) hf_log_int
+  · -- E^{(i)}[f] * log(E^{(i)}[f]) is integrable
+    exact hEf_log_int
+
+/-- Ent(E^{(i)}[f]) = ∫ E^{(i)}[f] · log(E^{(i)}[f]) dμ - (∫ f dμ) · log(∫ f dμ). -/
+theorem entropy_condExpExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_int : Integrable f μˢ) :
+    LogSobolev.entropy μˢ (condExpExceptCoord (μs := μs) i f) =
+    integralCondExpMulLog (μs := μs) i f - (∫ x, f x ∂μˢ) * log (∫ x, f x ∂μˢ) := by
+  unfold LogSobolev.entropy integralCondExpMulLog
+  -- Use tower property: ∫ E^{(i)}[f] dμˢ = ∫ f dμˢ
+  rw [condExpExceptCoord_expectation i f hf_int]
+
+/-- **Entropy Decomposition**: Ent(f) = E[Ent^{(i)}(f)] + Ent(E^{(i)}[f]). -/
+theorem entropy_decomposition (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_int : Integrable f μˢ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+    (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+                                        log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+    LogSobolev.entropy μˢ f =
+    ∫ x, condEntExceptCoord (μs := μs) i f x ∂μˢ +
+    LogSobolev.entropy μˢ (condExpExceptCoord (μs := μs) i f) := by
+  -- LHS = ∫ f log f - (∫ f) * log(∫ f)
+  -- RHS = (∫ f log f - ∫ E[f] log E[f]) + (∫ E[f] log E[f] - (∫ f) * log(∫ f))
+  -- These are equal by cancellation
+  rw [integral_condEntExceptCoord i f hf_log_int hEf_log_int]
+  rw [entropy_condExpExceptCoord i f hf_int]
+  unfold LogSobolev.entropy
+  ring

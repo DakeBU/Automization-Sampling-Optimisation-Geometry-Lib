@@ -1,0 +1,17 @@
+variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
+variable {μs : Fin n → Measure Ω} [∀ i, IsProbabilityMeasure (μs i)]
+
+/-- The coordinate-replacement map `(y, x) ↦ Function.update x i y` is measurable. -/
+theorem measurable_update_prod_pi (i : Fin n) :
+    Measurable (fun p : Ω × (Fin n → Ω) => Function.update p.2 i p.1) := by
+  have h : (fun p : Ω × (Fin n → Ω) => Function.update p.2 i p.1) =
+      (fun q : (Fin n → Ω) × Ω => Function.update q.1 i q.2) ∘ Prod.swap := rfl
+  rw [h]
+  exact (measurable_update' (a := i)).comp measurable_swap
+
+/-- Replacing one coordinate of a product sample by an independent sample from
+that coordinate preserves the product law. -/
+theorem map_update_prod_pi (i : Fin n) :
+    Measure.map (fun p : Ω × (Fin n → Ω) => Function.update p.2 i p.1)
+      ((μs i).prod (Measure.pi μs)) = Measure.pi μs := by
+  symm

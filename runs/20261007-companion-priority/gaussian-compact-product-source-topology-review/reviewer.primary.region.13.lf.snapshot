@@ -1,0 +1,12 @@
+/-- The conditional entropy is integrable when f and f log f are integrable -/
+lemma condEntExceptCoord_integrable' (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ)
+    (hEf_log_int : Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+                                        log (condExpExceptCoord (μs := μs) i f x)) μˢ) :
+    Integrable (condEntExceptCoord (μs := μs) i f) μˢ := by
+  unfold condEntExceptCoord
+  apply Integrable.sub
+  · -- E^{(i)}[f log f] is integrable
+    exact condExpExceptCoord_integrable i (fun z => f z * log (f z)) hf_log_int
+  · -- E^{(i)}[f] * log(E^{(i)}[f]) is integrable
+    exact hEf_log_int

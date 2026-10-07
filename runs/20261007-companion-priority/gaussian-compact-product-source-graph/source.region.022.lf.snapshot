@@ -1,0 +1,16 @@
+variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
+variable {μs : Fin n → Measure Ω} [∀ i, IsProbabilityMeasure (μs i)]
+
+-- Product measure notation
+local notation "μˢ" => Measure.pi μs
+
+/-!
+## Conditional Expectation Definitions
+
+We define conditional expectations by direct integration.
+-/
+
+/-- Conditional expectation of f given all variables except coordinate i.
+    E^{(i)}f(x) = ∫ f(update x i y) dμᵢ(y) -/
+noncomputable def condExpExceptCoord (i : Fin n) (f : (Fin n → Ω) → ℝ) : (Fin n → Ω) → ℝ :=
+  fun x => ∫ y, f (Function.update x i y) ∂(μs i)

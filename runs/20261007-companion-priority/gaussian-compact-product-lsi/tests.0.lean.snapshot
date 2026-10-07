@@ -1,0 +1,68 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+import Tests.ProductEntropy
+import Mathlib.Data.Fin.VecNotation
+
+noncomputable section
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+namespace Tests.GaussianCompactProductLogSobolev
+
+/-- Actual zero observer exercises all dimensions and zero mass through the producer. -/
+theorem zero_all_dimensions (n : ℕ) :
+    let γ : Measure (Fin n → ℝ) := Measure.pi (fun _ : Fin n => gaussianReal 0 1)
+    Integrable (fun _ : Fin n → ℝ => (0 : ℝ)^2) γ ∧
+    (∫ _x, (0 : ℝ)^2 * Real.log ((0 : ℝ)^2) ∂γ) -
+      (∫ _x, (0 : ℝ)^2 ∂γ) * Real.log (∫ _x, (0 : ℝ)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin n,
+      (fderiv ℝ (fun _ : Fin n → ℝ => (0 : ℝ)) x (Pi.single i 1))^2) ∂γ := by
+  have h := compact_gaussian_pi_logSobolev n (fun _ => (0 : ℝ))
+    contDiff_const (by simpa using (hasCompactSupport_zero :
+      HasCompactSupport (fun _ : Fin n → ℝ => (0 : ℝ))))
+  exact ⟨h.1, h.2.2.2.2⟩
+
+/-- The zero-dimensional law has an actual positive-mass constant observer. -/
+theorem constant_empty_dimension :
+    let γ : Measure (Fin 0 → ℝ) := Measure.pi (fun _ : Fin 0 => gaussianReal 0 1)
+    Integrable (fun _ : Fin 0 → ℝ => (1 : ℝ)^2) γ ∧
+    (∫ _x, (1 : ℝ)^2 * Real.log ((1 : ℝ)^2) ∂γ) -
+      (∫ _x, (1 : ℝ)^2 ∂γ) * Real.log (∫ _x, (1 : ℝ)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin 0,
+      (fderiv ℝ (fun _ : Fin 0 → ℝ => (1 : ℝ)) x (Pi.single i 1))^2) ∂γ := by
+  have hs : HasCompactSupport (fun _ : Fin 0 → ℝ => (1 : ℝ)) := by
+    exact HasCompactSupport.intro isCompact_univ (fun _ h => False.elim (h (Set.mem_univ _)))
+  have h := compact_gaussian_pi_logSobolev 0 (fun _ => (1 : ℝ)) contDiff_const hs
+  exact ⟨h.1, h.2.2.2.2⟩
+
+def signedPiProbe (x : Fin 2 → ℝ) : ℝ := ProductEntropy.signedProbe (x 0, x 1)
+
+theorem signed_probe_C2_compact :
+    ContDiff ℝ 2 signedPiProbe ∧ HasCompactSupport signedPiProbe := by
+  let e := ContinuousLinearEquiv.finTwoArrow ℝ ℝ
+  have hp := ProductEntropy.actual_probe_C2_compact
+  exact ⟨hp.1.comp e.toContinuousLinearMap.contDiff,
+    hp.2.comp_isClosedEmbedding e.toHomeomorph.isClosedEmbedding⟩
+
+/-- Nonseparable signed two-coordinate observer on the literal Gaussian pi law. -/
+theorem actual_signed_product_lsi :
+    let γ : Measure (Fin 2 → ℝ) := Measure.pi (fun _ : Fin 2 => gaussianReal 0 1)
+    Integrable (fun x => (signedPiProbe x)^2) γ ∧
+    Integrable (fun x => (signedPiProbe x)^2 * Real.log ((signedPiProbe x)^2)) γ ∧
+    (∀ i : Fin 2, Integrable (fun x => (fderiv ℝ signedPiProbe x (Pi.single i 1))^2) γ) ∧
+    Integrable (fun x => ∑ i : Fin 2, (fderiv ℝ signedPiProbe x (Pi.single i 1))^2) γ ∧
+    (∫ x, (signedPiProbe x)^2 * Real.log ((signedPiProbe x)^2) ∂γ) -
+      (∫ x, (signedPiProbe x)^2 ∂γ) * Real.log (∫ x, (signedPiProbe x)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin 2, (fderiv ℝ signedPiProbe x (Pi.single i 1))^2) ∂γ := by
+  exact compact_gaussian_pi_logSobolev 2 signedPiProbe
+    signed_probe_C2_compact.1 signed_probe_C2_compact.2
+
+theorem actual_probe_signs :
+    0 < signedPiProbe ![1,1] ∧ signedPiProbe ![1/2,-1/2] < 0 := by
+  simpa only [signedPiProbe, Matrix.cons_val_zero, Matrix.cons_val_one] using
+    ProductEntropy.actual_probe_signed
+
+#print axioms compact_gaussian_pi_logSobolev
+#print axioms zero_all_dimensions
+#print axioms constant_empty_dimension
+#print axioms actual_signed_product_lsi
+
+end Tests.GaussianCompactProductLogSobolev

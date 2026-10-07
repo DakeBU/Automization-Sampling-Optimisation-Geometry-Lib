@@ -1,0 +1,12 @@
+theorem pi_of_empty {α : Type*} [Fintype α] [IsEmpty α] {β : α → Type*}
+    {m : ∀ a, MeasurableSpace (β a)} (μ : ∀ a : α, Measure (β a)) (x : ∀ a, β a := isEmptyElim) :
+    Measure.pi μ = dirac x := by
+  have : ∀ a, SigmaFinite (μ a) := isEmptyElim
+  refine pi_eq fun s _ => ?_
+  rw [Fintype.prod_empty, dirac_apply_of_mem]
+  exact isEmptyElim (α := α)
+
+lemma volume_pi_eq_dirac {ι : Type*} [Fintype ι] [IsEmpty ι]
+    {α : ι → Type*} [∀ i, MeasureSpace (α i)] (x : ∀ a, α a := isEmptyElim) :
+    (volume : Measure (∀ i, α i)) = Measure.dirac x :=
+  Measure.pi_of_empty _ _

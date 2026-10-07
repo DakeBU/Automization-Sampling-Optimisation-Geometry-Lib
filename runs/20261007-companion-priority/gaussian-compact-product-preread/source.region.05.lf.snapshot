@@ -1,0 +1,50 @@
+/-- The partial derivative of `g` at `x` along coordinate `i`. -/
+noncomputable def partialDeriv {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+  fun x => fderiv ℝ g x (Pi.single i 1)
+
+/-- Squared Euclidean gradient norm: `‖∇g(x)‖² = ∑ᵢ (∂g/∂xᵢ)²`. -/
+noncomputable def gradNormSq (n : ℕ) (g : (Fin n → ℝ) → ℝ) : (Fin n → ℝ) → ℝ :=
+  fun x => ∑ i : Fin n, (partialDeriv i g x)^2
+
+/-- Sobolev W^{1,2} membership: `g ∈ L²(μ)` and all partial derivatives in `L²(μ)`. -/
+def MemW12GaussianPi (n : ℕ) (g : (Fin n → ℝ) → ℝ) (μ : Measure (Fin n → ℝ)) : Prop :=
+  MemLp g 2 μ ∧ ∀ i : Fin n, MemLp (fun x => partialDeriv i g x) 2 μ
+
+/-- Slice function `gᵢˣ(y) = g(x₁,...,y,...,xₙ)` with `y` at position `i`. -/
+def sliceFunction {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ) (x : Fin n → ℝ) : ℝ → ℝ :=
+  fun y => g (Function.update x i y)
+
+/-! ## Slice function properties -/
+
+/-- Slices of differentiable functions are differentiable. -/
+lemma sliceFunction_differentiable {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+    (hg_diff : Differentiable ℝ g) (x : Fin n → ℝ) :
+    Differentiable ℝ (sliceFunction i g x) := by
+  intro y
+  have h_update : DifferentiableAt ℝ (fun y => Function.update x i y) y :=
+    (hasFDerivAt_update (x := x) (i := i) (y := y)).differentiableAt
+  exact (hg_diff (Function.update x i y)).comp y h_update
+
+/-- Derivative of slice equals partial derivative at updated point. -/
+lemma deriv_sliceFunction_eq_partialDeriv {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+    (hg_diff : Differentiable ℝ g) (x : Fin n → ℝ) (y : ℝ) :
+    deriv (sliceFunction i g x) y = partialDeriv i g (Function.update x i y) := by
+  have h_update : HasFDerivAt (fun y => Function.update x i y)
+      (ContinuousLinearMap.pi (Pi.single i (ContinuousLinearMap.id ℝ ℝ))) y := by
+    simpa using (hasFDerivAt_update (x := x) (i := i) (y := y))
+  have h_g : HasFDerivAt g (fderiv ℝ g (Function.update x i y)) (Function.update x i y) :=
+    (hg_diff (Function.update x i y)).hasFDerivAt
+  have h_comp : HasFDerivAt (sliceFunction i g x)
+      ((fderiv ℝ g (Function.update x i y)).comp
+        (ContinuousLinearMap.pi (Pi.single i (ContinuousLinearMap.id ℝ ℝ)))) y :=
+    h_g.comp y h_update
+  have h_update_apply :
+      (ContinuousLinearMap.pi (Pi.single i (ContinuousLinearMap.id ℝ ℝ))) 1 =
+        (Pi.single (M := fun _ : Fin n => ℝ) i 1) := by
+    ext j
+    by_cases hji : j = i
+    · subst hji
+      simp [ContinuousLinearMap.pi_apply, Pi.single]
+    · simp [ContinuousLinearMap.pi_apply, Pi.single, hji]
+  have h_deriv_eq := h_comp.hasDerivAt.deriv
+  simpa [partialDeriv, ContinuousLinearMap.comp_apply, h_update_apply] using h_deriv_eq

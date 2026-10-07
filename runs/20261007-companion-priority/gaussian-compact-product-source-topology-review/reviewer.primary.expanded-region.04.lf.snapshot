@@ -1,0 +1,71 @@
+/-! ## Telescoping Entropy Decomposition -/
+
+omit [∀ i, IsProbabilityMeasure (μs i)] in
+/-- E_0[f] = ∫ f dμ (unconditional expectation). -/
+lemma condExpFirstK_zero (f : (Fin n → Ω) → ℝ) (x : Fin n → Ω) :
+    condExpFirstK (μs := μs) 0 f x = ∫ z, f z ∂μˢ := by
+  unfold condExpFirstK
+  -- When k = 0, the condition j.val < 0 is false for all j, so we always pick y j
+  -- Therefore f (fun j => if j.val < 0 then x j else y j) = f y
+  have h : ∀ y : Fin n → Ω, f (fun j => if j.val < (0 : Fin (n + 1)).val then x j else y j) = f y := by
+    intro y
+    -- j.val < 0 is false for all j : Fin n, so if-then-else reduces to y j
+    simp only [Fin.val_zero, Nat.not_lt_zero, ↓reduceIte]
+  simp only [h]
+
+/-- E_n[f] = f (identity). -/
+lemma condExpFirstK_last (f : (Fin n → Ω) → ℝ) (x : Fin n → Ω) :
+    condExpFirstK (μs := μs) (Fin.last n) f x = f x := by
+  unfold condExpFirstK
+  -- When k = Fin.last n (value = n), the condition j.val < n is true for all j : Fin n
+  have h : ∀ y : Fin n → Ω, f (fun j => if j.val < (Fin.last n).val then x j else y j) = f x := by
+    intro y
+    congr 1 with j
+    simp only [Fin.val_last, j.isLt, ↓reduceIte]
+  simp only [h, integral_const, probReal_univ, smul_eq_mul, one_mul]
+
+/-- **Pointwise Telescoping**: f·(log f - log(∫f)) = Σᵢ f·(log E_{i+1}[f] - log Eᵢ[f]). -/
+theorem entropy_telescoping_pointwise (f : (Fin n → Ω) → ℝ) (x : Fin n → Ω) :
+    f x * (log (f x) - log (∫ z, f z ∂μˢ)) =
+    ∑ i : Fin n, f x * (log (condExpFirstK (μs := μs) i.succ f x) -
+                        log (condExpFirstK (μs := μs) i.castSucc f x)) := by
+  -- Factor out f x from the sum
+  rw [← Finset.mul_sum]
+  congr 1
+  -- Define g : ℕ → ℝ for the telescoping (extended with 0 outside [0, n])
+  let g : ℕ → ℝ := fun k =>
+    if h : k ≤ n then log (condExpFirstK (μs := μs) ⟨k, Nat.lt_succ_of_le h⟩ f x) else 0
+  -- The sum ∑_{i=0}^{n-1} (g(i+1) - g(i)) = g(n) - g(0) by Finset.sum_range_sub
+  have hg_tele : ∑ i ∈ Finset.range n, (g (i + 1) - g i) = g n - g 0 :=
+    Finset.sum_range_sub g n
+  -- Convert Fin sum to range sum
+  have hsum_convert : ∑ i : Fin n, (log (condExpFirstK (μs := μs) i.succ f x) -
+                                     log (condExpFirstK (μs := μs) i.castSucc f x)) =
+      ∑ i ∈ Finset.range n, (g (i + 1) - g i) := by
+    -- First show each term equals g (↑i + 1) - g ↑i
+    have hterm : ∀ i : Fin n, log (condExpFirstK (μs := μs) i.succ f x) -
+                               log (condExpFirstK (μs := μs) i.castSucc f x) =
+                              g (↑i + 1) - g ↑i := by
+      intro i
+      simp only [g]
+      have hi1 : ↑i + 1 ≤ n := i.isLt
+      have hi0 : (i : ℕ) ≤ n := Nat.le_of_lt i.isLt
+      simp only [hi1, hi0, dite_true]
+      congr
+    -- Rewrite using hterm, then apply Fin.sum_univ_eq_sum_range
+    simp only [hterm]
+    exact Fin.sum_univ_eq_sum_range (fun k => g (k + 1) - g k) n
+  rw [hsum_convert, hg_tele]
+  -- Simplify g(n) and g(0) using boundary lemmas
+  simp only [g, le_refl, dite_true, Nat.zero_le]
+  have hgn : log (condExpFirstK (μs := μs) ⟨n, Nat.lt_succ_self n⟩ f x) = log (f x) := by
+    congr 1
+    have : (⟨n, Nat.lt_succ_self n⟩ : Fin (n + 1)) = Fin.last n := rfl
+    rw [this, condExpFirstK_last]
+  have hg0 : log (condExpFirstK (μs := μs) ⟨0, Nat.zero_lt_succ n⟩ f x) = log (∫ z, f z ∂μˢ) := by
+    congr 1
+  rw [hgn, hg0]
+
+end SubAddEnt
+
+end

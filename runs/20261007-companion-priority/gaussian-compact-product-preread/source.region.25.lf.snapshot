@@ -1,0 +1,35 @@
+theorem integral_prod (f : α × β → E) (hf : Integrable f (μ.prod ν)) :
+    ∫ z, f z ∂μ.prod ν = ∫ x, ∫ y, f (x, y) ∂ν ∂μ := by
+  by_cases hE : CompleteSpace E; swap; · simp only [integral, dif_neg hE]
+  revert f
+  apply Integrable.induction
+  · intro c s hs h2s
+    simp_rw [integral_indicator hs, ← indicator_comp_right, Function.comp_def,
+      integral_indicator (measurable_prodMk_left hs), setIntegral_const, integral_smul_const,
+      measureReal_def,
+      integral_toReal (measurable_measure_prodMk_left hs).aemeasurable
+        (ae_measure_lt_top hs h2s.ne)]
+    rw [Measure.prod_apply hs]
+  · rintro f g - i_f i_g hf hg
+    simp_rw [integral_add' i_f i_g, integral_integral_add' i_f i_g, hf, hg]
+  · exact isClosed_eq continuous_integral continuous_integral_integral
+  · rintro f g hfg - hf; convert! hf using 1
+    · exact integral_congr_ae hfg.symm
+    · apply integral_congr_ae
+      filter_upwards [ae_ae_of_ae_prod hfg] with x hfgx using integral_congr_ae (ae_eq_symm hfgx)
+
+/-- Symmetric version of **Fubini's Theorem**: For integrable functions on `α × β`,
+  the Bochner integral of `f` is equal to the iterated Bochner integral.
+  This version has the integrals on the right-hand side in the other order. -/
+theorem integral_prod_symm (f : α × β → E) (hf : Integrable f (μ.prod ν)) :
+    ∫ z, f z ∂μ.prod ν = ∫ y, ∫ x, f (x, y) ∂μ ∂ν := by
+  rw [← integral_prod_swap f]; exact integral_prod _ hf.swap
+
+/-- Reversed version of **Fubini's Theorem**. -/
+theorem integral_integral {f : α → β → E} (hf : Integrable (uncurry f) (μ.prod ν)) :
+    ∫ x, ∫ y, f x y ∂ν ∂μ = ∫ z, f z.1 z.2 ∂μ.prod ν :=
+  (integral_prod _ hf).symm
+
+/-- Reversed version of **Fubini's Theorem** (symmetric version). -/
+theorem integral_integral_symm {f : α → β → E} (hf : Integrable (uncurry f) (μ.prod ν)) :
+    ∫ x, ∫ y, f x y ∂ν ∂μ = ∫ z, f z.2 z.1 ∂ν.prod μ :=

@@ -1,0 +1,60 @@
+/-
+Copyright (c) 2026 Yuanhe Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuanhe Zhang, Jason D. Lee, Fanghui Liu
+-/
+import SLT.GaussianLSI.SubAddEnt.Decomposition
+import SLT.GaussianLSI.DualEntApp
+
+/-!
+# Subadditivity of Entropy
+
+This file proves the subadditivity of entropy inequality:
+  Ent(f) ≤ ∑_{i=1}^n E[Ent^{(i)}(f)]
+
+where f is a nonnegative measurable function of n independent random variables,
+and Ent^{(i)}(f) is the conditional entropy given all variables except X_i.
+
+## Main Results
+
+* `entropy_subadditive`: The main subadditivity inequality
+
+-/
+
+open MeasureTheory ProbabilityTheory Real Set Filter
+
+open scoped ENNReal NNReal BigOperators EReal
+
+noncomputable section
+
+namespace SubAddEnt
+
+variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
+variable {μs : Fin n → Measure Ω} [∀ i, IsProbabilityMeasure (μs i)]
+
+-- Product measure notation
+local notation "μˢ" => Measure.pi μs
+
+/-!
+## Tower Property
+
+The key identity: E_k[f] = E^{(k)}[E_{k+1}[f]]
+-/
+
+omit [MeasurableSpace Ω] in
+/-- Helper: the integrand for condExpFirstK doesn't depend on coordinates 0, ..., k-1
+    when we've already substituted x for those coordinates. -/
+lemma condExpFirstK_integrand_indep_low_coords (k : Fin (n + 1)) (f : (Fin n → Ω) → ℝ)
+    (x : Fin n → Ω) (y w : Fin n → Ω)
+    (hw : ∀ j : Fin n, k.val ≤ j.val → w j = y j) :
+    f (fun j => if j.val < k.val then x j else y j) =
+    f (fun j => if j.val < k.val then x j else w j) := by
+  congr 1 with j
+  by_cases h : j.val < k.val
+  · simp [h]
+  · simp [h, hw j (Nat.le_of_not_lt h)]
+
+/-- The map φ(p) = (fun j => if j.val < k.val then p.1 j else p.2 j) is measure-preserving
+    from μˢ.prod μˢ to μˢ. -/
+lemma map_select_coords_prod_pi (k : Fin (n + 1)) :
+    Measure.map (fun p : (Fin n → Ω) × (Fin n → Ω) =>

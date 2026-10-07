@@ -1,0 +1,213 @@
+
+/-! ## Main tensorization bound -/
+
+/-- Sum of expected conditional entropies bounded by `2∫‖∇g‖²`. -/
+lemma sum_expected_condEnt_le_grad_norm (n : ℕ) (g : (Fin n → ℝ) → ℝ)
+    (hg : MemW12GaussianPi n g (GaussianMeasure.stdGaussianPi n))
+    (hg_diff : Differentiable ℝ g)
+    (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+    (hg_log_int : Integrable (fun x => (g x)^2 * log ((g x)^2)) (GaussianMeasure.stdGaussianPi n)) :
+    ∑ i : Fin n,
+        ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+          (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) ≤
+      2 * ∫ x, gradNormSq n g x ∂(GaussianMeasure.stdGaussianPi n) := by
+  classical
+  have hg_L2 : Integrable (fun z => (g z)^2) (GaussianMeasure.stdGaussianPi n) :=
+    (hg.1).integrable_sq
+  have hf_meas : Measurable (fun x => (g x)^2) :=
+    hg_diff.continuous.measurable.pow_const 2
+  have hf_nn : 0 ≤ᵐ[GaussianMeasure.stdGaussianPi n] (fun x => (g x)^2) :=
+    Eventually.of_forall (fun x => sq_nonneg (g x))
+  have hEf_log_int :
+      ∀ i : Fin n,
+        Integrable (fun x =>
+          condExpExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+            (fun z => (g z)^2) x *
+          log (condExpExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+            (fun z => (g z)^2) x)) (GaussianMeasure.stdGaussianPi n) := by
+    intro i
+    simpa [GaussianMeasure.stdGaussianPi] using
+      (SubAddEnt.condExpExceptCoord_mul_log_integrable (μs := fun _ : Fin n => gaussianReal 0 1)
+        i (fun z => (g z)^2) hf_meas hf_nn hg_L2 hg_log_int)
+  have h_condEnt_int :
+      ∀ i : Fin n,
+        Integrable (SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+          (fun z => (g z)^2)) (GaussianMeasure.stdGaussianPi n) := by
+    intro i
+    apply SubAddEnt.condEntExceptCoord_integrable' (μs := fun _ : Fin n => gaussianReal 0 1)
+    · simpa [GaussianMeasure.stdGaussianPi] using hg_log_int
+    · exact hEf_log_int i
+  have h_slice_ae :
+      ∀ i : Fin n,
+        ∀ᵐ x ∂(GaussianMeasure.stdGaussianPi n),
+          GaussianSobolevReal.MemW12GaussianReal (sliceFunction i g x) (gaussianReal 0 1) :=
+    fun i => slice_memW12_ae (i := i) (g := g) hg hg_diff
+  have h_term_bound :
+      ∀ i : Fin n,
+        ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+          (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) ≤
+          2 * ∫ x, (∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1))
+                ∂(GaussianMeasure.stdGaussianPi n) := by
+    intro i
+    have h_ae :
+        ∀ᵐ x ∂(GaussianMeasure.stdGaussianPi n),
+          SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+              (fun z => (g z)^2) x ≤
+            2 * ∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1) := by
+      filter_upwards [h_slice_ae i] with x hx
+      exact condEnt_sq_le_partial_deriv_sq i g hg_diff hg_grad_cont x hx
+    -- Integrability of the right-hand side
+    haveI : SigmaFinite (GaussianMeasure.stdGaussianPi n) :=
+      inferInstance
+    haveI : SigmaFinite (gaussianReal 0 1) := inferInstance
+    have h_update_mp :
+        MeasurePreserving (fun p : (Fin n → ℝ) × ℝ => Function.update p.1 i p.2)
+          ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1))
+          (GaussianMeasure.stdGaussianPi n) := by
+      constructor
+      · exact measurable_update' (a := i)
+      · have h_map : Measurable (fun q : ℝ × (Fin n → ℝ) => Function.update q.2 i q.1) :=
+          (measurable_update' (a := i)).comp measurable_swap
+        calc
+          Measure.map (fun p : (Fin n → ℝ) × ℝ => Function.update p.1 i p.2)
+              ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1))
+              = Measure.map (fun q : ℝ × (Fin n → ℝ) => Function.update q.2 i q.1)
+                  (Measure.map Prod.swap ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1))) := by
+                -- update ∘ swap
+                rw [Measure.map_map h_map measurable_swap]
+                rfl
+          _ = Measure.map (fun q : ℝ × (Fin n → ℝ) => Function.update q.2 i q.1)
+                ((gaussianReal 0 1).prod (GaussianMeasure.stdGaussianPi n)) := by
+                rw [Measure.prod_swap]
+          _ = GaussianMeasure.stdGaussianPi n := by
+                simpa [GaussianMeasure.stdGaussianPi] using
+                  (map_update_prod_pi (μs := fun _ : Fin n => gaussianReal 0 1) (i := i))
+    have h_int_prod :
+        Integrable (fun p : (Fin n → ℝ) × ℝ =>
+          (partialDeriv i g (Function.update p.1 i p.2))^2)
+          ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1)) := by
+      have h_int : Integrable (fun z => (partialDeriv i g z)^2) (GaussianMeasure.stdGaussianPi n) :=
+        (hg.2 i).integrable_sq
+      exact h_update_mp.integrable_comp h_int.aestronglyMeasurable |>.mpr h_int
+    have h_right_int :
+        Integrable (fun x =>
+          ∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1))
+          (GaussianMeasure.stdGaussianPi n) := by
+      simpa using
+        (Integrable.integral_prod_left (μ := GaussianMeasure.stdGaussianPi n)
+          (ν := gaussianReal 0 1)
+          (f := fun p : (Fin n → ℝ) × ℝ =>
+            (partialDeriv i g (Function.update p.1 i p.2))^2) h_int_prod)
+    have h_left_int := h_condEnt_int i
+    have h_le := integral_mono_ae h_left_int (h_right_int.const_mul 2) h_ae
+    -- simplify constant outside integral
+    simpa [integral_const_mul] using h_le
+  -- Use Fubini to rewrite the RHS integrals
+  have h_fubini :
+      ∀ i : Fin n,
+        ∫ x, (∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1))
+            ∂(GaussianMeasure.stdGaussianPi n) =
+          ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+    intro i
+    have h_int : Integrable (fun z => (partialDeriv i g z)^2) (GaussianMeasure.stdGaussianPi n) :=
+      (hg.2 i).integrable_sq
+    haveI : SigmaFinite (GaussianMeasure.stdGaussianPi n) :=
+      inferInstance
+    haveI : SigmaFinite (gaussianReal 0 1) := inferInstance
+    have h_int_prod :
+        Integrable (fun p : (Fin n → ℝ) × ℝ =>
+          (partialDeriv i g (Function.update p.1 i p.2))^2)
+          ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1)) := by
+      -- reuse the measure-preserving argument
+      have h_update_mp :
+          MeasurePreserving (fun p : (Fin n → ℝ) × ℝ => Function.update p.1 i p.2)
+            ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1))
+            (GaussianMeasure.stdGaussianPi n) := by
+        constructor
+        · exact measurable_update' (a := i)
+        · have h_map : Measurable (fun q : ℝ × (Fin n → ℝ) => Function.update q.2 i q.1) :=
+            (measurable_update' (a := i)).comp measurable_swap
+          calc
+            Measure.map (fun p : (Fin n → ℝ) × ℝ => Function.update p.1 i p.2)
+                ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1))
+                = Measure.map (fun q : ℝ × (Fin n → ℝ) => Function.update q.2 i q.1)
+                    (Measure.map Prod.swap ((GaussianMeasure.stdGaussianPi n).prod (gaussianReal 0 1))) := by
+                  rw [Measure.map_map h_map measurable_swap]
+                  rfl
+            _ = Measure.map (fun q : ℝ × (Fin n → ℝ) => Function.update q.2 i q.1)
+                  ((gaussianReal 0 1).prod (GaussianMeasure.stdGaussianPi n)) := by
+                  rw [Measure.prod_swap]
+            _ = GaussianMeasure.stdGaussianPi n := by
+                  simpa [GaussianMeasure.stdGaussianPi] using
+                    (map_update_prod_pi (μs := fun _ : Fin n => gaussianReal 0 1) (i := i))
+      exact h_update_mp.integrable_comp h_int.aestronglyMeasurable |>.mpr h_int
+    have h_swap :=
+      MeasureTheory.integral_integral_swap
+        (μ := GaussianMeasure.stdGaussianPi n) (ν := gaussianReal 0 1)
+        (f := fun x y => (partialDeriv i g (Function.update x i y))^2) h_int_prod
+    calc
+      ∫ x, (∫ y, (partialDeriv i g (Function.update x i y))^2 ∂(gaussianReal 0 1))
+          ∂(GaussianMeasure.stdGaussianPi n)
+          = ∫ y, (∫ x, (partialDeriv i g (Function.update x i y))^2
+                ∂(GaussianMeasure.stdGaussianPi n)) ∂(gaussianReal 0 1) := h_swap
+      _ = ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+        simpa [GaussianMeasure.stdGaussianPi] using
+          (integral_update_eq_integral (μs := fun _ : Fin n => gaussianReal 0 1)
+            (i := i) (f := fun z => (partialDeriv i g z)^2) h_int)
+  have h_sum_bound :
+      ∑ i : Fin n,
+        ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+          (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) ≤
+        2 * ∑ i : Fin n, ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+    have h_each :
+        ∀ i : Fin n,
+          ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+            (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) ≤
+            2 * ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+      intro i
+      have h := h_term_bound i
+      -- rewrite with Fubini result
+      simpa [h_fubini i] using h
+    -- sum over i
+    have h_sum' :
+        ∑ i : Fin n,
+          ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+            (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n)
+            ≤
+          ∑ i : Fin n, 2 * ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+      exact Finset.sum_le_sum (fun i _ => h_each i)
+    -- factor out the constant 2
+    have h_sum'' :
+        ∑ i ∈ Finset.univ, 2 * ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) =
+          2 * ∑ i ∈ Finset.univ, ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+      simpa using
+        (Finset.mul_sum (s := Finset.univ)
+          (f := fun i => ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n))
+          (a := (2 : ℝ))).symm
+    have h_sum''' :
+        ∑ i ∈ Finset.univ,
+          ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+            (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n) ≤
+          2 * ∑ i ∈ Finset.univ, ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+      simpa [h_sum''] using h_sum'
+    convert h_sum''' using 1
+  -- convert sum of integrals to integral of sum
+  have h_sum_integral :
+      ∑ i : Fin n, ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) =
+        ∫ z, ∑ i : Fin n, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) := by
+    have h_int :
+        ∀ i : Fin n, Integrable (fun z => (partialDeriv i g z)^2)
+          (GaussianMeasure.stdGaussianPi n) := fun i => (hg.2 i).integrable_sq
+    have h_sum :=
+      (integral_finsetSum (μ := GaussianMeasure.stdGaussianPi n)
+        (s := Finset.univ) (f := fun i z => (partialDeriv i g z)^2)
+        (fun i _ => h_int i))
+    convert h_sum.symm using 1
+  calc
+    ∑ i : Fin n,
+        ∫ x, SubAddEnt.condEntExceptCoord (μs := fun _ : Fin n => gaussianReal 0 1) i
+          (fun z => (g z)^2) x ∂(GaussianMeasure.stdGaussianPi n)
+        ≤ 2 * ∑ i : Fin n, ∫ z, (partialDeriv i g z)^2 ∂(GaussianMeasure.stdGaussianPi n) :=
+      h_sum_bound
+    _ = 2 * ∫ z, gradNormSq n g z ∂(GaussianMeasure.stdGaussianPi n) := by
+      simp [h_sum_integral, gradNormSq]

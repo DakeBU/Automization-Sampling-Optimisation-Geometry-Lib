@@ -1,0 +1,24 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+noncomputable section
+namespace Reviewer40
+theorem negative_two_empty_dimension :
+    let γ : Measure (Fin 0 → ℝ) := Measure.pi (fun _ : Fin 0 => gaussianReal 0 1)
+    Integrable (fun _ : Fin 0 → ℝ => (-2 : ℝ)^2) γ ∧
+    (∫ _x, (-2 : ℝ)^2 ∂γ) = 4 ∧
+    (∫ _x, (-2 : ℝ)^2 * Real.log ((-2 : ℝ)^2) ∂γ) = 4 * Real.log 4 ∧
+    (∫ _x, (-2 : ℝ)^2 * Real.log ((-2 : ℝ)^2) ∂γ) -
+      (∫ _x, (-2 : ℝ)^2 ∂γ) * Real.log (∫ _x, (-2 : ℝ)^2 ∂γ) = 0 ∧
+    (∫ x, (∑ i : Fin 0,
+      (fderiv ℝ (fun _ : Fin 0 → ℝ => (-2 : ℝ)) x (Pi.single i 1))^2) ∂γ) = 0 ∧
+    (∫ _x, (-2 : ℝ)^2 * Real.log ((-2 : ℝ)^2) ∂γ) -
+      (∫ _x, (-2 : ℝ)^2 ∂γ) * Real.log (∫ _x, (-2 : ℝ)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin 0,
+      (fderiv ℝ (fun _ : Fin 0 → ℝ => (-2 : ℝ)) x (Pi.single i 1))^2) ∂γ := by
+  have hs : HasCompactSupport (fun _ : Fin 0 → ℝ => (-2 : ℝ)) :=
+    HasCompactSupport.intro isCompact_univ (fun _ h => False.elim (h (Set.mem_univ _)))
+  have h := compact_gaussian_pi_logSobolev 0 (fun _ => (-2 : ℝ)) contDiff_const hs
+  refine ⟨h.1, ?_, ?_, ?_, ?_, h.2.2.2.2⟩ <;> norm_num
+#print axioms negative_two_empty_dimension
+end Reviewer40

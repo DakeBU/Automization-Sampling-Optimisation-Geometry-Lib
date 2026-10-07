@@ -1,0 +1,91 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+import Mathlib.Data.Fin.VecNotation
+
+noncomputable section
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+open AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+namespace Tests.GaussianCompactProductLogSobolev
+
+/-- Actual zero observer exercises all dimensions and zero mass through the producer. -/
+theorem zero_all_dimensions (n : ℕ) :
+    let γ : Measure (Fin n → ℝ) := Measure.pi (fun _ : Fin n => gaussianReal 0 1)
+    Integrable (fun _ : Fin n → ℝ => (0 : ℝ)^2) γ ∧
+    (∫ _x, (0 : ℝ)^2 * Real.log ((0 : ℝ)^2) ∂γ) -
+      (∫ _x, (0 : ℝ)^2 ∂γ) * Real.log (∫ _x, (0 : ℝ)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin n,
+      (fderiv ℝ (fun _ : Fin n → ℝ => (0 : ℝ)) x (Pi.single i 1))^2) ∂γ := by
+  have hs : HasCompactSupport (fun _ : Fin n → ℝ => (0 : ℝ)) :=
+    HasCompactSupport.intro isCompact_empty (fun _ _ => rfl)
+  have h := compact_gaussian_pi_logSobolev n (fun _ => (0 : ℝ)) contDiff_const hs
+  exact ⟨h.1, h.2.2.2.2⟩
+
+/-- The zero-dimensional law has an actual positive-mass constant observer. -/
+theorem constant_empty_dimension :
+    let γ : Measure (Fin 0 → ℝ) := Measure.pi (fun _ : Fin 0 => gaussianReal 0 1)
+    Integrable (fun _ : Fin 0 → ℝ => (1 : ℝ)^2) γ ∧
+    (∫ _x, (1 : ℝ)^2 * Real.log ((1 : ℝ)^2) ∂γ) -
+      (∫ _x, (1 : ℝ)^2 ∂γ) * Real.log (∫ _x, (1 : ℝ)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin 0,
+      (fderiv ℝ (fun _ : Fin 0 → ℝ => (1 : ℝ)) x (Pi.single i 1))^2) ∂γ := by
+  have hs : HasCompactSupport (fun _ : Fin 0 → ℝ => (1 : ℝ)) := by
+    exact HasCompactSupport.intro isCompact_univ (fun _ h => False.elim (h (Set.mem_univ _)))
+  have h := compact_gaussian_pi_logSobolev 0 (fun _ => (1 : ℝ)) contDiff_const hs
+  exact ⟨h.1, h.2.2.2.2⟩
+
+private def g (t : ℝ) : ℝ := t * smoothUnitCutoff t
+
+def signedPiProbe (x : Fin 2 → ℝ) : ℝ :=
+  g (x 0) * g (x 1) + (g (x 0) * g (x 1))^2
+
+set_option maxHeartbeats 800000 in
+theorem signed_probe_C2_compact :
+    ContDiff ℝ 2 signedPiProbe ∧ HasCompactSupport signedPiProbe := by
+  let e : (Fin 2 → ℝ) ≃L[ℝ] (ℝ × ℝ) := ContinuousLinearEquiv.finTwoArrow ℝ ℝ
+  let h : ℝ × ℝ → ℝ := fun z => g z.1 * g z.2 + (g z.1 * g z.2)^2
+  have cg : ContDiff ℝ 2 g := contDiff_id.mul
+    (smoothUnitCutoff_contDiff.of_le (WithTop.coe_le_coe.mpr (le_top : (2 : ℕ∞) ≤ ⊤)))
+  have ch : ContDiff ℝ 2 h :=
+    ((cg.comp contDiff_fst).mul (cg.comp contDiff_snd)).add
+      (((cg.comp contDiff_fst).mul (cg.comp contDiff_snd)).pow 2)
+  have sg : HasCompactSupport g := smoothUnitCutoff_hasCompactSupport.mul_left
+  have sh : HasCompactSupport h := by
+    apply HasCompactSupport.intro (sg.prod sg)
+    intro z hz
+    have ho : z.1 ∉ tsupport g ∨ z.2 ∉ tsupport g := by
+      simpa only [Set.mem_prod, not_and_or] using hz
+    rcases ho with hx | hy
+    · simp [h, image_eq_zero_of_notMem_tsupport hx]
+    · simp [h, image_eq_zero_of_notMem_tsupport hy]
+  have heq : signedPiProbe = h ∘ e := rfl
+  rw [heq]
+  exact ⟨ch.comp e.toContinuousLinearMap.contDiff,
+    sh.comp_isClosedEmbedding e.toHomeomorph.isClosedEmbedding⟩
+
+/-- Nonseparable signed two-coordinate observer on the literal Gaussian pi law. -/
+theorem actual_signed_product_lsi :
+    let γ : Measure (Fin 2 → ℝ) := Measure.pi (fun _ : Fin 2 => gaussianReal 0 1)
+    Integrable (fun x => (signedPiProbe x)^2) γ ∧
+    Integrable (fun x => (signedPiProbe x)^2 * Real.log ((signedPiProbe x)^2)) γ ∧
+    (∀ i : Fin 2, Integrable (fun x => (fderiv ℝ signedPiProbe x (Pi.single i 1))^2) γ) ∧
+    Integrable (fun x => ∑ i : Fin 2, (fderiv ℝ signedPiProbe x (Pi.single i 1))^2) γ ∧
+    (∫ x, (signedPiProbe x)^2 * Real.log ((signedPiProbe x)^2) ∂γ) -
+      (∫ x, (signedPiProbe x)^2 ∂γ) * Real.log (∫ x, (signedPiProbe x)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin 2, (fderiv ℝ signedPiProbe x (Pi.single i 1))^2) ∂γ := by
+  exact compact_gaussian_pi_logSobolev 2 signedPiProbe
+    signed_probe_C2_compact.1 signed_probe_C2_compact.2
+
+theorem actual_probe_signs :
+    0 < signedPiProbe ![1,1] ∧ signedPiProbe ![1/2,-1/2] < 0 := by
+  norm_num [signedPiProbe, g,
+    smoothUnitCutoff_eq_one_of_abs_le_one (x := 1) (by norm_num),
+    smoothUnitCutoff_eq_one_of_abs_le_one (x := 1/2) (by norm_num),
+    smoothUnitCutoff_eq_one_of_abs_le_one (x := -(1/2)) (by norm_num)]
+
+#print axioms compact_gaussian_pi_logSobolev
+#print axioms zero_all_dimensions
+#print axioms constant_empty_dimension
+#print axioms actual_signed_product_lsi
+
+end Tests.GaussianCompactProductLogSobolev

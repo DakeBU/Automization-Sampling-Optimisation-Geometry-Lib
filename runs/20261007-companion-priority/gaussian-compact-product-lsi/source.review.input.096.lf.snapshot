@@ -1,0 +1,116 @@
+from pathlib import Path
+import json,hashlib,re
+from datetime import datetime,timezone
+R=Path('E:/Samplinglib');O=R/'runs/20261007-companion-priority/gaussian-compact-product-preread'
+H=lambda b:hashlib.sha256(b).hexdigest()
+def enc(o):return (json.dumps(o,ensure_ascii=False,indent=2)+'\n').encode()
+def lf(b):return b.replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+def put(n,b):
+ if not isinstance(b,bytes):b=enc(b)
+ with (O/n).open('xb') as f:f.write(b)
+ return H(b)
+S='runs/20261007-companion-priority/gaussian-functional-availability/'
+specs=[
+ ('runs/20261007-companion-priority/gaussian-transport-preread/source-primary.raw.snapshot.html',[], 'Whole primary immutable byte pin only; bounded first4.6 fragments read, not whole-paper credit.'),
+ ('runs/20261007-companion-priority/gaussian-clt-entropy-preread/primary.S4.E6.raw.snapshot.html',None,'Printed FIRST4.6 chain; only first inequality target context.'),
+ ('runs/20261007-companion-priority/gaussian-clt-entropy-preread/primary.S4.SS1.p4.3.raw.snapshot.html',None,'Printed T2+GaussianLSI invocation; neighboring second/last proof context distinct.'),
+ ('runs/20261007-companion-priority/gaussian-product-entropy-preproof/signature.prospective.txt',None,'Exact sealed39 interface only; no production39 body/Test/blind exposure or admission inferred.'),
+ ('runs/20261007-companion-priority/gaussian-compact-lsi/preproof/signature.prospective.txt',None,'Exact scalar38 public interface only; no body/Test reread.'),
+ ('runs/20261007-companion-priority/gaussian-compact-lsi/verified.json',[],'Independent38 verified provenance receipt, not current theorem proof rereview.'),
+ (S+'SLT__GaussianLSI__TensorizedGLSI.lean.raw.snapshot',[[1,8],[45,94],[196,229],[249,263],[455,486]],'Actual pinned higher-dimensional source filename is TensorizedGLSI.lean; HigherDimTensorized was descriptive shorthand, clarified by root. External W12 source route not a local theorem.'),
+ (S+'SLT__GaussianLSI__SubAddEnt__Subadditivity.lean.raw.snapshot',[[1264,1308]],'Finite-product entropy source contracts/n0 and first-k route, not complete new external proof review.'),
+ (S+'SLT__GaussianLSI__SubAddEnt__Decomposition.lean.raw.snapshot',[[48,87]],'Actual true-L1 entropy chain and marginal cancellation.'),
+ (S+'SLT__GaussianLSI__SubAddEnt__Basic.lean.raw.snapshot',[[33,46],[198,218],[289,300]],'Actual conditional entropy definitions and L1 contracts; source AE class broader than proposed compact sufficient class.'),
+ (S+'LICENSE.raw.snapshot',[],'Pinned external Apache2 license, no commercial/ML use or upstream import.'),
+ (S+'lean-toolchain.raw.snapshot',None,'External Lean4.32 toolchain boundary.'),
+ ('lean-toolchain',None,'Local pinned Lean4.33 toolchain; compiler NEVER STARTED here.'),
+ ('lake-manifest.json',[],'Local Mathlib db584cd6 dependency pin.'),
+ ('AutoSamplingTheory/TechnicalLemmas/Measure/Product.lean',[[22,38],[90,132]],'Existing compiled actual update measure/integral primitives, not entropy endpoint.'),
+ ('AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LogSobolev.lean',[[1,37]],'Actual existing local bookkeeping floor; not general GaussianLSI.'),
+ ('.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/Pi.lean',[[302,324],[340,351],[807,817]],'Actual pi probability, zero-dimensional Dirac and split-coordinate measure-preserving law.'),
+ ('.lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Pi.lean',[[31,46]],'Actual Fin successor law transport/integrability use pattern, not generic tensor entropy.'),
+ ('.lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Prod.lean',[[68,92],[335,344],[444,478]],'True measurable marginals/L1/Fubini before real subtraction.'),
+ ('.lake/packages/mathlib/Mathlib/MeasureTheory/Function/L1Space/Integrable.lean',[[83,103],[158,164]],'Measurable bounded functions dominated by genuine integrable constant under finite laws.'),
+ ('.lake/packages/mathlib/Mathlib/Topology/Algebra/Support.lean',[[281,297]],'HasCompactSupport.comp_isClosedEmbedding generated additive API, proper slice support.'),
+ ('.lake/packages/mathlib/Mathlib/Topology/Separation/Basic.lean',[[598,605],[881,889]],'Fixed-product slice closed-map primitives and actual isClosedEmbedding_update.'),
+ ('.lake/packages/mathlib/Mathlib/Topology/Algebra/Module/Equiv.lean',[[925,942]],'Fin.consEquivL actual continuous linear equivalence and finCons.'),
+ ('.lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Operations.lean',[[112,140]],'Actual C2 update/pi composition, no fthird derivative.'),
+ ('.lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Defs.lean',[[1272,1283]],'True continuity of fderiv and evaluation from C2.'),
+ ('.lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Const.lean',[[374,394]],'Actual derivative/partial compact support with no new bound binder.'),
+ ('.lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Pi.lean',[[17,40]],'Actual update derivative is canonical coordinate insertion linear map.'),
+ ('.lake/packages/mathlib/Mathlib/Analysis/Calculus/Deriv/Pi.lean',[[17,37]],'hasDerivAt_update with Pi.single i1; slice chain identity.'),
+ ('.lake/packages/mathlib/Mathlib/MeasureTheory/Function/LocallyIntegrable.lean',[[621,625]],'Continuous compact support integrability; finite probability also gives explicit constant domination route.'),
+ ('.lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean',[[128,155]],'True pi to Euclidean/stdGaussian orthonormal-basis law transport; future assembled adapter, no Pi supnorm substitution.'),
+ ('.lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/PiL2.lean',[[523,540]],'True Parseval energy API for later Hilbert transport.'),
+ ('runs/20261007-companion-priority/gaussian-sqrt-density-domain/preproof/source.signature.txt',None,'Actual32 sealed f/rho/q/same true standardized law domain and energy1/4 consumer interface only.'),
+ ('runs/20261007-companion-priority/standardized-rgo-relative-entropy/preproof/source.signature.txt',None,'Actual33 unique stationary selector/finite canonicalKL/entropy coherent same-law consumer interface only.'),
+ ('runs/20261007-companion-priority/gaussian-product-entropy-preread/source-dependency.packet.json',[],'Closed phase source/API scheduling evidence; not39 proof or source admission.'),
+ ('research-wiki/external-lean-libraries/lean-stat-learning-theory.md',[[1,20],[23,38]],'External pin/source-role routing only; historical Linux checkout is not assumed available.')]
+pins=[];regions=[]
+for i,(p,rs,scope) in enumerate(specs):
+ b=(R/p).read_bytes();l=lf(b);n=f'input.{i:02d}';put(n+'.raw.snapshot',b);put(n+'.lf.snapshot',l)
+ pins.append({'path':p,'raw_sha256':H(b),'lf_sha256':H(l),'bytes':len(b),'raw_snapshot':n+'.raw.snapshot','lf_snapshot':n+'.lf.snapshot','selected_ranges':rs,'read_scope':scope})
+ ls=l.decode().splitlines()
+ if rs is None:rs=[[1,len(ls)]]
+ for a,z in rs:
+  assert 1<=a<=z<=len(ls),(p,a,z)
+  span=('\n'.join(ls[a-1:z])+'\n').encode();sn=f'source.region.{len(regions):02d}.lf.snapshot';put(sn,span);regions.append({'path':p,'lines':[a,z],'lf_sha256':H(span),'snapshot':sn,'scope':scope})
+assert pins[0]['raw_sha256']=='ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d'
+assert pins[3]['lf_sha256']=='4c3634612a055d16e4aec0516823192db42307ac1330ae4bddb88b959a436b0d'
+assert pins[4]['lf_sha256']=='cf52aef70523e2e4f95eb9ccefc2ea661ddb6ed1e0400bc8f02473c282ee0e63'
+assert pins[6]['lf_sha256']=='5fa2fb9eb365be8d534a8607d9a20f9167466226214bcff406219719cbb98b03'
+signature='''theorem compact_gaussian_product_logSobolev
+    (n : ℕ) (f : (Fin n → ℝ) → ℝ)
+    (hf : ContDiff ℝ 2 f) (hs : HasCompactSupport f) :
+    let γ : Measure (Fin n → ℝ) := Measure.pi (fun _ : Fin n => gaussianReal 0 1)
+    let ∂f := fun i x => fderiv ℝ f x (Pi.single i (1 : ℝ))
+    Integrable (fun x => (f x)^2) γ ∧
+    Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) γ ∧
+    (∀ i : Fin n, Integrable (fun x => (∂f i x)^2) γ) ∧
+    (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -
+      (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ) ≤
+    2 * ∫ x, (∑ i : Fin n, (∂f i x)^2) ∂γ
+'''
+# ∂f notation is mathematical candidate syntax; use a plain identifier for portable Lean proposal.
+signature=signature.replace('∂f','D')
+put('signature.proposed.txt',signature.encode())
+route=[
+ 'Produce actual pi Gaussian probability, continuous bounded f²/Phi(f²) and each coordinate derivative-square L1 from C2compact. Phi=tlogt handles zeros. HasCompactSupport.fderiv_apply plus continuous_fderiv internally supplies global coordinate bounds/support.',
+ 'At n0 pi_of_empty is Dirac on singleton; homogeneous entropy and empty coordinate-energy sum both0. For successor use actual Fin.consEquivL and measurePreserving_piFinSuccAbove at0, matching actual product Gaussian laws. n1 reduces to actual38 after the same law/coordinate identification.',
+ 'Compose f with split-coordinate equivalence and set F=f². Internally produce measurable/nonnegative/bounded class, call sealed39 ONLY after its genuine independent admission, obtain actual joint/all-slice/marginal L1 and loss-free marginal inequality.',
+ 'Use true Fubini and actual domains to write Ent_joint <= E_tail Ent_scalar(original slices)+E_scalar Ent_tail(original slices). Produce outer-entropy measurability/L1 from bounded Phi and marginal Phi before subtraction. No sqrt marginal or RMS function is differentiated.',
+ 'For every fixed other coordinate, derive C2 and compact support of original scalar/tail slices by continuous affine coordinate insertion and closed-embedding support composition. Apply actual38 to scalar slices and induction hypothesis to tail slices; scalar derivative equals fderiv f(updated state)(Pi.single i1), tail coordinate directions equal successor-coordinate directions.',
+ 'Integrate those genuine inequalities using true partial-square/section/outer L1; use actual Gaussian product law/Fubini and finite integral_sum to combine head plus tail coordinate energies. Coefficient remains2, no dimension loss or false norm conversion.',
+ 'Return fullFin n compact product LSI and internally produced L1. Future orthonormal-basis Gaussian transport/gradient chain+Parseval, actual32 radial cutoff entropy/energy convergence, coherent33 KL identification and separate GaussianT2 then consume it; none is credited by this packet.']
+packet={'schema_version':1,'artifact_kind':'bounded-source-API-only-compact-finite-product-Gaussian-LSI-readiness','status':'SCHEDULING_EVIDENCE_ONLY_NO_SEAL_PROOF_OR_CLAIM','actor':'gaussian_domain_preproof_reviewer_29',
+ 'synthesis_first':'Shortest useful next public consumer is the fullFin n compact C2 Gaussian functionLSI with literal pi Gaussian law and coordinate-square-sum energy, deriving all domains internally. Direct dimension induction on original slices consumes binary39 and scalar38; a separate public generic finite entropy wrapper is optional reusable background, not needed to expose certificates or differentiate RMS marginals.',
+ 'primary_contract':{'edition':'arXiv2609.06906v1','raw_sha256':pins[0]['raw_sha256'],'anchors':['S4.E6 FIRST','S4.SS1.p4.3'],'printed_statement':'W2(r_y,N(0,I))<=sqrt(E_r_y ||grad rho_y||²); first source inequality combines GaussianLSI plus T2. No compact tensorization proof printed here.','standard_constants':'FunctionLSI Entγ(f²)<=2∫||grad f||²; actual32 energy=(1/4)Fisher and actual33 entropy=KL yield KL<=Fisher/2 only after noncompact/Hilbert/cutoff adapters; T2 W2²<=2KL is separate.'},
+ 'parent_truth':{'38':'Actual independently VERIFIED scalar C2compact public interface, exact308-byte signature pin; no body/Test reread.','39':'Actual independently sealed1029-byte bounded binary marginal entropy interface; wholemath/source/exact review in progress. Conditional prerequisite only until admitted. No39 implementation/Test/freshblind read.','history':'Reviewer authored39 source graph and repaired representation; current output is source/API readiness, not topology validation or future40 StatementSeal. Root sole proof writer.'},
+ 'candidate_interface':{'namespace':'AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev','file':'AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GaussianCompactProductLogSobolev.lean','declaration':'compact_gaussian_product_logSobolev','signature':'signature.proposed.txt','signature_raw_LF_sha256':H(signature.encode()),'elaborated':False,'sealed':False,'public_binders':'Only n, actual f, C2 AND compact support. No L1/bound/mass/normalization/entropy/LSI certificate premise.','imports_candidate':['AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy (only after39 admission)','AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactLogSobolev','AutoSamplingTheory.TechnicalLemmas.Measure.Product','Mathlib.MeasureTheory.Integral.Pi','Mathlib.Analysis.Calculus.ContDiff.Operations','Mathlib.Analysis.Calculus.FDeriv.Const','Mathlib.Topology.Algebra.Module.Equiv'],
+  'scope_choice':'Prefer this actual fullFin n compact Gaussian consumer. Alternative generic bounded nonnegative finite-product entropy subadditivity is mathematically reusable, but requires the same law/Fubini/chain assembly and does not itself discharge C2slice/energy consumers; avoid a certificate wrapper.'},
+ 'route_at_most_seven_steps':route,
+ 'binder_definition_domain_audit':{'carrier':'(Fin n→Real) has default Pi sup norm for differentiability/topology. Gamma is actual Measure.pi of centered variance1 gaussianReal, not a supplied Gaussian/probability witness.','energy':'D_i f(x)=fderiv Real f x(Pi.single i1), energy=sum_i D_i². Never replace by norm(fderiv f)^2 on sup-norm Pi. Example local derivative of x0+x1: coordinate-square sum2, operator norm on sup-norm Pi squared4; a compact cutoff equal1 near0 retains this distinction.','Hilbert':'toLp2/basisGaussian measure maps and actual gradient chain+Riesz/Parseval transport remain genuine assembled future dependencies, not automatic notation reinterpretation.','slices':'Every original update scalar slice is C2 by contDiff_update and f composition, compact by isClosedEmbedding_update and HasCompactSupport.comp_isClosedEmbedding. Tail block fixed-head slice uses Fin.consEquivL plus fixed-product closed embedding; internal adapter must be written, no caller support certificate.','derivatives':'C2 implies differentiability and continuous actual fderiv; HasCompactSupport.fderiv_apply gives each partial compact support. Chain rule with hasDerivAt_update produces scalar derivative identity. No third derivative or positive lower bound on f².','domains':'Probability law finite/SFinite; continuous bounded compact f² and Phi(f²) genuinely L1. Every coordinate partial-square L1, every scalar/tail section L1, true measurable bounded marginals and outer conditional entropy L1 produced internally before integral_add/sub/order/Fubini.','zeros':'Signed f and f0 included; real log0=0 and continuous tlogt handles zero mass/fibers. n0 lawDirac, entropy0, emptyenergy0; n1 scalarvariance1, no positive dimension premise.','no_RMS_smoothness':'All inequalities are applied to original fixed-coordinate functions. The square root of a marginal average is never assumed C2.'},
+ 'local_actual_API_floor':[
+  {'path':'AutoSamplingTheory/TechnicalLemmas/Measure/Product.lean','lines':[22,132],'names':['measurable_update_prod_pi','map_update_prod_pi','measurePreserving_update_prod_pi','integral_update_prod_pi_eq_integral','integrable_update_slice_ae'],'classification':'EXISTING_COMPILED_PRIMITIVES_ONLY','boundary':'Update law/Fubini only; last endpoint AE slices, not all-slice compactness or entropy tensorization.'},
+  {'path':'.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/Pi.lean','lines':[[310,312],[340,346],[807,817]],'names':['pi.instIsProbabilityMeasure','pi_of_empty','measurePreserving_piFinSuccAbove'],'classification':'PINNED_MATHLIB_API','boundary':'Must match actual Fin.cons/succ coordinates, actual laws and integrable pullbacks.'},
+  {'path':'.lake/packages/mathlib/Mathlib/Topology/Algebra/Module/Equiv.lean','lines':[932,942],'names':['Fin.consEquivL','ContinuousLinearMap.finCons'],'classification':'PINNED_MATHLIB_API','boundary':'Real linear/topological split, not Gaussian entropy by itself.'},
+  {'path':'.lake/packages/mathlib/Mathlib/Topology/Algebra/Support.lean','lines':[291,297],'names':['HasCompactSupport.comp_isClosedEmbedding'],'classification':'PINNED_MATHLIB_API','boundary':'Additive theorem generated by to_additive; genuine closed embedding must be produced.'},
+  {'path':'.lake/packages/mathlib/Mathlib/Topology/Separation/Basic.lean','lines':[[598,605],[881,889]],'names':['isClosedMap_prodMk_left','isClosedMap_prodMk_right','isClosedEmbedding_update'],'classification':'PINNED_MATHLIB_API'},
+  {'path':'.lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Operations.lean','lines':[112,140],'names':['contDiff_pi','contDiff_update'],'classification':'PINNED_MATHLIB_API'},
+  {'path':'.lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Defs.lean','lines':[1272,1283],'names':['ContDiff.continuous_fderiv','ContDiff.continuous_fderiv_apply'],'classification':'PINNED_MATHLIB_API'},
+  {'path':'.lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Const.lean','lines':[374,394],'names':['fderiv_of_notMem_tsupport','HasCompactSupport.fderiv','HasCompactSupport.fderiv_apply'],'classification':'PINNED_MATHLIB_API'},
+  {'path':'.lake/packages/mathlib/Mathlib/Analysis/Calculus/Deriv/Pi.lean','lines':[19,37],'names':['hasDerivAt_update','deriv_update'],'classification':'PINNED_MATHLIB_API'},
+  {'path':'.lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Prod.lean','lines':[[68,92],[335,344],[444,478]],'names':['StronglyMeasurable.integral_prod_right','StronglyMeasurable.integral_prod_left','Integrable.integral_prod_left','Integrable.integral_prod_right','integral_prod','integral_prod_symm'],'classification':'PINNED_MATHLIB_API','boundary':'Actual domains before marginal entropy subtraction; neither KL DPI nor totalized integral identities produce them.'},
+  {'path':'.lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean','lines':[128,153],'names':['stdGaussian_map','map_pi_eq_stdGaussian','stdGaussian_eq_map_pi_orthonormalBasis'],'classification':'PINNED_MATHLIB_FUTURE_TRANSPORT'},
+  {'path':'.lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/PiL2.lean','lines':[530,540],'names':['OrthonormalBasis.sum_sq_inner_right','OrthonormalBasis.sum_sq_inner_left'],'classification':'PINNED_MATHLIB_FUTURE_TRANSPORT'}],
+ 'source_background':{'actual_filename':'SLT/GaussianLSI/TensorizedGLSI.lean','name_clarification':'Root clarified HigherDimTensorized is descriptive finite-dimensional chapter shorthand, not a different file; no invented file or external fetch.','revision':'d0f506f0a695018265dccb33bcb05e2f5ca1c876','license':'Apache-2.0 exact frozen LICENSE and source headers','upstream_toolchain':'Lean4.32 / Mathlib81a5d257','local_toolchain':'Lean4.33 / Mathlibdb584cd6','source_contract':'TensorizedGLSI49-55 energy=sum partial squares and classical W12 L2 data;460-467 adds genuine Differentiable, continuous partials and squared-Phi L1. Source197-229 applies scalar W12 LSI on actual update slices;475-479 combines source entropy_subadditive with separate coordinate energy comparison.','authored_alternative':'Use newly sealed bounded binary39 and actual compact scalar38 instead of porting unbounded source SubAddEnt/W12 closure. Direct original-slice dimension induction is authored sufficient compact background.','local_callable':False,'direct_placeholder_hits_tensorized':[m.group() for m in re.finditer(r'\b(?:sorry|admit|axiom)\b',lf((R/specs[6][0]).read_bytes()).decode())],'closure_boundary':'No new whole external import closure audit/compile; relevant direct headers/proof regions only. Previous pinned audit source is reference, not local proof truth.'},
+ 'first_unmet_edges':[{'class':'PENDING_ACTUAL_PARENT_ADMISSION','edge':'Sealed39 binary entropy producer wholemath/source/exact admission must complete before it is consumed as compiled truth.'},{'class':'MISSING_INTERNAL_ASSEMBLED_PRODUCER','edge':'After39 admission, smallest source-faithful function producer is fullFin n compact GaussianLSI: actual split law/entropy chain, proper original-slice C2compact and coordinate derivative/Fubini assembly. Each is an internal edge, not a new public certificate.'}],
+ 'actual_future_paper_consumer':'Actual32 standardized RGO sqrt-density f is C2, f²=q, mass1, qlogq L1 and energy=(1/4)Fisher. Apply future finite-Hilbert compact LSI to radial cutoff χ_R f, prove entropy/energy cutoff limits internally; coherent33 unique stationary p aligns same law and finite canonicalKL entropy. Then LSI gives KL<=Fisher/2. Actual GaussianT2 is still required separately for FIRST4.6.',
+ 'remaining_open':['39 independent final admission','prospective40 exact StatementSeal/source graph/actual implementation/independent reviews','finite-product/Hilbert Gaussian gradient-energy transport','noncompact actual32 cutoff/W12 extension','GaussianT2/W2/FIRST4.6','bias/main/work/query-cost/composition and reader/live/PURIFIED'],
+ 'exposure':{'39_body_Test_freshblind_read':False,'37_38_body_Test_blind_read':False,'sourcegraph_selfvalidation':False,'graph_only_feature_work':False,'compiler_started':False,'proof_search':False,'SAU_claim':False,'canonical_shared_site_ledger_mutations':False,'retrieval_notes':['Initial guessed Pi/FDeriv support paths absent; rg --files/scoped declaration lookup located actual APIs. No proof attempts.','One previous-audit inputs dictionary was initially treated as list; corrected to the exact inputs.json manifest, no source input mutation.','Historical external Linux checkout path not assumed present; fixed raw snapshots used.']},
+ 'inputs':'input-bindings.json','selected_source_API_regions':'source-regions.json','region_scope':'Bounded source-detail/API evidence only; no SourceProofGraph or topology validation authored in this task.','compiled_edges':[],'leases':{'read':'CLOSED','write':'CLOSED','Python':'CLOSED','compiler':'CLOSED'}}
+outs={n:put(n,x) for n,x in [('input-bindings.json',pins),('source-regions.json',regions),('source-detail-packet.json',packet)]}
+run={'schema_version':1,'actor':packet['actor'],'inputs':[{'path':x['path'],'raw_sha256':x['raw_sha256'],'lf_sha256':x['lf_sha256']} for x in pins],'outputs':outs,'proposed_signature_sha256':H(signature.encode()),'compiler_started':False,'no_implementation_exposure':True};run['run_sha256']=H(enc(run));put('run.json',run)
+for pin in pins:assert H((R/pin['path']).read_bytes())==pin['raw_sha256']
+lease=json.loads((O/'lease.json').read_bytes());lease.update({'status':'CLOSED','read_lease':'CLOSED','write_lease':'CLOSED','Python_lease':'CLOSED','compiler_lease':'CLOSED','closed_utc':datetime.now(timezone.utc).isoformat(),'run_sha256':run['run_sha256'],'packet_sha256':outs['source-detail-packet.json'],'compiler_status':'NEVER_STARTED'});(O/'lease.json').write_bytes(enc(lease))
+print(json.dumps({'packet_sha256':outs['source-detail-packet.json'],'run_sha256':run['run_sha256'],'pins':len(pins),'regions':len(regions),'signature_sha256':H(signature.encode()),'leases':'CLOSED','compiler':'NEVER_STARTED'}))

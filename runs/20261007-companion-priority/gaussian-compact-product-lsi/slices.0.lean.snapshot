@@ -1,0 +1,76 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactLogSobolev
+import Mathlib.MeasureTheory.Integral.Pi
+import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Analysis.Calculus.FDeriv.Const
+import Mathlib.Topology.Algebra.Module.Equiv
+
+/-! Compact finite-product Gaussian log-Sobolev background. Coordinate energy
+is the sum of squared directional derivatives; the default Pi operator norm
+is a different quantity. Hilbert transport and noncompact extension are separate.
+The exact public theorem is under construction; private domains alone give no LSI. -/
+
+open MeasureTheory ProbabilityTheory
+open scoped Topology BigOperators
+
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev
+
+private theorem compact_domains
+    (n : ℕ) (f : (Fin n → ℝ) → ℝ)
+    (hf : ContDiff ℝ 2 f) (hs : HasCompactSupport f) :
+    let γ : Measure (Fin n → ℝ) := Measure.pi (fun _ : Fin n => gaussianReal 0 1)
+    let D : Fin n → (Fin n → ℝ) → ℝ := fun i x => fderiv ℝ f x (Pi.single i 1)
+    Integrable (fun x => (f x)^2) γ ∧
+    Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) γ ∧
+    (∀ i, Integrable (fun x => (D i x)^2) γ) ∧
+    Integrable (fun x => ∑ i, (D i x)^2) γ := by
+  dsimp only
+  have hA : Continuous (fun x => (f x)^2) := hf.continuous.pow 2
+  have sA : HasCompactSupport (fun x => (f x)^2) := by
+    simpa only [Function.comp_def] using hs.comp_left (g := fun t : ℝ => t^2) (by simp)
+  have hB : Continuous (fun x => (f x)^2 * Real.log ((f x)^2)) :=
+    Real.continuous_mul_log.comp hA
+  have sB : HasCompactSupport (fun x => (f x)^2 * Real.log ((f x)^2)) := by
+    simpa only [Function.comp_def] using
+      sA.comp_left (g := fun t : ℝ => t * Real.log t) (by simp)
+  have iD : ∀ i : Fin n, Integrable (fun x => (fderiv ℝ f x (Pi.single i 1))^2)
+      (Measure.pi (fun _ : Fin n => gaussianReal 0 1)) := by
+    intro i
+    have hc : Continuous (fun x => fderiv ℝ f x (Pi.single i 1)) :=
+      (hf.continuous_fderiv (by norm_num)).clm_apply continuous_const
+    have sc : HasCompactSupport (fun x => (fderiv ℝ f x (Pi.single i 1))^2) := by
+      simpa only [Function.comp_def] using
+        (hs.fderiv_apply ℝ (Pi.single i 1)).comp_left (g := fun t : ℝ => t^2) (by simp)
+    exact (hc.pow 2).integrable_of_hasCompactSupport sc
+  exact ⟨hA.integrable_of_hasCompactSupport sA,
+    hB.integrable_of_hasCompactSupport sB, iD,
+    integrable_finsetSum _ (fun i _ => iD i)⟩
+
+private theorem original_slices
+    (n : ℕ) (f : (Fin (n+1) → ℝ) → ℝ)
+    (hf : ContDiff ℝ 2 f) (hs : HasCompactSupport f) :
+    (∀ y : Fin n → ℝ,
+      ContDiff ℝ 2 (fun a : ℝ => f (Fin.cons a y)) ∧
+      HasCompactSupport (fun a : ℝ => f (Fin.cons a y))) ∧
+    (∀ a : ℝ,
+      ContDiff ℝ 2 (fun y : Fin n → ℝ => f (Fin.cons a y)) ∧
+      HasCompactSupport (fun y : Fin n → ℝ => f (Fin.cons a y))) := by
+  let e := Fin.consEquivL ℝ (fun _ : Fin (n+1) => ℝ)
+  have he : ContDiff ℝ 2 e := e.toContinuousLinearMap.contDiff
+  constructor
+  · intro y
+    have hc : ContDiff ℝ 2 (fun a : ℝ => f (e (a, y))) :=
+      hf.comp (he.comp (contDiff_prodMk_left y))
+    have hd : Topology.IsClosedEmbedding (fun a : ℝ => e (a, y)) :=
+      e.toHomeomorph.isClosedEmbedding.comp
+        ⟨isEmbedding_prodMkLeft y, isClosedMap_prodMk_right y⟩
+    exact ⟨hc, hs.comp_isClosedEmbedding hd⟩
+  · intro a
+    have hc : ContDiff ℝ 2 (fun y : Fin n → ℝ => f (e (a, y))) :=
+      hf.comp (he.comp (contDiff_prodMk_right a))
+    have hd : Topology.IsClosedEmbedding (fun y : Fin n → ℝ => e (a, y)) :=
+      e.toHomeomorph.isClosedEmbedding.comp
+        ⟨isEmbedding_prodMkRight a, isClosedMap_prodMk_left a⟩
+    exact ⟨hc, hs.comp_isClosedEmbedding hd⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactProductLogSobolev

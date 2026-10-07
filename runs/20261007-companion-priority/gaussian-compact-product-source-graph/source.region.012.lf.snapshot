@@ -1,0 +1,20 @@
+
+lemma continuous_fderiv_of_continuous_deriv (f : ℝ → ℝ)
+    (h_deriv : Continuous (fun x => deriv f x)) :
+    Continuous (fun x => fderiv ℝ f x) := by
+  have h_smulRight_cont : Continuous (fun a : ℝ => (1 : ℝ →L[ℝ] ℝ).smulRight a) := by
+    have h : Continuous (⇑((ContinuousLinearMap.smulRightL ℝ ℝ ℝ) (1 : ℝ →L[ℝ] ℝ))) := by
+      exact ContinuousLinearMap.continuous _
+    have heq : (fun a : ℝ => (1 : ℝ →L[ℝ] ℝ).smulRight a) =
+        ⇑((ContinuousLinearMap.smulRightL ℝ ℝ ℝ) (1 : ℝ →L[ℝ] ℝ)) := by
+      funext a
+      rfl
+    rwa [heq]
+  have h_eq : (fun x => fderiv ℝ f x) =
+      fun x => (1 : ℝ →L[ℝ] ℝ).smulRight (deriv f x) := by
+    funext x
+    ext
+    simp [ContinuousLinearMap.smulRight_apply, mul_comm]
+  have h_cont : Continuous (fun x => (1 : ℝ →L[ℝ] ℝ).smulRight (deriv f x)) := by
+    simpa [Function.comp_def] using h_smulRight_cont.comp h_deriv
+  simpa [h_eq] using h_cont

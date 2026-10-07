@@ -1,0 +1,56 @@
+
+omit [SFinite ν] in
+theorem Integrable.comp_fst_iff [SFinite μ] [IsFiniteMeasure ν] {f : α → E} (hν : ν ≠ 0) :
+    Integrable (f ·.1) (μ.prod ν) ↔ Integrable f μ :=
+  ⟨(.of_comp_fst · hν), (.comp_fst · ν)⟩
+
+end
+
+variable [NormedSpace ℝ E]
+
+theorem Integrable.integral_prod_left ⦃f : α × β → E⦄ (hf : Integrable f (μ.prod ν)) :
+    Integrable (fun x => ∫ y, f (x, y) ∂ν) μ := by
+  apply Integrable.mono hf.integral_norm_prod_left hf.aestronglyMeasurable.integral_prod_right'
+  filter_upwards with x
+  grw [norm_integral_le_integral_norm]
+  exact le_abs_self _
+
+theorem Integrable.integral_prod_right [SFinite μ] ⦃f : α × β → E⦄
+    (hf : Integrable f (μ.prod ν)) : Integrable (fun y => ∫ x, f (x, y) ∂μ) ν :=
+  hf.swap.integral_prod_left
+
+/-! ### The Bochner integral on a product -/
+
+variable [SFinite μ]
+
+theorem integral_prod_swap (f : α × β → E) :
+    ∫ z, f z.swap ∂ν.prod μ = ∫ z, f z ∂μ.prod ν :=
+  measurePreserving_swap.integral_comp MeasurableEquiv.prodComm.measurableEmbedding _
+
+theorem setIntegral_prod_swap (s : Set α) (t : Set β) (f : α × β → E) :
+    ∫ (z : β × α) in t ×ˢ s, f z.swap ∂ν.prod μ = ∫ (z : α × β) in s ×ˢ t, f z ∂μ.prod ν := by
+  rw [← Measure.prod_restrict, ← Measure.prod_restrict, integral_prod_swap]
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+
+/-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
+  we separate them out as separate lemmas, because they involve quite some steps. -/
+
+
+/-- Integrals commute with addition inside another integral. `F` can be any function. -/
+theorem integral_fn_integral_add ⦃f g : α × β → E⦄ (F : E → E') (hf : Integrable f (μ.prod ν))
+    (hg : Integrable g (μ.prod ν)) :
+    (∫ x, F (∫ y, f (x, y) + g (x, y) ∂ν) ∂μ) =
+      ∫ x, F ((∫ y, f (x, y) ∂ν) + ∫ y, g (x, y) ∂ν) ∂μ := by
+  refine integral_congr_ae ?_
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g
+  simp [integral_add h2f h2g]
+
+/-- Integrals commute with subtraction inside another integral.
+  `F` can be any measurable function. -/
+theorem integral_fn_integral_sub ⦃f g : α × β → E⦄ (F : E → E') (hf : Integrable f (μ.prod ν))
+    (hg : Integrable g (μ.prod ν)) :
+    (∫ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ) =
+      ∫ x, F ((∫ y, f (x, y) ∂ν) - ∫ y, g (x, y) ∂ν) ∂μ := by
+  refine integral_congr_ae ?_
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g

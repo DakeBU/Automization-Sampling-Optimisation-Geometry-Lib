@@ -1,0 +1,23 @@
+instance pi.instIsFiniteMeasure [∀ i, IsFiniteMeasure (μ i)] :
+    IsFiniteMeasure (Measure.pi μ) :=
+  ⟨Measure.pi_univ μ ▸ ENNReal.prod_lt_top (fun i _ ↦ measure_lt_top (μ i) _)⟩
+
+instance {α : ι → Type*} [∀ i, MeasureSpace (α i)] [∀ i, IsFiniteMeasure (volume : Measure (α i))] :
+    IsFiniteMeasure (volume : Measure (∀ i, α i)) :=
+  pi.instIsFiniteMeasure _
+
+instance pi.instIsProbabilityMeasure [∀ i, IsProbabilityMeasure (μ i)] :
+    IsProbabilityMeasure (Measure.pi μ) :=
+  ⟨by simp only [Measure.pi_univ, measure_univ, Finset.prod_const_one]⟩
+
+@[simp]
+theorem pi_pi_finset [∀ i, IsProbabilityMeasure (μ i)] (f : (i : ι) → Set (α i)) (s : Finset ι) :
+    Measure.pi μ ((s : Set ι).pi f) = ∏ i ∈ s, μ i (f i) := by
+  classical simp [← Set.univ_pi_ite, pi_pi, apply_ite]
+
+instance {α : ι → Type*} [∀ i, MeasureSpace (α i)]
+    [∀ i, IsProbabilityMeasure (volume : Measure (α i))] :
+    IsProbabilityMeasure (volume : Measure (∀ i, α i)) :=
+  pi.instIsProbabilityMeasure _
+
+variable [∀ i, SigmaFinite (μ i)]

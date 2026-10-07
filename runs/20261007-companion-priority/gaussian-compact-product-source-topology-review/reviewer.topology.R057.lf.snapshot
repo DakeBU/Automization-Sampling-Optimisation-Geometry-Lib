@@ -1,0 +1,12 @@
+theorem ContDiff.continuous_fderiv (h : ContDiff 𝕜 n f) (hn : n ≠ 0) :
+    Continuous (fderiv 𝕜 f) :=
+  (contDiff_one_iff_fderiv.1 (h.of_le <| ENat.one_le_iff_ne_zero_withTop.mpr hn)).2
+
+/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
+continuous. -/
+theorem ContDiff.continuous_fderiv_apply (h : ContDiff 𝕜 n f) (hn : n ≠ 0) :
+    Continuous fun p : E × E => (fderiv 𝕜 f p.1 : E → F) p.2 :=
+  have A : Continuous fun q : (E →L[𝕜] F) × E => q.1 q.2 := isBoundedBilinearMap_apply.continuous
+  have B : Continuous fun p : E × E => (fderiv 𝕜 f p.1, p.2) :=
+    ((h.continuous_fderiv hn).comp continuous_fst).prodMk continuous_snd
+  A.comp B

@@ -1,0 +1,14 @@
+# Compact finite-product Gaussian LSI leaf
+Exact target: compact_gaussian_pi_logSobolev; namespace FunctionalInequalities.GaussianCompactProductLogSobolev. Actual pi centered variance1 law on every Fin n including0. Only n,f,C2,compact support inputs; genuine f²/Phi(f²)/each directional-square/finite-energy L1 outputs plus homogeneous entropy bound2.
+Source: arXiv2609.06906v1 FIRST4.6 omitted GaussianLSI background, SLT d0f506f0 TensorizedGLSI all488lines. Authored original-slice compact sufficient proof is an explicit OR separate from external W12/unbounded finiteentropy source. External source is not a callable port.
+Canonical search: root.reuse-search.json/log; Probability/SDE/FunctionalInequalities/Measure.Product cards; true scalar38 and boundedbinary39 are the only direct ASTIS mathematical parents. Mathlib Pi law, support/differentiability, Bochner Fubini/integral algebra and finite sums searched before implementation. No duplicated paper-private mathematics or norm(fderiv)² replacement.
+Hidden contracts: actual Gaussian probability/finite/SFinite laws, all joint and every original slice/marginal/outer entropy L1; continuous actual coordinate fderiv and compact support; true split measure preservation and embedding; signed/zero/Fin0 cases. All produced internally, never extra public premises. Energy is literal coordinate-square sum on default Pi topology, not the sup operator-norm square.
+1. Compact C2 produces actual all-dimensional square/Phi/partial/fullsum domains.
+2. Fin0 singleton probability has zero homogeneous entropy and empty energy.
+3. Actual Fin.cons splits Gaussian law; fixed original scalar/tail slices are C2compact.
+4. Genuine coordinate-update chain rule identifies scalar and tail derivatives.
+5. Apply actual boundedbinary39 to internally produced squared-function class; true outer-domain/Fubini algebra gives conditional entropy bound.
+6. Apply actual scalar38 and strict dimension IH to those original slices, then integrate with genuine L1 and combine head/tail energy via true law/Fubini/finite sum.
+7. Return exact678 public domains and bound2. Tests use all-n zero, positive-mass n0, signed scalar n1 and nonseparable signed n2 with internally derived C2/support.
+Failure policy: diagnose actual API/implementation errors after each change; freeze after three unchanged route/progress fingerprints; no statement/certificate relaxation. Retain all focused snapshots/logs, including failed compiler recovery outputs which are not proof evidence. No mathematical route refuted.
+Remaining: independent wholemath/freshblind/anti-anchored source/exactcommit/shared admission, actual finite-Hilbert law/gradient Parseval, noncompact cutoff32/33, GaussianT2/FIRST, both paper algorithm/main/error/work/cost/composition and complete reader/PURIFIED.

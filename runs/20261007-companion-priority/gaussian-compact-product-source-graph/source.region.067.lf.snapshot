@@ -1,0 +1,14 @@
+lemma self_sub_one_le_mul_log {x : ℝ} (h0 : 0 ≤ x) : x - 1 ≤ x * x.log := by
+  rcases eq_or_ne x 1 with rfl | h1
+  · simp
+  · exact le_of_lt (self_sub_one_lt_mul_log h0 h1)
+
+@[fun_prop]
+lemma continuous_mul_log : Continuous fun x ↦ x * log x := by
+  rw [continuous_iff_continuousAt]
+  intro x
+  obtain hx | rfl := ne_or_eq x 0
+  · exact (continuous_id'.continuousAt).mul (continuousAt_log hx)
+  rw [ContinuousAt, zero_mul]
+  simp_rw [mul_comm _ (log _)]
+  nth_rewrite 1 [← nhdsWithin_univ]

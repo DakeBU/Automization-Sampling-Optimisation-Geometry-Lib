@@ -1,0 +1,21 @@
+/-- E^{(i)}[f] ≥ 0 a.e. when f ≥ 0 a.e. -/
+lemma condExpExceptCoord_nonneg_ae (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_nn : 0 ≤ᵐ[μˢ] f) :
+    0 ≤ᵐ[μˢ] condExpExceptCoord (μs := μs) i f := by
+  have hslice_nn := ae_nonneg_slice_of_ae_nonneg i f hf_nn
+  filter_upwards [hslice_nn] with x hx
+  exact integral_nonneg_of_ae hx
+
+/-- Integrability of E^{(i)}[f] · log(E^{(i)}[f]) via Jensen's inequality. -/
+lemma condExpExceptCoord_mul_log_integrable (i : Fin n) (f : (Fin n → Ω) → ℝ)
+    (hf_meas : Measurable f)
+    (hf_nn : 0 ≤ᵐ[μˢ] f)
+    (hf_int : Integrable f μˢ)
+    (hf_log_int : Integrable (fun x => f x * log (f x)) μˢ) :
+    Integrable (fun x => condExpExceptCoord (μs := μs) i f x *
+                         log (condExpExceptCoord (μs := μs) i f x)) μˢ := by
+  -- Define g = condExpExceptCoord i f for readability
+  set g := condExpExceptCoord (μs := μs) i f
+  -- Define h = condExpExceptCoord i (f * log f)
+  set h := condExpExceptCoord (μs := μs) i (fun z => f z * log (f z))
+

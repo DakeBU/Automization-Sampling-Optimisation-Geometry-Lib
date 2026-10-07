@@ -1,0 +1,16 @@
+
+lemma slice_fderiv_continuous {n : ℕ} (i : Fin n) (g : (Fin n → ℝ) → ℝ)
+    (hg_diff : Differentiable ℝ g)
+    (hg_grad_cont : ∀ i, Continuous (fun x => partialDeriv i g x))
+    (x : Fin n → ℝ) :
+    Continuous (fun y => fderiv ℝ (sliceFunction i g x) y) := by
+  have h_update_cont : Continuous (fun y => Function.update x i y) := by
+    simpa using (Continuous.update (f := fun _ : ℝ => x) (g := fun y : ℝ => y)
+      (i := i) continuous_const continuous_id)
+  have h_deriv_cont : Continuous (fun y => deriv (sliceFunction i g x) y) := by
+    have h_eq : (fun y => deriv (sliceFunction i g x) y) =
+        fun y => partialDeriv i g (Function.update x i y) := by
+      funext y
+      exact deriv_sliceFunction_eq_partialDeriv i g hg_diff x y
+    simpa [h_eq, Function.comp_def] using (hg_grad_cont i).comp h_update_cont
+  exact continuous_fderiv_of_continuous_deriv (f := sliceFunction i g x) h_deriv_cont

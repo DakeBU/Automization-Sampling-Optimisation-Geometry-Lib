@@ -1,0 +1,9 @@
+Source graph52 is ready for independent topology review, without theorem/proof admission. Exact sealed generic statement is 497 LF bytes, SHA50ca5c7e0b5aed0f892d2e686fd276b11a586b30745d8edd2d5c1256d7e09d11.
+
+The mathematical route produces actual global f/fderiv bounds; actual Gaussian/product derivative and common constant dominator; real measurability/L1; true derivative of N and continuity of its CLM integral; C1N; positive literal C2Z from one opaque verified ASTIS parent; every-y normalized tilt/map mean=N/Z; quotient C1. All are internal source obligations, no certificates added to the public statement. Signed/zero observers and rank0 preserved.
+
+Fixed primary: compact reduction4573-4576; A3.Ex1 density4581-4587; A3.Ex2 score4589-4595; normalized-density A3.E1(C.1)4597-4604; sharp formula(C.2) insideC.1 4654-4664; B.13 3779-3786. The arbitrary-probability finiteHilbert C1 observer theorem is authored background, not printed source. Gaussian parent density/negative-log outputs are source EXCESS.
+
+Residual: actual Gibbs/source S requires genuine every-y affine normalization identity before transferring C1 to same50Tf. AE conditional versions cannot transfer regularity. Then actual51 same-nu D and actual50 L2 representatives are later closure consumers; full rough B13/H1/Gamma/main/cost excluded. Historical parent/local body and incidental metadata exposure remain honest in source-contract; no52 implementation exists/read.
+
+Final artifacts: source-proof-graph.json, source-contract.json, hypothesis-contract.json, selected-providers.json, source-coverage.json, caller-inventory.json, selected-token-inventory.json, lexical-inventory.json, primary-formula-inventory.json, input-bindings.json, run.json and lease.json. See counts.json for bounded sizes, schema-and-boundary.md for exact selection/offset/external-boundary conventions. Historical preread originals and both coordinate errata remain unchanged.

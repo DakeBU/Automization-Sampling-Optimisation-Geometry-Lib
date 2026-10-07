@@ -1,5 +1,49 @@
 # Companion-paper formalization handoff
 
+## Actual Gaussian outer-gradient domain (2026-10-08)
+
+The exact 697-byte statement is independently VERIFIED at 19f7e6bed7975fac9b7e1ea0b0b95d0c084083f6.
+For any probability input mu and eta>0, on the actual Gaussian augmentation
+J=law(X,X+sqrt(eta)G) and nu=J.snd, it produces a genuine smooth-compact
+scalar/vector L2(nu) gradient graph with dense domain, closability and a
+closed closure. The positive C2 Gaussian density is normalized internally:
+mass1 first gives density L1, then real integral1, then exact normalized
+tilted-law identity. The whole measure-indexed operator target is transported
+before applying the existing weighted-gradient theorem. No extra moment,
+density, potential, integrability, normalizer or gradient certificate is a binder.
+
+This is ASTIS-authored analytic background for the PBPS C.1 density/closedness
+invocation toward B.13. Generic probability input, finite Hilbert and rank0
+extensions are explicit. Actual PBPS tests retain its curvature/step conditions
+and produce genuine graph pairs for all smooth compact f; the rank0 constant
+is noncentered with mean1 and zero gradient. Focused3893, independent whole
+mathematics, fresh statement/source-text-blind reconstruction, own-primary-first
+source1 review and exact-commit verification passed in their named scopes.
+The decoder disclosed inherited general AGENTS source-identity metadata; strict
+source-identity blindness is not claimed. The canonical decoder identity needed
+one object-to-string projection; the original undispatched preparation failure
+and native raw output are preserved and independently checked. Source0 was
+never an independent source verdict. Original source-topology negative and its
+minimal separately reviewed repair remain immutable.
+
+Registry492 and root imports enter the original PhaseKernel sole serialized
+lane. Aggregate51 and independent graph/reader seals are pending at this
+checkpoint; main merge/live/postmerge PURIFIED remain distinct. Prior50 scoped
+aggregate and repaired seals passed, and all four f38a4c73 remote workflows
+passed; deployment was skipped, so no live publication is claimed.
+
+The next bounded edge is C1 of the literal reflected Gaussian posterior mean.
+It needs a real dominated differentiation/derivative continuity argument,
+with compact C1 f providing internal uniform bounds, then pointwise equality
+to the actual PBPS reflected law. AE conditional-law uniqueness cannot transfer
+pointwise derivatives. Only after this should actual Tf enter the closed gradient
+using its already produced scalar/vector L2 representatives. Full rough B.13,
+positive-root Gamma, half-turn/hypocoercivity/nonexplosion/implementation/error
+and expected cost remain open, as do SPHMC main results and actual-input
+composition. Gaussian Cloud and midpoint follow the existing four-paper Goal.
+Older Chewi/frontiers/cycles/memory are preserved; TV proximity does not
+transfer unbounded costs. This result completes no paper or Goal.
+
 ## Actual PBPS macroscopic block energy (2026-10-08)
 
 The exact2907-byte sealed statement is independently VERIFIED at

@@ -2654,6 +2654,16 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian.outerMarginal.closableGradient"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable"
+    upstreamDecl := "Authored actual Gaussian outer-gradient background for PBPS Appendix C.1 toward B.13"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gaussian", "gradient-domain", "closed-gradient"]
+    saldUse := "Shared Gaussian outer-marginal gradient; no SALD admission"
+    note := "Any probability mu on a finite real Hilbert/Borel space, eta>0, including rank0. For literal J=law(X,X+sqrt(eta)G), nu=J.snd, produce one dense genuine smooth-compact scalar/vector L2 gradient graph, closability and closed closure. Positive C2 Gaussian density, density L1, real normalizer1 and exact normalized tilted-law equality are internally derived. No caller moment/density/potential/integrability/normalization/closed-gradient certificate. Actual PBPS consumer retains original curvature and step assumptions; noncentered rank0 constant has mean1 and zero gradient. Authored background elaboration of C.1 density/closedness prerequisite. Literal Tf closure membership, full rough B13, Gamma/half-turn/main/errors/expected costs/composition remain separate. Independently verified 19f7e6bed7975fac9b7e1ea0b0b95d0c084083f6."
+  },
+  {
     key := "pbps.reflectedConditional.macroscopicBlockEnergy"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks"
     upstreamDecl := "PBPS Appendix B.1-B.9 genuine joint blocks and C.1 C.2 smooth energy"

@@ -1,0 +1,92 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGORelativeEntropy
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev
+
+/-!
+Actual standardized RGO canonical KL/Fisher component of the omitted Gaussian
+LSI invocation before SPHMC FIRST4.6. The measurable-family/rank0 scope is an
+authored extension; Unit recovers fixed source parameters. All dependent laws
+and densities refer to the unique proximal point, proved internally.
+Gaussian T2/W2/FIRST4.6 and sampling/error/warmness/cost remain separate.
+-/
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace NNReal
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+
+theorem standardized_rgo_unique_prox_and_kl_le_fisher
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) :
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+      (∀ s z, z+eta s • gradient V z=y s → z=p s) ∧
+      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+      let gamma := stdGaussian E
+      ∀ s, IsProbabilityMeasure (r s) ∧ r s ≪ gamma ∧
+        _root_.InformationTheory.klDiv (r s) gamma ≠ ⊤ ∧
+        MemLp (gradient (rho s)) 2 (r s) ∧
+        (_root_.InformationTheory.klDiv (r s) gamma).toReal ≤
+          (1/2 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s) := by
+  obtain ⟨p, hpm, hstat, huniq, hk⟩ :=
+    StandardizedRGORelativeEntropy.standardized_rgo_unique_prox_and_finite_entropy
+      hκ hV hH heta hy hpos
+  obtain ⟨p', hpm', hstat', hd⟩ :=
+    StandardizedRGOSqrtDensity.standardized_rgo_sqrt_density_domain
+      hκ hV hH heta hy hpos
+  have hp : p'=p := funext (fun s => huniq s (p' s) (hstat' s))
+  rw [hp] at hd
+  let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+    Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+  let mu := (volume : Measure E).tilted (fun x => -V x)
+  let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+  let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+  let gamma := stdGaussian E
+  let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma
+  let q := fun s u => Real.exp (-rho s u)/Z s
+  let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)
+  refine ⟨p, hpm, hstat, huniq, ?_⟩
+  change ∀ s, IsProbabilityMeasure (r s) ∧ r s ≪ gamma ∧
+    _root_.InformationTheory.klDiv (r s) gamma ≠ ⊤ ∧
+    MemLp (gradient (rho s)) 2 (r s) ∧
+    (_root_.InformationTheory.klDiv (r s) gamma).toReal ≤
+      (1/2 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s)
+  intro s
+  obtain ⟨hZpos, hZle, hrtilt, hrden, hprob, hq, hmass, hfC, hf2,
+    hg2, hrho2, hqint, hgf, hglog, he⟩ := hd s
+  obtain ⟨hac, hfin, hllr, hlog, hrhoint, hKLq, hKLrho⟩ := hk s
+  change (∫ u, q s u ∂gamma)=1 at hmass
+  change (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =
+    (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s) at he
+  change (_root_.InformationTheory.klDiv (r s) gamma).toReal =
+    (∫ u, q s u*Real.log (q s u) ∂gamma) at hKLq
+  have hsq : ∀ u, (f s u)^2=q s u := fun u => (hq u).2
+  have hphi : Integrable (fun u => (f s u)^2*Real.log ((f s u)^2)) gamma := by
+    simpa only [hsq] using hqint
+  have hLSI := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev.gaussian_logSobolev_of_contDiff
+    (f s) hfC hf2 hg2 hphi
+  change (∫ u, (f s u)^2*Real.log ((f s u)^2) ∂gamma) -
+    (∫ u, (f s u)^2 ∂gamma)*Real.log (∫ u, (f s u)^2 ∂gamma) ≤
+    2 * ∫ u, ‖gradient (f s) u‖^2 ∂gamma at hLSI
+  refine ⟨hprob, hac, hfin, hrho2, ?_⟩
+  calc
+    _ = ∫ u, q s u*Real.log (q s u) ∂gamma := hKLq
+    _ ≤ 2 * ∫ u, ‖gradient (f s) u‖^2 ∂gamma := by
+      simpa only [hsq, hmass, Real.log_one, mul_zero, sub_zero] using hLSI
+    _ = (1/2 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s) := by
+      rw [he]
+      ring
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher

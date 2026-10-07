@@ -2099,6 +2099,26 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "entropy.two-point.signed-squared"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.TwoPointEntropy.two_point_squared_entropy_le_half_sq_sub"
+    upstreamDecl := "Pinned SLT TwoPoint.rothaus_lemma / BernoulliLSI.bernoulli_logSobolev; ASTIS authored signed extension / RMS induction"
+    upstreamFile := "SLT d0f506f0a695018265dccb33bcb05e2f5ca1c876; no Lake upstream dependency"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "Bernoulli", "log-Sobolev", "Gaussian-background", "SPHMC"]
+    saldUse := "Actual SPHMC omitted Gaussian LSI background; no SALD or second-route admission"
+    note := "Arbitrary signed a,b and zero cases; upper bound Ent(a squared,b squared) <= (a-b) squared/2. Minimal 26-helper positive-Rothaus port; upstream opposite-signed two_point_inequality unused. Independently verified 6d5df34cdb124e28022f16f566ff549145eb7e65. No GaussianLSI/T2/FIRST4.6/main/work/composition completion."
+  },
+  {
+    key := "entropy.bernoulli.function-log-sobolev"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BernoulliLogSobolev.bernoulli_function_logSobolev"
+    upstreamDecl := "Pinned SLT TwoPoint.rothaus_lemma / BernoulliLSI.bernoulli_logSobolev; ASTIS authored signed extension / RMS induction"
+    upstreamFile := "SLT d0f506f0a695018265dccb33bcb05e2f5ca1c876; no Lake upstream dependency"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "Bernoulli", "log-Sobolev", "Gaussian-background", "SPHMC"]
+    saldUse := "Actual SPHMC omitted Gaussian LSI background; no SALD or second-route admission"
+    note := "Actual normalized count law on Fin n -> Bool, all signed functions and n0; actual full coordinate-flip squared energy, exact half coefficient and internally derived probability/three L1 domains. Authored RMS entropy induction; no Gaussian inequality or limit credit. Independently verified 6d5df34cdb124e28022f16f566ff549145eb7e65. No GaussianLSI/T2/FIRST4.6/main/work/composition completion."
+  },
+  {
     key := "gaussian.relative.sqrt-density-domains"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain"
     upstreamDecl := "ProbabilityTheory.stdGaussian / MeasureTheory.integrable_tilted_iff / ASTIS Gaussian moment and curvature producers"
@@ -4089,6 +4109,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.balanced-count.actual-clt"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT.balanced_count_sum_tendsto_gaussian"
+    upstreamDecl := "Mathlib tendsto_charFun_inv_sqrt_mul_pow / ProbabilityMeasure.tendsto_iff_tendsto_charFun"
+    upstreamFile := "Mathlib db584cd6d46c92f209a44c0f1c829460d327499d; ASTIS authored actual Bool-count adapter"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["probability", "CLT", "Rademacher", "Gaussian-background", "SPHMC"]
+    saldUse := "Actual SPHMC omitted Gaussian LSI background; no SALD or second-route admission"
+    note := "Actual allN normalized counting pushforward of signed sum divided by sqrtN; N0 Dirac0 and successor weak convergence to mean0 variance1 real Gaussian. Actual coordinate moments and finite CF factorization internally produced. Pinned Mathlib scalar CLT and Levy reused; no entropy, full flip-energy, GaussianLSI/T2 or cost upgrade. Independently verified 4d9e71a6b835b54453a5cfd2d132f9a51f66f69c; paper main and actual cost/composition remain open."
+  },
   {
     key := "probability.empirical-covariance.preconcentration",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.EmpiricalCovariance.empiricalSecondMoment_preconcentration",

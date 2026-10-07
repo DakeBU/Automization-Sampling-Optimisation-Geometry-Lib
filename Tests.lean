@@ -260,6 +260,8 @@ import Tests.TiltedLogRatio
 import Tests.TiltedKL
 import Tests.QuadraticTiltFisher
 import Tests.CanonicalLogSobolev
+import Tests.BernoulliLogSobolev
+import Tests.BalancedRademacherCLT
 import Tests.GradientAECongruence
 import Tests.FinitePowerSeries
 import Tests.UnitSphere

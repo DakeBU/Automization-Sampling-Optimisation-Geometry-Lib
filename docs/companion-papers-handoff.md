@@ -1,5 +1,68 @@
 # Companion-paper formalization handoff
 
+## Actual balanced count-law CLT and joint Bernoulli stabilization (2026-10-07)
+
+The actual allN Bool-count law producer is independently VERIFIED at 4d9e71a6b835b54453a5cfd2d132f9a51f66f69c.
+It returns literal normalized-count pushforwards, the true N0 Dirac0 law,
+and successor weak convergence to gaussianReal0,1. The actual N1 mean0 and
+secondmoment1 and actual N0 secondmoment0 consumers compile. No law, moments,
+independence or CLT certificate is passed as a public premise. Fourteen private
+providers and five mathematical formula steps passed independent whole-proof,
+fresh source-blind decoder and anti-anchored source review. The source graph's
+eleven missing direct-use edges were repaired in an immutable successor and
+independently checked; original BLOCKED representation receipt is retained.
+
+Current34 signed two-point entropy and actual finite Bernoulli function LSI
+remain independently verified at6d5df34c. Shared stabilization combines their
+two Registry leaves with this actual CLT leaf (count479), genuine imports and
+Tests. The validated entropy/coordinate-energy mirror remains noncertified;
+there is no solid formal transport edge. Aggregate, static reader, graph and
+independent repository/ExpositionSeal admission require their own receipts.
+
+Next bounded mathematical edge is compact C2 real observer/entropy integration
+on these same actual count laws. The derivative-square observer limit alone
+does not establish the full flip-energy factor4 limit. Compact scalar Gaussian
+LSI, finite Hilbert product/domain extension, true noncompact cutoff for the
+actual SPHMC square-root density, and GaussianT2 remain independently open.
+FIRST4.6, Wp/bias, full algorithms, paper mains, work and composition are open.
+PBPS and older frontiers remain intact; TV proximity never transfers unbounded
+expected cost. PR313 remains draft and unmerged; no live deployment is claimed.
+The sole Goal continues under the original PhaseKernel stabilization owner.
+
+## Actual finite Bernoulli function LSI 2026-10-07
+
+`ASTIS-SA-20261007-BernoulliFunctionLogSobolev` is independently VERIFIED at
+`6d5df34cdb124e28022f16f566ff549145eb7e65`. Actual signed two-point squared entropy is bounded
+by (a-b)^2/2, including zeros. For actual normalized count law on Fin n -> Bool,
+all signed h and n0, probability and the three L1 domains are derived internally;
+Ent(h^2) <= (1/2) E sum_j (h-h after full flip_j)^2.
+The authored RMS entropy induction is distinct from the upstream Han route.
+Tests include true n0, signed two-point, indicator and normalized n2 sum whose
+actual full flip energy is4; six axiom prints contain standard3 only.
+
+Fresh blind34, independent wholeproof, exhaustive source topology and final
+anti-anchored source admission are closed. The original source BLOCKED receipt
+concerned only two mistaken direct Mathlib dependency arrays; immutable old
+packets, exact metadata overlay, separate overlay review and NEW final accepted
+source receipts are preserved. Production and Test bytes never changed.
+Two exact canonical cells retain the scalar parent and Bernoulli consumer;
+they are one SAU, no extra consumer or completion badge.
+
+Shared integration adds genuine TechnicalLemmas/Test imports and two Registry
+leaves (478). The independently validated conceptual entropy/energy-limit
+mirror is retained as a noncertified hyperedge with no formal refs; CLT alone
+does not prove the full flip-energy limit. Aggregate/reader/graph/seals are
+separate until receipts exist. PR313 is draft/unmerged, no live claim.
+
+Next actual mathematical delta is the exact normalized-count Rademacher sum
+law: allN genuine pushforwards, lambda0=dirac0, successor weak convergence to
+gaussianReal0,1. Its independent StatementSeal is accepted, proof remains open.
+Entropy and factor4 energy limits, compact real LSI, finite Hilbert transport,
+noncompact cutoff extension and GaussianT2 remain separate OPEN boundaries.
+FIRST4.6, Wp/bias, full algorithms/main/work/composition remain OPEN.
+PBPS and older frontiers are preserved; TV proximity does not transfer
+unbounded expected costs. The whole Goal continues.
+
 ## Actual standardized posterior finite entropy 2026-10-07
 
 `ASTIS-SA-20261007-StandardizedRGORelativeEntropy` is independently VERIFIED at

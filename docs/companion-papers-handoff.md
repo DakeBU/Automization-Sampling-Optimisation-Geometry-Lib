@@ -1,5 +1,49 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS macroscopic centered range (2026-10-08)
+
+Independently VERIFIED at 8c8847715c1d4c3033224b069d8dd694f2a4bd30. The canonical real L2 pullback for any
+measure-preserving map has range exactly the comap AE measurable L2 submodule.
+No probability, finite-measure or StandardBorel assumption is added. Applied
+to the actual Gaussian augmentation J and its second marginal nu, it proves
+ran(M)=ran(P), integral_J(Mu)=integral_nu(u), and
+M[L2_0(nu)]=ran(P) intersect L2_0(J). Probability and normalization are derived
+from the standing original C2/two Hessian/positive capped eta assumptions.
+Finite real Hilbert/Borel and rank-zero are disclosed source extensions;
+real L2 may be finite or infinite dimensional.
+
+The real Test identifies the SAME actual55 M/T with canonical pullback and
+actual57 conditional mean. Every centered macro f=Mu therefore satisfies
+||A f|| <= (1-alpha*eta)/(1+alpha*eta)||f|| and
+4*alpha*eta/(1+alpha*eta)^2 ||f||^2 <= ||B f||^2.
+The same reflection and conditional law occur throughout, including rank zero
+and alpha*eta=1. Production imports no Tests and duplicates no Poincare proof.
+These are squared-defect bounds; Gamma positivity/root/uniqueness and inverse
+are independent remaining mathematics.
+
+All three preproof signatures remain exact. Focused3908, complete independent
+mathematics, anonymous source/identity-blind decoder and anti-anchored source
+fidelity pass. Three original metadata negatives and independently reviewed
+editorial overlays remain unchanged; current metadata has zero blockers.
+The source0 schema classification addendum is separate from the immutable
+original review. Exact-science verification is distinct from serialized
+Registry500/root Tests, affected graph/page checks and later repository/
+exposition seals. Main/live/postmerge PURIFIED and full-paper acceptance stay
+open; earlier frontiers, cycles and memory remain preserved.
+
+Next dependency-ready edge: the same actual scalar T is self-adjoint and
+preserves mean by its genuine stationary conditional law. Restrict it to the
+closed centered real L2 subspace, then obtain the positive defect I-T0^2 and
+its sharp coercivity through the actual macro consumer. The bounded source-only
+59 audit identifies fixed real-Hilbert APIs for this route without assuming
+finite-dimensional L2 or a caller CFC certificate. A centered inverse of the
+squared defect is separate from Gamma inverse. Full weighted weak H1,
+C5-C7/half-turn, PBPS dynamics/nonexplosion/hypocoercivity/errors/cost/main and
+actual-input PBPS/SPHMC composition remain open. SPHMC smoothing/Picard/Wp/
+proxy-warmness remain independent. Gaussian Cloud and midpoint follow the
+active four-paper priority. TV proximity does not transfer unbounded cost.
+This local theorem packet completes neither a paper nor the Goal.
+
 ## Actual Gaussian marginal centered Poincare (2026-10-08)
 
 Exact1244 is independently VERIFIED at e8a9044ba5a945eaa4b4aecd110b63494fe6c68e. For the SAME actual normalized

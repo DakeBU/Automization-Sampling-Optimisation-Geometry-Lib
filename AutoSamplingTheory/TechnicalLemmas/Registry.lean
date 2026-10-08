@@ -2099,6 +2099,26 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "l2Pullback.rangeEqLpMeas"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange.l2_pullback_range_eq_lpMeas"
+    upstreamDecl := "Canonical arbitrary-measure real L2 pullback range"
+    upstreamFile := "arXiv2609.06905v1 AppendixB B1-B5/C3-C4"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["measure-preserving", "L2", "comap", "factorization"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Arbitrary measurable spaces/measures; genuine measure-preserving map. Exact range equals comap AE strongly measurable L2 submodule, with internally constructed factor and MemLp transfer; no probability/finite-measure/StandardBorel premise. Actual PBPS consumer. Independently verified 8c8847715c1d4c3033224b069d8dd694f2a4bd30."
+  },
+  {
+    key := "pbps.actualMacroscopicCenteredRange"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange.actual_macroscopic_centered_range"
+    upstreamDecl := "PBPS B1-B5 actual macro range and centered image"
+    upstreamFile := "arXiv2609.06905v1 AppendixB B1-B5/C3-C4"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "conditional-expectation", "centered-range"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Original C2, both Hessian bounds, positive capped eta. Actual Gibbs/Gaussian J and nu; canonical snd pullback range equals true conditional projection range; mean transport and full centered image. Finite real Hilbert/Borel/rank0 extension explicit. Real Test joins same55 reflection/mean with57 contraction to give allmacro sharp contraction and squared defect gap. No Gamma/root/inverse/weakH1/dynamics/cost/composition closure. Independently verified 8c8847715c1d4c3033224b069d8dd694f2a4bd30."
+  },
+  {
     key := "gaussianMarginal.centeredDomainPoincare"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare"
     upstreamDecl := "Authored actual Gaussian marginal centered closure Poincare and PBPS C.3 consumer"

@@ -12,6 +12,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy
 import AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean
 import AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain
 import AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange
 import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
 import AutoSamplingTheory.ExampleCases.SampleWiki
 import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection

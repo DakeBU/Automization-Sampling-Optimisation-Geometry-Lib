@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualL2.roughMeanGradient"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient.actual_rough_mean_gradient"
+    upstreamDecl := "Authored actual all-L2 PBPS closed mean gradient and C.2 sharp defect"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "all-L2", "closed-gradient", "sharp-defect"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "SAME Gibbs/Gaussian mu/J/nu and literal S give one genuine dense closable compact-gradient G and bounded T/K BEFOREallrough L2 inputs. Actual closed graph membership, sharp c=(1-alpha*eta)²/[4(1+alpha*eta)] and source4eta norm defects hold; AE source mean/fiber integrability only. Original C2/two Hessian/capped eta retained; finite Hilbert/Borel/rank0 extension disclosed. Three actual admitted parents, no private/background copy or caller law/domain/convergence premise. Actual SAME-T joint BMu rough-difference and alphaeta1 full K=0 consumers tested. Separate weak-H1/full B13/Gamma/dynamics/main/errors/cost/composition open. Independently verified db2c1237cd56698ae560a8121abfcbf374ff8838."
+  },
+  {
     key := "pbps.actualL2.macroscopicMean"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean"
     upstreamDecl := "Authored actual all-L2 PBPS conditional mean and B.9 variance defect"

@@ -1,5 +1,55 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS rough mean-gradient closed graph (2026-10-08)
+
+Exact1755 is independently VERIFIED at db2c1237cd56698ae560a8121abfcbf374ff8838. On the SAME actual
+Gibbs/Gaussian mu/J/nu, one genuine dense closable compact-gradient G and
+one bounded actual conditional mean T and bounded vector-L2 K are chosen
+BEFORE every rough u in L2(nu). (Tu,Ku) belongs to the true closed graph of G;
+eta||Ku||² <= c(||u||²-||Tu||²), c=(1-alpha*eta)²/[4(1+alpha*eta)], and
+4eta||Ku||² <= ||u||²-||Tu||². Original C2, both Hessian bounds and
+beta*eta<=1 remain; finite Hilbert/Borel/rank0 extends the source Euclidean
+presentation explicitly. EVERY-y literal S law stays separate from AE
+rough source mean/fiber L1 and squareL1. No caller law/operator/domain/
+convergence certificate, input compactness, centering or extra moment.
+
+Actual54 supplies the uniform true compact-gradient closure and compact
+conditional-mean graph pair; actual55 supplies SAME-law bounded T and actual
+stationary source mean; actual50 supplies sharp compact energy and real
+block defect. Fiber AE matching and graph uniqueness construct the linear
+core derivative; extendOfNorm gives one bounded K, and dense closed-set
+arguments retain graph and sharp defect. No division by 1-alpha*eta occurs.
+The actual joint BMu Test identifies the SAME T by literal AE source integrals
+and consumes rough differences; the allowed alphaeta1 endpoint forces full
+K=0. Focused3899, complete independent mathematics, fresh source-text-blind
+decoder, own-primary-first source fidelity and exact-science checks pass.
+Standard3 only. Original two-edge source-topology negative/restoration and
+independently accepted repair stay intact. Six decoder locator Length-object
+defects are retained and resolved by a distinct independently reviewed exact
+mapping; original CLOSED/result/run bytes are unchanged. Final source packet
+body exposure is disclosed; its independent source blueprint predates the
+implementation. Strict identity/final proof-body blindness is not claimed.
+
+Registry497/public ExampleCases/root Tests use only the original PhaseKernel
+serialized lane. Actual56 aggregate, affected graph, original companion and
+scoped repository/exposition seals follow; main/live/postmerge PURIFIED and
+whole-paper reader acceptance remain distinct. Earlier results and their
+presentation debts remain preserved.
+
+Next: reconcile the source H1 convention with the actual compact-gradient
+closure and construct the actual defect square root Gamma_P=(I-U_PP²)^(1/2)
+on the true macroscopic space, matching its source norm defect. Then resolve
+the meanzero/inverse spectral-domain and actual nu Poincare/coercivity
+contracts for C3/halfturn. Existing closed-graph weak resolvent background is
+already verified and must be reused only for its true consumer; the paper
+Gamma is not a gradient/Laplacian/resolvent square root. Its consumer must use
+the genuine infinite-dimensional L2 operator with exact domains. PBPS dynamics/nonexplosion/hypocoercivity/implementation/
+errors/main/cost and actual-input PBPS/SPHMC composition remain open; SPHMC
+smoothing/Picard/Wp/proxy-warmness stay independent. Gaussian Cloud and
+midpoint follow the active four-paper priority; old frontiers/cycles/memory
+remain. TV proximity never transfers unbounded expected query costs.
+This source-specific edge completes neither a paper nor the Goal.
+
 ## Actual PBPS conditional mean on all L2 inputs (2026-10-08)
 
 Exact2526 is independently VERIFIED at 4f71a36d56500fda7f86e8080f695a514913950a. On the SAME actual

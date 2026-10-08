@@ -1,5 +1,41 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS unique positive real scalar root (2026-10-09)
+
+Independently VERIFIED science commit 9d7f7b640c7cb18fea133ccbd300de129af40b83. Shared Measure/L2RealSquareRootUnique
+proves that bounded positive REAL operators A,B on the SAME arbitrary-measure L2
+with A*A=B*B are equal. Canonical complex lifts, complex positive-root uniqueness
+and real isometry injectivity supply the proof. No finite/probability measure,
+finite L2, Nontrivial or caller CFC/root/energy certificate is assumed.
+
+The actual PBPS consumer retains C2, both global Hessian bounds,0<alpha<=beta,
+eta>0,betaeta<=1, rank-zero extension and legal alphaeta=1. It produces SAME
+stationary reflected S/T/D and positive REAL Gamma from original inputs, then
+proves ALL positive alternative same-square roots equal Gamma. This universal
+quantifier is outside the every-u energy and assumes no alternative energy.
+Root520 and independent3700 focused3918, zero private providers, fresh anonymous
+decoder, primary-first seven-slot source/current seven formula steps pass.
+Exact science verification remains separate from aggregate/reader/remote CI.
+
+NEXT selected mathematical edge is the genuine printed macro B10/B11: canonical
+M onto exact lpMeas=ran(P), same U/T identification, transport via e and typed
+B_macro.adjoint composed B_macro. I_H_P-A_macro^2 holds on H_P; fulljoint defect
+is P-A_joint^2. No fulljoint identity substitution or caller completeness.
+Centered root lower order/inverse/polar, H1/dynamics/nonexplosion/invariance,
+hypocoercivity/main/implementation errors/costs remain separate. SPHMC and
+actual-input precision/expected-query-cost composition remain open;
+TV proximity transfers no unbounded cost. Four-paper priority unchanged.
+
+Previous scalar-root integration d1b150d has independently accepted scoped
+repository/exposition evidence and all three remote CI workflows terminal SUCCESS.
+Serialized aggregate62 PASSES: root9169, Tests9463, Registry507, publication228,
+contributor/semantic/frontier/Python/site and both affected graph checks.
+Eight actual local browser views were inspected: two full statements, seven
+formula proof steps and two compiled Registry-backed branches.
+Independent repository/exposition admission and integration remote CI remain
+separate. Copy-tail and dense graph layout debts remain explicitly recorded.
+No MERGED/live/PURIFIED/full-paper/Goal claim. All earlier checkpoints preserved.
+
 ## Actual PBPS positive real scalar root (2026-10-09)
 
 Independently VERIFIED science commit bcd245d90b21b899acb9937fc54dffcea20e86ee. Canonical shared

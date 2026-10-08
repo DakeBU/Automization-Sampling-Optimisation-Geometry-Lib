@@ -1,0 +1,29 @@
+from pathlib import Path
+import datetime,hashlib,json,re,subprocess
+r=Path('runs/20261007-companion-priority/pbps-real-root-unique62');load=lambda p:json.loads(Path(p).read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest()
+def w(p,x):Path(p).write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+def pin(p):
+ p=Path(p);b=p.read_bytes();return dict(path=p.as_posix(),bytes=len(b),raw_sha256=sha(b),lf_sha256=sha(b.replace(b'\r\n',b'\n')))
+labels=['mandatory-astis-check','python-compile','contributor','publication','semantic','frontier','website-ci-build','official-graph-ci-output','graph-producer','graph-consumer','site-check','visual-capture62'];checks=[]
+for label in labels:
+ p=r/'integration62'/label/'receipt.json';x=load(p);assert x['exit_code']==0 and x['terminal_closed'];checks.append(dict(label=label,receipt=pin(p),stdout=x['stdout'],stderr=x['stderr']))
+jobs=[int(x) for x in re.findall(r'Build completed successfully \((\d+) jobs\)',(r/'integration62/mandatory-astis-check/stdout.log').read_text(encoding='utf-8'))];assert jobs==[9169,9463]
+assert load(r/'root.exact-verification62.adoption.json')['native_verified']
+capture=Path('.astis/pbps-real-root-unique62/visual62-cdp');native=load(capture/'capture.json');assert native['ownedBrowserExit']['code']==0 and len(native['records'])==8
+dest=r/'integration62/visual62';dest.mkdir(exist_ok=False);visualpins=[]
+for p in capture.iterdir():
+ if p.is_file():q=dest/p.name;q.write_bytes(p.read_bytes());visualpins.append(pin(q))
+visual=dict(status='SCOPED_ACTUAL_LOCAL_BROWSER_VISUALLY_INSPECTED',viewed_by_root=True,viewport='1440x1800 isolated headless Chrome; browser/server actual closure',capture=native,capture_files=visualpins,observations=['Both complete attributed statements preserve sealed arbitrary-measure and original actual PBPS C2/two-Hessian/positive capped eta binders.','Four shared and three actual mathematical proof steps render with adjacent initially folded Lean; positive REAL scalar square and energy are explicit.','Both exact declaration branches are Registry-backed compiled, with actual source locations and shared-to-actual dependency.','Printed joint GammaP/ontoM/B*B remain explicitly open; candidate conceptual links are no formal certificates.'],debts=['Dense existing reader layout and long branch labels remain scoped reader debt.','Entire paper/Chapter1.3/full Exposition Seal and postmerge purification are not accepted.'],main_live_purified=False)
+w(r/'visual.inspection.json',visual)
+q=subprocess.run(['git','-c','core.whitespace=cr-at-eol','diff','--check'],capture_output=True);assert q.returncode==0,q.stdout.decode('utf-8',errors='replace')
+out=r/'integration62/tracked-whitespace';out.mkdir(exist_ok=False);(out/'stdout.log').write_bytes(q.stdout);(out/'stderr.log').write_bytes(q.stderr);w(out/'diagnosis.json',dict(full_tracked_exit=0,full_tracked_called_PASS=True,no_immutable_rewrite=True))
+plan=load(r/'publication-plan.json');updates=[]
+for cid in plan['active_cells']:
+ p=Path('research-wiki/frontier-cells')/(cid+'.json');x=load(p);assert x['status']=='independently_verified';snap=r/'integration62'/(cid+'.before-aggregate.exactraw.snapshot.json');snap.write_bytes(p.read_bytes());x['evidence']['serialized_shared_gate']=dict(evidence=(r/'integration62/mandatory-astis-check/receipt.json').as_posix(),root_jobs=jobs[0],test_jobs=jobs[1],registry_count=507,status='PASS',proof_commit='9d7f7b640c7cb18fea133ccbd300de129af40b83',scope='Actual aggregate62; independent exact science separate; main/live/PURIFIED open.');x['graph_contribution']['visual_review']=(r/'visual.inspection.json').as_posix();w(p,x);updates.append(dict(cell=cid,before=pin(snap),after=pin(p)))
+p=Path('docs/companion-papers-handoff.md');raw=p.read_bytes();s=raw.decode('utf-8');nl='\r\n' if b'\r\n' in raw else '\n';s=s.replace('\r\n','\n')
+old='Copy-tail and dense graph layout debts remain explicitly recorded. Registry507/\nimports/Tests and affected reader/graph admission are serialized work below.\n'
+assert s.count(old)==1
+new='Serialized aggregate62 PASSES: root9169, Tests9463, Registry507, publication228,\ncontributor/semantic/frontier/Python/site and both affected graph checks.\nEight actual local browser views were inspected: two full statements, seven\nformula proof steps and two compiled Registry-backed branches.\nIndependent repository/exposition admission and integration remote CI remain\nseparate. Copy-tail and dense graph layout debts remain explicitly recorded.\n'
+p.write_bytes(s.replace(old,new).replace('\n',nl).encode('utf-8'))
+pres=load(r/'integration62/generated-context-preservation-data/manifest.json');notes=dict(status='SERIALIZED_SHARED_AGGREGATE_PASS_NOT_MAIN_NOT_PURIFIED',utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),proof_commit='9d7f7b640c7cb18fea133ccbd300de129af40b83',registry_count=507,root_jobs=jobs[0],test_jobs=jobs[1],checks=checks,cell_administration_updates=updates,visual_inspection=(r/'visual.inspection.json').as_posix(),graph_delta='Two public compiled positive REAL scalar root uniqueness declarations; zero private providers. SAME actual PBPS T/D consumer, with ALL alternative positive same-square roots independent of energy premises. Four affected module graph artifacts and two enriched module cards; older canonical metadata preserved. Joint GammaP/ontoM/typed Gram remains current claimed63 work, not a compiled dependency.',preserved_canonical_cards=len(pres['preserved_canonical_metadata']),unrelated_emitted_paths=len(pres['emitted_snapshots'])-4,remaining=plan['remaining_boundary']+' Reader seal/main/live/postmerge purification and whole Goal remain open.',sole_stabilization_owner='ASTIS-SA-20261005-SPHMCImplementedPhaseKernel')
+w(r/'integration.notes.json',notes);print('Recorded actual aggregate62 PASS9169/9463/507,228 publication,8 viewed captures; admin only, no selfVERIFIED.')

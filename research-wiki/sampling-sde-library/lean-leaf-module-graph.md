@@ -183,6 +183,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy` | `pbps.reflectedConditional.macroscopicBlockEnergy` | `actual_macroscopic_gradient_energy_blocks` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange` | `pbps.actualMacroscopicCenteredRange` | `actual_macroscopic_centered_range` | arXiv2609.06905v1 AppendixB B1-B5/C3-C4 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot` | `pbps.actualPositiveRealDefectRoot` | `actual_positive_real_defect_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRootUnique` | `pbps.actualUniquePositiveRealDefectRoot` | `actual_unique_positive_real_defect_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient` | `pbps.actualL2.roughMeanGradient` | `actual_rough_mean_gradient` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain` | `pbps.literalSourceMean.closedGradientDomain` | `literal_source_mean_in_closed_gradient` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport` | `samplewiki.sphmc.initial-gibbs-q2` | `initial_gibbs_phase_transport_q2` | AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport |
@@ -495,6 +496,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange` | `l2Pullback.rangeEqLpMeas` | `l2_pullback_range_eq_lpMeas` | arXiv2609.06905v1 AppendixB B1-B5/C3-C4 |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator` | `measure.positiveRealL2ComplexLift` | `exists_positive_complex_lift` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot` | `measure.positiveRealL2SquareRoot` | `exists_positive_real_square_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
+| `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique` | `measure.positiveRealL2SquareRootUnique` | `positive_square_roots_unique` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.Product` | `measure.pi.update-coordinate-map` | `map_update_prod_pi` | SLT/EfronStein.lean; Mathlib.MeasureTheory.Constructions.Pi |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.Product` | `measure.pi.update-coordinate-map-preserving` | `measurePreserving_update_prod_pi` | SLT/EfronStein.lean; Mathlib.MeasureTheory.Constructions.Pi |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.Product` | `measure.pi.update-coordinate-integral` | `integral_update_prod_pi_eq_integral` | SLT/EfronStein.lean; Mathlib.MeasureTheory.Integral.Prod |

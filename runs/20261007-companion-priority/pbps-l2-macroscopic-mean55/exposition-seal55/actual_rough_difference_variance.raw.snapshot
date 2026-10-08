@@ -1,0 +1,26 @@
+theorem actual_rough_difference_variance
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let ν := J.snd
+    ∃ S : Kernel E E, IsMarkovKernel S ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧
+      ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+        ∀ u v : Lp ℝ 2 ν,
+          ‖T u-T v‖ ≤ ‖u-v‖ ∧
+          (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+            (S y) ((u-v : Lp ℝ 2 ν) : E → ℝ) ∂ν) = ‖u-v‖^2-‖T u-T v‖^2 ∧
+          0 ≤ (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+            (S y) ((u-v : Lp ℝ 2 ν) : E → ℝ) ∂ν) ∧
+          (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+            (S y) ((u-v : Lp ℝ 2 ν) : E → ℝ) ∂ν) ≤ ‖u-v‖^2 ∧
+          (T (u-v) : E → ℝ) =ᵐ[ν] (fun y => ∫ x, ((u-v : Lp ℝ 2 ν) : E → ℝ) x ∂S y)

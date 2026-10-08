@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualCenteredSelfadjointDefect"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect"
+    upstreamDecl := "PBPS actual centered selfadjoint squared defect"
+    upstreamFile := "arXiv2609.06905v1 AppendixB B1-B5/D1-D2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "centered", "selfadjoint", "squared-defect"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Original C2/global two Hessian/positive capped eta. Actual stationary reflected Gaussian kernel produces real L2 selfadjoint mean operator and canonical AE constant; its whole closed centered restriction and actual full/centered positive squared defects are proved. Real Test consumes exact58 macro contraction for rho/delta and IsUnit of the squared defect only on the centered domain. Rank-zero extension and alpha*eta=1 retained; no finite-dimensional L2 or caller regularity/root certificate. Gamma/root/polar/fullH1/dynamics/main/error/cost/composition remain open. Independently verified 2d6cd0167adc4fae1d8d166068a2eda51cd3c3ad."
+  },
+  {
     key := "l2Pullback.rangeEqLpMeas"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange.l2_pullback_range_eq_lpMeas"
     upstreamDecl := "Canonical arbitrary-measure real L2 pullback range"

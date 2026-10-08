@@ -1,0 +1,46 @@
+
+@[to_additive]
+theorem isUnit_iff_exists_inv' [Monoid M] [IsDedekindFiniteMonoid M] {a : M} :
+    IsUnit a ↔ ∃ b, b * a = 1 :=
+  ⟨(·.exists_left_inv), fun ⟨b, hba⟩ ↦ .of_mul_eq_one_right b hba⟩
+
+/-- Multiplication by a `u : Mˣ` on the right doesn't affect `IsUnit`. -/
+@[to_additive (attr := simp)
+/-- Addition of a `u : AddUnits M` on the right doesn't affect `IsAddUnit`. -/]
+theorem Units.isUnit_mul_units [Monoid M] (a : M) (u : Mˣ) : IsUnit (a * u) ↔ IsUnit a :=
+  Iff.intro
+    (fun ⟨v, hv⟩ => by
+      have : IsUnit (a * ↑u * ↑u⁻¹) := by exists v * u⁻¹; rw [← hv, Units.val_mul]
+      rwa [mul_assoc, Units.mul_inv, mul_one] at this)
+    fun v => v.mul u.isUnit
+
+/-- Multiplication by a `u : Mˣ` on the left doesn't affect `IsUnit`. -/
+@[to_additive (attr := simp)
+/-- Addition of a `u : AddUnits M` on the left doesn't affect `IsAddUnit`. -/]
+theorem Units.isUnit_units_mul {M : Type*} [Monoid M] (u : Mˣ) (a : M) :
+    IsUnit (↑u * a) ↔ IsUnit a :=
+  Iff.intro
+    (fun ⟨v, hv⟩ => by
+      have : IsUnit (↑u⁻¹ * (↑u * a)) := by exists u⁻¹ * v; rw [← hv, Units.val_mul]
+      rwa [← mul_assoc, Units.inv_mul, one_mul] at this)
+    u.isUnit.mul
+
+@[to_additive]
+theorem isUnit_of_mul_isUnit_left [Monoid M] [IsDedekindFiniteMonoid M] {x y : M}
+    (hu : IsUnit (x * y)) : IsUnit x :=
+  let ⟨z, hz⟩ := isUnit_iff_exists_inv.1 hu
+  isUnit_iff_exists_inv.2 ⟨y * z, by rwa [← mul_assoc]⟩
+
+@[to_additive]
+theorem isUnit_of_mul_isUnit_right [Monoid M] [IsDedekindFiniteMonoid M] {x y : M}
+    (hu : IsUnit (x * y)) : IsUnit y :=
+  let ⟨z, hz⟩ := isUnit_iff_exists_inv'.1 hu
+  isUnit_iff_exists_inv'.2 ⟨z * x, by rwa [mul_assoc]⟩
+
+namespace IsUnit
+
+@[to_additive (attr := simp, grind =)]
+theorem mul_iff [Monoid M] [IsDedekindFiniteMonoid M] {x y : M} :
+    IsUnit (x * y) ↔ IsUnit x ∧ IsUnit y :=
+  ⟨fun h => ⟨isUnit_of_mul_isUnit_left h, isUnit_of_mul_isUnit_right h⟩,
+   fun h => IsUnit.mul h.1 h.2⟩

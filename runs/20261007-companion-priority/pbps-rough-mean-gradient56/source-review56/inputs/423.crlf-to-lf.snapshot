@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-130d1dc6206efba4",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let S := fun y : E => (volume : Measure E).tilted\n      (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))\n    IsProbabilityMeasure ν ∧\n      ∃ G : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν,\n        Dense (G.domain : Set (Lp ℝ 2 ν)) ∧ G.IsClosable ∧ G.closure.IsClosed ∧\n        (∀ (u : Lp ℝ 2 ν) (v : Lp E 2 ν), (u,v) ∈ G.graph ↔\n          ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n            u =ᵐ[ν] φ ∧ v =ᵐ[ν] gradient φ) ∧\n        ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n          ∃ K : Lp ℝ 2 ν →L[ℝ] Lp E 2 ν,\n            ∀ u : Lp ℝ 2 ν,\n              (T u,K u) ∈ G.closure.graph ∧ ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∀ᵐ y ∂ν, Integrable (u : E → ℝ) (S y) ∧\n                Integrable (fun x => (u x)^2) (S y)) ∧\n              η*‖K u‖^2 ≤\n                (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) * (‖u‖^2-‖T u‖^2) ∧\n              4*η*‖K u‖^2 ≤ ‖u‖^2-‖T u‖^2",
+    "statement_sha256": "130d1dc6206efba4b1169638714ed46f243b057f1c1586af44b5800ad53af4b7",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a finite-dimensional real inner-product Borel space with canonical volume; rank zero allowed. V is C2; positive alpha<=beta, both exact displayed global Hessian bounds, eta>0 and beta*eta<=1 are original source hypotheses.",
+      "Measure.tilted denotes normalized exponential tilt. mu is exactly volume.tilted(-V); J is the actual independent pushforward of mu.prod(stdGaussian E) by (x,z)->(x,x+sqrt(eta)*z); nu=J.snd. S(y) is the exact displayed normalized reflected volume tilt at every y, not a caller measure or certificate.",
+      "Lp F2nu denotes AE classes of strongly measurable square-integrable functions. Its chosen coercion is a strongly measurable representative. Finite dimension of E does not make either Lp space finite dimensional.",
+      "G is an actual real partially defined linear gradient map. Its domain is dense in full real L2nu. Its graph equals precisely all pairs represented AE by one smooth compactly supported real phi and its Euclidean gradient. G.IsClosable means its topological graph closure is again single-valued; G.closure is that partial linear map and IsClosed means its graph is closed.",
+      "One G, one bounded real linear T:L2nu->L2nu and one bounded real linear K:L2nu->vectorL2nu are chosen BEFORE every arbitrary rough u. (Tu,Ku) in G.closure.graph means Tu has the closed compact-gradient derivative Ku. No identification with a separately chosen weak-Sobolev convention is implicit.",
+      "For every rough u, norm(Tu)<=norm(u) and Tu equals the actual S conditional integral AE nu. Both u and u squared are integrable under S(y) only AE nu. Every-y kernel law does not imply pointwise rough integral equality or pointwise C1.",
+      "The displayed sharp coefficient is c=(1-alpha*eta)^2/[4(1+alpha*eta)]. The conclusions are eta*norm(Ku)^2<=c*(norm(u)^2-norm(Tu)^2) and 4eta*norm(Ku)^2<=norm(u)^2-norm(Tu)^2. Alpha*eta=1 and rank zero are allowed. No caller kernel/operator/coherence/convergence/domain certificate, centering, compactness or additional moment premise occurs.",
+      "This statement makes no separately defined weak-H1 equivalence, Gamma/function calculus, algorithmic dynamics/mixing/complexity/main result or unbounded-cost conclusion."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "19caf97426b19156e9e795389f687bdf5d3feab09f4b251635fc4e4f2cbb3766"
+}

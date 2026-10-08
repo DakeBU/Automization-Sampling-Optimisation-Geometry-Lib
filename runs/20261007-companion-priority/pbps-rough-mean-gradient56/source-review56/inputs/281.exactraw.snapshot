@@ -1,0 +1,50 @@
+import os, json, hashlib, datetime, re, html
+from pathlib import Path
+from html.parser import HTMLParser
+T=Path(r'E:\Samplinglib\runs\20261007-companion-priority\pbps-rough-mean-gradient-sourcegraph56')
+P=Path(r'E:\Samplinglib\runs\20261007-companion-priority\next-ready-preread47\primary-pbps.raw.snapshot.html')
+def utc(): return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def sha(b): return hashlib.sha256(b).hexdigest()
+started=utc()
+with P.open('rb') as f: raw=f.read()
+assert len(raw)==1482128 and sha(raw)=='d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760'
+with (T/'primary-pbps.raw.snapshot.html').open('wb') as f: f.write(raw)
+s=raw.decode('utf-8'); lines=s.splitlines(keepends=True); offsets=[]; n=0
+for line in lines: offsets.append(n); n+=len(line)
+class Node:
+ def __init__(self,tag,attrs,start): self.tag=tag; self.attrs=dict(attrs); self.start=start; self.end=None; self.children=[]
+class Parser(HTMLParser):
+ def __init__(self): super().__init__(convert_charrefs=True); self.root=Node('root',[],0); self.stack=[self.root]; self.ids={}
+ def pos(self): l,c=self.getpos(); return offsets[l-1]+c
+ def handle_starttag(self,tag,attrs):
+  a=Node(tag,attrs,self.pos()); self.stack[-1].children.append(a)
+  if 'id' in a.attrs:self.ids[a.attrs['id']]=a
+  if tag not in ('area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'):self.stack.append(a)
+  else:a.end=self.pos()+len(self.get_starttag_text())
+ def handle_startendtag(self,tag,attrs):
+  self.handle_starttag(tag,attrs)
+  if self.stack[-1].tag==tag:self.stack.pop().end=self.pos()+len(self.get_starttag_text())
+ def handle_endtag(self,tag):
+  for i in range(len(self.stack)-1,0,-1):
+   if self.stack[i].tag==tag:
+    for a in self.stack[i:]:a.end=s.find('>',self.pos())+1
+    self.stack=self.stack[:i]; break
+ def handle_data(self,data):self.stack[-1].children.append(data)
+p=Parser(); p.feed(s); p.close()
+def txt(a):
+ if isinstance(a,str):return a
+ if a.tag=='math':return '$'+a.attrs.get('alttext','MISSING_ALT')+'$'
+ if a.tag in ('script','style'):return ''
+ z=''.join(txt(c) for c in a.children)
+ if a.tag in ('section','div','p','h1','h2','h3','h4','h5','h6','table','li'):z='\n'+z+'\n'
+ return z
+metadata={'started_utc':started,'primary_read_completed_utc':utc(),'source_path':str(P),'snapshot_path':str(T/'primary-pbps.raw.snapshot.html'),'raw_bytes':len(raw),'raw_sha256':sha(raw),'crlf_to_lf_bytes':len(raw.replace(b'\r\n',b'\n')),'crlf_to_lf_sha256':sha(raw.replace(b'\r\n',b'\n')),'crlf_count':raw.count(b'\r\n'),'bare_lf_count':raw.count(b'\n')-raw.count(b'\r\n'),'parser':'stdlib HTMLParser; balanced tree; math alttext preserved'}
+with (T/'primary-read-metadata.json').open('w',encoding='utf-8',newline='\n') as f:json.dump(metadata,f,indent=2);f.write('\n')
+for anchor in ['A2.SS1','A3.SS1']:
+ a=p.ids[anchor]; fragment=s[a.start:a.end]; b=fragment.encode('utf-8')
+ with (T/(anchor+'.balanced.html')).open('wb') as f:f.write(b)
+ with (T/(anchor+'.source.txt')).open('w',encoding='utf-8',newline='\n') as f:f.write(txt(a))
+ print(anchor,'lines',s.count('\n',0,a.start)+1,s.count('\n',0,a.end)+1,'sha256',sha(b))
+for k,a in p.ids.items():
+ if a.tag in ('section','div') and ('ltx_theorem' in a.attrs.get('class','') or k in ('A2.SS1','A3.SS1')) and (k.startswith('A2') or k.startswith('A3')):print(k,re.sub(r'\s+',' ',txt(a))[:240])
+print(json.dumps(metadata,indent=2))

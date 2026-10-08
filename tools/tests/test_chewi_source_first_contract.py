@@ -15,6 +15,19 @@ refinement.patch(contract)
 
 
 class RawMathGateTests(unittest.TestCase):
+    def test_tensor_prose_is_not_an_unrendered_formula(self) -> None:
+        for value in ("Its square-root and tensor-slot producers remain open.",
+                      "Tensor products encode joint seed coordinates.",
+                      "No paper-specific tensor-slot adapter is proved."):
+            with self.subTest(value=value):
+                self.assertEqual(contract._raw_math_errors(value), [])
+
+    def test_ascii_tensor_infix_still_requires_math_rendering(self) -> None:
+        for value in ("The law is mu tensor gamma.", "Use v tensor Z.",
+                      "The input is X_1 tensor Y_2."):
+            with self.subTest(value=value):
+                self.assertIn("raw tensor-product notation", contract._raw_math_errors(value))
+
     def test_rejects_martingale_ascii_exposition(self) -> None:
         value = (
             "For s <= t, E[M_t | F_s] = M_s almost everywhere, and M_t is measurable "

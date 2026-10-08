@@ -6,6 +6,16 @@ claims must compile in Lean and match their cited source boundary.
 
 ## Current user-directed priority
 
+For the user-authorized **OAI researcher-reading / assimilation lane**, continue
+the existing intake rather than starting another catalogue or import. Read
+`research-wiki/openai-math-2026-intake.json` → `execution` and
+`docs/openai-math-textbook-coverage.md` first. The original 14 clusters and the
+32-route seven-library map already exist. Chapter placement and upstream
+Comparator evidence are not ASTIS proof admission. The first bounded reader
+case is `oai-logconcave`; distinguish a new mathematical result, a new proof of
+known mathematics, and a new local implementation. This lane preserves the
+companion-paper workers' ownership, priority and unfinished theorem boundaries.
+
 Read `website/content/samplewiki_companion_frontiers.json` → `execution` before
 scheduling. The two September 2026 companion papers are the first mathematical
 priority. Preserve older frontiers; work on them only when they supply a needed

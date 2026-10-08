@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SampleWiki.Cases.RankOneCovarianceComplement.exists_positive_complement",
+      "title": "Build the missing rank-one covariance",
+      "boundary": "An explicit covariance producer, not the whole Gaussian absorption lemma. Principal matrix-square-root identification, scaling, block seed law and physical-query translation remain separate.",
+      "sources": [
+        {
+          "url": "https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Subpolynomial-query-complexity-for-well-conditioned-log-concave-sampling-September-26-2026/build/sections/implementation.tex",
+          "label": "Pinned OAI compiler absorption: covariance identity",
+          "scope": "Authored generic prerequisite for the slot-space matrix square root. This statement does not assert the source's complete output-law lemma."
+        }
+      ],
+      "tests": [
+        "lake build Tests.RankOneCovarianceComplement"
+      ],
+      "assumptions": [
+        "E is a complete real inner-product space; finite-dimensional real source slot spaces satisfy completeness automatically.",
+        "u is a vector with ||u||<=1. In the paper u=v/(2Ds), and source assumptions give the stronger bound ||u||<=1/2.",
+        "No square-root witness, covariance identity, Gaussian law, invertibility or nonzero-vector assumption is supplied."
+      ],
+      "statement": "Let E be a complete real inner-product space and let u in E satisfy ||u||<=1. There exists a continuous real-linear operator P:E->E that is positive (self-adjoint with nonnegative quadratic form) and satisfies P*P+u u*=I, where u u* sends x to <u,x>u. Zero vectors and the singular unit-norm boundary are included; finite dimension is not required.",
+      "formula": "\\exists P\\ge0:\\quad P^*P+uu^*=I,\\qquad (uu^*)x=\\langle u,x\\rangle u,\\quad\\|u\\|\\le1.",
+      "steps": [
+        {
+          "title": "Choose a construction that also works at zero",
+          "text": "Set a to the nonnegative square root of 1 minus the squared norm of u. The coefficient c divides by 1+a, which is at least one, so there is no special division-by-zero branch. Define P by subtracting c times the rank-one operator from the identity.",
+          "formula": "a=\\sqrt{1-\\|u\\|^2},\\qquad c=\\frac1{1+a},\\qquad P=I-cuu^*.",
+          "lean": "Local a,c,P are literal constructions. hn justifies squaring the real square root; hden proves that the denominator is genuinely positive."
+        },
+        {
+          "title": "Get the exact scalar cancellation",
+          "text": "The square-root identity implies the cancellation that will restore the missing rank-one covariance. This is an equality, without dimension factors or approximation slack. Also c lies between zero and one.",
+          "formula": "a^2=1-\\|u\\|^2\\quad\\Longrightarrow\\quad2c-c^2\\|u\\|^2=1,\\qquad0\\le c\\le1.",
+          "lean": "ha2 and hc identify the squared root and coefficient. Field arithmetic uses a nonzero denominator, rather than relying on totalized division."
+        },
+        {
+          "title": "Verify positivity, not only a formal square",
+          "text": "The rank-one operator is self-adjoint. Cauchy–Schwarz and the bound on u give squared inner product at most squared norm of x. Since c is nonnegative and at most one, subtracting that rank-one quadratic term leaves a nonnegative quadratic form.",
+          "formula": "\\langle Px,x\\rangle=\\|x\\|^2-c\\langle u,x\\rangle^2\\ge0,\\qquad P^*=P.",
+          "lean": "adjoint_rankOne supplies self-adjointness. isPositive_iff' requires the genuine self-adjoint and nonnegative quadratic-form conditions; hib and hci discharge the latter."
+        },
+        {
+          "title": "Multiply the operators and restore covariance",
+          "text": "The square of the rank-one operator is its squared vector norm times itself. Expand P squared and insert the exact coefficient cancellation. This constructs the covariance condition that a Gaussian-law consumer needs, instead of taking that condition as an unproved input.",
+          "formula": "(uu^*)^2=\\|u\\|^2uu^*,\\qquad P^*P=I-(2c-c^2\\|u\\|^2)uu^*=I-uu^*.",
+          "lean": "The proof checks operator equality pointwise using rankOne_apply and inner-product linearity. The concluding module calculation uses hc. No covariance premise is added."
+        }
+      ],
+      "lean_statement": "IsPositive means self-adjointness and a nonnegative quadratic form. .adjoint.comp is composition with the Hilbert adjoint; rankOne is x mapped to <u,x>u. The existential P is proved by construction, not a hypothesis or a source-level algorithm.",
+      "lean_proof": "The proof follows construction, exact scalar cancellation, positivity and covariance multiplication. This route avoids selecting an arbitrary matrix basis and does not require a real continuous-functional-calculus typeclass.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductSpace.rankOne_apply",
+        "InnerProductSpace.adjoint_rankOne",
+        "ContinuousLinearMap.isPositive_iff'",
+        "abs_real_inner_le_norm",
+        "Real.sq_sqrt"
+      ]
+    }
+  ]
+}

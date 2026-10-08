@@ -1,0 +1,133 @@
+{
+  "id": "ASTIS-RT-20261009-RankOneCovarianceComplement",
+  "state": "draft",
+  "source": {
+    "source_id": "canonical:rankone-covariance-complement",
+    "anchor": "Authored positive rank-one covariance producer motivated by pinned compiler absorption, not full source lemma",
+    "url": "https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Subpolynomial-query-complexity-for-well-conditioned-log-concave-sampling-September-26-2026/build/sections/implementation.tex",
+    "original_text": "Let E be a complete real inner-product space and let u in E satisfy ||u||<=1. There exists a continuous real-linear operator P:E->E that is positive (self-adjoint with nonnegative quadratic form) and satisfies P*P+u u*=I, where u u* sends x to <u,x>u. Zero vectors and the singular unit-norm boundary are included; finite dimension is not required.",
+    "text_sha256": "5326fb2eb4d5785502c4f3e0675fcb1bb6d7ebfc3033cc20fc16879d1e2f0f8e"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SampleWiki.Cases.RankOneCovarianceComplement.exists_positive_complement",
+    "file": "AutoSamplingTheory/ExampleCases/SampleWiki/Cases/RankOneCovarianceComplement.lean",
+    "statement": "∀ {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] (u : E), ‖u‖ ≤ 1 → ∃ P : E →L[ℝ] E, P.IsPositive ∧ P.adjoint.comp P + InnerProductSpace.rankOne ℝ u u = ContinuousLinearMap.id ℝ E",
+    "statement_sha256": "a8af7bee11bc773ee38b66f30ec61cae5554bb2bf6e4634c175f1f80689c9fd6",
+    "formalizer": "root-rankone-worker",
+    "compiled": true,
+    "decoder_context": [
+      "rankOne R u u is the bounded linear operator sending x to the real inner product of u and x multiplied by u. IsPositive means that the operator is self-adjoint and its quadratic form is nonnegative on every vector. .adjoint is the Hilbert-space adjoint, .comp is composition, and id is the identity bounded linear map."
+    ]
+  },
+  "reconstruction": {},
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "036b70656fd606dc581361b72fbe4f4e1338b4b57c4e07650263c616f74e74bb",
+  "publication_context": {
+    "file": "ddc620e8f5eb781e33e199a6ce87a6e55313c202e89dd28cf08194a004762a30",
+    "current_lean_module": "import Mathlib.Analysis.InnerProductSpace.Adjoint\nimport Mathlib.Analysis.InnerProductSpace.Positive\nimport Mathlib.Analysis.Real.Sqrt\n\n/-!\n# A positive rank-one covariance complement\n\nThe concrete covariance producer needed by the Gaussian center-noise absorption\nstep in the pinned OAI log-concave compiler (`lem:compiler-absorption`,\n`openai/math` adc7f124). This is an authored algebraic prerequisite, not the\nentire source lemma. A caller still has to supply normalized slot vectors,\nblock seed semantics and the pathwise translation/query identity.\n\nThe explicit construction uses a denominator at least one, including at zero\nand at the singular boundary. No square-root existence is a premise.\n-/\n\nnoncomputable section\nopen scoped RealInnerProductSpace\nopen InnerProductSpace ContinuousLinearMap\n\nnamespace AutoSamplingTheory.ExampleCases.SampleWiki.Cases.RankOneCovarianceComplement\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- A unit-ball vector has an actual positive covariance complement. No\ninvertibility, nonzero-vector or finite-dimensional premise is required. -/\ntheorem exists_positive_complement (u : E) (hu : ‖u‖ ≤ 1) :\n    ∃ P : E →L[ℝ] E, P.IsPositive ∧\n      P.adjoint.comp P + InnerProductSpace.rankOne ℝ u u =\n        ContinuousLinearMap.id ℝ E := by\n  let a : ℝ := Real.sqrt (1 - ‖u‖ ^ 2)\n  let c : ℝ := 1 / (1 + a)\n  let P : E →L[ℝ] E := ContinuousLinearMap.id ℝ E - c • rankOne ℝ u u\n  have hn : 0 ≤ 1 - ‖u‖ ^ 2 := by nlinarith [norm_nonneg u]\n  have ha : 0 ≤ a := Real.sqrt_nonneg _\n  have ha2 : a ^ 2 = 1 - ‖u‖ ^ 2 := Real.sq_sqrt hn\n  have hden : 0 < 1 + a := by positivity\n  have hc0 : 0 ≤ c := by dsimp [c]; positivity\n  have hc1 : c ≤ 1 := by\n    dsimp [c]\n    exact (div_le_one hden).2 (by linarith)\n  have hc : 2 * c - c ^ 2 * ‖u‖ ^ 2 = 1 := by\n    dsimp [c]\n    field_simp\n    nlinarith\n  have hself : P.adjoint = P := by\n    simp [P, ContinuousLinearMap.adjoint_id]\n  refine ⟨P, ?_, ?_⟩\n  · rw [ContinuousLinearMap.isPositive_iff']\n    refine ⟨?_, fun x => ?_⟩\n    · exact hself\n    · have hcs := abs_real_inner_le_norm u x\n      have hib : ⟪u, x⟫_ℝ ^ 2 ≤ ‖x‖ ^ 2 := by\n        have habs : |⟪u, x⟫_ℝ| ≤ ‖x‖ :=\n          hcs.trans (by nlinarith [norm_nonneg x])\n        have hh := sq_le_sq₀ (abs_nonneg ⟪u, x⟫_ℝ) (norm_nonneg x) |>.2 habs\n        simpa using hh\n      have hci : c * ⟪u, x⟫_ℝ ^ 2 ≤ ⟪u, x⟫_ℝ ^ 2 :=\n        mul_le_of_le_one_left (sq_nonneg _) hc1\n      simp only [P, sub_apply, id_apply, smul_apply, rankOne_apply,\n        inner_sub_left, inner_smul_left, real_inner_self_eq_norm_sq]\n      change 0 ≤ ‖x‖ ^ 2 - c * (⟪u, x⟫_ℝ * ⟪u, x⟫_ℝ)\n      nlinarith\n  · rw [hself]\n    ext x\n    simp only [P, comp_apply, add_apply, sub_apply, id_apply, smul_apply,\n      rankOne_apply, inner_sub_right, inner_smul_right, real_inner_self_eq_norm_sq]\n    match_scalars <;> first | ring1 | linear_combination -⟪u, x⟫_ℝ * hc\n\nend AutoSamplingTheory.ExampleCases.SampleWiki.Cases.RankOneCovarianceComplement\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Subpolynomial-query-complexity-for-well-conditioned-log-concave-sampling-September-26-2026/build/sections/implementation.tex",
+      "edition": "OAI adc7f124; ASTIS authored covariance prerequisite v1",
+      "anchor": "lem:compiler-absorption covariance construction, not full lemma",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS-authored generalized construction motivated by the pinned OAI proof. Standard rank-one operator mathematics; no research novelty or complete source-lemma credit."
+    },
+    "statement": "Let E be a complete real inner-product space and let u in E satisfy ||u||<=1. There exists a continuous real-linear operator P:E->E that is positive (self-adjoint with nonnegative quadratic form) and satisfies P*P+u u*=I, where u u* sends x to <u,x>u. Zero vectors and the singular unit-norm boundary are included; finite dimension is not required.",
+    "formulae": [
+      {
+        "label": "Actual positive complement",
+        "tex": "\\exists P\\ge0:\\quad P^*P+uu^*=I,\\qquad (uu^*)x=\\langle u,x\\rangle u,\\quad\\|u\\|\\le1."
+      }
+    ],
+    "assumptions": [
+      "E is a complete real inner-product space; finite-dimensional real source slot spaces satisfy completeness automatically.",
+      "u is a vector with ||u||<=1. In the paper u=v/(2Ds), and source assumptions give the stronger bound ||u||<=1/2.",
+      "No square-root witness, covariance identity, Gaussian law, invertibility or nonzero-vector assumption is supplied."
+    ],
+    "obligations": [
+      {
+        "id": "covariance-producer",
+        "label": "Produce a positive covariance complement from the vector norm bound"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SampleWiki.Cases.RankOneCovarianceComplement.exists_positive_complement",
+      "title": "Build the missing rank-one covariance",
+      "sources": [
+        {
+          "url": "https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Subpolynomial-query-complexity-for-well-conditioned-log-concave-sampling-September-26-2026/build/sections/implementation.tex",
+          "label": "Pinned OAI compiler absorption: covariance identity",
+          "scope": "Authored generic prerequisite for the slot-space matrix square root. This statement does not assert the source's complete output-law lemma."
+        }
+      ],
+      "tests": [
+        "lake build Tests.RankOneCovarianceComplement"
+      ],
+      "assumptions": [
+        "E is a complete real inner-product space; finite-dimensional real source slot spaces satisfy completeness automatically.",
+        "u is a vector with ||u||<=1. In the paper u=v/(2Ds), and source assumptions give the stronger bound ||u||<=1/2.",
+        "No square-root witness, covariance identity, Gaussian law, invertibility or nonzero-vector assumption is supplied."
+      ],
+      "statement": "Let E be a complete real inner-product space and let u in E satisfy ||u||<=1. There exists a continuous real-linear operator P:E->E that is positive (self-adjoint with nonnegative quadratic form) and satisfies P*P+u u*=I, where u u* sends x to <u,x>u. Zero vectors and the singular unit-norm boundary are included; finite dimension is not required.",
+      "formula": "\\exists P\\ge0:\\quad P^*P+uu^*=I,\\qquad (uu^*)x=\\langle u,x\\rangle u,\\quad\\|u\\|\\le1.",
+      "steps": [
+        {
+          "title": "Choose a construction that also works at zero",
+          "text": "Set a to the nonnegative square root of 1 minus the squared norm of u. The coefficient c divides by 1+a, which is at least one, so there is no special division-by-zero branch. Define P by subtracting c times the rank-one operator from the identity.",
+          "formula": "a=\\sqrt{1-\\|u\\|^2},\\qquad c=\\frac1{1+a},\\qquad P=I-cuu^*.",
+          "lean": "Local a,c,P are literal constructions. hn justifies squaring the real square root; hden proves that the denominator is genuinely positive."
+        },
+        {
+          "title": "Get the exact scalar cancellation",
+          "text": "The square-root identity implies the cancellation that will restore the missing rank-one covariance. This is an equality, without dimension factors or approximation slack. Also c lies between zero and one.",
+          "formula": "a^2=1-\\|u\\|^2\\quad\\Longrightarrow\\quad2c-c^2\\|u\\|^2=1,\\qquad0\\le c\\le1.",
+          "lean": "ha2 and hc identify the squared root and coefficient. Field arithmetic uses a nonzero denominator, rather than relying on totalized division."
+        },
+        {
+          "title": "Verify positivity, not only a formal square",
+          "text": "The rank-one operator is self-adjoint. Cauchy–Schwarz and the bound on u give squared inner product at most squared norm of x. Since c is nonnegative and at most one, subtracting that rank-one quadratic term leaves a nonnegative quadratic form.",
+          "formula": "\\langle Px,x\\rangle=\\|x\\|^2-c\\langle u,x\\rangle^2\\ge0,\\qquad P^*=P.",
+          "lean": "adjoint_rankOne supplies self-adjointness. isPositive_iff' requires the genuine self-adjoint and nonnegative quadratic-form conditions; hib and hci discharge the latter."
+        },
+        {
+          "title": "Multiply the operators and restore covariance",
+          "text": "The square of the rank-one operator is its squared vector norm times itself. Expand P squared and insert the exact coefficient cancellation. This constructs the covariance condition that a Gaussian-law consumer needs, instead of taking that condition as an unproved input.",
+          "formula": "(uu^*)^2=\\|u\\|^2uu^*,\\qquad P^*P=I-(2c-c^2\\|u\\|^2)uu^*=I-uu^*.",
+          "lean": "The proof checks operator equality pointwise using rankOne_apply and inner-product linearity. The concluding module calculation uses hc. No covariance premise is added."
+        }
+      ],
+      "lean_statement": "IsPositive means self-adjointness and a nonnegative quadratic form. .adjoint.comp is composition with the Hilbert adjoint; rankOne is x mapped to <u,x>u. The existential P is proved by construction, not a hypothesis or a source-level algorithm.",
+      "lean_proof": "The proof follows construction, exact scalar cancellation, positivity and covariance multiplication. This route avoids selecting an arbitrary matrix basis and does not require a real continuous-functional-calculus typeclass.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductSpace.rankOne_apply",
+        "InnerProductSpace.adjoint_rankOne",
+        "ContinuousLinearMap.isPositive_iff'",
+        "abs_real_inner_le_norm",
+        "Real.sq_sqrt"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SampleWiki.Cases.RankOneCovarianceComplement.exists_positive_complement",
+      "role": "prerequisite",
+      "supports": [
+        "covariance-producer"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Source slot space is finite-dimensional, u=v/(2Ds) has norm<=1/2. The covariance square root is constructed.",
+        "lean": "Complete real inner-product space, norm u<=1; constructs positive P with exact adjoint-product covariance."
+      }
+    ]
+  }
+}

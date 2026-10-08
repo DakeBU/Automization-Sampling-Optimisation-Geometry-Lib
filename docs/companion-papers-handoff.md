@@ -1,5 +1,47 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS positive real scalar root (2026-10-09)
+
+Independently VERIFIED science commit bcd245d90b21b899acb9937fc54dffcea20e86ee. Canonical shared
+Measure/L2RealSquareRoot constructs a bounded positive REAL Gamma for every
+bounded positive real D on arbitrary-measure L2, with Gamma^2=D and
+||Gamma u||^2=<Du,u> for every scalar u. Complex CFC is constructed internally;
+actual antiunitary pointwise conjugation and complex positive-root uniqueness
+prove root preservation of the full real fixed space before descending.
+No finite/probability measure, finite-dimensional L2, nontriviality,
+caller CFC/root/commutation certificate is assumed.
+
+The actual PBPS consumer retains the original C2, both global Hessian bounds,
+0<alpha<=beta, eta>0 and beta*eta<=1, with explicit rank-zero extension and
+legal alpha*eta=1. It internally produces the SAME stationary reflected
+Gaussian S, selfadjoint contractive mean-preserving T and positive D=I-T^2.
+The positive REAL root satisfies ||Gamma u||^2=||u||^2-||T u||^2 for every u;
+the genuine original-input Test also checks ||Gamma u||<=||u||.
+Every-y normalized S density is distinct from per-observable AE action.
+
+Root and independent focused3916, all10 private providers, fresh anonymous
+decoder, primary-first seven-slot source review and nine current formula
+proof steps are scoped evidence. This is the full scalar precursor to B.10-B.11.
+Printed joint Gamma_P additionally requires the SAME canonical M onto ran(P),
+positive-root transport to that closed macro subspace, actual PUP restriction
+and typed B*B identity. P is identity only on ran(P), never the full joint space.
+Exported real uniqueness and the canonical unique root remain separate.
+Centered root order/inverse/polar, weakH1, event dynamics/nonexplosion/invariance,
+hypocoercivity, mixing, implementation error and query costs remain separate.
+SPHMC/composition actual-input precision and expected work remain open;
+TV proximity transfers no unbounded cost. Four-paper priority unchanged.
+
+Earlier complex-lift integration 63c7435 has independently accepted scoped
+repository/exposition evidence and all three remote CI workflows terminal
+SUCCESS; dense reader layout remains explicitly recorded debt.
+Serialized aggregate61 PASSES: root9167, Tests9460, Registry505, publication226,
+contributor/semantic/frontier/Python/site and both affected graph checks.
+Eight actual local browser views were inspected: two full statements, nine
+formula proof steps and two compiled Registry-backed branches.
+Science bcd245d has independent exact-commit verification. Repository/exposition
+seal and integration remote CI remain separate. No MERGED/live/PURIFIED,
+completed paper or Goal. All earlier checkpoints remain.
+
 ## Actual PBPS positive complex lift (2026-10-08)
 
 Independently VERIFIED science commit 0a77416f5ec38702c46ec1358966b9dd4846c8d3. The canonical shared

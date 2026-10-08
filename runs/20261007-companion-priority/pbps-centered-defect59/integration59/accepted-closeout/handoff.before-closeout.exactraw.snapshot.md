@@ -1,26 +1,5 @@
 # Companion-paper formalization handoff
 
-## Accepted scoped centered-defect integration59 (2026-10-08)
-
-Science2d6cd016 and serialized integration47a28adf both reached terminal SUCCESS
-in GitHub Lean, site and contributor workflows. The exact47a integration has an
-independent scoped repository/exposition acceptance in
-`runs/20261007-companion-priority/pbps-centered-defect59/repository-exposition-seal59/`;
-root readback is `root.repository-exposition59.adoption.json` beside that folder.
-The post-administration stale graph was archived as a typed negative. The official
-successor changes only its input-digest header, with identical nodes/edges and
-both affected graph checks plus final site validation passing. No mathematics,
-source statement, lesson or semantic binding changed. Draft deployment remains
-skipped; main/live/full Chapter1.3 reader/PURIFIED are not granted.
-
-Next60 is only an unproved real-L2 positive-operator complex-lift candidate with
-actual PBPS D=I-T*T as its internally produced consumer. Both full signatures
-elaborate, but preproof sealing/source topology and actual proofs must precede
-admission. No caller CFC/root/operator certificate or finite-dimensional L2
-assumption is allowed. Real Gamma descent/uniqueness, centered order/inverse/polar
-and the remaining paper/main/error/querycost/composition boundaries remain open.
-Push each meaningful reviewed science milestone and accepted integration.
-
 ## Actual PBPS centered squared defect (2026-10-08)
 
 Actual serialized aggregate passes: root9163, Tests9454, Registry501, current

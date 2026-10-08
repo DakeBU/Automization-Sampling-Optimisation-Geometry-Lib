@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.literalReflectedSource.compactMeanC1"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1"
+    upstreamDecl := "Authored actual PBPS reflected source law and compact mean integration for C.1"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "reflected-source-law", "conditional-mean", "C1"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "Actual source mu=volume.tilted(-V), R_y=mu quadratic tilt and S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)). Genuine Gibbs partition/L1/probability, posterior tilt composition, inverse half and normalized affine map produce EVERY-y S_y=(2x-y)#R_y; the whole compact signed-observer mean is C1. C2 lower curvature/allpositive eta/compact C1/finite Hilbert/rank0 are explicit sufficient-background extensions; original-source Test retains upper Hessian/capped eta/smoothcompact f and SAME mu/J Markov conditional, source-S probability, rank0 mean1/derivative0. Source-specific integration consumes existing reusable parents; no new generic-background copy or caller analytic/law certificates. Actual Tf closed-gradient membership, full rough B13/Gamma/dynamics/main/errors/cost/composition remain separate. Independently verified 9f0305db380966529eb3b0fc17a62aa9bcd47a85."
+  },
+  {
     key := "gaussian.reflectedPosterior.compactMeanC1"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianReflectedMean.gaussian_reflected_mean_c1"
     upstreamDecl := "Authored literal Gaussian posterior-reflection compact-observer regularity for PBPS C.1"

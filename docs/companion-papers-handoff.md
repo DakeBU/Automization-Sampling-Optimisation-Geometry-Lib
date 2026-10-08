@@ -1,5 +1,47 @@
 # Companion-paper formalization handoff
 
+## Literal PBPS source reflected law and mean C1 (2026-10-08)
+
+Exact758 is independently VERIFIED at 9f0305db380966529eb3b0fc17a62aa9bcd47a85. At EVERY y the actual
+source-volume S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)) equals
+the actual posterior R_y=mu.tilted(-norm(x-y)^2/(2eta)) reflected by2x-y;
+the whole signed compact C1 mean is C1. Genuine Gibbs normalization/L1,
+true mu probability, posterior tilt composition, exact inverse half,
+factor8eta and affine normalized Jacobian cancellation are internal.
+This is source-specific integration in ExampleCases, reusing three existing
+parents. Lower-only C2 curvature/allpositive eta/compact C1/Hilbert/rank0
+are explicit authored sufficient-background extensions, not paper repairs.
+
+The actual original-source Test retains both Hessian bounds and beta*eta<=1,
+uses smoothcompact f and SAME mu/J Markov conditional, and derives all-y
+source S probability. Source-rank0 V=0/observer1 has actual mean1 and
+derivative0. Focused3895, independent full mathematics, fresh anonymous
+statement/source-text-blind decoder, own-primary-first source fidelity and
+exact-commit verification passed in their stated scopes. The decoder disclosed
+inherited general source identities; strict source-identity blindness is false.
+Only standard3 axioms occur. All original failures and T53-1 exact header/scope
+binding negative plus independently reviewed minimal representation repair
+remain preserved. No self-verification or new stabilization owner.
+
+Registry494, public ExampleCases/Test imports and existing companion metadata
+enter the original PhaseKernel sole serialized integration lane. Full53
+aggregate, graph/reader seals and remote CI follow. Prior52 aggregate and
+scoped Proof/Exposition seals passed with presentation debt. Actual241e01d0
+remote Lean/contributor/website checks reached SUCCESS; deployment was skipped.
+Main/live/postmerge PURIFIED and full-reader completion remain distinct.
+
+Next: actual50 supplies the SAME outer-nu Tf/gradientTf Lp witnesses; verified
+source mean C1 joins actual51 dense closable compact-gradient core through
+the existing WeightedC1GradientDomain adapter. A uniform gradient core is
+distinct from50 lower-right blockD; compact f does not imply compact Tf.
+Full rough all-L2/H1 B13 still requires the actual operator/averaging bridge,
+approximation on differences and closed-graph limit. Gamma/halfturn/
+hypocoercivity/invariance/nonexplosion/implementation/errors/main/cost and
+actual-input PBPS/SPHMC composition remain open. Gaussian Cloud and midpoint
+follow the existing four-paper Goal; older Chewi/frontiers/cycles/memory remain.
+TV proximity does not transfer unbounded expected costs. No paper or Goal
+is completed by this integration node.
+
 ## Literal reflected Gaussian posterior mean C1 (2026-10-08)
 
 Exact497 is independently VERIFIED at a18cd1cf8e8310f228391d4c53a2ac8f1a8900ec. For any probability mu,

@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualL2.macroscopicMean"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean"
+    upstreamDecl := "Authored actual all-L2 PBPS conditional mean and B.9 variance defect"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "all-L2", "conditional-mean", "variance-defect"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "Actual SAME Gibbs/Gaussian mu/J/nu and every-y literal reflected source S internally produce canonical snd isometry M and bounded T BEFORE all rough L2 inputs. PM=M, MT=AM, source conditional mean and fiber L1/squareL1 only AE; actual integrated variance is the joint reflection block/norm defect. Original C2/two Hessian/capped eta retained; finite Hilbert/rank0 extension disclosed. Actual rough same-T difference and noncentered rank0 class1 fixed/variance0 tested. Five real existing parents, no new private/background copy/caller law/domain/cost premise. Rough gradient/weakH1/B13/Gamma/dynamics/main/errors/cost/composition remain open. Independently verified 4f71a36d56500fda7f86e8080f695a514913950a."
+  },
+  {
     key := "pbps.literalSourceMean.closedGradientDomain"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain.literal_source_mean_in_closed_gradient"
     upstreamDecl := "Authored actual PBPS compact source mean canonical gradient-domain integration for C.1/C.2"

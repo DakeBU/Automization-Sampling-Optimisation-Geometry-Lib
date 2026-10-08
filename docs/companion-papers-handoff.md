@@ -1,5 +1,51 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS conditional mean on all L2 inputs (2026-10-08)
+
+Exact2526 is independently VERIFIED at 4f71a36d56500fda7f86e8080f695a514913950a. On the SAME actual
+Gibbs/Gaussian mu/J/nu, one genuine source Markov kernel S, reflection U,
+canonical snd isometry M and bounded linear T are chosen BEFORE every rough
+u in L2(nu). PM=M and MT=AM; T represents the literal source conditional mean
+AE nu and is contractive. Both u and u² are integrable under S_y for AE y;
+the real integrated variance is ||BMu||²=||u||²-||Tu||². Every-y source-law
+identity remains separate from AE rough-input integrability. No centering,
+compactness, pointwise rough C1, caller law/operator/domain/convergence or
+unbounded-cost certificate is introduced. Original C2, both Hessian bounds
+and beta*eta<=1 remain; finite Hilbert/Borel/rank0 extends the source Euclidean
+presentation explicitly.
+
+Actual50 supplies source probabilities/kernel/U/P/compact coherence,
+actual51 the dense true compact core, GaussianReflection stationarity,
+GaussianConditionalKernel actual posterior disintegration, ReflectionL2
+the real all-L2 conditional projection. Closed range constructs T; posterior
+uniqueness and Fubini yield source mean and variance. Genuine same-T rough
+differences and noncentered rank0 class1/variance0 compile. Focused3894,
+complete independent mathematics, fresh anonymous source-text-blind decoder,
+own-primary-first source fidelity and exact-science checks pass. Standard3
+only. Original source metadata-locator negative and independently accepted
+exact two locator repairs remain; statement/body/Tests/decoder/formulas stayed
+unchanged. Strict identity blindness is not claimed.
+
+Registry496/public ExampleCases/root Tests enter only the original PhaseKernel
+serialized lane. Full55 aggregate/affected graph/desktop/scoped seals and
+remote checks follow; main/live/postmerge PURIFIED and whole-reader acceptance
+remain distinct. Prior54 aa62b6f1 remote Lean/contributor/website checks all
+SUCCESS, deploy SKIPPED, with scoped repository/exposition seals and disclosed
+presentation debt.
+
+Next: actual54 admits each noncompact compact-input source mean to the same
+true closed-gradient graph. Combine that with actual50 sharp energy and this
+full-L2 same-law T/difference bridge: derive a bounded derivative map on the
+dense core, extend to complete vector-L2, identify its actual closed graph,
+and retain c=(1-alpha*eta)²/[4(1+alpha*eta)] and source4eta defect for every
+rough input. Exact1755 prospective56 statement is independently source/typed
+sealed; exhaustive source topology/claim/proof remain pending. Separate weak-H1
+convention/Gamma/halfturn/hypocoercivity/invariance/nonexplosion/implementation/
+errors/main/cost and actual-input PBPS/SPHMC composition remain open. Gaussian
+Cloud and midpoint follow the active four-paper Goal; older frontiers/cycles/
+memory remain. TV proximity never transfers unbounded expected query costs.
+This node completes neither a paper nor the Goal.
+
 ## Literal PBPS source mean in the closed-gradient domain (2026-10-08)
 
 Exact1448 is independently VERIFIED at 16797326f3e06a853e2d047f67fde924ac8c1647. On the SAME actual outer

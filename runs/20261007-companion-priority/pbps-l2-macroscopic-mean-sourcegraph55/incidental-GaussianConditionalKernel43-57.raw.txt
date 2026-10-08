@@ -1,0 +1,15 @@
+  classical
+  let J := Measure.map
+    (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))
+    (μ.prod (stdGaussian E))
+  let w : E → E → ℝ := fun y x => Real.exp (-‖x - y‖ ^ 2 / (2 * η))
+  let Z : E → ℝ := fun y => ∫ x, w y x ∂μ
+  have hw : Measurable (Function.uncurry w) := by fun_prop
+  have hI (y : E) : Integrable (w y) μ := by
+    refine (integrable_const (1 : ℝ)).mono' (by fun_prop) ?_
+    filter_upwards with x
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    exact Real.exp_le_one_iff.mpr
+      (div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity))
+  have hZpos (y : E) : 0 < Z y := integral_exp_pos (hI y)
+  have hZ : Measurable Z := hw.stronglyMeasurable.integral_prod_right.measurable

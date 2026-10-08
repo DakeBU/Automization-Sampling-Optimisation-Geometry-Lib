@@ -89,7 +89,31 @@ that the pages never use the ASTIS blue/compiled badge for upstream material.
 
 ## Next mathematical intake order
 
-This map does not supersede the current two-paper priority. When an OpenAI Math
+The current user-authorized local OAI lane continues the work already present:
+the intake protocol, original 14 clusters, 32 domain placements and generated
+seven-library shelves are **not** to be rebuilt. Its bounded first phase is
+`oai-logconcave`, recorded in the existing intake's `execution` object. This is
+an execution capsule, not another proof-status ledger. The initial researcher
+guide exposes the source result and its proof mechanisms; source reading is not
+local formalization or independent source certification.
+
+At the 2026-10-09 start, a bounded search of Registry, production publication
+bindings, Frontier Cells and the semantic registry found no OAI-specific local
+admission record. This does not assert that mathematically reusable ASTIS lemmas
+are absent, or that unmerged collaborator work does not exist. Inspect exact
+declarations and evidence before deciding reuse/adapt/missing. Keep distinct:
+protocol absorbed; chapter mapped; source explained; upstream Lean available;
+ASTIS compiled; independently reviewed; integrated; researcher-purified.
+
+Each source reader must answer: which existing mathematics is reused; what the
+source claims to improve; what new ingredient or arrangement carries the proof;
+and which part is actually checked locally. A first implementation in this
+library is not research novelty. Historical baselines need compatible model,
+metric, initialization and cost contracts plus exact sources. Until independently
+audited, display them as source-authored comparisons, not settled priority claims.
+
+The OAI lane preserves the companion-paper owners and their unfinished work.
+This map does not supersede their paper-priority lane. When another OpenAI Math
 route becomes dependency-ready, prefer a small reusable interface with an
 existing paper or textbook consumer. High-value audits are:
 

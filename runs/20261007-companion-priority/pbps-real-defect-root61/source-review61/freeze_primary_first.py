@@ -1,0 +1,24 @@
+import hashlib,json,os,pathlib
+ROOT=pathlib.Path('E:/Samplinglib'); OUT=pathlib.Path(__file__).resolve().parent; OUT.mkdir(exist_ok=True); (OUT/'inputs').mkdir(exist_ok=True)
+def sha(b):return hashlib.sha256(b).hexdigest()
+def pin(p):
+    b=p.read_bytes();l=b.replace(b'\r\n',b'\n');return dict(path=p.relative_to(ROOT).as_posix(),bytes=len(b),lf_bytes=len(l),raw_sha256=sha(b),lf_sha256=sha(l))
+def write(n,x):(OUT/n).write_bytes((json.dumps(x,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
+base=OUT.parent; lease=json.loads((base/'source.review.lease.json').read_bytes()); assert len(lease['input_artifacts'])==18
+paths=[base/'source.review.lease.json']+[pathlib.Path(x['path']) for x in lease['input_artifacts']]
+extra=['runs/20261007-companion-priority/pbps-real-defect-root-preproof61/header0.lean','runs/20261007-companion-priority/pbps-real-defect-root-preproof61/header1.lean','AutoSamplingTheory/TechnicalLemmas/Measure/L2RealComplexOperator.lean','AutoSamplingTheory/ExampleCases/ProximalBPS/CenteredDefectOperator.lean','lean-toolchain','lake-manifest.json']
+paths += [ROOT/x for x in extra]
+pairs=[]
+for i,p in enumerate(paths):
+    b=p.read_bytes()
+    if 0<i<=18:
+        x=lease['input_artifacts'][i-1];assert len(b)==x['raw_bytes'] and sha(b)==x['raw_sha256'] and sha(b.replace(b'\r\n',b'\n'))==x['lf_sha256']
+    a=OUT/'inputs'/f'{i:02d}-{p.name}.raw.snapshot';a.write_bytes(b);z=OUT/'inputs'/f'{i:02d}-{p.name}.LF.snapshot';z.write_bytes(b.replace(b'\r\n',b'\n'));pairs.append(dict(original=pin(p),raw_snapshot=pin(a),lf_snapshot=pin(z),semantic_scope='opaque canonical audit bytes only, not parsed for prior verdict/slots/repairs' if '/semantic-roundtrip/audits/' in p.as_posix() else 'current scoped input frozen before semantic reads'))
+# Only primary/source topology read semantically before current packets or bodies.
+src=json.loads(paths[1].read_bytes());cap=json.loads(paths[2].read_bytes());g=json.loads(paths[3].read_bytes());c=json.loads(paths[4].read_bytes())
+primary=ROOT/src['primary']['path'];raw=primary.read_bytes();assert sha(raw)==src['primary']['raw_sha256']
+regions=src['regions']+[cap['source_region']];assert len(regions)==23 and len(c['items'])==45 and len(g['nodes'])==27 and len(g['edges'])==34
+for r in regions:assert sha(raw[r['start_utf8_byte']:r['end_utf8_byte_exclusive']])==r['slice_sha256']
+write('primary-first.boundary.json',dict(status='PRIMARY_FIRST_RECONSTRUCTION_BEFORE_CURRENT_PACKETS_AND_BODIES',actual_foreground_pid=os.getpid(),primary=pin(primary),source_regions=[{k:r[k] for k in ['id','start_utf8_byte','end_utf8_byte_exclusive','slice_bytes','slice_sha256','text']} for r in regions],original_source='D1 real AE-class Hilbert conventions and bounded positive real-root existence/uniqueness background. B1-B5 conditional macro/micro block projection/reflection proof remains the printed route. B10 GammaP²=I_macro-UPP²; B11 actual typed microscopic square/norm identity on EVERY macro f. Source model originalC2/two Hessians/positive alpha order and positive capped eta, actual normalized Gaussian and reflected conditional law; literal beta eta<=1 cap included.',independent_boundary='Current ASTIS target is ONLY scalar real positive-root existence and all-u defect energy. Generic given-positive-D input is legitimate reusable background; actual source positivity must be derived internally. Internal complex CFC/root uniqueness/conjugation preservation/descent cannot be source binders. Exported real uniqueness, onto M/macro GammaP/typed B*B/centered root order/inverse/polar/full paper remain separate.',typing='Full real marginal L2 may be infinite dimensional; rank-zero source extension and alpha eta=1 legal. Conditional density every-y is distinct from per-u nu-AE observable action; all probability/partition/integrability/canonical maps internally established. Pointwise conjugation C is not operator adjoint.',preproof_topology=pin(paths[3]),preproof_coverage=pin(paths[4]),topology_reuse_rule='Exact unchanged source graph and45 bounded coverage items may be reused only after the current complete proofs/formulas are independently compared; no preproof verdict replaces postproof source review.',no_current61_body_read=True,no_prior_postproof_source_verdict_read=True))
+write('input.manifest.json',dict(original_lease_inputs=18,qualified_raw_LF_pairs=pairs,primary=pin(primary),primary_regions_manifest=pin(OUT/'primary-first.boundary.json'),scope='Exact originals snapshotted before semantic current-header/body/packet reads; canonical audit files remain opaque bytes.'))
+print(json.dumps(dict(actual_foreground_pid=os.getpid(),pairs=len(pairs),original_lease_inputs=18,primary_regions=23,coverage_items=45,nodes=27,edges=34,source_text=[dict(id=r['id'],text=r['text']) for r in regions],current_proof_read=False),ensure_ascii=True))

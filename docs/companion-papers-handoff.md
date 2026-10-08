@@ -31,6 +31,17 @@ Registry500/root Tests, affected graph/page checks and later repository/
 exposition seals. Main/live/postmerge PURIFIED and full-paper acceptance stay
 open; earlier frontiers, cycles and memory remain preserved.
 
+Serialized integration a7cafde7957a8562bcd697d89c56b14768914c66 has all fourteen
+actual gates passing: root9162, Tests9452 and Registry500. Independent
+repository-seal58 accepts that exact integration; exposition-seal58 accepts
+the scoped mathematical exposition but records missing clipboard and direct
+Lean-download controls. Full Exposition Seal, Chapter1.3 reader acceptance and
+PURIFIED remain false. Both native runs and their CLOSED leases are preserved
+under runs/20261007-companion-priority/pbps-macroscopic-centered-range58/;
+root.seals58.adoption.json binds their distinct whole-run and named payload
+hashes. A later raw real/complex L2 root-adapter discovery is a downstream
+candidate only, separate from the accepted58 theorem and its historical audit.
+
 Next dependency-ready edge: the same actual scalar T is self-adjoint and
 preserves mean by its genuine stationary conditional law. Restrict it to the
 closed centered real L2 subspace, then obtain the positive defect I-T0^2 and

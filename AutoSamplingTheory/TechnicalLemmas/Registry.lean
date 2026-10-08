@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussianMarginal.centeredDomainPoincare"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare"
+    upstreamDecl := "Authored actual Gaussian marginal centered closure Poincare and PBPS C.3 consumer"
+    upstreamFile := "arXiv2609.06905v1; arXiv2609.06906v1 smoothing background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian-marginal", "Poincare", "centered-domain", "PBPS"]
+    saldUse := "Reusable Gaussian smoothing PI with PBPS consumer; no SALD admission"
+    note := "Actual normalized Gibbs/Gaussian marginal nu, one genuine dense closable compact-gradient G and closed closure BEFORE every centered domain z; exact alpha/(1+alpha eta) PI. Original C2/two Hessian/positive capped eta retained; finite Hilbert/Borel/rank0 extension explicit. Internal normalization, posteriorL2 and exact alpha/(1+alphaeta),beta/(1+betaeta) Hessian bounds use six real admitted parents; no caller law/moment/curvature/PI/domain certificate or private provider. SAME56 closed pair and actual55 stationary mean consumer derive centering, C3 and sharp rho=(1-alphaeta)/(1+alphaeta) contraction including endpoint. WeakH1/macro-range/fullB13/Gamma/dynamics/main/errors/cost/composition OPEN. Independently verified e8a9044ba5a945eaa4b4aecd110b63494fe6c68e."
+  },
+  {
     key := "pbps.actualL2.roughMeanGradient"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient.actual_rough_mean_gradient"
     upstreamDecl := "Authored actual all-L2 PBPS closed mean gradient and C.2 sharp defect"

@@ -209,6 +209,7 @@ import Tests.ProximalBPSReflectedMeanRegularity
 import Tests.ProximalBPSSourceMeanGradientDomain
 import Tests.ProximalBPSL2MacroscopicMean
 import Tests.ProximalBPSRoughMeanGradient
+import Tests.GaussianMarginalPoincare
 import Tests.ProximalBPSMacroscopicRepresentative
 import Tests.ProximalBPSConditionalScoreDomain
 import Tests.ProximalBPSConditionalBochner

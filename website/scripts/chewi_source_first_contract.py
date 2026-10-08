@@ -86,7 +86,10 @@ RAW_MATH_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b(?:F|M|A|B|X|I|H|V|eta|tau|sigma|mu|pi)_[A-Za-z0-9]"), "raw subscript notation"),
     (re.compile(r"\bf\s*\(\s*omega\s*,\s*t\s*\)"), "raw function-of-omega notation"),
     (re.compile(r"\|\s*eta_"), "raw absolute-value stochastic notation"),
-    (re.compile(r"\btensor\b"), "raw tensor-product notation"),
+    # Reject an ASCII infix formula, not the legitimate English noun "tensor".
+    (re.compile(r"\b(?:[A-Za-z](?:_[A-Za-z0-9]+)?|gamma|mu|nu|pi)\s+tensor\s+"
+                r"(?:[A-Za-z](?:_[A-Za-z0-9]+)?|gamma|mu|nu|pi)\b"),
+     "raw tensor-product notation"),
     (re.compile(r"\bE\s*\[.*?\|.*?\]"), "raw conditional expectation"),
 )
 

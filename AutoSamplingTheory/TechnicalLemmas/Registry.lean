@@ -2099,6 +2099,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.literalSourceMean.closedGradientDomain"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain.literal_source_mean_in_closed_gradient"
+    upstreamDecl := "Authored actual PBPS compact source mean canonical gradient-domain integration for C.1/C.2"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-source-mean", "L2", "closed-gradient"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "Actual literal source S on SAME mu/J/nu produces compact-observer whole mean Tf and gradientTf L2 witnesses; true whole C1 and the uniform genuine compact-gradient core yield canonical closed-gradient graph membership via the existing C1 cutoff/mollifier adapter. Source C2/two-sided Hessian/capped eta retained; finite Hilbert/rank0 and explicit core closure interpretation disclosed. PUP source mean and noncentered rank0 canonical1/0 tested; no Tf compactness or caller law/analytic certificate. Full rough B13, separately defined weak-H1 equivalence, Gamma/dynamics/main/errors/cost/composition remain separate. Four real existing parents reused; no new generic-background copy. Independently verified 16797326f3e06a853e2d047f67fde924ac8c1647."
+  },
+  {
     key := "pbps.literalReflectedSource.compactMeanC1"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1"
     upstreamDecl := "Authored actual PBPS reflected source law and compact mean integration for C.1"

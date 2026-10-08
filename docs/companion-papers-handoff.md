@@ -1,5 +1,47 @@
 # Companion-paper formalization handoff
 
+## Literal PBPS source mean in the closed-gradient domain (2026-10-08)
+
+Exact1448 is independently VERIFIED at 16797326f3e06a853e2d047f67fde924ac8c1647. On the SAME actual outer
+law nu, one genuine dense closable compact-gradient core G is chosen before
+all signed smoothcompact f. The literal source S_y mean Tf has true L2
+function/gradient witnesses and whole-function C1; its canonical pair lies
+in G.closure.graph. No compact support of Tf, caller density/normalizer/Lp/
+C1/domain certificate or new mathematical premise is introduced. Source
+C2 potential, both Hessian bounds and beta*eta<=1 are retained. Finite real
+Hilbert/Borel/rank0, explicit core closure interpretation and compact-only
+scope are disclosed informational elaborations; no independently defined
+weak-H1 equivalence is claimed.
+
+Actual50 supplies probability/literal-law/L2 witnesses, actual53 whole C1,
+actual51 uniform true core and the public WeightedC1GradientDomain adapter
+supplies cutoff/mollifier closure. Real PUP source-mean consumption and
+noncentered rank0 canonical1/gradient0 are tested. Focused3898, independent
+complete mathematics, fresh anonymous source-text-blind reconstruction,
+own-primary-first source fidelity and exact-commit checks pass within their
+stated scopes. Only standard3 axioms occur. The source reviewer records
+incidental mathematics-summary exposure AFTER its independent assessment.
+Original failures and T54 representation repair/corrective-mapping debt stay
+preserved. No self-verification or new stabilization owner.
+
+Registry495 and public ExampleCases/root Tests enter the original PhaseKernel
+sole serialized lane. Full54 aggregate/graph/desktop/scoped seals and remote
+checks follow. Previous53 scoped seals passed with presentation debt; current
+cfcc67b5 remote Lean/contributor/website checks all SUCCESS, deploy SKIPPED.
+Main/live/postmerge PURIFIED and whole-reader acceptance remain distinct.
+
+Next: actual all-L2 canonical snd pullback M and bounded actual mean T on
+SAME laws, with PM=M, MT=AM, AE source conditional means, AE fiber L1/square
+L1 and integrated variance=||BM u||^2=||u||^2-||T u||^2. Then compact-core
+approximation on differences, gradient Cauchy convergence and true closed
+graph can address rough B13. Rough fibers need only AE integrability;
+pointwise rough C1 is not inferred. Gamma/halfturn/hypocoercivity/invariance/
+nonexplosion/implementation/errors/main/cost and actual-input PBPS/SPHMC
+composition remain open. Gaussian Cloud and midpoint follow the current
+four-paper Goal; older Chewi/frontiers/cycles/memory remain preserved.
+TV proximity does not transfer unbounded expected costs. This node completes
+neither a paper nor the Goal.
+
 ## Literal PBPS source reflected law and mean C1 (2026-10-08)
 
 Exact758 is independently VERIFIED at 9f0305db380966529eb3b0fc17a62aa9bcd47a85. At EVERY y the actual

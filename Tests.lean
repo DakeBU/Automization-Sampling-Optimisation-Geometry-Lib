@@ -212,6 +212,7 @@ import Tests.ProximalBPSRoughMeanGradient
 import Tests.GaussianMarginalPoincare
 import Tests.ProximalBPSMacroscopicRange
 import Tests.ProximalBPSCenteredDefect
+import Tests.ProximalBPSDefectComplexLift
 import Tests.ProximalBPSMacroscopicRepresentative
 import Tests.ProximalBPSConditionalScoreDomain
 import Tests.ProximalBPSConditionalBochner

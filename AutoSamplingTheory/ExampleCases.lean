@@ -14,6 +14,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain
 import AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean
 import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange
 import AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator
+import AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift
 import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
 import AutoSamplingTheory.ExampleCases.SampleWiki
 import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection

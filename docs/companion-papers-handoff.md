@@ -1,5 +1,54 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS positive complex lift (2026-10-08)
+
+Independently VERIFIED science commit 0a77416f5ec38702c46ec1358966b9dd4846c8d3. The canonical shared
+Measure/L2RealComplexOperator theorem constructs the actual quotient maps
+ofReal/Re/Im/pointwise conjugation on arbitrary-measure real and complex L2.
+The embedding preserves norm and has exactly the full conjugation-fixed range.
+For a bounded positive real D, the actual complex lift satisfies
+Dc g = iota D(Re g) + i iota D(Im g), Dc>=0,
+Dc iota = iota D and C Dc = Dc C. No finite/probability measure,
+finite-dimensional L2, nontriviality or CFC/root certificate is assumed.
+
+The actual PBPS consumer retains the original C2/global lower and upper
+Hessian bounds, 0<alpha<=beta, eta>0 and beta*eta<=1, with the explicit
+rank-zero extension. It internally obtains the SAME verified59 stationary
+reflected Gaussian S, selfadjoint contractive mean-preserving T and positive
+D=I-T^2 on the actual marginal nu, then applies the shared theorem.
+Every-y normalized S density, disintegration and both stationary marginals
+are conclusions; the operator action is AE. Pointwise C is not operator adjoint.
+
+Root focused3915, independent complete mathematics with all26 private providers,
+fresh source/identity-blind decoder and primary-first anti-anchored seven-slot
+source/current eight formula steps pass. Diff-aware publication inventories
+all26 private providers under the accepted public whole-module owner.
+The anonymous Test constructs a COMPLEX positive CFC root with proof-local,
+target-typed fixed-Mathlib instances; it proves no real root or descent.
+
+NEXT bounded mathematical edge: show this complex positive root preserves
+Fix(C), descend it to a bounded positive REAL scalar Gamma with Gamma^2=D,
+and prove ||Gamma u||^2=||u||^2-||T u||^2. This is only a B.11 precursor.
+Printed joint Gamma_P additionally requires the SAME canonical M onto ran(P),
+transport through that isometry and B=(I-P)UP / B*B identification. Source61
+scout confirms these distinct domains; P is identity only on ran(P).
+Conjugation of D alone does not prove conjugation of its root.
+Centered root lower bound/inverse/polar, weakH1, actual event dynamics,
+nonexplosion/invariance, hypocoercivity, mixing, implementation errors and
+query costs remain separate. SPHMC/composition actual-input precision and
+expected work remain open; TV proximity transfers no unbounded cost.
+The older conceptual candidate remains raw/unvalidated; no certified functor
+or conceptual Lean implication is added. The four-paper priority is unchanged.
+
+Serialized aggregate60 PASSES: root9165, Tests9457, Registry503, publication224,
+contributor/semantic/frontier/Python/site and both affected graph checks.
+Eight actual desktop captures were viewed: two exact statements, eight
+formula/boundary steps and two Registry-backed branches. Canonical metadata
+from63 cards is preserved;80 unrelated generator changes were restored.
+Science0a77416f was safely pushed to existing PR315. Repository/exposition
+seals and remote CI remain separate; no MERGED/live/PURIFIED/paper/Goal closure.
+All earlier source/proof/collaborator checkpoints remain below.
+
 ## Accepted scoped centered-defect integration59 (2026-10-08)
 
 Science2d6cd016 and serialized integration47a28adf both reached terminal SUCCESS

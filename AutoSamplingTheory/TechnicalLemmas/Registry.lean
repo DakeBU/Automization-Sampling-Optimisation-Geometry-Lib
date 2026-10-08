@@ -2099,6 +2099,26 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "measure.positiveRealL2ComplexLift"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+    upstreamDecl := "ASTIS positive real L2 operator complexification"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["L2", "positive", "complexification", "fixed-range"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science60 verified 0a77416f5ec38702c46ec1358966b9dd4846c8d3. Arbitrary measure real positive bounded D; actual compLpL scalar maps, norm-preserving embedding, full pointwise-conjugation fixed range, actual positive bounded complex lift with literal formula/intertwining/conjugation. Reused by actual PBPS consumer. Complex-root API test only; real-root preservation/descent/Gamma/B11/polar/fullH1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "pbps.actualPositiveDefectComplexLift"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift"
+    upstreamDecl := "PBPS actual positive squared-defect complex lift"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "positive", "complexification"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science60 verified 0a77416f5ec38702c46ec1358966b9dd4846c8d3. Original C2, both global Hessian bounds, 0<alpha<=beta, eta>0, beta*eta<=1; actual normalized Gaussian reflected kernel produces same verified59 T and D=1-T*T internally. No caller D/positivity/embedding/CFC certificate. Rank zero extension and alpha*eta=1 retained. Complex-root API test only; real-root preservation/descent/Gamma/B11/polar/fullH1/dynamics/main/error/cost/composition remain open."
+  },
+  {
     key := "pbps.actualCenteredSelfadjointDefect"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect"
     upstreamDecl := "PBPS actual centered selfadjoint squared defect"

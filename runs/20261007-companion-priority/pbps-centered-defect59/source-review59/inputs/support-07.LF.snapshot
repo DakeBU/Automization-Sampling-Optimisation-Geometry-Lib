@@ -1,0 +1,42 @@
+    return records
+
+
+def binding_payload(item: dict, binding: dict, data: dict | None = None) -> dict:
+    """Bind code (including imports/scoped variables), source, prose and reuse.
+
+Conservative file-level invalidation is intentional: a changed section variable
+can change an elaborated theorem without changing its declaration text.
+"""
+    data = data or inputs()
+    name = binding['declaration']
+    decl = data['declarations'][name]
+    return {
+        'file': file_digest(decl.source_file),
+        'current_lean_module': (ROOT / decl.source_file).read_text(encoding='utf-8'),
+        'toolchain': file_digest('lean-toolchain'),
+        'dependencies': file_digest('lake-manifest.json'),
+        'source': item['source'], 'statement': item['statement'],
+        'formulae': item['formulae'], 'assumptions': item['assumptions'],
+        'obligations': item['obligations'], 'lesson': data['lessons'].get(name),
+        'binding': {k: v for k, v in binding.items()
+                    if k not in {'audit_id', 'legacy_audit_debt'}},
+    }
+
+
+def binding_digest(item: dict, binding: dict, data: dict | None = None) -> str:
+    return digest(binding_payload(item, binding, data))
+
+
+def review_context(item: dict, binding: dict, data: dict | None = None) -> dict:
+    """Candidate mathematics to review, not earlier verdicts/delta classifications."""
+    payload = binding_payload(item, binding, data)
+    payload['binding'] = {k: payload['binding'][k] for k in ('declaration', 'role', 'supports')}
+    payload['lesson'] = {k: v for k, v in payload['lesson'].items()
+                         if k not in {'boundary', 'source_history_boundary'}}
+    # Assumption comparison is a formalizer claim, not a prior review verdict.
+    payload['candidate_assumptions'] = [{k: row[k] for k in ('source', 'lean')}
+                                        for row in binding['assumption_deltas']]
+    return payload
+
+
+def legacy_debt_valid(binding: dict, data: dict) -> bool:

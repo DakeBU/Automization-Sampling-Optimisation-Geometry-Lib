@@ -1,0 +1,159 @@
+{
+  "id": "ASTIS-RT-20261008-PBPSCenteredDefectInverse",
+  "state": "draft",
+  "source": {
+    "source_id": "companion-background:pbps-centered-defect-inverse",
+    "anchor": "PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.",
+    "url": "https://arxiv.org/html/2609.06905v1#A2",
+    "original_text": "Attributed ASTIS-authored scoped mathematical completion, not a verbatim numbered source theorem.\nE is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). There exist a selfadjoint bounded operator T on L²(ν) with the literal ν-a.e. action Tu(y)=∫u(x)S(y,dx), where S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); a class q=1 ν-a.e. with ⟨q,u⟩=∫u dν for all u; and the actual selfadjoint restriction T₀ to H₀=ker⟨q,·⟩. Set ρ=(1−αη)/(1+αη) and δ=4αη/(1+αη)². The squared defect D₀=I_H₀−T₀² is positive. For every u∈H₀, T₀u=Tu as an ambient class, ‖T₀u‖≤ρ‖u‖, ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² and δ‖u‖²≤⟨D₀u,u⟩. D₀ is a unit in the algebra of bounded continuous linear endomorphisms of H₀; hence it has a bounded inverse on this exact centered space. The original hypotheses force δ>0 and include αη=1. No full-space inverse or positive square root is claimed.\nExact source anchor: PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.\nSource-route distinction: The selected implementation route proves the squared-defect quadratic identity using selfadjoint contraction. The printed B5 joint P/U block identity has its independent source edges retained; it is not claimed proved by this scalar argument.\nRemaining: SAME actual55 T on L2(nu), selfadjoint/mean preserving/constant fixed, exact complete mean-zero restriction T0, full and centered positive squared defects; real Test uses actual58 rho/delta to prove IsUnit centered squared defect. No Gamma/root/polar/full weakH1/hypocoercivity/dynamics/main/implementation error/cost/composition/fullpaper/Goal admission.",
+    "text_sha256": "62cf9acdb59d1bbec7ba366fc3f424264848187edbdc28d208283a26dd1a3ccf"
+  },
+  "lean": {
+    "declaration": "Tests.ProximalBPSCenteredDefect.actual_centered_defect_coercive_and_unit",
+    "file": "Tests/ProximalBPSCenteredDefect.lean",
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n      IsSelfAdjoint T ∧\n      (∀ u : Lp ℝ 2 ν, (T u : E → ℝ) =ᵐ[ν]\n        (fun y => ∫ x, u x ∂((volume : Measure E).tilted\n          (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))))) ∧\n      ∃ q : Lp ℝ 2 ν,\n        (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧\n        (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n        ∃ T0 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker),\n          (∀ u : ((innerSL ℝ q).ker), (T0 u : Lp ℝ 2 ν) = T u) ∧\n          IsSelfAdjoint T0 ∧ ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0).IsPositive ∧\n          (∀ u : ((innerSL ℝ q).ker),\n            ‖T0 u‖ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖ ∧\n            inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2 ∧\n            (4*(α : ℝ)*η/(1+(α : ℝ)*η)^2)*‖u‖^2 ≤\n              inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u) ∧\n          IsUnit ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0)",
+    "statement_sha256": "8bc7c56cdbef6468f82261c671ced06b74ba3937e198df55c3926a510b7c375a",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "The underlying space is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension. The potential is C2 with positive alpha<=beta, both displayed global Hessian bounds, eta>0 and beta*eta<=1.",
+      "Measure.tilted is normalized exponential tilting. The displayed joint is the pushforward of the independent product of the tilted law and the standard Gaussian; the marginal is its second-coordinate law. Lp real exponent 2 denotes AE classes of measurable square-integrable real functions. Its dimension need not be finite.",
+      "The displayed conditional projection is the L2 conditional expectation onto the second-coordinate sigma algebra. Operator multiplication denotes composition; the typed identity acts on the displayed entire domain. The kernel of innerSL(q) is the full closed real subspace orthogonal to q. An inverse expressed by IsUnit belongs to the algebra of bounded continuous linear endomorphisms of exactly that domain.",
+      "The existential operator acts AE by the displayed normalized conditional integral. The constant class, mean pairing and full closed centered restriction are produced conclusions. Both exact displayed constants include the endpoint alpha*eta=1.",
+      "IsUnit applies only to the squared defect on the exact centered domain. No full-domain inverse, square-root construction, trajectory, convergence rate for an implemented algorithm, or expected-work statement is present."
+    ],
+    "compiler_evidence": "runs/20261007-companion-priority/pbps-centered-defect59/focused/final-consumer-v3/receipt.json PASS3911; two exact v3 headers; standard3."
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "3c357ada65d012f6e51e76e433532d0e86cd13bcb88255dc19213b066d307df6",
+  "publication_context": {
+    "file": "3713f7d150474a0abd3a971d4ec49f5abafbd6c5b5b0f1c0552abb70dc867423",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator\nimport Tests.ProximalBPSMacroscopicRange\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Topology\nnamespace Tests.ProximalBPSCenteredDefect\nopen AutoSamplingTheory.ExampleCases.ProximalBPS\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1600000\n\ntheorem actual_centered_defect_coercive_and_unit\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n      IsSelfAdjoint T ∧\n      (∀ u : Lp ℝ 2 ν, (T u : E → ℝ) =ᵐ[ν]\n        (fun y => ∫ x, u x ∂((volume : Measure E).tilted\n          (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))))) ∧\n      ∃ q : Lp ℝ 2 ν,\n        (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧\n        (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n        ∃ T0 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker),\n          (∀ u : ((innerSL ℝ q).ker), (T0 u : Lp ℝ 2 ν) = T u) ∧\n          IsSelfAdjoint T0 ∧ ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0).IsPositive ∧\n          (∀ u : ((innerSL ℝ q).ker),\n            ‖T0 u‖ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖ ∧\n            inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2 ∧\n            (4*(α : ℝ)*η/(1+(α : ℝ)*η)^2)*‖u‖^2 ≤\n              inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u) ∧\n          IsUnit ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) := by\n  classical\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n      2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n  obtain ⟨hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,U,hU,hUi,hUs,M,hM,T,hTs,hAll,\n    q,hq,hTq,hPair,hH0,hD,hDq,hDef,T0,hT0,hT0s,hT0n,hD0,hD0sub,hDef0⟩ :=\n    CenteredDefectOperator.actual_centered_selfadjoint_defect hα hαβ hV hH hη hβη\n  letI : IsProbabilityMeasure J := hJ\n  letI : IsProbabilityMeasure ν := hν\n  let H0 : Submodule ℝ (Lp ℝ 2 ν) := (innerSL ℝ q).ker\n  have hLiteral (u : Lp ℝ 2 ν) : (T u : E → ℝ) =ᵐ[ν]\n      (fun y => ∫ x, u x ∂((volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η)))) := by\n    filter_upwards [(hAll u).2.2.2.1] with y hy\n    exact hy.trans (congrArg (fun m : Measure E => ∫ x, u x ∂m) (hSd y))\n  have h58 := ProximalBPSMacroscopicRange.actual_centered_macro_contraction_and_defect_gap\n    (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη\n  dsimp only at h58\n  obtain ⟨U58,hU58,hUi58,hUs58,hSharp⟩ := h58\n  have hSameU : U58=U := LinearIsometry.ext (fun f =>\n    Lp.ext ((hU58 f).trans (hU f).symm))\n  subst U58\n  have hCon (u : H0) : ‖T0 u‖ ≤\n      ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖ := by\n    have hu : (∫ y, (u : Lp ℝ 2 ν) y ∂ν)=0 := (hH0 _).mp u.property\n    have hr : M (u : Lp ℝ 2 ν) ∈ P.toLinearMap.range :=\n      ⟨M u,(hAll (u : Lp ℝ 2 ν)).1⟩\n    have hc : (∫ p, (M (u : Lp ℝ 2 ν)) p ∂J)=0 := by\n      calc\n        (∫ p, (M (u : Lp ℝ 2 ν)) p ∂J) = ∫ p : E × E, (u : Lp ℝ 2 ν) p.2 ∂J :=\n          integral_congr_ae (hM (u : Lp ℝ 2 ν))\n        _ = ∫ y, (u : Lp ℝ 2 ν) y ∂ν :=\n          (integral_map (μ:=J) measurable_snd.aemeasurable\n            (Lp.stronglyMeasurable (u : Lp ℝ 2 ν)).aestronglyMeasurable).symm\n        _ = 0 := hu\n    calc\n      ‖T0 u‖ = ‖(T0 u : Lp ℝ 2 ν)‖ := rfl\n      _ = ‖T (u : Lp ℝ 2 ν)‖ := congrArg norm (hT0 u)\n      _ = ‖M (T (u : Lp ℝ 2 ν))‖ := (M.norm_map _).symm\n      _ = ‖(P * U.toContinuousLinearMap * P) (M (u : Lp ℝ 2 ν))‖ :=\n        congrArg norm ((hAll (u : Lp ℝ 2 ν)).2.1)\n      _ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖M (u : Lp ℝ 2 ν)‖ :=\n        (hSharp (M (u : Lp ℝ 2 ν)) hr hc).1\n      _ = ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖ :=\n        congrArg (fun r : ℝ => ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*r) (M.norm_map _)\n  let δ : ℝ := 4*(α : ℝ)*η/(1+(α : ℝ)*η)^2\n  have ha0 : 0 < (α : ℝ)*η := mul_pos hα hη\n  have ha1 : (α : ℝ)*η ≤ 1 :=\n    (mul_le_mul_of_nonneg_right (by exact_mod_cast hαβ) hη.le).trans hβη\n  have hd : 0 < 1+(α : ℝ)*η := by positivity\n  have hρ : 0 ≤ (1-(α : ℝ)*η)/(1+(α : ℝ)*η) :=\n    div_nonneg (sub_nonneg.mpr ha1) hd.le\n  have hδ : 0 < δ := by dsimp [δ]; positivity\n  have hGap (u : H0) : δ*‖u‖^2 ≤ inner ℝ (((1 : H0 →L[ℝ] H0)-T0*T0) u) u := by\n    have hs : ‖T0 u‖^2 ≤ (((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖)^2 :=\n      (sq_le_sq₀ (norm_nonneg _) (mul_nonneg hρ (norm_nonneg _))).mpr (hCon u)\n    have hr : δ = 1-((1-(α : ℝ)*η)/(1+(α : ℝ)*η))^2 := by\n      dsimp [δ]\n      field_simp [ne_of_gt hd]\n      ring\n    rw [hDef0,hr]\n    nlinarith [hs]\n  have hUnit : IsUnit ((1 : H0 →L[ℝ] H0)-T0*T0) := by\n    apply ContinuousLinearMap.isUnit_of_forall_le_norm_inner_map\n      ((1 : H0 →L[ℝ] H0)-T0*T0) (c:=⟨δ,hδ.le⟩) (by exact hδ)\n    intro u\n    change ‖u‖^2*δ ≤ ‖inner ℝ (((1 : H0 →L[ℝ] H0)-T0*T0) u) u‖\n    have hnn : 0 ≤ inner ℝ (((1 : H0 →L[ℝ] H0)-T0*T0) u) u :=\n      (mul_nonneg hδ.le (sq_nonneg ‖u‖)).trans (hGap u)\n    rw [Real.norm_eq_abs,abs_of_nonneg hnn,mul_comm]\n    exact hGap u\n  refine ⟨T,hTs,hLiteral,q,hq,hPair,T0,hT0,hT0s,hD0,?_,hUnit⟩\n  intro u\n  exact ⟨hCon u,hDef0 u,hGap u⟩\n\nend\nend Tests.ProximalBPSCenteredDefect\n\n#print axioms Tests.ProximalBPSCenteredDefect.actual_centered_defect_coercive_and_unit\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A2",
+      "edition": "arXiv:2609.06905v1; Lean4.33.0/fixedMathlib",
+      "anchor": "PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Attributed ASTIS background completion/consumer of Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang Appendix B/D. This is a scoped squared-defect result; it is not the printed Γ theorem or a main mixing theorem."
+    },
+    "statement": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). There exist a selfadjoint bounded operator T on L²(ν) with the literal ν-a.e. action Tu(y)=∫u(x)S(y,dx), where S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); a class q=1 ν-a.e. with ⟨q,u⟩=∫u dν for all u; and the actual selfadjoint restriction T₀ to H₀=ker⟨q,·⟩. Set ρ=(1−αη)/(1+αη) and δ=4αη/(1+αη)². The squared defect D₀=I_H₀−T₀² is positive. For every u∈H₀, T₀u=Tu as an ambient class, ‖T₀u‖≤ρ‖u‖, ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² and δ‖u‖²≤⟨D₀u,u⟩. D₀ is a unit in the algebra of bounded continuous linear endomorphisms of H₀; hence it has a bounded inverse on this exact centered space. The original hypotheses force δ>0 and include αη=1. No full-space inverse or positive square root is claimed.",
+    "formulae": [
+      {
+        "label": "Exact centered squared-defect coercivity and bounded inverse",
+        "tex": "\\rho=\\frac{1-\\alpha\\eta}{1+\\alpha\\eta},\\quad\\delta=\\frac{4\\alpha\\eta}{(1+\\alpha\\eta)^2}>0,\\quad\\|T_0u\\|\\le\\rho\\|u\\|,\\quad\\langle D_0u,u\\rangle\\ge\\delta\\|u\\|^2,\\quad D_0\\in\\operatorname{GL}(H_0)."
+      }
+    ],
+    "assumptions": [
+      "The complete potential, curvature, initialization law and step conditions are stated above. No operator, probability, stationarity, mean-zero preservation or coercivity certificate is supplied by the caller.",
+      "L² consists of AE classes; finite dimension of E does not make L² finite dimensional. The whole closed mean-zero subspace is used.",
+      "Zero-dimensional E is explicitly included as an extension of the source Euclidean convention; αη=1 is retained."
+    ],
+    "obligations": [
+      {
+        "id": "scoped-centered-defect",
+        "label": "Exact centered squared-defect coercivity and bounded inverse"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Γ/root/polar/fullH1/dynamics/main/errors/cost/composition remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "Tests.ProximalBPSCenteredDefect.actual_centered_defect_coercive_and_unit",
+      "title": "Exact centered squared-defect coercivity and bounded inverse",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A2",
+          "label": "PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.",
+          "scope": "SAME actual55 T on L2(nu), selfadjoint/mean preserving/constant fixed, exact complete mean-zero restriction T0, full and centered positive squared defects; real Test uses actual58 rho/delta to prove IsUnit centered squared defect. No Gamma/root/polar/full weakH1/hypocoercivity/dynamics/main/implementation error/cost/composition/fullpaper/Goal admission."
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSCenteredDefect"
+      ],
+      "assumptions": [
+        "The complete potential, curvature, initialization law and step conditions are stated above. No operator, probability, stationarity, mean-zero preservation or coercivity certificate is supplied by the caller.",
+        "L² consists of AE classes; finite dimension of E does not make L² finite dimensional. The whole closed mean-zero subspace is used.",
+        "Zero-dimensional E is explicitly included as an extension of the source Euclidean convention; αη=1 is retained."
+      ],
+      "statement": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). There exist a selfadjoint bounded operator T on L²(ν) with the literal ν-a.e. action Tu(y)=∫u(x)S(y,dx), where S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); a class q=1 ν-a.e. with ⟨q,u⟩=∫u dν for all u; and the actual selfadjoint restriction T₀ to H₀=ker⟨q,·⟩. Set ρ=(1−αη)/(1+αη) and δ=4αη/(1+αη)². The squared defect D₀=I_H₀−T₀² is positive. For every u∈H₀, T₀u=Tu as an ambient class, ‖T₀u‖≤ρ‖u‖, ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² and δ‖u‖²≤⟨D₀u,u⟩. D₀ is a unit in the algebra of bounded continuous linear endomorphisms of H₀; hence it has a bounded inverse on this exact centered space. The original hypotheses force δ>0 and include αη=1. No full-space inverse or positive square root is claimed.",
+      "formula": "\\rho=\\frac{1-\\alpha\\eta}{1+\\alpha\\eta},\\quad\\delta=\\frac{4\\alpha\\eta}{(1+\\alpha\\eta)^2}>0,\\quad\\|T_0u\\|\\le\\rho\\|u\\|,\\quad\\langle D_0u,u\\rangle\\ge\\delta\\|u\\|^2,\\quad D_0\\in\\operatorname{GL}(H_0).",
+      "steps": [
+        {
+          "title": "Use the same actual reflection and actual pullback",
+          "text": "Compare the AE reflection actions to identify the operator U in the verified macroscopic contraction. For the actual M from the producer, PM=M gives macro-range membership. Its AE action Mu(x,y)=u(y) and the actual marginal ν=J.snd give mean transport directly, so centered u yields a centered macro input. No extra onto witness or copied Poincare proof is needed.",
+          "formula": "PMu=Mu,\\quad\\int Mu\\,dJ=\\int u\\,d\\nu=0.",
+          "lean": "hSameU; hAll; hM; integral_congr_ae; integral_map"
+        },
+        {
+          "title": "Transport the exact sharp contraction",
+          "text": "Apply the verified sharp macro contraction to Mu. The actual identity MT=PUPM and the isometry transfer the constant without changing laws or operators.",
+          "formula": "\\|T_0u\\|\\le\\rho\\|u\\|,\\quad\\rho=\\frac{1-\\alpha\\eta}{1+\\alpha\\eta}\\in[0,1).",
+          "lean": "hSharp; hCon; M.norm_map; hT0"
+        },
+        {
+          "title": "Derive the positive coercivity constant",
+          "text": "Square the contraction and use the actual quadratic defect identity. Since 0<αη≤1, the exact scalar identity yields a strictly positive lower bound, including the endpoint αη=1.",
+          "formula": "\\delta=1-\\rho^2=\\frac{4\\alpha\\eta}{(1+\\alpha\\eta)^2}>0,\\quad\\delta\\|u\\|^2\\le\\langle D_0u,u\\rangle.",
+          "lean": "hδ; hρ; hDef0; hGap; field_simp; ring"
+        },
+        {
+          "title": "Obtain a bounded inverse on the centered space",
+          "text": "The centered kernel is a complete Hilbert space because it is closed in L². Apply the fixed Mathlib coercivity-to-unit theorem to D₀ with δ. IsUnit means that an inverse exists in the algebra of bounded continuous linear endomorphisms of this same centered space. In the norm hypothesis, nonnegativity of the quadratic form follows directly from the already proved δ gap.",
+          "formula": "D_0=I_{H_0}-T_0^2\\in\\operatorname{GL}(H_0).",
+          "lean": "ContinuousLinearMap.completeSpace_ker; isUnit_of_forall_le_norm_inner_map; hUnit"
+        }
+      ],
+      "lean_statement": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). There exist a selfadjoint bounded operator T on L²(ν) with the literal ν-a.e. action Tu(y)=∫u(x)S(y,dx), where S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); a class q=1 ν-a.e. with ⟨q,u⟩=∫u dν for all u; and the actual selfadjoint restriction T₀ to H₀=ker⟨q,·⟩. Set ρ=(1−αη)/(1+αη) and δ=4αη/(1+αη)². The squared defect D₀=I_H₀−T₀² is positive. For every u∈H₀, T₀u=Tu as an ambient class, ‖T₀u‖≤ρ‖u‖, ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² and δ‖u‖²≤⟨D₀u,u⟩. D₀ is a unit in the algebra of bounded continuous linear endomorphisms of H₀; hence it has a bounded inverse on this exact centered space. The original hypotheses force δ>0 and include αη=1. No full-space inverse or positive square root is claimed.",
+      "lean_proof": "Use the same actual reflection and actual pullback; Transport the exact sharp contraction; Derive the positive coercivity constant; Obtain a bounded inverse on the centered space",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+        "Tests.ProximalBPSMacroscopicRange.actual_centered_macro_contraction_and_defect_gap"
+      ],
+      "mathlib_dependencies": [
+        "LinearIsometry.ext",
+        "Lp.ext",
+        "integral_congr_ae",
+        "integral_map",
+        "LinearIsometry.norm_map",
+        "sq_le_sq₀",
+        "ContinuousLinearMap.isUnit_of_forall_le_norm_inner_map"
+      ]
+    },
+    "binding": {
+      "declaration": "Tests.ProximalBPSCenteredDefect.actual_centered_defect_coercive_and_unit",
+      "role": "proof-edge",
+      "supports": [
+        "scoped-centered-defect"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite Euclidean real base and source standing C2, global lower/upper Hessian bounds and positive capped η.",
+        "lean": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν)."
+      },
+      {
+        "source": "Actual normalized augmentation and reflected conditional kernel/operator.",
+        "lean": "μ,J,ν,Λ,S,U,M,T and all Markov/disintegration/stationarity witnesses are produced under original inputs; S has the every-y displayed normalized density."
+      },
+      {
+        "source": "Constant/mean-zero real L2 domain and squared defect precursor to Γ.",
+        "lean": "q is AE1, the full H0 is ker inner(q); T0 is the actual restriction and D0 the restricted squared defect. The consumer proves exact rho/delta and IsUnit D0 on H0."
+      },
+      {
+        "source": "Ordinary let abbreviation H0 and operator identity notation.",
+        "lean": "Explicit typed operator identities and exact inline ker inner(q) in public header; local H0 remains that definition in proof."
+      },
+      {
+        "source": "Positive Γ/root and inverse/polar, weakH1, dynamics, mixing, implementation errors, costs and composition.",
+        "lean": "SAME actual55 T on L2(nu), selfadjoint/mean preserving/constant fixed, exact complete mean-zero restriction T0, full and centered positive squared defects; real Test uses actual58 rho/delta to prove IsUnit centered squared defect. No Gamma/root/polar/full weakH1/hypocoercivity/dynamics/main/implementation error/cost/composition/fullpaper/Goal admission."
+      }
+    ]
+  }
+}

@@ -112,6 +112,24 @@ library is not research novelty. Historical baselines need compatible model,
 metric, initialization and cost contracts plus exact sources. Until independently
 audited, display them as source-authored comparisons, not settled priority claims.
 
+### First local prerequisite checkpoint (2026-10-09)
+
+Reuse `ASTIS-SHARED-gaussian-complementary-noise`, rather than re-proving it.
+Its exact declaration is
+`AutoSamplingTheory.TechnicalLemmas.Probability.GaussianComplementaryNoise.map_stdGaussian_product_of_adjoint_norm_sq`.
+The focused test and independent mathematical/source review passed; the canonical
+cell remains `proved_locally`, not a main-integrated source-main certificate.
+The publication binding is a **shared prerequisite**, attached to the existing
+Chapter 1 probability substrate; OAI compiler absorption is its planned consumer,
+not the claimed theorem source. The audited natural-language proof and folded
+Lean explain projection, independence and exact covariance restoration.
+
+The source-specific square root, tensor seed construction and balance,
+pathwise query invariance, parent-conditioned independence, recursive error,
+termination and every-run query cap remain open. Exact Gaussian law does not
+prove any of these. Follow the cell, publication binding and semantic audit for
+evidence; this paragraph is only a continuation pointer, not another status ledger.
+
 The OAI lane preserves the companion-paper owners and their unfinished work.
 This map does not supersede their paper-priority lane. When another OpenAI Math
 route becomes dependency-ready, prefer a small reusable interface with an

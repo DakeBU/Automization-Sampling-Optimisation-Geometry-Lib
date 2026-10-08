@@ -1,5 +1,9 @@
 # Companion-paper formalization handoff
 
+## Scoped copy/download repair and remote58 acceptance (2026-10-08)
+
+Remote CI accepted exact pushed d9bff202c861985eb444e75d6aa65ec5d65c65cf (Lean, site and contributor); draft deploy skipped. Independently reviewed successor renderer repairs copy controls and complete-module downloads for the current three58 rows. Nine actual clipboard readbacks and three completed byte-exact downloads passed; original exposition negative remains immutable. Broader Chapter1.3/full reader/PURIFIED and Gamma/root/dynamics/main/cost/composition remain open. Native repair run9a6acb7d81185fc1948808d983843e3298a26d4a5ed747b7395ded5453faac90; root strict201 qualified raw/LF pins. No mathematics changed.
+
 ## Actual PBPS macroscopic centered range (2026-10-08)
 
 Independently VERIFIED at 8c8847715c1d4c3033224b069d8dd694f2a4bd30. The canonical real L2 pullback for any

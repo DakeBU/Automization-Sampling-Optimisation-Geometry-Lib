@@ -1,0 +1,102 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import crypto from 'node:crypto';
+import {spawn} from 'node:child_process';
+
+const site=path.resolve('_site'), output=path.resolve('.astis/pbps-marginal-gradient51/reader-controls58-browser-diag1');
+fs.mkdirSync(output);
+const downloads=path.join(output,'downloads');fs.mkdirSync(downloads);
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const server=http.createServer((req,res)=>{
+ let p=path.resolve(site,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
+ if(!p.startsWith(site+path.sep)){res.writeHead(403);res.end();return;}
+ try{if(fs.statSync(p).isDirectory())p=path.join(p,'index.html');
+  const mime={'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.svg':'image/svg+xml'};
+  res.setHeader('Content-Type',mime[path.extname(p)]||'application/octet-stream');res.end(fs.readFileSync(p));
+ }catch{res.writeHead(404);res.end();}
+});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const base=`http://127.0.0.1:${server.address().port}/`, profile=path.join(output,'chrome-profile');
+const stderr=fs.openSync(path.join(output,'chrome.stderr.log'),'w');
+const browser=spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',[
+ '--headless=new','--disable-extensions','--disable-default-apps','--disable-gpu','--no-first-run','--no-default-browser-check',
+ '--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore',stderr],windowsHide:true});
+const exit=new Promise(r=>browser.once('exit',(code,signal)=>r({code,signal})));let ws,id=0;
+const pending=new Map(), events=[], records=[];
+function call(method,params={},sessionId){return new Promise((resolve,reject)=>{
+ const request=++id,timer=setTimeout(()=>{pending.delete(request);reject(new Error('CDP timeout '+method));},45000);
+ pending.set(request,{resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}});
+ ws.send(JSON.stringify({id:request,method,params,...(sessionId?{sessionId}:{})}));
+});}
+let success=false;
+try{
+ let ports;for(let i=0;i<150;i++){try{ports=fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').trim().split('\n');break;}catch{await delay(100);}}
+ if(!ports)throw Error('Owned browser port unavailable');
+ ws=new WebSocket(`ws://127.0.0.1:${ports[0]}${ports[1]}`);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(Error(JSON.stringify(m.error))):p.resolve(m.result);}else if(m.method?.startsWith('Browser.download'))events.push(m);};
+ await call('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
+ await call('Browser.grantPermissions',{origin:base.slice(0,-1),permissions:['clipboardReadWrite','clipboardSanitizedWrite']});
+ const target=await call('Target.createTarget',{url:'about:blank'});
+ const {sessionId}=await call('Target.attachToTarget',{targetId:target.targetId,flatten:true});
+ await call('Page.enable',{},sessionId);await call('Runtime.enable',{},sessionId);
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1800,deviceScaleFactor:1,mobile:false},sessionId);
+ async function evaluate(expression){const x=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},sessionId);if(x.exceptionDetails)throw Error(JSON.stringify(x.exceptionDetails));return x.result.value;}
+ async function navigate(rel){await call('Page.navigate',{url:base+rel},sessionId);await call('Page.bringToFront',{},sessionId);
+  await evaluate(`(async()=>{for(let i=0;i<300;i++){if(document.readyState==='complete')break;await new Promise(r=>setTimeout(r,100));}if(document.readyState!=='complete')throw Error('page readiness');if(window.MathJax?.startup?.promise)await window.MathJax.startup.promise;await document.fonts.ready;return true;})()`);
+ }
+ const items=[
+  ['l2-pullback-range','AutoSamplingTheory/TechnicalLemmas/Measure/L2PullbackRange.lean'],
+  ['pbps-macroscopic-centered-range','AutoSamplingTheory/ExampleCases/ProximalBPS/MacroscopicRange.lean'],
+  ['pbps-centered-macro-defect-gap','Tests/ProximalBPSMacroscopicRange.lean']];
+ await navigate('example-cases/samplewiki/companions/proximal-bouncy-particle.html');
+ const copied=await evaluate(`(async()=>{
+  const old=await navigator.clipboard.readText();const result=[];
+  try{for(const id of ${JSON.stringify(items.map(x=>x[0]))}){
+   const item=document.getElementById(id);if(!item)throw Error('missing exact publication '+id);
+   for(const role of ['statement','proof']){
+    const pane=item.querySelector('.inline-lean-'+role);if(!pane||pane.open)throw Error('not initially folded '+id+role);
+    pane.open=true;const button=pane.querySelector(':scope > .lean-source-actions > [data-lean-copy]');
+    if(!button)throw Error('missing actual copy control');button.click();
+    const status=button.parentElement.querySelector('[data-lean-copy-status]');
+    for(let i=0;i<100&&!status.textContent;i++)await new Promise(r=>setTimeout(r,20));
+    const actual=await navigator.clipboard.readText(), expected=pane.querySelector(':scope > pre > code').textContent;
+    if(status.textContent!=='Copied'||actual!==expected)throw Error('clipboard diagnostic '+JSON.stringify({id,role,status:status.textContent,actualLength:actual.length,expectedLength:expected.length,CRLFnormalizedEqual:actual.replaceAll('\r\n','\n')===expected.replaceAll('\r\n','\n'),actualCRLF:(actual.match(/\r\n/g)||[]).length,expectedCRLF:(expected.match(/\r\n/g)||[]).length}));
+    result.push({id,role,initiallyFolded:true,copyStatus:status.textContent,copiedText:actual});
+    pane.open=false;
+   }
+  }return result;}finally{await navigator.clipboard.writeText(old);}
+ })()`);
+ for(const x of copied){const b=Buffer.from(x.copiedText,'utf8');delete x.copiedText;records.push({...x,copiedBytes:b.length,copiedSHA256:hash(b),actualNativeClipboardReadback:true,clipboardRestoredInMemory:true});}
+ const first=items[1];
+ await evaluate(`(()=>{const p=document.getElementById(${JSON.stringify(first[0])}).querySelector('.inline-lean-statement');p.open=true;p.scrollIntoView({block:'start'});return true;})()`);
+ let png=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);fs.writeFileSync(path.join(output,'companion-controls.png'),Buffer.from(png.data,'base64'));
+ for(const [slug,source] of items){
+  const module=source.replaceAll('/','.').replace(/\.lean$/,'').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
+  await navigate('modules/'+module+'.html');
+  const result=await evaluate(`(async()=>{const p=document.querySelector('#complete-module-source > details');if(!p||p.open)throw Error('module not folded');p.open=true;
+   const old=await navigator.clipboard.readText();try{const button=p.querySelector('[data-lean-copy]');button.click();const s=p.querySelector('[data-lean-copy-status]');for(let i=0;i<100&&!s.textContent;i++)await new Promise(r=>setTimeout(r,20));const actual=await navigator.clipboard.readText(),expected=p.querySelector(':scope > pre > code').textContent;if(s.textContent!=='Copied'||actual!==expected)throw Error('module native copy mismatch');
+    const a=p.querySelector('a[download]');if(!a)throw Error('no direct download');a.click();p.scrollIntoView({block:'start'});return {source:${JSON.stringify(source)},copiedText:actual,downloadURL:a.href,downloadFilename:a.download,copyStatus:s.textContent,initiallyFolded:true};
+   }finally{await navigator.clipboard.writeText(old);}})()`);
+  const destination=path.join(downloads,result.downloadFilename);
+  for(let i=0;i<200;i++){if(fs.existsSync(destination)&&!fs.existsSync(destination+'.crdownload'))break;await delay(50);}
+  if(!fs.existsSync(destination))throw Error('actual clicked download absent');
+  const actual=fs.readFileSync(destination), expected=fs.readFileSync(source);
+  if(!actual.equals(expected))throw Error('download raw byte mismatch '+source);
+  if(result.copiedText!==expected.toString('utf8').replaceAll('\r\n','\n'))throw Error('module visible source mismatch '+source);
+  const copiedBytes=Buffer.from(result.copiedText);delete result.copiedText;
+  records.push({...result,copiedSHA256:hash(copiedBytes),downloadPath:destination,downloadBytes:actual.length,downloadRawSHA256:hash(actual),exactCheckoutRawBytes:true,actualAnchorClicked:true,clipboardRestoredInMemory:true});
+  if(slug==='pbps-macroscopic-centered-range'){png=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);fs.writeFileSync(path.join(output,'module-controls.png'),Buffer.from(png.data,'base64'));}
+ }
+ const completed=events.filter(e=>e.method==='Browser.downloadProgress'&&e.params.state==='completed');
+ if(completed.length!==3)throw Error('Expected three actual native completed download events, got '+completed.length);
+ success=true;
+ await call('Browser.close');ws.close();ws=undefined;const closed=await exit;
+ fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({status:'ACTUAL_COPY_DOWNLOAD_BEHAVIOR_PASS_NOT_EXPOSITION_SEAL',records,nativeDownloadEvents:events,ownedBrowserExit:closed,ownedBrowserPID:browser.pid,scope:'Six adjacent disclosure copy clicks/native readbacks; three complete module copy clicks/native readbacks and clicked complete raw downloads. Isolated owned Chrome/server; user browser untouched; original failed full-reader seal remains historical.'},null,2)+'\n');
+}finally{
+ if(ws){try{await call('Browser.close');}catch{browser.kill();}ws.close();}else if(browser.exitCode===null)browser.kill();
+ await exit;fs.closeSync(stderr);await new Promise(r=>server.close(r));
+ fs.writeFileSync(path.join(output,'closure.json'),JSON.stringify({status:'CLOSED',success,ownedBrowserPID:browser.pid,compiler:'NOT_STARTED_CLOSED',HTTPServer:'CLOSED',Browser:'CLOSED'},null,2)+'\n');
+}
+console.log('Actual six adjacent +three module native copy readbacks and three byte-exact clicked downloads PASS; browser/server CLOSED.');

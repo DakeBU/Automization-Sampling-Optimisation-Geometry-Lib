@@ -1,0 +1,10 @@
+
+/-- The CDF of the exponential distribution equals ``1 - exp (-(r * x))`` -/
+lemma cdf_expMeasure_eq {r : ℝ} (hr : 0 < r) (x : ℝ) :
+    cdf (expMeasure r) x = if 0 ≤ x then 1 - exp (-(r * x)) else 0 := by
+  rw [cdf_expMeasure_eq_lintegral hr, lintegral_exponentialPDF_eq_antiDeriv hr x,
+    ENNReal.toReal_ofReal_eq_iff]
+  split_ifs with h
+  · simp only [sub_nonneg, exp_le_one_iff, Left.neg_nonpos_iff]
+    exact mul_nonneg hr.le h
+  · exact le_rfl

@@ -1,0 +1,10 @@
+theorem Adapted.isStoppingTime_hittingAfter [ConditionallyCompleteLinearOrder ι]
+    [WellFoundedLT ι] [Countable ι] {_ : MeasurableSpace β} {f : Filtration ι m} {u : ι → Ω → β}
+    {s : Set β} {n : ι} (hu : Adapted f u) (hs : MeasurableSet s) :
+    IsStoppingTime f (hittingAfter u s n) := by
+  intro i
+  have h_set_eq_Union : {ω | hittingAfter u s n ω ≤ i} = ⋃ j ∈ Set.Icc n i, u j ⁻¹' s := by
+    ext; simp [hittingAfter_le_iff]
+  simpa [h_set_eq_Union] using MeasurableSet.iUnion fun j =>
+    MeasurableSet.iUnion fun hj => f.mono hj.2 _ ((hu j) hs)
+

@@ -1,0 +1,25 @@
+from pathlib import Path
+import json, subprocess
+
+r=Path('runs/20261007-companion-priority/pbps-root-commutation67')
+load=lambda p:json.loads(Path(p).read_bytes())
+assert load(r/'root.repository67.adoption.json')['accepted_scoped_aggregate']
+assert load(r/'root.exact-verification67.adoption.json')['native_verified']
+head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+assert head!='3da29415011a971a65f749502a625e416213f487'
+notes=load(r/'integration.notes.json');assert notes['registry_count']==514
+p=r/'integration67/pr315-body67.md';assert not p.exists()
+text=f'''PBPS Appendix B.3 needs the corrector operators on the same actual probability laws and centered Hilbert space. Starting from the original finite-dimensional C2 potential, both global Hessian bounds and positive capped step size, the implementation produces the defect roots, centered inverse, polar isometry and global input decomposition. It now proves that the same root commutes with T and A, constructs the exact selfadjoint centered restriction A0, and proves A0²+Γ0²=I and selfadjointness/commutation of the same inverse. The genuine original-input Test obtains K=A0 Inv selfadjoint and I+K²=Inv². Rank zero and αη=1 remain included.
+
+The reusable real-L2 positive-square commutation leaf uses the canonical complex lift and fixed Mathlib CFC. All operator certificates are derived internally; the paper's caller conditions are unchanged. Two full literal Prop definitions preserve the complete public propositions and are independently reviewed as representations. Prior ambient-adjoint reconstruction/norm-budget facts retain their accurate attribution.
+
+Validation: exact science commit 3da29415011a971a65f749502a625e416213f487 is independently VERIFIED, with focused compilation, standard axioms, separate mathematical review, anonymous decoding and primary-first source review. Serialized root/Tests builds pass at 9176/9475 jobs, Registry514, publication235 and contributor/semantic/frontier/site/affected graph gates. Two complete statements, ten literal formula steps and the actual branch were inspected; initially folded Lean, four isolated copy callbacks and four exact RAW production-source downloads were checked. The 296 Python regression results are reused from INT64 after verifying unchanged tools and site scripts.
+
+Exact integration commit: {head}. Independent scoped repository/reader admission and current final-cell graph freshness are accepted. INT66's historical local graph freshness debt remains recorded separately. This integration commit's remote CI is pending; main/live delivery, the full Exposition Seal, post-merge purification and whole-paper/Goal completion remain open. Inherited statement notation, complete-Lean placement and dense graph layout remain explicit reader debt.
+
+The next sealed target is the sharp B23 bound and Lemma B.3 energy equivalence. B21 rotation, weak H1/B2, B4 dynamics, invariance/nonexplosion, hypocoercivity/main mixing, implementation errors, expected query costs and actual-input PBPS/SPHMC composition remain open. TV proximity does not transfer unbounded expected cost. Existing four-paper priorities and collaborator frontiers are preserved.
+
+Bounded evidence: runs/20261007-companion-priority/pbps-root-commutation67/integration.notes.json, root.exact-verification67.adoption.json and root.repository67.adoption.json. Current checkpoint: docs/companion-papers-handoff.md.
+'''
+p.write_text(text,encoding='utf-8',newline='\n')
+print('Wrote exact INT67 PR body with scoped validation and remote-CI pending; no full-paper claim.')

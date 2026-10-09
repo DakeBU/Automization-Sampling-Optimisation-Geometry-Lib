@@ -1,0 +1,54 @@
+1: import Mathlib.Analysis.InnerProductSpace.Adjoint
+2: import Mathlib.Tactic.Linarith
+3: 
+4: namespace AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation
+5: noncomputable section
+6: open scoped RealInnerProductSpace
+7: set_option autoImplicit false
+8: 
+9: theorem quadratic_corrector_perturbation
+10:     {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+11:     [CompleteSpace H]
+12:     (A G Inv : H →L[ℝ] H)
+13:     (hA : IsSelfAdjoint A) (hG : IsSelfAdjoint G)
+14:     (hInv : IsSelfAdjoint Inv) (hAInv : Commute A Inv)
+15:     (hInvG : Inv * G = 1) (hGInv : G * Inv = 1)
+16:     (hSquares : A * A + G * G = 1)
+17:     (u v r : H) :
+18:     let C : H → H → ℝ := fun u v =>
+19:       (‖u‖^2 - ‖v‖^2)/2 - inner ℝ (A (Inv u)) v
+20:     C (u + G r) (v - A r) - C u v =
+21:       inner ℝ u (Inv r) + ‖r‖^2/2
+22:  := by
+23:   dsimp only
+24:   have ha (x y : H) : inner ℝ (A x) y=inner ℝ x (A y) := hA.isSymmetric x y
+25:   have hg (x y : H) : inner ℝ (G x) y=inner ℝ x (G y) := hG.isSymmetric x y
+26:   have hi (x y : H) : inner ℝ (Inv x) y=inner ℝ x (Inv y) := hInv.isSymmetric x y
+27:   have hIG (x : H) : Inv (G x)=x := by
+28:     have h := congrArg (fun L : H →L[ℝ] H => L x) hInvG
+29:     simpa only [ContinuousLinearMap.mul_apply,ContinuousLinearMap.one_apply] using h
+30:   have hSq (x : H) : A (A x)+G (G x)=x := by
+31:     have h := congrArg (fun L : H →L[ℝ] H => L x) hSquares
+32:     simpa only [ContinuousLinearMap.add_apply,ContinuousLinearMap.mul_apply,
+33:       ContinuousLinearMap.one_apply] using h
+34:   have hEnergy (x : H) : ‖A x‖^2+‖G x‖^2=‖x‖^2 := by
+35:     have h := congrArg (fun z : H => inner ℝ z x) (hSq x)
+36:     rw [inner_add_left,ha (A x) x,hg (G x) x] at h
+37:     simpa only [real_inner_self_eq_norm_sq] using h
+38:   have hLinear (x : H) : Inv (A (A x))+G x=Inv x := by
+39:     calc
+40:       Inv (A (A x))+G x=Inv (A (A x))+Inv (G (G x)) := by rw [hIG]
+41:       _ = Inv (A (A x)+G (G x)) := by rw [map_add]
+42:       _ = Inv x := congrArg Inv (hSq x)
+43:   have hMixed : inner ℝ (A (Inv u)) (A r)+inner ℝ u (G r)=inner ℝ u (Inv r) := by
+44:     rw [ha (Inv u) (A r),hi u (A (A r)),
+45:       ← inner_add_right,hLinear r]
+46:   rw [norm_add_sq_real,norm_sub_sq_real]
+47:   simp only [map_add,hIG,inner_add_left,inner_sub_right,real_inner_self_eq_norm_sq]
+48:   rw [real_inner_comm v (A r)]
+49:   nlinarith only [hEnergy r,hMixed]
+50: 
+51: end
+52: end AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation
+53: 
+54: #print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation

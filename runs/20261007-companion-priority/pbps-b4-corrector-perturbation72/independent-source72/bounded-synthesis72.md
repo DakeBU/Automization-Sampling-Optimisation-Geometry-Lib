@@ -1,0 +1,7 @@
+Both bounded units are source-admissible, with equivalent-after-elaboration verdicts and zero blocking deltas. The generic leaf establishes the exact B20/Ex28–Ex34 algebra under its sealed explicit Hilbert premises. The actual consumer internally supplies all seven structural facts on the same HP0 and retains all six callers, twelve common witnesses and every parent71 clause. No mathematical/binder repair is required.
+
+Exhaustive finite coverage is361 source rows (239 NODE/122 EXCLUDED),24 source nodes/53 edges,20 exact formulas,27 obligations,494 module lines and six+four exact contiguous formula/BODY spans. Source graph, Lean dependencies and reader evidence remain distinct. The independently checked reader v3 repair is status metadata only; final official packets2/3 bind current exact context and publication digests.
+
+Arbitrary r remains arbitrary. The source-produced half-turn H, Markov K/B7, r/r_rho, actual B27 outputs and B28/B4 dynamics remain open, as do main/live/fullpaper/errors/cost/composition. This review grants no SCI/VERIFIED, Exposition Seal, PURIFIED or Goal completion. Bounded adjacent helper rendering is checked; repository integration/full browser delivery is separate.
+
+Native evidence reuses immutable StageA/CLOSED254 pins without copying historical packet files. Initial packets0/1, unapplied incomplete status proposals and observer failures are preserved. RAW and CRLF-only LF recipes are explicit. Canonical, ledger, Git and prior CLOSED trees were not written.

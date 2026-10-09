@@ -1,5 +1,20 @@
 # Proximal BPS · formalization result window
 
+## Exact harmonic-flow checkpoint73 (2026-10-10)
+
+Independent science commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. The complete attributed statement and
+six-step formula proof are authored once in declaration_lessons/
+pbps-actual-harmonic-flow.json; the exact full Lean, including its private
+literal proposition specification, is adjacent and initially folded.
+For c=y-eta gradientV(xRef), the exact deterministic flow conserves
+(eta^-1 norm(x-c)^2+norm(p)^2)/2 and sends (x,p) to (2c-x,-p) at pi.
+All nine clauses and original six callers are retained with no extra premise.
+Actual bounce/rate/clocks/PDMP/nonexplosion/invariance/main/errors/expected
+cost and actual-input composition remain open. Integration73 records reader
+and aggregate checks separately; no full Exposition/PURIFIED/main/live or
+whole-paper/Goal badge is inferred.
+
+
 ## Exact perturbation checkpoint72 (2026-10-10)
 
 Independent science commit 18183c58eee62145b6059ded11c7be05a4cb82de; canonical full statements and six/four-step

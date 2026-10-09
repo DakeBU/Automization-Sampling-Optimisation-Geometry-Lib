@@ -1,5 +1,35 @@
 # Companion-paper formalization handoff
 
+## Exact PBPS harmonic flow (2026-10-10)
+
+Independent exact science73 VERIFIED commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. For
+c=y-eta gradientV(xRef), the actual harmonic flow is
+X_t=c+cos(t)(x-c)+sqrt(eta)sin(t)p,
+P_t=-sin(t)/sqrt(eta)(x-c)+cos(t)p.
+The complete nine-clause theorem proves joint continuity and joint Borel
+measurability, zero/group/both inverse laws, the actual two ODE derivatives,
+nonnegativity and conservation of the weighted SUM energy
+(eta^-1 norm(x-c)^2+norm(p)^2)/2, and the exact pi endpoint (2c-x,-p).
+It retains all six original analytic callers; rank0/alphaeta1/zero energy
+remain legal. C2 V and positive eta suffice inside this deterministic proof.
+
+This is an ingredient of Algorithm1/Proposition3.1, not its stochastic
+construction. Actual reflection/bounce/rate, clock measurable recursion,
+nonexplosion, invariance/reversal, actual H/K/B27/B28 and full B4/H1,
+main/error/cap/expected-query-cost/composition results remain open.
+Q_y and same-J Gaussian disintegration and the actual reflected-law relation
+already exist; reuse those before adding any reference-law copy.
+Next source-first bounded edge is the actual bounce/rate ingredient used by
+the half-turn nonexplosion construction. TV does not transfer unbounded cost.
+
+Serialized local aggregate73: root9184, Tests9484, Registry522;243 publication units.
+One statement and six formula/BODY steps plus the actual branch were inspected;
+three isolated copy callbacks and three RAW downloads were exact.
+Final current graph/gates are recorded in73 integration.notes.json. ExactSCI, aggregate,
+remote CI, main/live, full Exposition/PURIFIED and full-paper/Goal completion
+remain distinct. PBPS/SPHMC actual-input composition comes first, then
+GaussianCloud and midpoint; preserve older Chewi/frontiers/cycles/memory.
+
 ## Exact PBPS corrector perturbation (2026-10-10)
 
 Independent exact science72 VERIFIED commit 18183c58eee62145b6059ded11c7be05a4cb82de. The same B20 corrector

@@ -87,6 +87,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualHarmonicFlow"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
+    upstreamDecl := "Actual PBPS harmonic flow, derivative and conserved energy"
+    upstreamFile := "arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "harmonic-flow", "energy", "Borel"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI73 d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. All original six analytic callers, no new premise; joint continuity/Borel, zero/group/inverse, actual two-equation derivative, nonnegative conserved weighted SUM energy, and exact pi endpoint on finite-dimensional real E. Rank0/alphaeta1/zero-energy legal. No random path/clock/bounce/Markov law, invariance/nonexplosion/main/errors/cost/composition or full Exposition/PURIFIED/main/live/Goal credit."
+  },
+  {
     key := "pbps.hilbertCorrectorPerturbation"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation"
     upstreamDecl := "Hilbert corrector perturbation algebra with actual PBPS consumer"

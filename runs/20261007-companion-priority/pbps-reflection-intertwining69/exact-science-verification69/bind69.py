@@ -1,0 +1,69 @@
+import os,sys,json,re,copy,traceback
+from pathlib import Path
+import verify69 as R
+O=R.O;P=R.P;M=R.M;S=R.S;D=R.D;ROOT=R.ROOT;pin=R.pin;save=R.save;read=R.read;get=R.get
+def assert_native(p,q):
+ z=pin(p);assert z['raw_sha256']==q.get('RAW_sha256',q.get('raw_sha256')) and z['raw_bytes']==q.get('RAW_bytes',q.get('raw_bytes')),('native RAW mismatch',str(p))
+ if q.get('LF_sha256'):assert z['lf_sha256']==q['LF_sha256']
+ return z
+def review():
+ R.stable();assert get('focused.result.json')['status']=='PASS';adM=read(P/'root.math69.adoption.json');mr=read(M/'run.json');ml=read(M/'lease.final.json');assert R.logical(mr)==mr['run_sha256']==adM['native_whole_logical_run_sha256'];assert pin(M/'named-mathematical-review.payload.json')['raw_sha256']==adM['native_complete_RAW_sha256'];assert pin(M/'lease.final.json')['raw_sha256']==adM['native_lease_RAW_sha256'];assert pin(R.CODE)==adM['candidate_RAW']==mr['candidate_RAW'];assert ml['status']=='CLOSED_LAST' and ml['owned_file_count_including_self']==112
+ adS=read(P/'root.source69.adoption.json');sr=read(S/'review-run.json');sl=read(S/'lease.final.json');sm=read(S/'owned-manifest.json');decision=read(S/'source.0.decision.json');assert R.logical(sr)==sr['run_sha256']==adS['native_whole_logical_run_sha256'];assert sl['whole_logical_run_sha256']==sr['run_sha256'];assert_native(S/'lease.final.json',adS['native_lease']);assert_native(S/'complete-named-review-decision-input-payload.json',sl['COMPLETE_NAMED_REVIEW_DECISION_INPUT']);assert pin(S/'complete-named-review-decision-input-payload.json')['raw_sha256']==adS['native_named_RAW_sha256'];assert_native(S/'source.0.decision.json',adS['native_decision']);assert sl['status']=='CLOSED_LAST' and sl['owned_file_count']==211;assert pin(S/'owned-manifest.json')['raw_sha256']==sl['manifest_RAW_sha256'];assert R.sha(json.dumps(sm['regular_file_entries'],ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())==sm['closure_entries_canonical_sha256']==sl['finite_owned_closure_sha256']
+ adD=read(P/'root.decoder69.adoption.json');dr=read(D/'review-run.json');dl=read(D/'lease.json');dm=read(D/'manifest.json');assert R.logical(dr)==dr['run_sha256']==dl['whole_logical_sha256']==adD['native_whole_logical_run_sha256'];assert dl['status']=='CLOSED_LAST' and dl['owned_regular_file_count']==17;assert pin(D/'manifest.json')['raw_sha256']==dl['manifest_raw_sha256'];assert pin(D/'anonymous_reconstruction_69.json')['raw_sha256']==adD['native_complete_named_RAW_sha256'];assert dr['source_text_visible']==False
+ native=[]
+ for q in ml['all_owned_outputs_except_only_self']:R.checkpin(q);native.append(Path(q['path']))
+ native.append(M/'lease.final.json')
+ for q in sm['regular_file_entries']:assert_native(S/q['name'],q);native.append(S/q['name'])
+ native += [S/'owned-manifest.json',S/'lease.final.json'];assert len([p for p in native if p.is_relative_to(S)])==211
+ for q in dm['entries']:assert_native(D/q['path'],q)
+ for q in adD['raw_snapshot_mappings']:assert_native(Path(q['explicit_exact_raw_snapshot']['path']),q['original'])
+ native += [D/n for n in dm['all_owned_files']];assert len(native)==340 and len(set(native))==340
+ ng=[]
+ for p in native:ng.append(R.gitpin(p))
+ save('native-files.Git.manifest.json',dict(checked_commit=R.SCI,native_file_count=len(ng),math112=112,source211=211,blind17=17,exact_named_native_files_only=True,blobs=ng,no_native_or_history_copy=True))
+ src=R.text(R.CODE);private=src[src.index('private def actual_reflection_intertwining_statement'):src.index('\ntheorem actual_reflection_intertwining')];assert private.rstrip('\n')==R.text(R.PRE/'statement0.definition.lean').rstrip('\n');assert R.text(R.PRE/'header0-public.lean').rstrip('\n') in src;math=read(M/'mathematical-review.json');assert math['status']=='ACCEPTED_THEOREM_ONLY69_PRECOMMIT' and math['same12_witness_names']==['S','e','U','T','Γ','q','ΓP0','Inv','A0','B0','V0','R'] and math['private_literal_full_Prop_exact'] and math['public_caller_exact'];assert len(src.splitlines())==446
+ from tools import astis
+ clean=astis.strip_lean_comments_and_strings(src);hits=[dict(line=i,text=s) for i,s in enumerate(clean.splitlines(),1) if astis.FORBIDDEN_REGEX.search(s) or re.search(r'\b(axiom|unsafe|opaque|native_decide|run_tac)\b',s)];assert not hits;assert re.findall(r'(?m)^private (?:def|theorem|lemma) (\w+)',clean)==['actual_reflection_intertwining_statement'];assert re.findall(r'(?m)^import (.+)$',src)==['AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation'];assert 'SharpCorrectorEnergy' not in src and 'HilbertCorrectorBound' not in src;save('fake-closure-scan.json',dict(status='PASS',checked_commit=R.SCI,scanned_module=pin(R.CODE),scanner=pin(ROOT/'tools/astis.py'),hits=hits,private_full_literal_Props=1,private_mathematical_providers=0,exact_standard3=get('focused.result.json')['exact_standard3'],all_kerP_and_original_caller_review=pin(M/'mathematical-review.json'),no_68_proof_dependency=True))
+ # Qualify the finite source-input temporal changes row by row, never a directory exclusion.
+ im=read(S/'current-input-manifest.json');resolved=[];current=0;historical=0
+ for q in im['inputs']:
+  snap=S/q['name'];assert_native(snap,q);path=Path(q['original_path']);actual=pin(path);kind='EXACT_CURRENT_RAW';resolution=None
+  if actual['raw_sha256']!=q['RAW_sha256']:
+   if path==R.LESSON and q['name']=='current.lesson.RAW.json':resolution=P/'reader-api-overlay69/lesson.before.exactraw.json';kind='EXPLICIT_REVIEWED_TWO_FIELD_PREOVERLAY_LESSON'
+   elif path==R.CELL and q['name'] in ['current.frontier-cell.RAW.json','final.frontier-cell.RAW.json']:resolution=P/'cell.before-proved.exactraw.json';kind='EXPLICIT_CLAIMED_BEFORE_PROVED_CELL'
+   else:raise AssertionError(('Unmapped source-input drift',q['name'],str(path)))
+   assert_native(resolution,q);historical+=1
+  else:current+=1
+  resolved.append(dict(native_input=q['name'],original_path=path.as_posix(),frozen_RAW_sha256=q['RAW_sha256'],current=actual,qualification=kind,exact_historical_snapshot=pin(resolution) if resolution else None))
+ assert len(resolved)==62 and current==59 and historical==3
+ app=read(P/'reader-api-overlay69/application.json');before=read(P/'reader-api-overlay69/lesson.before.exactraw.json');after=read(R.LESSON);repaired=copy.deepcopy(before)
+ for change in app['finite_changes']:
+  keys=change['path'].strip('/').split('/');node=repaired
+  for k in keys[:-1]:node=node[int(k)] if isinstance(node,list) else node[k]
+  k=keys[-1];k=int(k) if isinstance(node,list) else k
+  if change['op']=='replace':assert node[k]==change['old']
+  node[k]=change['value']
+ assert repaired==after and len(app['finite_changes'])==2;assert_native(R.LESSON,app['after'][0]);overlaydecision=read(S/'reader-api-metadata-overlay.decision.json');assert_native(S/'reader-api-metadata-overlay.decision.json',app['independent_decision']);assert app['no_mathematical_repair'];auditbefore=read(P/'audit.before-source-admission.exactraw.json');audit=read(R.AUDIT);changed=[k for k in audit.keys()|auditbefore.keys() if audit.get(k)!=auditbefore.get(k)];assert set(changed)=={'deltas','semantic_slots','state','verdict','source_review'};assert audit['semantic_slots']==decision['semantic_slots'] and audit['deltas']==decision['deltas'] and audit['verdict']==decision['verdict']=='equivalent-after-elaboration';assert len(audit['semantic_slots'])==7 and len(audit['deltas'])==12 and all(d['severity']=='informational' for d in audit['deltas']);assert audit['state']=='accepted' and audit['source_review']['state']=='accepted';assert audit['source_review']['independent_from_formalizer'] and audit['source_review']['independent_from_decoder'];assert decision['mathematical_repair_needed']==False;assert audit['source_review']['review_run_sha256']==sr['run_sha256'];assert audit['source_review']['reviewer']!=audit['lean']['formalizer'] and audit['source_review']['reviewer']!=audit['reconstruction']['decoder'];assert audit['reconstruction']['decoder_run_sha256']==dr['run_sha256']
+ fm=read(P/'source-admission-finite-current-maps69.json');assert_native(P/'audit.before-source-admission.exactraw.json',fm['audit_before']);assert_native(R.AUDIT,fm['audit_after']);cellbefore=read(P/'cell.before-proved.exactraw.json');cell=read(R.CELL);cellchanges=sorted(k for k in cell.keys()|cellbefore.keys() if cell.get(k)!=cellbefore.get(k));assert cellchanges==['conceptual_mirror_audit','evidence','status'] and cell['status']=='proved_locally'
+ # Validate the initial publication-freeze through the explicitly versioned chain.
+ pf=read(P/'publication-freeze69.json');pubres=[];fmap={R.LESSON:P/'reader-api-overlay69/lesson.before.exactraw.json',R.AUDIT:P/'audit.0.before-decoder.exactraw.snapshot.json',R.CELL:P/'cell.before-proved.exactraw.json'}
+ for q in pf['inputs']:
+  path=Path(q['path']);qual='EXACT_CURRENT_RAW';snapshot=None
+  if pin(path)['raw_sha256']!=q['raw_sha256']:assert path in fmap;snapshot=fmap[path];assert_native(snapshot,q);qual='FINITE_EXPLICIT_ORIGINAL_FREEZE_SNAPSHOT'
+  pubres.append(dict(original=path.as_posix(),frozen_RAW_sha256=q['raw_sha256'],qualification=qual,snapshot=pin(snapshot) if snapshot else None))
+ raw=R.CODE.read_bytes();lines=raw.splitlines(keepends=True);steps=read(R.LESSON)['units'][0]['steps'];body=[]
+ for i,s in enumerate(steps):
+  reg=s['lean_source_region'];a=reg['start_line'];b=reg['end_line'];excerpt=b''.join(lines[a-1:b]);assert reg['path']==R.CODE.relative_to(ROOT).as_posix() and reg['source_raw_sha256']==R.sha(raw);assert excerpt==s['lean'].encode() and R.sha(excerpt)==reg['exact_code_raw_sha256'];assert a>=134 and b<=441
+  if i:assert a==steps[i-1]['lean_source_region']['end_line']+1
+  body.append(dict(step=i+1,start_line=a,end_line_inclusive=b,excerpt_RAW_bytes=len(excerpt),excerpt_RAW_sha256=R.sha(excerpt),whole_source_RAW_sha256=R.sha(raw),literal_BODY_match=True,formula=s['formula']))
+ assert len(body)==6 and steps[0]['lean_source_region']['start_line']==134 and steps[-1]['lean_source_region']['end_line']==441
+ from tools import astis_publication as pub
+ data=pub.inputs();item=read(R.PUB)['items'][0];binding=next(b for b in item['bindings'] if b['declaration']==R.DECL);digest=pub.binding_digest(item,binding,data);context=pub.review_context(item,binding,data);packet=read(P/'source.0.reviewer-packet.json');assert digest==audit['publication_binding_sha256']==decision['publication_binding_sha256']==sl['publication_binding_sha256']==packet['publication_binding_sha256'];assert context==audit['publication_context']==packet['candidate_publication_context'];assert decision['reviewer_packet_sha256']==packet['packet_sha256']==audit['source_review']['reviewer_packet_sha256'];assert pin(P/'source.0.reviewer-packet.json')['raw_sha256']==decision['reviewer_packet_RAW_sha256'];assert packet['blind_reconstruction']['decoder_run_sha256']==dr['run_sha256'];assert packet['blind_reconstruction']['source_text_visible']==False
+ wd=read(P/'whitespace-diagnosis69/diagnosis.json');assert wd['full_staged_exit']!=0 and wd['authored_complement_exit']==0 and len(wd['findings'])==856
+ save('mathematics-reuse.json',dict(status='PASS',checked_commit=R.SCI,parent=R.BASE,source_Git_RAW=pin(R.CODE),native_math_run_sha256=mr['run_sha256'],native_closed112=pin(M/'lease.final.json'),native_math_review=pin(M/'mathematical-review.json'),same_six_callers_and12_witnesses=True,all_old_global_conclusions_retained=True,all_kerP_not_rangeV=True,same_U_AE_Lp_equality=True,same_selfadjoint_commuting_Inv=True,rank0_alphaeta1_legal=True,private_providers=0,no68dependency=True,independent_fresh_compiler=get('focused.result.json'),no_mathematical_repair=True))
+ save('source-bindings.result.json',dict(status='PASS',checked_commit=R.SCI,parent=R.BASE,actual_PID=os.getpid(),native_source211=pin(S/'lease.final.json'),native_source_whole_logical=sr['run_sha256'],complete_named_source_RAW=pin(S/'complete-named-review-decision-input-payload.json'),native_math112=pin(M/'lease.final.json'),native_blind17=pin(D/'lease.json'),native_blind_whole_logical=dr['run_sha256'],native_manifest_Git_check=pin(O/'native-files.Git.manifest.json'),all340_owned_native_files_manifest_bound=True,source_input_count=62,current_source_rows=current,historically_qualified_rows=historical,finite_source_input_resolutions=resolved,original_publication_freeze_resolutions=pubres,reviewed_lesson_overlay=dict(application=pin(P/'reader-api-overlay69/application.json'),independent_native_decision=pin(S/'reader-api-metadata-overlay.decision.json'),only_two_fields=True,mathematical_repair=False),audit_admission_changed_only_fields=changed,all12_native_informational_deltas_preserved_exact=True,all7_native_semantic_slots_preserved_exact=True,cell_claimed_to_proved_changed_only_fields=cellchanges,source_items=419,source_NODE=161,source_EXCLUDED=258,whole_module_lines=446,literal_BODY_steps=body,publication_binding_sha256=digest,publication_context_equal=True,reviewer_packet_sha256=packet['packet_sha256'],source_audit=pin(R.AUDIT),native_source_decision=pin(S/'source.0.decision.json'),source_creator_and_decoder_independent=True,no_source_self_verification=True,whitespace=dict(immutable_native_findings=len(wd['findings']),authored_complement_PASS=True,full_staged_PASS=False,diagnosis=pin(P/'whitespace-diagnosis69/diagnosis.json')),remaining_boundary=read(P/'proved-local.json')['truth_boundary'],full_Exposition=False,PURIFIED=False,whole_paper=False,Goal=False));R.stable();print(json.dumps(dict(status='PASS',actual_PID=os.getpid(),native_files=340,source_slots=7,deltas=12,literal_BODY_steps=6,source_current_rows=current,source_finite_rows=historical)))
+if __name__=='__main__':
+ try:globals()[sys.argv[1]]()
+ except Exception as e:
+  if not(O/'lease.final.json').exists():save((sys.argv[2] if len(sys.argv)>2 else sys.argv[1])+'.failure.json',dict(actual_PID=os.getpid(),utc=R.now(),error=repr(e),traceback=traceback.format_exc()))
+  raise

@@ -1,5 +1,38 @@
 # Companion-paper formalization handoff
 
+## Exact PBPS bounce rate (2026-10-10)
+
+Independent exact science74 VERIFIED commit d556a7550f0395d149720da6478bfdfff98368a7. The actual residual is
+h=gradientV(x)-gradientV(xRef), R_h p=p-2 inner(p,h)h/norm(h)^2 with R_0=I,
+S(x,p)=(x,R_h p), lambda=sqrt(eta) max(0,inner(p,h)). The complete ten-clause
+theorem proves joint Borel S, continuous/Borel nonnegative lambda, zero branch,
+involution/norm/pairing laws, actual weighted SUM H conservation and exact
+flipped-rate difference. For E=H(z0), SAME-H-layer z satisfies the two radii and
+lambda(z)<=sqrt(eta) beta sqrt(2E)(sqrt(2 eta E)+norm(c-xRef)),
+c=y-eta gradientV(xRef). Beta-Lipschitz gradient is produced internally at r=0.
+All six original analytic callers persist; no nonzero-normal, positive-energy,
+positive-dimension, higher derivative or supplied-Lipschitz premise is added.
+The exact211-line module and seven formula/BODY steps have independent math,
+strict blind reconstruction, source review and exact-science verification.
+
+This closes actual deterministic jump/rate prerequisites only. The verified
+harmonic flow73 is a sibling for the later path construction, not a74 import.
+Next bounded edge is actual rate-composed-with-flow integrated hazard and first
+clock, following the independent prospective75 source plan. Algorithm1 has no
+refresh clock. Recursive paths, iid clocks/nonexplosion, Markov memorylessness,
+invariance/reversal, terminal kernel, full hypocoercivity/main/errors/caps,
+expected-query costs and actual-input composition remain open. TV proximity
+does not transfer unbounded costs. Existing Q_y/same-J disintegration and actual
+reflected-law relation must be reused; no reference-law duplicate.
+
+Serialized local aggregate74: root9185, Tests9485, Registry523;244 publication units.
+One statement and seven formula/BODY steps plus the actual branch were inspected;
+three isolated copy callbacks and three RAW downloads were exact.
+Final current graph/gates are recorded in74 integration.notes.json. ExactSCI, aggregate,
+remoteCI/main/live, Exposition/PURIFIED and full-paper/Goal completion stay
+distinct. PBPS/SPHMC actual-input composition precedes GaussianCloud/midpoint;
+preserve older Chewi/frontiers/cycles/memory.
+
 ## Exact PBPS harmonic flow (2026-10-10)
 
 Independent exact science73 VERIFIED commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. For

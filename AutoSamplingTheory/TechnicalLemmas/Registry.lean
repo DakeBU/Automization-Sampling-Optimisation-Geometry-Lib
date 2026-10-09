@@ -87,6 +87,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualBounceRate"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    upstreamDecl := "Actual PBPS zero-safe bounce, rate and energy-layer bound"
+    upstreamFile := "arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "reflection", "bounce", "rate", "energy", "Borel"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI74 d556a7550f0395d149720da6478bfdfff98368a7. All original six analytic callers, no new premise; actual zero-safe Borel bounce, continuous nonnegative rate, norm/involution/pairing and exact weighted SUM energy preservation, flipped-rate difference and pointwise same-energy-layer Lambda majorant. Internal beta-Lipschitz producer, rank0/alphaeta1/zero-energy/zero-normal legal. Actual clocks/path/nonexplosion/invariance/Markov/terminal kernel/main/errors/expected-query cost/composition and full Exposition/PURIFIED/main/live/Goal remain open."
+  },
+  {
     key := "pbps.actualHarmonicFlow"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
     upstreamDecl := "Actual PBPS harmonic flow, derivative and conserved energy"

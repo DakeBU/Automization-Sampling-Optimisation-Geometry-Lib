@@ -1,5 +1,20 @@
 # Proximal BPS · formalization result window
 
+## Exact bounce-rate checkpoint74 (2026-10-10)
+
+Independent science commit d556a7550f0395d149720da6478bfdfff98368a7. Complete attributed statement and seven-step
+formula proof are authored once in declaration_lessons/pbps-actual-bounce-rate.json;
+exact full Lean including its complete private literal specification is adjacent
+and initially folded. Actual S is zero-safe Borel and preserves the weighted SUM H.
+Actual lambda is continuous, has the exact flipped-rate difference, and obeys the
+printed SAME-H-layer Lambda bound with internal beta-Lipschitz producer. Original
+six callers and legal zero-energy/rank0/zero-normal/alphaeta1 cases persist.
+Actual integrated hazard/clock/recursive PDMP/nonexplosion/invariance/main/errors/
+expected-querycost/actual-input composition remain open. Integration74 records
+aggregate and current-reader checks separately; no Exposition/PURIFIED/main/live
+or whole-paper/Goal completion follows.
+
+
 ## Exact harmonic-flow checkpoint73 (2026-10-10)
 
 Independent science commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. The complete attributed statement and

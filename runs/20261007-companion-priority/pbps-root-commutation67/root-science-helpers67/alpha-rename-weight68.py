@@ -1,0 +1,7 @@
+from pathlib import Path
+import hashlib,json,os
+r=Path('runs/20261007-companion-priority/pbps-sharp-energy-preproof68');d=r/'alpha-renaming-weight68';d.mkdir(exist_ok=False);maps=[]
+for i,name in enumerate(['header2-expanded.lean','statement2.definition.lean']):
+ p=r/name;b=p.read_bytes();s=b.decode('utf-8');assert s.count('ω')>0;a=s.replace('ω','omegaWeight').encode();(d/f'{i}.before.exactraw.snapshot.lean').write_bytes(b);(d/f'{i}.after.exactraw.snapshot.lean').write_bytes(a);p.write_bytes(a);maps.append(dict(path=p.as_posix(),before_raw_sha256=hashlib.sha256(b).hexdigest(),after_raw_sha256=hashlib.sha256(a).hexdigest(),before_snapshot=f'{i}.before.exactraw.snapshot.lean',after_snapshot=f'{i}.after.exactraw.snapshot.lean',bound_identifier_occurrences=s.count('ω')))
+x=dict(status='EXACT_BOUND_WEIGHT_ALPHA_RENAMING_APPLIED_REQUIRES_FRESH_HEADER_RECHECK',actual_root_writer_pid=os.getpid(),reason='ContDiff scope reserves omega token for analytic differentiability; raw Unicode bound omega does not parse. Bound name only renamed omegaWeight; no mathematical/source/caller/constant change.',maps=maps,source_mathematical_repair=False,unchanged_generic_actual_headers=[0,1],proof_search=False)
+(d/'applied.json').write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n');print('Applied bound weight omega alpha-renaming in exactly header2/statement2; originals and finite RAW maps preserved.')

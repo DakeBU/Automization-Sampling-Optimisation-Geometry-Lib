@@ -174,6 +174,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | Module | Memory key | Local declaration | Upstream or source orientation |
 | --- | --- | --- | --- |
 | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange` | `pbps.actualCorrectorChange` | `actual_corrector_change` | arXiv2609.06905v1 Appendix B3 B20/B21; Lemma B4/B28 ingredient |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation` | `pbps.actualProjectedRotation` | `actual_projected_rotation` | arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation` | `pbps.actualRootInverseCommutation` | `actual_same_root_inverse_commutation` | arXiv2609.06905v1 Appendix B3 proof ingredient for Lemma B3/B23 and B21 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector` | `pbps.ambientAdjointCorrector` | `actual_ambient_adjoint_centered_decomposition` | arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20 |

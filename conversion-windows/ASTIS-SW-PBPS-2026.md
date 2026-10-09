@@ -1,5 +1,38 @@
 # Proximal BPS · formalization result window
 
+## Current verified corrector checkpoint (2026-10-10)
+
+The historical source packets and earlier checkpoint paragraphs below are
+preserved. Current status is supplied by the handoff, live Frontier Cells and
+Harness capsule. `ASTIS-SW-PBPS-actual-corrector-change` has independent
+commit-bound verification at `4e7ce5d2996ffe1d1b0ab570778e02425c6be34e` for the discrete B21
+corrector change under the actual reflected observable.
+
+The complete attributed statement and eight-step formula proof are authored
+once in `website/content/declaration_lessons/pbps-actual-corrector-change.json`.
+The matching publication binds exact source obligations and assumption
+differences. `ActualCorrectorChange.actual_corrector_change`, its complete
+private literal proposition and all proof spans remain adjacent folded Lean
+on the original companion page.
+
+| Source ingredient | Exact current Lean meaning |
+|---|---|
+| Reflected observable and actual coordinates | Same `g = U (P f - (f - P f))`, actual conditional `gP`, and `gV = V0.adjoint (R g)` |
+| Corrector B20 | `C u v = (norm(u)^2-norm(v)^2)/2-inner(A0(Inv u),v)` on the SAME `HP0` |
+| Discrete corrector change B21 | `C gP gV-C fP fV = -norm(fP)^2+norm(fV)^2` |
+| Actual-update comparison B27/B28 | Subsequent obligation: half-turn/refreshment error components and perturbation |
+
+All six original analytic callers, twelve common witnesses and previous
+clauses persist. Exact half and signs, legal rank0/alphaeta1 and the same
+centered inverse are preserved. The local algebra supplies no extra
+regularity, onto-map, mean or sharp-bound premise.
+
+Full B4/H1/B2 dynamics, invariance/nonexplosion, PBPS/SPHMC mains,
+implementation errors/caps, initialization and actual-input expected-query
+costs/composition remain independent. TV proximity does not transfer
+unbounded cost. Aggregate/reader/remote CI, full Exposition/PURIFIED,
+main/live and whole-paper/Goal completion are separate admissions.
+
 ## Current verified companion checkpoint (2026-10-10)
 
 The historical source packets below are preserved. Current theorem status and

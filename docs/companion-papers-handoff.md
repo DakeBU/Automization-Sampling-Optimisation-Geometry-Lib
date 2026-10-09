@@ -1,5 +1,45 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS ambient adjoint and globally centered corrector (2026-10-09)
+
+Independently VERIFIED science commit a115115d42b3fa2b67885d87fe4d5300af36fcd1. SAME original finite real Hilbert
+C2/two Hessian/positive capped eta inputs now produce canonical R:L2(J)->kerP
+with inclusion Rg=g-Pg and Bambient* g=i0 B0* Rg for every joint g.
+For every joint input with zero integral, the actual conditional mean belongs
+to SAME HP0. Its fperp=Rf and fV=V0* fperp satisfy the exact Gamma action,
+orthogonal squared-norm decomposition and contraction. The genuine Test gives
+f=i0 fP+fperp, B*f=GammaP i0 fV and ||fV||^2<=||f||^2-||fP||^2.
+Rank0 and alphaeta=1 remain legal; no premise/provider was added.
+
+Two private full literal Prop definitions preserve the sealed public statements
+and exact caller conditions; both whole modules and their expansions were
+independently reviewed. Six exact BODY formula steps, blind decoder and full
+seven-slot source review accepted the bounded source-derived domain adapter.
+Printed B20 defines the first corrector; the sharp energy estimate is B23 in
+Lemma B.3. Next dependency-ready candidate is SAME actual root/centered-inverse
+commutation, a real printed proof ingredient for B23 and B21 rotation. Existing
+commutation retrieval is RAW and unvalidated, not a public premise or proof.
+Reflection U and conditional half-turn H remain distinct.
+B17/H1/B13/B14, event process/nonexplosion/invariance,hypocoercivity/main,
+implementation errors and actual-input expected queries/composition are open.
+TV proximity transfers no unbounded expected cost. Gaussian Cloud then midpoint
+follow the existing four-paper priority; all older frontiers are preserved.
+
+Previous INT65 31ce36e has scoped independent repository/reader acceptance and
+all four remote formal/site/contributor workflows SUCCESS. The reviewed64
+two-field shared-cell overlay is already applied and is not reapplied here.
+Serialized Registry512/imports/Tests and affected reader/graph gates are pending.
+No merged/live, full Exposition/PURIFIED, whole-paper or Goal claim is made.
+
+Serialized local aggregate66:root9174,Tests9472,Registry512;233
+publication items and contributor/semantic/frontier/site/affected graph PASS.
+Unchanged tools/site-script Python296 regression evidence is reused from exact
+INT64 rather than reported as rerun. One complete statement,all6 formula steps
+and actual branch inspected;two copy callbacks/two RAW source downloads exact.
+Independent repository/exposition admission,remoteCI/main/live/PURIFIED and
+whole-paper results remain separate.
+
+
 ## Actual PBPS typed polar isometry and adjoint corrector (2026-10-09)
 
 Independently VERIFIED science commit ecd9d1f10ad0241312492cefacd5fe48c317e9c2. SAME original finite real Hilbert

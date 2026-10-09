@@ -1,0 +1,107 @@
+import Mathlib.Topology.Order.WithTop
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalCanonicalLocalizer
+
+/-!
+# Divergence of the global canonical localizers
+
+The finite-horizon canonical energy localizers converge to their fixed horizon.
+Chewi Proposition 1.1.16 needs a different statement: one increasing sequence of
+stopping times must tend to infinity almost surely.  This module proves that
+property for the integer-horizon ladder from `GlobalCanonicalLocalizer`.
+
+The shared exceptional set is deliberately left at value zero.  Consequently
+we prove pointwise divergence on every good path and then pass to the exact
+almost-everywhere statement required by `Localization.IsLocalMartingale`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalCanonicalLocalizerLimit
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open CanonicalEnergyLocalizer CompletedEnergy GlobalCanonicalLocalizer
+  GlobalLocalProgressiveL2 ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- On a globally good path, every deterministic time lies strictly below all
+sufficiently late canonical localizers.  The proof freezes the energy at that
+time on one integer horizon and then lets both the energy threshold and the
+ambient horizon grow. -/
+theorem eventually_lt_globalLocalizingTime_of_good
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    {omega : Omega} (homega : omega ∉ globalBadSet eta) (r : ℝ≥0) :
+    ∀ᶠ n : ℕ in atTop, r < globalLocalizingTime hUsual eta n omega := by
+  obtain ⟨k, hk⟩ := exists_nat_gt r
+  have hkH : (k : ℝ≥0) < integerHorizon k := by
+    change (k : ℝ≥0) < ((k + 1 : ℕ) : ℝ≥0)
+    exact_mod_cast Nat.lt_succ_self k
+  have hrHk : r < integerHorizon k := hk.trans hkH
+  let E : ℝ :=
+    completedEnergy hUsual (eta.onHorizon (integerHorizon k)) r omega
+  obtain ⟨N, hN⟩ := exists_nat_gt E
+  filter_upwards [eventually_ge_atTop (max k N)] with n hn
+  have hkn : k ≤ n := (le_max_left k N).trans hn
+  have hNn : N ≤ n := (le_max_right k N).trans hn
+  rw [globalLocalizingTime_of_good hUsual eta n homega]
+  apply lt_of_not_ge
+  intro hle
+  have hcases :=
+    (canonicalEnergyLocalizer_le_iff hUsual
+      (eta.onHorizon (integerHorizon n))
+      (by positivity : (0 : ℝ) ≤ n + 1) omega r).1 hle
+  rcases hcases with hH | hE
+  · have hHkHn : integerHorizon k ≤ integerHorizon n :=
+      integerHorizon_mono hkn
+    exact (not_le_of_gt (hrHk.trans_le hHkHn)) hH
+  · have hEq := completedEnergy_eq_of_le_horizons hUsual eta hkn hrHk.le homega
+    have hEthresh : E < (n + 1 : ℝ) := by
+      calc
+        E < (N : ℝ) := hN
+        _ ≤ (n : ℝ) := by exact_mod_cast hNn
+        _ < (n + 1 : ℝ) := by exact_mod_cast Nat.lt_succ_self n
+    have hleE : (n + 1 : ℝ) ≤ E := by
+      dsimp [E]
+      rw [hEq]
+      exact hE
+    exact (not_le_of_gt hEthresh) hleE
+
+/-- Pointwise divergence to the top element of `WithTop ℝ≥0` on every good
+path.  This is the topological notion of tending to infinity used in Chewi's
+local-martingale definition. -/
+theorem tendsto_globalLocalizingTime_top_of_good
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    {omega : Omega} (homega : omega ∉ globalBadSet eta) :
+    Tendsto
+      (fun n => (globalLocalizingTime hUsual eta n omega : WithTop ℝ≥0))
+      atTop (𝓝 (⊤ : WithTop ℝ≥0)) := by
+  rw [WithTop.tendsto_nhds_top_iff]
+  intro r
+  filter_upwards [eventually_lt_globalLocalizingTime_of_good hUsual eta homega r]
+    with n hn
+  exact WithTop.coe_lt_coe.mpr hn
+
+/-- The global canonical localizing sequence tends to infinity almost surely.
+This is the exact limiting clause required by `Localization.IsLocalMartingale`. -/
+theorem globalLocalizingTime_tendsto_top_ae
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu) :
+    ∀ᵐ omega ∂mu,
+      Tendsto
+        (fun n => (globalLocalizingTime hUsual eta n omega : WithTop ℝ≥0))
+        atTop (𝓝 (⊤ : WithTop ℝ≥0)) := by
+  filter_upwards [
+    (measure_eq_zero_iff_ae_notMem.mp (measure_globalBadSet_zero eta))]
+    with omega homega
+  exact tendsto_globalLocalizingTime_top_of_good hUsual eta homega
+
+end GlobalCanonicalLocalizerLimit
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

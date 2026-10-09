@@ -1,0 +1,108 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOBackward
+import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal
+
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+/-!
+# Actual two-noise RGO stage
+
+A fixed-stage consumer of arXiv:2609.06906v1 Theorem6.5 and Lemma6.3(i).
+Characteristic functions prove the actual GaussianSmoothing semigroup. One
+backward kernel at total time eta+tau recovers the target after both noises;
+a proposal close to the already-smoothed target receives KL control with
+added time tau in the denominator, not total time eta+tau.
+
+General probability bases and actual extended-nonnegative W2 input explicitly abstract the
+source Gibbs/P2 setting. Zero initial smoothing, precision and radius, and
+zero dimension are included. This is not joint parameter/history selection,
+concrete normalized source-time substitution, approximate recursive sampling,
+measurable proxy selection, accumulated error or expected query cost. The
+semigroup is a local proof helper, not a separately public Gaussian-law API.
+-/
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TwoNoiseRGO
+
+/-- Actual two-noise target recovery and added-time KL control, using one
+Markov kernel chosen before every proposal law and radius. -/
+theorem two_noise_rgo {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [IsProbabilityMeasure μ] (b η τ : ℝ)
+    (hb : 0 ≤ b) (hη : 0 ≤ η) (hτ : 0 < τ) (u : E) :
+    let ρ := μ.tilted (fun x => -(b/2)*‖x-u‖^2)
+    IsProbabilityMeasure ρ ∧
+      GaussianSmoothing.gaussianSmoothing (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η))
+        (Real.sqrt τ) = GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt (η+τ)) ∧
+      ∃ K : Kernel E E, IsMarkovKernel K ∧
+        (∀ y, K y = ρ.tilted (fun x => -‖x-y‖^2/(2*(η+τ)))) ∧
+        K ∘ₘ GaussianSmoothing.gaussianSmoothing
+          (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η)) (Real.sqrt τ) = ρ ∧
+        ∀ (ν : Measure E), IsProbabilityMeasure ν → ∀ r : ℝ, 0 ≤ r →
+          WassersteinSpace.wassersteinDistance ν
+            (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η)) ≤ ENNReal.ofReal r →
+          InformationTheory.klDiv (K ∘ₘ GaussianSmoothing.gaussianSmoothing ν (Real.sqrt τ)) ρ ≤
+            ENNReal.ofReal (r^2/(2*τ)) := by
+  have heat_semigroup (μ : Measure E) [IsProbabilityMeasure μ] (η τ : ℝ) (hη : 0 ≤ η) (hτ : 0 ≤ τ) :
+      GaussianSmoothing.gaussianSmoothing (GaussianSmoothing.gaussianSmoothing μ (Real.sqrt η))
+        (Real.sqrt τ) = GaussianSmoothing.gaussianSmoothing μ (Real.sqrt (η+τ)) := by
+    have hc (a : ℝ) (ha : 0 ≤ a) (t : E) :
+        charFun (GaussianSmoothing.scaledStdGaussian (E := E) (Real.sqrt a)) t =
+          Complex.exp (-(a : ℂ) * (‖t‖ : ℂ)^2 / 2) := by
+      unfold GaussianSmoothing.scaledStdGaussian
+      rw [charFun_map_smul, charFun_stdGaussian]
+      simp only [norm_smul, Real.norm_eq_abs, abs_of_nonneg (Real.sqrt_nonneg a),
+        Complex.ofReal_mul, mul_pow]
+      rw [← Complex.ofReal_pow, Real.sq_sqrt ha]
+      congr 1
+      ring
+    have hs (ν : Measure E) [IsProbabilityMeasure ν] (s : ℝ) :
+        IsProbabilityMeasure (GaussianSmoothing.gaussianSmoothing ν s) := by
+      unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+      exact Measure.isProbabilityMeasure_map (by fun_prop)
+    let := hs μ (Real.sqrt η)
+    let := hs (GaussianSmoothing.gaussianSmoothing μ (Real.sqrt η)) (Real.sqrt τ)
+    let := hs μ (Real.sqrt (η+τ))
+    apply Measure.ext_of_charFun
+    funext t
+    change charFun ((μ ∗ GaussianSmoothing.scaledStdGaussian (Real.sqrt η)) ∗
+        GaussianSmoothing.scaledStdGaussian (Real.sqrt τ)) t =
+      charFun (μ ∗ GaussianSmoothing.scaledStdGaussian (Real.sqrt (η+τ))) t
+    rw [charFun_conv, charFun_conv, charFun_conv, hc η hη, hc τ hτ, hc (η+τ) (add_nonneg hη hτ)]
+    rw [mul_assoc, ← Complex.exp_add]
+    congr 2
+    push_cast
+    ring
+  dsimp only
+  let ρ := μ.tilted (fun x => -(b/2)*‖x-u‖^2)
+  obtain ⟨hρ,K,hK,hfiber,_,hrecover,_⟩ :=
+    RGOBackward.rgo_backward_recovery μ b (η+τ) hb (add_pos_of_nonneg_of_pos hη hτ) u
+  let := hρ
+  let := hK
+  have hs (ν : Measure E) [IsProbabilityMeasure ν] (s : ℝ) :
+      IsProbabilityMeasure (GaussianSmoothing.gaussianSmoothing ν s) := by
+    unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+    exact Measure.isProbabilityMeasure_map (by fun_prop)
+  have hsem := heat_semigroup ρ η τ hη hτ.le
+  have hrec : K ∘ₘ GaussianSmoothing.gaussianSmoothing
+      (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η)) (Real.sqrt τ) = ρ := by
+    rw [hsem]
+    exact hrecover
+  refine ⟨hρ,hsem,K,hK,hfiber,hrec,?_⟩
+  intro ν hν r hr hW
+  have hcost : Transport.transportCost (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖^2)) ν
+      (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η)) ≤ ENNReal.ofReal (r^2) := by
+    have hh := pow_le_pow_left₀ (by positivity) hW 2
+    rw [WassersteinSpace.wassersteinDistance_sq, ← ENNReal.ofReal_pow hr] at hh
+    exact hh
+  let := hν
+  let := hs ρ (Real.sqrt η)
+  let := hs ν (Real.sqrt τ)
+  let := hs (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η)) (Real.sqrt τ)
+  have hk := InformationTheory.klDiv_comp_right_le
+    (GaussianSmoothing.gaussianSmoothing ν (Real.sqrt τ))
+    (GaussianSmoothing.gaussianSmoothing (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η))
+      (Real.sqrt τ)) K
+  rw [hrec] at hk
+  exact hk.trans (GaussianKL.gaussian_kl_reverse_transport ν
+    (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt η)) r τ hr hτ hcost)
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TwoNoiseRGO

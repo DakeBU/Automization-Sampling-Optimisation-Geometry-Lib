@@ -1,0 +1,160 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+import AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates
+import Mathlib.Analysis.Calculus.FDeriv.Basic
+import Mathlib.Data.Fintype.BigOperators
+
+/-!
+# Finite-dimensional algebra for Chewi Theorem 1.1.19
+
+This module isolates the deterministic finite-dimensional contractions appearing
+in Itô's formula.  It deliberately does not assert any quadratic-variation or
+stochastic-limit theorem.
+
+For a matrix coefficient `sigma : iota -> kappa -> R`, `diffusionColumn sigma j`
+is the `j`-th state-space column.  The first-order stochastic coefficient is
+`<grad f, sigma_j>`, while the second-order correction is the sum over Brownian
+coordinates of the second Fréchet derivative applied twice to `sigma_j`.
+This is the coordinate-free column form of the textbook contraction
+`<nabla^2 f, sigma sigma^T>`.
+-/
+
+noncomputable section
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ItoFormulaAlgebra
+
+open scoped BigOperators RealInnerProductSpace
+
+/-- The `j`-th state-space column of a finite diffusion matrix. -/
+noncomputable def diffusionColumn
+    {iota kappa : Type*} [Fintype iota]
+    (sigma : iota → kappa → ℝ) (j : kappa) : EuclideanSpace ℝ iota :=
+  WithLp.toLp 2 (fun i => sigma i j)
+
+/-- First-order deterministic drift contribution in Itô's formula. -/
+def driftGradientTerm
+    {iota : Type*} [Fintype iota]
+    (f : EuclideanSpace ℝ iota → ℝ)
+    (x b : EuclideanSpace ℝ iota) : ℝ :=
+  inner ℝ (gradient f x) b
+
+/-- Brownian-coordinate coefficient of the stochastic first-order term. -/
+def diffusionGradientCoefficient
+    {iota kappa : Type*} [Fintype iota]
+    (f : EuclideanSpace ℝ iota → ℝ)
+    (x : EuclideanSpace ℝ iota)
+    (sigma : iota → kappa → ℝ) (j : kappa) : ℝ :=
+  inner ℝ (gradient f x) (diffusionColumn sigma j)
+
+/-- Second Fréchet derivative evaluated twice in the same direction. -/
+def secondDerivativeQuadraticForm
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → ℝ) (x v : E) : ℝ :=
+  fderiv ℝ (fderiv ℝ f) x v v
+
+/-- The second-order diffusion/Hessian contraction in column form.
+
+For a `d x N` coefficient matrix this is
+`sum_j D^2 f(x)[sigma_j, sigma_j]`, hence the finite-dimensional form of
+`<nabla^2 f(x), sigma sigma^T>`. -/
+def diffusionHessianContraction
+    {iota kappa : Type*} [Fintype iota] [Fintype kappa]
+    (f : EuclideanSpace ℝ iota → ℝ)
+    (x : EuclideanSpace ℝ iota)
+    (sigma : iota → kappa → ℝ) : ℝ :=
+  ∑ j, secondDerivativeQuadraticForm f x (diffusionColumn sigma j)
+
+/-- The deterministic finite-variation coefficient in the source Itô formula. -/
+def itoDriftCorrection
+    {iota kappa : Type*} [Fintype iota] [Fintype kappa]
+    (f : EuclideanSpace ℝ iota → ℝ)
+    (x b : EuclideanSpace ℝ iota)
+    (sigma : iota → kappa → ℝ) : ℝ :=
+  driftGradientTerm f x b +
+    (1 / 2 : ℝ) * diffusionHessianContraction f x sigma
+
+/-- The drift-gradient contraction is the Fréchet derivative applied to the
+drift whenever `f` is differentiable at the point. -/
+theorem driftGradientTerm_eq_fderiv
+    {iota : Type*} [Fintype iota]
+    {f : EuclideanSpace ℝ iota → ℝ}
+    {x b : EuclideanSpace ℝ iota}
+    (hf : DifferentiableAt ℝ f x) :
+    driftGradientTerm f x b = fderiv ℝ f x b := by
+  exact
+    (Analysis.Calculus.Gradient.fderiv_apply_eq_inner_gradient_of_differentiableAt
+      hf).symm
+
+/-- Each stochastic first-order coefficient is the Fréchet derivative in the
+corresponding diffusion-column direction. -/
+theorem diffusionGradientCoefficient_eq_fderiv
+    {iota kappa : Type*} [Fintype iota]
+    {f : EuclideanSpace ℝ iota → ℝ}
+    {x : EuclideanSpace ℝ iota}
+    {sigma : iota → kappa → ℝ} {j : kappa}
+    (hf : DifferentiableAt ℝ f x) :
+    diffusionGradientCoefficient f x sigma j =
+      fderiv ℝ f x (diffusionColumn sigma j) := by
+  exact
+    (Analysis.Calculus.Gradient.fderiv_apply_eq_inner_gradient_of_differentiableAt
+      hf).symm
+
+/-- Coordinate expansion of the first-order drift contraction. -/
+theorem driftGradientTerm_eq_sum
+    {iota : Type*} [Fintype iota]
+    (f : EuclideanSpace ℝ iota → ℝ)
+    (x b : EuclideanSpace ℝ iota) :
+    driftGradientTerm f x b =
+      ∑ i, (gradient f x) i * b i := by
+  exact
+    Geometry.EuclideanSpaceCoordinates.euclideanSpace_inner_eq_sum_mul
+      (gradient f x) b
+
+/-- Coordinate expansion of the Brownian-coordinate stochastic coefficient. -/
+theorem diffusionGradientCoefficient_eq_sum
+    {iota kappa : Type*} [Fintype iota]
+    (f : EuclideanSpace ℝ iota → ℝ)
+    (x : EuclideanSpace ℝ iota)
+    (sigma : iota → kappa → ℝ) (j : kappa) :
+    diffusionGradientCoefficient f x sigma j =
+      ∑ i, (gradient f x) i * sigma i j := by
+  rw [diffusionGradientCoefficient]
+  rw [Geometry.EuclideanSpaceCoordinates.euclideanSpace_inner_eq_sum_mul]
+  rfl
+
+/-- If a supplied Hessian representative is the derivative of `fderiv f` at
+`x`, the quadratic form uses that representative literally.  This is the local
+bridge used later to turn a `C^2` source function into the Hessian contraction
+without assuming a bounded Hessian in the final theorem. -/
+theorem secondDerivativeQuadraticForm_eq_of_hasFDerivAt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {f : E → ℝ} {x v : E}
+    {H : E →L[ℝ] (E →L[ℝ] ℝ)}
+    (hH : HasFDerivAt (fderiv ℝ f) H x) :
+    secondDerivativeQuadraticForm f x v = H v v := by
+  unfold secondDerivativeQuadraticForm
+  rw [hH.fderiv]
+
+/-- Rewrite the full diffusion/Hessian contraction using a supplied Hessian
+representative at the point. -/
+theorem diffusionHessianContraction_eq_of_hasFDerivAt
+    {iota kappa : Type*} [Fintype iota] [Fintype kappa]
+    {f : EuclideanSpace ℝ iota → ℝ}
+    {x : EuclideanSpace ℝ iota}
+    {sigma : iota → kappa → ℝ}
+    {H : EuclideanSpace ℝ iota →L[ℝ]
+      (EuclideanSpace ℝ iota →L[ℝ] ℝ)}
+    (hH : HasFDerivAt (fderiv ℝ f) H x) :
+    diffusionHessianContraction f x sigma =
+      ∑ j, H (diffusionColumn sigma j) (diffusionColumn sigma j) := by
+  unfold diffusionHessianContraction
+  apply Finset.sum_congr rfl
+  intro j _
+  exact secondDerivativeQuadraticForm_eq_of_hasFDerivAt hH
+
+end ItoFormulaAlgebra
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

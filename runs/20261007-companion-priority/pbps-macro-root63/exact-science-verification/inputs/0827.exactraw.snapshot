@@ -1,0 +1,53 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic
+import Mathlib.Analysis.SpecificLimits.Basic
+
+/-!
+# Gradient descent under a Polyak–Łojasiewicz inequality
+
+Chewi arXiv:2605.07006v1 Definition 2.5 and Theorem 3.6, with the necessary
+nonnegative step explicit. The supplied global minimizer keeps the source's
+attainment convention. We use actual gradient iterates, not a supplied scalar
+recurrence, and do not assume convexity. The algebraic statement permits real
+moduli: positive PL modulus and positive step give decay when the coefficient
+is nonnegative. A negative coefficient forces every function gap to be zero.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentPL
+
+open Set
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+/-- Final-value bound for actual gradient iterates under a PL model.
+No additional nonnegative-coefficient restriction or convexity is required. -/
+theorem gradient_descent_pl_value_bound {f : E → ℝ} {α β h : ℝ} {z : E}
+    (hz : IsMinOn f univ z) (hh : 0 ≤ h) (hstep : β * h ≤ 1)
+    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)
+    (hpl : ∀ x, 2 * α * (f x - f z) ≤ ‖gradient f x‖ ^ 2)
+    (x₀ : E) (N : ℕ) :
+    f ((fun x => x - h • gradient f x)^[N] x₀) - f z ≤
+      (1 - α * h) ^ N * (f x₀ - f z) := by
+  let T : E → E := fun x => x - h • gradient f x
+  let q : ℝ := 1 - α * h
+  have hnonneg (x : E) : 0 ≤ f x - f z := sub_nonneg.mpr (hz (mem_univ x))
+  have hrec (x : E) : f (T x) - f z ≤ q * (f x - f z) := by
+    have hd := GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound hh hstep hu x
+    have hp := mul_le_mul_of_nonneg_left (hpl x) (show 0 ≤ h / 2 by positivity)
+    dsimp [T, q]
+    nlinarith
+  by_cases hq : 0 ≤ q
+  · have hr := le_geom (u := fun n => f (T^[n] x₀) - f z) hq N (by
+      intro k _
+      rw [Function.iterate_succ_apply']
+      exact hrec _)
+    exact hr
+  · have hzero (x : E) : f x - f z = 0 := by
+      have hc : q * (f x - f z) ≥ 0 := (hnonneg (T x)).trans (hrec x)
+      have hneg : q < 0 := lt_of_not_ge hq
+      have hx := hnonneg x
+      nlinarith
+    change f (T^[N] x₀) - f z ≤ q ^ N * (f x₀ - f z)
+    rw [hzero, hzero, mul_zero]
+
+end AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentPL

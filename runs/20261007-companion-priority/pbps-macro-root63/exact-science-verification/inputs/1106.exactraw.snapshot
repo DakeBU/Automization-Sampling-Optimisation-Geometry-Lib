@@ -1,0 +1,135 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyStoppingTime
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedProgressiveL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppingBoundaryBridge
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Stopping
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.StoppingGraphNull
+
+/-!
+# Product-L² bridge for canonical energy stopping
+
+Canonical energy truncation uses the strict convention `s < τ_c`, whereas the
+generic Chewi stopping operator uses the closed convention `s ≤ τ_c`.  The
+pathwise boundary bridge shows equality away from the hitting-time graph.  This
+module upgrades that statement to product-space almost-everywhere equality and
+then to exact equality in completed progressive `L²`.
+
+This is the analytic bridge needed before applying completed Itô consistency:
+no optional-sampling theorem and no random-time Brownian variance identity is
+used here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EnergyStoppingL2Bridge
+
+open Filter MeasureTheory Set
+open scoped NNReal
+
+open CanonicalEnergyLocalizer CanonicalEnergyStoppingTime
+  ElementaryItoIntegral EnergyStoppedIntegrand EnergyStoppedProgressiveL2
+  EnergyStoppingBoundaryBridge LocalProgressiveL2 ProgressiveL2
+  ProgressiveL2Stopping StoppingGraphNull
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Under the process-time measure, the time coordinate lies in `[0,T]` almost
+everywhere. -/
+theorem ae_time_le_terminal :
+    ∀ᵐ z : Omega × ℝ≥0 ∂processTimeMeasure mu T, z.2 ≤ T := by
+  rw [ae_iff]
+  have hset : {z : Omega × ℝ≥0 | ¬ z.2 ≤ T} =
+      Set.univ ×ˢ Set.Ioi T := by
+    ext z
+    simp only [Set.mem_ofPred_eq, Set.mem_prod, Set.mem_univ, true_and,
+      Set.mem_Ioi, not_le]
+  rw [hset]
+  simp [processTimeMeasure, TimeMeasure.upTo_Ioi_terminal]
+
+/-- The terminal time slice is product-null. -/
+theorem ae_time_ne_terminal :
+    ∀ᵐ z : Omega × ℝ≥0 ∂processTimeMeasure mu T, z.2 ≠ T := by
+  rw [ae_iff]
+  have hset : {z : Omega × ℝ≥0 | ¬ z.2 ≠ T} =
+      Set.univ ×ˢ ({T} : Set ℝ≥0) := by
+    ext z
+    simp
+  rw [hset]
+  simp [processTimeMeasure, TimeMeasure.upTo_singleton]
+
+/-- The smaller strict energy truncation agrees product-a.e. with the larger
+energy truncation stopped in Chewi's closed convention at the smaller hitting
+time. -/
+theorem processFunction_energyStopped_ae_eq_closedStop_larger
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {c d : ℝ} (hc : 0 ≤ c) (hcd : c ≤ d) :
+    processFunction (energyStoppedIntegrand hUsual eta c) =ᵐ[processTimeMeasure mu T]
+      processFunction
+        (Localization.stoppedIntegrand
+          (energyStoppedIntegrand hUsual eta d)
+          (fun w =>
+            (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))) := by
+  have htau : StoppingTime.IsChewiStoppingTime filtration
+      (fun w =>
+        (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0)) :=
+    canonicalEnergyLocalizer_isChewiStoppingTime hUsual eta hc
+  have hgraph :
+      ∀ᵐ z ∂processTimeMeasure mu T,
+        (z.2 : WithTop ℝ≥0) ≠
+          (canonicalEnergyLocalizer hUsual eta c z.1 : WithTop ℝ≥0) :=
+    ae_time_ne_stoppingTime
+      (mu := mu)
+      (fun w =>
+        (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))
+      htau T
+  filter_upwards [
+      (ae_time_le_terminal (mu := mu) (T := T) :
+        ∀ᵐ z : Omega × ℝ≥0 ∂processTimeMeasure mu T, z.2 ≤ T),
+      (ae_time_ne_terminal (mu := mu) (T := T) :
+        ∀ᵐ z : Omega × ℝ≥0 ∂processTimeMeasure mu T, z.2 ≠ T),
+      hgraph]
+    with z hzT hzneT hzgraph
+  have hzTlt : z.2 < T := lt_of_le_of_ne hzT hzneT
+  have hznetau : z.2 ≠ canonicalEnergyLocalizer hUsual eta c z.1 := by
+    intro hz
+    apply hzgraph
+    exact congrArg (fun x : ℝ≥0 => (x : WithTop ℝ≥0)) hz
+  change energyStoppedIntegrand hUsual eta c z.2 z.1 =
+    Localization.stoppedIntegrand
+      (energyStoppedIntegrand hUsual eta d)
+      (fun w =>
+        (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))
+      z.2 z.1
+  exact energyStoppedIntegrand_eq_closedStop_larger_of_ne_boundary
+    hUsual eta hc hcd z.1 hzTlt hznetau
+
+/-- In completed progressive `L²`, strict truncation at level `c` is exactly
+closed stopping at `τ_c` of any larger truncation level `d ≥ c`. -/
+theorem stoppedProgressiveL2_toLp_eq_stop_larger
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {c d : ℝ} (hc : 0 ≤ c) (hcd : c ≤ d) :
+    (stoppedProgressiveL2 hUsual eta hc).toLp =
+      (ProgressiveL2Stopping.stop
+        (stoppedProgressiveL2 hUsual eta (hc.trans hcd))
+        (fun w =>
+          (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))
+        (canonicalEnergyLocalizer_isChewiStoppingTime hUsual eta hc)).toLp := by
+  unfold ProgressiveL2Integrand.toLp
+  exact MemLp.toLp_congr
+    (stoppedProgressiveL2 hUsual eta hc).memLp
+    (ProgressiveL2Stopping.stop
+      (stoppedProgressiveL2 hUsual eta (hc.trans hcd))
+      (fun w =>
+        (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))
+      (canonicalEnergyLocalizer_isChewiStoppingTime hUsual eta hc)).memLp
+    (processFunction_energyStopped_ae_eq_closedStop_larger
+      hUsual eta hc hcd)
+
+end EnergyStoppingL2Bridge
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

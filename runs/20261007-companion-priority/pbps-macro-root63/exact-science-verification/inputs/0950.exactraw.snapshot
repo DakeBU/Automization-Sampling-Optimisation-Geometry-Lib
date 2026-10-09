@@ -1,0 +1,67 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMassSlice
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonRemovableMass
+
+/-!
+# Canonical equal-mass slices of a finite local family
+
+This is the thin join between the finite-family minimum
+`CommonRemovableMass.commonRemovableMass` and the generic prescribed-mass
+slice primitive `CommonMassSlice.commonMassSlice`.
+
+For a nonempty finite family of positive local finite measures, every member is
+scaled down to the common minimum mass. The resulting slices all have exactly
+the same strictly positive mass and each is dominated by the corresponding
+original local measure.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonMassSliceFamily
+
+open MeasureTheory
+open CommonMassSlice CommonRemovableMass
+open scoped NNReal
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X]
+
+noncomputable def commonMassSliceFamily {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X) (i : Fin (n + 1)) :
+    FiniteMeasure X :=
+  commonMassSlice (commonRemovableMass mu) (mu i)
+
+theorem commonMassSliceFamily_mass {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X)
+    (hpos : ∀ i, 0 < (mu i).mass) (i : Fin (n + 1)) :
+    (commonMassSliceFamily mu i).mass = commonRemovableMass mu := by
+  exact commonMassSlice_mass _ _ (hpos i)
+
+theorem commonMassSliceFamily_toMeasure_le {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X)
+    (hpos : ∀ i, 0 < (mu i).mass) (i : Fin (n + 1)) :
+    ((commonMassSliceFamily mu i : FiniteMeasure X) : Measure X) ≤
+      (mu i : Measure X) := by
+  exact commonMassSlice_toMeasure_le _ _ (hpos i) (commonRemovableMass_le mu i)
+
+theorem commonMassSliceFamily_mass_pos {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X)
+    (hpos : ∀ i, 0 < (mu i).mass) (i : Fin (n + 1)) :
+    0 < (commonMassSliceFamily mu i).mass := by
+  rw [commonMassSliceFamily_mass mu hpos i]
+  exact commonRemovableMass_pos mu hpos
+
+theorem commonMassSliceFamily_mass_eq {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X)
+    (hpos : ∀ i, 0 < (mu i).mass) (i j : Fin (n + 1)) :
+    (commonMassSliceFamily mu i).mass = (commonMassSliceFamily mu j).mass := by
+  rw [commonMassSliceFamily_mass mu hpos i,
+    commonMassSliceFamily_mass mu hpos j]
+
+end
+
+end CommonMassSliceFamily
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

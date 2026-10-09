@@ -1,0 +1,473 @@
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.Analysis.Real.Pi.Bounds
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw
+
+/-! Exponential moment of the actual smooth gradient arc estimator.
+The factor 2 and log 2 follow the proof of arXiv:2602.01338v1 D.1 and its
+Claim 2, as consumed by SPHMC Appendix A.4(2). They do not silently repair
+the printed Claim 1 logarithmic statement. Zero dimension, beta=0 and all
+real arc times are disclosed extensions. Clipping, target identification,
+normalized accuracy, reference-point construction and costs remain separate. -/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcMoment
+
+open MeasureTheory ProbabilityTheory
+noncomputable section
+
+private theorem gaussian_weighted_exp (t x : ℝ) :
+    gaussianPDFReal 0 1 x * Real.exp (t * x^2) =
+      (1 / Real.sqrt (2 * Real.pi)) * Real.exp (-(1/2-t) * x^2) := by
+  simp only [gaussianPDFReal, NNReal.coe_one, mul_one, sub_zero]
+  rw [mul_assoc, ← Real.exp_add]
+  congr 2 <;> ring
+
+private theorem quadratic_integrable (t : ℝ) (ht : t < 1/2) :
+    Integrable (fun x : ℝ => Real.exp (t*x^2)) (gaussianReal 0 1) := by
+  rw [gaussianReal_of_var_ne_zero _ (by norm_num : (1 : NNReal) ≠ 0)]
+  apply (integrable_withDensity_iff_integrable_smul'
+    (measurable_gaussianPDF 0 1) (by simp [gaussianPDF_def])).mpr
+  simp only [gaussianPDF_def, ENNReal.toReal_ofReal (gaussianPDFReal_nonneg _ _ _),
+    smul_eq_mul, gaussian_weighted_exp]
+  exact (integrable_exp_neg_mul_sq (by linarith : 0 < 1/2-t)).const_mul _
+
+private theorem quadratic_integral_raw (t : ℝ) :
+    (∫ x : ℝ, Real.exp (t*x^2) ∂gaussianReal 0 1) =
+      (1 / Real.sqrt (2*Real.pi)) * Real.sqrt (Real.pi / (1/2-t)) := by
+  rw [gaussianReal_of_var_ne_zero _ (by norm_num : (1 : NNReal) ≠ 0)]
+  rw [integral_withDensity_eq_integral_toReal_smul₀
+    (measurable_gaussianPDF 0 1).aemeasurable (by simp [gaussianPDF_def])]
+  simp only [gaussianPDF_def, ENNReal.toReal_ofReal (gaussianPDFReal_nonneg _ _ _),
+    smul_eq_mul, gaussian_weighted_exp]
+  rw [integral_const_mul, integral_gaussian]
+
+private theorem quadratic_integral (t : ℝ) (ht : t < 1/2) :
+    (∫ x : ℝ, Real.exp (t*x^2) ∂gaussianReal 0 1) =
+      (Real.sqrt (1-2*t))⁻¹ := by
+  rw [quadratic_integral_raw, one_div, ← Real.sqrt_inv,
+    ← Real.sqrt_mul (inv_nonneg.mpr (by positivity : 0 ≤ 2*Real.pi)), ← Real.sqrt_inv]
+  congr 1
+  have hp := Real.pi_pos
+  have hden : 1/2-t ≠ 0 := by linarith
+  have hden2 : 1-2*t ≠ 0 := by linarith
+  field_simp
+
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+omit [MeasurableSpace E] [BorelSpace E] in
+private theorem basis_exp_product (t : ℝ) (x : Fin (Module.finrank ℝ E) → ℝ) :
+    Real.exp (t * ‖∑ i, x i • stdOrthonormalBasis ℝ E i‖^2) =
+      ∏ i, Real.exp (t * (x i)^2) := by
+  have hn : ‖∑ i, x i • stdOrthonormalBasis ℝ E i‖^2 = ∑ i, (x i)^2 := by
+    simpa [real_inner_self_eq_norm_sq, pow_two] using
+      (stdOrthonormalBasis ℝ E).orthonormal.inner_sum x x Finset.univ
+  rw [hn, Finset.mul_sum, Real.exp_sum]
+
+private theorem quadratic_stdGaussian (t : ℝ) (ht : t < 1/2) :
+    Integrable (fun x : E => Real.exp (t*‖x‖^2)) (stdGaussian E) ∧
+    (∫ x : E, Real.exp (t*‖x‖^2) ∂stdGaussian E) =
+      ((Real.sqrt (1-2*t))⁻¹) ^ Module.finrank ℝ E := by
+  have hmap : Measurable (fun x : Fin (Module.finrank ℝ E) → ℝ => ∑ i, x i • stdOrthonormalBasis ℝ E i) := by fun_prop
+  have hp := Integrable.fintype_prod (fun _ : Fin (Module.finrank ℝ E) => quadratic_integrable t ht)
+  constructor
+  · unfold stdGaussian
+    apply (integrable_map_measure (by fun_prop) hmap.aemeasurable).mpr
+    simpa only [Function.comp_def, basis_exp_product] using hp
+  · unfold stdGaussian
+    rw [integral_map hmap.aemeasurable (by fun_prop)]
+    simp_rw [basis_exp_product]
+    rw [integral_fintype_prod_eq_pow (fun x : ℝ => Real.exp (t*x^2)), quadratic_integral t ht]
+    simp
+
+omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E] in
+private theorem sqrt_inv_le_exp (t : ℝ) (ht0 : 0 ≤ t) (ht : t ≤ 1/4) :
+    (Real.sqrt (1-2*t))⁻¹ ≤ Real.exp (2*t) := by
+  have hx : 0 < 1-2*t := by linarith
+  apply (Real.log_le_iff_le_exp (inv_pos.mpr (Real.sqrt_pos.mpr hx))).mp
+  rw [Real.log_inv, Real.log_sqrt hx.le]
+  have hl := Real.one_sub_inv_le_log_of_pos hx
+  have hi : (1-2*t)⁻¹ ≤ 1+4*t := by
+    apply (inv_le_iff_one_le_mul₀ hx).mpr
+    nlinarith
+  linarith
+
+private theorem quadratic_stdGaussian_bound (t : ℝ) (ht0 : 0 ≤ t) (ht : t ≤ 1/4) :
+    Integrable (fun x : E => Real.exp (t*‖x‖^2)) (stdGaussian E) ∧
+    (∫ x : E, Real.exp (t*‖x‖^2) ∂stdGaussian E) ≤
+      Real.exp (2 * (Module.finrank ℝ E : ℝ) * t) := by
+  obtain ⟨hi,he⟩ := quadratic_stdGaussian (E := E) t (by linarith)
+  refine ⟨hi, ?_⟩
+  rw [he]
+  calc
+    _ ≤ (Real.exp (2*t)) ^ Module.finrank ℝ E :=
+      pow_le_pow_left₀ (by positivity) (sqrt_inv_le_exp t ht0 ht) _
+    _ = _ := by rw [← Real.exp_nat_mul]; congr 1; ring
+
+private theorem linear_exp
+    (h : E) (a : ℝ) :
+    Integrable (fun z : E => Real.exp (a * inner ℝ h z)) (stdGaussian E) ∧
+    (∫ z : E, Real.exp (a * inner ℝ h z) ∂stdGaussian E) =
+      Real.exp (a^2 * ‖h‖^2 / 2) := by
+  let l : StrongDual ℝ E := innerSL ℝ h
+  have hmap : (stdGaussian E).map l = gaussianReal 0 (‖h‖^2).toNNReal := by
+    rw [IsGaussian.map_eq_gaussianReal l,integral_strongDual_stdGaussian,
+      variance_dual_stdGaussian]
+    simp only [l,innerSL_apply_norm]
+  have hI := integrable_exp_mul_gaussianReal (μ := 0) (v := (‖h‖^2).toNNReal) a
+  rw [← hmap] at hI
+  have hI' := (integrable_map_measure (by fun_prop) (by fun_prop : AEMeasurable l (stdGaussian E))).mp hI
+  refine ⟨hI',?_⟩
+  have hm := mgf_gaussianReal hmap a
+  simpa [mgf,l,Real.toNNReal_of_nonneg (sq_nonneg ‖h‖),mul_comm] using hm
+
+private theorem linear_abs_exp (h : E) (a : ℝ) :
+    Integrable (fun z : E => Real.exp (a * |inner ℝ h z|)) (stdGaussian E) ∧
+    (∫ z : E, Real.exp (a * |inner ℝ h z|) ∂stdGaussian E) ≤
+      2 * Real.exp (a^2 * ‖h‖^2 / 2) := by
+  obtain ⟨hip,hp⟩ := linear_exp h a
+  obtain ⟨hin,hn⟩ := linear_exp h (-a)
+  have hi := integrable_exp_mul_abs hip hin
+  refine ⟨hi, ?_⟩
+  calc
+    _ ≤ ∫ z : E, (Real.exp (a * inner ℝ h z) + Real.exp (-a * inner ℝ h z))
+        ∂stdGaussian E := by
+      apply integral_mono hi (hip.add hin)
+      intro z
+      change Real.exp (a * |inner ℝ h z|) ≤ Real.exp (a * inner ℝ h z) + Real.exp (-a * inner ℝ h z)
+      by_cases hz : 0 ≤ inner ℝ h z
+      · rw [abs_of_nonneg hz]
+        exact le_add_of_nonneg_right (Real.exp_nonneg _)
+      · rw [abs_of_neg (lt_of_not_ge hz), mul_neg, neg_mul]
+        exact le_add_of_nonneg_left (Real.exp_nonneg _)
+    _ = _ := by rw [integral_add hip hin, hp, hn]; simp [sq, mul_assoc]; ring
+
+
+private theorem scaled_quadratic_bound (eta t : ℝ) (heta : 0 ≤ eta)
+    (ht : 0 ≤ t) (hb : t*eta ≤ 1/4) :
+    let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+    Integrable (fun z : E => Real.exp (t*‖z‖^2)) nu ∧
+    (∫ z : E, Real.exp (t*‖z‖^2) ∂nu) ≤
+      Real.exp (2 * (Module.finrank ℝ E : ℝ) * t * eta) := by
+  dsimp only
+  obtain ⟨hi,hv⟩ := quadratic_stdGaussian_bound (E := E) (t*eta) (mul_nonneg ht heta) hb
+  have hf : (fun z : E => Real.exp (t*‖Real.sqrt eta • z‖^2)) =
+      (fun z => Real.exp ((t*eta)*‖z‖^2)) := by
+    funext z
+    simp [norm_smul, mul_pow, Real.norm_eq_abs, sq_abs, Real.sq_sqrt heta, mul_assoc]
+  constructor
+  · apply (integrable_map_measure (by fun_prop) (by fun_prop)).mpr
+    simpa only [Function.comp_def, hf] using hi
+  · rw [integral_map (by fun_prop) (by fun_prop)]
+    rw [hf]
+    convert hv using 1
+    congr 1
+    ring
+
+private theorem gaussian_product_abs_moment {X : Type*} [MeasurableSpace X]
+    (mu : Measure X) [SFinite mu] (g : X → E) (hg : Measurable g) (a : ℝ)
+    (hI : Integrable (fun x => Real.exp (a^2 * ‖g x‖^2 / 2)) mu) :
+    Integrable (fun p : X × E => Real.exp (a * |inner ℝ (g p.1) p.2|))
+      (mu.prod (stdGaussian E)) ∧
+    (∫ p : X × E, Real.exp (a * |inner ℝ (g p.1) p.2|) ∂mu.prod (stdGaussian E)) ≤
+      2 * ∫ x, Real.exp (a^2 * ‖g x‖^2 / 2) ∂mu := by
+  let F := fun p : X × E => Real.exp (a * |inner ℝ (g p.1) p.2|)
+  have hF : StronglyMeasurable F := by dsimp [F]; fun_prop
+  have hi : Integrable F (mu.prod (stdGaussian E)) := by
+    apply (integrable_prod_iff hF.aestronglyMeasurable).mpr
+    constructor
+    · exact ae_of_all _ fun x => (linear_abs_exp (g x) a).1
+    · apply (hI.const_mul 2).mono' hF.norm.integral_prod_right'.aestronglyMeasurable
+      apply ae_of_all
+      intro x
+      change ‖∫ z : E, ‖Real.exp (a * |inner ℝ (g x) z|)‖ ∂stdGaussian E‖ ≤ _
+      simp only [Real.norm_eq_abs, Real.abs_exp]
+      rw [abs_of_nonneg (integral_nonneg fun _ => Real.exp_nonneg _)]
+      exact (linear_abs_exp (g x) a).2
+  refine ⟨hi, ?_⟩
+  change (∫ p, F p ∂mu.prod (stdGaussian E)) ≤ _
+  rw [integral_prod _ hi, ← integral_const_mul]
+  apply integral_mono hi.integral_prod_left (hI.const_mul 2)
+  intro x
+  exact (linear_abs_exp (g x) a).2
+
+private theorem positional_moment (eta c beta : ℝ) (heta : 0 ≤ eta)
+    (hc : 0 ≤ c) (hbeta : 0 ≤ beta) (hb : (2*c*beta^2)*eta ≤ 1/4)
+    (h xp : E) (g : E → E) (hg : Measurable g)
+    (hgnorm : ∀ x, ‖g x‖ ≤ beta * ‖x-xp‖) :
+    let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+    Integrable (fun z => Real.exp (c*‖g (h+z)‖^2)) nu ∧
+    (∫ z, Real.exp (c*‖g (h+z)‖^2) ∂nu) ≤
+      Real.exp (2*c*beta^2*‖h-xp‖^2 + 4*(Module.finrank ℝ E : ℝ)*c*beta^2*eta) := by
+  dsimp only
+  let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+  let k := 2*c*beta^2*‖h-xp‖^2
+  let t := 2*c*beta^2
+  have ht : 0 ≤ t := by dsimp [t]; positivity
+  obtain ⟨hi,hv⟩ := scaled_quadratic_bound (E := E) eta t heta ht hb
+  have hp : ∀ z : E, Real.exp (c*‖g (h+z)‖^2) ≤
+      Real.exp k * Real.exp (t*‖z‖^2) := by
+    intro z
+    have hn : ‖h+z-xp‖^2 ≤ 2*‖h-xp‖^2+2*‖z‖^2 := by
+      rw [show h+z-xp = (h-xp)+z by abel]
+      have hs := norm_add_le (h-xp) z
+      have hsq := (sq_le_sq₀ (norm_nonneg _) (by positivity)).mpr hs
+      nlinarith [sq_nonneg (‖h-xp‖-‖z‖)]
+    have hg2 := (sq_le_sq₀ (norm_nonneg (g (h+z)))
+      (mul_nonneg hbeta (norm_nonneg _))).mpr (hgnorm (h+z))
+    rw [mul_pow] at hg2
+    have hg3 := hg2.trans (mul_le_mul_of_nonneg_left hn (sq_nonneg beta))
+    have hex := mul_le_mul_of_nonneg_left hg3 hc
+    rw [← Real.exp_add]
+    apply Real.exp_le_exp.mpr
+    dsimp [k,t]
+    nlinarith
+  have hdom := hi.const_mul (Real.exp k)
+  have hres : Integrable (fun z : E => Real.exp (c*‖g (h+z)‖^2)) nu := by
+    have hm : Measurable (fun z : E => Real.exp (c*‖g (h+z)‖^2)) := by fun_prop
+    apply hdom.mono' hm.aestronglyMeasurable
+    exact ae_of_all _ fun z => by simpa only [Real.norm_eq_abs, Real.abs_exp] using hp z
+  refine ⟨hres, ?_⟩
+  calc
+    _ ≤ ∫ z : E, Real.exp k * Real.exp (t*‖z‖^2) ∂nu := integral_mono hres hdom hp
+    _ = Real.exp k * ∫ z : E, Real.exp (t*‖z‖^2) ∂nu := integral_const_mul _ _
+    _ ≤ Real.exp k * Real.exp (2*(Module.finrank ℝ E : ℝ)*t*eta) :=
+      mul_le_mul_of_nonneg_left hv (Real.exp_nonneg _)
+    _ = _ := by rw [← Real.exp_add]; congr 1; dsimp [k,t]; ring
+
+omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+private theorem source_constants (eta beta lam d R : ℝ)
+    (heta : 0 ≤ eta) (hd : 0 ≤ d) (hR : R^2 ≤ d*eta)
+    (hrange : 12*beta^2*eta^2*lam^2 ≤ 1) :
+    let a := lam * (Real.pi/2) * Real.sqrt eta
+    a^2*beta^2*eta ≤ 1/4 ∧
+    a^2*beta^2*R^2 + 2*d*a^2*beta^2*eta ≤ 10*d*eta^2*lam^2*beta^2 := by
+  dsimp only
+  let a := lam * (Real.pi/2) * Real.sqrt eta
+  have hpi : Real.pi^2 ≤ 12 := by
+    have hp := Real.pi_pos
+    have hu := Real.pi_lt_d2
+    nlinarith
+  have haeq : a^2 = (Real.pi^2/4)*(eta*lam^2) := by
+    dsimp [a]
+    rw [mul_pow, Real.sq_sqrt heta]
+    ring
+  have ha : a^2 ≤ 3*eta*lam^2 := by
+    rw [haeq]
+    have hh := mul_le_mul_of_nonneg_right hpi (mul_nonneg heta (sq_nonneg lam))
+    nlinarith
+  have hb := mul_le_mul_of_nonneg_right ha (mul_nonneg (sq_nonneg beta) heta)
+  constructor
+  · change a^2*beta^2*eta ≤ _
+    nlinarith
+  · change a^2*beta^2*R^2 + 2*d*a^2*beta^2*eta ≤ _
+    have hs := mul_le_mul_of_nonneg_left hR (mul_nonneg (sq_nonneg a) (sq_nonneg beta))
+    have hc := mul_le_mul_of_nonneg_left hb (by positivity : 0 ≤ 3*d)
+    have hp : 0 ≤ d*eta^2*lam^2*beta^2 := by positivity
+    nlinarith
+
+
+private theorem field_product_moment (eta beta lam : ℝ) (heta : 0 < eta)
+    (hbeta : 0 ≤ beta) (h xp : E) (g : E → E) (hg : Measurable g)
+    (hgnorm : ∀ x, ‖g x‖ ≤ beta * ‖x-xp‖)
+    (hcenter : ‖h-xp‖^2 ≤ (Module.finrank ℝ E : ℝ)*eta)
+    (hrange : 12*beta^2*eta^2*lam^2 ≤ 1) :
+    let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+    let a := lam*(Real.pi/2)*Real.sqrt eta
+    Integrable (fun p : E × E => Real.exp (a*|inner ℝ (g (h+p.1)) p.2|))
+      (nu.prod (stdGaussian E)) ∧
+    (∫ p : E × E, Real.exp (a*|inner ℝ (g (h+p.1)) p.2|) ∂nu.prod (stdGaussian E)) ≤
+      2*Real.exp (10*(Module.finrank ℝ E : ℝ)*eta^2*lam^2*beta^2) := by
+  dsimp only
+  let a := lam*(Real.pi/2)*Real.sqrt eta
+  let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+  obtain ⟨hb,he⟩ := source_constants eta beta lam (Module.finrank ℝ E : ℝ) ‖h-xp‖
+    heta.le (by positivity) hcenter hrange
+  change a^2*beta^2*eta ≤ 1/4 at hb
+  have hb' : (2*(a^2/2)*beta^2)*eta ≤ 1/4 := by nlinarith [hb]
+  obtain ⟨hi,hv⟩ := positional_moment eta (a^2/2) beta heta.le (by positivity)
+    hbeta hb' h xp g hg hgnorm
+  have hg' : Measurable (fun z : E => g (h+z)) := by fun_prop
+  obtain ⟨hprod,hbound⟩ := gaussian_product_abs_moment nu (fun z => g (h+z)) hg' a
+    (by simpa only [div_mul_eq_mul_div] using hi)
+  refine ⟨hprod, hbound.trans ?_⟩
+  apply mul_le_mul_of_nonneg_left _ (by norm_num : (0 : ℝ) ≤ 2)
+  calc
+    _ ≤ Real.exp (2*(a^2/2)*beta^2*‖h-xp‖^2 +
+        4*(Module.finrank ℝ E : ℝ)*(a^2/2)*beta^2*eta) := by
+      simpa only [div_mul_eq_mul_div] using hv
+    _ ≤ _ := by
+      apply Real.exp_le_exp.mpr
+      change a^2*beta^2*‖h-xp‖^2 + 2*(Module.finrank ℝ E : ℝ)*a^2*beta^2*eta ≤ _ at he
+      nlinarith [he]
+
+
+private theorem true_gradient_product_moment (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta lam : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (h xp : E)
+    (hcenter : ‖h-xp‖^2 ≤ (Module.finrank ℝ E : ℝ)*eta)
+    (hrange : 12*beta^2*eta^2*lam^2 ≤ 1) :
+    (∀ x, HasGradientAt f (gradient f x) x) ∧
+    let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+    let a := lam*(Real.pi/2)*Real.sqrt eta
+    Integrable (fun p : E × E => Real.exp (a*|inner ℝ
+      (gradient f xp - gradient f (h+p.1)) p.2|)) (nu.prod (stdGaussian E)) ∧
+    (∫ p : E × E, Real.exp (a*|inner ℝ
+      (gradient f xp - gradient f (h+p.1)) p.2|) ∂nu.prod (stdGaussian E)) ≤
+      2*Real.exp (10*(Module.finrank ℝ E : ℝ)*eta^2*lam^2*beta^2) := by
+  refine ⟨fun x => (hf x).hasGradientAt, ?_⟩
+  apply field_product_moment eta beta lam heta hbeta h xp
+    (fun x => gradient f xp-gradient f x)
+  · exact measurable_const.sub hlip.continuous.measurable
+  · intro x
+    have hd := hlip.dist_le_mul xp x
+    simp only [dist_eq_norm] at hd
+    change ‖gradient f xp - gradient f x‖ ≤ beta * ‖xp-x‖ at hd
+    simpa only [norm_sub_rev x xp] using hd
+  · exact hcenter
+  · exact hrange
+
+
+private theorem gradient_output_moment (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta lam : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (h xp : E)
+    (hcenter : ‖h-xp‖^2 ≤ (Module.finrank ℝ E : ℝ)*eta)
+    (hrange : 12*beta^2*eta^2*lam^2 ≤ 1) :
+    let mu := ((stdGaussian E).map (fun z : E => h + Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => ((Real.pi/2)*Real.sqrt eta) • z))
+    Integrable (fun p : E × E => Real.exp (lam*|inner ℝ p.2
+      (gradient f xp - gradient f p.1)|)) mu ∧
+    (∫ p : E × E, Real.exp (lam*|inner ℝ p.2
+      (gradient f xp - gradient f p.1)|) ∂mu) ≤
+      2*Real.exp (10*(Module.finrank ℝ E : ℝ)*eta^2*lam^2*beta^2) := by
+  let nu := (stdGaussian E).map (fun z : E => Real.sqrt eta • z)
+  let sigma := (Real.pi/2)*Real.sqrt eta
+  let T : E × E → E × E := fun p => (h+p.1, sigma • p.2)
+  let F : E × E → ℝ := fun p => Real.exp (lam*|inner ℝ p.2
+    (gradient f xp - gradient f p.1)|)
+  have hT : Measurable T := by dsimp [T]; fun_prop
+  have hF : Measurable F := by
+    have hg := hlip.continuous.measurable
+    dsimp [F]
+    fun_prop
+  have hmu : ((stdGaussian E).map (fun z : E => h + Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => sigma • z)) =
+      (nu.prod (stdGaussian E)).map T := by
+    have hh : (stdGaussian E).map (fun z : E => h + Real.sqrt eta • z) =
+        nu.map (fun z : E => h+z) := by
+      dsimp [nu]
+      rw [Measure.map_map (by fun_prop) (by fun_prop)]
+      rfl
+    rw [hh, Measure.map_prod_map _ _ (by fun_prop) (by fun_prop)]
+    rfl
+  have heq : (fun p : E × E => F (T p)) =
+      (fun p : E × E => Real.exp ((lam*(Real.pi/2)*Real.sqrt eta)*
+        |inner ℝ (gradient f xp-gradient f (h+p.1)) p.2|)) := by
+    funext p
+    dsimp [F,T]
+    rw [real_inner_smul_left, abs_mul, abs_of_nonneg (by positivity : 0 ≤ sigma),
+      real_inner_comm]
+    congr 1
+    dsimp [sigma]
+    ring
+  obtain ⟨_,hi,hv⟩ := true_gradient_product_moment f hf eta beta lam heta hbeta
+    hlip h xp hcenter hrange
+  change Integrable F _ ∧ (∫ p, F p ∂_) ≤ _
+  rw [hmu]
+  constructor
+  · apply (integrable_map_measure hF.aestronglyMeasurable hT.aemeasurable).mpr
+    change Integrable (fun p => F (T p)) (nu.prod (stdGaussian E))
+    simpa only [heq] using hi
+  · rw [integral_map hT.aemeasurable hF.aestronglyMeasurable]
+    simpa only [heq] using hv
+
+
+private def momentArc (h : E) (r : ℝ) (p : E × E) : E :=
+  h + Real.sin (Real.pi/2*r) • (p.1-h) + Real.cos (Real.pi/2*r) • p.2
+
+private def momentVelocity (h : E) (r : ℝ) (p : E × E) : E :=
+  (Real.pi/2) • (Real.cos (Real.pi/2*r) • (p.1-h) - Real.sin (Real.pi/2*r) • p.2)
+
+private theorem actual_gradient_arc_moment (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta lam : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (h xp : E) (r : ℝ)
+    (hcenter : ‖h-xp‖^2 ≤ (Module.finrank ℝ E : ℝ)*eta)
+    (hrange : 12*beta^2*eta^2*lam^2 ≤ 1) :
+    let mu := ((stdGaussian E).map (fun z : E => h + Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => Real.sqrt eta • z))
+    let F := fun p : E × E => Real.exp (lam*|inner ℝ (momentVelocity h r p)
+      (gradient f xp - gradient f (momentArc h r p))|)
+    Integrable F mu ∧ (∫ p, F p ∂mu) ≤
+      2*Real.exp (10*(Module.finrank ℝ E : ℝ)*eta^2*lam^2*beta^2) := by
+  let mu := ((stdGaussian E).map (fun z : E => h + Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => Real.sqrt eta • z))
+  let T : E × E → E × E := fun p => (momentArc h r p, momentVelocity h r p)
+  let F : E × E → ℝ := fun p => Real.exp (lam*|inner ℝ p.2
+    (gradient f xp-gradient f p.1)|)
+  have hT : Measurable T := by dsimp [T,momentArc,momentVelocity]; fun_prop
+  have hF : Measurable F := by
+    have hg := hlip.continuous.measurable
+    dsimp [F]
+    fun_prop
+  obtain ⟨_,_,hlaw,_,_⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw.gaussian_arc_law eta heta h
+  have hr := hlaw r
+  change mu.map T = _ at hr
+  obtain ⟨hi,hv⟩ := gradient_output_moment f hf eta beta lam heta hbeta hlip h xp hcenter hrange
+  change Integrable F _ at hi
+  rw [← hr] at hi
+  have hi' := (integrable_map_measure hF.aestronglyMeasurable hT.aemeasurable).mp hi
+  refine ⟨hi', ?_⟩
+  change (∫ p, F p ∂_) ≤ _ at hv
+  rw [← hr, integral_map hT.aemeasurable hF.aestronglyMeasurable] at hv
+  exact hv
+
+
+/-- Actual Gaussian-input estimator: measurability, exponential integrability,
+the source-proof-supported factor-2 moment bound and its logarithmic form. -/
+theorem smooth_gradient_arc_moment (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta lam : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta) (hlam : 0 ≤ lam)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (h xp : E) (r : ℝ)
+    (hcenter : ‖h-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hrange : 12*beta^2*eta^2*lam^2 ≤ 1) :
+    let mu := ((stdGaussian E).map (fun z : E => h + Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => Real.sqrt eta • z))
+    let F := fun p : E × E => Real.exp (lam*|inner ℝ (momentVelocity h r p)
+      (gradient f xp - gradient f (momentArc h r p))|)
+    (∀ x, HasGradientAt f (gradient f x) x) ∧
+    Measurable F ∧ Integrable F mu ∧
+    (∫ p, F p ∂mu) ≤ 2*Real.exp (10*(Module.finrank ℝ E : ℝ)*eta^2*lam^2*beta^2) ∧
+    Real.log (∫ p, F p ∂mu) ≤ Real.log 2 +
+      10*(Module.finrank ℝ E : ℝ)*eta^2*lam^2*beta^2 := by
+  have hc : ‖h-xp‖^2 ≤ (Module.finrank ℝ E : ℝ)*eta := by
+    have hs := sq_le_sq₀ (norm_nonneg (h-xp)) (Real.sqrt_nonneg _) |>.mpr hcenter
+    rwa [Real.sq_sqrt (by positivity)] at hs
+  obtain ⟨hi,hv⟩ := actual_gradient_arc_moment f hf eta beta lam heta hbeta hlip h xp r hc hrange
+  dsimp only
+  refine ⟨fun x => (hf x).hasGradientAt, ?_, hi, hv, ?_⟩
+  · have hg := hlip.continuous.measurable
+    dsimp [momentArc,momentVelocity]
+    fun_prop
+  · have : IsProbabilityMeasure ((stdGaussian E).map (fun z : E => h+Real.sqrt eta • z)) :=
+      Measure.isProbabilityMeasure_map (by fun_prop)
+    have : IsProbabilityMeasure ((stdGaussian E).map (fun z : E => Real.sqrt eta • z)) :=
+      Measure.isProbabilityMeasure_map (by fun_prop)
+    have hlo : (1 : ℝ) ≤ ∫ p : E × E, Real.exp (lam*|inner ℝ (momentVelocity h r p)
+        (gradient f xp-gradient f (momentArc h r p))|) ∂
+        (((stdGaussian E).map (fun z : E => h+Real.sqrt eta • z)).prod
+          ((stdGaussian E).map (fun z : E => Real.sqrt eta • z))) := by
+      have hb := integral_mono (integrable_const (1 : ℝ)) hi
+        (fun p => Real.one_le_exp (mul_nonneg hlam (abs_nonneg _)))
+      simpa using hb
+    have hh := Real.log_le_log (lt_of_lt_of_le zero_lt_one hlo) hv
+    simpa only [Real.log_mul (by norm_num : (2 : ℝ) ≠ 0) (Real.exp_ne_zero _),
+      Real.log_exp] using hh
+
+
+
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcMoment

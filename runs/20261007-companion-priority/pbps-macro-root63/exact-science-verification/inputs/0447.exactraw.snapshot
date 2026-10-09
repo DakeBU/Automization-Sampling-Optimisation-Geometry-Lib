@@ -1,0 +1,62 @@
+from pathlib import Path
+import json,hashlib,sys
+sys.path.insert(0,str(Path('tools').resolve()))
+import astis_publication as pub,astis_semantic_roundtrip as rt,astis_advance as adv
+run=Path('runs/20261007-companion-priority/balanced-rademacher-clt')
+read=lambda p:json.loads(Path(p).read_text(encoding='utf-8-sig'))
+def write(p,d):Path(p).write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+def check(x):
+ b=Path(x['path']).read_bytes()
+ if x.get('raw_sha256'):assert hashlib.sha256(b).hexdigest()==x['raw_sha256'],x['path']
+ if x.get('lf_sha256'):assert hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest()==x['lf_sha256'],x['path']
+plan=read(run/'publication-plan.json');claim=read(run/'claim.json')
+assert not (run/'proved-local.json').exists()
+overlay=read(run/'source-evidence-representation-overlay1/overlay.review.json')
+assert overlay['verdict']=='accepted-scoped-metadata-only' and not overlay.get('blocking',False)
+lease=read(run/'source.review.lease.json')
+assert all(lease[k]=='CLOSED'for k in ['status','read_lease','write_lease','compiler_lease'])
+ml=read(run/'whole-proof-review/lease.json')
+assert all(ml[k]=='CLOSED'for k in ['status','read_lease','write_lease','compiler_lease'])
+assert read(run/'anonymous-decoder/lease.json')['status']=='CLOSED'
+math=read(run/'whole-proof-review/math.review.json')
+assert math['verdict']=='ACCEPTED_SCOPED_WHOLE_MATHEMATICAL_PROOF' and not math.get('blocking',False) and not math.get('blockers',[])
+for x in read(run/'math-freeze.json')['inputs']:check(x)
+check(math['input_bindings'])
+for x in read(math['input_bindings']['path'])['inputs']:check(x)
+for x in lease['input_artifacts']:check(x)
+topology_path=read('research-wiki/frontier-cells/'+claim['cells'][0]+'.json')['source_proof_coverage']['coverage_report']
+topology=read(topology_path);assert topology['verdict']=='accepted-scoped' and not topology.get('blocking',False)
+for x in topology.get('input_artifacts',[]):check(x)
+reviews=[read(run/f'source.{i}.review.json')for i in range(1)]
+for r in reviews:
+ assert r['verdict']in ['exact','equivalent-after-elaboration'] and not r.get('blocking',False)
+ assert not any(x.get('severity')=='blocking'or x.get('blocking')for x in r.get('deltas',[]))
+ assert r['independent_from_formalizer'] and r['independent_from_decoder']
+ for x in r.get('input_artifacts',[]):
+  if isinstance(x,dict)and 'path'in x:check(x)
+for i,(aid,r)in enumerate(zip(plan['audit_ids'],reviews)):
+ p=Path('research-wiki/semantic-roundtrip/audits')/(aid+'.json');a=read(p)
+ assert a['state']=='blind-reconstructed'
+ assert rt.semantic_reviewer_packet(a)['packet_sha256']==r['reviewer_packet_sha256']
+ q=run/f'source-admission-before.{i}.raw.snapshot.audit.json'
+ if q.exists():assert q.read_bytes()==p.read_bytes()
+ else:q.write_bytes(p.read_bytes())
+ a.update(state='accepted',semantic_slots=r['semantic_slots'],deltas=r.get('deltas',[]),verdict=r['verdict'],repairs=r.get('repairs',[]))
+ evidence=r['review_evidence']
+ if isinstance(evidence,list):evidence=json.dumps(evidence,ensure_ascii=False,sort_keys=True,separators=(',',':'))
+ a['source_review']=dict(state='accepted',reviewer=r['reviewer'],independent_from_formalizer=True,independent_from_decoder=True,evidence=evidence,review_run_sha256=r['review_run_sha256'],reviewer_packet_sha256=r['reviewer_packet_sha256'],run_artifact=(run/f'source.{i}.review.json').as_posix())
+ write(p,a)
+pub.inputs.cache_clear();pub.load.cache_clear();pub.check_advance(plan['mathematical_declarations'],reviewed=True)
+cells=[read('research-wiki/frontier-cells/'+x+'.json')for x in plan['active_cells']]
+audit=cells[0]['conceptual_mirror_audit'];assert audit['status']=='none-found'
+boundary=claim['truth_boundary']+' Independent local wholeproof, fresh blind35 reconstruction and anti-anchored source reviews accepted. Exactcommit VERIFIED/shared integration/aggregate/staticsite/ExpositionSeal/postmerge purification remain separate.'
+e=dict(result_kind='reusable-interface',theorem_delta=claim['proposal']['theorem_delta'],lean_declarations=plan['mathematical_declarations'],publication_declarations=plan['mathematical_declarations'],lean_files=claim['proposal']['proposed_files'][:2],focused_checks=[dict(command='lake build Tests.BalancedRademacherCLT',result='PASS3160, actualN1mean0 secondmoment1 and N0zero-law secondmoment0; three standard3. Independent fresh wholeproof3160/direct3standard3PASS.'),dict(command='Independent wholeproof / fresh decoder35 / anti-anchored source',result='Accepted scoped whole mathematical proof and source packet; closed leases, no added public premise')],truth_boundary=boundary,conceptual_mirror_audit=audit,useful_discoveries=[],active_cells=plan['active_cells'],reader_lesson=['website/content/declaration_lessons/'+x+'.json'for x in plan['slugs']],integration_notes='Actual normalized Bool-count law family fixed by literal signsum maps for allN. Mean0 secondmoment1, measurability/probability and CFproduct internally produced; existing scalar CF CLT and Levy reused. Actual N0dirac0 and successor weak-law Gaussian0,1. Source graph original missing11edges repaired in immutable independently reviewed successor, not source mathematics change. Generic Registry/imports serialized only after exactcommit independent verification under original PhaseKernel owner. Entropy/energyfactor4/compact real/finiteHilbert/cutoffGaussianLSI/T2/FIRST4.6/bias/main/work/composition remain OPEN.')
+for k in ['statement_seal','source_proof_coverage','proof_digestion','purification']:
+ e[k]=[dict(declaration=plan['mathematical_declarations'][i],declaration_level=c['declaration_level'],report=c[k])for i,c in enumerate(cells)]
+adv.transition_advance(claim['advance_id'],'PROVED_LOCAL',worker_id=claim['owner'],evidence=e)
+for cid,c in zip(plan['active_cells'],cells):
+ assert c['status']=='claimed';c['status']='proved_locally'
+ c['evidence'].update(proof_review=(run/'whole-proof-review/math.review.json').as_posix(),source_review=[(run/f'source.{i}.review.json').as_posix()for i in range(1)],execution_boundary=boundary)
+ write('research-wiki/frontier-cells/'+cid+'.json',c)
+write(run/'proved-local.json',e)
+print('PROVED_LOCAL admitted only after independent mathematical/blind/source evidence; exactcommit verifier next.')

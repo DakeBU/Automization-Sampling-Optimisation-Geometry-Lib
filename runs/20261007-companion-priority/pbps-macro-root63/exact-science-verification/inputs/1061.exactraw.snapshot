@@ -1,0 +1,51 @@
+import AutoSamplingTheory.SALD
+
+/-!
+# SALD-extracted technical lemma memory
+
+This module exposes reusable proof blocks that were first formalized inside
+the faithful SALD reproduction.  They remain mathematically tied to SALD's
+proof route, but agents can now find them under `TechnicalLemmas` instead of
+searching the whole SALD file.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace SALDExtracted
+
+export SALD (
+  gronwallNegIntegralRewriteScalar
+  gronwallExpProductRewriteScalar
+  gronwallIntervalIntegralAdditivityScalar
+  gronwallExpProductRewriteIntervalIntegral
+  gronwallExpProductRewriteIntegralCongr
+  gronwallIntegratingFactorProductDerivative
+  gronwallIntegratingFactorDerivativeInequalityScalar
+  gronwallEndpointMultiplyByExpNegScalar
+  forwardKlDvPositiveAlphaScalingScalar
+  forwardKlDvPositiveAlphaCoefficientScalar
+  forwardKlPostDvGronwallCoefficientScalar
+  discreteForwardKlAlphaComplexityCollectionScalar
+  discreteForwardKlDeltaAccumulationScalar
+  discreteForwardKlAccumulatedErrorCollectionScalar
+  discreteForwardKlEmInterpolationLeftEndpointVector
+  discreteForwardKlEmInterpolationRightEndpointVector
+  discreteForwardKlLawEqOfPointwise
+  discreteForwardKlEmInterpolationLeftEndpointLawHandoff
+  discreteForwardKlEmInterpolationRightEndpointLawHandoff
+  discreteForwardKlEmEndpointLawPairHandoff
+  selectedWeakTestNormalizedCoordinateLawOfStdGaussianVectorLaw
+  selectedWeakTestNormalizedVarianceDefOfGaussianRealUnitLaw
+  selectedWeakTestRemainderMeasOfStdGaussianVectorLaw
+  selectedWeakTestRemainderBoundOfStdGaussianVectorLaw
+  selectedWeakTestRemainderBoundIntegrableOfStdGaussianVectorLaw
+  selectedWeakTestNormalizedRemainderBoundIntOfQuadraticBound
+  selectedWeakTestQuadraticCoeffDefOfSecondTaylorCoeffDef
+  selectedWeakTestVarianceOneOfNormalizedBrownianVarianceDef
+  selectedWeakTestQuadraticVariationNormalizationOfCoeffDefAndVarianceOne
+  selectedWeakTestHessianOpNormOfSourceHessianField
+)
+
+end SALDExtracted
+end TechnicalLemmas
+end AutoSamplingTheory

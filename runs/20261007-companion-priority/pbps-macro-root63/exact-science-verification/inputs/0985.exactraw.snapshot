@@ -1,0 +1,59 @@
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+import Mathlib.MeasureTheory.Measure.FiniteMeasure
+
+/-!
+# Domination of finite sums of finite measures
+
+Pointwise domination of a finite family of finite measures passes to the finite
+sum.  The result is stated on the underlying ordered `Measure` type, which is
+the interface consumed by measure subtraction and ambient-remainder
+construction.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace FiniteSumDomination
+
+open MeasureTheory
+
+noncomputable section
+
+variable {X I : Type*} [MeasurableSpace X]
+
+theorem toMeasure_finsetSum_le
+    (s : Finset I) (mu nu : I → FiniteMeasure X)
+    (hle : ∀ i, (mu i : Measure X) ≤ (nu i : Measure X)) :
+    ((s.sum mu : FiniteMeasure X) : Measure X) ≤
+      ((s.sum nu : FiniteMeasure X) : Measure X) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a s ha ih =>
+      rw [Finset.sum_insert ha, Finset.sum_insert ha,
+        FiniteMeasure.toMeasure_add, FiniteMeasure.toMeasure_add]
+      exact add_le_add (hle a) ih
+
+theorem toMeasure_fintypeSum_le
+    [Fintype I] (mu nu : I → FiniteMeasure X)
+    (hle : ∀ i, (mu i : Measure X) ≤ (nu i : Measure X)) :
+    ((∑ i, mu i : FiniteMeasure X) : Measure X) ≤
+      ((∑ i, nu i : FiniteMeasure X) : Measure X) := by
+  classical
+  exact toMeasure_finsetSum_le Finset.univ mu nu hle
+
+theorem toMeasure_fintypeSum_le_ambient
+    [Fintype I] (mu nu : I → FiniteMeasure X) (ambient : FiniteMeasure X)
+    (hle : ∀ i, (mu i : Measure X) ≤ (nu i : Measure X))
+    (hambient : ((∑ i, nu i : FiniteMeasure X) : Measure X) ≤
+      (ambient : Measure X)) :
+    ((∑ i, mu i : FiniteMeasure X) : Measure X) ≤
+      (ambient : Measure X) := by
+  exact (toMeasure_fintypeSum_le mu nu hle).trans hambient
+
+end
+
+end FiniteSumDomination
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

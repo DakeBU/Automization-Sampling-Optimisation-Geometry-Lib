@@ -1,0 +1,82 @@
+import Mathlib.MeasureTheory.Measure.FiniteMeasure
+
+/-!
+# Finite-measure replacement competitor algebra
+
+Suppose an ambient finite measure has already been decomposed as
+
+`ambient = remainder + removed`,
+
+and a replacement finite measure has exactly the same two product marginals as
+`removed`. Then `remainder + replacement` has exactly the same two product
+marginals as `ambient`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace ReplacementCompetitor
+
+open MeasureTheory
+
+noncomputable section
+
+variable {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+
+noncomputable def replacementCompetitor
+    (remainder replacement : FiniteMeasure (X × Y)) :
+    FiniteMeasure (X × Y) :=
+  remainder + replacement
+
+theorem replacementCompetitor_map_fst
+    (ambient remainder removed replacement : FiniteMeasure (X × Y))
+    (hdecomp : ambient = remainder + removed)
+    (hmarg : replacement.map Prod.fst = removed.map Prod.fst) :
+    (replacementCompetitor remainder replacement).map Prod.fst =
+      ambient.map Prod.fst := by
+  calc
+    (replacementCompetitor remainder replacement).map Prod.fst
+        = remainder.map Prod.fst + replacement.map Prod.fst := by
+          simpa [replacementCompetitor] using
+            (FiniteMeasure.map_add measurable_fst remainder replacement)
+    _ = remainder.map Prod.fst + removed.map Prod.fst := by rw [hmarg]
+    _ = (remainder + removed).map Prod.fst := by
+          symm
+          exact FiniteMeasure.map_add measurable_fst remainder removed
+    _ = ambient.map Prod.fst := by rw [← hdecomp]
+
+theorem replacementCompetitor_map_snd
+    (ambient remainder removed replacement : FiniteMeasure (X × Y))
+    (hdecomp : ambient = remainder + removed)
+    (hmarg : replacement.map Prod.snd = removed.map Prod.snd) :
+    (replacementCompetitor remainder replacement).map Prod.snd =
+      ambient.map Prod.snd := by
+  calc
+    (replacementCompetitor remainder replacement).map Prod.snd
+        = remainder.map Prod.snd + replacement.map Prod.snd := by
+          simpa [replacementCompetitor] using
+            (FiniteMeasure.map_add measurable_snd remainder replacement)
+    _ = remainder.map Prod.snd + removed.map Prod.snd := by rw [hmarg]
+    _ = (remainder + removed).map Prod.snd := by
+          symm
+          exact FiniteMeasure.map_add measurable_snd remainder removed
+    _ = ambient.map Prod.snd := by rw [← hdecomp]
+
+theorem replacementCompetitor_preserves_marginals
+    (ambient remainder removed replacement : FiniteMeasure (X × Y))
+    (hdecomp : ambient = remainder + removed)
+    (hfst : replacement.map Prod.fst = removed.map Prod.fst)
+    (hsnd : replacement.map Prod.snd = removed.map Prod.snd) :
+    (replacementCompetitor remainder replacement).map Prod.fst =
+        ambient.map Prod.fst ∧
+      (replacementCompetitor remainder replacement).map Prod.snd =
+        ambient.map Prod.snd := by
+  exact ⟨replacementCompetitor_map_fst ambient remainder removed replacement hdecomp hfst,
+    replacementCompetitor_map_snd ambient remainder removed replacement hdecomp hsnd⟩
+
+end
+
+end ReplacementCompetitor
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

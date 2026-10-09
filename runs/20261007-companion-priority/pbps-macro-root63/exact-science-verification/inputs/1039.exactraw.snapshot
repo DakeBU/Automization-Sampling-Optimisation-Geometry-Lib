@@ -1,0 +1,67 @@
+import Mathlib.MeasureTheory.Integral.Pi
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.Probability.Independence.Basic
+
+/-!
+# Two-coordinate marginals of finite product probability measures
+
+Coordinate projections of a finite product probability measure are mutually
+independent. Consequently, for distinct indices `i` and `j`, the pushforward
+under `x ↦ (x i, x j)` is exactly the product of the two coordinate laws.
+
+This is the marginal identity needed to evaluate cross-coordinate quadratic
+costs in the direct Brenier perturbation.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace FiniteProductPairMarginal
+
+open MeasureTheory ProbabilityTheory
+
+noncomputable section
+
+variable {I X : Type*} [Fintype I] [MeasurableSpace X]
+
+/-- Distinct coordinate projections of a finite product probability measure
+have joint law equal to the product of their coordinate laws. -/
+theorem map_pair_eval_eq_prod
+    (mu : I → ProbabilityMeasure X) {i j : I} (hij : i ≠ j) :
+    (Measure.pi (fun k => (mu k : Measure X))).map
+        (fun x : I → X => (x i, x j)) =
+      (mu i : Measure X).prod (mu j : Measure X) := by
+  have hind : iIndepFun (fun k (x : I → X) => x k)
+      (Measure.pi (fun k => (mu k : Measure X))) := by
+    simpa using
+      (iIndepFun_pi (μ := fun k => (mu k : Measure X))
+        (X := fun _k (x : X) => x) (fun _k => aemeasurable_id))
+  have hi : Measurable (fun x : I → X => x i) := measurable_pi_apply i
+  have hj : Measurable (fun x : I → X => x j) := measurable_pi_apply j
+  have hpair := (hind.indepFun hij).map_prod_eq_prod_map_map
+    hi.aemeasurable hj.aemeasurable
+  rw [(measurePreserving_eval (fun k => (mu k : Measure X)) i).map_eq,
+    (measurePreserving_eval (fun k => (mu k : Measure X)) j).map_eq] at hpair
+  exact hpair
+
+/-- Integral form: an integrand depending on two distinct coordinates can be
+integrated against the corresponding two-coordinate product law. -/
+theorem integral_comp_pair_eval
+    (mu : I → ProbabilityMeasure X) {i j : I} (hij : i ≠ j)
+    {f : X × X → ℝ}
+    (hf : AEStronglyMeasurable f
+      ((mu i : Measure X).prod (mu j : Measure X))) :
+    (∫ x : I → X, f (x i, x j)
+        ∂Measure.pi (fun k => (mu k : Measure X))) =
+      ∫ z, f z ∂((mu i : Measure X).prod (mu j : Measure X)) := by
+  have hmap := map_pair_eval_eq_prod mu hij
+  rw [← hmap, integral_map]
+  · exact ((measurable_pi_apply i).prodMk (measurable_pi_apply j)).aemeasurable
+  · rwa [hmap]
+
+end
+
+end FiniteProductPairMarginal
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

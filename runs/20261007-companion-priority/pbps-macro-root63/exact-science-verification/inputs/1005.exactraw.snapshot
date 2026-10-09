@@ -1,0 +1,50 @@
+import Mathlib.MeasureTheory.Integral.MeanInequalities
+
+/-!
+# Power perspective for nonnegative integrals
+
+Expanded Holder ingredient for arXiv:2609.06906v1 Lemma6.3(ii), consumed by
+actual bounded-displacement Gaussian mixture reverse transport. Only the
+denominator is required positive and finite; numerator and perspective
+integrals may be infinite. This alone is not Gaussian reverse transport.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Measure.PowerPerspective
+open MeasureTheory
+open scoped ENNReal
+
+/-- Holder gives the power-perspective inequality without assuming finite
+numerator or right-hand integral. The denominator is positive and finite. -/
+theorem lintegral_perspective_le {X : Type*} [MeasurableSpace X] (μ : Measure X)
+    (a b : X → ℝ≥0∞) (ha : AEMeasurable a μ) (hb : AEMeasurable b μ)
+    (hbpos : ∀ᵐ x ∂μ, b x ≠ 0 ∧ b x ≠ ⊤)
+    (hB0 : (∫⁻ x, b x ∂μ) ≠ 0) (hBtop : (∫⁻ x, b x ∂μ) ≠ ⊤)
+    (q : ℝ) (hq : 1 < q) :
+    (∫⁻ x, a x ∂μ)^q / (∫⁻ x, b x ∂μ)^(q-1) ≤
+      ∫⁻ x, a x^q / b x^(q-1) ∂μ := by
+  have hq0 : 0 < q := by linarith
+  have hi : 0 ≤ 1/q := by positivity
+  have hj : 0 ≤ 1-1/q := by rw [sub_nonneg,div_le_one hq0]; linarith
+  have he1 : q*(1/q) = 1 := by field_simp
+  have he2 : (q-1)*(1/q) = 1-1/q := by field_simp
+  have he3 : (1-1/q)*q = q-1 := by field_simp
+  have hrec : (fun x => (a x^q / b x^(q-1))^(1/q) * b x^(1-1/q)) =ᵐ[μ] a := by
+    filter_upwards [hbpos] with x hx
+    rw [ENNReal.div_rpow_of_nonneg _ _ hi, ← ENNReal.rpow_mul,
+      ← ENNReal.rpow_mul,he1,he2,ENNReal.rpow_one]
+    exact ENNReal.div_mul_cancel
+      (ne_of_gt (ENNReal.rpow_pos (pos_iff_ne_zero.mpr hx.1) hx.2))
+      (ENNReal.rpow_ne_top_of_nonneg hj hx.2)
+  have h := ENNReal.lintegral_mul_norm_pow_le
+    ((ha.pow_const q).div (hb.pow_const (q-1))) hb hi hj (by ring : 1/q+(1-1/q)=1)
+  change (∫⁻ x, (a x^q / b x^(q-1))^(1/q) * b x^(1-1/q) ∂μ) ≤
+    (∫⁻ x, a x^q / b x^(q-1) ∂μ)^(1/q) * (∫⁻ x, b x ∂μ)^(1-1/q) at h
+  rw [lintegral_congr_ae hrec] at h
+  have hh := ENNReal.rpow_le_rpow h hq0.le
+  rw [ENNReal.mul_rpow_of_nonneg _ _ hq0.le, ← ENNReal.rpow_mul,
+    ← ENNReal.rpow_mul,he3,mul_comm (1/q) q,he1,ENNReal.rpow_one] at hh
+  exact (ENNReal.div_le_iff
+    (ne_of_gt (ENNReal.rpow_pos (pos_iff_ne_zero.mpr hB0) hBtop))
+    (ENNReal.rpow_ne_top_of_nonneg (by linarith) hBtop)).mpr hh
+
+end AutoSamplingTheory.TechnicalLemmas.Measure.PowerPerspective

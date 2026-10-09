@@ -1,0 +1,385 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedMeanExponential
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.IdealRGOIdentification
+import Mathlib.Analysis.Convex.Integral
+import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.Tactic
+
+/-! Actual clipped-output versus ideal RGO normalized RN-power comparison.
+Source: SPHMC arXiv:2609.06906v1 A.4(2), through arXiv:2602.01338v1
+D.1 Eq18 and B.12 Eq17. The actual denominator-measure ell-powers follow
+B.12/D.1; printed B.7 and section1.3 definitions have inconsistent measure
+subscripts/powers. This is an explicit source distinction, not a silent repair.
+
+The actual consumer ell>=2 avoids the printed B.12 intermediate proof gap for
+1<ell<2. Actual exponent integrability precedes Jensen and weighted density
+algebra. The source step condition implies beta*eta<1 for ideal normalization.
+Actual clipped and ideal laws are probability measures and mutually absolutely
+continuous. Both real RN-power functions are integrable; both real integrals
+minus one are <=2exp(2B-K), and ENNReal moments <=ofReal(1+2exp(2B-K)).
+
+The ten public conclusions do not separately return internal RN formulas,
+positive normalizers or error L1, or repeat the parent's program pushforward.
+No logarithmic Renyi API, initialization, parameterized kernel, query cost or
+full companion-paper completion is claimed. -/
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedRenyiComparison
+
+variable {X : Type*} [MeasurableSpace X]
+
+private theorem exponential_domination (mu : Measure X) (D : X → ℝ)
+    (hD : Measurable D) (c : ℝ)
+    (hI : Integrable (fun x => Real.exp (c * |D x|)) mu)
+    (a : ℝ) (ha : |a| ≤ c) :
+    Integrable (fun x => Real.exp (a * D x)) mu := by
+  refine hI.mono' (by fun_prop) (Filter.Eventually.of_forall fun x => ?_)
+  rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+  apply Real.exp_le_exp.mpr
+  calc
+    a * D x ≤ |a * D x| := le_abs_self _
+    _ = |a| * |D x| := abs_mul _ _
+    _ ≤ c * |D x| := mul_le_mul_of_nonneg_right ha (abs_nonneg _)
+
+private theorem power_mean_exponential (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (s : ℝ) (hs : 1 ≤ s)
+    (hI : Integrable (fun x => Real.exp (D x)) mu)
+    (hIs : Integrable (fun x => Real.exp (s * D x)) mu) :
+    (∫ x, Real.exp (D x) ∂mu) ^ s ≤ ∫ x, Real.exp (s * D x) ∂mu := by
+  have hPow : Integrable ((fun y : ℝ => y ^ s) ∘ (fun x => Real.exp (D x))) mu := by
+    simpa only [Function.comp_def, ← Real.exp_mul, mul_comm] using hIs
+  have hj := (convexOn_rpow hs).map_integral_le
+    (Real.continuous_rpow_const (by linarith : 0 ≤ s)).continuousOn
+    isClosed_Ici (Filter.Eventually.of_forall fun x => (Real.exp_pos (D x)).le) hI hPow
+  simpa only [← Real.exp_mul, mul_comm] using hj
+
+private theorem integrable_of_exponential_abs (mu : Measure X) (D : X → ℝ)
+    (hD : Measurable D) (c : ℝ) (hc : 1 ≤ c)
+    (hI : Integrable (fun x => Real.exp (c * |D x|)) mu) : Integrable D mu := by
+  refine hI.mono' hD.aestronglyMeasurable (Filter.Eventually.of_forall fun x => ?_)
+  rw [Real.norm_eq_abs]
+  calc
+    |D x| ≤ |D x| + 1 := le_add_of_nonneg_right zero_le_one
+    _ ≤ Real.exp |D x| := Real.add_one_le_exp _
+    _ ≤ Real.exp (c * |D x|) := Real.exp_le_exp.mpr (by nlinarith [abs_nonneg (D x)])
+
+private theorem exponential_mean (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Integrable D mu)
+    (hI : Integrable (fun x => Real.exp (D x)) mu) :
+    Real.exp (∫ x, D x ∂mu) ≤ ∫ x, Real.exp (D x) ∂mu := by
+  exact convexOn_exp.map_integral_le Real.continuous_exp.continuousOn
+    isClosed_univ (Filter.Eventually.of_forall fun _ => Set.mem_univ _) hD hI
+
+private theorem inverse_normalizer_power (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Integrable D mu)
+    (hI : Integrable (fun x => Real.exp (D x)) mu)
+    (s : ℝ) (hs : 0 ≤ s)
+    (hIs : Integrable (fun x => Real.exp (-s * D x)) mu) :
+    (∫ x, Real.exp (D x) ∂mu) ^ (-s) ≤ ∫ x, Real.exp (-s * D x) ∂mu := by
+  have hj := exponential_mean mu D hD hI
+  have hr := Real.rpow_le_rpow_of_nonpos (Real.exp_pos _) hj (neg_nonpos.mpr hs)
+  have hn := exponential_mean mu (fun x => -s * D x) (hD.const_mul (-s)) hIs
+  rw [integral_const_mul] at hn
+  calc
+    (∫ x, Real.exp (D x) ∂mu) ^ (-s) ≤ (Real.exp (∫ x, D x ∂mu)) ^ (-s) := hr
+    _ = Real.exp (-s * ∫ x, D x ∂mu) := by rw [← Real.exp_mul, mul_comm]
+    _ ≤ ∫ x, Real.exp (-s * D x) ∂mu := hn
+
+private theorem integral_exp_le_abs (mu : Measure X) (D : X → ℝ) (a c : ℝ)
+    (ha : |a| ≤ c) (hI : Integrable (fun x => Real.exp (a * D x)) mu)
+    (hJ : Integrable (fun x => Real.exp (c * |D x|)) mu) :
+    ∫ x, Real.exp (a * D x) ∂mu ≤ ∫ x, Real.exp (c * |D x|) ∂mu := by
+  apply integral_mono hI hJ
+  intro x
+  apply Real.exp_le_exp.mpr
+  calc
+    a * D x ≤ |a * D x| := le_abs_self _
+    _ = |a| * |D x| := abs_mul _ _
+    _ ≤ c * |D x| := mul_le_mul_of_nonneg_right ha (abs_nonneg _)
+
+private theorem exponential_mean_square (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hI : Integrable (fun x => Real.exp (D x)) mu)
+    (hJ : Integrable (fun x => Real.exp (2 * D x)) mu) :
+    (∫ x, Real.exp (D x) ∂mu) ^ 2 ≤ ∫ x, Real.exp (2 * D x) ∂mu := by
+  simpa only [Real.rpow_two] using power_mean_exponential mu D 2 (by norm_num) hI hJ
+
+private theorem normalized_moments (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Measurable D) (ell : ℝ) (hell : 2 ≤ ell)
+    (hH : Integrable (fun x => Real.exp (2 * ell * |D x|)) mu) :
+    (∫ x, Real.exp (D x) ∂mu) ^ (ell - 1) *
+      (∫ x, Real.exp (-(ell - 1) * D x) ∂mu) ≤
+        ∫ x, Real.exp (2 * ell * |D x|) ∂mu ∧
+    (∫ x, Real.exp (D x) ∂mu) ^ (-ell) *
+      (∫ x, Real.exp (ell * D x) ∂mu) ≤
+        ∫ x, Real.exp (2 * ell * |D x|) ∂mu := by
+  have hi (a : ℝ) (ha : |a| ≤ 2 * ell) :
+      Integrable (fun x => Real.exp (a * D x)) mu :=
+    exponential_domination mu D hD (2 * ell) hH a ha
+  have hj (a : ℝ) (ha0 : 0 ≤ a) (ha : a ≤ 2 * ell) :
+      Integrable (fun x => Real.exp (a * |D x|)) mu := by
+    apply exponential_domination mu (fun x => |D x|) hD.abs (2 * ell)
+      (by simpa only [abs_abs] using hH) a
+    simpa only [abs_of_nonneg ha0] using ha
+  have hI : Integrable (fun x => Real.exp (D x)) mu := by
+    simpa using hi 1 (by norm_num; linarith)
+  have hDi := integrable_of_exponential_abs mu D hD (2 * ell) (by linarith) hH
+  have hsq (a : ℝ) (ha0 : 0 ≤ a) (ha : a ≤ ell) :
+      (∫ x, Real.exp (a * |D x|) ∂mu) ^ 2 ≤
+        ∫ x, Real.exp (2 * ell * |D x|) ∂mu := by
+    have hJa := hj a ha0 (by linarith)
+    have hJ2a := hj (2 * a) (by linarith) (by linarith)
+    have hb := exponential_mean_square mu (fun x => a * |D x|) hJa
+      (by simpa only [mul_assoc] using hJ2a)
+    refine hb.trans (integral_mono (by simpa only [mul_assoc] using hJ2a) hH ?_)
+    intro x
+    apply Real.exp_le_exp.mpr
+    nlinarith [abs_nonneg (D x)]
+  have hpos (a : ℝ) : 0 ≤ ∫ x, Real.exp (a * D x) ∂mu := integral_nonneg fun _ => (Real.exp_pos _).le
+  have hpabs (a : ℝ) : 0 ≤ ∫ x, Real.exp (a * |D x|) ∂mu := integral_nonneg fun _ => (Real.exp_pos _).le
+  constructor
+  · have ha : 1 ≤ ell - 1 := by linarith
+    have hIa := hi (ell - 1) (by rw [abs_of_nonneg (by linarith : 0 ≤ ell - 1)]; linarith)
+    have hIna := hi (-(ell - 1)) (by rw [abs_neg, abs_of_nonneg (by linarith : 0 ≤ ell - 1)]; linarith)
+    have hJa := hj (ell - 1) (by linarith) (by linarith)
+    have hz := (power_mean_exponential mu D (ell - 1) ha hI hIa).trans
+      (integral_exp_le_abs mu D (ell - 1) (ell - 1) (by rw [abs_of_nonneg (by linarith)]) hIa hJa)
+    have hn := integral_exp_le_abs mu D (-(ell - 1)) (ell - 1)
+      (by rw [abs_neg, abs_of_nonneg (by linarith)]) hIna hJa
+    calc
+      _ ≤ (∫ x, Real.exp ((ell - 1) * |D x|) ∂mu) *
+          (∫ x, Real.exp ((ell - 1) * |D x|) ∂mu) := mul_le_mul hz hn (hpos _) (hpabs _)
+      _ = (∫ x, Real.exp ((ell - 1) * |D x|) ∂mu) ^ 2 := by ring
+      _ ≤ _ := hsq (ell - 1) (by linarith) (by linarith)
+  · have hIe := hi ell (by rw [abs_of_nonneg (by linarith : 0 ≤ ell)]; linarith)
+    have hIne := hi (-ell) (by rw [abs_neg, abs_of_nonneg (by linarith : 0 ≤ ell)]; linarith)
+    have hJe := hj ell (by linarith) (by linarith)
+    have hz := (inverse_normalizer_power mu D hDi hI ell (by linarith) hIne).trans
+      (integral_exp_le_abs mu D (-ell) ell (by rw [abs_neg, abs_of_nonneg (by linarith)]) hIne hJe)
+    have hn := integral_exp_le_abs mu D ell ell (by rw [abs_of_nonneg (by linarith)]) hIe hJe
+    calc
+      _ ≤ (∫ x, Real.exp (ell * |D x|) ∂mu) *
+          (∫ x, Real.exp (ell * |D x|) ∂mu) := mul_le_mul hz hn (hpos _) (hpabs _)
+      _ = (∫ x, Real.exp (ell * |D x|) ∂mu) ^ 2 := by ring
+      _ ≤ _ := hsq ell (by linarith) le_rfl
+
+private theorem tilt_density_pair (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Measurable D)
+    (hI : Integrable (fun x => Real.exp (D x)) mu) :
+    ((fun x => ((mu.tilted D).rnDeriv mu x).toReal) =ᵐ[mu]
+      fun x => Real.exp (D x) / ∫ y, Real.exp (D y) ∂mu) ∧
+    ((fun x => (mu.rnDeriv (mu.tilted D) x).toReal) =ᵐ[mu.tilted D]
+      fun x => Real.exp (-D x) * ∫ y, Real.exp (D y) ∂mu) := by
+  constructor
+  · filter_upwards [toReal_rnDeriv_tilted_left mu hD.aemeasurable,
+      Measure.rnDeriv_self mu] with x hx hself
+    simpa only [hself, ENNReal.toReal_one, mul_one] using hx
+  · apply (tilted_absolutelyContinuous mu D).ae_eq
+    filter_upwards [toReal_rnDeriv_tilted_right mu mu hI,
+      Measure.rnDeriv_self mu] with x hx hself
+    simpa only [hself, ENNReal.toReal_one, mul_one] using hx
+
+private theorem forward_density_power (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Measurable D)
+    (hI : Integrable (fun x => Real.exp (D x)) mu)
+    (s : ℝ) (hIs : Integrable (fun x => Real.exp (s * D x)) mu) :
+    Integrable (fun x => ((mu.tilted D).rnDeriv mu x).toReal ^ s) mu ∧
+    (∫ x, ((mu.tilted D).rnDeriv mu x).toReal ^ s ∂mu) =
+      (∫ x, Real.exp (D x) ∂mu) ^ (-s) * ∫ x, Real.exp (s * D x) ∂mu := by
+  have hZ := integral_exp_pos hI
+  have heq : (fun x => ((mu.tilted D).rnDeriv mu x).toReal ^ s) =ᵐ[mu]
+      fun x => Real.exp (s * D x) * (∫ y, Real.exp (D y) ∂mu) ^ (-s) := by
+    filter_upwards [(tilt_density_pair mu D hD hI).1] with x hx
+    rw [hx, Real.div_rpow (Real.exp_pos _).le hZ.le, ← Real.exp_mul,
+      mul_comm (D x) s, div_eq_mul_inv, ← Real.rpow_neg hZ.le s]
+  refine ⟨(hIs.mul_const _).congr heq.symm, ?_⟩
+  rw [integral_congr_ae heq, integral_mul_const, mul_comm]
+
+private theorem reverse_density_power (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Measurable D)
+    (hI : Integrable (fun x => Real.exp (D x)) mu)
+    (s : ℝ) (hIs : Integrable (fun x => Real.exp (-(s - 1) * D x)) mu) :
+    Integrable (fun x => (mu.rnDeriv (mu.tilted D) x).toReal ^ s) (mu.tilted D) ∧
+    (∫ x, (mu.rnDeriv (mu.tilted D) x).toReal ^ s ∂(mu.tilted D)) =
+      (∫ x, Real.exp (D x) ∂mu) ^ (s - 1) *
+        ∫ x, Real.exp (-(s - 1) * D x) ∂mu := by
+  have hZ := integral_exp_pos hI
+  have hexp (x : X) : Real.exp (D x) * Real.exp (-s * D x) =
+      Real.exp (-(s - 1) * D x) := by
+    rw [← Real.exp_add]
+    congr 1
+    ring
+  have hJ : Integrable (fun x => Real.exp (-s * D x)) (mu.tilted D) := by
+    apply (integrable_tilted_iff hI _).mpr
+    simpa only [smul_eq_mul, hexp] using hIs
+  have heq : (fun x => (mu.rnDeriv (mu.tilted D) x).toReal ^ s) =ᵐ[mu.tilted D]
+      fun x => Real.exp (-s * D x) * (∫ y, Real.exp (D y) ∂mu) ^ s := by
+    filter_upwards [(tilt_density_pair mu D hD hI).2] with x hx
+    rw [hx, Real.mul_rpow (Real.exp_pos _).le hZ.le, ← Real.exp_mul]
+    congr 2
+    ring
+  have hmean : (∫ x, Real.exp (-s * D x) ∂(mu.tilted D)) =
+      (∫ x, Real.exp (-(s - 1) * D x) ∂mu) / ∫ x, Real.exp (D x) ∂mu := by
+    rw [integral_exp_tilted]
+    congr 1
+    apply integral_congr_ae
+    apply Filter.Eventually.of_forall
+    intro x
+    dsimp
+    congr 1
+    ring
+  refine ⟨(hJ.mul_const _).congr heq.symm, ?_⟩
+  rw [integral_congr_ae heq, integral_mul_const, hmean, Real.rpow_sub hZ,
+    Real.rpow_one]
+  ring
+
+private theorem rn_power_lintegral (mu nu : Measure X) [SigmaFinite mu]
+    (s : ℝ) (hs : 0 ≤ s)
+    (hI : Integrable (fun x => (mu.rnDeriv nu x).toReal ^ s) nu) :
+    ENNReal.ofReal (∫ x, (mu.rnDeriv nu x).toReal ^ s ∂nu) =
+      ∫⁻ x, (mu.rnDeriv nu x) ^ s ∂nu := by
+  rw [ofReal_integral_eq_lintegral_ofReal hI
+    (Filter.Eventually.of_forall fun _ => Real.rpow_nonneg ENNReal.toReal_nonneg _)]
+  apply lintegral_congr_ae
+  filter_upwards [Measure.rnDeriv_ne_top mu nu] with x hx
+  rw [← ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg hs, ENNReal.ofReal_toReal hx]
+
+private theorem tilt_power_bounds (mu : Measure X) [IsProbabilityMeasure mu]
+    (D : X → ℝ) (hD : Measurable D) (ell : ℝ) (hell : 2 ≤ ell)
+    (hJ : Integrable (fun x => Real.exp (2 * ell * |D x|) - 1) mu) :
+    IsProbabilityMeasure (mu.tilted D) ∧ mu.tilted D ≪ mu ∧ mu ≪ mu.tilted D ∧
+    Integrable (fun x => ((mu.tilted D).rnDeriv mu x).toReal ^ ell) mu ∧
+    Integrable (fun x => (mu.rnDeriv (mu.tilted D) x).toReal ^ ell) (mu.tilted D) ∧
+    (∫ x, ((mu.tilted D).rnDeriv mu x).toReal ^ ell ∂mu) - 1 ≤
+      ∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu ∧
+    (∫ x, (mu.rnDeriv (mu.tilted D) x).toReal ^ ell ∂(mu.tilted D)) - 1 ≤
+      ∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu ∧
+    (∫⁻ x, ((mu.tilted D).rnDeriv mu x) ^ ell ∂mu) ≤
+      ENNReal.ofReal (1 + ∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu) ∧
+    (∫⁻ x, (mu.rnDeriv (mu.tilted D) x) ^ ell ∂(mu.tilted D)) ≤
+      ENNReal.ofReal (1 + ∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu) := by
+  have hH : Integrable (fun x => Real.exp (2 * ell * |D x|)) mu := by
+    convert! hJ.add (integrable_const 1) using 1
+    funext x
+    simp only [Pi.add_apply]
+    ring
+  have hi (a : ℝ) (ha : |a| ≤ 2 * ell) :
+      Integrable (fun x => Real.exp (a * D x)) mu :=
+    exponential_domination mu D hD (2 * ell) hH a ha
+  have hI : Integrable (fun x => Real.exp (D x)) mu := by
+    simpa using hi 1 (by norm_num; linarith)
+  have hIe := hi ell (by rw [abs_of_nonneg (by linarith : 0 ≤ ell)]; linarith)
+  have hIna := hi (-(ell - 1)) (by rw [abs_neg, abs_of_nonneg (by linarith : 0 ≤ ell - 1)]; linarith)
+  have hf := forward_density_power mu D hD hI ell hIe
+  have hr := reverse_density_power mu D hD hI ell hIna
+  have hm := normalized_moments mu D hD ell hell hH
+  have hsub : (∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu) =
+      (∫ x, Real.exp (2 * ell * |D x|) ∂mu) - 1 := by
+    rw [integral_sub hH (integrable_const 1)]
+    simp
+  have hfb : (∫ x, ((mu.tilted D).rnDeriv mu x).toReal ^ ell ∂mu) - 1 ≤
+      ∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu := by
+    rw [hf.2, hsub]
+    exact sub_le_sub_right hm.2 1
+  have hrb : (∫ x, (mu.rnDeriv (mu.tilted D) x).toReal ^ ell ∂(mu.tilted D)) - 1 ≤
+      ∫ x, Real.exp (2 * ell * |D x|) - 1 ∂mu := by
+    rw [hr.2, hsub]
+    exact sub_le_sub_right hm.1 1
+  have := isProbabilityMeasure_tilted hI
+  refine ⟨inferInstance, tilted_absolutelyContinuous mu D, absolutelyContinuous_tilted hI,
+    hf.1, hr.1, hfb, hrb, ?_, ?_⟩
+  · rw [← rn_power_lintegral (mu.tilted D) mu ell (by linarith) hf.1]
+    apply ENNReal.ofReal_le_ofReal
+    linarith
+  · rw [← rn_power_lintegral mu (mu.tilted D) ell (by linarith) hr.1]
+    apply ENNReal.ofReal_le_ofReal
+    linarith
+
+private theorem step_implies_ideal (eta beta B ell d : ℝ)
+    (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B) (hell : 2 ≤ ell) (hd : 0 < d)
+    (hstep : 64 * beta^2 * (ell*d/B + ell^2) ≤ 1/eta^2) : beta * eta < 1 := by
+  have hterm : 0 ≤ ell*d/B := by positivity
+  have hbase : 64 * beta^2 * ell^2 ≤ 1/eta^2 := by
+    calc
+      _ ≤ 64 * beta^2 * (ell*d/B + ell^2) :=
+        mul_le_mul_of_nonneg_left (by linarith) (by positivity)
+      _ ≤ _ := hstep
+  have hs := (le_div_iff₀ (sq_pos_of_pos heta)).mp hbase
+  by_contra hn
+  have hb : 1 ≤ beta * eta := le_of_not_gt hn
+  have hb2 : 1 ≤ beta^2 * eta^2 := by nlinarith [sq_nonneg (beta*eta-1)]
+  have he2 : (4 : ℝ) ≤ ell^2 := by nlinarith
+  have hm := mul_le_mul hb2 he2 (by norm_num : (0 : ℝ) ≤ 4)
+    (by positivity : 0 ≤ beta^2 * eta^2)
+  nlinarith
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private def estimator (f : E → ℝ) (h xp : E) (p : E × (ℝ × E)) : ℝ :=
+  inner ℝ ((Real.pi / 2) • (Real.cos (Real.pi / 2 * p.2.1) • (p.1-h) -
+    Real.sin (Real.pi / 2 * p.2.1) • p.2.2))
+    (gradient f xp - gradient f (h + Real.sin (Real.pi / 2 * p.2.1) • (p.1-h) +
+      Real.cos (Real.pi / 2 * p.2.1) • p.2.2))
+
+/-- Actual clipped and ideal laws have bounded bidirectional normalized RN powers. -/
+theorem clipped_renyi_comparison (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B ell : ℝ) (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B)
+    (hell : 2 ≤ ell) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (hlip : LipschitzWith ⟨beta,hbeta.le⟩ (gradient f)) (x0 xp : E)
+    (hcenter : ‖(x0-eta • gradient f xp)-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hstep : 64*beta^2*(ell*(Module.finrank ℝ E : ℝ)/B+ell^2) ≤ 1/eta^2) :
+    let h := x0-eta • gradient f xp
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+    let mB := fun x => ∫ a, min B (max (-B) (estimator f h xp (x,a))) ∂nu
+    let qhat := q.tilted mB
+    let pi := ((stdGaussian E).map (fun z => x0+Real.sqrt eta • z)).tilted (fun x => -f x)
+    let K := min (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))
+    IsProbabilityMeasure pi ∧ IsProbabilityMeasure qhat ∧ pi ≪ qhat ∧ qhat ≪ pi ∧
+    Integrable (fun x => (pi.rnDeriv qhat x).toReal ^ ell) qhat ∧
+    Integrable (fun x => (qhat.rnDeriv pi x).toReal ^ ell) pi ∧
+    (∫ x, (pi.rnDeriv qhat x).toReal ^ ell ∂qhat) - 1 ≤ 2 * Real.exp (2*B-K) ∧
+    (∫ x, (qhat.rnDeriv pi x).toReal ^ ell ∂pi) - 1 ≤ 2 * Real.exp (2*B-K) ∧
+    (∫⁻ x, (pi.rnDeriv qhat x) ^ ell ∂qhat) ≤ ENNReal.ofReal (1+2*Real.exp (2*B-K)) ∧
+    (∫⁻ x, (qhat.rnDeriv pi x) ^ ell ∂pi) ≤ ENNReal.ofReal (1+2*Real.exp (2*B-K)) := by
+  let h := x0-eta • gradient f xp
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+  let m := fun x => ∫ a, estimator f h xp (x,a) ∂nu
+  let mB := fun x => ∫ a, min B (max (-B) (estimator f h xp (x,a))) ∂nu
+  let qhat := q.tilted mB
+  let pi := ((stdGaussian E).map (fun z => x0+Real.sqrt eta • z)).tilted (fun x => -f x)
+  let D := fun x => m x-mB x
+  let K := min (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))
+  have hc := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedMeanExponential.clipped_mean_exponential
+    f hf eta beta B ell heta hbeta hB hell hd hlip x0 xp hcenter hstep
+  have hp := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_gradient_program
+    f hf eta beta B heta hbeta.le hB hlip x0 xp
+  have hi := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.IdealRGOIdentification.ideal_rgo_identification
+    f hf ⟨beta,hbeta.le⟩ hlip eta heta
+    (step_implies_ideal eta beta B ell (Module.finrank ℝ E : ℝ) heta hbeta hB hell hd hstep) x0 xp
+  have hmq : IsProbabilityMeasure q := hp.2.1
+  have hmb : Integrable (fun x => Real.exp (mB x)) q := hp.2.2.2.2.2.2.1
+  have hmqhat : IsProbabilityMeasure qhat := isProbabilityMeasure_tilted hmb
+  have hD : Measurable D := hc.1.sub hc.2.1
+  have hJ : Integrable (fun x => Real.exp (2*ell*|D x|)-1) qhat := hc.2.2.2.2.2.2.2.2.1
+  have hb : (∫ x, Real.exp (2*ell*|D x|)-1 ∂qhat) ≤ 2*Real.exp (2*B-K) :=
+    hc.2.2.2.2.2.2.2.2.2
+  have heq : qhat.tilted D = pi := by
+    change (q.tilted mB).tilted D = pi
+    rw [tilted_tilted hmb]
+    have hsum : mB+D=m := by funext x; dsimp [D]; ring
+    rw [hsum]
+    exact hi.2.2.2.2.2.2.1
+  have ht := tilt_power_bounds qhat D hD ell hell hJ
+  rw [heq] at ht
+  rcases ht with ⟨hpi,hpq,hqp,hfi,hri,hfb,hrb,hfen,hren⟩
+  refine ⟨hpi,hmqhat,hpq,hqp,hfi,hri,hfb.trans hb,hrb.trans hb,?_,?_⟩
+  · exact hfen.trans (ENNReal.ofReal_le_ofReal (by linarith))
+  · exact hren.trans (ENNReal.ofReal_le_ofReal (by linarith))
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedRenyiComparison

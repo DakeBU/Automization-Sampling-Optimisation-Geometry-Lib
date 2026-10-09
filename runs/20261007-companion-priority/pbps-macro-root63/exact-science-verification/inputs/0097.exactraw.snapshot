@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-d5d779395df62ef1",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      let gamma := stdGaussian E\n      let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma\n      let q := fun s u => Real.exp (-rho s u)/Z s\n      let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)\n      ∀ s, 0 < Z s ∧ Z s ≤ 1 ∧\n        r s = gamma.tilted (fun u => -rho s u) ∧\n        r s = gamma.withDensity (fun u => ENNReal.ofReal (q s u)) ∧\n        IsProbabilityMeasure (r s) ∧\n        (∀ u, 0 < q s u ∧ f s u^2 = q s u) ∧\n        (∫ u, q s u ∂gamma) = 1 ∧\n        ContDiff ℝ 2 (f s) ∧ MemLp (f s) 2 gamma ∧\n        MemLp (gradient (f s)) 2 gamma ∧ MemLp (gradient (rho s)) 2 (r s) ∧\n        Integrable (fun u => q s u*Real.log (q s u)) gamma ∧\n        (∀ u, gradient (f s) u = -(f s u/2) • gradient (rho s) u) ∧\n        (∀ u, gradient (fun z => Real.log (q s z)) u = -gradient (rho s) u) ∧\n        (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =\n          (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s)",
+    "statement_sha256": "d5d779395df62ef187716cca0bd43de934a0d395c0608082b2458df1dfcd4390",
+    "compiled": true,
+    "approved_definition_context": [
+      "stdGaussian E is the centered covariance-identity Gaussian on the finite real Hilbert space E, including dimension zero. volume is the canonical Haar/Lebesgue measure with the specified Borel structure.",
+      "Measure.tilted is the genuine normalized exponential tilt; a nonintegrable tilt is the zero measure. Measure.map is the actual measurable pushforward, withDensity is the nonnegative ENNReal density construction. Probability is an output here.",
+      "The same existential measurable function p occurs in the stationary equation, residual potential and affine map. No stationary point, output law, normalizer, probability, moment, entropy or gradient identity is supplied as a public premise.",
+      "gradient is the real Hilbert Riesz representative of the Frechet derivative. MemLp at exponent two is square integrability, Integrable is Bochner integrability; q and f are the displayed everywhere smooth representatives. All integrals and measures use those same definitions.",
+      "The parameter family S has a measurable structure. Every eta(s)>0 is allowed without an upper cap, and Unit constant families give fixed parameters. The energy is the unscaled squared Euclidean gradient integral, with exactly factor1/4."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "f01cd15c4da580d3c5f8c8645361ba9c4fa0047b0e8d2a3abe684d2960d896de"
+}

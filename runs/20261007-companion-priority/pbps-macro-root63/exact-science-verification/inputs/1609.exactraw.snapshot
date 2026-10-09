@@ -1,0 +1,245 @@
+{
+  "id": "ASTIS-RT-20261006-SPHMCActualContraction1",
+  "state": "accepted",
+  "source": {
+    "source_id": "sphmc-actual-contraction-1",
+    "anchor": "Proposition4.7 HTML590-620; exact M_kappa display preceding Theorem4.5",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+    "original_text": "Attributed scoped source restatement:\nFor every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa. The actual averaged Hessian and remainder are supplied by the independently compiled genuine algorithm producer, never assumed as a contraction/phase certificate.\nE is a complete finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. f:E->R is genuinely globally C2, kappa>=1, and (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for all z,v. This is the explicit normalized potential interface; actual V_eta construction is an independent producer.\nJ>=2,h>0. Actual nodes t_j=h/2(1-cos(j*pi/(J-1))), actual Lagrange cardinals ell_j, Lambda_J=sup_[0,h] sum|ell_j|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds and c_j=integral_0^h(h-s)ell_j(s)ds. The sole step restriction is h Lambda_J<=1/(65536 kappa); h<=1 and h²Lambda<=1 are derived.\na=exp(-h/2), sigma=sqrt(1-exp(-h)). P0=a p+sigma zeta0; Y0_j=x+t_j P0; Y1_i=Y0_i-sum omega_ij gradient f(Y0_j); Phi=(x+hP0-sum c_j gradient f(Y1_j), a(P0-sum b_j gradient f(Y1_j))+sigma zeta1). This is the actual exact-gradient phase, shared synchronously at every input/noise pair, not only almost surely.\nQ_kappa(x,p)=(1/(2kappa)+1/2)||x||²+inner(x,p)+||p||² and norm_M=sqrt(Q). The proof uses genuine Euclidean L2 phase norms throughout; it never treats the default product max norm as Euclidean.\nActual deterministic exact-gradient numerical phase contraction at the explicit normalized C2 curvature interface. Actual f=V_eta smoothing/C2/curvature producer remains independently open. No Khat/Kbar substitution, increment/logLambda/B2, invariant law/local errors/history/query work, PBPS, either full main theorem or actual-input expected-cost composition. TV proximity does not transfer unbounded expected cost.",
+    "text_sha256": "58ded7c4cefcc071ec12c7833d180abaabb74e9253256b39bfb2830c9a776029"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction.source_synchronous_contraction",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ActualContraction.lean",
+    "statement": "theorem source_synchronous_contraction {f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h * Λ ≤ 1/(65536*κ) →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    ∀ z z' ζ : E × E,\n      Real.sqrt (phaseQuadraticForm κ ((Φ (z,ζ)).1-(Φ (z',ζ)).1,\n        (Φ (z,ζ)).2-(Φ (z',ζ)).2)) ≤\n      (1-h/(65536*κ))*Real.sqrt (phaseQuadraticForm κ (z.1-z'.1,z.2-z'.2))",
+    "statement_sha256": "408ea32a58d2a40814d34f99d4538a8ebab7e090fb1b5b4d657daba37f66fe90",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a real inner-product space. In the nonlinear phase declaration it additionally has CompleteSpace, FiniteDimensional, MeasurableSpace and BorelSpace instances; the metric definition/energy comparisons do not assume these extra structures. Each theorem argument supplies its own parameter assumptions.",
+      "phaseQuadraticForm kappa (x,p)=(1/(2*kappa)+1/2)*norm(x)^2+inner_R(x,p)+norm(p)^2. phaseCost kappa (z,zprime)=ENNReal.ofReal(phaseQuadraticForm kappa (z-zprime)). phaseWassersteinSq is the infimum of the lintegral of phaseCost over all couplings of its measure inputs; it stores the square in ENNReal.",
+      "fderiv is the genuine Frechet derivative; gradient is its Riesz vector. ContDiff R 2 f is global twice continuous differentiability. Lagrange.basis is the true cardinal polynomial, sSup is real supremum, intervalIntegral is ordinary Lebesgue Bochner integration, Fin J indexes0..J-1.",
+      "WithLp2(E x E) has true Euclidean norm sqrt(norm(x)^2+norm(p)^2), with unchanged coordinates. The ordinary product norm used by WassersteinSpace is the default max norm. They are different norms; exact coordinate-sum energy is explicit in the metric comparisons.",
+      "The two coordinates of zeta are the two common vectors in the displayed numerical map. Each quantifier ranges over all points, with no noise-law/a.e. restriction. Real.sqrt is the nonnegative real square root. In the transport/moment declarations Measure/ENNReal integrability and inequality domains retain their usual Mathlib meaning; no actual sampler history is implicit."
+    ],
+    "compiler_evidence": "Actual production3666 and genuine nonconstant-Hessian full numerical Test3667 PASS. Original PhaseMetric APIs promoted with unchanged proofs; all old public module declarations reviewed afresh."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Full ActualContraction module read (289 lines): B,B_self,B_bound,quadratic_expansion,endpoint_quadratic_contraction private ownership all covered. Independent algebra checked B self/cross coefficient, exact polarized expansion, source kinetic sign 2B(d,A)=-D_H(d), conservative constants162/1152/1152 summing2466 and step absorption2466/65536<=1/16. Public theorem invokes actual coefficient and FirstOrderDifference producers; public H is the actual positive-b weighted ordinary Hessian secant integral, not supplied data. Genuine true L2 norm throughout. Shared noise cancels but both actual Gaussian OU refresh terms and both Picard layers remain in Phi. Square-root proof never divides by displacement/Q, including equal states and zero dimension. Six readable formula steps agree with code. Arbitrary f normalizedC2 interface honestly limits attribution. Current source/statement/reconstruction digests, module normalized text, complete lesson and complete publication binding independently recomputed; all pass. Fresh decoder components are exactly lean-statement and approved-definition-context, source invisible and identity independent. This bounded reconciliation independently compares the actual lesson at commits181244710f8e6a89667216c624b1c8690ba0d7e1 and58ed3f4e578a90bc15d2005b10e7312f6cb6b705. The ONLY parsed changes are three selected Mathlib dependency lists in unrelated Q/API units. Every original input artifact is currently identical except this whole lesson file. The selected packet, source/statement/reconstruction/decoder hashes, complete selected publication binding, module raw/LF hashes and lesson/proof context are unchanged. Update only the whole lesson input footprint; mathematical decision and seven slots reused without new progress credit.",
+    "review_run_sha256": "914c7342378ca2d275d8ca942c7074fbd53867f05418ef490c2453533189dea7",
+    "reviewer_packet_sha256": "5f0abbc869141ca8e3a36d8d2d84cf0dca137e44f1194e6d6de762c0d6473278",
+    "run_artifact": "runs/20261006-companion-priority/actual-contraction/p01.footprint.source-review.result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "87ea12150b851d5771739de073776b3685bacd89b2277282464b89e10ce2f8fb",
+  "publication_context": {
+    "file": "b05c70c514709ddfb57d296d258709b71a5ade0e9f86796a7edd295d3f19c975",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.KineticDissipation\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric\n\n/-!\n# Actual synchronous contraction of the exact-gradient numerical phase\n\nSPHMC arXiv:2609.06906v1 Proposition 4.7. The explicit normalized C2\ncurvature interface is retained; construction of the actual V_eta is separate.\nThe kernel is the real two-refresh two-Picard map from FirstOrderDifference.\nNo stochastic Khat/Kbar, history or main theorem is certified here.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction\n\nopen Set MeasureTheory ProbabilityTheory\nopen scoped BigOperators InnerProductSpace\nopen PhaseMetric\nnoncomputable section\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\nset_option backward.isDefEq.respectTransparency false\n\n/-- The polarized source M_kappa quadratic form, on the true L2 phase space. -/\nprivate def B (κ : ℝ) (u v : WithLp 2 (E × E)) : ℝ :=\n  (1/(2*κ)+1/2)*inner ℝ u.fst v.fst + (1/2:ℝ)*inner ℝ u.fst v.snd +\n    (1/2:ℝ)*inner ℝ u.snd v.fst + inner ℝ u.snd v.snd\n\nprivate theorem B_self (κ : ℝ) (u : WithLp 2 (E × E)) :\n    B κ u u = phaseQuadraticForm κ (WithLp.ofLp u) := by\n  simp only [B, phaseQuadraticForm, WithLp.fst, WithLp.snd,\n    real_inner_self_eq_norm_sq, real_inner_comm (WithLp.ofLp u).2 (WithLp.ofLp u).1]\n  ring\n\nprivate theorem B_bound {κ : ℝ} (hκ : 1 ≤ κ) (u v : WithLp 2 (E × E)) :\n    B κ u v ≤ 3*‖u‖*‖v‖ := by\n  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ\n  have hc0 : 0 ≤ 1/(2*κ)+1/2 := by positivity\n  have hc : 1/(2*κ)+1/2 ≤ (1:ℝ) := by\n    have hi : 1/(2*κ) ≤ (1/2:ℝ) := (div_le_iff₀ (by positivity)).mpr (by linarith)\n    linarith\n  have hx := WithLp.norm_fst_le (p := 2) E u\n  have hp := WithLp.norm_snd_le (p := 2) E u\n  have hy := WithLp.norm_fst_le (p := 2) E v\n  have hq := WithLp.norm_snd_le (p := 2) E v\n  have hxx : inner ℝ u.fst v.fst ≤ ‖u‖*‖v‖ :=\n    (real_inner_le_norm _ _).trans (mul_le_mul hx hy (norm_nonneg _) (norm_nonneg _))\n  have hxp : inner ℝ u.fst v.snd ≤ ‖u‖*‖v‖ :=\n    (real_inner_le_norm _ _).trans (mul_le_mul hx hq (norm_nonneg _) (norm_nonneg _))\n  have hpx : inner ℝ u.snd v.fst ≤ ‖u‖*‖v‖ :=\n    (real_inner_le_norm _ _).trans (mul_le_mul hp hy (norm_nonneg _) (norm_nonneg _))\n  have hpp : inner ℝ u.snd v.snd ≤ ‖u‖*‖v‖ :=\n    (real_inner_le_norm _ _).trans (mul_le_mul hp hq (norm_nonneg _) (norm_nonneg _))\n  have hcxx := mul_le_mul_of_nonneg_left hxx hc0\n  have hcuv := mul_le_mul_of_nonneg_right hc (mul_nonneg (norm_nonneg u) (norm_nonneg v))\n  dsimp only [B]\n  nlinarith\n\nprivate theorem quadratic_expansion (κ h : ℝ) (d A r : WithLp 2 (E × E)) :\n    phaseQuadraticForm κ (WithLp.ofLp (d+h • A+r)) =\n      phaseQuadraticForm κ (WithLp.ofLp d) + 2*h*B κ d A +\n        h^2*phaseQuadraticForm κ (WithLp.ofLp A) +\n        2*B κ (d+h • A) r + phaseQuadraticForm κ (WithLp.ofLp r) := by\n  rw [← B_self κ (d+h • A+r), ← B_self κ d, ← B_self κ A, ← B_self κ r]\n  simp only [B, WithLp.add_fst,\n    WithLp.add_snd, WithLp.smul_fst, WithLp.smul_snd, inner_add_left,\n    inner_add_right, real_inner_smul_left, real_inner_smul_right, real_inner_comm]\n  ring\n\nvariable [FiniteDimensional ℝ E]\n\nset_option maxHeartbeats 800000 in\nprivate theorem endpoint_quadratic_contraction {κ h Λ : ℝ}\n    (hκ : 1 ≤ κ) (hh : 0 < h) (hΛ : 1 ≤ Λ)\n    (hstep : h*Λ ≤ 1/(65536*κ))\n    (H : E →L[ℝ] E) (hsym : H.toLinearMap.IsSymmetric)\n    (hcurv : ∀ v, 1/(2*κ)*‖v‖^2 ≤ inner ℝ (H v) v ∧ inner ℝ (H v) v ≤ ‖v‖^2)\n    (hH : ‖H‖ ≤ 1) (d r : WithLp 2 (E × E))\n    (hr : ‖r‖ ≤ 8*Λ*h^2*‖d‖) :\n    let A := WithLp.toLp 2 (d.snd,-H d.fst-d.snd)\n    phaseQuadraticForm κ (WithLp.ofLp (d+h • A+r)) ≤\n      (1-h/(16*κ))*phaseQuadraticForm κ (WithLp.ofLp d) := by\n  let A := WithLp.toLp 2 (d.snd,-H d.fst-d.snd)\n  let L := Λ*h^2\n  let Q := fun v : WithLp 2 (E × E) => phaseQuadraticForm κ (WithLp.ofLp v)\n  change Q (d+h • A+r) ≤ (1-h/(16*κ))*Q d\n  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ\n  have hi : 1/(65536*κ) ≤ (1:ℝ) := (div_le_one (by positivity)).mpr (by linarith)\n  have hh1 : h ≤ 1 := by nlinarith\n  have hL0 : 0 ≤ L := by dsimp [L]; positivity\n  have hL1 : L ≤ 1 := by\n    have hs : h*Λ ≤ 1 := hstep.trans hi\n    have hm := mul_le_mul_of_nonneg_left hs (le_of_lt hh)\n    dsimp only [L]\n    nlinarith\n  have hLsq : L^2 ≤ L := by nlinarith\n  have lower (v : WithLp 2 (E × E)) : ‖v‖^2 ≤ 6*Q v := by\n    rw [WithLp.prod_norm_sq_eq_of_L2]\n    exact ordinary_energy_le_phaseQuadraticForm hκ (WithLp.ofLp v)\n  have upper (v : WithLp 2 (E × E)) : Q v ≤ 3*‖v‖^2 := by\n    have hu := phaseQuadraticForm_le_ordinary_energy hκ (WithLp.ofLp v)\n    change Q v ≤ (3/2:ℝ)*(‖v.fst‖^2+‖v.snd‖^2) at hu\n    rw [← WithLp.prod_norm_sq_eq_of_L2 v] at hu\n    nlinarith [sq_nonneg ‖v‖]\n  have hQ0 : 0 ≤ Q d := by nlinarith [lower d, sq_nonneg ‖d‖]\n  have hx := WithLp.norm_fst_le (p := 2) E d\n  have hp := WithLp.norm_snd_le (p := 2) E d\n  have hHx : ‖H d.fst‖ ≤ ‖d.fst‖ := by\n    exact (H.le_opNorm _).trans (by simpa using mul_le_mul_of_nonneg_right hH (norm_nonneg d.fst))\n  have hAp : ‖-H d.fst-d.snd‖ ≤ ‖d.fst‖+‖d.snd‖ := by\n    exact (norm_sub_le _ _).trans (by simpa using add_le_add_right hHx ‖d.snd‖)\n  have hA : ‖A‖ ≤ 3*‖d‖ := by\n    have ht := norm_add_le (WithLp.toLp 2 (d.snd,(0:E)))\n      (WithLp.toLp 2 ((0:E),-H d.fst-d.snd))\n    have hpairs : ‖A‖ ≤ ‖d.snd‖+‖-H d.fst-d.snd‖ := by\n      simpa only [A, ← WithLp.toLp_add, Prod.mk_add_mk, add_zero, zero_add,\n        WithLp.norm_toLp_fst, WithLp.norm_toLp_snd] using ht\n    linarith\n  have hu : ‖d+h • A‖ ≤ 4*‖d‖ := by\n    have ht := norm_add_le d (h • A)\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos hh] at ht\n    nlinarith [mul_le_mul_of_nonneg_left hA (le_of_lt hh),\n      mul_nonneg (sub_nonneg.mpr hh1) (norm_nonneg d)]\n  have hQA : Q A ≤ 162*Q d := by\n    have hsq : ‖A‖^2 ≤ (3*‖d‖)^2 := (sq_le_sq₀ (norm_nonneg A) (by positivity)).mpr hA\n    nlinarith [upper A, lower d]\n  have hD := KineticDissipation.source_kinetic_dissipation hκ H.toLinearMap hsym\n    (fun v => by change 1/(2*κ)*‖v‖^2 ≤ inner ℝ v (H v); rw [real_inner_comm]; exact (hcurv v).1)\n    (fun v => by change inner ℝ v (H v) ≤ ‖v‖^2; rw [real_inner_comm]; exact (hcurv v).2) d.fst d.snd\n  have hidentity : 2*B κ d A = -(inner ℝ d.fst (H d.fst) +\n      2*inner ℝ d.snd (H d.fst)-1/κ*inner ℝ d.fst d.snd+‖d.snd‖^2) := by\n    simp only [B,A,WithLp.toLp_fst,WithLp.toLp_snd,inner_sub_right,inner_neg_right,\n      real_inner_self_eq_norm_sq,real_inner_comm d.snd d.fst]\n    field_simp\n    ring\n  have hlin : 2*B κ d A ≤ -1/(8*κ)*Q d := by\n    rw [hidentity]\n    change 1/(8*κ)*Q d ≤ inner ℝ d.fst (H d.fst)+2*inner ℝ d.snd (H d.fst)-1/κ*inner ℝ d.fst d.snd+‖d.snd‖^2 at hD\n    calc\n      _ ≤ -(1/(8*κ)*Q d) := neg_le_neg hD\n      _ = -1/(8*κ)*Q d := by ring\n  have hr' : ‖r‖ ≤ 8*L*‖d‖ := by simpa only [L, mul_assoc] using hr\n  have hcross : 2*B κ (d+h • A) r ≤ 1152*L*Q d := by\n    calc\n      _ ≤ 6*‖d+h • A‖*‖r‖ := by linarith [B_bound hκ (d+h • A) r]\n      _ ≤ 6*(4*‖d‖)*(8*L*‖d‖) := by gcongr\n      _ = 192*L*‖d‖^2 := by ring\n      _ ≤ 1152*L*Q d := by nlinarith [mul_le_mul_of_nonneg_left (lower d) hL0]\n  have hqr : Q r ≤ 1152*L*Q d := by\n    have hrsq : ‖r‖^2 ≤ (8*L*‖d‖)^2 := (sq_le_sq₀ (norm_nonneg r) (by positivity)).mpr hr'\n    calc\n      Q r ≤ 3*‖r‖^2 := upper r\n      _ ≤ 192*L^2*‖d‖^2 := by nlinarith\n      _ ≤ 192*L*‖d‖^2 := by gcongr\n      _ ≤ 1152*L*Q d := by nlinarith [mul_le_mul_of_nonneg_left (lower d) hL0]\n  have hAterm : h^2*Q A ≤ 162*L*Q d := by\n    have hl : h^2 ≤ L := by dsimp only [L]; nlinarith [sq_nonneg h]\n    calc\n      _ ≤ h^2*(162*Q d) := mul_le_mul_of_nonneg_left hQA (sq_nonneg h)\n      _ ≤ 162*L*Q d := by nlinarith [mul_le_mul_of_nonneg_right hl hQ0]\n  have hsum : Q (d+h • A+r) ≤ (1-h/(8*κ)+2466*L)*Q d := by\n    have hid := quadratic_expansion κ h d A r\n    change Q (d+h • A+r) = Q d + 2*h*B κ d A+h^2*Q A+2*B κ (d+h • A) r+Q r at hid\n    have ht := mul_le_mul_of_nonneg_left hlin (le_of_lt hh)\n    have ht' : 2*h*B κ d A ≤ -(h/(8*κ))*Q d := by\n      simpa only [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm,\n        neg_mul, mul_neg, one_mul] using ht\n    clear ht\n    nlinarith\n  have habsorb : 2466*L ≤ h/(16*κ) := by\n    have hm := mul_le_mul_of_nonneg_left hstep (by positivity : 0 ≤ 2466*h)\n    have hc : 2466/(65536*κ) ≤ 1/(16*κ) := by\n      apply (div_le_div_iff₀ (by positivity) (by positivity)).mpr\n      nlinarith\n    have hc' := mul_le_mul_of_nonneg_left hc (le_of_lt hh)\n    calc\n      2466*L = (2466*h)*(h*Λ) := by dsimp [L];ring\n      _ ≤ (2466*h)*(1/(65536*κ)) := hm\n      _ = h*(2466/(65536*κ)) := by ring\n      _ ≤ h*(1/(16*κ)) := hc'\n      _ = h/(16*κ) := by ring\n  have hcoef : 1-h/(8*κ)+2466*L ≤ 1-h/(16*κ) := by\n    have hid : h/(8*κ) = 2*(h/(16*κ)) := by field_simp;ring\n    linarith\n  exact hsum.trans (mul_le_mul_of_nonneg_right hcoef hQ0)\n\n\nvariable [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]\n\nset_option maxHeartbeats 1000000 in\n/-- Proposition4.7 for the actual exact-gradient numerical phase at the explicit\nnormalized C2 interface. The same universal constant c=1/65536 controls the\nactual cardinal-integral step condition and the true M_kappa norm contraction.\nNo supplied contraction, abstract phase map or remainder certificate. -/\ntheorem source_synchronous_contraction {f : E → ℝ} {κ h : ℝ} {J : ℕ}\n    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)\n    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧\n      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)\n    (hJ : 2 ≤ J) (hh : 0 < h) :\n    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n    h * Λ ≤ 1/(65536*κ) →\n    let a := Real.exp (-h / 2)\n    let sigma := Real.sqrt (1 - Real.exp (-h))\n    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n    let Φ := fun w : (E × E) × (E × E) =>\n      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n    ∀ z z' ζ : E × E,\n      Real.sqrt (phaseQuadraticForm κ ((Φ (z,ζ)).1-(Φ (z',ζ)).1,\n        (Φ (z,ζ)).2-(Φ (z',ζ)).2)) ≤\n      (1-h/(65536*κ))*Real.sqrt (phaseQuadraticForm κ (z.1-z'.1,z.2-z'.2)) := by\n  classical\n  dsimp only\n  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))\n  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j\n  let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)\n  let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s\n  let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s\n  let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s\n  intro hstep\n  change h*Λ ≤ 1/(65536*κ) at hstep\n  have hcoeff := TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh\n  rcases hcoeff with ⟨_,_,_,_,_,hΛ,_,_⟩\n  change 1 ≤ Λ at hΛ\n  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ\n  have hi : 1/(65536*κ) ≤ (1:ℝ) := (div_le_one (by positivity)).mpr (by linarith)\n  have hh1 : h ≤ 1 := by nlinarith\n  have hs : h^2*Λ ≤ 1 := by\n    have hm := mul_le_mul_of_nonneg_left (hstep.trans hi) (le_of_lt hh)\n    nlinarith\n  let a := Real.exp (-h / 2)\n  let sigma := Real.sqrt (1 - Real.exp (-h))\n  let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1\n  let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ\n  let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)\n  let Φ := fun w : (E × E) × (E × E) =>\n    (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),\n      a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)\n  have hfirst := FirstOrderDifference.source_first_order_difference hκ hf hH hJ hh hs\n  intro z z' ζ\n  let H := h⁻¹ • ∑ j, b j •\n    (∫ u in (0:ℝ)..1, InnerProductSpace.continuousLinearMapOfBilin\n      (fderiv ℝ (fderiv ℝ f) (Y1 z' ζ j+u • (Y1 z ζ j-Y1 z' ζ j))))\n  let d := WithLp.toLp 2 (z.1-z'.1,z.2-z'.2)\n  let q := WithLp.toLp 2 ((Φ (z,ζ)).1-(Φ (z',ζ)).1,(Φ (z,ζ)).2-(Φ (z',ζ)).2)\n  have hp := hfirst.2.2 z z' ζ\n  change H.toLinearMap.IsSymmetric ∧ (∀ v, 1/(2*κ)*‖v‖^2 ≤ inner ℝ (H v) v ∧\n    inner ℝ (H v) v ≤ ‖v‖^2) ∧ ‖H‖ ≤ 1 ∧\n    ∃ R : WithLp 2 (E × E) →L[ℝ] WithLp 2 (E × E), ‖R‖ ≤ 8*Λ*h^2 ∧\n      q = d+h • WithLp.toLp 2 (d.snd,-H d.fst-d.snd)+R d at hp\n  rcases hp with ⟨hsym,hcurv,hHnorm,R,hR,heq⟩\n  have hr : ‖R d‖ ≤ 8*Λ*h^2*‖d‖ :=\n    (R.le_opNorm d).trans (mul_le_mul_of_nonneg_right hR (norm_nonneg d))\n  have hquad := endpoint_quadratic_contraction hκ hh hΛ hstep H hsym hcurv hHnorm d (R d) hr\n  dsimp only at hquad\n  rw [← heq] at hquad\n  let Qd := phaseQuadraticForm κ (WithLp.ofLp d)\n  let Qq := phaseQuadraticForm κ (WithLp.ofLp q)\n  let t := h/(65536*κ)\n  change Qq ≤ (1-h/(16*κ))*Qd at hquad\n  change Real.sqrt Qq ≤ (1-t)*Real.sqrt Qd\n  have hQd0 : 0 ≤ Qd := by\n    have hl := ordinary_energy_le_phaseQuadraticForm hκ (WithLp.ofLp d)\n    change _ ≤ 6*Qd at hl\n    nlinarith [sq_nonneg ‖d.fst‖,sq_nonneg ‖d.snd‖]\n  have hQq0 : 0 ≤ Qq := by\n    have hl := ordinary_energy_le_phaseQuadraticForm hκ (WithLp.ofLp q)\n    change _ ≤ 6*Qq at hl\n    nlinarith [sq_nonneg ‖q.fst‖,sq_nonneg ‖q.snd‖]\n  have ht0 : 0 ≤ t := by dsimp [t]; positivity\n  have ht1 : t ≤ 1 := by\n    have hc : h/(65536*κ) ≤ 1 := (div_le_one (by positivity)).mpr (by linarith)\n    exact hc\n  have hratio : h/(16*κ) = 4096*t := by dsimp only [t];field_simp;ring\n  have hquad' : Qq ≤ (1-t)^2*Qd := by\n    rw [hratio] at hquad\n    nlinarith [mul_nonneg (sq_nonneg t) hQd0, mul_nonneg ht0 hQd0]\n  have hsq : (Real.sqrt Qq)^2 ≤ ((1-t)*Real.sqrt Qd)^2 := by\n    simpa only [mul_pow,Real.sq_sqrt hQd0,Real.sq_sqrt hQq0] using hquad'\n  exact (sq_le_sq₀ (Real.sqrt_nonneg _) (mul_nonneg (sub_nonneg.mpr ht1) (Real.sqrt_nonneg _))).mp hsq\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Proposition4.7 HTML590-620; exact M_kappa display preceding Theorem4.5",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Exact source numerical phase/metric, explicit constant elaboration, actual normalized-curvature producer boundary."
+    },
+    "statement": "For every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa. The actual averaged Hessian and remainder are supplied by the independently compiled genuine algorithm producer, never assumed as a contraction/phase certificate.",
+    "formulae": [
+      {
+        "label": "Exact source metric/actual contraction",
+        "tex": "h\\Lambda_J\\le\\frac1{65536\\kappa}\\quad\\Longrightarrow\\quad\\|\\Phi_z(\\zeta)-\\Phi_{z\\prime}(\\zeta)\\|_{M_\\kappa}\\le\\left(1-\\frac{h}{65536\\kappa}\\right)\\|z-z\\prime\\|_{M_\\kappa}."
+      }
+    ],
+    "assumptions": [
+      "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. f:E->R is genuinely globally C2, kappa>=1, and (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for all z,v. This is the explicit normalized potential interface; actual V_eta construction is an independent producer.",
+      "J>=2,h>0. Actual nodes t_j=h/2(1-cos(j*pi/(J-1))), actual Lagrange cardinals ell_j, Lambda_J=sup_[0,h] sum|ell_j|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds and c_j=integral_0^h(h-s)ell_j(s)ds. The sole step restriction is h Lambda_J<=1/(65536 kappa); h<=1 and h²Lambda<=1 are derived.",
+      "a=exp(-h/2), sigma=sqrt(1-exp(-h)). P0=a p+sigma zeta0; Y0_j=x+t_j P0; Y1_i=Y0_i-sum omega_ij gradient f(Y0_j); Phi=(x+hP0-sum c_j gradient f(Y1_j), a(P0-sum b_j gradient f(Y1_j))+sigma zeta1). This is the actual exact-gradient phase, shared synchronously at every input/noise pair, not only almost surely.",
+      "Q_kappa(x,p)=(1/(2kappa)+1/2)||x||²+inner(x,p)+||p||² and norm_M=sqrt(Q). The proof uses genuine Euclidean L2 phase norms throughout; it never treats the default product max norm as Euclidean."
+    ],
+    "obligations": [
+      {
+        "id": "scoped-edge",
+        "label": "For every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa. The actual averaged Hessian and remainder are supplied by the independently compiled genuine algorithm producer, never assumed as a contraction/phase certificate."
+      },
+      {
+        "id": "remaining-producer",
+        "label": "Actual smoothed potential and full main result (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction.source_synchronous_contraction",
+      "title": "For every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+          "label": "SPHMC actual numerical contraction and M_kappa",
+          "scope": "Actual deterministic exact-gradient numerical phase contraction at the explicit normalized C2 curvature interface. Actual f=V_eta smoothing/C2/curvature producer remains independently open. No Khat/Kbar substitution, increment/logLambda/B2, invariant law/local errors/history/query work, PBPS, either full main theorem or actual-input expected-cost composition. TV proximity does not transfer unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCActualContraction"
+      ],
+      "assumptions": [
+        "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. f:E->R is genuinely globally C2, kappa>=1, and (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for all z,v. This is the explicit normalized potential interface; actual V_eta construction is an independent producer.",
+        "J>=2,h>0. Actual nodes t_j=h/2(1-cos(j*pi/(J-1))), actual Lagrange cardinals ell_j, Lambda_J=sup_[0,h] sum|ell_j|, omega_ij=integral_0^{t_i}(t_i-s)ell_j(s)ds, b_j=integral_0^h ell_j(s)ds and c_j=integral_0^h(h-s)ell_j(s)ds. The sole step restriction is h Lambda_J<=1/(65536 kappa); h<=1 and h²Lambda<=1 are derived.",
+        "a=exp(-h/2), sigma=sqrt(1-exp(-h)). P0=a p+sigma zeta0; Y0_j=x+t_j P0; Y1_i=Y0_i-sum omega_ij gradient f(Y0_j); Phi=(x+hP0-sum c_j gradient f(Y1_j), a(P0-sum b_j gradient f(Y1_j))+sigma zeta1). This is the actual exact-gradient phase, shared synchronously at every input/noise pair, not only almost surely.",
+        "Q_kappa(x,p)=(1/(2kappa)+1/2)||x||²+inner(x,p)+||p||² and norm_M=sqrt(Q). The proof uses genuine Euclidean L2 phase norms throughout; it never treats the default product max norm as Euclidean."
+      ],
+      "statement": "For every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa. The actual averaged Hessian and remainder are supplied by the independently compiled genuine algorithm producer, never assumed as a contraction/phase certificate.",
+      "formula": "h\\Lambda_J\\le\\frac1{65536\\kappa}\\quad\\Longrightarrow\\quad\\|\\Phi_z(\\zeta)-\\Phi_{z\\prime}(\\zeta)\\|_{M_\\kappa}\\le\\left(1-\\frac{h}{65536\\kappa}\\right)\\|z-z\\prime\\|_{M_\\kappa}.",
+      "steps": [
+        {
+          "title": "Reuse the actual numerical expansion",
+          "text": "The real coefficient producer gives Lambda>=1. The sole source step restriction derives h<=1 and h²Lambda<=1. Call the actual FirstOrderDifference theorem on this same Phi, obtaining genuine H, curvature, norm<=1 and Delta1=d+hA+Rd with ||R||<=8Lambda h². Its actual measurable Gaussian Markov semantics were established in the parent.",
+          "formula": "\\Delta_1=d+hA+Rd,\\quad A=(\\Delta p,-H\\Delta x-\\Delta p),\\quad\\|R\\|\\le8\\Lambda_Jh^2.",
+          "lean": "source_first_order_difference; chebyshev_lobatto_coefficients; hfirst; hp; hr"
+        },
+        {
+          "title": "Call the existing exact source norm comparisons",
+          "text": "Open the already proved Q definition and two comparisons as public APIs, preserving their original proofs. Polarize Q into B with coefficient alpha+1/2 on the xx block, 1/2 on both mixed blocks and1 on pp. Coordinate Cauchy--Schwarz yields B(u,v)<=3||u||2||v||2. No duplicate norm-comparison proof or new wrapper is introduced.",
+          "formula": "\\|d\\|_2^2\\le6Q(d),\\quad Q(d)\\le\\tfrac32\\|d\\|_2^2,\\quad B(u,v)\\le3\\|u\\|_2\\|v\\|_2.",
+          "lean": "phaseQuadraticForm; ordinary_energy_le_phaseQuadraticForm; phaseQuadraticForm_le_ordinary_energy; B_bound; B_self"
+        },
+        {
+          "title": "Consume genuine kinetic dissipation",
+          "text": "The parent all-vector H curvature bounds feed the compiled full-space source drift theorem. Exact real inner-product algebra gives 2B(d,A)=-D_H(d)<=-Q(d)/(8kappa). The operator and coordinate triangle bounds imply ||A||<=3||d||, so Q(A)<=162Q(d); this constant is a deliberate conservative weakening.",
+          "formula": "2B(d,A)\\le-\\frac{Q(d)}{8\\kappa},\\quad\\|A\\|_2\\le3\\|d\\|_2,\\quad Q(A)\\le162Q(d).",
+          "lean": "source_kinetic_dissipation; hD; hidentity; hlin; hA; hQA"
+        },
+        {
+          "title": "Expand the actual endpoint energy",
+          "text": "For r=Rd and L=Lambda h²<=1, derive ||d+hA||<=4||d|| and ||r||<=8L||d||. Thus the cross remainder is <=1152LQ(d), the remainder energy is <=1152LQ(d) using L²<=L, and h²Q(A)<=162LQ(d) using Lambda>=1. The exact polarized identity and drift imply the full endpoint bound.",
+          "formula": "Q(d+hA+r)=Q(d)+2hB(d,A)+h^2Q(A)+2B(d+hA,r)+Q(r)\\le\\left(1-\\frac h{8\\kappa}+2466\\Lambda_Jh^2\\right)Q(d).",
+          "lean": "quadratic_expansion; endpoint_quadratic_contraction; hcross; hqr; hAterm; hsum"
+        },
+        {
+          "title": "Absorb with an explicit universal step constant",
+          "text": "The actual step condition and2466<4096 give2466Lambda h²<=h/(16kappa). Hence the genuine endpoint Q is <=(1-h/(16kappa))Q(d). No strengthened convenient h restriction or suppressed dimension dependence is added.",
+          "formula": "2466\\Lambda_Jh^2\\le\\frac h{16\\kappa},\\quad Q(\\Delta_1)\\le\\left(1-\\frac h{16\\kappa}\\right)Q(d).",
+          "lean": "habsorb; hcoef; hquad"
+        },
+        {
+          "title": "Take square roots without division by input energy",
+          "text": "Let t=h/(65536kappa), so0<=t<=1. The stronger squared loss4096t is bounded by the square of1-t. Nonnegativity of both Q values follows from the original lower comparison. Real square-root identities and monotonicity give the target. No division by Q(d), so equal inputs and dimension0 are included.",
+          "formula": "1-4096t\\le(1-t)^2,\\quad\\sqrt{Q(\\Delta_1)}\\le(1-t)\\sqrt{Q(d)}.",
+          "lean": "hQd0; hQq0; hratio; hquadprime; Real.sq_sqrt; sq_le_sq₀"
+        }
+      ],
+      "lean_statement": "For every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa. The actual averaged Hessian and remainder are supplied by the independently compiled genuine algorithm producer, never assumed as a contraction/phase certificate.",
+      "lean_proof": "Exact source form and compiled parent composition, with all source domains/constant absorption and zero cases explicit. Existing Q/comparison proofs unchanged.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference.source_first_order_difference",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.KineticDissipation.source_kinetic_dissipation",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.ordinary_energy_le_phaseQuadraticForm",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseQuadraticForm_le_ordinary_energy",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseQuadraticForm"
+      ],
+      "mathlib_dependencies": [
+        "WithLp.prod_norm_sq_eq_of_L2",
+        "real_inner_le_norm",
+        "Real.sq_sqrt",
+        "sq_le_sq₀"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ActualContraction.source_synchronous_contraction",
+      "role": "proof-edge",
+      "supports": [
+        "scoped-edge"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite Euclidean source domain with the exact M_kappa block form.",
+        "lean": "E is a complete finite-dimensional real inner-product space with its Borel sigma algebra, including dimension zero. f:E->R is genuinely globally C2, kappa>=1, and (2kappa)^-1||v||²<=D²f(z)[v,v]<=||v||² for all z,v. This is the explicit normalized potential interface; actual V_eta construction is an independent producer."
+      },
+      {
+        "source": "Universal c and C in the source Proposition4.7 step/contraction.",
+        "lean": "For every actual input pair and every common two-vector noise value, the source exact-gradient numerical phase obeys the M_kappa norm contraction with simultaneous explicit universal constant c=1/65536 under h Lambda_J<=c/kappa. The actual averaged Hessian and remainder are supplied by the independently compiled genuine algorithm producer, never assumed as a contraction/phase certificate."
+      },
+      {
+        "source": "Actual V_eta from Lemma4.1.",
+        "lean": "Genuine global C2 f with explicit normalized curvature for the nonlinear consumer."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For every complete finite-dimensional real inner-product space E with its measurable Borel structure, every globally C^2 f:E->R, real kappa,h and natural J, assume kappa>=1,J>=2,h>0,and for every base point z and vector v in E,\n  (1/(2kappa))||v||^2 <= D^2 f(z)[v,v] <= ||v||^2.\nFor indices in Fin(J)={0,...,J-1},define exactly\n  t_i=(h/2)(1-cos((i/(J-1))pi)),\n  ell_j=the real Lagrange cardinal polynomial at these nodes,\n  Lambda=sup{sum_j |ell_j(s)|:s in [0,h]},\n  omega_ij=integral_0^{t_i}(t_i-s)ell_j(s)ds,\n  b_j=integral_0^h ell_j(s)ds,\n  c_j=integral_0^h(h-s)ell_j(s)ds.\nThe node quotient uses real coercions;integrals are ordinary Lebesgue Bochner interval integrals and the supremum is real. If h Lambda<=1/(65536 kappa),define a=exp(-h/2),sigma=sqrt(1-exp(-h)),and for incoming z=(X,P) and supplied common vector pair zeta=(u,v),\n  P0(z,zeta)=a P+sigma u,\n  Y0_j(z,zeta)=X+t_j P0(z,zeta),\n  Y1_i(z,zeta)=Y0_i(z,zeta)-sum_j omega_ij grad f(Y0_j(z,zeta)),\n  Phi(z,zeta)=(X+h P0(z,zeta)-sum_j c_j grad f(Y1_j(z,zeta)),\n               a(P0(z,zeta)-sum_j b_j grad f(Y1_j(z,zeta)))+sigma v).\nLet Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2. Then for every z,zprime,zeta in E x E,\n  sqrt(Q_kappa(Phi(z,zeta).1-Phi(zprime,zeta).1,\n               Phi(z,zeta).2-Phi(zprime,zeta).2))\n    <= (1-h/(65536 kappa))sqrt(Q_kappa(z.1-zprime.1,z.2-zprime.2)).\nSquare roots are nonnegative real square roots. Both compared updates use the same arbitrary zeta,pointwise with no noise-law or almost-everywhere restriction. All sums use J actual nodes. The contraction is in the displayed square-root quadratic energy with its cross term,rather than in an unstated Euclidean or maximum product norm. The statement contains no probability law,kernel assertion,transport-of-measures conclusion,iteration history or query-count claim.",
+    "text_sha256": "ed3720c96b5f4fb4e3187bd829d1ee8116eb2bb996e37a31c95acb97534c5fde",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_run_sha256": "1a24901333594aa2090418a0ef322860b9c8055ed6dc0c7516f4123ac8da80b7",
+    "decoder_packet_sha256": "2826686c3c7bdd6a665b3905c3145c39f2887212d1c70e72d3b5693561dc6942",
+    "source_text_visible": false,
+    "lean_statement_sha256": "408ea32a58d2a40814d34f99d4538a8ebab7e090fb1b5b4d657daba37f66fe90",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261006-companion-priority/actual-contraction/p01.reconstruction.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Exact-gradient two-refresh two-Picard Phi, source M_kappa, actual Lagrange integral coefficients.",
+      "reconstructed": "The same actual t,ell,Lambda,omega,b,c,P0,Y0,Y1,Phi and sqrt(Q_kappa).",
+      "relation": "equivalent",
+      "evidence": "Algorithm3.1 264-306; K distinct from Khat/Kbar at 497-512. Final c is the actual last-node row; both outer momentum a and terminal sigma*zeta1 are retained."
+    },
+    "domains": {
+      "original": "Finite Euclidean phase space; scoped normalized C2 curvature interface.",
+      "reconstructed": "Complete finite-dimensional real inner-product Borel E, including dimension zero; true WithLp 2 phase norms.",
+      "relation": "explicit-elaboration",
+      "evidence": "Finite Hilbert coordinates preserve the exact block form; no product max norm is substituted in the contraction. Zero-dimensional spaces are included without choosing a nonzero vector."
+    },
+    "quantifiers": {
+      "original": "Every input pair and every common two-vector noise value, pointwise.",
+      "reconstructed": "For all z,zprime,zeta after universally quantified f,kappa,J,h satisfying the stated hypotheses.",
+      "relation": "equivalent",
+      "evidence": "Proposition4.7 592-594 is pointwise, not merely almost surely. R and H are internally obtained separately for each compared pair/noise; no measurable or global R choice is asserted."
+    },
+    "assumptions": {
+      "original": "Scoped actual C2 f with Hessian bounds 1/(2kappa)..1, kappa>=1,J>=2,h>0,hLambda<=1/(65536kappa). Actual V_eta producer separate.",
+      "reconstructed": "Exactly these explicit hypotheses; neither H, coefficients, phase map, remainder bound nor contraction is a supplied public premise.",
+      "relation": "explicit-elaboration",
+      "evidence": "Lemma4.1 413-430 supplies source V_eta curvature in the paper, but the current edge honestly exposes this unconstructed normalized interface. Lambda>=1 derives h<=1 and h^2Lambda<=1. No additional convenient step premise is introduced."
+    },
+    "conclusion": {
+      "original": "Source M_kappa norm contracts by 1-h/(65536kappa).",
+      "reconstructed": "sqrt(Q(Phi(z,zeta)-Phi(zprime,zeta))) <= (1-h/(65536kappa))*sqrt(Q(z-zprime)).",
+      "relation": "equivalent",
+      "evidence": "Q is the exact source block quadratic energy, cross coefficient 1. Squared energy first contracts by 1-h/(16kappa); nonnegative square-root argument gives the simultaneous weaker universal constant."
+    },
+    "scopes": {
+      "original": "Scoped Proposition4.7 nonlinear normalized-potential consumer, with actual V_eta producer remaining.",
+      "reconstructed": "Deterministic actual Phi contraction, with no probability/transport/history/cost conclusion.",
+      "relation": "equivalent",
+      "evidence": "Only the scoped declaration is accepted. Actual V_eta smoothing/C2/curvature producer, kernel/measure contraction, synchronous increment theorem, stochastic Khat/Kbar, log-Lambda, full B1/B2, invariant law/local errors, history (D.3), query-center (D.7), total cost (D.8), PBPS and main theorems receive no completion credit. TV proximity transfers no unbounded expected cost. Existing PhaseMetric APIs receive no new mathematical progress credit."
+    },
+    "constant_dependencies": {
+      "original": "Source universal positive c; explicit simultaneous c=1/65536, independent of dimension,J,f.",
+      "reconstructed": "Exactly 1/65536 in both sole hLambda restriction and norm loss; genuine remainder parent constant8.",
+      "relation": "explicit-elaboration",
+      "evidence": "B<=3||u||||v||, ||A||<=3||d||, Q(A)<=162Q(d); cross and Q(r) each<=1152Lambda*h^2Q(d); total2466<4096. Absorb to h/(16kappa), then t=h/(65536kappa):1-4096t<=(1-t)^2. No division by Q(d)."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_review_history": [
+    {
+      "state": "accepted",
+      "reviewer": "phase_source_reviewer_20261005",
+      "independent_from_formalizer": true,
+      "independent_from_decoder": true,
+      "evidence": "Full ActualContraction module read (289 lines): B,B_self,B_bound,quadratic_expansion,endpoint_quadratic_contraction private ownership all covered. Independent algebra checked B self/cross coefficient, exact polarized expansion, source kinetic sign 2B(d,A)=-D_H(d), conservative constants162/1152/1152 summing2466 and step absorption2466/65536<=1/16. Public theorem invokes actual coefficient and FirstOrderDifference producers; public H is the actual positive-b weighted ordinary Hessian secant integral, not supplied data. Genuine true L2 norm throughout. Shared noise cancels but both actual Gaussian OU refresh terms and both Picard layers remain in Phi. Square-root proof never divides by displacement/Q, including equal states and zero dimension. Six readable formula steps agree with code. Arbitrary f normalizedC2 interface honestly limits attribution. Current source/statement/reconstruction digests, module normalized text, complete lesson and complete publication binding independently recomputed; all pass. Fresh decoder components are exactly lean-statement and approved-definition-context, source invisible and identity independent.",
+      "review_run_sha256": "2f2ffe80af3c6d121b5456be9b449dbf57117d3599bd265ad605780a42d46176",
+      "reviewer_packet_sha256": "5f0abbc869141ca8e3a36d8d2d84cf0dca137e44f1194e6d6de762c0d6473278",
+      "run_artifact": "runs/20261006-companion-priority/actual-contraction/p01.source-review.result.json"
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion
+import Mathlib.Tactic
+
+/-!
+# Brownian quadratic-variation leaves
+
+This module starts the rigorous replacement for the informal rule `dB^2 = dt`
+used in the Taylor heuristic before Chewi Theorem 1.1.19.  The first packet is
+finite-grid and expectation-level: every compensated squared Brownian increment
+has mean zero, hence so does every finite partition sum.
+
+The later B19.2 packet will add the L2 / in-probability mesh limit.  No such
+limit is claimed here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace BrownianQuadraticVariation
+
+open MeasureTheory ProbabilityTheory
+open scoped BigOperators NNReal
+
+open BrownianMotion
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- A Brownian increment is square-integrable. -/
+theorem increment_memLp_two
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (s t : ℝ≥0) :
+    MemLp (fun omega => B t omega - B s omega) 2 mu := by
+  have hpre := hB.isBrownian.toIsPreBrownianReal
+  exact (hpre.isGaussianProcess.hasGaussianLaw_eval t |>.memLp_two).sub
+    (hpre.isGaussianProcess.hasGaussianLaw_eval s |>.memLp_two)
+
+/-- The square of a Brownian increment is integrable. -/
+theorem increment_sq_integrable
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (s t : ℝ≥0) :
+    Integrable (fun omega => (B t omega - B s omega) ^ 2) mu := by
+  have hmem := increment_memLp_two hB s t
+  have hmul : Integrable
+      ((fun omega => B t omega - B s omega) *
+        (fun omega => B t omega - B s omega)) mu :=
+    hmem.integrable_mul hmem
+  exact hmul.congr (ae_of_all mu fun omega => by simp [pow_two])
+
+/-- The compensated square of one future Brownian increment is integrable. -/
+theorem centered_increment_sq_integrable
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {s t : ℝ≥0} (_hst : s ≤ t) :
+    Integrable
+      (fun omega =>
+        (B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact (increment_sq_integrable hB s t).sub (by fun_prop)
+
+/-- The basic compensated-increment identity behind Brownian quadratic
+variation: `E[(B_t-B_s)^2-(t-s)] = 0`. -/
+theorem integral_centered_increment_sq_eq_zero
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {s t : ℝ≥0} (hst : s ≤ t) :
+    ∫ omega,
+        ((B t omega - B s omega) ^ 2 - ((t - s : ℝ≥0) : ℝ)) ∂mu = 0 := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  rw [integral_sub (increment_sq_integrable hB s t) (by fun_prop)]
+  rw [hB.integral_increment_sq hst]
+  simp
+
+/-- One compensated cell of a deterministic finite time grid. -/
+noncomputable def centeredSquaredIncrement
+    {n : ℕ} (B : ℝ≥0 → Omega → ℝ)
+    (times : Fin (n + 1) → ℝ≥0) (i : Fin n) (omega : Omega) : ℝ :=
+  (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -
+    ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)
+
+/-- Finite-grid error in the Brownian quadratic-variation rule. -/
+noncomputable def quadraticVariationError
+    {n : ℕ} (B : ℝ≥0 → Omega → ℝ)
+    (times : Fin (n + 1) → ℝ≥0) (omega : Omega) : ℝ :=
+  ∑ i : Fin n, centeredSquaredIncrement B times i omega
+
+/-- The uncompensated finite-grid quadratic-variation sum. -/
+noncomputable def quadraticVariationSum
+    {n : ℕ} (B : ℝ≥0 → Omega → ℝ)
+    (times : Fin (n + 1) → ℝ≥0) (omega : Omega) : ℝ :=
+  ∑ i : Fin n,
+    (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2
+
+private theorem grid_cell_le
+    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}
+    (hmono : Monotone times) (i : Fin n) :
+    times i.castSucc ≤ times i.succ :=
+  hmono Fin.castSucc_lt_succ.le
+
+/-- Every compensated grid cell is integrable. -/
+theorem centeredSquaredIncrement_integrable
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}
+    (hmono : Monotone times) (i : Fin n) :
+    Integrable (centeredSquaredIncrement B times i) mu := by
+  change Integrable
+    (fun omega =>
+      (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -
+        ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)) mu
+  exact centered_increment_sq_integrable hB (grid_cell_le hmono i)
+
+/-- Every deterministic finite partition has zero-mean compensated quadratic
+variation error.  This is the finite-sum identity that precedes the mesh-limit
+argument in Chewi's quadratic-variation calculation. -/
+theorem integral_quadraticVariationError_eq_zero
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}
+    (hmono : Monotone times) :
+    ∫ omega, quadraticVariationError B times omega ∂mu = 0 := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  calc
+    ∫ omega, quadraticVariationError B times omega ∂mu =
+        ∑ i : Fin n, ∫ omega, centeredSquaredIncrement B times i omega ∂mu := by
+          change
+            (∫ omega, ∑ i : Fin n, centeredSquaredIncrement B times i omega ∂mu) =
+              ∑ i : Fin n, ∫ omega, centeredSquaredIncrement B times i omega ∂mu
+          rw [integral_finsetSum]
+          intro i _
+          exact centeredSquaredIncrement_integrable hB hmono i
+    _ = 0 := by
+      apply Finset.sum_eq_zero
+      intro i _
+      change
+        (∫ omega,
+          ((B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 -
+            ((times i.succ - times i.castSucc : ℝ≥0) : ℝ)) ∂mu) = 0
+      exact integral_centered_increment_sq_eq_zero hB (grid_cell_le hmono i)
+
+/-- Expected quadratic variation on a finite deterministic grid is exactly the
+sum of the cell lengths. -/
+theorem integral_quadraticVariationSum_eq_sum_cellLengths
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {n : ℕ} {times : Fin (n + 1) → ℝ≥0}
+    (hmono : Monotone times) :
+    ∫ omega, quadraticVariationSum B times omega ∂mu =
+      ∑ i : Fin n, ((times i.succ - times i.castSucc : ℝ≥0) : ℝ) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  calc
+    ∫ omega, quadraticVariationSum B times omega ∂mu =
+        ∑ i : Fin n,
+          ∫ omega,
+            (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 ∂mu := by
+          change
+            (∫ omega,
+              ∑ i : Fin n,
+                (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 ∂mu) =
+              ∑ i : Fin n,
+                ∫ omega,
+                  (B (times i.succ) omega - B (times i.castSucc) omega) ^ 2 ∂mu
+          rw [integral_finsetSum]
+          intro i _
+          exact increment_sq_integrable hB _ _
+    _ = ∑ i : Fin n,
+        ((times i.succ - times i.castSucc : ℝ≥0) : ℝ) := by
+      apply Finset.sum_congr rfl
+      intro i _
+      exact hB.integral_increment_sq (grid_cell_le hmono i)
+
+end BrownianQuadraticVariation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

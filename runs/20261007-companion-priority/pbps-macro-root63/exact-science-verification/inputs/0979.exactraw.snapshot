@@ -1,0 +1,101 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapInjectivity
+import Mathlib.Analysis.Calculus.Deriv.AffineMap
+import Mathlib.Analysis.Calculus.Deriv.Slope
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.Analysis.InnerProductSpace.Positive
+import Mathlib.Tactic
+
+/-!
+# Quadratic positivity of derivatives of monotone maps
+
+This module isolates the first differential consequence of Hilbert-space
+monotonicity.
+
+If `T : E → E` is monotone and Frechet differentiable at `x` with derivative
+`A`, then every directional quadratic form is nonnegative:
+
+`0 <= <A v, v>`.
+
+The proof does not use a Hessian or assume that `A` is symmetric.  It restricts
+`T` to the affine line from `x` to `x + v`, pairs with the fixed direction `v`,
+observes that the resulting scalar function is monotone, and invokes Mathlib's
+`HasDerivAt.nonneg_of_monotone`.
+
+Symmetry is deliberately kept as a separate leaf.  Once symmetry is supplied,
+Mathlib's positive-operator interface upgrades the derivative to
+`ContinuousLinearMap.IsPositive`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementMonotoneDerivative
+
+open DisplacementMapInjectivity
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- The Frechet derivative of a monotone Hilbert-space map has nonnegative
+quadratic form in every direction.  No symmetry of the derivative is used. -/
+theorem inner_fderiv_nonneg_of_monotone
+    {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hmono : IsMonotoneMap T) (hderiv : HasFDerivAt T A x) (v : E) :
+    0 ≤ ⟪A v, v⟫ := by
+  let ell : ℝ → E := fun r => AffineMap.lineMap x (x + v) r
+  have hell : ∀ r : ℝ, ell r = x + r • v := by
+    intro r
+    simp [ell, AffineMap.lineMap_apply_module', add_comm]
+  let g : ℝ → ℝ := (innerSL ℝ v) ∘ (T ∘ ell)
+  have hgmono : Monotone g := by
+    intro s t hst
+    by_cases heq : s = t
+    · simp [heq]
+    have hlt : s < t := lt_of_le_of_ne hst heq
+    have hm := hmono (ell t) (ell s)
+    rw [hell t, hell s] at hm
+    have harg :
+        (x + t • v) - (x + s • v) = (t - s) • v := by
+      rw [sub_smul]
+      abel
+    rw [harg, real_inner_smul_right] at hm
+    have hdiff :
+        g t - g s =
+          ⟪T (x + t • v) - T (x + s • v), v⟫ := by
+      calc
+        g t - g s =
+            ⟪v, T (x + t • v) - T (x + s • v)⟫ := by
+          simp [g, hell, inner_sub_right]
+        _ = ⟪T (x + t • v) - T (x + s • v), v⟫ :=
+          real_inner_comm _ _
+    rw [← hdiff] at hm
+    nlinarith [sub_pos.mpr hlt]
+  have hellDeriv : HasDerivAt ell v 0 := by
+    dsimp [ell]
+    simpa using
+      (AffineMap.hasDerivAt_lineMap
+        (a := x) (b := x + v) (x := (0 : ℝ)))
+  have hTline : HasDerivAt (T ∘ ell) (A v) 0 := by
+    exact hderiv.comp_hasDerivAt_of_eq (0 : ℝ) hellDeriv (by simp [ell])
+  have hgderiv : HasDerivAt g ((innerSL ℝ v) (A v)) 0 := by
+    exact (innerSL ℝ v).hasFDerivAt.comp_hasDerivAt (0 : ℝ) hTline
+  have hnonneg : 0 ≤ (innerSL ℝ v) (A v) :=
+    hgderiv.nonneg_of_monotone hgmono
+  simpa [real_inner_comm] using hnonneg
+
+/-- If the derivative of a monotone map is additionally symmetric, then it is
+a positive operator.  This packages the exact remaining split needed for a
+future gradient/Hessian regularity edge: monotonicity supplies the quadratic
+inequality, while symmetry must be proved separately. -/
+theorem isPositive_fderiv_of_monotone_of_isSymmetric
+    {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hmono : IsMonotoneMap T) (hderiv : HasFDerivAt T A x)
+    (hsymm : A.IsSymmetric) :
+    A.IsPositive := by
+  rw [ContinuousLinearMap.isPositive_iff]
+  exact ⟨hsymm, inner_fderiv_nonneg_of_monotone hmono hderiv⟩
+
+end DisplacementMonotoneDerivative
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

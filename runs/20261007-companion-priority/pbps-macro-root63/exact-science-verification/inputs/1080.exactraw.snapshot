@@ -1,0 +1,148 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalItoProcessGluing
+
+/-!
+# Chewi Proposition 1.1.16: the local Itô integral is a continuous local martingale
+
+Chewi's displayed local square-integrability condition is written on a finite
+horizon.  The global proposition implicitly requires it on every finite
+horizon; ASTIS makes that quantifier explicit in
+`GlobalLocalProgressiveL2Integrand`.
+
+The proof below is intentionally only an assembly theorem.  All substantive
+steps have already been isolated and compiled in the preceding modules:
+
+1. finite-grid stopping and exact stopped-Itô algebra;
+2. product-`L²` completion and bounded random-stopping consistency;
+3. canonical energy localizers and a cofinal dyadic subsequence tending to
+   infinity almost surely;
+4. exact horizon-extension consistency of the completed Itô map;
+5. coherent continuous stopped martingales;
+6. pathwise gluing on a single full-measure event and a null-set zero patch.
+
+Thus the final process is not merely an equivalence class: it is an explicit
+strongly adapted version with continuous paths for every sample point, and the
+dyadic canonical localizers witness Chewi's local-martingale definition.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ChewiProposition1_1_16
+
+open MeasureTheory Set
+open scoped NNReal Topology
+
+open BrownianMotion GlobalItoProcessGluing GlobalLocalProgressiveL2 ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- **Chewi, Proposition 1.1.16.**
+
+Assume the filtration satisfies the usual conditions, `B` is Brownian motion
+with respect to that filtration, and `eta` is strongly progressive with finite
+pathwise square energy on every finite horizon.  Then the canonically glued
+local Itô integral process is strongly adapted, has continuous paths, and is a
+local martingale.
+
+The first component is included explicitly for readers even though adaptedness
+is already part of `Localization.IsLocalMartingale`. -/
+theorem chewi_proposition_1_1_16
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    StronglyAdapted filtration (globalItoProcess hUsual eta hB) ∧
+      (∀ omega, Continuous (fun t => globalItoProcess hUsual eta hB t omega)) ∧
+      Localization.IsLocalMartingale
+        (globalItoProcess hUsual eta hB) filtration mu := by
+  exact ⟨globalItoProcess_stronglyAdapted hUsual eta hB,
+    globalItoProcess_continuous hUsual eta hB,
+    globalItoProcess_isLocalMartingale hUsual eta hB⟩
+
+/-- **Localized Itô representation for Proposition 1.1.16.**
+
+For every canonical dyadic localizer `tau_k`, stopping the globally glued local
+Itô process at `tau_k` recovers, almost surely and at every deterministic time
+inside the matching horizon, the completed Itô process of the literal source
+integrand `eta_s * 1_{s ≤ tau_k}`.  This is the formal certificate that the
+process in `chewi_proposition_1_1_16` is Chewi's local stochastic integral, not
+an unrelated local martingale with the same localization sequence. -/
+theorem chewi_proposition_1_1_16_stopped_integral_representation
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) {t : ℝ≥0}
+    (ht : t ≤ DyadicGlobalHorizon.dyadicHorizon k) :
+    stoppedProcess (globalItoProcess hUsual eta hB)
+        (fun omega =>
+          (DyadicGlobalHorizon.dyadicGlobalLocalizingTime hUsual eta k omega :
+            WithTop ℝ≥0)) t =ᵐ[mu]
+      ItoIntegralProcess.itoIntegralProcess
+        (GlobalStoppedProgressiveL2.globalStoppedProgressiveL2 hUsual eta k)
+        (DyadicGlobalHorizon.dyadicHorizon_pos k) hB hUsual t := by
+  have hglobal :=
+    stopped_globalItoProcess_eq_stopped_globalStopped_ae
+      hUsual eta hB k t
+  have hself :=
+    GlobalStoppedItoMartingale.globalStoppedItoProcess_overlap_pathwise_ae
+      hUsual eta hB (k := k) (ell := k) le_rfl
+  filter_upwards [hglobal, hself] with omega hglobalOmega hselfOmega
+  have hselfAt := hselfOmega t ⟨bot_le, ht⟩
+  have hcombined :
+      stoppedProcess (globalItoProcess hUsual eta hB)
+          (fun w =>
+            (DyadicGlobalHorizon.dyadicGlobalLocalizingTime hUsual eta k w :
+              WithTop ℝ≥0)) t omega =
+        GlobalStoppedItoMartingale.globalStoppedItoProcess
+          hUsual eta hB k t omega :=
+    hglobalOmega.trans hselfAt.symm
+  simpa only [GlobalStoppedItoMartingale.globalStoppedItoProcess] using hcombined
+
+/-- Source-facing localization certificate accompanying Proposition 1.1.16:
+the cofinal dyadic energy localizers are the concrete witness used by the
+local-martingale proof. -/
+theorem chewi_proposition_1_1_16_localizers
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    (∀ k, StoppingTime.IsChewiStoppingTime filtration
+      (fun omega =>
+        (DyadicGlobalHorizon.dyadicGlobalLocalizingTime hUsual eta k omega :
+          WithTop ℝ≥0))) ∧
+    Monotone
+      (fun k omega =>
+        (DyadicGlobalHorizon.dyadicGlobalLocalizingTime hUsual eta k omega :
+          WithTop ℝ≥0)) ∧
+    (∀ᵐ omega ∂mu,
+      Filter.Tendsto
+        (fun k =>
+          (DyadicGlobalHorizon.dyadicGlobalLocalizingTime hUsual eta k omega :
+            WithTop ℝ≥0))
+        Filter.atTop (𝓝 (⊤ : WithTop ℝ≥0))) ∧
+    ∀ k,
+      Martingale
+        (stoppedProcess (globalItoProcess hUsual eta hB)
+          (fun omega =>
+            (DyadicGlobalHorizon.dyadicGlobalLocalizingTime hUsual eta k omega :
+              WithTop ℝ≥0)))
+        filtration mu := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · exact fun k =>
+      DyadicGlobalHorizon.dyadicGlobalLocalizingTime_isChewiStoppingTime
+        hUsual eta k
+  · intro k ell hkell omega
+    exact WithTop.coe_le_coe.mpr
+      ((DyadicGlobalHorizon.dyadicGlobalLocalizingTime_mono hUsual eta)
+        hkell omega)
+  · exact DyadicGlobalHorizon.dyadicGlobalLocalizingTime_tendsto_top_ae
+      hUsual eta
+  · exact fun k => stopped_globalItoProcess_martingale hUsual eta hB k
+
+end ChewiProposition1_1_16
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

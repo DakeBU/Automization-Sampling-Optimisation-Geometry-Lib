@@ -1,0 +1,112 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppingL2Bridge
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessCongruence
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProcessConsistency
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalStoppedItoIntegral
+
+/-!
+# Overlap of canonical energy-stopped Itô martingales
+
+The energy truncations form a nested family.  At the integrand level this was
+proved in `EnergyStoppingL2Bridge`: the lower energy truncation is exactly the
+closed stop of every higher truncation at the lower hitting time, in completed
+product `L²`.
+
+Here we transport that identity through the completed Itô map and the general
+process-level random-stopping theorem.  The result is the consistency relation
+needed to glue the canonical martingales into one local martingale.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EnergyStoppedItoOverlap
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open BrownianMotion CanonicalEnergyLocalizer CanonicalLocalizationTheorem
+  CanonicalStoppedItoIntegral EnergyStoppedProgressiveL2 EnergyStoppingL2Bridge
+  ItoIntegralProcess ItoIntegralProcessCongruence LocalProgressiveL2 ProgressiveL2
+  ProgressiveL2Stopping RandomStoppingProcessConsistency StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- A lower energy-stopped Itô process is the stopped version of every higher
+energy-stopped Itô process, at every deterministic time in the common finite
+horizon. -/
+theorem energyStoppedItoProcess_overlap_ae
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {c d : ℝ} (hc : 0 ≤ c) (hcd : c ≤ d)
+    {t : ℝ≥0} (htT : t ≤ T) :
+    itoIntegralProcess (stoppedProgressiveL2 hUsual eta hc) hT hB hUsual t =ᵐ[mu]
+      stoppedProcess
+        (itoIntegralProcess
+          (stoppedProgressiveL2 hUsual eta (hc.trans hcd)) hT hB hUsual)
+        (fun omega =>
+          (canonicalEnergyLocalizer hUsual eta c omega : WithTop ℝ≥0)) t := by
+  let low : ProgressiveL2Integrand filtration mu T :=
+    stoppedProgressiveL2 hUsual eta hc
+  let high : ProgressiveL2Integrand filtration mu T :=
+    stoppedProgressiveL2 hUsual eta (hc.trans hcd)
+  let tau : Omega → ℝ≥0 := fun omega =>
+    canonicalEnergyLocalizer hUsual eta c omega
+  have htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)) := by
+    simpa only [tau] using
+      CanonicalEnergyStoppingTime.canonicalEnergyLocalizer_isChewiStoppingTime
+        hUsual eta hc
+  have htauT : ∀ omega, tau omega ≤ T := by
+    intro omega
+    simpa only [tau] using
+      canonicalEnergyLocalizer_le_terminal hUsual eta c omega
+  let stoppedHigh : ProgressiveL2Integrand filtration mu T :=
+    stop high (fun omega => (tau omega : WithTop ℝ≥0)) htau
+  have hLp : low.toLp = stoppedHigh.toLp := by
+    simpa only [low, high, tau, stoppedHigh] using
+      stoppedProgressiveL2_toLp_eq_stop_larger hUsual eta hc hcd
+  have hcongr :
+      itoIntegralProcess low hT hB hUsual t =ᵐ[mu]
+        itoIntegralProcess stoppedHigh hT hB hUsual t :=
+    itoIntegralProcess_congr_toLp_ae low stoppedHigh hT hB hUsual hLp htT
+  have hstop :
+      itoIntegralProcess stoppedHigh hT hB hUsual t =ᵐ[mu]
+        stoppedProcess (itoIntegralProcess high hT hB hUsual)
+          (fun omega => (tau omega : WithTop ℝ≥0)) t := by
+    simpa only [stoppedHigh] using
+      itoIntegralProcess_stop_eq_stoppedProcess_ae
+        high hT tau htau htauT hB hUsual htT
+  simpa only [low, high, tau] using hcongr.trans hstop
+
+/-- Natural-number form matching Chewi's canonical levels `n+1`.  For `n ≤ m`,
+the `n`-th canonical stopped Itô martingale agrees with the `m`-th one stopped
+at the `n`-th canonical energy localizer. -/
+theorem canonicalStoppedItoProcess_overlap_ae
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {n m : ℕ} (hnm : n ≤ m)
+    {t : ℝ≥0} (htT : t ≤ T) :
+    canonicalStoppedItoProcess hUsual eta hT hB n t =ᵐ[mu]
+      stoppedProcess
+        (canonicalStoppedItoProcess hUsual eta hT hB m)
+        (fun omega =>
+          (canonicalLocalizingTime hUsual eta n omega : WithTop ℝ≥0)) t := by
+  have hcd : (n + 1 : ℝ) ≤ (m + 1 : ℝ) := by
+    exact_mod_cast Nat.add_le_add_right hnm 1
+  simpa only [canonicalStoppedItoProcess, canonicalStoppedProgressiveL2,
+    canonicalLocalizingTime] using
+    energyStoppedItoProcess_overlap_ae hUsual eta hT hB
+      (c := (n + 1 : ℝ)) (d := (m + 1 : ℝ)) (by positivity) hcd htT
+
+end EnergyStoppedItoOverlap
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

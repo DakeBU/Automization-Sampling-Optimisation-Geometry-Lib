@@ -1,0 +1,388 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.JointReferenceGradientDescent
+import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
+import Mathlib.Tactic
+
+open MeasureTheory Set InnerProductSpace ProbabilityTheory
+open scoped RealInnerProductSpace NNReal
+/-!
+# Normalize the actual reference and next sampling call
+
+Source: Chen, Chewi, Lu and Zhang, arXiv:2609.06906v1, Sections 6.1 and 6.3.
+The same actual first gradient-square a*d hit from JointReferenceGradientDescent
+supplies the reference. Scaling by sqrt(c) makes the genuine Hessian lie in
+[a/c,1] and the reference gradient-square at most d/(c/a).
+
+Both actual Gibbs laws have proved integrable weights and positive normalizers.
+A volume substitution proves their pushforward identity. Product-map identities
+then send next normalized smoothing variance t to t/c under inverse scaling.
+Pushing actual couplings and taking their cost infimum sends a supplied squared
+Wasserstein budget B to B/c. For B=(c/a)*epsilon^2 this is epsilon^2/a.
+No optimal coupling or separately supplied marginal second moment is assumed.
+
+The outer Wasserstein input consumes the existing reference construction;
+the next normalized sampler output and its precision are a distinct input.
+This theorem does not construct that sampler, an all-parameter kernel,
+measurable selection, conditional history, stage costs or either main result.
+Only the needed transport inequality is proved, not a complete isometry API.
+
+General beta and coordinate-free finite dimension extend the source convention.
+Dimension is positive, tau>0, and 0<alpha<=beta. eta,t,r,B may vanish.
+The actual first-hit definition includes an unreachable no-hit fallback,
+which is expanded explicitly in the independent semantic roundtrip.
+-/
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.NormalizedReferenceCall
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+private theorem differential_scaling {F : E → ℝ} (hF : ContDiff ℝ 2 F) (s : ℝ) :
+    ContDiff ℝ 2 (fun x => F (s • x)) ∧
+      (∀ x, gradient (fun y => F (s • y)) x = s • gradient F (s • x)) ∧
+      (∀ x v, fderiv ℝ (fderiv ℝ (fun y => F (s • y))) x v v =
+        s^2 * fderiv ℝ (fderiv ℝ F) (s • x) v v) := by
+  let L : E →L[ℝ] E := s • ContinuousLinearMap.id ℝ E
+  have hL (x : E) : HasFDerivAt (fun y : E => s • y) L x :=
+    (hasFDerivAt_id x).const_smul s
+  have hFd : Differentiable ℝ F := hF.differentiable (by norm_num)
+  have hFdd : Differentiable ℝ (fderiv ℝ F) :=
+    (hF.fderiv_right (m:=1) (by norm_num)).differentiable_one
+  have hfd (x : E) : fderiv ℝ (fun y => F (s • y)) x = s • fderiv ℝ F (s • x) := by
+    have hd : HasFDerivAt (fun y => F (s • y)) ((fderiv ℝ F (s • x)).comp L) x :=
+      (hFd (s • x)).hasFDerivAt.comp x (hL x)
+    rw [hd.fderiv]
+    ext v
+    simp [L]
+  have hg (x : E) : gradient (fun y => F (s • y)) x = s • gradient F (s • x) := by
+    apply HasGradientAt.gradient
+    rw [hasGradientAt_iff_hasFDerivAt]
+    have he : (InnerProductSpace.toDual ℝ E (gradient F (s • x))).comp L =
+        InnerProductSpace.toDual ℝ E (s • gradient F (s • x)) := by
+      ext v
+      simp [L]
+    rw [← he]
+    exact (hFd (s • x)).hasGradientAt.hasFDerivAt.comp x (hL x)
+  refine ⟨hF.comp (contDiff_id.const_smul s),hg,?_⟩
+  intro x v
+  have he : fderiv ℝ (fun y => F (s • y)) = fun x => s • fderiv ℝ F (s • x) :=
+    funext hfd
+  rw [he]
+  have hdd : HasFDerivAt (fun y => s • fderiv ℝ F (s • y))
+      (s • (fderiv ℝ (fderiv ℝ F) (s • x)).comp L) x :=
+    ((hFdd (s • x)).hasFDerivAt.comp x (hL x)).const_smul s
+  rw [hdd.fderiv]
+  simp [L,pow_two,mul_assoc]
+
+omit [CompleteSpace E] in
+private theorem scaled_gibbs [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] (F : E → ℝ) {s : ℝ} (hs : 0 < s) :
+    Measure.map (fun x : E => s • x) ((volume : Measure E).tilted (fun x => -F x)) =
+      volume.tilted (fun x => -F (s⁻¹ • x)) := by
+  let J : ℝ := |(s ^ Module.finrank ℝ E)⁻¹|
+  have hJ : J ≠ 0 := abs_ne_zero.mpr (inv_ne_zero (pow_ne_zero _ hs.ne'))
+  have hm : Measurable (fun x : E => s • x) := (continuous_id.const_smul s).measurable
+  have hZ : (∫ x : E, Real.exp (-F x)) =
+      J * ∫ x : E, Real.exp (-F (s⁻¹ • x)) := by
+    have h := Measure.integral_comp_smul (volume : Measure E)
+      (fun x => Real.exp (-F (s⁻¹ • x))) s
+    simpa only [smul_smul,inv_mul_cancel₀ hs.ne',one_smul,smul_eq_mul] using h
+  ext B hB
+  rw [Measure.map_apply hm hB,tilted_apply_eq_ofReal_integral' _ (hB.preimage hm),
+    tilted_apply_eq_ofReal_integral' _ hB]
+  congr 1
+  rw [integral_div,integral_div]
+  have hI : (∫ x in (fun x : E => s • x) ⁻¹' B, Real.exp (-F x)) =
+      J * ∫ x in B, Real.exp (-F (s⁻¹ • x)) := by
+    have h := Measure.integral_comp_smul (volume : Measure E)
+      (B.indicator (fun x => Real.exp (-F (s⁻¹ • x)))) s
+    have he : (fun x => B.indicator (fun y => Real.exp (-F (s⁻¹ • y))) (s • x)) =
+        ((fun x : E => s • x) ⁻¹' B).indicator (fun x => Real.exp (-F x)) := by
+      funext x
+      by_cases hx : s • x ∈ B <;>
+        simp [Set.indicator,hx,smul_smul,inv_mul_cancel₀ hs.ne']
+    rw [he,integral_indicator (hB.preimage hm),integral_indicator hB] at h
+    exact h
+  rw [hI,hZ]
+  exact mul_div_mul_left _ _ hJ
+
+omit [CompleteSpace E] in
+private theorem scaled_smoothing [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [SFinite μ]
+    {s : ℝ} (hs : s ≠ 0) (σ : ℝ) :
+    Measure.map (fun x : E => s⁻¹ • x)
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (μ.map (fun x => s • x)) σ) =
+      TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing μ (s⁻¹*σ) := by
+  have law (ν : Measure E) [SFinite ν] (t : ℝ) :
+      TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing ν t =
+        (ν.prod (stdGaussian E)).map (fun p => p.1+t • p.2) := by
+    have hp : ν.prod (TechnicalLemmas.Measure.GaussianSmoothing.scaledStdGaussian (E:=E) t) =
+        (ν.prod (stdGaussian E)).map (Prod.map id (fun z : E => t • z)) := by
+      simpa only [Measure.map_id,TechnicalLemmas.Measure.GaussianSmoothing.scaledStdGaussian] using
+        Measure.map_prod_map ν (stdGaussian E) measurable_id
+          (by fun_prop : Measurable (fun z : E => t • z))
+    dsimp [TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing,
+      TechnicalLemmas.Measure.CommonNoiseContraction.addNoise]
+    rw [hp,Measure.map_map (by fun_prop) (by fun_prop)]
+    rfl
+  have hp : (μ.map (fun x : E => s • x)).prod (stdGaussian E) =
+      (μ.prod (stdGaussian E)).map (Prod.map (fun x : E => s • x) id) := by
+    simpa only [Measure.map_id] using Measure.map_prod_map μ (stdGaussian E)
+      (by fun_prop : Measurable (fun x : E => s • x)) measurable_id
+  rw [law,law,hp,Measure.map_map (by fun_prop) (by fun_prop),
+    Measure.map_map (by fun_prop) (by fun_prop)]
+  congr 1
+  funext p
+  simp [Function.comp_def,smul_add,smul_smul,inv_mul_cancel₀ hs]
+
+omit [CompleteSpace E] in
+private theorem scaled_wasserstein [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ ν : Measure E) {s : ℝ} (hs : s ≠ 0) :
+    TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance
+      (μ.map (fun x => s • x)) (ν.map (fun x => s • x)) ^ 2 ≤
+      ENNReal.ofReal (s^2) *
+        TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance μ ν ^ 2 := by
+  let C := TechnicalLemmas.Measure.WassersteinSpace.quadraticCost (E:=E)
+  have hm : Measurable (fun x : E => s • x) := by fun_prop
+  have hc : ENNReal.ofReal (s^2) ≠ 0 := ne_of_gt (ENNReal.ofReal_pos.mpr (sq_pos_of_ne_zero hs))
+  rw [TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq,
+    TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq,
+    TechnicalLemmas.Measure.Transport.transportCost_eq_sInf C μ ν,
+    sInf_eq_iInf, ENNReal.mul_iInf_of_ne hc ENNReal.ofReal_ne_top]
+  apply le_iInf
+  intro r
+  rw [ENNReal.mul_iInf_of_ne hc ENNReal.ofReal_ne_top]
+  apply le_iInf
+  rintro ⟨γ,hγ,rfl⟩
+  let T : E × E → E × E := fun p => (s • p.1,s • p.2)
+  have hT : Measurable T := by fun_prop
+  have hcouple : TechnicalLemmas.Measure.Transport.IsCoupling (γ.map T)
+      (μ.map (fun x => s • x)) (ν.map (fun x => s • x)) := by
+    constructor
+    · rw [Measure.fst_map_prodMk (by fun_prop), ← hγ.1]
+      exact (Measure.map_map hm measurable_fst).symm
+    · rw [Measure.snd_map_prodMk (by fun_prop), ← hγ.2]
+      exact (Measure.map_map hm measurable_snd).symm
+  have hcost : (∫⁻ p, C p ∂(γ.map T)) = ENNReal.ofReal (s^2) * ∫⁻ p, C p ∂γ := by
+    rw [lintegral_map (by unfold C TechnicalLemmas.Measure.WassersteinSpace.quadraticCost; fun_prop) hT]
+    have he (p : E × E) : C (T p) = ENNReal.ofReal (s^2) * C p := by
+      dsimp [C,T,TechnicalLemmas.Measure.WassersteinSpace.quadraticCost]
+      rw [← smul_sub,norm_smul,Real.norm_eq_abs,mul_pow,sq_abs,
+        ENNReal.ofReal_mul (sq_nonneg s)]
+    simp_rw [he]
+    exact lintegral_const_mul _ (by
+      unfold C TechnicalLemmas.Measure.WassersteinSpace.quadraticCost
+      fun_prop)
+  exact (TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling
+    C _ _ _ hcouple).trans_eq hcost
+
+omit [CompleteSpace E] in
+private theorem regularized_hessian {U : E → ℝ} (hU : ContDiff ℝ 2 U)
+    (r : ℝ) (u : E) :
+    ContDiff ℝ 2 (fun x => U x+r/2*‖x-u‖^2) ∧
+    ∀ x v, fderiv ℝ (fderiv ℝ (fun x => U x+r/2*‖x-u‖^2)) x v v =
+      fderiv ℝ (fderiv ℝ U) x v v+r*‖v‖^2 := by
+  let W := fun x => U x+r/2*‖x-u‖^2
+  have hUd : Differentiable ℝ U := hU.differentiable (by norm_num)
+  have hUdd : Differentiable ℝ (fderiv ℝ U) :=
+    (hU.fderiv_right (m:=1) (by norm_num)).differentiable_one
+  have hW : ContDiff ℝ 2 W := hU.add
+    (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))
+  have hq (x : E) : HasFDerivAt (fun z => r/2*‖z-u‖^2)
+      (r • innerSL ℝ (x-u)) x := by
+    convert (((hasFDerivAt_id x).sub_const u).norm_sq).const_mul (r/2)
+      using 1 <;> first | rfl | (ext v; simp; ring)
+  have hfd (x : E) : fderiv ℝ W x = fderiv ℝ U x+r • innerSL ℝ (x-u) :=
+    ((hUd x).hasFDerivAt.add (hq x)).fderiv
+  let J : E →L[ℝ] (E →L[ℝ] ℝ) :=
+    { toFun := fun v => innerSL ℝ v
+      map_add' := by intros; ext; simp
+      map_smul' := by intros; ext; simp
+      cont := (innerSL ℝ (E:=E)).continuous }
+  have hdd (x : E) : HasFDerivAt (fderiv ℝ W)
+      (fderiv ℝ (fderiv ℝ U) x+r • J) x := by
+    rw [show fderiv ℝ W = (fun z => fderiv ℝ U z+r • innerSL ℝ (z-u)) from funext hfd]
+    convert (hUdd x).hasFDerivAt.add
+      ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const u)).const_smul r)
+      using 1 <;> rfl
+  refine ⟨hW,fun x v => ?_⟩
+  rw [(hdd x).fderiv]
+  change fderiv ℝ (fderiv ℝ U) x v v+r*inner ℝ v v = _
+  rw [real_inner_self_eq_norm_sq]
+
+private theorem normalized_laws [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] {F : E → ℝ} {a c : ℝ}
+    (ha : 0 < a) (hc : 0 < c) (hF : ContDiff ℝ 2 F)
+    (hH : ∀ x v, a*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ F) x v v ∧
+      fderiv ℝ (fderiv ℝ F) x v v ≤ c*‖v‖^2) :
+    let S := fun x : E => Real.sqrt c • x
+    let R := fun x : E => (Real.sqrt c)⁻¹ • x
+    let G := fun x => F (R x)
+    let π := (volume : Measure E).tilted (fun x => -F x)
+    let πbar := (volume : Measure E).tilted (fun x => -G x)
+    ContDiff ℝ 2 G ∧
+    (∀ x v, (a/c)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ G) x v v ∧
+      fderiv ℝ (fderiv ℝ G) x v v ≤ ‖v‖^2) ∧
+    Integrable (fun x => Real.exp (-F x)) (volume : Measure E) ∧
+    0 < ∫ x : E, Real.exp (-F x) ∧ IsProbabilityMeasure π ∧
+    Integrable (fun x => Real.exp (-G x)) (volume : Measure E) ∧
+    0 < ∫ x : E, Real.exp (-G x) ∧ IsProbabilityMeasure πbar ∧
+    π.map S = πbar ∧
+    (∀ x, gradient G (S x) = (Real.sqrt c)⁻¹ • gradient F x) ∧
+    (∀ t : ℝ, 0 ≤ t →
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing πbar (Real.sqrt t)).map R =
+        TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing π (Real.sqrt (t/c))) ∧
+    (∀ (νbar : Measure E) (t B : ℝ), 0 ≤ t →
+      TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance νbar
+        (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing πbar (Real.sqrt t)) ^ 2 ≤
+          ENNReal.ofReal B →
+      TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance (νbar.map R)
+        (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing π (Real.sqrt (t/c))) ^ 2 ≤
+          ENNReal.ofReal (B/c)) := by
+  let S := fun x : E => Real.sqrt c • x
+  let R := fun x : E => (Real.sqrt c)⁻¹ • x
+  let G := fun x => F (R x)
+  let π := (volume : Measure E).tilted (fun x => -F x)
+  let πbar := (volume : Measure E).tilted (fun x => -G x)
+  have hs : 0 < Real.sqrt c := Real.sqrt_pos.mpr hc
+  have hi : (Real.sqrt c)⁻¹^2=c⁻¹ := by rw [inv_pow,Real.sq_sqrt hc.le]
+  have hD := differential_scaling hF (Real.sqrt c)⁻¹
+  have hG : ContDiff ℝ 2 G := hD.1
+  have hGH (x v : E) : (a/c)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ G) x v v ∧
+      fderiv ℝ (fderiv ℝ G) x v v ≤ ‖v‖^2 := by
+    rw [hD.2.2,hi]
+    have hlo := mul_le_mul_of_nonneg_left (hH (R x) v).1 (inv_pos.mpr hc).le
+    have hup := mul_le_mul_of_nonneg_left (hH (R x) v).2 (inv_pos.mpr hc).le
+    constructor
+    · calc
+        (a/c)*‖v‖^2 = c⁻¹*(a*‖v‖^2) := by ring
+        _ ≤ _ := hlo
+    · simpa only [← mul_assoc,inv_mul_cancel₀ hc.ne',one_mul] using hup
+  have hI := TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+    ha (hF.differentiable (by norm_num))
+    (TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower
+      hF (fun x v => (hH x v).1))
+  have hIG := TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+    (div_pos ha hc) (hG.differentiable (by norm_num))
+    (TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower
+      hG (fun x v => (hGH x v).1))
+  have : IsProbabilityMeasure π := isProbabilityMeasure_tilted hI
+  have : IsProbabilityMeasure πbar := isProbabilityMeasure_tilted hIG
+  have hmap : π.map S = πbar := scaled_gibbs F hs
+  have hsm (t : ℝ) (ht : 0 ≤ t) :
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing πbar (Real.sqrt t)).map R =
+        TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing π (Real.sqrt (t/c)) := by
+    rw [← hmap,scaled_smoothing π hs.ne']
+    congr 1
+    rw [Real.sqrt_div ht]
+    ring
+  refine ⟨hG,hGH,hI,integral_exp_pos hI,inferInstance,hIG,integral_exp_pos hIG,
+    inferInstance,hmap,?_,hsm,?_⟩
+  · intro x
+    simpa [S,smul_smul,inv_mul_cancel₀ hs.ne'] using hD.2.1 (S x)
+  · intro νbar t B ht hw
+    rw [← hsm t ht]
+    have h := scaled_wasserstein νbar
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing πbar (Real.sqrt t))
+      (inv_ne_zero hs.ne')
+    refine (h.trans (mul_le_mul_right hw _)).trans_eq ?_
+    rw [hi,← ENNReal.ofReal_mul (inv_pos.mpr hc).le]
+    congr 1
+    ring
+
+private def actualIndex (T : E × E → E → E) (g : E × E → E → ℝ)
+    (b : ℝ) (p : E × E) : ℕ := by
+  classical
+  exact if h : ∃ n, g p ((T p)^[n] p.1) ≤ b then Nat.find h else 0
+
+theorem normalized_reference_call [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β:ℝ)*‖v‖^2)
+    {η τ r : ℝ} (hη : 0 ≤ η) (hτ : 0 < τ) (hr : 0 ≤ r)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (ν : Measure E) [IsProbabilityMeasure ν]
+    (hw : TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance ν
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        ((volume : Measure E).tilted (fun x => -U x)) (Real.sqrt η)) ^ 2 ≤ ENNReal.ofReal (r^2)) :
+    let d : ℝ := Module.finrank ℝ E
+    let A := η+τ
+    let a := (α:ℝ)+A⁻¹
+    let c := (β:ℝ)+A⁻¹
+    let k := c/a
+    let u := fun p : E × E => p.1+Real.sqrt τ • p.2
+    let F := fun p x => U x+A⁻¹/2*‖x-u p‖^2
+    let T := fun p x => x-c⁻¹ • gradient (F p) x
+    let N := actualIndex T (fun p x => ‖gradient (F p) x‖^2) (a*d)
+    let out := fun p => (T p)^[N p] p.1
+    let S := fun x : E => Real.sqrt c • x
+    let R := fun x : E => (Real.sqrt c)⁻¹ • x
+    let G := fun p x => F p (R x)
+    let π := fun p => (volume : Measure E).tilted (fun x => -F p x)
+    let πbar := fun p => (volume : Measure E).tilted (fun x => -G p x)
+    Measurable N ∧ Measurable (fun p => S (out p)) ∧
+    (∀ p, ‖gradient (F p) (out p)‖^2 ≤ a*d ∧
+      (∀ j < N p, a*d < ‖gradient (F p) ((T p)^[j] p.1)‖^2) ∧
+      ‖gradient (G p) (S (out p))‖^2 ≤ d/k ∧
+      ContDiff ℝ 2 (G p) ∧
+      (∀ x v, (a/c)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (G p)) x v v ∧
+        fderiv ℝ (fderiv ℝ (G p)) x v v ≤ ‖v‖^2) ∧
+      Integrable (fun x => Real.exp (-F p x)) (volume : Measure E) ∧
+      0 < ∫ x : E, Real.exp (-F p x) ∧ IsProbabilityMeasure (π p) ∧
+      Integrable (fun x => Real.exp (-G p x)) (volume : Measure E) ∧
+      0 < ∫ x : E, Real.exp (-G p x) ∧ IsProbabilityMeasure (πbar p) ∧
+      (π p).map S = πbar p ∧
+      (∀ x, gradient (G p) (S x) = (Real.sqrt c)⁻¹ • gradient (F p) x) ∧
+      (∀ t : ℝ, 0 ≤ t →
+        (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing (πbar p) (Real.sqrt t)).map R =
+          TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing (π p) (Real.sqrt (t/c))) ∧
+      (∀ (νbar : Measure E) (t B : ℝ), IsProbabilityMeasure νbar → 0 ≤ t → 0 ≤ B →
+        TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance νbar
+          (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing (πbar p) (Real.sqrt t)) ^ 2 ≤
+            ENNReal.ofReal B →
+        TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance (νbar.map R)
+          (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing (π p) (Real.sqrt (t/c))) ^ 2 ≤
+            ENNReal.ofReal (B/c))) := by
+  let d : ℝ := Module.finrank ℝ E
+  let A := η+τ
+  let a := (α:ℝ)+A⁻¹
+  let c := (β:ℝ)+A⁻¹
+  let k := c/a
+  let u := fun p : E × E => p.1+Real.sqrt τ • p.2
+  let F := fun p x => U x+A⁻¹/2*‖x-u p‖^2
+  let T := fun p x => x-c⁻¹ • gradient (F p) x
+  let N := actualIndex T (fun p x => ‖gradient (F p) x‖^2) (a*d)
+  let out := fun p => (T p)^[N p] p.1
+  let S := fun x : E => Real.sqrt c • x
+  let R := fun x : E => (Real.sqrt c)⁻¹ • x
+  let G := fun p x => F p (R x)
+  have hA : 0 < A := add_pos_of_nonneg_of_pos hη hτ
+  have ha : 0 < a := add_pos_of_nonneg_of_pos α.coe_nonneg (inv_pos.mpr hA)
+  have hc : 0 < c := add_pos_of_nonneg_of_pos β.coe_nonneg (inv_pos.mpr hA)
+  have hs : 0 < Real.sqrt c := Real.sqrt_pos.mpr hc
+  have hi : (Real.sqrt c)⁻¹^2=c⁻¹ := by rw [inv_pow,Real.sq_sqrt hc.le]
+  have hP := JointReferenceGradientDescent.joint_reference_gradient_descent
+    hα hαβ hU hH hη hτ hr hd ν hw
+  have hNm : Measurable N := hP.1
+  have hom : Measurable out := hP.2.1
+  refine ⟨hNm,(by fun_prop : Measurable S).comp hom,fun p => ?_⟩
+  have hreg := regularized_hessian hU A⁻¹ (u p)
+  have hFH (x v : E) : a*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ (F p)) x v v ∧
+      fderiv ℝ (fderiv ℝ (F p)) x v v ≤ c*‖v‖^2 := by
+    rw [hreg.2]
+    dsimp [a,c]
+    constructor <;> nlinarith [(hH x v).1,(hH x v).2]
+  obtain ⟨hG,hGH,hI,hZ,hprob,hIG,hZG,hprobG,hmap,hgrad,hsm,hprec⟩ :=
+    normalized_laws ha hc hreg.1 hFH
+  have hp : ‖gradient (F p) (out p)‖^2 ≤ a*d := (hP.2.2.1 p).1
+  have hearly : ∀ j < N p, a*d < ‖gradient (F p) ((T p)^[j] p.1)‖^2 :=
+    (hP.2.2.1 p).2.2.2.1
+  refine ⟨hp,hearly,?_,hG,hGH,hI,hZ,hprob,hIG,hZG,hprobG,hmap,hgrad,hsm,
+    fun νbar t B _ ht _ hbudget => hprec νbar t B ht hbudget⟩
+  rw [hgrad,norm_smul,Real.norm_eq_abs,mul_pow,sq_abs,hi]
+  have hb := mul_le_mul_of_nonneg_left hp (inv_pos.mpr hc).le
+  calc
+    c⁻¹*‖gradient (F p) (out p)‖^2 ≤ c⁻¹*(a*d) := hb
+    _ = d/k := by dsimp [k]; field_simp
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.NormalizedReferenceCall

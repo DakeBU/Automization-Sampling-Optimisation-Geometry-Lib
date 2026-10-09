@@ -1,0 +1,118 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.TransportGluing
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleMarginals
+import Mathlib.Tactic
+
+/-!
+# Wasserstein triangle inequality: strict-threshold join
+
+The hard mathematical content of the `W₂` triangle proof is already separated
+into reusable roots:
+
+* strict near-optimal coupling selection at the Wasserstein `L²` scale;
+* gluing two pair couplings over their common middle marginal;
+* identification of triple-law edge seminorms with pair transport costs;
+* Minkowski's inequality in `L²`.
+
+This module first joins those roots at strict external thresholds.  Passing the
+thresholds down to the exact Wasserstein distances is deliberately kept as the
+next order-theoretic closure node.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace WassersteinTriangle
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+open WassersteinTriangleCore WassersteinTriangleMarginals
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+  [StandardBorelSpace E] [Nonempty E]
+
+/-- Strict-threshold form of the Wasserstein triangle argument.
+
+If `r₁₂` and `r₂₃` lie strictly above the two adjacent Wasserstein distances,
+then the endpoint distance lies strictly below their sum.  No optimal coupling
+existence is used. -/
+theorem wassersteinDistance_lt_add_of_lt
+    (μ₁ μ₂ μ₃ : Measure E)
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂] [IsProbabilityMeasure μ₃]
+    {r₁₂ r₂₃ : ℝ≥0∞}
+    (hr₁₂ : WassersteinSpace.wassersteinDistance μ₁ μ₂ < r₁₂)
+    (hr₂₃ : WassersteinSpace.wassersteinDistance μ₂ μ₃ < r₂₃) :
+    WassersteinSpace.wassersteinDistance μ₁ μ₃ < r₁₂ + r₂₃ := by
+  rcases
+      WassersteinSpace.exists_isCoupling_sqrt_lintegral_lt_of_wassersteinDistance_lt
+        μ₁ μ₂ hr₁₂ with
+    ⟨γ₁₂, hγ₁₂, hcost₁₂⟩
+  rcases
+      WassersteinSpace.exists_isCoupling_sqrt_lintegral_lt_of_wassersteinDistance_lt
+        μ₂ μ₃ hr₂₃ with
+    ⟨γ₂₃, hγ₂₃, hcost₂₃⟩
+  rcases TransportGluing.exists_gluing_of_isCoupling γ₁₂ γ₂₃ hγ₁₂ hγ₂₃ with
+    ⟨γ₁₂₃, hfst, hmap₂₃⟩
+
+  have hmap₁₂ : Measure.map (pair12 (E := E)) γ₁₂₃ = γ₁₂ := by
+    change Measure.map Prod.fst γ₁₂₃ = γ₁₂
+    exact hfst
+  have hmap₂₃' : Measure.map (pair23 (E := E)) γ₁₂₃ = γ₂₃ := by
+    change Measure.map (fun p : ((E × E) × E) => (p.1.2, p.2)) γ₁₂₃ = γ₂₃
+    exact hmap₂₃
+
+  have hpair₁₂ :
+      Transport.IsCoupling (Measure.map (pair12 (E := E)) γ₁₂₃) μ₁ μ₂ := by
+    rw [hmap₁₂]
+    exact hγ₁₂
+  have hpair₂₃ :
+      Transport.IsCoupling (Measure.map (pair23 (E := E)) γ₁₂₃) μ₂ μ₃ := by
+    rw [hmap₂₃']
+    exact hγ₂₃
+  have hpair₁₃ :
+      Transport.IsCoupling (Measure.map (pair13 (E := E)) γ₁₂₃) μ₁ μ₃ :=
+    isCoupling_map_pair13_of_pair12_pair23 γ₁₂₃ hpair₁₂ hpair₂₃
+
+  have hedge₁₂ :
+      l2Seminorm γ₁₂₃ (edgeLength12 (E := E)) =
+        (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ₁₂) ^
+          (1 / (2 : ℝ)) := by
+    rw [l2Seminorm_edge12_eq_pairCost, hmap₁₂]
+  have hedge₂₃ :
+      l2Seminorm γ₁₂₃ (edgeLength23 (E := E)) =
+        (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ₂₃) ^
+          (1 / (2 : ℝ)) := by
+    rw [l2Seminorm_edge23_eq_pairCost, hmap₂₃']
+  have hendpoint :
+      WassersteinSpace.wassersteinDistance μ₁ μ₃ ≤
+        l2Seminorm γ₁₂₃ (edgeLength13 (E := E)) := by
+    calc
+      WassersteinSpace.wassersteinDistance μ₁ μ₃ ≤
+          (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z
+            ∂Measure.map (pair13 (E := E)) γ₁₂₃) ^ (1 / (2 : ℝ)) :=
+        WassersteinSpace.wassersteinDistance_le_sqrt_lintegral_of_isCoupling
+          μ₁ μ₃ (Measure.map (pair13 (E := E)) γ₁₂₃) hpair₁₃
+      _ = l2Seminorm γ₁₂₃ (edgeLength13 (E := E)) :=
+        (l2Seminorm_edge13_eq_pairCost γ₁₂₃).symm
+
+  calc
+    WassersteinSpace.wassersteinDistance μ₁ μ₃ ≤
+        l2Seminorm γ₁₂₃ (edgeLength13 (E := E)) := hendpoint
+    _ ≤ l2Seminorm γ₁₂₃ (edgeLength12 (E := E)) +
+          l2Seminorm γ₁₂₃ (edgeLength23 (E := E)) :=
+      l2_edge_triangle γ₁₂₃
+    _ = (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ₁₂) ^
+          (1 / (2 : ℝ)) +
+        (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ₂₃) ^
+          (1 / (2 : ℝ)) := by rw [hedge₁₂, hedge₂₃]
+    _ < r₁₂ + r₂₃ := ENNReal.add_lt_add hcost₁₂ hcost₂₃
+
+end
+
+end WassersteinTriangle
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,54 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicQuadraticCost
+
+/-!
+# Nontrivial cyclic successor indices
+
+The two-coordinate product-marginal theorem requires distinct coordinate
+indices.  This module isolates the elementary fact that a strict positive
+cycle cannot have only one coordinate, and hence modular successor has no fixed
+point on the resulting nontrivial finite cycle.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace CycleSuccessorDistinct
+
+open PairingCycleNeighborhood CyclicQuadraticCost
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- A strictly positive pairing-cycle value cannot occur on the one-point
+cycle. -/
+theorem cycleLength_pos_of_cycleValue_pos
+    {n : ℕ} (p : Fin (n + 1) → E × E)
+    (hpos : 0 < cycleValue p) : 0 < n := by
+  by_contra hn
+  have hn0 : n = 0 := Nat.eq_zero_of_not_pos hn
+  subst n
+  have hzero : cycleValue p = 0 := by
+    simp [cycleValue]
+  linarith
+
+/-- On a cycle with at least two coordinates, translation by one has no fixed
+points. -/
+theorem cycleSuccessorPerm_ne_self_of_pos
+    {n : ℕ} (hn : 0 < n) (i : Fin (n + 1)) :
+    cycleSuccessorPerm (n := n) i ≠ i := by
+  haveI : Nontrivial (Fin (n + 1)) :=
+    Fin.nontrivial_iff_two_le.2 (by omega)
+  rw [cycleSuccessorPerm_apply]
+  intro h
+  have h10 : (1 : Fin (n + 1)) = 0 := by
+    apply add_left_cancel (a := i)
+    simpa using h
+  exact one_ne_zero h10
+
+end
+
+end CycleSuccessorDistinct
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

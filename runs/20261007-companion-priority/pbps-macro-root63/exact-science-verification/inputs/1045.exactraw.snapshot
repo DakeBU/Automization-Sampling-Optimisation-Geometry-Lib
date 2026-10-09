@@ -1,0 +1,55 @@
+import Mathlib.Probability.Kernel.Invariance
+import Mathlib.Probability.Kernel.Composition.Comp
+
+/-!
+# Invariance under iterated Markov kernels
+
+A stationary law for a one-step kernel remains stationary for every finite
+number of steps.  This is the source-neutral kernel edge used both by the MCMC
+reader and by finite-state/discrete mixing arguments.
+
+Mathlib already supplies the canonical notions `Kernel.Invariant`,
+`Kernel.IsReversible`, the implication `IsReversible.invariant`, kernel powers,
+Chapman--Kolmogorov, and closure of invariance under composition.  We do not
+redefine any of those notions here; this file only packages their missing
+finite-iteration closure.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace KernelInvariance
+
+open MeasureTheory
+open ProbabilityTheory
+
+/-- If `μ` is invariant for the one-step kernel `κ`, then it is invariant for
+its `n`-step kernel `κ ^ n` for every `n : ℕ`.
+
+This is an invariance statement only.  It does not assert irreducibility,
+aperiodicity, convergence from another initial law, or a mixing rate. -/
+theorem invariant_pow {α : Type*} [MeasurableSpace α]
+    {κ : Kernel α α} {μ : Measure α}
+    (hκ : κ.Invariant μ) (n : ℕ) :
+    (κ ^ n).Invariant μ := by
+  induction n with
+  | zero =>
+      change Kernel.id.Invariant μ
+      exact Measure.id_comp
+  | succ n ih =>
+      rw [pow_succ]
+      change ((κ ^ n) ∘ₖ κ).Invariant μ
+      exact ih.comp hκ
+
+/-- Measure-level form of `invariant_pow`: starting an invariant law and taking
+`n` transitions leaves the law unchanged. -/
+theorem bind_pow_eq {α : Type*} [MeasurableSpace α]
+    {κ : Kernel α α} {μ : Measure α}
+    (hκ : κ.Invariant μ) (n : ℕ) :
+    μ.bind (κ ^ n) = μ :=
+  (invariant_pow hκ n).def
+
+end KernelInvariance
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

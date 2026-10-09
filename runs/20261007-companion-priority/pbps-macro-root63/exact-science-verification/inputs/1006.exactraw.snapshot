@@ -1,0 +1,157 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
+import Mathlib.MeasureTheory.Measure.Prokhorov
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+
+/-!
+# Weak compactness of couplings with fixed marginals
+
+Chewi's optimal-plan existence theorem is a direct-method argument. This file
+isolates its feasible-set half: probability couplings with two fixed marginals
+form a compact set for the weak topology on probability measures.
+
+The proof deliberately reuses Mathlib's measure topology rather than rebuilding
+Prokhorov compactness locally:
+
+* fixed marginal constraints are closed because pushforward by `fst` and `snd`
+  is continuous for the weak topology;
+* each fixed marginal is tight;
+* Mathlib's `IsTightMeasureSet.prodMk` upgrades tightness of the two marginal
+  families to tightness of the joint family;
+* Prokhorov gives compact closure, and closedness removes the closure.
+
+The metric and second-countability assumptions below are topology/measurability
+glue for the weak topology. Metrizability gives Mathlib's
+`HasOuterApproxClosed`, hence Hausdorff weak probability-measure spaces;
+second countability supplies the product-Borel identification. These are not
+transport-cost or moment assumptions.
+
+No transport cost enters this module.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace ProbabilityCouplingCompactness
+
+open MeasureTheory Set Topology
+
+noncomputable section
+
+/-- Probability-measure version of the fixed-marginal coupling predicate. It
+is definitionally adapted to the weak topology, whose continuous maps are the
+`ProbabilityMeasure.map` operations. -/
+def IsProbabilityCoupling
+    {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+    (gamma : ProbabilityMeasure (X × Y))
+    (mu : ProbabilityMeasure X) (nu : ProbabilityMeasure Y) : Prop :=
+  ProbabilityMeasure.map gamma measurable_fst.aemeasurable = mu ∧
+    ProbabilityMeasure.map gamma measurable_snd.aemeasurable = nu
+
+/-- Fixed-marginal probability couplings as a subset of the weak probability
+measure space. -/
+def probabilityCouplingSet
+    {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+    (mu : ProbabilityMeasure X) (nu : ProbabilityMeasure Y) :
+    Set (ProbabilityMeasure (X × Y)) :=
+  {gamma | IsProbabilityCoupling gamma mu nu}
+
+/-- The topology-facing probability coupling predicate agrees exactly with
+Samplinglib's raw-measure `Transport.IsCoupling`. -/
+theorem isProbabilityCoupling_iff_isCoupling_toMeasure
+    {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+    {gamma : ProbabilityMeasure (X × Y)}
+    {mu : ProbabilityMeasure X} {nu : ProbabilityMeasure Y} :
+    IsProbabilityCoupling gamma mu nu ↔
+      Transport.IsCoupling (gamma : Measure (X × Y))
+        (mu : Measure X) (nu : Measure Y) := by
+  constructor
+  · intro h
+    constructor
+    · have h' := congrArg ProbabilityMeasure.toMeasure h.1
+      simpa [Measure.fst] using h'
+    · have h' := congrArg ProbabilityMeasure.toMeasure h.2
+      simpa [Measure.snd] using h'
+  · intro h
+    constructor
+    · apply ProbabilityMeasure.toMeasure_injective
+      simpa [Measure.fst] using h.1
+    · apply ProbabilityMeasure.toMeasure_injective
+      simpa [Measure.snd] using h.2
+
+section Closed
+
+variable {X Y : Type*}
+  [MeasurableSpace X] [MetricSpace X] [SecondCountableTopology X] [BorelSpace X]
+  [MeasurableSpace Y] [MetricSpace Y] [SecondCountableTopology Y] [BorelSpace Y]
+
+/-- Fixed marginal constraints are closed in the weak topology on probability
+measures. -/
+theorem isClosed_probabilityCouplingSet
+    (mu : ProbabilityMeasure X) (nu : ProbabilityMeasure Y) :
+    IsClosed (probabilityCouplingSet mu nu) := by
+  rw [probabilityCouplingSet]
+  change IsClosed
+    ({gamma : ProbabilityMeasure (X × Y) |
+        ProbabilityMeasure.map gamma measurable_fst.aemeasurable = mu} ∩
+      {gamma : ProbabilityMeasure (X × Y) |
+        ProbabilityMeasure.map gamma measurable_snd.aemeasurable = nu})
+  apply IsClosed.inter
+  · exact isClosed_eq (ProbabilityMeasure.continuous_map continuous_fst) continuous_const
+  · exact isClosed_eq (ProbabilityMeasure.continuous_map continuous_snd) continuous_const
+
+end Closed
+
+section Tight
+
+variable {X Y : Type*}
+  [MeasurableSpace X] [MetricSpace X] [CompleteSpace X]
+  [SecondCountableTopology X] [BorelSpace X]
+  [MeasurableSpace Y] [MetricSpace Y] [CompleteSpace Y]
+  [SecondCountableTopology Y] [BorelSpace Y]
+
+/-- All raw couplings of two fixed probability measures form a tight family.
+This is the reusable fixed-marginal tightness statement behind Prokhorov. -/
+theorem isTightMeasureSet_couplingSet
+    (mu : Measure X) (nu : Measure Y)
+    [IsProbabilityMeasure mu] [IsProbabilityMeasure nu] :
+    IsTightMeasureSet (Transport.couplingSet mu nu) := by
+  apply IsTightMeasureSet.prodMk
+  · apply (isTightMeasureSet_singleton (μ := mu)).subset
+    rintro rho ⟨gamma, hgamma, rfl⟩
+    change gamma.fst = mu
+    exact hgamma.1
+  · apply (isTightMeasureSet_singleton (μ := nu)).subset
+    rintro rho ⟨gamma, hgamma, rfl⟩
+    change gamma.snd = nu
+    exact hgamma.2
+
+/-- The underlying raw measures of the probability-coupling set are tight. -/
+theorem isTightMeasureSet_probabilityCouplingSet
+    (mu : ProbabilityMeasure X) (nu : ProbabilityMeasure Y) :
+    IsTightMeasureSet
+      {((gamma : ProbabilityMeasure (X × Y)) : Measure (X × Y)) |
+        gamma ∈ probabilityCouplingSet mu nu} := by
+  apply (isTightMeasureSet_couplingSet (mu : Measure X) (nu : Measure Y)).subset
+  rintro rho ⟨gamma, hgamma, rfl⟩
+  exact (isProbabilityCoupling_iff_isCoupling_toMeasure.mp hgamma)
+
+/-- Probability couplings with two fixed marginals are compact for weak
+convergence. -/
+theorem isCompact_probabilityCouplingSet
+    (mu : ProbabilityMeasure X) (nu : ProbabilityMeasure Y) :
+    IsCompact (probabilityCouplingSet mu nu) := by
+  have htight := isTightMeasureSet_probabilityCouplingSet mu nu
+  have hcompact : IsCompact (closure (probabilityCouplingSet mu nu)) :=
+    isCompact_closure_of_isTightMeasureSet htight
+  have hclosed : IsClosed (probabilityCouplingSet mu nu) :=
+    isClosed_probabilityCouplingSet mu nu
+  rwa [hclosed.closure_eq] at hcompact
+
+end Tight
+
+end
+
+end ProbabilityCouplingCompactness
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

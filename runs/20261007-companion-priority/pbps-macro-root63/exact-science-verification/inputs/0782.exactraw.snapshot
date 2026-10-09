@@ -1,0 +1,346 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedRenyiComparison
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonQueryTail
+import Mathlib.Tactic
+/-! Actual fixed-call terminal sampler accuracy and cached gradient costs.
+Source: SPHMC arXiv:2609.06906v1 Theorem A.4(2), using smooth s=1
+arXiv:2602.01338v1 D.1 and the independently proved local PoissonQueryTail.
+The explicit inverse-step constant is 64 and clipping B=1. The reference xp
+is supplied with its residual bound. The actual first-success output law,
+null never-success branch, two RN moment/logarithmic accuracy bounds and
+cached gradient expected/tail costs are returned in eighteen conjuncts.
+
+The calling convention evaluates g=gradient f xp once, reuses g in the center
+and every cachedEstimator, then charges one new gradient per estimator call.
+The counted full batches include the successful batch. This is an explicit
+probability program and cost random variable, not a verified compiler/evaluator
+or hardware execution trace. The clipped mean integral describes the output
+law and is not computed by the sampler. No independence between stopping
+and batch size is assumed; unbounded costs are never transferred by TV.
+
+Both logarithmic expressions use actual denominator-measure RN ell-powers,
+proved integrable with strictly positive integrals before taking log. A full
+named Renyi API is not asserted. Printed B.7/section1.3 notation discrepancies,
+B.12's intermediate proof gap below order2, and the external tail proof's
+unchecked final constant substitution are not silently inherited or repaired.
+
+The domain is a positive-dimensional finite real inner-product Borel space,
+with beta>0. No convexity is needed for D.1's fixed smooth dependency; this
+extends the fixed-call conclusion beyond SPHMC's convex application setting.
+Zero beta/dimension, construction and cost of finding xp, joint parameter
+kernel measurability, outer recursion and complete paper results are separate.
+-/
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal BigOperators
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalSamplerAccuracyCost
+
+private theorem scaled_parameters (a d L ell : ℝ) (ha : 0 < a) (hd : 0 < d)
+    (he : 2 ≤ ell) (heL : ell ≤ L)
+    (h : 64*a*(Real.sqrt (d*L)+L) ≤ 1) :
+    64*a^2*(ell*d+ell^2) ≤ 1 ∧
+      8*L ≤ min (1/(40*a^2*d)) (1/(8*a)) := by
+  have hL : 0 < L := by linarith
+  have hs := Real.sq_sqrt (le_of_lt (mul_pos hd hL))
+  have hp := Real.sqrt_nonneg (d*L)
+  have hn : 0 ≤ 64*a*(Real.sqrt (d*L)+L) := by positivity
+  have hsq : (64*a*(Real.sqrt (d*L)+L))^2 ≤ 1 := by nlinarith
+  have hcross : 0 ≤ a^2 * (Real.sqrt (d*L)*L) := by positivity
+  have hbound : 4096*a^2*(d*L+L^2) ≤ 1 := by nlinarith [hs]
+  have hmono : ell*d+ell^2 ≤ d*L+L^2 := by nlinarith
+  have hnonneg : 0 ≤ ell*d+ell^2 := by positivity
+  have hmul := mul_le_mul_of_nonneg_left hmono (show 0 ≤ a^2 by positivity)
+  have hsmall : 64*a^2*(ell*d+ell^2) ≤ 1 := by nlinarith [mul_nonneg (sq_nonneg a) hnonneg]
+  refine ⟨hsmall, le_min ?_ ?_⟩
+  · apply (le_div_iff₀ (show 0 < 40*a^2*d by positivity)).2
+    nlinarith [sq_nonneg L, mul_nonneg (sq_nonneg a) (sq_nonneg L)]
+  · apply (le_div_iff₀ (show 0 < 8*a by positivity)).2
+    nlinarith
+
+
+
+private theorem parameter_bounds (eta beta d ell eps : ℝ)
+    (heta : 0 < eta) (hb : 0 < beta) (hd : 0 < d)
+    (he : 2 ≤ ell) (hep : 0 < eps) (heps : eps ≤ 1/2)
+    (hstep : 64*beta*(Real.sqrt (d*(ell+Real.log (1/eps)))+
+      (ell+Real.log (1/eps))) ≤ 1/eta) :
+    64*beta^2*(ell*d+ell^2) ≤ 1/eta^2 ∧
+    8*(ell+Real.log (1/eps)) ≤
+      min (1/(40*beta^2*d*eta^2)) (1/(8*beta*eta)) := by
+  have ht : 0 ≤ Real.log (1/eps) := Real.log_nonneg (by
+    apply (le_div_iff₀ hep).2
+    linarith)
+  have hh := (le_div_iff₀ heta).1 hstep
+  have hc : 64*(beta*eta)*(Real.sqrt (d*(ell+Real.log (1/eps)))+
+      (ell+Real.log (1/eps))) ≤ 1 := by nlinarith [hh]
+  obtain ⟨h1,h2⟩ := scaled_parameters (beta*eta) d _ ell
+    (mul_pos hb heta) hd he (by linarith) hc
+  constructor
+  · apply (le_div_iff₀ (sq_pos_of_pos heta)).2
+    nlinarith [h1]
+  · convert h2 using 1
+    all_goals congr 2 <;> ring
+
+private theorem accuracy_error (ell eps K : ℝ) (he : 2 ≤ ell)
+    (hep : 0 < eps) (heps : eps ≤ 1/2)
+    (hK : 8*(ell+Real.log (1/eps)) ≤ K) :
+    2*Real.exp (2-K) ≤ eps^2 := by
+  have ht : Real.log eps ≤ 0 := Real.log_nonpos hep.le (by linarith)
+  have hlog2 : Real.log 2 ≤ 1 := by
+    have h := Real.log_le_sub_one_of_pos (show (0:ℝ)<2 by norm_num)
+    linarith
+  rw [one_div,Real.log_inv] at hK
+  have hex : Real.log 2+(2-K) ≤ Real.log eps+Real.log eps := by linarith
+  calc
+    2*Real.exp (2-K) = Real.exp (Real.log 2+(2-K)) := by
+      rw [Real.exp_add,Real.exp_log (by norm_num : (0:ℝ)<2)]
+    _ ≤ Real.exp (Real.log eps+Real.log eps) := Real.exp_le_exp.mpr hex
+    _ = eps^2 := by rw [Real.exp_add,Real.exp_log hep,pow_two]
+
+
+private theorem rn_moment_positive {X : Type*} [MeasurableSpace X]
+    (mu nu : Measure X) [IsProbabilityMeasure mu] [IsProbabilityMeasure nu]
+    (hrev : nu ≪ mu) (ell : ℝ)
+    (hi : Integrable (fun x => (mu.rnDeriv nu x).toReal ^ ell) nu) :
+    0 < ∫ x, (mu.rnDeriv nu x).toReal ^ ell ∂nu := by
+  have hp : ∀ᵐ x ∂nu, 0 < (mu.rnDeriv nu x).toReal ^ ell := by
+    filter_upwards [Measure.rnDeriv_pos' hrev, Measure.rnDeriv_ne_top mu nu] with x hx hf
+    exact Real.rpow_pos_of_pos (ENNReal.toReal_pos hx.ne' hf) ell
+  have hs : (fun x => x ∈ Function.support (fun x => (mu.rnDeriv nu x).toReal ^ ell)) =ᵐ[nu]
+      (fun x => x ∈ (Set.univ : Set X)) := by
+    filter_upwards [hp] with x hx
+    apply propext
+    simp only [Set.mem_univ, iff_true, Function.mem_support]
+    exact hx.ne'
+  apply (integral_pos_iff_support_of_nonneg_ae (hp.mono fun _ hx => hx.le) hi).2
+  have hm : nu (Function.support (fun x => (mu.rnDeriv nu x).toReal ^ ell)) = nu Set.univ :=
+    measure_congr hs
+  rw [hm, measure_univ]
+  norm_num
+
+private theorem logarithmic_accuracy {X : Type*} [MeasurableSpace X]
+    (mu nu : Measure X) [IsProbabilityMeasure mu] [IsProbabilityMeasure nu]
+    (hrev : nu ≪ mu) (ell eps : ℝ) (he : 2 ≤ ell)
+    (hi : Integrable (fun x => (mu.rnDeriv nu x).toReal ^ ell) nu)
+    (hb : (∫ x, (mu.rnDeriv nu x).toReal ^ ell ∂nu) ≤ 1+eps^2) :
+    0 < (∫ x, (mu.rnDeriv nu x).toReal ^ ell ∂nu) ∧
+      Real.log (∫ x, (mu.rnDeriv nu x).toReal ^ ell ∂nu)/(ell-1) ≤ eps^2 := by
+  have hp := rn_moment_positive mu nu hrev ell hi
+  refine ⟨hp, ?_⟩
+  have hl := Real.log_le_sub_one_of_pos hp
+  apply (div_le_iff₀ (by linarith : 0 < ell-1)).2
+  nlinarith [mul_nonneg (sq_nonneg eps) (show 0 ≤ ell-2 by linarith)]
+
+
+private theorem cached_expected_cost {X : Type*} [MeasurableSpace X]
+    (rho : Measure X) [IsProbabilityMeasure rho] (C : X → ℝ≥0∞)
+    (r : ℝ) (hr : 0 ≤ r) (hc : (∫⁻ x, C x ∂rho) ≤ ENNReal.ofReal r) :
+    (∫⁻ x, 1+C x ∂rho) ≤ ENNReal.ofReal (1+r) := by
+  rw [lintegral_add_left measurable_const, lintegral_const, measure_univ, mul_one]
+  rw [ENNReal.ofReal_add (by norm_num) hr, ENNReal.ofReal_one]
+  exact add_le_add le_rfl hc
+
+private theorem cached_cost_tail {X : Type*} [MeasurableSpace X]
+    (rho : Measure X) (C : X → ℝ≥0∞) (K p : ℝ) (hK : 0 ≤ K)
+    (hp : 0 < p) (hp1 : p ≤ 1/2)
+    (hc : rho {x | ENNReal.ofReal (K*Real.log (2/p)) < C x} ≤ ENNReal.ofReal p) :
+    rho {x | ENNReal.ofReal ((K+1/Real.log 2)*Real.log (2/p)) < 1+C x}
+      ≤ ENNReal.ofReal p := by
+  have hl2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  have hL : Real.log 2 ≤ Real.log (2/p) := by
+    apply Real.log_le_log (by norm_num)
+    apply (le_div_iff₀ hp).2
+    linarith
+  have hdiv : 1 ≤ Real.log (2/p)/Real.log 2 :=
+    (le_div_iff₀ hl2).2 (by simpa using hL)
+  have hs : 1+K*Real.log (2/p) ≤ (K+1/Real.log 2)*Real.log (2/p) := by
+    calc
+      1+K*Real.log (2/p) ≤ Real.log (2/p)/Real.log 2+K*Real.log (2/p) :=
+        add_le_add hdiv le_rfl
+      _ = _ := by ring
+  have hn : 0 ≤ K*Real.log (2/p) := mul_nonneg hK (le_trans hl2.le hL)
+  refine (measure_mono (fun x hx => ?_)).trans hc
+  by_contra hnot
+  have hcx : C x ≤ ENNReal.ofReal (K*Real.log (2/p)) := le_of_not_gt hnot
+  have hbound : 1+C x ≤ ENNReal.ofReal ((K+1/Real.log 2)*Real.log (2/p)) := calc
+    1+C x ≤ 1+ENNReal.ofReal (K*Real.log (2/p)) := add_le_add le_rfl hcx
+    _ = ENNReal.ofReal (1+K*Real.log (2/p)) := by
+      rw [ENNReal.ofReal_add (by norm_num) hn, ENNReal.ofReal_one]
+    _ ≤ _ := ENNReal.ofReal_le_ofReal hs
+  exact (not_lt_of_ge hbound) hx
+
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private def cachedEstimator (f : E → ℝ) (h g : E) (p : E × (ℝ × E)) : ℝ :=
+  inner ℝ ((Real.pi / 2) • (Real.cos (Real.pi / 2 * p.2.1) • (p.1-h) -
+    Real.sin (Real.pi / 2 * p.2.1) • p.2.2))
+    (g - gradient f (h + Real.sin (Real.pi / 2 * p.2.1) • (p.1-h) +
+      Real.cos (Real.pi / 2 * p.2.1) • p.2.2))
+
+private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))
+
+private def attemptLaw {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) (nu : Measure A) (B : ℝ) (hB : 0 < B) : Measure (Attempt X A) :=
+  q.prod ((poissonMeasure (⟨2*B, by positivity⟩ : ℝ≥0)).prod
+    ((Measure.infinitePi (fun _ : ℕ => nu)).prod (volume.restrict (Set.Icc 0 1))))
+
+private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B+W (p.1,p.2.2.1 i.val))/(2*B)}
+
+private def output {X A : Type*} (W : X × A → ℝ) (B : ℝ) (x0 : X)
+    (omega : ℕ → Attempt X A) : X := by
+  classical
+  exact if h : ∃ n, omega n ∈ accepted W B then (omega (Nat.find h)).1 else x0
+
+private def queryCount {X A : Type*} (W : X × A → ℝ) (B : ℝ)
+    (omega : ℕ → Attempt X A) : ℝ≥0∞ := by
+  classical
+  exact ∑' n : ℕ, if ∀ i < n, omega i ∉ accepted W B then (omega n).2.1 else 0
+
+private theorem actual_program (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta : ℝ) (heta : 0 < eta) (hb : 0 < beta)
+    (hlip : LipschitzWith ⟨beta,hb.le⟩ (gradient f)) (x0 xp : E) :
+    let g := gradient f xp
+    let h := x0-eta • g
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+    let W := fun p => min 1 (max (-1) (cachedEstimator f h g p))
+    let m := fun x => ∫ z, W (x,z) ∂nu
+    let rho := Measure.infinitePi (fun _ : ℕ => attemptLaw q nu 1 (by norm_num))
+    IsProbabilityMeasure rho ∧ Measurable (output W 1 x0) ∧
+      rho.map (output W 1 x0) = q.tilted m ∧
+      rho {omega | ∀ n, omega n ∉ accepted W 1} = 0 ∧
+      (∫⁻ omega, 1+queryCount W 1 omega ∂rho) ≤ ENNReal.ofReal (1+2*Real.exp 2) ∧
+      ∀ p : ℝ, 0 < p → p ≤ 1/2 →
+        rho {omega | ENNReal.ofReal
+          ((2*(Real.exp 1-1)*(Real.exp 2+1/Real.log 2)+1+1/Real.log 2)*
+            Real.log (2/p)) < 1+queryCount W 1 omega} ≤ ENNReal.ofReal p := by
+  let g := gradient f xp
+  let h := x0-eta • g
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+  let W := fun p => min 1 (max (-1) (cachedEstimator f h g p))
+  let m := fun x => ∫ z, W (x,z) ∂nu
+  let rho := Measure.infinitePi (fun _ : ℕ => attemptLaw q nu 1 (by norm_num))
+  have hp := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_gradient_program
+    f hf eta beta 1 heta hb.le (by norm_num) hlip x0 xp
+  rcases hp with ⟨hnu,hq,_,hW,_,_,_,_,_,ho,hlaw,hnever,_,_,_,hcost⟩
+  let : IsProbabilityMeasure nu := hnu
+  let : IsProbabilityMeasure q := hq
+  let : IsProbabilityMeasure (volume.restrict (Set.Icc (0:ℝ) 1)) := by
+    constructor
+    simp [Real.volume_Icc]
+  let : IsProbabilityMeasure (attemptLaw q nu 1 (by norm_num)) := by
+    let r : ℝ≥0 := ⟨2*1, by positivity⟩
+    let : IsProbabilityMeasure (poissonMeasure r) := inferInstance
+    change IsProbabilityMeasure (q.prod ((poissonMeasure r).prod
+      ((Measure.infinitePi (fun _ : ℕ => nu)).prod (volume.restrict (Set.Icc (0:ℝ) 1)))))
+    infer_instance
+  have hrho : IsProbabilityMeasure rho := by dsimp only [rho]; infer_instance
+  have hW' : Measurable W := hW
+  have ho' : Measurable (output W 1 x0) := ho
+  have hlaw' : rho.map (output W 1 x0) = q.tilted m := hlaw
+  have hn' : rho {omega | ∀ n, omega n ∉ accepted W 1} = 0 := hnever
+  have hc' : (∫⁻ omega, queryCount W 1 omega ∂rho) ≤ ENNReal.ofReal (2*Real.exp 2) := by
+    change (∫⁻ omega, queryCount W 1 omega ∂rho) ≤ ENNReal.ofReal (2*1*Real.exp (2*1)) at hcost
+    simpa only [mul_one] using hcost
+  refine ⟨hrho,ho',hlaw',hn',cached_expected_cost rho _ _ (by positivity) hc',?_⟩
+  intro p hp hp1
+  have hbW : ∀ x z, |W (x,z)| ≤ (1:ℝ) := by
+    intro x z
+    apply abs_le.mpr
+    exact ⟨le_min (by norm_num) (le_max_left _ _), min_le_left _ _⟩
+  have ht := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonQueryTail.poisson_query_tail
+    (Kernel.const Unit q) nu (fun p => W (p.1.2,p.2))
+    (hW'.comp (by fun_prop)) 1 (by norm_num) (fun _ x z => hbW x z) x0 () p hp (by linarith)
+  have ht' : rho {omega | ENNReal.ofReal
+      ((2*(Real.exp 1-1)*(Real.exp 2+1/Real.log 2)+1)*Real.log (2/p)) < queryCount W 1 omega}
+      ≤ ENNReal.ofReal p := by
+    have ht2 := ht.2
+    change rho {omega | ENNReal.ofReal
+      ((2*1*(Real.exp 1-1)*(Real.exp (2*1)+1/Real.log 2)+1)*Real.log (2/p)) <
+        queryCount W 1 omega} ≤ ENNReal.ofReal p at ht2
+    simpa only [mul_one,one_mul] using ht2
+  apply cached_cost_tail rho _ _ p ?_ hp hp1 ht'
+  have hex : 0 ≤ Real.exp 1-1 := by have := Real.add_one_le_exp 1; linarith
+  have hl2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  positivity
+
+
+/-- Actual terminal output accuracy and full-batch cached gradient query bounds. -/
+theorem terminal_sampler_accuracy_cost (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta ell eps : ℝ) (heta : 0 < eta) (hb : 0 < beta)
+    (he : 2 ≤ ell) (hep : 0 < eps) (heps : eps ≤ 1/2)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (hlip : LipschitzWith ⟨beta,hb.le⟩ (gradient f)) (x0 xp : E)
+    (hcenter : ‖(x0-eta • gradient f xp)-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hstep : 64*beta*(Real.sqrt ((Module.finrank ℝ E : ℝ)*(ell+Real.log (1/eps)))+
+      (ell+Real.log (1/eps))) ≤ 1/eta) :
+    let g := gradient f xp
+    let h := x0-eta • g
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+    let W := fun p => min 1 (max (-1) (cachedEstimator f h g p))
+    let m := fun x => ∫ z, W (x,z) ∂nu
+    let rho := Measure.infinitePi (fun _ : ℕ => attemptLaw q nu 1 (by norm_num))
+    let qhat := q.tilted m
+    let pi := ((stdGaussian E).map (fun z => x0+Real.sqrt eta • z)).tilted (fun x => -f x)
+    Measurable (output W 1 x0) ∧ rho.map (output W 1 x0) = qhat ∧
+      rho {omega | ∀ n, omega n ∉ accepted W 1} = 0 ∧
+      IsProbabilityMeasure rho ∧ IsProbabilityMeasure qhat ∧ IsProbabilityMeasure pi ∧
+      pi ≪ qhat ∧ qhat ≪ pi ∧
+      Integrable (fun x => (pi.rnDeriv qhat x).toReal^ell) qhat ∧
+      Integrable (fun x => (qhat.rnDeriv pi x).toReal^ell) pi ∧
+      0 < (∫ x, (pi.rnDeriv qhat x).toReal^ell ∂qhat) ∧
+      0 < (∫ x, (qhat.rnDeriv pi x).toReal^ell ∂pi) ∧
+      (∫ x, (pi.rnDeriv qhat x).toReal^ell ∂qhat) ≤ 1+eps^2 ∧
+      (∫ x, (qhat.rnDeriv pi x).toReal^ell ∂pi) ≤ 1+eps^2 ∧
+      Real.log (∫ x, (pi.rnDeriv qhat x).toReal^ell ∂qhat)/(ell-1) ≤ eps^2 ∧
+      Real.log (∫ x, (qhat.rnDeriv pi x).toReal^ell ∂pi)/(ell-1) ≤ eps^2 ∧
+      (∫⁻ omega, 1+queryCount W 1 omega ∂rho) ≤ ENNReal.ofReal (1+2*Real.exp 2) ∧
+      ∀ p : ℝ, 0 < p → p ≤ 1/2 →
+        rho {omega | ENNReal.ofReal
+          ((2*(Real.exp 1-1)*(Real.exp 2+1/Real.log 2)+1+1/Real.log 2)*
+            Real.log (2/p)) < 1+queryCount W 1 omega} ≤ ENNReal.ofReal p := by
+  let g := gradient f xp
+  let h := x0-eta • g
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+  let W := fun p => min 1 (max (-1) (cachedEstimator f h g p))
+  let m := fun x => ∫ z, W (x,z) ∂nu
+  let rho := Measure.infinitePi (fun _ : ℕ => attemptLaw q nu 1 (by norm_num))
+  let qhat := q.tilted m
+  let pi := ((stdGaussian E).map (fun z => x0+Real.sqrt eta • z)).tilted (fun x => -f x)
+  let K := min (1/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (1/(8*beta*eta))
+  obtain ⟨hs,hK⟩ := parameter_bounds eta beta _ ell eps heta hb hd he hep heps hstep
+  have herr := accuracy_error ell eps K he hep heps hK
+  have hc := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedRenyiComparison.clipped_renyi_comparison
+    f hf eta beta 1 ell heta hb (by norm_num) he hd hlip x0 xp hcenter
+    (by simpa only [div_one] using hs)
+  rcases hc with ⟨hpi,hqh,hpq,hqp,hfi,hri,hfb,hrb,_,_⟩
+  have : IsProbabilityMeasure pi := hpi
+  have : IsProbabilityMeasure qhat := hqh
+  have hfi' : Integrable (fun x => (pi.rnDeriv qhat x).toReal^ell) qhat := hfi
+  have hri' : Integrable (fun x => (qhat.rnDeriv pi x).toReal^ell) pi := hri
+  have hfb' : (∫ x, (pi.rnDeriv qhat x).toReal^ell ∂qhat)-1 ≤ 2*Real.exp (2-K) := by
+    change (∫ x, (pi.rnDeriv qhat x).toReal^ell ∂qhat)-1 ≤
+      2*Real.exp (2*1-min (1^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (1/(8*beta*eta))) at hfb
+    simpa only [one_pow,mul_one] using hfb
+  have hrb' : (∫ x, (qhat.rnDeriv pi x).toReal^ell ∂pi)-1 ≤ 2*Real.exp (2-K) := by
+    change (∫ x, (qhat.rnDeriv pi x).toReal^ell ∂pi)-1 ≤
+      2*Real.exp (2*1-min (1^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (1/(8*beta*eta))) at hrb
+    simpa only [one_pow,mul_one] using hrb
+  have hfbound : (∫ x, (pi.rnDeriv qhat x).toReal^ell ∂qhat) ≤ 1+eps^2 := by linarith
+  have hrbound : (∫ x, (qhat.rnDeriv pi x).toReal^ell ∂pi) ≤ 1+eps^2 := by linarith
+  obtain ⟨hfp,hfl⟩ := logarithmic_accuracy pi qhat hqp ell eps he hfi' hfbound
+  obtain ⟨hrp,hrl⟩ := logarithmic_accuracy qhat pi hpq ell eps he hri' hrbound
+  obtain ⟨hprob,ho,hlaw,hnever,hcost,htail⟩ := actual_program f hf eta beta heta hb hlip x0 xp
+  exact ⟨ho,hlaw,hnever,hprob,hqh,hpi,hpq,hqp,hfi',hri',hfp,hrp,hfbound,hrbound,hfl,hrl,hcost,htail⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalSamplerAccuracyCost

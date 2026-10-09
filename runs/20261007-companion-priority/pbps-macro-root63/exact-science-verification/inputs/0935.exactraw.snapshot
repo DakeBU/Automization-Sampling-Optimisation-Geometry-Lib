@@ -1,0 +1,103 @@
+import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
+import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
+
+/-!
+# Renyi density algebra leaves
+
+Small pointwise and measure-theoretic leaves for Renyi-style density
+integrands.  The file intentionally does not define a full Renyi divergence:
+normalization, absolute continuity, differentiating under the integral, and
+path-space regularity remain separate contracts.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace Renyi
+
+open scoped ENNReal
+
+open MeasureTheory
+
+variable {α : Type*}
+
+/-- The real-valued Renyi/Hellinger-style density integrand
+`p^a q^(1-a)`. -/
+noncomputable def renyiIntegrand (a p q : ℝ) : ℝ :=
+  p ^ a * q ^ (1 - a)
+
+/-- The `ℝ≥0∞` version used for lintegral contracts. -/
+noncomputable def renyiIntegrandENNReal (a : ℝ) (p q : α → ℝ) : α → ℝ≥0∞ :=
+  fun x => ENNReal.ofReal (renyiIntegrand a (p x) (q x))
+
+/-- Nonnegative input densities give a nonnegative Renyi integrand. -/
+theorem renyiIntegrand_nonneg {a p q : ℝ}
+    (hp : 0 ≤ p) (hq : 0 ≤ q) :
+    0 ≤ renyiIntegrand a p q := by
+  exact mul_nonneg (Real.rpow_nonneg hp a) (Real.rpow_nonneg hq (1 - a))
+
+/-- Positive input densities give a positive Renyi integrand. -/
+theorem renyiIntegrand_pos {a p q : ℝ}
+    (hp : 0 < p) (hq : 0 < q) :
+    0 < renyiIntegrand a p q := by
+  exact mul_pos (Real.rpow_pos_of_pos hp a) (Real.rpow_pos_of_pos hq (1 - a))
+
+variable [MeasurableSpace α]
+
+/-- A measurable pair of real densities gives a measurable Renyi integrand for
+orders `a ∈ [0,1]`. -/
+theorem measurable_renyiIntegrand {a : ℝ} {p q : α → ℝ}
+    (ha0 : 0 ≤ a) (ha1 : a ≤ 1)
+    (hp : Measurable p) (hq : Measurable q) :
+    Measurable fun x => renyiIntegrand a (p x) (q x) := by
+  have hpPow : Measurable fun x => p x ^ a :=
+    (Real.continuous_rpow_const ha0).measurable.comp hp
+  have hqPow : Measurable fun x => q x ^ (1 - a) :=
+    (Real.continuous_rpow_const (sub_nonneg.mpr ha1)).measurable.comp hq
+  change Measurable ((fun x => p x ^ a) * fun x => q x ^ (1 - a))
+  exact hpPow.mul hqPow
+
+/-- Measurability of the `ℝ≥0∞` Renyi integrand used in lintegrals. -/
+theorem measurable_renyiIntegrandENNReal {a : ℝ} {p q : α → ℝ}
+    (ha0 : 0 ≤ a) (ha1 : a ≤ 1)
+    (hp : Measurable p) (hq : Measurable q) :
+    Measurable (renyiIntegrandENNReal a p q) := by
+  change Measurable (fun x => ENNReal.ofReal (renyiIntegrand a (p x) (q x)))
+  exact (measurable_renyiIntegrand (α := α) ha0 ha1 hp hq).ennreal_ofReal
+
+/-- A finite envelope gives a finite Renyi lintegral. -/
+theorem lintegral_renyiIntegrandENNReal_ne_top_of_ae_le
+    (μ : MeasureTheory.Measure α) (a : ℝ) (p q : α → ℝ) (g : α → ℝ≥0∞)
+    (hle : ∀ᵐ x ∂μ, renyiIntegrandENNReal a p q x ≤ g x)
+    (hgfin : ∫⁻ x, g x ∂μ ≠ ∞) :
+    ∫⁻ x, renyiIntegrandENNReal a p q x ∂μ ≠ ∞ :=
+  ne_top_of_le_ne_top hgfin (lintegral_mono_ae hle)
+
+/-- Pointwise derivative rule for the Renyi density integrand.  Positivity,
+domination, and differentiating under the integral are deliberately outside
+this leaf. -/
+theorem hasDerivAt_renyiIntegrand {a : ℝ} {p q : ℝ → ℝ} {t pdot qdot : ℝ}
+    (hp : HasDerivAt p pdot t) (hq : HasDerivAt q qdot t)
+    (hp0 : p t ≠ 0) (hq0 : q t ≠ 0) :
+    HasDerivAt (fun s => renyiIntegrand a (p s) (q s))
+      ((pdot * a * (p t) ^ (a - 1)) * (q t) ^ (1 - a) +
+        (p t) ^ a * (qdot * (1 - a) * (q t) ^ (-a))) t := by
+  have hpPow :
+      HasDerivAt (fun s => p s ^ a) (pdot * a * (p t) ^ (a - 1)) t :=
+    hp.rpow_const (p := a) (Or.inl hp0)
+  have hqPow :
+      HasDerivAt (fun s => q s ^ (1 - a))
+        (qdot * (1 - a) * (q t) ^ ((1 - a) - 1)) t :=
+    hq.rpow_const (p := 1 - a) (Or.inl hq0)
+  change HasDerivAt ((fun s => p s ^ a) * fun s => q s ^ (1 - a))
+    ((pdot * a * (p t) ^ (a - 1)) * (q t) ^ (1 - a) +
+      (p t) ^ a * (qdot * (1 - a) * (q t) ^ (-a))) t
+  have hexponent : (1 - a) - 1 = -a := by ring
+  rw [hexponent] at hqPow
+  exact hpPow.mul hqPow
+
+end Renyi
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

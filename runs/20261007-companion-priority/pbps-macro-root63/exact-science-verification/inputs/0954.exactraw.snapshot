@@ -1,0 +1,162 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace
+import Mathlib.MeasureTheory.Integral.Lebesgue.Add
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.Topology.Semicontinuity.Basic
+
+/-!
+# Weak lower semicontinuity of nonnegative continuous costs
+
+For a continuous nonnegative cost `c`, truncate it by `min (c x) n`. Each
+truncated cost is bounded and continuous, so its integral is continuous for the
+weak topology on probability measures. Monotone convergence identifies the
+unbounded lower integral with the supremum of those truncated integrals. A
+supremum of continuous functionals is lower semicontinuous.
+
+This module is the objective-function half of the direct method for
+Kantorovich optimizer existence. The generic result is specialized to
+Samplinglib's quadratic transport cost.
+
+This is an internal reusable theorem edge, not a source-facing restatement.
+Its consumer is the optimal-coupling existence assembly, which combines this
+objective-side result with fixed-marginal compactness and nonemptiness.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace ContinuousCostWeakLowerSemicontinuity
+
+open MeasureTheory Topology
+open scoped ENNReal NNReal BoundedContinuousFunction
+
+noncomputable section
+
+/-- The level-`n` bounded continuous truncation of a nonnegative continuous
+function. -/
+def truncatedContinuousNNReal
+    {X : Type*} [TopologicalSpace X]
+    (c : X → ℝ≥0) (hc : Continuous c) (n : ℕ) : X →ᵇ ℝ≥0 where
+  toFun := fun x => min (c x) (n : ℝ≥0)
+  continuous_toFun := hc.min continuous_const
+  map_bounded' := by
+    use (n : ℝ) + (n : ℝ)
+    intro x y
+    rw [NNReal.dist_eq]
+    apply (abs_sub _ _).trans
+    rw [NNReal.abs_eq, NNReal.abs_eq]
+    apply add_le_add <;>
+      · norm_cast
+        exact min_le_right _ _
+
+@[simp]
+theorem truncatedContinuousNNReal_apply
+    {X : Type*} [TopologicalSpace X]
+    (c : X → ℝ≥0) (hc : Continuous c) (n : ℕ) (x : X) :
+    truncatedContinuousNNReal c hc n x = min (c x) (n : ℝ≥0) :=
+  rfl
+
+/-- Natural truncations increase pointwise to the original finite nonnegative
+value, viewed in `ENNReal`. -/
+theorem iSup_coe_min_nat_eq (r : ℝ≥0) :
+    (⨆ n : ℕ, (((min r (n : ℝ≥0) : ℝ≥0) : ℝ≥0∞))) = (r : ℝ≥0∞) := by
+  apply le_antisymm
+  · exact iSup_le fun n => ENNReal.coe_le_coe.2 (min_le_left _ _)
+  · obtain ⟨n, hn⟩ := exists_nat_ge r
+    calc
+      (r : ℝ≥0∞) = ((min r (n : ℝ≥0) : ℝ≥0) : ℝ≥0∞) := by
+        rw [min_eq_left hn]
+      _ ≤ ⨆ m : ℕ, ((min r (m : ℝ≥0) : ℝ≥0) : ℝ≥0∞) :=
+        le_iSup (fun m : ℕ => ((min r (m : ℝ≥0) : ℝ≥0) : ℝ≥0∞)) n
+
+/-- Monotone convergence expresses an unbounded continuous nonnegative
+integral as the supremum of its bounded continuous truncations. -/
+theorem lintegral_eq_iSup_truncated
+    {X : Type*} [MeasurableSpace X] [TopologicalSpace X] [OpensMeasurableSpace X]
+    (c : X → ℝ≥0) (hc : Continuous c) (mu : ProbabilityMeasure X) :
+    (∫⁻ x, (c x : ℝ≥0∞) ∂(mu : Measure X)) =
+      ⨆ n : ℕ,
+        ∫⁻ x, ((truncatedContinuousNNReal c hc n x : ℝ≥0) : ℝ≥0∞)
+          ∂(mu : Measure X) := by
+  have hmono : Monotone
+      (fun n : ℕ => fun x : X =>
+        ((truncatedContinuousNNReal c hc n x : ℝ≥0) : ℝ≥0∞)) := by
+    intro n m hnm x
+    exact ENNReal.coe_le_coe.2 <|
+      min_le_min le_rfl (by exact_mod_cast hnm)
+  have hmeas : ∀ n : ℕ, Measurable
+      (fun x : X =>
+        ((truncatedContinuousNNReal c hc n x : ℝ≥0) : ℝ≥0∞)) := by
+    intro n
+    exact ENNReal.continuous_coe.measurable.comp
+      (truncatedContinuousNNReal c hc n).continuous.measurable
+  rw [← MeasureTheory.lintegral_iSup hmeas hmono]
+  congr 1
+  funext x
+  exact (iSup_coe_min_nat_eq (c x)).symm
+
+/-- Integration of any continuous `NNReal`-valued cost is lower
+semicontinuous for weak convergence of probability measures. -/
+theorem lowerSemicontinuous_lintegral_continuous_nnreal
+    {X : Type*} [MeasurableSpace X] [TopologicalSpace X] [OpensMeasurableSpace X]
+    (c : X → ℝ≥0) (hc : Continuous c) :
+    LowerSemicontinuous
+      (fun mu : ProbabilityMeasure X =>
+        ∫⁻ x, (c x : ℝ≥0∞) ∂(mu : Measure X)) := by
+  have hfun :
+      (fun mu : ProbabilityMeasure X =>
+        ∫⁻ x, (c x : ℝ≥0∞) ∂(mu : Measure X)) =
+      (fun mu : ProbabilityMeasure X =>
+        ⨆ n : ℕ,
+          ∫⁻ x, ((truncatedContinuousNNReal c hc n x : ℝ≥0) : ℝ≥0∞)
+            ∂(mu : Measure X)) := by
+    funext mu
+    exact lintegral_eq_iSup_truncated c hc mu
+  rw [hfun]
+  apply lowerSemicontinuous_iSup
+  intro n
+  exact
+    (ProbabilityMeasure.continuous_lintegral_boundedContinuousFunction
+      (truncatedContinuousNNReal c hc n)).lowerSemicontinuous
+
+/-- The finite `NNReal` representative of the quadratic displacement cost. -/
+def quadraticCostNNReal
+    {E : Type*} [NormedAddCommGroup E] : E × E → ℝ≥0 :=
+  fun z => ‖z.1 - z.2‖₊ ^ 2
+
+/-- The `NNReal` quadratic cost is continuous. -/
+theorem continuous_quadraticCostNNReal
+    {E : Type*} [NormedAddCommGroup E] :
+    Continuous (quadraticCostNNReal (E := E)) := by
+  exact (continuous_nnnorm.comp (continuous_fst.sub continuous_snd)).pow 2
+
+/-- The finite representative agrees exactly with Samplinglib's existing
+extended nonnegative quadratic cost. -/
+theorem coe_quadraticCostNNReal
+    {E : Type*} [NormedAddCommGroup E] (z : E × E) :
+    ((quadraticCostNNReal (E := E) z : ℝ≥0) : ℝ≥0∞) =
+      WassersteinSpace.quadraticCost (E := E) z := by
+  simp [quadraticCostNNReal, WassersteinSpace.quadraticCost,
+    ENNReal.ofReal_pow (norm_nonneg _), enorm_eq_nnnorm]
+
+/-- The quadratic Kantorovich objective is lower semicontinuous on the weak
+space of probability measures on `E × E`.
+
+`SecondCountableTopology E` is the product-Borel bridge required by Mathlib's
+weak probability-measure topology; it is not a moment or transport assumption. -/
+theorem lowerSemicontinuous_quadraticCostFunctional
+    {E : Type*} [NormedAddCommGroup E]
+    [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] :
+    LowerSemicontinuous
+      (fun gamma : ProbabilityMeasure (E × E) =>
+        ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z
+          ∂(gamma : Measure (E × E))) := by
+  simpa only [← coe_quadraticCostNNReal] using
+    (lowerSemicontinuous_lintegral_continuous_nnreal
+      (quadraticCostNNReal (E := E)) continuous_quadraticCostNNReal)
+
+end
+
+end ContinuousCostWeakLowerSemicontinuity
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

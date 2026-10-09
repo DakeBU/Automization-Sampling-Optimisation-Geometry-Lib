@@ -1,0 +1,75 @@
+import Mathlib.Analysis.Calculus.Deriv.Comp
+import Mathlib.Analysis.Calculus.Deriv.Inv
+import Mathlib.Analysis.Calculus.Deriv.Mul
+import Mathlib.Tactic
+
+/-!
+# Simultaneous f-divergence chain rule
+
+Chewi Theorem 8.3.1 evolves both measures in an `f`-divergence at the same
+time.  Before any Fokker--Planck or integration-by-parts argument, its local
+calculus contains the weighted quotient identity
+
+`d/dt [q_t f(p_t/q_t)]
+ = f'(rho_t) p'_t + (f(rho_t) - rho_t f'(rho_t)) q'_t`,
+
+where `rho_t = p_t/q_t`.
+
+This file proves exactly that reusable scalar chain rule.  It does not assume a
+heat equation, integrate in space, or assert the final carré-du-champ formula.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace SimultaneousFDivergence
+
+/-- Weighted quotient chain rule underlying simultaneous `f`-divergence
+flows.  The nonzero denominator is the local positivity condition on the
+reference density. -/
+theorem hasDerivAt_weighted_f_divergence_integrand
+    {p q f : ℝ → ℝ} {t pdot qdot fprime : ℝ}
+    (hq : q t ≠ 0)
+    (hp : HasDerivAt p pdot t)
+    (hqderiv : HasDerivAt q qdot t)
+    (hf : HasDerivAt f fprime (p t / q t)) :
+    HasDerivAt
+      (fun s => q s * f (p s / q s))
+      (fprime * pdot +
+        (f (p t / q t) - (p t / q t) * fprime) * qdot) t := by
+  have hratio :
+      HasDerivAt (fun s => p s / q s)
+        ((pdot * q t - p t * qdot) / (q t) ^ 2) t :=
+    hp.div hqderiv hq
+  have hcomp :
+      HasDerivAt (fun s => f (p s / q s))
+        (fprime * ((pdot * q t - p t * qdot) / (q t) ^ 2)) t :=
+    hf.comp t hratio
+  have hprod := hqderiv.mul hcomp
+  have hcoeff :
+      qdot * f (p t / q t) +
+          q t * (fprime * ((pdot * q t - p t * qdot) / (q t) ^ 2)) =
+        fprime * pdot +
+          (f (p t / q t) - (p t / q t) * fprime) * qdot := by
+    field_simp [hq]
+    ring
+  rw [hcoeff] at hprod
+  exact hprod
+
+/-- The same identity with the ratio named explicitly. -/
+theorem hasDerivAt_weighted_f_divergence_integrand_of_ratio
+    {p q f : ℝ → ℝ} {t pdot qdot fprime rho : ℝ}
+    (hq : q t ≠ 0) (hrho : rho = p t / q t)
+    (hp : HasDerivAt p pdot t)
+    (hqderiv : HasDerivAt q qdot t)
+    (hf : HasDerivAt f fprime rho) :
+    HasDerivAt
+      (fun s => q s * f (p s / q s))
+      (fprime * pdot + (f rho - rho * fprime) * qdot) t := by
+  subst rho
+  exact hasDerivAt_weighted_f_divergence_integrand hq hp hqderiv hf
+
+end SimultaneousFDivergence
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

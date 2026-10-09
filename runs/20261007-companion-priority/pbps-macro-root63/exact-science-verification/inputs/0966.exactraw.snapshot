@@ -1,0 +1,60 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapDerivative
+import Mathlib.LinearAlgebra.Matrix.Basis
+import Mathlib.LinearAlgebra.Determinant
+
+/-!
+# Matrix representation of the displacement derivative
+
+The change-of-variables API sees the derivative of the displacement map as a
+continuous linear endomorphism
+
+`(1-t) I + t T'`.
+
+The log-determinant layer is stated for literal finite matrices.  This module
+bridges those representations without making a coordinate choice part of the
+mathematical assumptions: for any finite basis `b`, taking the matrix of the
+affine derivative commutes with the affine combination.  Mathlib's
+basis-independence theorem for the determinant then identifies the continuous-
+linear-map determinant with the determinant of that matrix.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementDerivativeMatrix
+
+noncomputable section
+
+open DisplacementMapDerivative
+
+variable {E ι : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [Fintype ι] [DecidableEq ι]
+
+/-- In any finite basis, the matrix of the displacement derivative is the
+literal affine matrix `(1-t) I + t A`, where `A` is the matrix of `T'`. -/
+theorem toMatrix_affineDisplacementDerivative
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E) (t : ℝ) :
+    LinearMap.toMatrix b b (affineDisplacementDerivative T' t).toLinearMap =
+      (1 - t) • (1 : Matrix ι ι ℝ) +
+        t • LinearMap.toMatrix b b T'.toLinearMap := by
+  ext i j
+  by_cases hij : i = j <;>
+    simp [affineDisplacementDerivative, LinearMap.toMatrix_apply, Matrix.one_apply, hij]
+
+/-- The determinant used by the Fréchet/change-of-variables layer is exactly
+the determinant of the affine matrix in any finite basis. -/
+theorem det_affineDisplacementDerivative_eq_matrix_det
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E) (t : ℝ) :
+    LinearMap.det (affineDisplacementDerivative T' t).toLinearMap =
+      Matrix.det
+        ((1 - t) • (1 : Matrix ι ι ℝ) +
+          t • LinearMap.toMatrix b b T'.toLinearMap) := by
+  rw [← LinearMap.det_toMatrix b]
+  rw [toMatrix_affineDisplacementDerivative]
+
+end
+
+end DisplacementDerivativeMatrix
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

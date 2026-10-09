@@ -1,0 +1,46 @@
+import Mathlib.Analysis.Calculus.FDeriv.Measurable
+import Mathlib.Analysis.Calculus.Gradient.Basic
+
+/-!
+# Measurability of the total Hilbert gradient
+
+Mathlib's total `fderiv` is measurable even when the underlying function is not
+differentiable everywhere.  On a Hilbert space the total `gradient` is just the
+continuous Riesz inverse applied to that derivative.  This gives a measurable
+gradient map without adding smoothness assumptions.
+
+This is the measure-theoretic interface needed by Monge arguments after an
+a.e. support relation has been collapsed to `y = gradient phi x`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace MeasurableGradient
+
+open MeasureTheory
+open scoped RealInnerProductSpace Gradient
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]
+
+/-- Mathlib's total Hilbert gradient of any real-valued function is measurable.
+At nondifferentiability points both the underlying total derivative and the
+gradient use their canonical default value. -/
+theorem measurable_gradient (phi : E → ℝ) :
+    Measurable (fun x : E => gradient phi x) := by
+  rw [show (fun x : E => gradient phi x) =
+      fun x => (InnerProductSpace.toDual ℝ E).symm (fderiv ℝ phi x) by
+    funext x
+    rfl]
+  exact (InnerProductSpace.toDual ℝ E).symm.continuous.measurable.comp
+    (measurable_fderiv ℝ phi)
+
+end
+
+end MeasurableGradient
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

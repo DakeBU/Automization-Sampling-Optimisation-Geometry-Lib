@@ -1,0 +1,110 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.AccumulatedEnergy
+import Mathlib.MeasureTheory.Integral.Prod
+
+/-!
+# Progressive processes with pathwise local square energy
+
+Chewi's localization starts below the global product-`L2` class: the process
+is progressive and has finite time energy almost surely, but its expected
+energy may be infinite.  This file records that exact source domain and builds
+the fixed-time measurable real energy representative used by hitting times.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace LocalProgressiveL2
+
+open MeasureTheory Set
+open scoped ENNReal NNReal
+
+open ElementaryItoIntegral ProgressiveL2 AccumulatedEnergy
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- A progressive process whose squared time integral on `[0,T]` is finite
+almost surely.  No finite expected energy is assumed. -/
+structure LocalProgressiveL2Integrand
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) (T : ℝ≥0) where
+  process : ℝ≥0 → Omega → ℝ
+  progressive : IsStronglyProgressive filtration process
+  finiteEnergy : IsLocallySquareIntegrableOn process mu T
+
+/-- Zero extension of the squared process from `[0,b] × Ω`.  The sample-space
+measurable structure is the filtration at `b`. -/
+noncomputable def squaredExtensionAt
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (b : ℝ≥0) : ℝ≥0 × Omega → ℝ :=
+  Function.extend
+    (Prod.map ((↑) : Set.Iic b → ℝ≥0) id)
+    (fun p : Set.Iic b × Omega => (eta.process p.1 p.2) ^ 2)
+    0
+
+theorem squaredExtensionAt_stronglyMeasurable
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (b : ℝ≥0) :
+    @StronglyMeasurable (ℝ≥0 × Omega) ℝ inferInstance
+      (MeasurableSpace.prod inferInstance (filtration b))
+      (squaredExtensionAt eta b) := by
+  apply ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+    MeasurableEmbedding.id).stronglyMeasurable_extend
+  · exact (eta.progressive b).pow 2
+  · exact stronglyMeasurable_const
+
+@[simp] theorem squaredExtensionAt_apply_of_le
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {s b : ℝ≥0} (hsb : s ≤ b) (omega : Omega) :
+    squaredExtensionAt eta b (s, omega) = (eta.process s omega) ^ 2 := by
+  let p : Set.Iic b × Omega := (⟨s, hsb⟩, omega)
+  exact ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+    MeasurableEmbedding.id).injective.extend_apply
+      (fun q : Set.Iic b × Omega => (eta.process q.1 q.2) ^ 2) 0 p
+
+@[simp] theorem squaredExtensionAt_apply_of_not_le
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {s b : ℝ≥0} (hsb : ¬s ≤ b) (omega : Omega) :
+    squaredExtensionAt eta b (s, omega) = 0 := by
+  rw [squaredExtensionAt, Function.extend_apply']
+  · rfl
+  · rintro ⟨u, hu⟩
+    apply hsb
+    have hsu := congrArg Prod.fst hu
+    change (u.1 : ℝ≥0) = s at hsu
+    have hub : (u.1 : ℝ≥0) ≤ b := u.1.property
+    rwa [hsu] at hub
+
+/-- Real-valued accumulated energy.  On the almost-sure finite-energy set it
+agrees with the exact `ENNReal` accumulated energy and is continuous in time;
+those comparison and continuity statements are proved downstream. -/
+noncomputable def accumulatedEnergyReal
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) (omega : Omega) : ℝ :=
+  ∫ s, squaredExtensionAt eta (min t T) (s, omega)
+    ∂(TimeMeasure.upTo T)
+
+/-- At each fixed time the real energy is measurable with respect to the
+filtration at the stopped time `min t T`. -/
+theorem accumulatedEnergyReal_stronglyMeasurable
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) :
+    StronglyMeasurable[filtration (min t T)]
+      (accumulatedEnergyReal eta t) := by
+  exact @StronglyMeasurable.integral_prod_left'
+    ℝ≥0 Omega ℝ inferInstance (filtration (min t T))
+    (TimeMeasure.upTo T) inferInstance inferInstance inferInstance
+    (squaredExtensionAt eta (min t T))
+    (squaredExtensionAt_stronglyMeasurable eta (min t T))
+
+/-- Fixed-time energy is measurable in the ambient sample sigma-algebra. -/
+theorem accumulatedEnergyReal_stronglyMeasurable_ambient
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) :
+    StronglyMeasurable (accumulatedEnergyReal eta t) :=
+  (accumulatedEnergyReal_stronglyMeasurable eta t).mono
+    (filtration.le (min t T))
+
+end LocalProgressiveL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

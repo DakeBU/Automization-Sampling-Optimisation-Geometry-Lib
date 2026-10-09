@@ -1,0 +1,440 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral
+import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
+
+/-!
+# Elementary Ito isometry
+
+This file proves the finite stochastic-integral isometry in Chewi displays
+(1.1.5)--(1.1.6).  The filtration-relative Brownian contract is essential:
+an adapted coefficient must be independent of the future increment.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoIsometry
+
+open MeasureTheory ProbabilityTheory Set
+open scoped BigOperators ENNReal NNReal ProbabilityTheory
+
+open BrownianMotion ElementaryItoIntegral
+
+/-- Brownian increment over `(a, b]`, clipped at terminal time `T`. -/
+noncomputable def brownianIncrement
+    {Ω : Type*} (B : ℝ≥0 → Ω → ℝ) (a b T : ℝ≥0) (omega : Ω) : ℝ :=
+  B (min b T) omega - B (min a T) omega
+
+/-- One summand in the elementary Ito integral. -/
+noncomputable def weightedIncrement
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Ω → ℝ) (T : ℝ≥0) (i : Fin n) (omega : Ω) : ℝ :=
+  eta.coeff i omega *
+    brownianIncrement B (eta.times i.castSucc) (eta.times i.succ) T omega
+
+theorem elementaryItoIntegral_eq_sum_weightedIncrement
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Ω → ℝ) (T : ℝ≥0) (omega : Ω) :
+    elementaryItoIntegral eta B T omega =
+      ∑ i, weightedIncrement eta B T i omega :=
+  rfl
+
+private theorem grid_endpoint_le_of_lt
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) {i j : Fin n} (hij : i < j) :
+    eta.times i.succ ≤ eta.times j.castSucc := by
+  apply eta.times_strictMono.monotone
+  exact hij
+
+/-- A bounded elementary coefficient belongs to every finite `Lp` space. -/
+theorem coeff_memLp
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (μ : Measure Ω)
+    [IsFiniteMeasure μ] (i : Fin n) (p : ℝ≥0∞) :
+    MemLp (eta.coeff i) p μ := by
+  obtain ⟨C, hC⟩ := eta.coeff_bounded i
+  exact MemLp.of_bound
+    ((eta.coeff_stronglyMeasurable i).mono (filtration.le _)).aestronglyMeasurable C
+    (ae_of_all μ fun omega => by simpa [Real.norm_eq_abs] using hC omega)
+
+/-- A clipped Brownian increment is square integrable. -/
+theorem brownianIncrement_memLp_two
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (a b T : ℝ≥0) :
+    MemLp (brownianIncrement B a b T) 2 μ := by
+  have hpre := hB.isBrownian.toIsPreBrownianReal
+  change MemLp (fun omega => B (min b T) omega - B (min a T) omega) 2 μ
+  exact (hpre.isGaussianProcess.hasGaussianLaw_eval (min b T) |>.memLp_two).sub
+    (hpre.isGaussianProcess.hasGaussianLaw_eval (min a T) |>.memLp_two)
+
+/-- Every weighted elementary Brownian increment is square integrable. -/
+theorem weightedIncrement_memLp_two
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0) (i : Fin n) :
+    MemLp (weightedIncrement eta B T i) 2 μ := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  have hinc := brownianIncrement_memLp_two hB
+    (eta.times i.castSucc) (eta.times i.succ) T
+  have hcoeff := coeff_memLp eta μ i ∞
+  change MemLp (fun omega => eta.coeff i omega *
+    brownianIncrement B (eta.times i.castSucc) (eta.times i.succ) T omega) 2 μ
+  exact hinc.mul' hcoeff
+
+/-- Diagonal term: an adapted coefficient factors from the squared future
+increment, whose second moment is the clipped interval length. -/
+theorem integral_weightedIncrement_sq
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0) (i : Fin n) :
+    ∫ omega, weightedIncrement eta B T i omega ^ 2 ∂μ =
+      (∫ omega, eta.coeff i omega ^ 2 ∂μ) *
+        ((min (eta.times i.succ) T - min (eta.times i.castSucc) T : ℝ≥0) : ℝ) := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  by_cases hT : T ≤ eta.times i.castSucc
+  · have hT' : T ≤ eta.times i.succ :=
+      hT.trans (eta.times_strictMono Fin.castSucc_lt_succ).le
+    simp [weightedIncrement, brownianIncrement, min_eq_right hT, min_eq_right hT']
+  · have haT : eta.times i.castSucc ≤ T := le_of_not_ge hT
+    have hab : eta.times i.castSucc ≤ min (eta.times i.succ) T :=
+      le_min (eta.times_strictMono Fin.castSucc_lt_succ).le haT
+    let increment : Ω → ℝ := fun omega =>
+      B (min (eta.times i.succ) T) omega - B (eta.times i.castSucc) omega
+    have hindep : IndepFun (eta.coeff i) increment μ :=
+      hB.indepFun_increment_of_stronglyMeasurable hab
+        (eta.coeff_stronglyMeasurable i)
+    have hindepSq :
+        IndepFun (fun omega => eta.coeff i omega ^ 2)
+          (fun omega => increment omega ^ 2) μ := by
+      simpa [Function.comp_def] using
+        hindep.comp (measurable_id.pow_const 2) (measurable_id.pow_const 2)
+    have hcoeffMeas : AEStronglyMeasurable (fun omega => eta.coeff i omega ^ 2) μ :=
+      (((eta.coeff_stronglyMeasurable i).mono (filtration.le _)).pow 2).aestronglyMeasurable
+    have hincMeas : AEStronglyMeasurable (fun omega => increment omega ^ 2) μ :=
+      ((hB.increment_stronglyMeasurable _ _).pow 2).aestronglyMeasurable
+    have hfactor := hindepSq.integral_fun_mul_eq_mul_integral hcoeffMeas hincMeas
+    have hmoment := hB.integral_increment_sq hab
+    calc
+      ∫ omega, weightedIncrement eta B T i omega ^ 2 ∂μ =
+          ∫ omega, eta.coeff i omega ^ 2 * increment omega ^ 2 ∂μ := by
+            apply integral_congr_ae
+            filter_upwards [] with omega
+            simp [weightedIncrement, brownianIncrement, increment, min_eq_left haT]
+            ring
+      _ = (∫ omega, eta.coeff i omega ^ 2 ∂μ) *
+          ∫ omega, increment omega ^ 2 ∂μ := hfactor
+      _ = (∫ omega, eta.coeff i omega ^ 2 ∂μ) *
+          ((min (eta.times i.succ) T - eta.times i.castSucc : ℝ≥0) : ℝ) := by
+            rw [hmoment]
+      _ = (∫ omega, eta.coeff i omega ^ 2 ∂μ) *
+          ((min (eta.times i.succ) T - min (eta.times i.castSucc) T : ℝ≥0) : ℝ) := by
+            rw [min_eq_left haT]
+
+private theorem ordered_cross_integral_eq_zero
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0)
+    {i j : Fin n} (hij : i < j) :
+    ∫ omega, weightedIncrement eta B T i omega *
+      weightedIncrement eta B T j omega ∂μ = 0 := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  by_cases hT : T ≤ eta.times j.castSucc
+  · have hT' : T ≤ eta.times j.succ :=
+      hT.trans (eta.times_strictMono Fin.castSucc_lt_succ).le
+    simp [weightedIncrement, brownianIncrement, min_eq_right hT, min_eq_right hT']
+  · have hajT : eta.times j.castSucc ≤ T := le_of_not_ge hT
+    have hajb : eta.times j.castSucc ≤ min (eta.times j.succ) T :=
+      le_min (eta.times_strictMono Fin.castSucc_lt_succ).le hajT
+    have hend : eta.times i.succ ≤ eta.times j.castSucc :=
+      grid_endpoint_le_of_lt eta hij
+    have hai : eta.times i.castSucc ≤ eta.times j.castSucc :=
+      (eta.times_strictMono Fin.castSucc_lt_succ).le.trans hend
+    have hbi : min (eta.times i.succ) T ≤ eta.times j.castSucc :=
+      (min_le_left _ _).trans hend
+    have hai' : min (eta.times i.castSucc) T ≤ eta.times j.castSucc :=
+      (min_le_left _ _).trans hai
+    let past : Ω → ℝ := fun omega =>
+      weightedIncrement eta B T i omega * eta.coeff j omega
+    let future : Ω → ℝ := fun omega =>
+      B (min (eta.times j.succ) T) omega - B (eta.times j.castSucc) omega
+    have hpast : StronglyMeasurable[filtration (eta.times j.castSucc)] past := by
+      have hcoeffI := (eta.coeff_stronglyMeasurable i).mono (filtration.mono hai)
+      have hleft := (hB.stronglyAdapted (min (eta.times i.castSucc) T)).mono
+        (filtration.mono hai')
+      have hright := (hB.stronglyAdapted (min (eta.times i.succ) T)).mono
+        (filtration.mono hbi)
+      exact ((hcoeffI.mul (hright.sub hleft)).mul (eta.coeff_stronglyMeasurable j))
+    have hindep : IndepFun past future μ :=
+      hB.indepFun_increment_of_stronglyMeasurable hajb hpast
+    have hfuture : AEStronglyMeasurable future μ :=
+      (hB.increment_stronglyMeasurable _ _).aestronglyMeasurable
+    have hfactor := hindep.integral_fun_mul_eq_mul_integral
+      (hpast.mono (filtration.le _)).aestronglyMeasurable hfuture
+    have hmean := hB.integral_increment_eq_zero
+      (eta.times j.castSucc) (min (eta.times j.succ) T)
+    calc
+      ∫ omega, weightedIncrement eta B T i omega *
+          weightedIncrement eta B T j omega ∂μ =
+          ∫ omega, past omega * future omega ∂μ := by
+            apply integral_congr_ae
+            filter_upwards [] with omega
+            simp [past, future, weightedIncrement, brownianIncrement, min_eq_left hajT]
+            ring
+      _ = (∫ omega, past omega ∂μ) * ∫ omega, future omega ∂μ := hfactor
+      _ = 0 := by rw [hmean, mul_zero]
+
+/-- Distinct adapted weighted Brownian increments are orthogonal in `L2`. -/
+theorem integral_weightedIncrement_mul_eq_zero
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0)
+    {i j : Fin n} (hij : i ≠ j) :
+    ∫ omega, weightedIncrement eta B T i omega *
+      weightedIncrement eta B T j omega ∂μ = 0 := by
+  rcases lt_or_gt_of_ne hij with hij | hji
+  · exact ordered_cross_integral_eq_zero eta hB T hij
+  · simpa [mul_comm] using ordered_cross_integral_eq_zero eta hB T hji
+
+/-- Chewi display (1.1.5): expanding the finite square leaves only diagonal
+terms because distinct adapted weighted increments are orthogonal. -/
+theorem chewi_display_1_1_5
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0) :
+    ∫ omega, elementaryItoIntegral eta B T omega ^ 2 ∂μ =
+      ∑ i, ∫ omega, weightedIncrement eta B T i omega ^ 2 ∂μ := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  let W : Fin n → Ω → ℝ := fun i => weightedIncrement eta B T i
+  have hW : ∀ i, MemLp (W i) 2 μ := fun i => weightedIncrement_memLp_two eta hB T i
+  have hpair : ∀ i j, Integrable (fun omega => W i omega * W j omega) μ := by
+    intro i j
+    change Integrable (W i * W j) μ
+    exact (hW i).integrable_mul (hW j)
+  calc
+    ∫ omega, elementaryItoIntegral eta B T omega ^ 2 ∂μ =
+        ∫ omega, ∑ i, ∑ j, W i omega * W j omega ∂μ := by
+          apply integral_congr_ae
+          filter_upwards [] with omega
+          rw [elementaryItoIntegral_eq_sum_weightedIncrement]
+          simp only [W, Finset.sum_mul_sum, pow_two]
+    _ = ∑ i, ∑ j, ∫ omega, W i omega * W j omega ∂μ := by
+      rw [integral_finsetSum]
+      · apply Finset.sum_congr rfl
+        intro i _
+        rw [integral_finsetSum]
+        intro j _
+        exact hpair i j
+      · intro i _
+        exact integrable_finsetSum _ fun j _ => hpair i j
+    _ = ∑ i, ∫ omega, W i omega ^ 2 ∂μ := by
+      apply Finset.sum_congr rfl
+      intro i _
+      rw [Finset.sum_eq_single i]
+      · simp [pow_two]
+      · intro j _ hji
+        exact integral_weightedIncrement_mul_eq_zero eta hB T hji.symm
+      · simp
+    _ = ∑ i, ∫ omega, weightedIncrement eta B T i omega ^ 2 ∂μ := rfl
+
+/-- The probabilistic part of Chewi display (1.1.6): each diagonal term is
+the coefficient's second moment times the clipped time-step length. -/
+theorem elementaryItoIntegral_sq_eq_sum
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0) :
+    ∫ omega, elementaryItoIntegral eta B T omega ^ 2 ∂μ =
+      ∑ i, (∫ omega, eta.coeff i omega ^ 2 ∂μ) *
+        ((min (eta.times i.succ) T - min (eta.times i.castSucc) T : ℝ≥0) : ℝ) := by
+  rw [chewi_display_1_1_5 eta hB T]
+  apply Finset.sum_congr rfl
+  intro i _
+  exact integral_weightedIncrement_sq eta hB T i
+
+private theorem sq_sum_eq_sum_sq_of_pairwise_mul_eq_zero
+    {ι : Type*} (s : Finset ι) (f : ι → ℝ)
+    (hzero : ∀ i ∈ s, ∀ j ∈ s, i ≠ j → f i * f j = 0) :
+    (∑ i ∈ s, f i) ^ 2 = ∑ i ∈ s, f i ^ 2 := by
+  rw [pow_two, Finset.sum_mul_sum]
+  apply Finset.sum_congr rfl
+  intro i hi
+  rw [Finset.sum_eq_single i]
+  · rw [pow_two]
+  · intro j hj hji
+    exact hzero i hi j hj hji.symm
+  · exact fun h => (h hi).elim
+
+private theorem interval_piece_mul_eq_zero
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (t : ℝ≥0) (omega : Ω)
+    {i j : Fin n} (hij : i ≠ j) :
+    (if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0) *
+      (if eta.times j.castSucc < t ∧ t ≤ eta.times j.succ
+        then eta.coeff j omega else 0) = 0 := by
+  split_ifs with hi hj
+  · rcases lt_or_gt_of_ne hij with hij | hji
+    · have hend := grid_endpoint_le_of_lt eta hij
+      exact (not_lt_of_ge (hi.2.trans hend) hj.1).elim
+    · have hend := grid_endpoint_le_of_lt eta hji
+      exact (not_lt_of_ge (hj.2.trans hend) hi.1).elim
+  all_goals simp
+
+/-- Pointwise square of an elementary process: disjoint time cells remove all
+cross terms before time integration. -/
+theorem ofReal_value_sq_eq_sum
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (t : ℝ≥0) (omega : Ω) :
+    ENNReal.ofReal (eta.value t omega ^ 2) =
+      ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+        then ENNReal.ofReal (eta.coeff i omega ^ 2) else 0 := by
+  let piece : Fin n → ℝ := fun i =>
+    if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0
+  have hzero : ∀ i ∈ Finset.univ, ∀ j ∈ Finset.univ, i ≠ j →
+      piece i * piece j = 0 := by
+    intro i _ j _ hij
+    exact interval_piece_mul_eq_zero eta t omega hij
+  rw [ElementaryAdaptedProcess.value, show
+    (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0) = ∑ i, piece i from rfl]
+  rw [sq_sum_eq_sum_sq_of_pairwise_mul_eq_zero Finset.univ piece hzero]
+  rw [ENNReal.ofReal_sum_of_nonneg]
+  · apply Finset.sum_congr rfl
+    intro i _
+    simp only [piece]
+    split_ifs <;> simp
+  · intro i _
+    positivity
+
+/-- Time `L2` energy of one elementary sample path, evaluated exactly on the
+clipped grid cells. -/
+theorem lintegral_value_sq
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (T : ℝ≥0) (omega : Ω) :
+    ∫⁻ t, ENNReal.ofReal (eta.value t omega ^ 2) ∂(TimeMeasure.upTo T) =
+      ∑ i, ENNReal.ofReal (eta.coeff i omega ^ 2) *
+        ↑(min (eta.times i.succ) T - min (eta.times i.castSucc) T) := by
+  simp_rw [ofReal_value_sq_eq_sum]
+  rw [lintegral_finsetSum]
+  · apply Finset.sum_congr rfl
+    intro i _
+    let c : ℝ≥0∞ := ENNReal.ofReal (eta.coeff i omega ^ 2)
+    let cell : Set ℝ≥0 := Ioc (eta.times i.castSucc) (eta.times i.succ)
+    calc
+      ∫⁻ t, (if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ then c else 0)
+          ∂(TimeMeasure.upTo T) =
+          ∫⁻ t, cell.indicator (fun _ => c) t ∂(TimeMeasure.upTo T) := by
+            apply lintegral_congr
+            intro t
+            by_cases ht : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+            · rw [if_pos ht, Set.indicator_of_mem]
+              exact ht
+            · rw [if_neg ht, Set.indicator_of_notMem]
+              exact ht
+      _ = ∫⁻ t in cell, c ∂(TimeMeasure.upTo T) :=
+        lintegral_indicator measurableSet_Ioc _
+      _ = c * TimeMeasure.upTo T cell := by simp [lintegral_const]
+      _ = c * ↑(min (eta.times i.succ) T -
+          min (eta.times i.castSucc) T) := by
+            simp only [cell]
+            rw [TimeMeasure.upTo_Ioc T _ _
+              (eta.times_strictMono Fin.castSucc_lt_succ).le]
+      _ = ENNReal.ofReal (eta.coeff i omega ^ 2) *
+          ↑(min (eta.times i.succ) T -
+            min (eta.times i.castSucc) T) := rfl
+  · intro i _
+    exact Measurable.ite measurableSet_Ioc measurable_const measurable_const
+
+/-- The elementary process square is measurable on sample-path/time product
+space, so Tonelli applies without an extra supplied hypothesis. -/
+theorem value_sq_aemeasurable
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (μ : Measure Ω) (T : ℝ≥0) :
+    AEMeasurable (fun z : Ω × ℝ≥0 => ENNReal.ofReal (eta.value z.2 z.1 ^ 2))
+      (processTimeMeasure μ T) := by
+  have hEq : (fun z : Ω × ℝ≥0 => ENNReal.ofReal (eta.value z.2 z.1 ^ 2)) =
+      fun z => ∑ i, if eta.times i.castSucc < z.2 ∧ z.2 ≤ eta.times i.succ
+        then ENNReal.ofReal (eta.coeff i z.1 ^ 2) else 0 := by
+    funext z
+    exact ofReal_value_sq_eq_sum eta z.2 z.1
+  rw [hEq]
+  apply Measurable.aemeasurable
+  apply Finset.measurable_sum
+  intro i _
+  have hset : MeasurableSet {z : Ω × ℝ≥0 |
+      eta.times i.castSucc < z.2 ∧ z.2 ≤ eta.times i.succ} :=
+    measurableSet_Ioc.preimage measurable_snd
+  apply Measurable.ite hset
+  · have hcoeff : Measurable (fun z : Ω × ℝ≥0 => eta.coeff i z.1) :=
+      ((eta.coeff_stronglyMeasurable i).mono (filtration.le _)).measurable.comp
+        measurable_fst
+    exact ENNReal.measurable_ofReal.comp (hcoeff.pow_const 2)
+  · exact measurable_const
+
+/-- Exact `ENNReal` expansion of the product-space energy of an elementary
+adapted process. -/
+theorem processL2Energy_value
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (μ : Measure Ω) (T : ℝ≥0)
+    [IsFiniteMeasure μ] :
+    processL2Energy eta.value μ T =
+      ENNReal.ofReal (∑ i, (∫ omega, eta.coeff i omega ^ 2 ∂μ) *
+        ((min (eta.times i.succ) T - min (eta.times i.castSucc) T : ℝ≥0) : ℝ)) := by
+  rw [chewi_display_1_1_7 eta.value μ T (value_sq_aemeasurable eta μ T)]
+  simp_rw [lintegral_value_sq]
+  rw [lintegral_finsetSum]
+  · rw [ENNReal.ofReal_sum_of_nonneg]
+    · apply Finset.sum_congr rfl
+      intro i _
+      have hcoeffLp : MemLp (eta.coeff i) 2 μ := coeff_memLp eta μ i 2
+      have hcoeffIntegral :
+          ENNReal.ofReal (∫ omega, eta.coeff i omega ^ 2 ∂μ) =
+            ∫⁻ omega, ENNReal.ofReal (eta.coeff i omega ^ 2) ∂μ :=
+        ofReal_integral_eq_lintegral_ofReal hcoeffLp.integrable_sq
+          (ae_of_all μ fun _ => sq_nonneg _)
+      rw [ENNReal.ofReal_mul (integral_nonneg fun _ => sq_nonneg _),
+        ENNReal.ofReal_coe_nnreal, hcoeffIntegral]
+      rw [lintegral_mul_const]
+      exact ENNReal.measurable_ofReal.comp
+        (((eta.coeff_stronglyMeasurable i).mono (filtration.le _)).pow 2).measurable
+    · intro i _
+      positivity
+  · intro i _
+    exact ((ENNReal.measurable_ofReal.comp
+      ((((eta.coeff_stronglyMeasurable i).mono (filtration.le _)).pow 2).measurable)).mul_const _)
+
+/-- Chewi display (1.1.6), in the repository's nonnegative product-space
+energy representation. -/
+theorem chewi_display_1_1_6
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (T : ℝ≥0) :
+    ENNReal.ofReal (∫ omega, elementaryItoIntegral eta B T omega ^ 2 ∂μ) =
+      processL2Energy eta.value μ T := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  rw [elementaryItoIntegral_sq_eq_sum eta hB T]
+  rw [processL2Energy_value eta μ T]
+
+end ElementaryItoIsometry
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

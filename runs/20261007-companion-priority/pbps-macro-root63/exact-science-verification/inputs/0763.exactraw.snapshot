@@ -1,0 +1,112 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization
+import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOClosure
+
+/-!
+# RGO potential calculus with genuine normalized Gibbs laws
+
+Source: Chen, Chewi, Lu and Zhang, *Smoothed Picard Hamiltonian Monte Carlo*,
+arXiv:2609.06906v1, Section 6.2.2, Lemma 6.4 and equation (6.1).
+<https://arxiv.org/html/2609.06906v1#S6.SS2>
+
+This integration node joins existing curvature, Gibbs-integrability and
+normalized quadratic-tilt results. Nonnegative precision `r = A⁻¹` includes
+`A = ∞`. The condition number is positive; all normalizations and divisions
+are justified, not additional hypotheses. Finite-dimensional real inner-product
+spaces generalize the source coordinates. The recursive sampler, its accuracy
+and its actual-input query cost remain separate consumers, not conclusions.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOCalculus
+
+open MeasureTheory
+open scoped NNReal
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+set_option backward.isDefEq.respectTransparency false in
+/-- The source's regularized potential has the stated curvature and smoothness,
+positive finite Gibbs mass, and an actual probability law. A further quadratic
+regularization gives exactly the updated normalized source potential, with the
+condition-number formula used by the recursive stages. No minimizer, moment,
+integrability or conditional-law identity is assumed. -/
+theorem rgo_calculus {U : E → ℝ} {κ a : ℝ} (hκ : 0 < κ)
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, κ⁻¹ * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ U) x v) v ∧
+      (fderiv ℝ (fderiv ℝ U) x v) v ≤ ‖v‖ ^ 2)
+    (r : ℝ≥0) (ha : 0 < a) (u y : E) :
+    let W := fun x => U x + (r : ℝ) / 2 * ‖x - u‖ ^ 2
+    let α := κ⁻¹ + (r : ℝ)
+    let β : ℝ≥0 := 1 + r
+    let K := (β : ℝ) / α
+    let rp := (r : ℝ) + a⁻¹
+    let w := rp⁻¹ • ((r : ℝ) • u + a⁻¹ • y)
+    StrongConvexOn Set.univ α W ∧
+      LipschitzWith β (gradient W) ∧
+      Integrable (fun x => Real.exp (-W x)) (volume : Measure E) ∧
+      0 < ∫ x, Real.exp (-W x) ∂(volume : Measure E) ∧
+      IsProbabilityMeasure ((volume : Measure E).tilted (fun x => -W x)) ∧
+      IsProbabilityMeasure ((volume : Measure E).tilted
+        (fun x => -(U x + rp / 2 * ‖x - w‖ ^ 2))) ∧
+      (volume : Measure E).tilted (fun x => -(W x + a⁻¹ / 2 * ‖x - y‖ ^ 2)) =
+        volume.tilted (fun x => -(U x + rp / 2 * ‖x - w‖ ^ 2)) ∧
+      ((β : ℝ) + a⁻¹) / (α + a⁻¹) = (a * (β : ℝ) + 1) * K /
+        (a * (β : ℝ) + K) := by
+  let W := fun x => U x + (r : ℝ) / 2 * ‖x - u‖ ^ 2
+  let m : ℝ≥0 := ⟨κ⁻¹, (inv_pos.mpr hκ).le⟩
+  have hbounds : ∀ x v : E,
+      (m : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ U) x v) v ∧
+      (fderiv ℝ (fderiv ℝ U) x v) v ≤ (1 : ℝ≥0) * ‖v‖ ^ 2 := by
+    intro x v
+    exact ⟨(hH x v).1, by simpa using (hH x v).2⟩
+  have hreg (t : ℝ≥0) (z : E) :=
+    TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+      hU hbounds (r := t) z
+  have hI (t : ℝ≥0) (z : E) :
+      Integrable (fun x => Real.exp (-(U x + (t : ℝ) / 2 * ‖x - z‖ ^ 2)))
+        (volume : Measure E) := by
+    apply TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+      (m := ((m + t : ℝ≥0) : ℝ))
+    · exact add_pos_of_pos_of_nonneg (inv_pos.mpr hκ) t.coe_nonneg
+    · exact (hU.add (contDiff_const.mul
+        ((contDiff_id.sub contDiff_const).norm_sq (𝕜 := ℝ)))).differentiable
+        (by norm_num)
+    · exact (hreg t z).1
+  have hIU : Integrable (fun x => Real.exp (-U x)) (volume : Measure E) := by
+    simpa only [NNReal.coe_zero, zero_div, zero_mul, add_zero] using hI 0 u
+  have hIW : Integrable (fun x => Real.exp (-W x)) (volume : Measure E) := hI r u
+  have : IsProbabilityMeasure ((volume : Measure E).tilted (fun x => -U x)) :=
+    isProbabilityMeasure_tilted hIU
+  have htilt (t : ℝ) (z : E) :
+      ((volume : Measure E).tilted (fun x => -U x)).tilted
+          (fun x => -(t / 2) * ‖x - z‖ ^ 2) =
+        volume.tilted (fun x => -(U x + t / 2 * ‖x - z‖ ^ 2)) := by
+    rw [tilted_tilted hIU]
+    congr 1
+    funext x
+    simp only [Pi.add_apply]
+    ring
+  refine ⟨(hreg r u).1, (hreg r u).2, hIW, integral_exp_pos hIW,
+    isProbabilityMeasure_tilted hIW, ?_, ?_, ?_⟩
+  · have hIplus := hI (r + ⟨a⁻¹, (inv_pos.mpr ha).le⟩)
+      (((r : ℝ) + a⁻¹)⁻¹ • ((r : ℝ) • u + a⁻¹ • y))
+    exact isProbabilityMeasure_tilted hIplus
+  · have hcomp := RGOClosure.quadratic_tilt_tilt
+      ((volume : Measure E).tilted (fun x => -U x)) r.coe_nonneg (inv_pos.mpr ha) u y
+    rw [htilt, htilt, tilted_tilted hIW] at hcomp
+    convert hcomp using 1
+    congr 1
+    funext x
+    simp only [Pi.add_apply, W]
+    ring
+  · have hα : 0 < κ⁻¹ + (r : ℝ) :=
+      add_pos_of_pos_of_nonneg (inv_pos.mpr hκ) r.coe_nonneg
+    have hβ : 0 < (1 : ℝ) + r := by positivity
+    have hnext : 0 < κ⁻¹ + (r : ℝ) + a⁻¹ := add_pos hα (inv_pos.mpr ha)
+    have hden : 0 < a * (1 + (r : ℝ)) + (1 + r) / (κ⁻¹ + r) :=
+      add_pos (mul_pos ha hβ) (div_pos hβ hα)
+    simp only [NNReal.coe_add, NNReal.coe_one]
+    field_simp [hκ.ne', ha.ne', hα.ne', hnext.ne', hden.ne']
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOCalculus

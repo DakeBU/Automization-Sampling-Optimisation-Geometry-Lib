@@ -1,0 +1,138 @@
+import Mathlib.MeasureTheory.Integral.IntegrableOn
+import Mathlib.MeasureTheory.Measure.FiniteMeasureProd
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.Tactic
+
+/-!
+# Quadratic-cost integrability from bounded rectangle support
+
+The local Brenier perturbation uses probability-normalized finite measures that
+are concentrated on bounded rectangles.  This module turns that geometric
+support information into the `Integrable` hypotheses consumed by the product-law
+cost comparison.
+
+No cyclic monotonicity, common-mass construction, or transport optimality is
+used here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace BoundedQuadraticCostIntegrability
+
+open MeasureTheory Set
+open scoped Topology
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- Points lying in two radius-`r` balls have pairwise distance bounded by the
+center distance plus `2r`. -/
+theorem norm_sub_lt_center_distance_add_two_radius
+    {x y a b : E} {r : ℝ}
+    (hx : x ∈ Metric.ball a r) (hy : y ∈ Metric.ball b r) :
+    ‖x - y‖ < ‖a - b‖ + 2 * r := by
+  have hxa : dist x a < r := Metric.mem_ball.mp hx
+  have hyb : dist b y < r := by
+    have h := Metric.mem_ball.mp hy
+    simpa [dist_comm] using h
+  have hay : dist a y < dist a b + r :=
+    (dist_triangle a b y).trans_lt (add_lt_add_left hyb _)
+  have hxy : dist x y < r + (dist a b + r) :=
+    (dist_triangle x a y).trans_lt (add_lt_add hxa hay)
+  rw [dist_eq_norm, dist_eq_norm] at hxy
+  nlinarith
+
+/-- A probability law concentrated on a bounded product rectangle has
+integrable squared displacement. -/
+theorem integrable_norm_sub_sq_of_prob_one_bounded_rectangle
+    (mu : ProbabilityMeasure (E × E))
+    {U V : Set E} {a b : E} {r : ℝ}
+    (hr : 0 < r)
+    (hUmeas : MeasurableSet U) (hVmeas : MeasurableSet V)
+    (hprob : mu (U ×ˢ V) = 1)
+    (hU : U ⊆ Metric.ball a r)
+    (hV : V ⊆ Metric.ball b r) :
+    Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2)
+      (mu : Measure (E × E)) := by
+  have hsm : AEStronglyMeasurable
+      (fun z : E × E => ‖z.1 - z.2‖ ^ 2)
+      (mu : Measure (E × E)) := by
+    apply Measurable.aestronglyMeasurable
+    fun_prop
+  let M : ℝ := ‖a - b‖ + 2 * r
+  have hM : 0 ≤ M := by
+    dsimp [M]
+    positivity
+  apply Integrable.of_bound hsm (M ^ 2)
+  have hmem : ∀ᵐ z ∂(mu : Measure (E × E)), z ∈ U ×ˢ V :=
+    (mem_ae_iff_prob_eq_one (hUmeas.prod hVmeas)).2 hprob
+  filter_upwards [hmem] with z hz
+  have hlt : ‖z.1 - z.2‖ < M := by
+    dsimp [M]
+    exact norm_sub_lt_center_distance_add_two_radius (hU hz.1) (hV hz.2)
+  have hsq : ‖z.1 - z.2‖ ^ 2 ≤ M ^ 2 := by
+    rw [sq_le_sq]
+    simpa [abs_of_nonneg (norm_nonneg _), abs_of_nonneg hM] using le_of_lt hlt
+  simpa [Real.norm_eq_abs, abs_sq] using hsq
+
+/-- If two probability laws on joint pairs are respectively concentrated on
+bounded rectangles, then the cross squared displacement formed from the first
+source coordinate and second target coordinate is integrable under their
+product law. -/
+theorem integrable_cross_norm_sub_sq_of_prob_one_bounded_rectangles
+    (muA muB : ProbabilityMeasure (E × E))
+    {UA VA UB VB : Set E} {aA bA aB bB : E} {r : ℝ}
+    (hr : 0 < r)
+    (hUAmeas : MeasurableSet UA) (hVAmeas : MeasurableSet VA)
+    (hUBmeas : MeasurableSet UB) (hVBmeas : MeasurableSet VB)
+    (hprobA : muA (UA ×ˢ VA) = 1)
+    (hprobB : muB (UB ×ˢ VB) = 1)
+    (hUA : UA ⊆ Metric.ball aA r)
+    (_hVA : VA ⊆ Metric.ball bA r)
+    (_hUB : UB ⊆ Metric.ball aB r)
+    (hVB : VB ⊆ Metric.ball bB r) :
+    Integrable
+      (fun z : (E × E) × (E × E) => ‖z.1.1 - z.2.2‖ ^ 2)
+      ((muA : Measure (E × E)).prod (muB : Measure (E × E))) := by
+  let muAB : ProbabilityMeasure ((E × E) × (E × E)) := muA.prod muB
+  have hprobAB : muAB ((UA ×ˢ VA) ×ˢ (UB ×ˢ VB)) = 1 := by
+    dsimp [muAB]
+    simp [hprobA, hprobB]
+  have hmem :
+      ∀ᵐ z ∂(muAB : Measure ((E × E) × (E × E))),
+        z ∈ (UA ×ˢ VA) ×ˢ (UB ×ˢ VB) :=
+    (mem_ae_iff_prob_eq_one
+      ((hUAmeas.prod hVAmeas).prod (hUBmeas.prod hVBmeas))).2 hprobAB
+  have hsm : AEStronglyMeasurable
+      (fun z : (E × E) × (E × E) => ‖z.1.1 - z.2.2‖ ^ 2)
+      (muAB : Measure ((E × E) × (E × E))) := by
+    apply Measurable.aestronglyMeasurable
+    fun_prop
+  let M : ℝ := ‖aA - bB‖ + 2 * r
+  have hM : 0 ≤ M := by
+    dsimp [M]
+    positivity
+  have hint : Integrable
+      (fun z : (E × E) × (E × E) => ‖z.1.1 - z.2.2‖ ^ 2)
+      (muAB : Measure ((E × E) × (E × E))) := by
+    apply Integrable.of_bound hsm (M ^ 2)
+    filter_upwards [hmem] with z hz
+    have hlt : ‖z.1.1 - z.2.2‖ < M := by
+      dsimp [M]
+      exact norm_sub_lt_center_distance_add_two_radius
+        (hUA hz.1.1) (hVB hz.2.2)
+    have hsq : ‖z.1.1 - z.2.2‖ ^ 2 ≤ M ^ 2 := by
+      rw [sq_le_sq]
+      simpa [abs_of_nonneg (norm_nonneg _), abs_of_nonneg hM] using le_of_lt hlt
+    simpa [Real.norm_eq_abs, abs_sq] using hsq
+  simpa [muAB] using hint
+
+end
+
+end BoundedQuadraticCostIntegrability
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

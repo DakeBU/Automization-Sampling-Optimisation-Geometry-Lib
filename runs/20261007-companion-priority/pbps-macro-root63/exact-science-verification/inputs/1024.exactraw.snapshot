@@ -1,0 +1,116 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.Tactic
+
+/-!
+# Finite second moments imply finite Wasserstein distance
+
+The constant-speed part of Chewi's Wasserstein theory uses cancellation in
+`ℝ≥0∞`; before doing that we must know that `P₂` endpoint distances are finite.
+This module proves the reusable bridge directly from the independent product
+coupling.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace WassersteinFiniteSecondMoment
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- A finite second moment in the first coordinate remains integrable under the
+independent product law. -/
+theorem integrable_norm_sq_fst_prod
+    (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμ : Integrable (fun x : E => ‖x‖ ^ 2) μ) :
+    Integrable (fun z : E × E => ‖z.1‖ ^ 2) (μ.prod ν) := by
+  simpa [Function.comp_def] using
+    (measurePreserving_fst (μ := μ) (ν := ν)).integrable_comp_of_integrable hμ
+
+/-- A finite second moment in the second coordinate remains integrable under
+the independent product law. -/
+theorem integrable_norm_sq_snd_prod
+    (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hν : Integrable (fun y : E => ‖y‖ ^ 2) ν) :
+    Integrable (fun z : E × E => ‖z.2‖ ^ 2) (μ.prod ν) := by
+  simpa [Function.comp_def] using
+    (measurePreserving_snd (μ := μ) (ν := ν)).integrable_comp_of_integrable hν
+
+/-- The squared displacement of two independent finite-second-moment samples is
+integrable. -/
+theorem integrable_norm_sub_sq_prod
+    (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμ : Integrable (fun x : E => ‖x‖ ^ 2) μ)
+    (hν : Integrable (fun y : E => ‖y‖ ^ 2) ν) :
+    Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) (μ.prod ν) := by
+  have hx := integrable_norm_sq_fst_prod μ ν hμ
+  have hy := integrable_norm_sq_snd_prod μ ν hν
+  have hdom :
+      Integrable (fun z : E × E => 2 * ‖z.1‖ ^ 2 + 2 * ‖z.2‖ ^ 2) (μ.prod ν) :=
+    (hx.const_mul 2).add (hy.const_mul 2)
+  apply hdom.mono'
+  · fun_prop
+  · filter_upwards with z
+    have htri : ‖z.1 - z.2‖ ≤ ‖z.1‖ + ‖z.2‖ := norm_sub_le z.1 z.2
+    have hx0 : 0 ≤ ‖z.1‖ := norm_nonneg _
+    have hy0 : 0 ≤ ‖z.2‖ := norm_nonneg _
+    have hxy0 : 0 ≤ ‖z.1 - z.2‖ := norm_nonneg _
+    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+    nlinarith [sq_nonneg (‖z.1‖ - ‖z.2‖)]
+
+/-- The quadratic cost of the independent product coupling is finite. -/
+theorem lintegral_quadraticCost_prod_lt_top
+    (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμ : Integrable (fun x : E => ‖x‖ ^ 2) μ)
+    (hν : Integrable (fun y : E => ‖y‖ ^ 2) ν) :
+    (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂(μ.prod ν)) < ∞ := by
+  have hdiff := integrable_norm_sub_sq_prod μ ν hμ hν
+  have hnonneg :
+      0 ≤ᵐ[μ.prod ν] (fun z : E × E => ‖z.1 - z.2‖ ^ 2) :=
+    Filter.Eventually.of_forall fun _ => sq_nonneg _
+  have hfinite :=
+    (hasFiniteIntegral_iff_ofReal hnonneg).mp hdiff.hasFiniteIntegral
+  simpa [WassersteinSpace.quadraticCost] using hfinite
+
+/-- Two probability laws with finite second moments have finite `W₂`
+distance.  Absolute continuity is not needed for this fact. -/
+theorem wassersteinDistance_lt_top_of_integrable_norm_sq
+    (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμ : Integrable (fun x : E => ‖x‖ ^ 2) μ)
+    (hν : Integrable (fun y : E => ‖y‖ ^ 2) ν) :
+    WassersteinSpace.wassersteinDistance μ ν < ∞ := by
+  have hcoupling := Transport.isCoupling_prod μ ν
+  have hbound :=
+    WassersteinSpace.wassersteinDistance_le_sqrt_lintegral_of_isCoupling
+      μ ν (μ.prod ν) hcoupling
+  have hcost := lintegral_quadraticCost_prod_lt_top μ ν hμ hν
+  have hsqrt :
+      (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂(μ.prod ν)) ^
+          (1 / (2 : ℝ)) < ∞ :=
+    ENNReal.rpow_lt_top_of_nonneg (by norm_num) hcost.ne
+  exact lt_of_le_of_lt hbound hsqrt
+
+/-- In particular, the `P₂,ac` predicate used by the source has finite
+Wasserstein distance between any two of its elements. -/
+theorem wassersteinDistance_lt_top_of_p2ac
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+    (μ ν : Measure E)
+    (hμ : WassersteinSpace.IsAbsolutelyContinuousFiniteSecondMoment μ)
+    (hν : WassersteinSpace.IsAbsolutelyContinuousFiniteSecondMoment ν) :
+    WassersteinSpace.wassersteinDistance μ ν < ∞ := by
+  letI : IsProbabilityMeasure μ := hμ.1
+  letI : IsProbabilityMeasure ν := hν.1
+  exact wassersteinDistance_lt_top_of_integrable_norm_sq μ ν hμ.2.2 hν.2.2
+
+end
+
+end WassersteinFiniteSecondMoment
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

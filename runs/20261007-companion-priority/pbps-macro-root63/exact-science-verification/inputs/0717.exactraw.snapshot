@@ -1,0 +1,362 @@
+import Mathlib.Probability.Kernel.Disintegration.StandardBorel
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOKLError
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ObservationConditionalKernel
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StateDependentRGO
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment
+import Mathlib.Tactic
+/-!
+# One-step KL propagation for the actual retained-state sampler
+
+Source: SPHMC arXiv:2609.06906v1 Section 6.3 conditional output argument after
+(6.5), using the actual Algorithm 3.3 reference update. This is the KL
+recurrence component, not the numerical observation-error budget in (6.5).
+
+The base measure is the real Gibbs law volume.tilted(-V). Its probability
+property follows from GibbsGradientMoment. StateDependentRGO constructs the
+state-dependent target T and ideal Gaussian observation H; its joint recovery
+on a Dirac input yields the actual posterior recovery used internally.
+Targets are exposed as nested Gibbs tilts. A combined volume density or
+normalizer formula is not an additional public conclusion.
+
+ObservationConditionalKernel supplies the same pre-noise first-hit GD update,
+full retained reference/count/history, joint observation/state law J and its
+conditional kernel C. Its actual observation variance tau/(beta+b) is distinct
+from the ideal observation variance v=(eta+tau)/(beta+b). Conditional precision
+and center identify the target posterior only for actual-Q-almost every
+observation and then conditional-C-almost every retained state. No transfer of
+these conditional versions to ideal H is made; reference randomness remains.
+
+All-ENNReal KL mixture and chain inequalities give the remaining-output error,
+and disintegration folds its conditional average into the actual P-state law.
+The theorem derives posterior recovery, target alignment, active projection
+and error measurability. They are not assumptions of the public theorem.
+Internal J,C,K and their recovery formulas are proof constructions, not extra
+public conjuncts. The absorbed branch has e=0 and P=Dirac but retains the full
+remaining-output KL; terminal error is not discarded.
+
+Genuine C2 Hessian bounds agree with source (1.1); positive finite
+dimension and 0<alpha<=beta are explicit. Eta,tau are arbitrary positive
+measurable functions of the full state. Arbitrary initial reference/history,
+threshold and actual Markov M,R carry no source schedule,admissibility,moment
+or approximation guarantee. Observation KL may be infinite; non-AC cases are
+included without adding finite KL or integrability assumptions. Numerical
+stage accuracy,finite-depth accumulation,terminal error,actual M construction
+and all query costs remain separate. Neither full paper is completed here.
+-/
+
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+noncomputable section
+universe u
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+private theorem measurable_fiber_kl {A B : Type u} [MeasurableSpace A] [MeasurableSpace B] [MeasurableSpace.CountableOrCountablyGenerated A B] (L K : Kernel A B) [IsMarkovKernel L] [IsMarkovKernel K] :
+    Measurable (fun x => klDiv (L x) (K x)) := by
+  classical
+  have hf : Measurable (fun p : A × B =>
+      ENNReal.ofReal (klFun ((Kernel.rnDeriv L K p.1 p.2).toReal))) := by
+    exact ENNReal.measurable_ofReal.comp
+      (continuous_klFun.measurable.comp (Kernel.measurable_rnDeriv L K).ennreal_toReal)
+  have heq (x : A) : klDiv (L x) (K x) =
+      if L x ≪ K x then ∫⁻ y, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K x y).toReal)) ∂K x
+      else ∞ := by
+    rw [klDiv_eq_lintegral_klFun]
+    split_ifs
+    · apply lintegral_congr_ae
+      filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := L) (η := K) (a := x)] with y hy
+      rw [hy]
+    · rfl
+  simp_rw [heq]
+  exact Measurable.ite (Kernel.measurableSet_absolutelyContinuous L K)
+    hf.lintegral_kernel_prod_right' measurable_const
+private theorem conditional_kl_integral {A B : Type u} [MeasurableSpace A] [MeasurableSpace B] [MeasurableSpace.CountableOrCountablyGenerated A B] (μ : Measure A) [IsProbabilityMeasure μ]
+    (L K : Kernel A B) [IsMarkovKernel L] [IsMarkovKernel K] :
+    klDiv (μ ⊗ₘ L) (μ ⊗ₘ K) = ∫⁻ x, klDiv (L x) (K x) ∂μ := by
+  classical
+  by_cases hac : μ ⊗ₘ L ≪ μ ⊗ₘ K
+  · have hfiber := hac.kernel_of_compProd
+    have hwd : (μ ⊗ₘ K).withDensity (fun p => Kernel.rnDeriv L K p.1 p.2) = μ ⊗ₘ L := by
+      rw [← Measure.compProd_withDensity (Kernel.measurable_rnDeriv L K)]
+      apply Measure.compProd_congr
+      filter_upwards [hfiber] with x hx
+      exact Kernel.withDensity_rnDeriv_eq hx
+    have hrn : (μ ⊗ₘ L).rnDeriv (μ ⊗ₘ K) =ᵐ[μ ⊗ₘ K]
+        (fun p => Kernel.rnDeriv L K p.1 p.2) := by
+      rw [← hwd]
+      exact Measure.rnDeriv_withDensity _ (Kernel.measurable_rnDeriv L K)
+    rw [klDiv_eq_lintegral_klFun_of_ac hac]
+    calc
+      _ = ∫⁻ p, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K p.1 p.2).toReal)) ∂(μ ⊗ₘ K) := by
+        apply lintegral_congr_ae
+        filter_upwards [hrn] with p hp
+        rw [hp]
+      _ = ∫⁻ x, ∫⁻ y, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K x y).toReal)) ∂K x ∂μ := by
+        apply Measure.lintegral_compProd
+        exact ENNReal.measurable_ofReal.comp
+          (continuous_klFun.measurable.comp (Kernel.measurable_rnDeriv L K).ennreal_toReal)
+      _ = _ := by
+        apply lintegral_congr_ae
+        filter_upwards [hfiber] with x hx
+        rw [klDiv_eq_lintegral_klFun_of_ac hx]
+        apply lintegral_congr_ae
+        filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := L) (η := K) (a := x)] with y hy
+        rw [hy]
+  · rw [klDiv_of_not_ac hac]
+    symm
+    by_contra hfinite
+    have hf := ae_lt_top (measurable_fiber_kl L K) hfinite
+    apply hac
+    apply Measure.AbsolutelyContinuous.compProd_right
+    filter_upwards [hf] with x hx
+    exact (klDiv_ne_top_iff.mp hx.ne).1
+private theorem composed_kl_bound {A B : Type u} [MeasurableSpace A] [MeasurableSpace B] [MeasurableSpace.CountableOrCountablyGenerated A B] (P Q : Measure A) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    (L K : Kernel A B) [IsMarkovKernel L] [IsMarkovKernel K] :
+    klDiv (L ∘ₘ P) (K ∘ₘ Q) ≤ klDiv P Q + ∫⁻ x, klDiv (L x) (K x) ∂P := by
+  calc
+    klDiv (L ∘ₘ P) (K ∘ₘ Q) = klDiv (P ⊗ₘ L).snd (Q ⊗ₘ K).snd := by
+      rw [Measure.snd_compProd, Measure.snd_compProd]
+    _ ≤ klDiv (P ⊗ₘ L) (Q ⊗ₘ K) := klDiv_map_le _ _ measurable_snd
+    _ = _ := by rw [klDiv_compProd_eq_add, conditional_kl_integral]
+
+private theorem mixture_kl_bound {A B : Type u} [MeasurableSpace A] [MeasurableSpace B]
+    [MeasurableSpace.CountableOrCountablyGenerated A B]
+    (μ : Measure A) [IsProbabilityMeasure μ] (ν : Measure B) [IsProbabilityMeasure ν]
+    (R T : Kernel A B) [IsMarkovKernel R] [IsMarkovKernel T]
+    (hT : ∀ᵐ x ∂μ, T x=ν) :
+    klDiv (R ∘ₘ μ) ν ≤ ∫⁻ x, klDiv (R x) (T x) ∂μ := by
+  let K : Kernel A B := Kernel.const A ν
+  have hc := composed_kl_bound μ μ R K
+  have hconst : K ∘ₘ μ=ν := by
+    change μ.bind (fun _ => ν)=ν
+    rw [Measure.bind_const,measure_univ,one_smul]
+  rw [hconst,klDiv_self,zero_add] at hc
+  refine hc.trans_eq ?_
+  apply lintegral_congr_ae
+  filter_upwards [hT] with x hx
+  simp only [K,Kernel.const_apply,hx]
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+variable {E S : Type u} [MeasurableSpace E] [MeasurableSpace S]
+  [StandardBorelSpace S] [Nonempty S]
+  [MeasurableSpace.CountableOrCountablyGenerated S E]
+  [MeasurableSpace.CountableOrCountablyGenerated E E]
+
+private theorem conditional_step (J : Kernel S (E × S)) [IsMarkovKernel J]
+    (P : Kernel S S) [IsMarkovKernel P]
+    (T H : Kernel S E) [IsMarkovKernel T] [IsMarkovKernel H]
+    (K : Kernel (S × E) E) [IsMarkovKernel K]
+    (R : Kernel S E) [IsMarkovKernel R] (s : S)
+    (hP : P s=J.snd s)
+    (hrecover : (K.comap (Prod.mk s) measurable_prodMk_left) ∘ₘ H s = T s)
+    (halign : ∀ᵐ y ∂J.fst s, ∀ᵐ t ∂J.condKernel (s,y), T t=K (s,y)) :
+    klDiv ((R ∘ₖ P) s) (T s) ≤
+      klDiv (J.fst s) (H s) + ∫⁻ t, klDiv (R t) (T t) ∂P s := by
+  let C := J.condKernel
+  let LR := (R ∘ₖ C).comap (Prod.mk s) measurable_prodMk_left
+  let KR := K.comap (Prod.mk s) measurable_prodMk_left
+  have hdecomp (f : S → ℝ≥0∞) (hf : Measurable f) :
+      (∫⁻ t, f t ∂P s) = ∫⁻ y, ∫⁻ t, f t ∂C (s,y) ∂J.fst s := by
+    rw [hP,Kernel.snd_apply,lintegral_map hf measurable_snd]
+    conv_lhs => rw [← Kernel.disintegrate J J.condKernel]
+    exact Kernel.lintegral_compProd J.fst J.condKernel s (hf.comp measurable_snd)
+  have hout : LR ∘ₘ J.fst s = (R ∘ₖ P) s := by
+    ext A hA
+    rw [Measure.bind_apply hA LR.aemeasurable,Kernel.comp_apply' R P s hA]
+    rw [hdecomp (fun t => R t A) (R.measurable_coe hA)]
+    apply lintegral_congr
+    intro y
+    change (R ∘ₖ C) (s,y) A = _
+    exact Kernel.comp_apply' R C (s,y) hA
+  have hc := composed_kl_bound (J.fst s) (H s) LR KR
+  rw [hout,hrecover] at hc
+  have hm : ∀ᵐ y ∂J.fst s, klDiv (LR y) (KR y) ≤
+      ∫⁻ t, klDiv (R t) (T t) ∂C (s,y) := by
+    filter_upwards [halign] with y hy
+    have hh := mixture_kl_bound (C (s,y)) (K (s,y)) R T hy
+    exact hh
+  calc
+    klDiv ((R ∘ₖ P) s) (T s) ≤ klDiv (J.fst s) (H s) +
+        ∫⁻ y, klDiv (LR y) (KR y) ∂J.fst s := hc
+    _ ≤ klDiv (J.fst s) (H s) +
+        ∫⁻ y, ∫⁻ t, klDiv (R t) (T t) ∂C (s,y) ∂J.fst s :=
+      add_le_add le_rfl (lintegral_mono_ae hm)
+    _ = _ := congrArg (fun z => klDiv (J.fst s) (H s)+z)
+      (hdecomp (fun t => klDiv (R t) (T t)) (measurable_fiber_kl R T)).symm
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+
+open MeasureTheory ProbabilityTheory
+open scoped NNReal ENNReal
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+variable {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [MeasurableSpace S] [MeasurableSingletonClass S]
+
+private theorem actual_gibbs_posterior {V : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hHess : ∀ x w : E, (α:ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ (β:ℝ)*‖w‖^2)
+    (b a : S → ℝ) (u : S → E) (hb : Measurable b) (ha : Measurable a)
+    (hu : Measurable u) (hb0 : ∀ s, 0 ≤ b s) (ha0 : ∀ s, 0 < a s) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    IsProbabilityMeasure μ ∧
+    ∃ (T H : Kernel S E) (K : Kernel (S × E) E),
+      IsMarkovKernel T ∧ IsMarkovKernel H ∧ IsMarkovKernel K ∧
+      (∀ s, T s=μ.tilted (fun x => -(b s/2)*‖x-u s‖^2)) ∧
+      (∀ s, H s=AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (T s) (Real.sqrt (a s))) ∧
+      (∀ s y, K (s,y)=μ.tilted (fun x => -((b s+(a s)⁻¹)/2)*
+        ‖x-(b s+(a s)⁻¹)⁻¹ • (b s • u s+(a s)⁻¹ • y)‖^2)) ∧
+      ∀ s, (K.comap (Prod.mk s) measurable_prodMk_left) ∘ₘ H s = T s := by
+  intro μ
+  have hμ : IsProbabilityMeasure μ :=
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment
+      hα hαβ hV hHess).1
+  let := hμ
+  obtain ⟨T,H,B,hT,hH,hB,hTf,hHf,hBpost,hBup,hrec⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StateDependentRGO.state_dependent_recovery
+      μ b a u hb ha hu hb0 ha0
+  let := hT
+  let := hH
+  let := hB
+  let K := B.snd
+  have hK : IsMarkovKernel K := by dsimp [K]; infer_instance
+  let := hK
+  have hKf (s : S) (y : E) : K (s,y)=μ.tilted (fun x => -((b s+(a s)⁻¹)/2)*
+      ‖x-(b s+(a s)⁻¹)⁻¹ • (b s • u s+(a s)⁻¹ • y)‖^2) := by
+    dsimp only [K]
+    rw [Kernel.snd_apply,hBup,Measure.map_map measurable_snd measurable_prodMk_left]
+    change Measure.map id _ = _
+    exact Measure.map_id
+  refine ⟨hμ,T,H,K,hT,hH,hK,hTf,hHf,hKf,?_⟩
+  intro s
+  have he := hrec (Measure.dirac s) inferInstance
+  ext A hA
+  have hset : MeasurableSet (Prod.snd ⁻¹' A : Set (S × E)) := measurable_snd hA
+  have hei := congrArg (fun m : Measure (S × E) => m (Prod.snd ⁻¹' A)) he
+  have hm : Measurable (fun r : S => ∫⁻ y, B (r,y) (Prod.snd ⁻¹' A) ∂H r) :=
+    (B.measurable_coe hset).lintegral_kernel_prod_right'
+  rw [Measure.bind_apply hset B.aemeasurable,
+    Measure.lintegral_compProd (B.measurable_coe hset),lintegral_dirac' s hm,
+    Measure.dirac_compProd_apply hset] at hei
+  rw [Measure.bind_apply hA (K.comap (Prod.mk s) measurable_prodMk_left).aemeasurable]
+  change (∫⁻ y, K (s,y) A ∂H s) = T s A
+  simp only [K,Kernel.snd_apply' _ _ hA]
+  exact hei
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped NNReal ENNReal
+variable {E S : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [MeasurableSpace S]
+local notation "RefState" E:arg => ℝ≥0 × E × E × ℕ × (ℕ → E)
+private def firstIndex (q : ℕ → S → ℝ) (b : S → ℝ) (s : S) : ℕ := by
+  classical
+  exact if h : ∃ n, q n s ≤ b s then Nat.find h else 0
+
+
+
+theorem one_step_kl_error {V : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hHess : ∀ x w : E, (α:ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ (β:ℝ)*‖w‖^2)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (η τ : RefState E → ℝ) (hη : Measurable η) (hτ : Measurable τ)
+    (hη0 : ∀ s, 0 < η s) (hτ0 : ∀ s, 0 < τ s)
+    (M : Kernel (RefState E) E) [IsMarkovKernel M] (threshold : ℝ≥0) :
+    let d : ℝ := Module.finrank ℝ E
+    let v := fun s : RefState E => (η s+τ s)/((β:ℝ)+s.1)
+    let bp := fun s : RefState E => s.1+Real.toNNReal (v s)⁻¹
+    let obs := fun p : RefState E × (E × E) => p.2.1+Real.sqrt (τ p.1/((β:ℝ)+p.1.1)) • p.2.2
+    let center := fun p : RefState E × (E × E) => (bp p.1:ℝ)⁻¹ •
+      ((p.1.1:ℝ) • p.1.2.1+(v p.1)⁻¹ • obs p)
+    let F := fun p x => V x+(bp p.1:ℝ)/2*‖x-center p‖^2
+    let T := fun p x => x-((β:ℝ)+bp p.1)⁻¹ • gradient (F p) x
+    let q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖^2
+    let N := firstIndex q (fun p => ((α:ℝ)+bp p.1)*d)
+    let out := fun p => (T p)^[N p] p.2.1
+    let update := fun p : RefState E × (E × E) =>
+      (bp p.1,center p,out p,p.1.2.2.2.1+1,fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    IsProbabilityMeasure μ ∧
+    ∃ (T H : Kernel (RefState E) E) (P : Kernel (RefState E) (RefState E)),
+      ∃ hT : IsMarkovKernel T, ∃ hH : IsMarkovKernel H, ∃ hP : IsMarkovKernel P,
+      letI := hT
+      letI := hH
+      letI := hP
+      (∀ s, T s=μ.tilted (fun x => -((s.1:ℝ)/2)*‖x-s.2.1‖^2)) ∧
+      (∀ s, H s=AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (T s) (Real.sqrt (v s))) ∧
+      (∀ s, P s=if threshold ≤ s.1 then Measure.dirac s else
+        ((M s).prod (stdGaussian E)).map (fun z => update (s,z))) ∧
+      let Q := fun s => AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (M s) (Real.sqrt (τ s/((β:ℝ)+s.1)))
+      let e := fun s => if threshold ≤ s.1 then 0 else klDiv (Q s) (H s)
+      Measurable e ∧ ∀ (R : Kernel (RefState E) E) [IsMarkovKernel R],
+        Measurable (fun s => klDiv (R s) (T s)) ∧ ∀ s,
+        klDiv ((R ∘ₖ P) s) (T s) ≤ e s+∫⁻ t, klDiv (R t) (T t) ∂P s := by
+  classical
+  intro d v bp obs center F Tstep q N out update μ
+  have hβ : 0 < (β:ℝ) := lt_of_lt_of_le (show 0 < (α:ℝ) from hα)
+    (show (α:ℝ) ≤ β from hαβ)
+  have hv (s : RefState E) : 0 < v s :=
+    div_pos (add_pos (hη0 s) (hτ0 s)) (add_pos_of_pos_of_nonneg hβ s.1.coe_nonneg)
+  have hvm : Measurable v := by dsimp [v]; fun_prop
+  have hbp (s : RefState E) : (bp s:ℝ)=(s.1:ℝ)+(v s)⁻¹ := by
+    simp only [bp,NNReal.coe_add,Real.coe_toNNReal _ (inv_pos.mpr (hv s)).le]
+  obtain ⟨hμ,T,H,K,hT,hH,hK,hTf,hHf,hKf,hrec⟩ :=
+    actual_gibbs_posterior hα hαβ hV hHess (fun s : RefState E => (s.1:ℝ)) v
+      (fun s => s.2.1) (by fun_prop) hvm (by fun_prop) (fun s => s.1.coe_nonneg) hv
+  let := hμ
+  let := hT
+  let := hH
+  let := hK
+  obtain ⟨J,hJ,hJs,hQ,hdis,hsupp,hfact,P,hP,hPs,hactive⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ObservationConditionalKernel.observation_conditional_kernel
+      hα hαβ hV hHess hd η τ hη hτ hη0 hτ0 M threshold
+  let := hJ
+  let := hP
+  have href := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel.reference_carrying_kernel
+    hα hαβ hV hHess hd η τ hη hτ hη0 hτ0 M threshold
+  have hu : Measurable update := href.2.2.2.1
+  have ho : Measurable obs := by dsimp [obs]; fun_prop
+  have hJs' (s : RefState E) : J s=((M s).prod (stdGaussian E)).map
+      (fun z => (obs (s,z),update (s,z))) := hJs s
+  have hPs' (s : RefState E) : P s=if threshold ≤ s.1 then Measure.dirac s else
+      ((M s).prod (stdGaussian E)).map (fun z => update (s,z)) := hPs s
+  have halign (s : RefState E) : ∀ᵐ y ∂J.fst s, ∀ᵐ t ∂J.condKernel (s,y), T t=K (s,y) := by
+    filter_upwards [hsupp s] with y hy
+    filter_upwards [hy] with t ht
+    rw [hTf,hKf,ht.1,ht.2,hbp]
+  refine ⟨hμ,T,H,P,hT,hH,hP,hTf,hHf,hPs',?_⟩
+  intro Q e
+  have heq : e=(fun s => if threshold ≤ s.1 then 0 else klDiv (J.fst s) (H s)) := by
+    funext s
+    simp only [e,Q,hQ]
+  have he : Measurable e := by
+    rw [heq]
+    exact Measurable.ite (measurableSet_le measurable_const (by fun_prop))
+      measurable_const (measurable_fiber_kl J.fst H)
+  refine ⟨he,fun R hR => ?_⟩
+  let := hR
+  have hmR := measurable_fiber_kl R T
+  refine ⟨hmR,fun s => ?_⟩
+  by_cases hs : threshold ≤ s.1
+  · simp only [e,Kernel.comp_apply,hPs',if_pos hs,
+      Measure.dirac_bind R.measurable,lintegral_dirac' s hmR,zero_add,le_refl]
+  · have hPJ : P s=J.snd s := by
+      have hf : Measurable (fun z : E × E => (obs (s,z),update (s,z))) :=
+        (ho.prodMk hu).comp (measurable_const.prodMk measurable_id)
+      rw [hPs',if_neg hs,Kernel.snd_apply,hJs',Measure.map_map measurable_snd hf]
+      rfl
+    have hc := conditional_step J P T H K R s hPJ (hrec s) (halign s)
+    simpa only [e,Q,if_neg hs,hQ] using hc
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep

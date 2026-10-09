@@ -1,0 +1,167 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoHorizonConsistency
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess
+
+/-!
+# Process-level Itô consistency across dyadic horizons
+
+The terminal completion is already independent of deterministic zero extension
+to a larger dyadic horizon.  Here we upgrade that fact to the continuous
+process versions.
+
+The key point is to use the uniqueness theorem for the continuous Itô process,
+rather than intersecting uncountably many fixed-time almost-sure identities.
+The larger-horizon process is strongly adapted and continuous on the smaller
+compact interval, and at every deterministic time it represents the same
+restricted terminal completion as the smaller-horizon process.  Uniqueness
+therefore gives one full-measure event on which the two paths agree at every
+time of the smaller horizon.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ItoHorizonProcessConsistency
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open BrownianMotion DyadicGlobalHorizon DyadicHorizonExtension
+  ItoHorizonConsistency ItoIntegralProcess ItoTerminalCompletion ProgressiveL2
+  ProgressiveL2HorizonExtension
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- Deterministic time restriction commutes with zero extension in product
+`L²`, provided the restriction time lies in the smaller horizon. -/
+theorem extendByZero_restrictAt_toLp_eq
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    {t : ℝ≥0} (ht : t ≤ dyadicHorizon a) :
+    (extendByZero (eta.restrictAt t) (dyadicHorizon_mono hab)).toLp =
+      ((extendByZero eta (dyadicHorizon_mono hab)).restrictAt t).toLp := by
+  unfold ProgressiveL2Integrand.toLp
+  apply MemLp.toLp_congr
+  filter_upwards [] with z
+  by_cases hzt : z.2 < t
+  · have hzHa : z.2 < dyadicHorizon a := hzt.trans_le ht
+    simp [extendByZero, ProgressiveL2Integrand.restrictProcess,
+      ProgressiveL2.processFunction, hzt, hzHa]
+  · simp [extendByZero, ProgressiveL2Integrand.restrictProcess,
+      ProgressiveL2.processFunction, hzt]
+
+/-- Restricted terminal completions agree across dyadic horizons. -/
+theorem itoIntegralTerminal_restrict_cross_horizon_eq
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {t : ℝ≥0} (ht : t ≤ dyadicHorizon a) :
+    itoIntegralTerminal
+        ((extendByZero eta (dyadicHorizon_mono hab)).restrictAt t)
+        (dyadicHorizon_pos b) hB =
+      itoIntegralTerminal (eta.restrictAt t) (dyadicHorizon_pos a) hB := by
+  let smallRestricted := eta.restrictAt t
+  let largeRestricted :=
+    (extendByZero eta (dyadicHorizon_mono hab)).restrictAt t
+  let extendedSmall :=
+    extendByZero smallRestricted (dyadicHorizon_mono hab)
+  have hLp : extendedSmall.toLp = largeRestricted.toLp := by
+    simpa only [smallRestricted, largeRestricted, extendedSmall] using
+      extendByZero_restrictAt_toLp_eq hab eta ht
+  have hcongr :
+      itoIntegralTerminal largeRestricted (dyadicHorizon_pos b) hB =
+        itoIntegralTerminal extendedSmall (dyadicHorizon_pos b) hB := by
+    apply itoIntegralTerminal_congr_toLp
+      largeRestricted extendedSmall (dyadicHorizon_pos b) hB
+    change largeRestricted.toLp = extendedSmall.toLp
+    exact hLp.symm
+  calc
+    itoIntegralTerminal
+        ((extendByZero eta (dyadicHorizon_mono hab)).restrictAt t)
+        (dyadicHorizon_pos b) hB =
+      itoIntegralTerminal extendedSmall (dyadicHorizon_pos b) hB := by
+        simpa only [largeRestricted] using hcongr
+    _ = itoIntegralTerminal smallRestricted (dyadicHorizon_pos a) hB := by
+      simpa only [smallRestricted, extendedSmall] using
+        itoIntegralTerminal_extendByZero_eq hab smallRestricted hB
+    _ = itoIntegralTerminal (eta.restrictAt t) (dyadicHorizon_pos a) hB := rfl
+
+/-- Fixed deterministic times agree almost surely across horizons. -/
+theorem itoIntegralProcess_extendByZero_ae
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    {t : ℝ≥0} (ht : t ≤ dyadicHorizon a) :
+    itoIntegralProcess
+        (extendByZero eta (dyadicHorizon_mono hab))
+        (dyadicHorizon_pos b) hB hUsual t =ᵐ[mu]
+      itoIntegralProcess eta (dyadicHorizon_pos a) hB hUsual t := by
+  have htBig : t ≤ dyadicHorizon b := ht.trans (dyadicHorizon_mono hab)
+  have hbig := itoIntegralProcess_at_eq_terminal
+    (extendByZero eta (dyadicHorizon_mono hab))
+    (dyadicHorizon_pos b) hB hUsual htBig
+  have hsmall := itoIntegralProcess_at_eq_terminal
+    eta (dyadicHorizon_pos a) hB hUsual ht
+  have hterminal :=
+    itoIntegralTerminal_restrict_cross_horizon_eq hab eta hB ht
+  rw [hterminal] at hbig
+  exact hbig.trans hsmall.symm
+
+/-- **Pathwise compact-interval cross-horizon consistency.**
+
+There is one full-measure event on which the larger zero-extended Itô process
+and the smaller Itô process agree simultaneously for every time in the smaller
+closed horizon. -/
+theorem itoIntegralProcess_extendByZero_pathwise_ae
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hUsual : SatisfiesUsualConditions filtration mu) :
+    ∀ᵐ omega ∂mu, ∀ t ∈ Icc (0 : ℝ≥0) (dyadicHorizon a),
+      itoIntegralProcess
+          (extendByZero eta (dyadicHorizon_mono hab))
+          (dyadicHorizon_pos b) hB hUsual t omega =
+        itoIntegralProcess eta (dyadicHorizon_pos a) hB hUsual t omega := by
+  let J : ℝ≥0 → Omega → ℝ :=
+    itoIntegralProcess
+      (extendByZero eta (dyadicHorizon_mono hab))
+      (dyadicHorizon_pos b) hB hUsual
+  have hJadapted : StronglyAdapted filtration J := by
+    simpa only [J] using
+      itoIntegralProcess_stronglyAdapted
+        (extendByZero eta (dyadicHorizon_mono hab))
+        (dyadicHorizon_pos b) hB hUsual
+  have hJcontinuous : ∀ᵐ omega ∂mu,
+      ContinuousOn (fun t => J t omega) (Icc (0 : ℝ≥0) (dyadicHorizon a)) := by
+    filter_upwards [] with omega
+    apply (itoIntegralProcess_continuousOn
+      (extendByZero eta (dyadicHorizon_mono hab))
+      (dyadicHorizon_pos b) hB hUsual omega).mono
+    intro t ht
+    exact ⟨ht.1, ht.2.trans (dyadicHorizon_mono hab)⟩
+  have hJterminal : ∀ t ≤ dyadicHorizon a,
+      J t =ᵐ[mu] fun omega =>
+        itoIntegralTerminal (eta.restrictAt t) (dyadicHorizon_pos a) hB omega := by
+    intro t ht
+    have hbig := itoIntegralProcess_at_eq_terminal
+      (extendByZero eta (dyadicHorizon_mono hab))
+      (dyadicHorizon_pos b) hB hUsual
+      (ht.trans (dyadicHorizon_mono hab))
+    have hterminal :=
+      itoIntegralTerminal_restrict_cross_horizon_eq hab eta hB ht
+    rw [hterminal] at hbig
+    simpa only [J] using hbig
+  simpa only [J] using
+    itoIntegralProcess_unique eta (dyadicHorizon_pos a) hB hUsual
+      J hJadapted hJcontinuous hJterminal
+
+end ItoHorizonProcessConsistency
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

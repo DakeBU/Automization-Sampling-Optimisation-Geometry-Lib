@@ -1,0 +1,48 @@
+from pathlib import Path
+import json, hashlib, copy, sys
+sys.path.insert(0,str(Path.cwd()))
+from tools import astis_advance as adv
+r=Path('runs/20261007-companion-priority/pbps-rough-mean-gradient56'); q=r/'exact-verification56'
+j=lambda p:json.loads(Path(p).read_text(encoding='utf8'))
+sha=lambda b:hashlib.sha256(b).hexdigest()
+canon=lambda d:json.dumps(d,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+def require_verified():
+ d=j(q/'run.json'); l=j(q/'lease.json'); receipt=j(q/'receipt.json'); v=j(r/'verified.json')
+ assert sha((q/'lease.json').read_bytes())=='fc4a0f8d8e553af677efa45e354edc89c17c1a27691da6e660dfc9b1a4f1e51c'
+ for obj,key,expected in [(d,'run_sha256','017adbd12a4e6871d0e79bc4016418fd2811d4f386282952db1d3b416c2ec48a'),(l,'lease_sha256','55a0d754a895051058c4c635433551d5719bc28e4af26c8861bd4e8571b63fb8'),(receipt,'receipt_sha256','0518ed2000a1b467c2da4d109e7e07d058c6bf5d45965ec63ba3a11266264aeb'),(v,'verified_sha256','4af7bb0d74733fa7605fb8ce9adb2ed94d55b1aba1e6ebfbce59327ce4224e55')]:
+  p=copy.deepcopy(obj); h=p.pop(key); assert sha(canon(p))==h==expected
+ assert sha(canon(d['verifier_binding_payload']))==d['verifier_binding_sha256']=='b06397c9fd0af4f1ecd74fd0c6cd514841709e43e1e2d26adc2b98182cb2ef7f'
+ assert l['status']==l['read']==l['write']==l['Python']==l['compiler']=='CLOSED'
+ assert l['compiler_exit_code']==0 and l['compiler_PID']==47152
+ before=j(q/'readback.json')['exact_verified_admin_before_mappings']
+ shared=j(r/'verified-inputs.before-shared-integration.json')['mappings'] if (r/'verified-inputs.before-shared-integration.json').exists() else []
+ count=0
+ def check(row):
+  nonlocal count
+  target=row
+  for m in before:
+   if row==m['original']:target=m['exact_before_snapshot']; break
+  for m in shared:
+   if row==m['original']:target=m['snapshot']; break
+  b=Path(target['path']).read_bytes()
+  assert len(b)==target['bytes'] and sha(b)==target['raw_sha256'] and sha(b.replace(b'\r\n',b'\n'))==target['lf_sha256'],target['path']
+  assert (row['bytes'],row['raw_sha256'],row['lf_sha256'])==(target['bytes'],target['raw_sha256'],target['lf_sha256']),row['path']
+  count+=1
+ assert len(before)==2
+ for m in before:check(m['original']);check(m['actual_verified_current'])
+ assert d['inputs']['strict_actual_input_count']==len(d['inputs']['inputs'])==1383
+ for row in d['inputs']['inputs']+d['actual_outputs_before_run']:check(row)
+ for key in ['compiler_closed_lease','receipt','run','verified','transition','output_manifest','readback']:check(l[key])
+ outputs=j(q/'outputs.final.json'); p=copy.deepcopy(outputs); h=p.pop('content_self_sha256');assert sha(canon(p))==h
+ assert outputs['output_count']==len(outputs['outputs'])==40
+ for row in outputs['outputs']:check(row)
+ assert receipt['Lean_gate']['exit_code']==0 and receipt['fake_closure_scan']['status']=='PASS_ZERO'
+ assert len(receipt['axiom_closures'])==3 and all(set(x['axioms'])=={'propext','Classical.choice','Quot.sound'} for x in receipt['axiom_closures'])
+ assert all(x['exit_code']==0 for x in j(q/'gates.json')['gates'])
+ assert d['checked_commit']==l['checked_commit']==receipt['checked_commit']==v['checked_commit']==v['verified_commit']=='db2c1237cd56698ae560a8121abfcbf374ff8838'
+ assert v['status']=='VERIFIED' and v['verifier_id']=='whole_math52_exact56'
+ states=adv.current_advances();assert states['ASTIS-SA-20261008-PBPSRoughMeanGradient']['state']=='VERIFIED'
+ assert [k for k,x in states.items() if x['state']=='STABILIZING']==['ASTIS-SA-20261005-SPHMCImplementedPhaseKernel']
+ return dict(v,root_native_pin_checks=count)
+if __name__=='__main__':
+ v=require_verified(); print('Actual native56 VERIFIED adopted',v['verified_commit'],v['root_native_pin_checks'])

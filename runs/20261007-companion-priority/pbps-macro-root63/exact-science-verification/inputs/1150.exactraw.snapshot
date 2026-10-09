@@ -1,0 +1,123 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2
+import Mathlib.MeasureTheory.Integral.Prod
+
+/-!
+# Progressive drift prefix integrals
+
+A progressive Banach-valued drift remains progressive after deterministic
+Lebesgue integration over the moving prefix `[0,t]`.
+
+The key point for Chewi Definition 1.1.17 is that progressiveness of the
+primitive is a measurability statement and does **not** require every sample
+path to be integrable.  On a fixed horizon `T`, rewrite the moving measure
+`TimeMeasure.upTo t` as `TimeMeasure.upTo T` restricted to `Iio t`; the
+resulting jointly measurable integrand can then be integrated in the time
+variable using Mathlib's parameterized Bochner-integral theorem.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ProgressiveDriftIntegral
+
+open MeasureTheory Set
+open scoped NNReal
+
+open ProgressiveL2
+
+variable {Omega E : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m}
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- The finite-time Bochner drift primitive. -/
+noncomputable def prefixIntegralProcess
+    (b : ℝ≥0 → Omega → E) (t : ℝ≥0) (omega : Omega) : E :=
+  ∫ s, b s omega ∂(TimeMeasure.upTo t)
+
+/-- On a larger fixed horizon, the moving-prefix integral can be represented
+by an indicator integrand against one fixed finite time measure.  Clipping the
+time fed to `b` by `T` makes the integrand globally well-typed for the
+progressive-measurability restriction to `Iic T`; on the active set `s < t ≤ T`
+the clipping is invisible. -/
+theorem prefixIntegralProcess_eq_fixedHorizon
+    (b : ℝ≥0 → Omega → E) {t T : ℝ≥0} (ht : t ≤ T) (omega : Omega) :
+    prefixIntegralProcess b t omega =
+      ∫ s, if s < t then b (min s T) omega else 0 ∂(TimeMeasure.upTo T) := by
+  have hmeasure :
+      TimeMeasure.upTo t = (TimeMeasure.upTo T).restrict (Iio t) := by
+    rw [← TimeMeasure.restrict_upTo_Iio_terminal t]
+    exact TimeMeasure.restrict_upTo_Iio_eq_of_le le_rfl ht
+  rw [prefixIntegralProcess, hmeasure, ← integral_indicator measurableSet_Iio]
+  apply integral_congr_ae
+  filter_upwards [] with s
+  by_cases hs : s < t
+  · have hsT : s ≤ T := hs.le.trans ht
+    simp [Set.indicator, hs, min_eq_left hsT]
+  · simp [Set.indicator, hs]
+
+/-- Progressive measurability is preserved by deterministic prefix Bochner
+integration.  No pathwise integrability hypothesis is needed for this
+measurability theorem. -/
+theorem prefixIntegralProcess_stronglyProgressive
+    (b : ℝ≥0 → Omega → E)
+    (hb : IsStronglyProgressive filtration b) :
+    IsStronglyProgressive filtration (prefixIntegralProcess b) := by
+  intro T
+  -- From this point on every measurable map involving `Omega` must use the
+  -- horizon sigma-algebra `filtration T`, not the ambient measurable space
+  -- `m`.  Making that instance local keeps the product measurable spaces
+  -- definitionally aligned with the one appearing in `hb T`.
+  letI : MeasurableSpace Omega := filtration T
+  have hactive : @MeasurableSet ((Set.Iic T × Omega) × ℝ≥0)
+      ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      {z | z.2 < (z.1.1 : ℝ≥0)} := by
+    exact measurableSet_lt measurable_snd
+      (measurable_subtype_coe.comp (measurable_fst.comp measurable_fst))
+  have htime : @Measurable ((Set.Iic T × Omega) × ℝ≥0) ℝ≥0
+      ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      inferInstance (fun z => min z.2 T) :=
+    measurable_snd.min measurable_const
+  have hclip : ∀ z : ((Set.Iic T × Omega) × ℝ≥0), min z.2 T ∈ Set.Iic T := by
+    intro z
+    show min z.2 T ≤ T
+    exact min_le_right _ _
+  have htimeSubtype : @Measurable ((Set.Iic T × Omega) × ℝ≥0) (Set.Iic T)
+      ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      Subtype.instMeasurableSpace
+      (fun z => ⟨min z.2 T, hclip z⟩) := by
+    exact htime.subtype_mk (h := hclip)
+  have homega : @Measurable ((Set.Iic T × Omega) × ℝ≥0) Omega
+      ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      (filtration T) (fun z => z.1.2) :=
+    measurable_snd.comp measurable_fst
+  have hmap : @Measurable ((Set.Iic T × Omega) × ℝ≥0) (Set.Iic T × Omega)
+      ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      (Subtype.instMeasurableSpace.prod (filtration T))
+      (fun z => (⟨min z.2 T, hclip z⟩, z.1.2)) :=
+    htimeSubtype.prodMk homega
+  have hvalue : @StronglyMeasurable ((Set.Iic T × Omega) × ℝ≥0) E
+      inferInstance ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      (fun z => b (min z.2 T) z.1.2) :=
+    (hb T).comp_measurable hmap
+  have hintegrand : @StronglyMeasurable ((Set.Iic T × Omega) × ℝ≥0) E
+      inferInstance ((Subtype.instMeasurableSpace.prod (filtration T)).prod inferInstance)
+      (fun z => if z.2 < (z.1.1 : ℝ≥0) then b (min z.2 T) z.1.2 else 0) :=
+    StronglyMeasurable.ite hactive hvalue stronglyMeasurable_const
+  have hfixed : @StronglyMeasurable (Set.Iic T × Omega) E inferInstance
+      (Subtype.instMeasurableSpace.prod (filtration T))
+      (fun p => ∫ s, if s < (p.1 : ℝ≥0) then b (min s T) p.2 else 0
+        ∂(TimeMeasure.upTo T)) := by
+    exact hintegrand.integral_prod_right
+  have hfun :
+      (fun p : Set.Iic T × Omega => prefixIntegralProcess b p.1 p.2) =
+        (fun p => ∫ s, if s < (p.1 : ℝ≥0) then b (min s T) p.2 else 0
+          ∂(TimeMeasure.upTo T)) := by
+    funext p
+    exact prefixIntegralProcess_eq_fixedHorizon b p.1.property p.2
+  rw [hfun]
+  exact hfixed
+
+end ProgressiveDriftIntegral
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

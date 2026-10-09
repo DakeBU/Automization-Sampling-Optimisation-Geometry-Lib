@@ -180,6 +180,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift` | `pbps.actualPositiveDefectComplexLift` | `actual_positive_defect_complex_lift` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean` | `pbps.actualL2.macroscopicMean` | `actual_macroscopic_l2_mean` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean` | `pbps.literalReflectedSource.compactMeanC1` | `reflected_gibbs_mean_c1` | arXiv2609.06905v1 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot` | `pbps.actualUniquePositiveMacroscopicDefectRoot` | `actual_unique_positive_macroscopic_defect_root` | arXiv2609.06905v1 AppendixB1-B5 first Gram/B10-B11; attributed ASTIS completion |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy` | `pbps.reflectedConditional.macroscopicBlockEnergy` | `actual_macroscopic_gradient_energy_blocks` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange` | `pbps.actualMacroscopicCenteredRange` | `actual_macroscopic_centered_range` | arXiv2609.06905v1 AppendixB B1-B5/C3-C4 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot` | `pbps.actualPositiveRealDefectRoot` | `actual_positive_real_defect_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |

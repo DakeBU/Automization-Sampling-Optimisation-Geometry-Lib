@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-1ee10f9d9dad5b69",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\n  [inst_3 : MeasurableSpace E] [BorelSpace E] (μ : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure μ]\n  (a : ℝ≥0 × E × ℕ × (ℕ → E) → ℝ),\n  Measurable a →\n    ∀ (ha0 : ∀ (s : ℝ≥0 × E × ℕ × (ℕ → E)), 0 < a s) (threshold : ℝ≥0),\n      have F := fun p =>\n        (⟨↑p.1.1 + (a p.1)⁻¹, add_nonneg (NNReal.coe_nonneg p.1.1) (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,\n          (↑p.1.1 + (a p.1)⁻¹)⁻¹ • (↑p.1.1 • p.1.2.1 + (a p.1)⁻¹ • p.2), p.1.2.2.1 + 1, fun n =>\n          Nat.casesOn n p.2 p.1.2.2.2);\n      ∃ T H,\n        ProbabilityTheory.IsMarkovKernel T ∧\n          ProbabilityTheory.IsMarkovKernel H ∧\n            (∀ (s : ℝ≥0 × E × ℕ × (ℕ → E)), T s = μ.tilted fun x => -(↑s.1 / 2) * ‖x - s.2.1‖ ^ 2) ∧\n              (∀ (s : ℝ≥0 × E × ℕ × (ℕ → E)),\n                  H s = AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing (T s) √(a s)) ∧\n                ∀ (Q L : ProbabilityTheory.Kernel (ℝ≥0 × E × ℕ × (ℕ → E)) E),\n                  ProbabilityTheory.IsMarkovKernel Q →\n                    ProbabilityTheory.IsMarkovKernel L →\n                      ∃ P R,\n                        ProbabilityTheory.IsMarkovKernel P ∧\n                          (∀ (n : ℕ), ProbabilityTheory.IsMarkovKernel (R n)) ∧\n                            (∀ (s : ℝ≥0 × E × ℕ × (ℕ → E)),\n                                P s =\n                                  if threshold ≤ s.1 then MeasureTheory.Measure.dirac s\n                                  else MeasureTheory.Measure.map (fun y => F (s, y)) (Q s)) ∧\n                              R 0 = L ∧\n                                (∀ (n : ℕ) (s : ℝ≥0 × E × ℕ × (ℕ → E)),\n                                    (R (n + 1)) s =\n                                      if threshold ≤ s.1 then L s else (fun y => (R n) (F (s, y))) ∘ₘ Q s) ∧\n                                  (∀ (n : ℕ) (s : ℝ≥0 × E × ℕ × (ℕ → E)), threshold ≤ s.1 → (R n) s = L s) ∧\n                                    (∀ (n : ℕ),\n                                        have κ := fun k =>\n                                          P.comap (fun h => h ⟨k, Finset.mem_Iic.mpr le_rfl⟩)\n                                            (measurable_pi_apply ⟨k, Finset.mem_Iic.mpr le_rfl⟩);\n                                        L ∘ₖ\n                                            ((ProbabilityTheory.Kernel.partialTraj κ 0 n).map fun h =>\n                                                  h ⟨n, Finset.mem_Iic.mpr le_rfl⟩).comap\n                                              (fun s x => s)\n                                              (measurable_pi_lambda (fun s x => s) fun a => measurable_id') =\n                                          R n) ∧\n                                      (Q = H → L = T → ∀ (n : ℕ), R n = T)",
+    "statement_sha256": "1ee10f9d9dad5b69734cc4533b46f7ee1514f6a2033468e4a33e598fb50a8502",
+    "compiled": true,
+    "approved_definition_context": [
+      "Measure E is a countably additive measure; IsProbabilityMeasure means mass one. Kernel X Y is a measurable family of measures on Y indexed by X. IsMarkovKernel means every fiber has mass one.",
+      "The right-associated product NNReal times E times Nat times (Nat to E) has its product measurable structure. For a state s, s.1 is a nonnegative real, s.2.1 an E element, s.2.2.1 a natural and s.2.2.2 an E-valued sequence. Nat.casesOn n y h equals y at zero and h(m) at n=m+1.",
+      "mu.tilted(f) normalizes exp(f) against mu. GaussianSmoothing.gaussianSmoothing(P,r) is the actual law of X+rZ under P times the centered identity-covariance Gaussian; r is a standard-deviation scale.",
+      "Measure.map is pushforward. Measure.bind applies a measure-valued function and integrates its event masses. Kernel composition L circle_k P first uses P and then L; P^0 is the identity kernel and P^(n+1) is n+1 successive uses.",
+      "Finset.Iic k indexes natural numbers from zero to k. A product over Iic k is a finite path. Kernel.comap precomposes the input map; Kernel.map pushes forward the output. Kernel.partialTraj kappa 0 n is the iterated finite trajectory kernel that takes a path through time zero and appends coordinates through time n using kappa at each stage. The displayed last-coordinate projection and constant singleton input map are part of the statement."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "b4d8bb465624f120d24919a360ff3cd0b8376564acdc4b1ad1d6a0481f274eb8"
+}

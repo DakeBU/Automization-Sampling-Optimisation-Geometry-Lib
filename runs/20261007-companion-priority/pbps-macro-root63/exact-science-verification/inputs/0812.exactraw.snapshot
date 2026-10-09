@@ -1,0 +1,94 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexAEDifferentiable
+import Mathlib.Topology.Compactness.SigmaCompact
+
+/-!
+# Almost-everywhere differentiability on an open convex domain
+
+`ConvexAEDifferentiable` proves the all-space finite-valued theorem.  Proper
+convex functions arising from Rockafellar constructions are naturally finite
+only on an effective domain, so the next reusable interface must keep the
+finite region explicit.
+
+For a real-valued convex function on an open convex set `s` in a
+finite-dimensional normed space, we prove Frechet differentiability almost
+everywhere **at points of `s`**.
+
+The proof uses a sigma-compact exhaustion of the open subspace `s`.  Each
+compact piece is enlarged, in the ambient locally compact space, to a compact
+neighbourhood still contained in `s`.  Convexity gives local Lipschitz
+regularity on `s`; compactness upgrades it to one Lipschitz constant on each
+enlarged piece; Rademacher on its open interior gives ordinary Frechet
+differentiability.  The interiors cover `s`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace ConvexOpenAEDifferentiable
+
+open MeasureTheory Metric Set Topology
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  {m : Measure E} [Measure.IsAddHaarMeasure m]
+
+/-- A finite-valued convex function on an open convex domain of a
+finite-dimensional real normed space is Frechet differentiable almost
+everywhere at points of that domain. -/
+theorem ae_differentiableAt_of_convexOn_isOpen
+    {phi : E → ℝ} {s : Set E}
+    (hs : IsOpen s) (hconv : ConvexOn ℝ s phi) :
+    ∀ᵐ x ∂m, x ∈ s → DifferentiableAt ℝ phi x := by
+  letI : LocallyCompactSpace s := hs.isLocallyClosed.locallyCompactSpace
+  letI : SigmaCompactSpace s := inferInstance
+
+  let K : ℕ → Set E := fun n =>
+    Subtype.val '' SigmaCompactSpace.compactCovering s n
+  have hKcompact : ∀ n, IsCompact (K n) := by
+    intro n
+    exact (SigmaCompactSpace.isCompact_compactCovering s n).image continuous_subtype_val
+  have hKsub : ∀ n, K n ⊆ s := by
+    intro n x hx
+    rcases hx with ⟨y, _hy, rfl⟩
+    exact y.property
+
+  choose L hLcompact hKinterior hLsub using fun n =>
+    exists_compact_between (hKcompact n) hs (hKsub n)
+
+  have hcover : s ⊆ ⋃ n, interior (L n) := by
+    intro x hx
+    rcases SigmaCompactSpace.exists_mem_compactCovering (⟨x, hx⟩ : s) with ⟨n, hn⟩
+    have hxK : x ∈ K n := by
+      exact ⟨⟨x, hx⟩, hn, rfl⟩
+    exact Set.mem_iUnion.2 ⟨n, hKinterior n hxK⟩
+
+  have hlocal : LocallyLipschitzOn s phi :=
+    hconv.locallyLipschitzOn hs
+  have hcompactLip : ∀ n, ∃ C : ℝ≥0, LipschitzOnWith C phi (L n) := by
+    intro n
+    exact (hlocal.mono (hLsub n)).exists_lipschitzOnWith_of_compact (hLcompact n)
+  choose C hLip using hcompactLip
+
+  have hAe : ∀ n : ℕ, ∀ᵐ x ∂m,
+      x ∈ interior (L n) → DifferentiableAt ℝ phi x := by
+    intro n
+    have hLipInterior : LipschitzOnWith (C n) phi (interior (L n)) :=
+      (hLip n).mono interior_subset
+    filter_upwards [hLipInterior.ae_differentiableWithinAt_of_mem] with x hx
+    intro hxInt
+    rcases hx hxInt with ⟨A, hA⟩
+    exact ⟨A, (hasFDerivWithinAt_of_isOpen isOpen_interior hxInt).mp hA⟩
+
+  filter_upwards [ae_all_iff.2 hAe] with x hxAll
+  intro hx
+  rcases Set.mem_iUnion.1 (hcover hx) with ⟨n, hxn⟩
+  exact hxAll n hxn
+
+end
+
+end ConvexOpenAEDifferentiable
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

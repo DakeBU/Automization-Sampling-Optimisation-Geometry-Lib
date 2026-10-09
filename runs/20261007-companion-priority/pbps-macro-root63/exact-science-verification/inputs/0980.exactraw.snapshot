@@ -1,0 +1,99 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementChangeOfVariables
+import Mathlib.Analysis.InnerProductSpace.Positive
+
+/-!
+# Positive derivative operators as the coordinate-free Jacobian interface
+
+The displacement change-of-variables spine currently consumes positivity of a
+matrix representation of each endpoint derivative.  For a Hilbert-space
+transport derivative the natural invariant statement is instead positivity of
+the operator itself.
+
+Mathlib already proves that, in an orthonormal basis, a positive linear
+operator has a positive-semidefinite coordinate matrix.  This module exposes
+that theorem at the continuous-linear-map layer and feeds it into the already
+verified determinant-sign and change-of-variables edges.
+
+No positivity of a Brenier derivative is asserted here.  A later regularity
+edge must construct `ContinuousLinearMap.IsPositive` from genuine information
+about the transport potential.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementPositiveOperator
+
+noncomputable section
+
+open MeasureTheory
+open DisplacementMapDerivative
+open DisplacementDerivativeDetPos
+open DisplacementMapInjectivity
+open DisplacementChangeOfVariables
+
+variable {E F ι : Type*}
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [Fintype ι] [DecidableEq ι]
+
+/-- A positive continuous-linear operator has a PSD matrix in every
+orthonormal basis.  This is the coordinate bridge needed by the existing
+interior determinant theorem. -/
+theorem toMatrix_posSemidef_of_isPositive
+    (b : OrthonormalBasis ι ℝ E) (A : E →L[ℝ] E)
+    (hA : A.IsPositive) :
+    (LinearMap.toMatrix b.toBasis b.toBasis A.toLinearMap).PosSemidef := by
+  exact (LinearMap.posSemidef_toMatrix_iff b).2 hA.toLinearMap
+
+/-- Positive endpoint operator implies strict positivity of the interior
+Jacobian determinant of the displacement derivative. -/
+theorem det_affineDisplacementDerivative_pos_of_isPositive
+    (b : OrthonormalBasis ι ℝ E) (A : E →L[ℝ] E)
+    (hA : A.IsPositive)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    0 < LinearMap.det (affineDisplacementDerivative A t).toLinearMap :=
+  det_affineDisplacementDerivative_pos_of_posSemidef
+    b.toBasis A (toMatrix_posSemidef_of_isPositive b A hA) t ht0 ht1
+
+/-- The absolute Jacobian determinant is redundant at interior times when the
+endpoint derivative is a positive operator. -/
+theorem abs_det_affineDisplacementDerivative_eq_of_isPositive
+    (b : OrthonormalBasis ι ℝ E) (A : E →L[ℝ] E)
+    (hA : A.IsPositive)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    |LinearMap.det (affineDisplacementDerivative A t).toLinearMap| =
+      LinearMap.det (affineDisplacementDerivative A t).toLinearMap :=
+  abs_of_pos
+    (det_affineDisplacementDerivative_pos_of_isPositive b A hA t ht0 ht1)
+
+/-- Coordinate-free form of the interior displacement change-of-variables
+join: the derivative hypothesis is stated as positivity of the operator, while
+an orthonormal basis is used only internally to enter Mathlib's matrix PSD
+interface. -/
+theorem integral_image_affineDisplacementMap_eq_integral_det_smul_of_isPositive
+    (μ : Measure E) [MeasureTheory.Measure.IsAddHaarMeasure μ]
+    (b : OrthonormalBasis ι ℝ E)
+    {s : Set E} {T : E → E} {T' : E → E →L[ℝ] E}
+    (hs : MeasurableSet s)
+    (hderiv : ∀ x ∈ s, HasFDerivWithinAt T (T' x) s x)
+    (hmono : IsMonotoneMap T)
+    (hpos : ∀ x ∈ s, (T' x).IsPositive)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) (g : E → F) :
+    ∫ y in affineDisplacementMap T t '' s, g y ∂μ =
+      ∫ x in s,
+        LinearMap.det
+            (affineDisplacementDerivative (T' x) t).toLinearMap •
+          g (affineDisplacementMap T t x) ∂μ := by
+  exact integral_image_affineDisplacementMap_eq_integral_det_smul
+    μ b.toBasis hs hderiv hmono
+      (fun x hx => toMatrix_posSemidef_of_isPositive b (T' x) (hpos x hx))
+      t ht0 ht1 g
+
+end
+
+end DisplacementPositiveOperator
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

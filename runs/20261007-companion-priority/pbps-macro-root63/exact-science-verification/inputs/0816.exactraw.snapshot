@@ -1,0 +1,80 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductSupport
+import AutoSamplingTheory.TechnicalLemmas.Probability.UniformExpectationGap
+
+/-!
+# Strict cyclic quadratic-cost gaps under finite product laws
+
+This module lifts the already verified pointwise identity
+
+`diagonal cost - cyclic cost = 2 * cycleValue`
+
+to a strict expectation inequality under a finite product of probability laws.
+The only probabilistic input is that every coordinate lies almost surely in a
+prescribed local set; `FiniteProductSupport` then puts the entire tuple in the
+Cartesian box almost surely.
+
+This is deliberately still a probability-level statement. A separate scaling
+node converts the normalized expectations back to costs of the equal-mass
+finite local slices.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace CyclicCostExpectation
+
+open MeasureTheory Set
+open CyclicQuadraticCost PairingCycleNeighborhood PermutedQuadraticCost
+open AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductSupport
+open AutoSamplingTheory.TechnicalLemmas.Probability.UniformExpectationGap
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E]
+
+/-- If every coordinate law is concentrated on a local set and the whole local
+box carries one uniform positive cycle-value margin, then the normalized cyclic
+re-pairing has strictly smaller expected quadratic cost.
+
+Integrability of the two finite cost functions is explicit here. The later
+bounded-neighborhood node discharges it from the metric-ball localization. -/
+theorem integral_cyclicCost_lt_diagonal_of_uniform_cycleValue
+    {n : ℕ}
+    (mu : Fin (n + 1) → ProbabilityMeasure (E × E))
+    (s : Fin (n + 1) → Set (E × E))
+    (hsMeas : ∀ i, MeasurableSet (s i))
+    (hsProb : ∀ i, mu i (s i) = 1)
+    {ε : ℝ} (hε : 0 < ε)
+    (hcycle : ∀ q : Fin (n + 1) → E × E,
+      (∀ i, q i ∈ s i) → ε < cycleValue q)
+    (hdiag : Integrable diagonalQuadraticCost
+      (ProbabilityMeasure.pi mu : Measure (Fin (n + 1) → E × E)))
+    (hcyc : Integrable
+      (fun q => permutedQuadraticCost q (cycleSuccessorPerm (n := n)))
+      (ProbabilityMeasure.pi mu : Measure (Fin (n + 1) → E × E))) :
+    (∫ q, permutedQuadraticCost q (cycleSuccessorPerm (n := n))
+        ∂(ProbabilityMeasure.pi mu : Measure (Fin (n + 1) → E × E))) <
+      ∫ q, diagonalQuadraticCost q
+        ∂(ProbabilityMeasure.pi mu : Measure (Fin (n + 1) → E × E)) := by
+  have hbox := ae_mem_pi_box mu s hsMeas hsProb
+  have hgap :
+      ∀ᵐ q ∂(ProbabilityMeasure.pi mu : Measure (Fin (n + 1) → E × E)),
+        2 * ε ≤ diagonalQuadraticCost q -
+          permutedQuadraticCost q (cycleSuccessorPerm (n := n)) := by
+    filter_upwards [hbox] with q hq
+    have hcoords : ∀ i, q i ∈ s i := by
+      intro i
+      exact hq i (mem_univ i)
+    have hcycleq := hcycle q hcoords
+    rw [diagonal_sub_cyclicCost_eq_two_cycleValue]
+    linarith
+  exact integral_lt_integral_of_ae_gap hdiag hcyc (by linarith) hgap
+
+end
+
+end CyclicCostExpectation
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

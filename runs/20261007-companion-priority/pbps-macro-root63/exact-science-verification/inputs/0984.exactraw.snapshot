@@ -1,0 +1,73 @@
+import Mathlib.MeasureTheory.Measure.FiniteMeasure
+import Mathlib.MeasureTheory.Measure.Sub
+
+/-!
+# Finite remainder decomposition
+
+This module isolates the subtraction step needed by local transport
+perturbations. If a finite measure `removed` is dominated by a finite ambient
+measure, Mathlib's measure subtraction gives a finite remainder whose sum with
+`removed` is exactly the ambient measure.
+
+Keeping this as a tiny reusable node separates the only subtraction argument
+from the additive marginal bookkeeping in `ReplacementCompetitor`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace FiniteRemainder
+
+open MeasureTheory
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X]
+
+/-- The finite remainder left after removing a finite measure from an ambient
+finite measure. The definition makes sense without a domination hypothesis;
+exact reconstruction uses domination below. -/
+noncomputable def finiteRemainder
+    (ambient removed : FiniteMeasure X) : FiniteMeasure X :=
+  ⟨(ambient : Measure X) - (removed : Measure X), by infer_instance⟩
+
+@[simp]
+theorem finiteRemainder_toMeasure
+    (ambient removed : FiniteMeasure X) :
+    (finiteRemainder ambient removed : Measure X) =
+      (ambient : Measure X) - (removed : Measure X) :=
+  rfl
+
+/-- A dominated removed finite measure can be added back to its canonical
+remainder to recover the ambient finite measure exactly. -/
+theorem finiteRemainder_add_removed_eq
+    (ambient removed : FiniteMeasure X)
+    (hle : (removed : Measure X) ≤ (ambient : Measure X)) :
+    finiteRemainder ambient removed + removed = ambient := by
+  apply FiniteMeasure.toMeasure_injective
+  change ((ambient : Measure X) - (removed : Measure X)) +
+      (removed : Measure X) = (ambient : Measure X)
+  exact Measure.sub_add_cancel_of_le hle
+
+/-- Orientation consumed directly by the replacement-competitor algebra. -/
+theorem ambient_eq_finiteRemainder_add_removed
+    (ambient removed : FiniteMeasure X)
+    (hle : (removed : Measure X) ≤ (ambient : Measure X)) :
+    ambient = finiteRemainder ambient removed + removed := by
+  exact (finiteRemainder_add_removed_eq ambient removed hle).symm
+
+/-- Existence form: every dominated finite block admits an explicit additive
+remainder decomposition. -/
+theorem exists_finiteRemainder_of_le
+    (ambient removed : FiniteMeasure X)
+    (hle : (removed : Measure X) ≤ (ambient : Measure X)) :
+    ∃ remainder : FiniteMeasure X, ambient = remainder + removed := by
+  exact ⟨finiteRemainder ambient removed,
+    ambient_eq_finiteRemainder_add_removed ambient removed hle⟩
+
+end
+
+end FiniteRemainder
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,130 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+import Mathlib.MeasureTheory.Measure.FiniteMeasure
+import Mathlib.MeasureTheory.Measure.Support
+
+/-!
+# Positive local restriction blocks from support neighborhoods
+
+This module is the bridge from the topology-only strict-cycle localization to
+the finite-measure perturbation algebra used in the direct Brenier argument.
+
+A point in the support of a finite measure gives positive mass to every open
+neighborhood.  Hence the pairwise-disjoint open rectangles produced by
+`PairingCycleNeighborhood` cut out pairwise-disjoint positive finite-measure
+blocks.  Their finite sum is dominated by the ambient measure because it is
+exactly the restriction to their union.
+
+No common-mass scaling, re-pairing, transport cost, or optimality is used here.
+Those belong to later DAG nodes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace SupportLocalBlocks
+
+open MeasureTheory Set
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+open scoped BigOperators Topology
+
+noncomputable section
+
+/-- A support point gives a positive-mass finite-measure restriction to every
+open neighborhood containing it. -/
+theorem restrict_mass_pos_of_mem_support_of_isOpen
+    {Z : Type*} [TopologicalSpace Z] [MeasurableSpace Z]
+    (rho : FiniteMeasure Z) {z : Z} {U : Set Z}
+    (hz : z ∈ (rho : Measure Z).support)
+    (hU : IsOpen U) (hzU : z ∈ U) :
+    0 < (rho.restrict U).mass := by
+  rw [FiniteMeasure.restrict_mass]
+  have hposMeasure : 0 < (rho : Measure Z) U :=
+    (Measure.mem_support_iff_forall z).mp hz U (hU.mem_nhds hzU)
+  apply pos_iff_ne_zero.mpr
+  intro hzero
+  have hzeroMeasure : (rho : Measure Z) U = 0 :=
+    (FiniteMeasure.null_iff_toMeasure_null rho U).mp hzero
+  exact (ne_of_gt hposMeasure) hzeroMeasure
+
+/-- A finite family of pairwise-disjoint open restrictions has total measure
+bounded by the ambient finite measure.  The statement is made on the ordered
+underlying `Measure` type. -/
+theorem sum_restrict_le_of_pairwiseDisjoint_open
+    {Z I : Type*} [TopologicalSpace Z] [MeasurableSpace Z]
+    [OpensMeasurableSpace Z] [Fintype I]
+    (rho : FiniteMeasure Z) (R : I → Set Z)
+    (hopen : ∀ i, IsOpen (R i))
+    (hpair : Set.Pairwise (Set.univ : Set I)
+      (Function.onFun Disjoint R)) :
+    (↑(∑ i, rho.restrict (R i)) : Measure Z) ≤ (rho : Measure Z) := by
+  classical
+  have hd : ((Finset.univ : Finset I) : Set I).Pairwise (Disjoint on R) := by
+    simpa using hpair
+  have hsplit :=
+    FiniteMeasure.restrict_biUnion_finset (μ := rho) (T := Finset.univ)
+      (s := R) hd (fun i => (hopen i).measurableSet)
+  have hsplit' :
+      rho.restrict (⋃ i ∈ (Finset.univ : Finset I), R i) =
+        ∑ i, rho.restrict (R i) := by
+    simpa using hsplit
+  rw [← hsplit']
+  change ((rho : Measure Z).restrict
+    (⋃ i ∈ (Finset.univ : Finset I), R i)) ≤ (rho : Measure Z)
+  exact Measure.restrict_le_self
+
+/-- Restriction of a joint finite measure to an open rectangle around a support
+point has positive mass. -/
+theorem rectangle_restrict_mass_pos
+    {X Y : Type*}
+    [TopologicalSpace X] [MeasurableSpace X]
+    [TopologicalSpace Y] [MeasurableSpace Y]
+    (rho : FiniteMeasure (X × Y)) {x : X} {y : Y}
+    {U : Set X} {V : Set Y}
+    (hxy : (x, y) ∈ (rho : Measure (X × Y)).support)
+    (hU : IsOpen U) (hxU : x ∈ U)
+    (hV : IsOpen V) (hyV : y ∈ V) :
+    0 < (rho.restrict (U ×ˢ V)).mass := by
+  apply restrict_mass_pos_of_mem_support_of_isOpen rho hxy (hU.prod hV)
+  exact ⟨hxU, hyV⟩
+
+/-- The topology output of a strict cycle violation, together with membership
+of the cycle points in the support of `rho`, yields positive pairwise-disjoint
+local finite-measure blocks whose sum is dominated by `rho`.
+
+This is the exact bridge from `PairingCycleNeighborhood` to the later
+`CommonRemovableMass` / `CommonMassSlice` nodes. -/
+theorem exists_positive_local_blocks_of_cycleValue_pos
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [MeasurableSpace E] [BorelSpace E]
+    {n : ℕ} (rho : FiniteMeasure (E × E))
+    {p : Fin (n + 1) → E × E}
+    (hp : Function.Injective p)
+    (hcycle : 0 < cycleValue p)
+    (hsupp : ∀ i, p i ∈ (rho : Measure (E × E)).support) :
+    ∃ U : Fin (n + 1) → Set E, ∃ V : Fin (n + 1) → Set E,
+      (∀ i, IsOpen (U i) ∧ (p i).1 ∈ U i) ∧
+      (∀ i, IsOpen (V i) ∧ (p i).2 ∈ V i) ∧
+      Set.Pairwise (Set.univ : Set (Fin (n + 1)))
+        (Function.onFun Disjoint fun i => U i ×ˢ V i) ∧
+      (∀ i, 0 < (rho.restrict (U i ×ˢ V i)).mass) ∧
+      (↑(∑ i, rho.restrict (U i ×ˢ V i)) : Measure (E × E)) ≤
+        (rho : Measure (E × E)) ∧
+      ∀ q : Fin (n + 1) → E × E,
+        (∀ i, q i ∈ U i ×ˢ V i) → 0 < cycleValue q := by
+  obtain ⟨U, V, hU, hV, hpair, hstable⟩ :=
+    exists_pairwiseDisjoint_open_rectangles_of_cycleValue_pos hp hcycle
+  refine ⟨U, V, hU, hV, hpair, ?_, ?_, hstable⟩
+  · intro i
+    exact rectangle_restrict_mass_pos rho (hsupp i)
+      (hU i).1 (hU i).2 (hV i).1 (hV i).2
+  · apply sum_restrict_le_of_pairwiseDisjoint_open rho
+      (fun i => U i ×ˢ V i)
+    · exact fun i => (hU i).1.prod (hV i).1
+    · exact hpair
+
+end
+
+end SupportLocalBlocks
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

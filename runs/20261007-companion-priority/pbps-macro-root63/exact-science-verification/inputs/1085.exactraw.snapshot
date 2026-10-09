@@ -1,0 +1,79 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DiscreteDoobLpPort
+
+/-!
+# Discrete Doob L2 maximal inequality
+
+This file specializes the locally ported, fully proved Doob `L^p` inequality
+to the scalar `L2` estimate used by the Ito-process completion.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace DiscreteDoobL2
+
+open MeasureTheory
+open scoped ENNReal NNReal
+
+variable {Omega : Type*} {m : MeasurableSpace Omega} {mu : Measure Omega}
+
+/-- Pull a filtration back along a monotone deterministic time map. -/
+def sampledFiltration {ι : Type*} [Preorder ι]
+    (filtration : Filtration ι m) (times : ℕ → ι) (htimes : Monotone times) :
+    Filtration ℕ m where
+  seq k := filtration (times k)
+  mono' _ _ hkl := filtration.mono (htimes hkl)
+  le' k := filtration.le (times k)
+
+/-- Deterministic monotone sampling preserves the martingale property. -/
+theorem Martingale.sampled {ι : Type*} [Preorder ι]
+    {filtration : Filtration ι m} {M : ι → Omega → ℝ}
+    (hM : Martingale M filtration mu) (times : ℕ → ι) (htimes : Monotone times) :
+    Martingale (fun k => M (times k)) (sampledFiltration filtration times htimes) mu := by
+  refine ⟨fun k => hM.stronglyAdapted (times k), ?_⟩
+  intro i j hij
+  exact hM.condExp_ae_eq (htimes hij)
+
+/-- Running absolute maximum through discrete time `N`. -/
+noncomputable def runningAbsMax (M : ℕ → Omega → ℝ) (N : ℕ) (omega : Omega) : ℝ :=
+  (Finset.range (N + 1)).sup' Finset.nonempty_range_add_one
+    (fun k => |M k omega|)
+
+/-- Doob's finite discrete `L2` inequality in its canonical `eLpNorm` form. -/
+theorem doobL2_finite
+    [IsFiniteMeasure mu] {filtration : Filtration ℕ m} {M : ℕ → Omega → ℝ}
+    (hM : Martingale M filtration mu) (N : ℕ) :
+    eLpNorm (runningAbsMax M N) 2 mu ≤ 2 * eLpNorm (M N) 2 mu := by
+  have h := hM.eLpNorm_norm_runMax_le (p := 2) (by norm_num) N
+  norm_num at h
+  change eLpNorm
+    (fun omega => (Finset.range (N + 1)).sup' Finset.nonempty_range_add_one
+      (fun k => |M k omega|)) 2 mu ≤ 2 * eLpNorm (M N) 2 mu
+  exact h
+
+/-- Squared form of the finite discrete Doob estimate. -/
+theorem doobL2_finite_sq
+    [IsFiniteMeasure mu] {filtration : Filtration ℕ m} {M : ℕ → Omega → ℝ}
+    (hM : Martingale M filtration mu) (N : ℕ) :
+    eLpNorm (runningAbsMax M N) 2 mu ^ 2 ≤
+      4 * eLpNorm (M N) 2 mu ^ 2 := by
+  have h := doobL2_finite hM N
+  calc
+    eLpNorm (runningAbsMax M N) 2 mu ^ 2 ≤
+        (2 * eLpNorm (M N) 2 mu) ^ 2 := by gcongr
+    _ = 4 * eLpNorm (M N) 2 mu ^ 2 := by ring
+
+/-- Doob's `L2` inequality along any deterministic monotone observation grid. -/
+theorem doobL2_sampled
+    [IsFiniteMeasure mu] {ι : Type*} [Preorder ι]
+    {filtration : Filtration ι m} {M : ι → Omega → ℝ}
+    (hM : Martingale M filtration mu) (times : ℕ → ι) (htimes : Monotone times)
+    (N : ℕ) :
+    eLpNorm (runningAbsMax (fun k => M (times k)) N) 2 mu ≤
+      2 * eLpNorm (M (times N)) 2 mu :=
+  doobL2_finite (Martingale.sampled hM times htimes) N
+
+end DiscreteDoobL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,109 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+import Mathlib.Data.List.Duplicate
+import Mathlib.Tactic
+
+/-!
+# List-based pairing closed chains
+
+Rockafellar's construction is naturally expressed by finite rooted lists rather
+than modular `Fin` arithmetic.  This module introduces an ASTIS-native list
+chain functional and proves the algebra needed to erase repeated pair points.
+
+The later monotonicity node will show that pairing monotonicity on injective
+finite cycles implies nonpositivity of every closed rooted list by strong
+induction on the list length.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingClosedChain
+
+open Set
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Affine value of a finite chain at a terminal source point `z`.
+
+For `[p₀,...,pₖ]`, this is
+`Σ_{j<k} <p_j.2, p_{j+1}.1-p_j.1> + <p_k.2, z-p_k.1>`. -/
+def chainValue : List (E × E) → E → ℝ
+  | [], _ => 0
+  | [p], z => inner ℝ p.2 (z - p.1)
+  | p :: q :: rest, z =>
+      inner ℝ p.2 (q.1 - p.1) + chainValue (q :: rest) z
+
+/-- The rooted list condition consumed by the Rockafellar potential: closing a
+nonempty chain back at the source coordinate of its head has nonpositive value. -/
+def PairingClosedChainMonotone (Gamma : Set (E × E)) : Prop :=
+  ∀ ⦃l : List (E × E)⦄ ⦃base : E × E⦄,
+    l ≠ [] → l.head? = some base →
+      List.Forall (fun p => p ∈ Gamma) l →
+      chainValue l base.1 ≤ 0
+
+@[simp]
+theorem chainValue_singleton (p : E × E) (z : E) :
+    chainValue [p] z = inner ℝ p.2 (z - p.1) :=
+  rfl
+
+/-- Concatenating a nonempty second chain at `q` splits the value at the join. -/
+theorem chainValue_append_cons :
+    ∀ (l₁ : List (E × E)) (q : E × E) (l₂ : List (E × E)) (z : E),
+      chainValue (l₁ ++ q :: l₂) z =
+        chainValue l₁ q.1 + chainValue (q :: l₂) z
+  | [], q, l₂, z => by simp [chainValue]
+  | [p], q, l₂, z => by simp [chainValue]
+  | p :: r :: l₁, q, l₂, z => by
+      rw [show (p :: r :: l₁) ++ q :: l₂ = p :: ((r :: l₁) ++ q :: l₂) by rfl]
+      simp only [chainValue]
+      rw [chainValue_append_cons (r :: l₁) q l₂ z]
+      rw [chainValue_append_cons [p] q [] q.1]
+      simp [chainValue, add_assoc]
+
+/-- Membership of an element in a list gives a prefix/suffix decomposition. -/
+theorem exists_split_of_mem {α : Type*} {a : α} :
+    ∀ {l : List α}, a ∈ l → ∃ s t : List α, l = s ++ a :: t
+  | [], h => by simp at h
+  | b :: l, h => by
+      rw [List.mem_cons] at h
+      rcases h with h | h
+      · subst b
+        exact ⟨[], l, rfl⟩
+      · rcases exists_split_of_mem h with ⟨s, t, rfl⟩
+        exact ⟨b :: s, t, by simp⟩
+
+/-- A duplicated element gives two explicit occurrences with an intermediate loop. -/
+theorem exists_duplicate_split {α : Type*} {a : α} :
+    ∀ {l : List α}, List.Duplicate a l →
+      ∃ s t u : List α, l = s ++ a :: t ++ a :: u
+  | _, List.Duplicate.cons_mem h => by
+      rcases exists_split_of_mem h with ⟨t, u, rfl⟩
+      exact ⟨[], t, u, by simp⟩
+  | _, @List.Duplicate.cons_duplicate _ a b l h => by
+      rcases exists_duplicate_split h with ⟨s, t, u, rfl⟩
+      exact ⟨b :: s, t, u, by simp [List.append_assoc]⟩
+
+/-- Removing the segment between two identical pair points decomposes the
+original affine chain value into the shortened outer chain plus the closed
+inner loop. -/
+theorem chainValue_duplicate_split
+    (s t u : List (E × E)) (a : E × E) (z : E) :
+    chainValue (s ++ a :: t ++ a :: u) z =
+      chainValue (s ++ a :: u) z + chainValue (a :: t) a.1 := by
+  rw [show s ++ a :: t ++ a :: u = s ++ a :: (t ++ a :: u) by
+    simp [List.append_assoc]]
+  rw [chainValue_append_cons s a (t ++ a :: u) z]
+  change chainValue s a.1 + chainValue ((a :: t) ++ a :: u) z =
+    chainValue (s ++ a :: u) z + chainValue (a :: t) a.1
+  rw [chainValue_append_cons (a :: t) a u z]
+  rw [chainValue_append_cons s a u z]
+  ring
+
+end
+
+end PairingClosedChain
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

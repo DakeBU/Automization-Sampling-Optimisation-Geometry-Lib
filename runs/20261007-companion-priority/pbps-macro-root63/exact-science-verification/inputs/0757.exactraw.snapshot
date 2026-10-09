@@ -1,0 +1,36 @@
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.Linarith
+
+/-!
+# Recursive RGO condition-number progress
+
+Source: Chen, Chewi, Lu and Zhang, *Smoothed Picard Hamiltonian Monte Carlo*,
+arXiv:2609.06906v1, Lemma 6.6(i), equations (6.1)--(6.3).
+
+After substituting `tau = k` and `a * beta_A = h + tau`, the next condition
+number is `k * (k + h + 1) / (2 * k + h)`. This file proves the scalar
+contraction used to bound the number of ill-conditioned recursion stages.
+Identifying this expression with an actual RGO condition number remains a
+separate source-facing adapter; neither an RGO nor a sampling law is defined
+here. We retain the source's strict smoothing-parameter range.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RecursiveCondition
+
+/-- The ill-conditioned recursive update lies between half and four fifths
+of its previous condition number. The denominator is proved positive from
+the hypotheses, so no totalized-division exceptional case is used. -/
+theorem contraction_bounds {k h : ℝ} (hk : 2 ≤ k) (hh : 0 < h)
+    (hh_upper : h < 1 / 4) :
+    k / 2 ≤ k * (k + h + 1) / (2 * k + h) ∧
+      k * (k + h + 1) / (2 * k + h) ≤ (4 / 5) * k := by
+  have hk_nonneg : 0 ≤ k := by linarith
+  have hden : 0 < 2 * k + h := by linarith
+  constructor
+  · apply (le_div_iff₀ hden).2
+    nlinarith [mul_nonneg hk_nonneg hh.le]
+  · apply (div_le_iff₀ hden).2
+    have hmargin : 0 ≤ 3 * k - h - 5 := by linarith
+    nlinarith [mul_nonneg hk_nonneg hmargin]
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RecursiveCondition

@@ -1,0 +1,62 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling
+import Mathlib.Probability.Kernel.Invariance
+
+/-!
+# One-block heat-bath kernel
+
+Retain the first coordinate of a product state and resample the second from the
+regular conditional law. The existing ASTIS disintegration identity proves
+that this Markov kernel preserves the original finite joint measure.
+
+This is a source-neutral kernel interface, not a numbered Gibbs theorem or a
+mixing result. It imposes no density, positivity, or probability-normalization
+condition on the target, and makes no reversibility or scan-order claim.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath
+
+open MeasureTheory ProbabilityTheory
+
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+  [StandardBorelSpace β] [Nonempty β]
+
+/-- Keep the first coordinate and draw the second from the selected regular
+conditional distribution under the finite measure `μ`.
+
+The chosen conditional version is characterized only almost everywhere for
+`μ.map Prod.fst`. No conditional-support claim is made on null fibers.
+The retained space `α` need not be nonempty or Standard Borel. -/
+noncomputable def heatBathSnd (μ : Measure (α × β)) [IsFiniteMeasure μ] :
+    Kernel (α × β) (α × β) :=
+  (Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ
+    Kernel.deterministic Prod.fst measurable_fst
+
+/-- The selected conditional distribution gives a Markov update at every state,
+including states over first-marginal null fibers. This is a mass-one assertion,
+not a conditional-support assertion on such fibers. -/
+instance heatBathSnd_isMarkovKernel (μ : Measure (α × β)) [IsFiniteMeasure μ] :
+    IsMarkovKernel (heatBathSnd μ) := by
+  unfold heatBathSnd
+  infer_instance
+
+/-- Pointwise product-law form of the update, using the selected conditional
+version. The Dirac factor retains the first coordinate. -/
+@[simp] theorem heatBathSnd_apply (μ : Measure (α × β)) [IsFiniteMeasure μ]
+    (x : α × β) :
+    heatBathSnd μ x = (Measure.dirac x.1).prod (condDistrib Prod.snd Prod.fst μ x.1) := by
+  rw [heatBathSnd, Kernel.comp_deterministic_eq_comap, Kernel.comap_apply,
+    Kernel.prod_apply, Kernel.id_apply]
+
+/-- A second-coordinate heat-bath update leaves its finite joint target invariant.
+
+The zero measure is allowed. This theorem does not imply irreducibility,
+reversibility, convergence from another initial law, or any mixing rate. -/
+theorem heatBathSnd_invariant (μ : Measure (α × β)) [IsFiniteMeasure μ] :
+    (heatBathSnd μ).Invariant μ := by
+  change ((Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ
+    Kernel.deterministic Prod.fst measurable_fst) ∘ₘ μ = μ
+  rw [← Measure.comp_assoc, Measure.deterministic_comp_eq_map,
+    ← Measure.compProd_eq_comp_prod]
+  exact ConditionalResampling.fst_compProd_condDistrib_snd_eq_self
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath

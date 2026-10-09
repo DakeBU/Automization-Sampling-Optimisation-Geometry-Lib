@@ -1,0 +1,272 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RecursiveDepth
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Algebra.Order.Floor.Semiring
+
+/-!
+# Prescribed logarithmic depth for the actual recursive RGO schedule
+
+Source: arXiv:2609.06906v1, Theorem 6.5, equation (6.4).
+The explicit sufficient depth constant is at least eight. The final upper-bound
+coefficient retains its dependence on the fixed terminal-threshold constant.
+This deterministic parameter result does not establish sampler error or cost.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.LogarithmicDepth
+
+/-- The actual schedule reaches the source terminal variance threshold at the
+prescribed logarithmic stage. The upper-depth coefficient is explicit and is
+distinct from the coefficient defining that stage. -/
+theorem terminal_depth {κ c r₀ q Δ γ C : ℝ} {d : ℕ} {η : ℕ → ℝ}
+    (hκ : 1 ≤ κ) (hc : 0 < c) (hc1 : c < 1/4) (hr₀ : 0 ≤ r₀)
+    (hη : ∀ n, 0 < η n ∧ η n ≤ c) (hd : 0 < d) (hq : 2 ≤ q)
+    (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2) (hγ : 0 < γ) (hγ1 : γ ≤ 1) (hC : 8 ≤ C) :
+    let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+    let τ := fun r : ℝ => if 2 ≤ K r then K r else c
+    let a := fun r h : ℝ => (h+τ r)/(1+r)
+    let step := fun r h : ℝ => r+(a r h)⁻¹
+    let r : ℕ → ℝ := Nat.rec r₀ (fun j r => step r (η j))
+    let L := q+Real.log (K r₀*d*q/Δ)
+    let B := γ/(Real.sqrt (d*L)+L)
+    let J := Nat.ceil (C*Real.log (Real.exp 1*K r₀/B))
+    2 ≤ L ∧ (0 < B ∧ B ≤ 1) ∧ 0 < J ∧ 0 < (r J)⁻¹ ∧ (r J)⁻¹ ≤ B ∧
+      (J:ℝ) ≤ (3*C+(C/2)*Real.log (1/γ))*L := by
+  have depth_indices {K B C : ℝ} (hK : 1 ≤ K) (hB : 0 < B) (hB1 : B ≤ 1)
+      (hC : 8 ≤ C) :
+      let M := Nat.ceil (5 * Real.log K)
+      let P := Nat.ceil (2 * Real.log (1 / B))
+      let J := Nat.ceil (C * Real.log (Real.exp 1 * K / B))
+      (4 / 5 : ℝ)^M * K < 2 ∧ M + 1 + P ≤ J ∧
+        (1 / 2 : ℝ)^P ≤ B := by
+    dsimp only
+    have hKpos : 0 < K := by linarith
+    have hL : 0 ≤ Real.log K := Real.log_nonneg hK
+    have hH : 0 ≤ Real.log (1 / B) := Real.log_nonneg ((one_le_div hB).2 hB1)
+    have hlog : Real.log (Real.exp 1 * K / B) =
+        1 + Real.log K + Real.log (1 / B) := by
+      rw [Real.log_div (mul_pos (Real.exp_pos _) hKpos).ne' hB.ne',
+        Real.log_mul (Real.exp_pos _).ne' hKpos.ne', Real.log_exp]
+      simp [sub_eq_add_neg]
+    have hM := Nat.le_ceil (5 * Real.log K)
+    have hP := Nat.le_ceil (2 * Real.log (1 / B))
+    have hMupper := Nat.ceil_lt_add_one (mul_nonneg (by norm_num : (0:ℝ) ≤ 5) hL)
+    have hPupper := Nat.ceil_lt_add_one (mul_nonneg (by norm_num : (0:ℝ) ≤ 2) hH)
+    have hfour : Real.log (4 / 5 : ℝ) ≤ -(1 / 5) := by
+      have := Real.log_le_sub_one_of_pos (by norm_num : (0:ℝ) < 4/5)
+      linarith
+    have hhalf : Real.log (1 / 2 : ℝ) ≤ -(1 / 2) := by
+      have := Real.log_le_sub_one_of_pos (by norm_num : (0:ℝ) < 1/2)
+      linarith
+    have hentry : (4 / 5 : ℝ)^⌈5 * Real.log K⌉₊ * K ≤ 1 := by
+      apply (Real.log_le_log_iff (mul_pos (pow_pos (by norm_num) _) hKpos) zero_lt_one).1
+      rw [Real.log_mul (pow_pos (by norm_num : (0:ℝ)<4/5) _).ne' hKpos.ne',
+        Real.log_pow, Real.log_one]
+      nlinarith [mul_le_mul_of_nonneg_left hfour
+        (Nat.cast_nonneg (⌈5 * Real.log K⌉₊) : (0:ℝ) ≤ _)]
+    refine ⟨lt_of_le_of_lt hentry (by norm_num), ?_, ?_⟩
+    · have hJ := Nat.le_ceil (C * Real.log (Real.exp 1 * K / B))
+      rw [hlog] at hJ
+      have hlarge : 8 * (1 + Real.log K + Real.log (1 / B)) ≤
+          C * (1 + Real.log K + Real.log (1 / B)) :=
+        mul_le_mul_of_nonneg_right hC (by linarith)
+      have : ((⌈5 * Real.log K⌉₊ + 1 + ⌈2 * Real.log (1 / B)⌉₊ : ℕ) : ℝ) ≤
+          (⌈C * Real.log (Real.exp 1 * K / B)⌉₊ : ℝ) := by
+        rw [hlog]
+        push_cast
+        linarith
+      exact_mod_cast this
+    · apply (Real.log_le_log_iff (pow_pos (by norm_num) _) hB).1
+      rw [Real.log_pow]
+      have hneg : Real.log (1 / B) = -Real.log B := by simp
+      have hPbound : -2 * Real.log B ≤ (⌈2 * Real.log (1 / B)⌉₊ : ℝ) := by
+        calc
+          -2 * Real.log B = 2 * Real.log (1 / B) := by rw [hneg]; ring
+          _ ≤ _ := hP
+      nlinarith [mul_le_mul_of_nonneg_left hhalf
+        (Nat.cast_nonneg (⌈2 * Real.log (1 / B)⌉₊) : (0:ℝ) ≤ _)]
+
+  -- The remaining index budget gives the needed variance contraction directly.
+
+  have remaining_contraction {K B C c : ℝ} (hK : 1 ≤ K) (hB : 0 < B) (hB1 : B ≤ 1)
+      (hC : 8 ≤ C) (hc : 0 < c) (hc1 : c < 1/4) :
+      let M := Nat.ceil (5 * Real.log K)
+      let J := Nat.ceil (C * Real.log (Real.exp 1 * K / B))
+      M + 1 ≤ J ∧ 2*c*(2*c/(1+2*c))^(J-(M+1)) ≤ B := by
+    dsimp only
+    obtain ⟨_, hidx, _⟩ := depth_indices hK hB hB1 hC
+
+    have hm : ⌈5 * Real.log K⌉₊ + 1 ≤ ⌈C * Real.log (Real.exp 1 * K / B)⌉₊ := by omega
+    refine ⟨hm, ?_⟩
+    let N := ⌈C * Real.log (Real.exp 1 * K / B)⌉₊ - (⌈5 * Real.log K⌉₊ + 1)
+    have hpN : ⌈2 * Real.log (1 / B)⌉₊ ≤ N := by dsimp [N]; omega
+    have hn : 2 * Real.log (1 / B) ≤ (N : ℝ) :=
+      (Nat.le_ceil _).trans (by exact_mod_cast hpN)
+    have hrpos : 0 < 2*c/(1+2*c) := div_pos (by linarith) (by linarith)
+    have hrhalf : 2*c/(1+2*c) ≤ 1/2 := (div_le_iff₀ (by linarith)).2 (by nlinarith)
+    have hlog : Real.log (2*c/(1+2*c)) ≤ -(1/2) := by
+      have h := Real.log_le_sub_one_of_pos hrpos
+      linarith
+    have hpow : (2*c/(1+2*c))^N ≤ B := by
+      apply (Real.log_le_log_iff (pow_pos hrpos _) hB).1
+      rw [Real.log_pow]
+      have hneg : Real.log (1 / B) = -Real.log B := by simp
+      rw [hneg] at hn
+      nlinarith [mul_le_mul_of_nonneg_left hlog (Nat.cast_nonneg N : (0:ℝ) ≤ _)]
+    calc
+      2*c*(2*c/(1+2*c))^N ≤ 1*(2*c/(1+2*c))^N :=
+        mul_le_mul_of_nonneg_right (by linarith) (pow_nonneg hrpos.le _)
+      _ ≤ B := by simpa using hpow
+
+  have denominator_log {d L : ℝ} (hd : 1 ≤ d) (hL : 2 ≤ L)
+      (hld : Real.log d ≤ L) :
+      Real.log (Real.sqrt (d*L) + L) ≤ 7/8 + L := by
+    have hd0 : 0 < d := by linarith
+    have hL0 : 0 < L := by linarith
+    have htwo : Real.log 2 ≤ (7/8:ℝ) := by
+      have h₁ := Real.log_le_sub_one_of_pos (by norm_num : (0:ℝ)<4/3)
+      have h₂ := Real.log_le_sub_one_of_pos (by norm_num : (0:ℝ)<3/2)
+      have heq : Real.log (2:ℝ) = Real.log (4/3) + Real.log (3/2) := by
+        rw [← Real.log_mul (by norm_num : (4/3:ℝ)≠0) (by norm_num : (3/2:ℝ)≠0)]
+        norm_num
+      linarith
+    have hlogL : Real.log L ≤ L/2 := by
+      have h := Real.log_le_sub_one_of_pos (div_pos hL0 (by norm_num : (0:ℝ)<2))
+      rw [Real.log_div hL0.ne' (by norm_num : (2:ℝ)≠0)] at h
+      linarith
+    have hsL : Real.sqrt L ≤ L := Real.sqrt_le_self_iff.2 (Or.inr (by linarith))
+    have hsd : 1 ≤ Real.sqrt d := by
+      have := Real.sqrt_le_sqrt hd
+      simpa using this
+    have hbound : Real.sqrt (d*L) + L ≤ 2*Real.sqrt d*L := by
+      rw [Real.sqrt_mul hd0.le]
+      nlinarith [mul_le_mul_of_nonneg_left hsL (Real.sqrt_nonneg d),
+        mul_le_mul_of_nonneg_right hsd hL0.le]
+    have hp : 0 < Real.sqrt (d*L)+L := add_pos_of_nonneg_of_pos (Real.sqrt_nonneg _) hL0
+    have hsd0 : 0 < Real.sqrt d := by linarith
+    have hlog := Real.log_le_log hp hbound
+    rw [Real.log_mul (mul_pos (by norm_num : (0:ℝ)<2) hsd0).ne' hL0.ne',
+      Real.log_mul (by norm_num : (2:ℝ)≠0) hsd0.ne', Real.log_sqrt hd0.le] at hlog
+    linarith
+
+  have depth_upper {K d L γ C : ℝ} (hK : 1 ≤ K) (hd : 1 ≤ d)
+      (hL : 2 ≤ L) (hlogK : Real.log K ≤ L) (hlogd : Real.log d ≤ L)
+      (hγ : 0 < γ) (hγ1 : γ ≤ 1) (hC : 8 ≤ C) :
+      let B := γ / (Real.sqrt (d*L)+L)
+      (Nat.ceil (C * Real.log (Real.exp 1 * K / B)) : ℝ) ≤
+        (3*C+(C/2)*Real.log (1/γ))*L := by
+    let D := Real.sqrt (d*L)+L
+    have hD : 0 < D := by dsimp [D]; positivity
+    have hD2 : 2 ≤ D := by dsimp [D]; linarith [Real.sqrt_nonneg (d*L)]
+    have hK0 : 0 < K := by linarith
+    have hC0 : 0 ≤ C := by linarith
+    have hB : 0 < γ/D := div_pos hγ hD
+    have hB1 : γ/D ≤ 1 := (div_le_one hD).2 (by linarith)
+    have hG : 0 ≤ Real.log (1/γ) := Real.log_nonneg ((one_le_div hγ).2 hγ1)
+    have hlogD : Real.log D ≤ 7/8+L := denominator_log hd hL hlogd
+    have heq : Real.log (Real.exp 1*K/(γ/D)) =
+        1 + Real.log K + Real.log D + Real.log (1/γ) := by
+      rw [Real.log_div (mul_pos (Real.exp_pos _) hK0).ne' hB.ne',
+        Real.log_mul (Real.exp_pos _).ne' hK0.ne', Real.log_exp,
+        Real.log_div hγ.ne' hD.ne']
+      simp only [one_div, Real.log_inv]
+      ring
+    have hx : 0 ≤ C * Real.log (Real.exp 1*K/(γ/D)) := by
+      apply mul_nonneg hC0
+      rw [Real.log_div (mul_pos (Real.exp_pos _) hK0).ne' hB.ne',
+        Real.log_mul (Real.exp_pos _).ne' hK0.ne', Real.log_exp]
+      have := Real.log_nonneg hK
+      have := Real.log_nonpos hB.le hB1
+      linarith
+    have hceil := Nat.ceil_lt_add_one hx
+    rw [heq] at hceil
+    have hxupper : C*(1+Real.log K+Real.log D+Real.log (1/γ)) ≤
+        C*(1+L+(7/8+L)+Real.log (1/γ)) :=
+      mul_le_mul_of_nonneg_left (by linarith) hC0
+    have hCG : 0 ≤ C*Real.log (1/γ) := mul_nonneg hC0 hG
+    have hscale := mul_le_mul_of_nonneg_left hL hCG
+    have hscaleC := mul_le_mul_of_nonneg_left hL hC0
+    change (Nat.ceil (C * Real.log (Real.exp 1*K/(γ/D))) : ℝ) ≤ _
+    rw [heq]
+    nlinarith
+
+  have source_log_domain {K q Δ : ℝ} {d : ℕ} (hK : 1 ≤ K)
+      (hd : 0 < d) (hq : 2 ≤ q) (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2) :
+      let L := q + Real.log (K*d*q/Δ)
+      2 ≤ L ∧ Real.log K ≤ L ∧ Real.log (d:ℝ) ≤ L := by
+    have hK0 : 0 < K := by linarith
+    have hd1 : (1:ℝ) ≤ d := by exact_mod_cast hd
+    have hd0 : (0:ℝ) < d := by linarith
+    have hq0 : 0 < q := by linarith
+    have hq1 : 1 ≤ q := by linarith
+    have hΔone : Δ ≤ 1 := by linarith
+    have heq : Real.log (K*d*q/Δ) =
+        Real.log K + Real.log (d:ℝ) + Real.log q - Real.log Δ := by
+      rw [Real.log_div (mul_pos (mul_pos hK0 hd0) hq0).ne' hΔ.ne',
+        Real.log_mul (mul_pos hK0 hd0).ne' hq0.ne', Real.log_mul hK0.ne' hd0.ne']
+    have := Real.log_nonneg hK
+    have := Real.log_nonneg hd1
+    have := Real.log_nonneg hq1
+    have := Real.log_nonpos hΔ.le hΔone
+    dsimp only
+    rw [heq]
+    constructor
+    · linarith
+    constructor <;> linarith
+
+  have actual_terminal {κ c r₀ B C : ℝ} {η : ℕ → ℝ}
+      (hκ : 1 ≤ κ) (hc : 0 < c) (hc1 : c < 1/4) (hr₀ : 0 ≤ r₀)
+      (hη : ∀ n, 0 < η n ∧ η n ≤ c)
+      (hB : 0 < B) (hB1 : B ≤ 1) (hC : 8 ≤ C) :
+      let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+      let τ := fun r : ℝ => if 2 ≤ K r then K r else c
+      let a := fun r h : ℝ => (h+τ r)/(1+r)
+      let step := fun r h : ℝ => r+(a r h)⁻¹
+      let r : ℕ → ℝ := Nat.rec r₀ (fun j r => step r (η j))
+      let J := Nat.ceil (C*Real.log (Real.exp 1*K r₀/B))
+      0 < J ∧ 0 < (r J)⁻¹ ∧ (r J)⁻¹ ≤ B := by
+    dsimp only
+    let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+    let τ := fun r : ℝ => if 2 ≤ K r then K r else c
+    let a := fun r h : ℝ => (h+τ r)/(1+r)
+    let step := fun r h : ℝ => r+(a r h)⁻¹
+    let r : ℕ → ℝ := Nat.rec r₀ (fun j r => step r (η j))
+    let M := Nat.ceil (5*Real.log (K r₀))
+    let J := Nat.ceil (C*Real.log (Real.exp 1*K r₀/B))
+    have hκ0 : 0 < κ := by linarith
+    have hK : 1 ≤ K r₀ := by
+      apply (one_le_div (add_pos_of_pos_of_nonneg (inv_pos.mpr hκ0) hr₀)).2
+      have := (inv_le_one₀ hκ0).2 hκ
+      linarith
+    have hentry : (4/5:ℝ)^M*K r₀ < 2 := (depth_indices hK hB hB1 hC).1
+    obtain ⟨hm, hbound⟩ := remaining_contraction hK hB hB1 hC hc hc1
+    change M+1 ≤ J at hm
+    have hid : M+1+(J-(M+1)) = J := Nat.add_sub_of_le hm
+    have hcontrol :=
+      AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RecursiveDepth.parameter_control
+        hκ hc hc1 hr₀ hη
+    have hterminal : 0 < (r (M+1+(J-(M+1))))⁻¹ ∧
+        (r (M+1+(J-(M+1))))⁻¹ ≤ 2*c*(2*c/(1+2*c))^(J-(M+1)) :=
+      hcontrol.2.2.2.1 M (J-(M+1)) hentry
+    rw [hid] at hterminal
+    change 0 < J ∧ 0 < (r J)⁻¹ ∧ (r J)⁻¹ ≤ B
+    exact ⟨by omega, hterminal.1, hterminal.2.trans hbound⟩
+
+  dsimp only
+  let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+  let L := q+Real.log (K r₀*d*q/Δ)
+  let B := γ/(Real.sqrt (d*L)+L)
+  have hκ0 : 0 < κ := by linarith
+  have hK : 1 ≤ K r₀ := by
+    apply (one_le_div (add_pos_of_pos_of_nonneg (inv_pos.mpr hκ0) hr₀)).2
+    have := (inv_le_one₀ hκ0).2 hκ
+    linarith
+  obtain ⟨hL, hlogK, hlogd⟩ := source_log_domain hK hd hq hΔ hΔ1
+  change 2 ≤ L at hL
+  have hD : 0 < Real.sqrt (d*L)+L := by positivity
+  have hB : 0 < B := div_pos hγ hD
+  have hB1 : B ≤ 1 := (div_le_one hD).2 (by linarith [Real.sqrt_nonneg ((d:ℝ)*L)])
+  obtain ⟨hJ, hpos, hterm⟩ := actual_terminal hκ hc hc1 hr₀ hη hB hB1 hC
+  have hd1 : (1:ℝ) ≤ d := by exact_mod_cast hd
+  exact ⟨hL, ⟨hB, hB1⟩, hJ, hpos, hterm,
+    depth_upper hK hd1 hL hlogK hlogd hγ hγ1 hC⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.LogarithmicDepth

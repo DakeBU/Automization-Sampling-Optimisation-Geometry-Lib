@@ -1,0 +1,46 @@
+import Mathlib.Tactic
+
+/-!
+# Fokker--Planck and Fisher-information algebra leaves
+
+These are deliberately small scalar algebra lemmas used after analytic
+Fokker--Planck, integration-by-parts, and no-boundary hypotheses have already
+been supplied.  They do not assert any PDE regularity by themselves.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace FokkerPlanckAlgebra
+
+/-- Scalar algebra behind the rewrite
+`-div(q b) + a lap q = a div(q A) + div(q V)` once the analytic identities
+for `lap q` and `V` have been supplied. -/
+theorem fpRewriteScalarAlgebra
+    {dq lapq divqA divqP divqBar divqV a : ℝ}
+    (hfp : dq = -divqBar + a * lapq)
+    (hlap : lapq = divqA + divqP)
+    (hV : divqV = a * divqP - divqBar) :
+    dq = a * divqA + divqV := by
+  calc
+    dq = -divqBar + a * lapq := hfp
+    _ = -divqBar + a * (divqA + divqP) := by rw [hlap]
+    _ = a * divqA + (a * divqP - divqBar) := by ring
+    _ = a * divqA + divqV := by rw [hV]
+
+/-- Scalar algebra behind the Fisher/IBP conclusion once the two integration
+by parts identities are supplied. -/
+theorem fisherIbpAlgebra {I IA IV FI Cross a : ℝ}
+    (hI : I = a * IA + IV)
+    (hA : IA = -FI)
+    (hV : IV = -Cross) :
+    I = -a * FI - Cross := by
+  calc
+    I = a * IA + IV := hI
+    _ = a * (-FI) + (-Cross) := by rw [hA, hV]
+    _ = -a * FI - Cross := by ring
+
+end FokkerPlanckAlgebra
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

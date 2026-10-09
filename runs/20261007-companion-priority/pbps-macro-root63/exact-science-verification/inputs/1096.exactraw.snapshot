@@ -1,0 +1,126 @@
+import Mathlib.MeasureTheory.Measure.Prod
+import Mathlib.Probability.Process.Adapted
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure
+
+/-!
+# Elementary Ito integrals
+
+This file formalizes the finite-sum starting point of Chewi's construction of
+the scalar Ito integral. It does not postulate or construct the later `L2`
+completion. An elementary process carries its strict time grid, coefficients
+measurable at the left endpoints, and the source's boundedness condition.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoIntegral
+
+open MeasureTheory Set
+open scoped BigOperators ENNReal NNReal
+
+/-- The data and regularity conditions of the elementary adapted process in
+Chewi display (1.1.2). There are `n` half-open time intervals and `n + 1`
+strictly increasing endpoints. -/
+structure ElementaryAdaptedProcess
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (filtration : Filtration ℝ≥0 m) (n : ℕ) where
+  times : Fin (n + 1) → ℝ≥0
+  times_strictMono : StrictMono times
+  coeff : Fin n → Omega → ℝ
+  coeff_stronglyMeasurable :
+    ∀ i, StronglyMeasurable[filtration (times i.castSucc)] (coeff i)
+  coeff_bounded : ∀ i, ∃ C : ℝ, ∀ omega, |coeff i omega| ≤ C
+
+/-- Value of an elementary adapted process at a time and sample point. -/
+noncomputable def ElementaryAdaptedProcess.value
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (t : ℝ≥0) (omega : Omega) : ℝ :=
+  ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+    then eta.coeff i omega else 0
+
+/-- Chewi display (1.1.2): an elementary adapted process is the finite sum of
+its left-endpoint measurable coefficients on `(t_i, t_{i+1}]`. -/
+theorem chewi_display_1_1_2
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n) (t : ℝ≥0) (omega : Omega) :
+    eta.value t omega =
+      ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+        then eta.coeff i omega else 0 :=
+  rfl
+
+/-- The finite Brownian-increment sum used to define the Ito integral of an
+elementary process at terminal time `T`. -/
+noncomputable def elementaryItoIntegral
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) : ℝ :=
+  ∑ i, eta.coeff i omega *
+    (B (min (eta.times i.succ) T) omega -
+      B (min (eta.times i.castSucc) T) omega)
+
+/-- Chewi display (1.1.3): the elementary Ito integral is exactly the finite
+sum of adapted coefficients times stopped Brownian increments. -/
+theorem chewi_display_1_1_3
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    {filtration : Filtration ℝ≥0 m} {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral eta B T omega =
+      ∑ i, eta.coeff i omega *
+        (B (min (eta.times i.succ) T) omega -
+          B (min (eta.times i.castSucc) T) omega) :=
+  rfl
+
+/-- Product measure `P tensor m|[0,T]` used for the square-integrability
+condition in Chewi display (1.1.7). -/
+noncomputable def processTimeMeasure
+    {Omega : Type*} [MeasurableSpace Omega]
+    (mu : Measure Omega) (T : ℝ≥0) : Measure (Omega × ℝ≥0) :=
+  mu.prod (TimeMeasure.upTo T)
+
+/-- Squared `L2(P tensor m|[0,T])` energy of a real process, in `ENNReal` so
+finiteness is not hidden by totalized real integration. -/
+noncomputable def processL2Energy
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (mu : Measure Omega) (T : ℝ≥0) : ℝ≥0∞ :=
+  ∫⁻ z, ENNReal.ofReal ((eta z.2 z.1) ^ 2) ∂processTimeMeasure mu T
+
+/-- Chewi display (1.1.7): Tonelli identifies the product-space squared `L2`
+energy with the expected time integral over `[0,T]`. -/
+theorem chewi_display_1_1_7
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (mu : Measure Omega) (T : ℝ≥0)
+    (hη : AEMeasurable
+      (fun z : Omega × ℝ≥0 => ENNReal.ofReal ((eta z.2 z.1) ^ 2))
+      (processTimeMeasure mu T)) :
+    processL2Energy eta mu T =
+      ∫⁻ omega, ∫⁻ t, ENNReal.ofReal ((eta t omega) ^ 2)
+        ∂(TimeMeasure.upTo T) ∂mu :=
+  lintegral_prod _ hη
+
+/-- Almost-sure local square integrability on `[0,T]`, the weaker condition
+used when Chewi extends stochastic integration by localization. -/
+def IsLocallySquareIntegrableOn
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (mu : Measure Omega) (T : ℝ≥0) : Prop :=
+  ∀ᵐ omega ∂mu,
+    (∫⁻ t, ENNReal.ofReal ((eta t omega) ^ 2) ∂(TimeMeasure.upTo T)) < ∞
+
+/-- Chewi display (1.1.10): local square integrability is precisely almost-
+sure finiteness of the accumulated squared integrand on `[0,T]`. -/
+theorem chewi_display_1_1_10
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (mu : Measure Omega) (T : ℝ≥0) :
+    IsLocallySquareIntegrableOn eta mu T ↔
+      ∀ᵐ omega ∂mu,
+        (∫⁻ t, ENNReal.ofReal ((eta t omega) ^ 2) ∂(TimeMeasure.upTo T)) < ∞ :=
+  Iff.rfl
+
+end ElementaryItoIntegral
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

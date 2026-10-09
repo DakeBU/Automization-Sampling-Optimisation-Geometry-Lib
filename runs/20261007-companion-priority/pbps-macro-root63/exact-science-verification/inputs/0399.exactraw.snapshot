@@ -1,0 +1,19 @@
+from pathlib import Path
+import json,hashlib,subprocess
+pre=Path('runs/20261007-companion-priority/pbps-real-defect-root-preproof61');out=Path('runs/20261007-companion-priority/pbps-real-root-unique-preproof62');assert not out.exists();out.mkdir()
+generic='''theorem positive_square_roots_unique
+    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    (A B : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)
+    (hA : A.IsPositive) (hB : B.IsPositive) (hSq : A*A=B*B) :
+    A=B'''
+old=(pre/'header1.lean').read_text(encoding='utf-8').rstrip('\n');assert old.endswith('∀ u : Lp ℝ 2 ν, ‖Γ u‖^2 = ‖u‖^2-‖T u‖^2')
+actual=old.replace('theorem actual_positive_real_defect_root','theorem actual_unique_positive_real_defect_root',1)
+actual+=' ∧\n            ∀ Γ\' : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ\'.IsPositive →\n              Γ\'*Γ\' = ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) → Γ\'=Γ'
+# Parenthesize all-u energy so uniqueness holds for the SAME Gamma independently of u.
+actual=actual.replace('∀ u : Lp ℝ 2 ν, ‖Γ u‖^2 = ‖u‖^2-‖T u‖^2 ∧','(∀ u : Lp ℝ 2 ν, ‖Γ u‖^2 = ‖u‖^2-‖T u‖^2) ∧')
+inputs=[]
+for i,s in enumerate([generic,actual]):
+ p=out/f'header{i}.lean';p.write_text(s+'\n',encoding='utf-8',newline='\n');inputs.append(dict(path=p.as_posix(),raw_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),bytes=p.stat().st_size))
+cfg=dict(status='UNPROVED_NEXT62_HEADER_CANDIDATES_ONLY_NOT_SEALED_NOT_CLAIMED',headers=inputs,prepared_base_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),source='arXiv2609.06905v1 D1 positive-root uniqueness background; scalar antecedent to printed B10 canonical joint root',truth_boundary='Exported real scalar uniqueness and genuine original-input same defect/root only. Printed joint GammaP/ontoM/typed B*B, centered order/inverse/polar/H1/dynamics/main/cost/composition remain separate.',target_declarations=['AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique.positive_square_roots_unique','AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRootUnique.actual_unique_positive_real_defect_root'],owned_files=['AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareRootUnique.lean','AutoSamplingTheory/ExampleCases/ProximalBPS/RealDefectRootUnique.lean','Tests/ProximalBPSRealDefectRootUnique.lean'],no_proof_search=True,no_compiler=True,parent61_NOT_YET_VERIFIED=True)
+(out/'statement-candidate.json').write_text(json.dumps(cfg,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+print('Prepared exact next62 header candidates only. Independent primary-first preproof seal/parent61 verification required before claim or proof search.')

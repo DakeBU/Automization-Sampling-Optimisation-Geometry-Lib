@@ -1,0 +1,104 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianKL
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOClosure
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianConditionalKernel
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open AutoSamplingTheory.TechnicalLemmas.Probability
+open scoped ENNReal
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+/-!
+# Actual RGO backward kernel
+
+The exact backward step in arXiv:2609.06906v1 Section3.4 and Theorem6.5,
+with the normalized precision update of Lemma6.4 equation(6.1).
+One measurable Markov kernel is chosen before all input laws and budgets.
+Its every-point fibers have the source precision update, its composition
+with the actual noisy target recovers the target, and its actual output KL
+obeys the Gaussian quadratic-budget bound.
+
+The general probability base explicitly abstracts the source Gibbs law;
+no concrete potential identification is asserted here. Precision zero
+retains A=infinity. Raw transport cost does not imply marginal P2 moments.
+The approximate recursive sampler, measurable proxy kernels, time-scale
+identification, accumulated errors and expected costs remain separate.
+-/
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOBackward
+
+/-- One actual backward kernel with every-point precision update, target recovery
+and all quadratic-budget KL guarantees for its actual smoothed-input outputs. -/
+theorem rgo_backward_recovery {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [IsProbabilityMeasure μ] (b a : ℝ) (hb : 0 ≤ b) (ha : 0 < a) (u : E) :
+    let ρ := μ.tilted (fun x => -(b/2)*‖x-u‖^2)
+    IsProbabilityMeasure ρ ∧ ∃ K : Kernel E E, IsMarkovKernel K ∧
+      (∀ y, K y = ρ.tilted (fun x => -‖x-y‖^2/(2*a))) ∧
+      (∀ y, K y = μ.tilted (fun x => -((b+a⁻¹)/2)*
+        ‖x-(b+a⁻¹)⁻¹ • (b • u+a⁻¹ • y)‖^2)) ∧
+      K ∘ₘ GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt a) = ρ ∧
+      ∀ (ν : Measure E), IsProbabilityMeasure ν → ∀ r : ℝ, 0 ≤ r →
+        Transport.transportCost (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖^2)) ν ρ ≤
+          ENNReal.ofReal (r^2) →
+        InformationTheory.klDiv (K ∘ₘ GaussianSmoothing.gaussianSmoothing ν (Real.sqrt a)) ρ ≤
+          ENNReal.ofReal (r^2/(2*a)) := by
+  have backward_core (μ : Measure E) [IsProbabilityMeasure μ] (a : ℝ) (ha : 0 < a) :
+      ∃ K : Kernel E E, IsMarkovKernel K ∧
+        (∀ y, K y = μ.tilted (fun x => -‖x-y‖^2/(2*a))) ∧
+        K ∘ₘ GaussianSmoothing.gaussianSmoothing μ (Real.sqrt a) = μ := by
+    obtain ⟨K, hK, hfiber, hcond⟩ := GaussianConditionalKernel.exists_tilted_isCondKernel μ ha
+    let := hK
+    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt a • p.2))
+      (μ.prod (stdGaussian E))
+    have hfst : J.fst = μ := by
+      dsimp [J]
+      rw [Measure.fst_map_prodMk (by fun_prop)]
+      exact Measure.fst_prod
+    have hsnd : J.snd = GaussianSmoothing.gaussianSmoothing μ (Real.sqrt a) := by
+      dsimp [J]
+      rw [Measure.snd_map_prodMk measurable_fst]
+      unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+        GaussianSmoothing.scaledStdGaussian
+      have hp := Measure.map_prod_map μ (stdGaussian E) measurable_id
+        (show Measurable (fun z : E => Real.sqrt a • z) by fun_prop)
+      rw [Measure.map_id] at hp
+      rw [hp, Measure.map_map (by fun_prop) (by fun_prop)]
+      rfl
+    have : IsProbabilityMeasure J := Measure.isProbabilityMeasure_map (by fun_prop)
+    have hd : (J.map Prod.swap).fst ⊗ₘ K = J.map Prod.swap := hcond.disintegrate
+    have heq := congrArg Measure.snd hd
+    rw [Measure.snd_compProd, Measure.fst_map_swap, Measure.snd_map_swap, hfst, hsnd] at heq
+    exact ⟨K, hK, hfiber, heq⟩
+  dsimp only
+  let ρ := μ.tilted (fun x => -(b/2)*‖x-u‖^2)
+  have hi : Integrable (fun x => Real.exp (-(b/2)*‖x-u‖^2)) μ := by
+    refine (integrable_const (1 : ℝ)).mono' (by fun_prop) ?_
+    filter_upwards [] with x
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    apply Real.exp_le_one_iff.mpr
+    exact mul_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (by positivity)) (sq_nonneg _)
+  have hρ : IsProbabilityMeasure ρ := isProbabilityMeasure_tilted hi
+  let := hρ
+  obtain ⟨K, hK, hfiber, hrecover⟩ := backward_core ρ a ha
+  let := hK
+  refine ⟨hρ, K, hK, hfiber, ?_, hrecover, ?_⟩
+  · intro y
+    rw [hfiber]
+    have halg : (fun x : E => -‖x-y‖^2/(2*a)) = (fun x => -(a⁻¹/2)*‖x-y‖^2) := by
+      funext x
+      field_simp
+    rw [halg]
+    exact RGOClosure.quadratic_tilt_tilt μ hb (inv_pos.mpr ha) u y
+  · intro ν hν r hr hcost
+    let := hν
+    have hkl := GaussianKL.gaussian_kl_reverse_transport ν ρ r a hr ha hcost
+    have hsmooth (η : Measure E) [IsProbabilityMeasure η] :
+        IsProbabilityMeasure (GaussianSmoothing.gaussianSmoothing η (Real.sqrt a)) := by
+      unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+      exact Measure.isProbabilityMeasure_map (by fun_prop)
+    let := hsmooth ν
+    let := hsmooth ρ
+    have hdata := InformationTheory.klDiv_comp_right_le
+      (GaussianSmoothing.gaussianSmoothing ν (Real.sqrt a))
+      (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt a)) K
+    rw [hrecover] at hdata
+    exact hdata.trans hkl
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOBackward

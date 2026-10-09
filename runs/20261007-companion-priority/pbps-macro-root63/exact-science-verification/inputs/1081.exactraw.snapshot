@@ -1,0 +1,155 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoL2
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+
+/-!
+# L2 truncation of adapted coefficients
+
+Elementary adapted processes use bounded coefficients.  This file proves that
+real square-integrable coefficients can be clipped by deterministic levels
+without losing measurability and that the clipped sequence converges in `L2`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace CoefficientTruncation
+
+open Filter MeasureTheory
+open scoped ENNReal Topology
+
+open ElementaryItoL2
+
+/-- Projection of a real value onto `[-M, M]`. -/
+def clip (M x : ℝ) : ℝ := max (-M) (min x M)
+
+/-- Natural truncation levels used by the canonical coefficient sequence. -/
+def clipNat (n : ℕ) (x : ℝ) : ℝ := clip n x
+
+theorem continuous_clipNat (n : ℕ) : Continuous (clipNat n) := by
+  exact continuous_const.max (continuous_id.min continuous_const)
+
+theorem stronglyMeasurable_clipNat
+    {Ω : Type*} {m : MeasurableSpace Ω} {f : Ω → ℝ}
+    (hf : StronglyMeasurable f) (n : ℕ) :
+    StronglyMeasurable (fun omega => clipNat n (f omega)) :=
+  (continuous_clipNat n).measurable.comp hf.measurable |>.stronglyMeasurable
+
+theorem abs_clip_le_abs {M x : ℝ} (hM : 0 ≤ M) :
+    |clip M x| ≤ |x| := by
+  by_cases hlow : x < -M
+  · have hxM : x ≤ M := hlow.le.trans (neg_le_self hM)
+    rw [clip, min_eq_left hxM, max_eq_left hlow.le]
+    rw [abs_neg, abs_of_nonneg hM]
+    nlinarith [neg_abs_le x]
+  · have hMx : -M ≤ x := le_of_not_gt hlow
+    by_cases hhigh : M < x
+    · rw [clip, min_eq_right hhigh.le, max_eq_right (neg_le_self hM)]
+      rw [abs_of_nonneg hM]
+      exact hhigh.le.trans (le_abs_self x)
+    · have hxM : x ≤ M := le_of_not_gt hhigh
+      rw [clip, min_eq_left hxM, max_eq_right hMx]
+
+theorem abs_clip_le {M x : ℝ} (hM : 0 ≤ M) :
+    |clip M x| ≤ M := by
+  rw [abs_le]
+  exact ⟨le_max_left _ _, max_le (neg_le_self hM) (min_le_right _ _)⟩
+
+theorem abs_clipNat_le_abs (n : ℕ) (x : ℝ) :
+    |clipNat n x| ≤ |x| :=
+  abs_clip_le_abs (Nat.cast_nonneg n)
+
+theorem abs_clipNat_le (n : ℕ) (x : ℝ) :
+    |clipNat n x| ≤ (n : ℝ) :=
+  abs_clip_le (Nat.cast_nonneg n)
+
+theorem clipNat_eventually_eq (x : ℝ) :
+    ∀ᶠ n in atTop, clipNat n x = x := by
+  obtain ⟨N, hN⟩ := exists_nat_gt |x|
+  filter_upwards [eventually_ge_atTop N] with n hn
+  have habs : |x| ≤ (n : ℝ) :=
+    hN.le.trans (by exact_mod_cast hn)
+  have hlower : -(n : ℝ) ≤ x := by
+    nlinarith [neg_abs_le x]
+  have hupper : x ≤ (n : ℝ) := (le_abs_self x).trans habs
+  simp [clipNat, clip, min_eq_left hupper, max_eq_right hlower]
+
+theorem tendsto_clipNat (x : ℝ) :
+    Tendsto (fun n => clipNat n x) atTop (𝓝 x) :=
+  tendsto_congr' (clipNat_eventually_eq x) |>.mpr tendsto_const_nhds
+
+theorem aestronglyMeasurable_clipNat
+    {Ω : Type*} {m : MeasurableSpace Ω} {mu : Measure Ω}
+    {f : Ω → ℝ} (hf : AEStronglyMeasurable f mu) (n : ℕ) :
+    AEStronglyMeasurable (fun omega => clipNat n (f omega)) mu := by
+  have hmk : AEStronglyMeasurable
+      (fun omega => clipNat n (hf.mk f omega)) mu :=
+    (stronglyMeasurable_clipNat hf.stronglyMeasurable_mk n).aestronglyMeasurable
+  exact hmk.congr (hf.ae_eq_mk.fun_comp (clipNat n)).symm
+
+theorem clipNat_memLp
+    {Ω : Type*} {m : MeasurableSpace Ω} {mu : Measure Ω}
+    {f : Ω → ℝ} (hf : MemLp f 2 mu) (n : ℕ) :
+    MemLp (fun omega => clipNat n (f omega)) 2 mu :=
+  hf.of_le (aestronglyMeasurable_clipNat hf.1 n)
+    (ae_of_all mu fun omega => by
+      simpa [Real.norm_eq_abs] using abs_clipNat_le_abs n (f omega))
+
+private theorem abs_clipNat_sub_le (n : ℕ) (x : ℝ) :
+    |clipNat n x - x| ≤ 2 * |x| := by
+  calc
+    |clipNat n x - x| ≤ |clipNat n x| + |x| := abs_sub _ _
+    _ ≤ |x| + |x| := add_le_add (abs_clipNat_le_abs n x) le_rfl
+    _ = 2 * |x| := by ring
+
+/-- Clipping converges to the original coefficient in `L2`. -/
+theorem tendsto_clipNat_toLp
+    {Ω : Type*} {m : MeasurableSpace Ω} {mu : Measure Ω}
+    {f : Ω → ℝ} (hf : MemLp f 2 mu) :
+    Tendsto
+      (fun n => (clipNat_memLp hf n).toLp (fun omega => clipNat n (f omega)))
+      atTop (𝓝 (hf.toLp f)) := by
+  let errorSq : ℕ → Ω → ℝ := fun n omega => (clipNat n (f omega) - f omega) ^ 2
+  have hmeas : ∀ n, AEStronglyMeasurable (errorSq n) mu := fun n =>
+    (((aestronglyMeasurable_clipNat hf.1 n).sub hf.1).pow 2)
+  have hboundInt : Integrable (fun omega => 4 * f omega ^ 2) mu :=
+    hf.integrable_sq.const_mul 4
+  have hbound : ∀ n, ∀ᵐ omega ∂mu, ‖errorSq n omega‖ ≤ 4 * f omega ^ 2 := by
+    intro n
+    filter_upwards [] with omega
+    have habs := abs_clipNat_sub_le n (f omega)
+    have hsq : |clipNat n (f omega) - f omega| ^ 2 ≤ (2 * |f omega|) ^ 2 :=
+      (sq_le_sq₀ (abs_nonneg _) (mul_nonneg (by norm_num) (abs_nonneg _))).2 habs
+    calc
+      ‖errorSq n omega‖ = |clipNat n (f omega) - f omega| ^ 2 := by
+        simp [errorSq, Real.norm_eq_abs]
+      _ ≤ (2 * |f omega|) ^ 2 := hsq
+      _ = 4 * |f omega| ^ 2 := by ring
+      _ = 4 * f omega ^ 2 := by rw [sq_abs]
+  have hpoint : ∀ᵐ omega ∂mu,
+      Tendsto (fun n => errorSq n omega) atTop (𝓝 0) := by
+    filter_upwards [] with omega
+    have hconst : Tendsto (fun _ : ℕ => f omega) atTop (𝓝 (f omega)) :=
+      tendsto_const_nhds
+    simpa [errorSq] using ((tendsto_clipNat (f omega)).sub hconst).pow 2
+  have hintegral : Tendsto (fun n => ∫ omega, errorSq n omega ∂mu) atTop (𝓝 0) := by
+    simpa using tendsto_integral_of_dominated_convergence
+      (fun omega => 4 * f omega ^ 2) hmeas hboundInt hbound hpoint
+  have hnormSq : ∀ n,
+      ‖(clipNat_memLp hf n).toLp (fun omega => clipNat n (f omega)) - hf.toLp f‖ ^ 2 =
+        ∫ omega, errorSq n omega ∂mu := by
+    intro n
+    rw [← MemLp.toLp_sub]
+    exact norm_sq_toLp_eq_integral_sq ((clipNat_memLp hf n).sub hf)
+  apply tendsto_iff_norm_sub_tendsto_zero.mpr
+  have hsqrt : Tendsto
+      (fun n => Real.sqrt (∫ omega, errorSq n omega ∂mu)) atTop (𝓝 0) := by
+    simpa only [Function.comp_def, Real.sqrt_zero] using
+      (Real.continuous_sqrt.tendsto 0 |>.comp hintegral)
+  refine (tendsto_congr' ?_).mpr hsqrt
+  filter_upwards [] with n
+  rw [← hnormSq n, Real.sqrt_sq (norm_nonneg _)]
+
+end CoefficientTruncation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

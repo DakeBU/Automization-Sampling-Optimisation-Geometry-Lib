@@ -1,0 +1,178 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.MeasurableGradient
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarConvexDomain
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarRealDomain
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarSupportGradient
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingConvexDomainAE
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingGraph
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuadraticOptimalSupportCyclic
+import Mathlib.MeasureTheory.Measure.Support
+
+/-!
+# Quadratic optimal couplings are induced by a Rockafellar gradient
+
+This is the capstone joining the two previously independent Brenier branches.
+
+* The direct perturbation branch proves that the topological support of an
+  optimal quadratic coupling is pairing-cyclically monotone.
+* The proper Rockafellar branch turns that support relation into an honest
+  `WithTop ℝ` convex potential, then into a real convex representative on its
+  effective domain.
+* Absolute continuity of the first marginal removes the convex frontier and
+  yields differentiability at the first coordinate, `gamma`-almost everywhere.
+* Local support uniqueness identifies the second coordinate with the Hilbert
+  gradient.
+* Measurability of Mathlib's total gradient and the coupling marginals then give
+  the Monge pushforward identity.
+
+The theorem never asserts that the proper potential is finite on all of space.
+The total real representative may use a default outside its effective domain,
+but the optimal coupling is proved to see only interior differentiability
+points before the graph and pushforward conclusions are taken.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace QuadraticOptimalBrenierMap
+
+open MeasureTheory Set
+open scoped RealInnerProductSpace Gradient
+
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingClosedChain
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingClosedChainMonotonicity
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarPotential
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarSubgradient
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarConvexDomain
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarRealDomain
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarSupportGradient
+open AutoSamplingTheory.TechnicalLemmas.Analysis.MeasurableGradient
+open CouplingConvexDomainAE CouplingGraph QuadraticOptimalSupportCyclic
+open QuadraticOptimalRealMinimality Transport WassersteinSpace
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- Fix any support point as the Rockafellar root.  For an optimal quadratic
+coupling with absolutely continuous first marginal and finite second moments,
+the coupling is almost everywhere concentrated on the graph of the gradient of
+the finite Rockafellar representative. -/
+theorem ae_snd_eq_gradient_of_quadraticOptimal_of_base
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0ac : mu0 ≪ (volume : Measure E))
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1)
+    {base : E × E} (hbase : base ∈ gamma.support) :
+    ∀ᵐ z ∂gamma,
+      z.2 = gradient
+        (finitePart (properRockafellarPotential base gamma.support)) z.1 := by
+  have hmono : PairingDistinctCycleMonotone gamma.support :=
+    pairingDistinctCycleMonotone_support_of_quadraticOptimal
+      hopt hmu0 hmu1
+  have hclosed : PairingClosedChainMonotone gamma.support :=
+    pairingClosedChainMonotone_of_distinct hmono
+  have hdomain :
+      Convex ℝ
+        (EffectiveDomain (properRockafellarPotential base gamma.support)) :=
+    convex_effectiveDomain hbase
+  have hconv :
+      ConvexOn ℝ
+        (EffectiveDomain (properRockafellarPotential base gamma.support))
+        (finitePart (properRockafellarPotential base gamma.support)) :=
+    convexOn_finitePart_effectiveDomain hbase
+  have hsupp : ∀ᵐ z ∂gamma, z ∈ gamma.support :=
+    Measure.support_mem_ae
+  have hdomainAE : ∀ᵐ z ∂gamma,
+      z.1 ∈ EffectiveDomain
+        (properRockafellarPotential base gamma.support) := by
+    filter_upwards [hsupp] with z hz
+    exact properRockafellarPotential_lt_top_of_mem hbase hclosed hz
+  have hinteriorDiff : ∀ᵐ z ∂gamma,
+      z.1 ∈ interior
+          (EffectiveDomain (properRockafellarPotential base gamma.support)) ∧
+        DifferentiableAt ℝ
+          (finitePart (properRockafellarPotential base gamma.support)) z.1 :=
+    ae_fst_mem_interior_and_differentiableAt
+      (m := (volume : Measure E)) hopt.1 hdomain hconv hmu0ac hdomainAE
+  filter_upwards [hsupp, hinteriorDiff] with z hz hzd
+  exact snd_eq_gradient_of_mem_of_mem_interior
+    hbase hclosed hz hzd.1 hzd.2
+
+/-- The graph concentration above upgrades immediately to the Monge identity:
+the gradient of the finite proper Rockafellar representative pushes the first
+marginal exactly to the second marginal. -/
+theorem map_gradient_eq_of_quadraticOptimal_of_base
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0ac : mu0 ≪ (volume : Measure E))
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1)
+    {base : E × E} (hbase : base ∈ gamma.support) :
+    Measure.map
+        (gradient
+          (finitePart (properRockafellarPotential base gamma.support))) mu0 =
+      mu1 := by
+  exact map_eq_of_isCoupling_of_ae_snd_eq
+    hopt.1
+    (measurable_gradient
+      (finitePart (properRockafellarPotential base gamma.support)))
+    (ae_snd_eq_gradient_of_quadraticOptimal_of_base
+      hopt hmu0ac hmu0 hmu1 hbase)
+
+/-- A probability optimal coupling has nonempty support, so a Rockafellar root
+can be chosen internally.  This is the source-facing existence form: there is a
+support-normalized proper Rockafellar construction whose gradient transports
+`mu0` exactly to `mu1`. -/
+theorem exists_base_map_gradient_eq_of_quadraticOptimal
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0ac : mu0 ≪ (volume : Measure E))
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1) :
+    ∃ base : E × E,
+      base ∈ gamma.support ∧
+        Measure.map
+            (gradient
+              (finitePart (properRockafellarPotential base gamma.support))) mu0 =
+          mu1 := by
+  letI : IsProbabilityMeasure gamma :=
+    isProbabilityMeasure_of_isCoupling_left hopt.1
+  have hgamma_ne : gamma ≠ 0 := by
+    intro hzero
+    have hmass : gamma Set.univ = 1 := measure_univ
+    simpa [hzero] using hmass
+  rcases Measure.nonempty_support hgamma_ne with ⟨base, hbase⟩
+  exact ⟨base, hbase,
+    map_gradient_eq_of_quadraticOptimal_of_base
+      hopt hmu0ac hmu0 hmu1 hbase⟩
+
+/-- `P₂,ac` wrapper matching the source-facing Wasserstein class already used by
+Samplinglib's direct optimal-support theorem. -/
+theorem exists_base_map_gradient_eq_of_quadraticOptimal_p2ac
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    (hmu0 : IsAbsolutelyContinuousFiniteSecondMoment mu0)
+    (hmu1 : IsAbsolutelyContinuousFiniteSecondMoment mu1)
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1) :
+    ∃ base : E × E,
+      base ∈ gamma.support ∧
+        Measure.map
+            (gradient
+              (finitePart (properRockafellarPotential base gamma.support))) mu0 =
+          mu1 := by
+  letI : IsProbabilityMeasure mu0 := hmu0.1
+  exact exists_base_map_gradient_eq_of_quadraticOptimal
+    hopt hmu0.2.1 hmu0.2.2 hmu1.2.2
+
+end
+
+end QuadraticOptimalBrenierMap
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

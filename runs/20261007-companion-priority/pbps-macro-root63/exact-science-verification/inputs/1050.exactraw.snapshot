@@ -1,0 +1,35 @@
+import AutoSamplingTheory.Probability
+
+/-!
+# Law-map technical lemmas
+
+Reusable pushforward-law and weak-test integral rewrites.
+
+This module is a Mathlib-style search surface over compiled ASTIS-owned
+declarations.  The proofs currently live in `AutoSamplingTheory.Probability`;
+this file gives the reusable law-map leaves a focused import path.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace LawMap
+
+export AutoSamplingTheory (
+  lawMapEqOfAEEq
+  lawMapIntegral
+  lawMapIntegralHasDerivAtOfSample
+  lawIntegralHasDerivAtOfMeasureMapEqAndSample
+  lawMapIntegralHasDerivAtOfDominated
+  lawIntegralHasDerivAtOfMeasureMapEqAndDominated
+  lawMapProdEqOfAEEq
+  lawMapProdFst
+  lawMapProdSnd
+  lawMapProdSwap
+)
+
+end LawMap
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory
+

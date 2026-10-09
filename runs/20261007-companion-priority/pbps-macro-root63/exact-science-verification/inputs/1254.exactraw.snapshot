@@ -1,0 +1,68 @@
+{
+  "schema_version": 2,
+  "cell_id": "ASTIS-SHARED-finite-kernel-mixture",
+  "route": "shared",
+  "title": "Fixed finite convex mixtures preserve a common invariant law",
+  "mode": "exploratoryProof",
+  "source_anchor": "Source-neutral interface motivated by MCMC arXiv:2407.12751v1 §2.1.1, printed p.48 / PDF p.54, and Discrete Sampling arXiv:2307.13826v4 §1.3, PDF p.5; no numbered source theorem assimilation.",
+  "target_statement": "For finite ι, fixed w : ι → ℝ≥0 with sum w = 1 and kernels κ i preserving the same arbitrary measure μ, construct the finite mixture and prove μ invariant. Markov components give a Markov mixture. The selected withDensity implementation requires s-finite component kernels, automatically supplied by Markovness; μ requires no finiteness or s-finiteness.",
+  "status": "independently_verified",
+  "parents": ["ProbabilityTheory.Kernel.withDensity", "MeasureTheory.withDensity_const", "MeasureTheory.Measure.bind_apply", "MeasureTheory.lintegral_finsetSum", "MeasureTheory.lintegral_const_mul"],
+  "test_consumer_inputs": {
+    "file": "Tests/KernelMixture.lean",
+    "cells": ["ASTIS-SHARED-heat-bath-snd-invariance", "ASTIS-SHARED-kernel-invariant-powers"],
+    "role": "Inputs to the identity/heat-bath mixture and finite-power tests only; not proof dependencies of finiteMixture_invariant. Identity weight may be zero, so no positive holding probability or aperiodicity is inferred."
+  },
+  "consumers": ["mcmc", "discrete-sampling"],
+  "shared_floor_audit": {
+    "searched": ["Samplinglib Probability modules and all TechnicalLemmas for mixture/random-scan/convex-kernel targets", "Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Probability/Kernel/{Defs,WithDensity,Invariance}.lean", "Mathlib MeasureTheory/{Measure/GiryMonad,Measure/WithDensity,Integral/Lebesgue/Add}.lean and Data/ENNReal/BigOperators.lean", "Active shared Frontier Cells and Libraries/shared-foundations.yml"],
+    "classification": "missing",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_invariant",
+    "canonical_shared_cell": "ASTIS-SHARED-finite-kernel-mixture",
+    "notes": "Kernel has no ENNReal scalar-action instance in this pin. Reuse finite kernel sums and constant Kernel.withDensity, explicitly prove uncurry-density measurability, and expose measure-level weighted-sum evaluation. No extra bind or power wrapper leaf. The s-finite component assumption is the current withDensity API contract, not a claim of mathematical necessity for every possible finite kernel-mixture construction."
+  },
+  "evidence": {"focused_checks": ["ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 LEAN_NUM_THREADS=1 lake env lean AutoSamplingTheory/TechnicalLemmas/Probability/KernelMixture.lean: passed, exit 0, 17.5805361 seconds", "ELAN_TOOLCHAIN=leanprover/lean4:v4.33.0 LEAN_NUM_THREADS=1 lake build Tests.KernelMixture: passed, 2978 jobs, exit 0, 43.4503847 seconds", "Scoped fake-closure and trailing-whitespace scans: no matches"], "independent_verification": "2026-09-08: kernel_packet_review accepted commit 5d67af28a7d2bc8cbe3a1bf2881dae6deb2b1e85 independently of windows_harness_worker. Single-threaded Tests.KernelMixture passed (2978 jobs); signatures, standard-only axioms, empty-index normalization boundary, constant-density branch and arbitrary-target contract checked; scoped fake-closure scan clean; Frontier Cell check passed. Mathlib proof parents are separated from HeatBath/KernelInvariance test consumers. Source-neutral acceptance only; see runs/20260908-samplewiki-resume/kernel-mixture-independent-review.md.", "root_build": "", "graph_regeneration": "", "pr": ""},
+  "blocked": {"reason": "", "children": []},
+  "source_detail_audit": {
+    "primary_edition": "MCMC arXiv:2407.12751v1 and Discrete Sampling arXiv:2307.13826v4, motivation only.",
+    "primary_anchor": "MCMC §2.1.1 Component-wise updates and Gibbs moves; Discrete Sampling §1.3 Glauber dynamics/Gibbs sampler.",
+    "detail_status": "omitted",
+    "gap": "The abstract fixed-weight kernel and arbitrary-measure contract is not a numbered source theorem being assimilated; the native withDensity implementation has a measurable-density branch and s-finite-component API contract that must be explicit.",
+    "consulted": [{"source": "Mathlib db584cd6d46c92f209a44c0f1c829460d327499d", "anchor": "Kernel.withDensity and Kernel.withDensity_apply, WithDensity.lean lines 45–64; MeasureTheory.withDensity_const; Measure.bind_apply; lintegral_finsetSum and lintegral_const_mul", "hypothesis_adapter": "Use constant ENNReal-coerced NNReal weights and measurable_const for the uncurry density. Use nonnegative finite-sum integral linearity with no finite/SFinite assumption on μ. Markov components supply the s-finite-kernel construction requirement."}],
+    "fidelity_boundary": "Fixed state-independent finite mixtures and exact invariance only. No state-dependent weights, reversibility, concrete scan-model implementation, mixing or numbered theorem assimilation."
+  },
+  "conceptual_mirror_audit": {"status": "none-found", "discovery_ids": [], "reason": "Literal nonnegative integral linearity and shared kernel reuse; no new cross-domain mechanism."},
+  "mcmc_contract": {
+    "state_space": "Arbitrary measurable state space; finite index type for component selection.",
+    "target": "Arbitrary measure μ, invariant for every component; not required finite, s-finite, nonzero or normalized.",
+    "support": "Zero weights allowed. No component-support, conditional-support or positivity theorem.",
+    "operator": "Finite sum of constant-density component kernels with fixed w : ι → ℝ≥0, sum w = 1. Kernel.withDensity requires s-finite components; intended Markov components supply this API requirement.",
+    "time_model": "discrete-time",
+    "clock": "One mixture transition selects a component by state-independent weights. No sweep, site-count or continuous-time-rate interpretation.",
+    "invariance": "Common component invariance implies exact mixture invariance.",
+    "invariance_class": "exact-target",
+    "ergodicity": "Not assumed or concluded.",
+    "initialization": "Exact initial law μ only; no convergence from other starts.",
+    "metric": "Exact measure equality.",
+    "cost": "No computational-cost result.",
+    "objective": "Provide the shared fixed-mixture closure needed by random-scan/lazy heat-bath consumers.",
+    "source_proof_status": "Source-neutral API integration, not source-theorem assimilation.",
+    "periodicity": "No aperiodicity or spectral-gap conclusion; invariance alone is insufficient for mixing."
+  },
+  "discrete_state_contract": {
+    "state_space": "Shared arbitrary measurable space; finite configuration-state specialization is downstream.",
+    "support": "Fixed weights may vanish; feasible Gibbs-state support is not supplied here.",
+    "target": "Any common invariant μ; a concrete Gibbs normalization is downstream.",
+    "operator": "State-independent convex mixture of finitely many kernel updates.",
+    "time_model": "discrete-time",
+    "clock": "One mixture application; no updates-to-sweeps or rate conversion.",
+    "reversibility": "Not claimed.",
+    "pinning": "No pinning or null-fiber conditional-support theorem.",
+    "regime": "Finite component index, NNReal weights summing to one, current withDensity s-finite component contract; μ arbitrary.",
+    "metric": "Exact invariance, not TV/KL/chi-square decay.",
+    "cost": "No model-specific complexity guarantee.",
+    "source_proof_status": "Source-neutral fixed-mixture closure only; the §1.3 source copy-index issue is not interpreted or repaired here.",
+    "aperiodicity_or_absolute_gap": "Not required for exact invariance; no convergence theorem."
+  }
+}

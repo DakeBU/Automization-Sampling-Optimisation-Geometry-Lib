@@ -1,0 +1,105 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic
+import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.ODE.DiscreteGronwall
+import Mathlib.Algebra.Ring.GeomSum
+
+/-!
+# Gradient descent: comparator energy and weighted function values
+
+Chewi, arXiv:2605.07006v1, Theorem 3.4 (3.1), (3.3) and its weighted-sum
+proof after Lemma 3.5. We use the actual gradient and actual iterates, with
+arbitrary comparator as explicitly permitted by (3.3). The descent calculation
+uses the shared public implementation of Lemma 3.1. The signed-forcing recurrence is
+Mathlib's product-form discrete Grönwall inequality, not a new recurrence lemma.
+
+The source's step condition needs `h ≥ 0`. The quadratic upper model and C¹
+Hilbert setting generalize the section's C² Euclidean hypotheses. We expose
+`α * h ≤ 1` for nonnegative geometric weights. The division-free result includes
+zero step, zero iteration and coefficients zero/one; it does not interpret the
+source's inverse-power formula at these singular endpoints. No minimizer
+existence is claimed, and the comparator gap may be negative.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentValue
+
+open Set Finset
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+/-- One-step energy inequality for every comparator, with the necessary
+nonnegative step explicit. No sign restriction on the comparator gap. -/
+theorem gradient_step_energy_bound {f : E → ℝ} {α β h : ℝ}
+    (hf : ContDiff ℝ 1 f) (hsc : StrongConvexOn univ α f)
+    (hh : 0 ≤ h) (hstep : β * h ≤ 1)
+    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)
+    (x z : E) :
+    ‖x - h • gradient f x - z‖ ^ 2 + 2 * h * (f (x - h • gradient f x) - f z) ≤
+      (1 - α * h) * ‖x - z‖ ^ 2 := by
+  have hl := StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn
+    hsc (fun w _ => (hf.differentiable_one w).hasGradientAt) (mem_univ x) (mem_univ z)
+  have hd := GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound hh hstep hu x
+  have hn : z - x = -(x - z) := by abel
+  rw [hn, inner_neg_right, norm_neg] at hl
+  have hl' := mul_le_mul_of_nonneg_left hl (by positivity : 0 ≤ 2 * h)
+  have hd' := mul_le_mul_of_nonneg_left hd (by positivity : 0 ≤ 2 * h)
+  rw [show x - h • gradient f x - z = (x - z) - h • gradient f x by abel,
+    norm_sub_sq_real, inner_smul_right, real_inner_comm (gradient f x),
+    norm_smul, Real.norm_eq_abs, mul_pow, sq_abs]
+  nlinarith
+
+/-- Weighted final function gap for actual gradient-descent iterates. The
+coefficient domain is explicit and includes both zero and one. -/
+theorem gradient_descent_weighted_value_bound {f : E → ℝ} {α β h : ℝ}
+    (hf : ContDiff ℝ 1 f) (hsc : StrongConvexOn univ α f)
+    (hh : 0 ≤ h) (hstep : β * h ≤ 1) (hcoeff : α * h ≤ 1)
+    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)
+    (x₀ z : E) (N : ℕ) :
+    2 * h * (∑ k ∈ range N, (1 - α * h) ^ k) *
+        (f ((fun x => x - h • gradient f x)^[N] x₀) - f z) ≤
+      (1 - α * h) ^ N * ‖x₀ - z‖ ^ 2 := by
+  let T : E → E := fun x => x - h • gradient f x
+  let X : ℕ → E := fun n => T^[n] x₀
+  let q : ℝ := 1 - α * h
+  have hq : 0 ≤ q := sub_nonneg.mpr hcoeff
+  have hX (n : ℕ) : X (n + 1) = T (X n) := Function.iterate_succ_apply' _ _ _
+  have hm : Antitone (fun n => f (X n)) := by
+    apply antitone_nat_of_succ_le
+    intro n
+    have hd := GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound hh hstep hu (X n)
+    rw [hX]
+    dsimp [T]
+    have : 0 ≤ h / 2 * ‖gradient f (X n)‖ ^ 2 := by positivity
+    linarith
+  have hr (n : ℕ) (_ : 0 ≤ n) :
+      ‖X (n + 1) - z‖ ^ 2 ≤ q * ‖X n - z‖ ^ 2 + (-2 * h * (f (X (n + 1)) - f z)) := by
+    have he := gradient_step_energy_bound hf hsc hh hstep hu (X n) z
+    rw [hX]
+    dsimp [T, q]
+    linarith
+  have hg := discrete_gronwall_prod_general (u := fun n => ‖X n - z‖ ^ 2)
+    (b := fun n => -2 * h * (f (X (n + 1)) - f z)) (c := fun _ => q) hr (fun _ _ => hq) (Nat.zero_le N)
+  simp only [Finset.prod_const, Nat.card_Ico, Nat.Ico_zero_eq_range, Finset.card_range] at hg
+  have hs : ∑ k ∈ range N, (-2 * h * (f (X (k + 1)) - f z)) * q ^ (N - (k + 1)) ≤
+      ∑ k ∈ range N, (-2 * h * (f (X N) - f z)) * q ^ (N - (k + 1)) := by
+    apply sum_le_sum
+    intro k hk
+    have hm' := hm (by have := mem_range.mp hk; omega : k + 1 ≤ N)
+    apply mul_le_mul_of_nonneg_right _ (pow_nonneg hq _)
+    have hh' : 0 ≤ 2 * h := by positivity
+    nlinarith
+  have hsum : (∑ k ∈ range N, q ^ (N - (k + 1))) = ∑ k ∈ range N, q ^ k := by
+    rw [← sum_range_reflect (fun k => q ^ k) N]
+    apply sum_congr rfl
+    intro k _
+    congr 1
+    omega
+  rw [← mul_sum, hsum] at hs
+  have hu0 : X 0 = x₀ := rfl
+  rw [hu0] at hg
+  have huN := sq_nonneg ‖X N - z‖
+  change 2 * h * (∑ k ∈ range N, q ^ k) * (f (X N) - f z) ≤ q ^ N * ‖x₀ - z‖ ^ 2
+  nlinarith
+
+end AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentValue

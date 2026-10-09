@@ -1,0 +1,65 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GeneratorStationarity
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakGenerator
+
+/-!
+# Stationarity and infinitesimal stationarity
+
+This module records the two non-circular operator/domain directions used in
+Chewi Proposition 1.2.7.  The first differentiates an invariant semigroup
+pairing at zero.  The second integrates a zero-generator pairing along a
+semigroup orbit through an explicit integrated-generator contract.
+
+This is intentionally not yet the final measure-level theorem for a concrete
+Langevin law.  Connecting `MarkovSemigroup.IsStationary` / integration against
+`pi` to the continuous-linear observable realization is a separate topology
+edge.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace StationarityEquivalence
+
+open MeasureTheory Set
+open OperatorGenerator OperatorGeneratorDomain
+
+noncomputable section
+
+variable {M : Type*} [NormedAddCommGroup M] [NormedSpace ℝ M]
+
+/-- Chewi Proposition 1.2.7, invariant-to-infinitesimal direction:
+
+`ell(P_t f) = ell(f)` for all `t >= 0` implies `ell(Af) = 0` on the
+right-generator domain. -/
+theorem chewi_proposition_1_2_7_invariant_implies_generator_zero
+    (S : ContinuousLinearSemigroup M)
+    (ell : M →L[ℝ] ℝ)
+    (hinv : ∀ (t : ℝ≥0) (f : M), ell (S.op t f) = ell f)
+    (f : generatorDomainSubmodule S) :
+    ell (rightGenerator S f) = 0 :=
+  GeneratorStationarity.invariantFunctional_rightGenerator_eq_zero S ell hinv f
+
+/-- Chewi Proposition 1.2.7, infinitesimal-to-invariant direction on an
+explicit generator domain.
+
+The integrated-generator contract is precisely the analytic input needed to
+turn `∫ Lf dμ = 0` into `∫ P_t f dμ = ∫ f dμ`; it contains orbit-domain
+preservation and the right derivative of the semigroup pairing, rather than
+assuming stationarity itself. -/
+theorem chewi_proposition_1_2_7_generator_zero_implies_invariant
+    {E : Type*} [MeasurableSpace E]
+    {P : ℝ → (E → ℝ) → E → ℝ}
+    {generator : (E → ℝ) → E → ℝ}
+    {domain : Set (E → ℝ)} {μ : Measure E}
+    (hsemigroup :
+      WeakGenerator.IntegratedSemigroupGeneratorContract P generator domain μ)
+    (hzero : ∀ f ∈ domain, ∫ x, generator f x ∂μ = 0) :
+    WeakGenerator.IsInvariantOn P μ domain :=
+  WeakGenerator.isInvariantOn_of_integral_generator_eq_zero hsemigroup hzero
+
+end
+
+end StationarityEquivalence
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

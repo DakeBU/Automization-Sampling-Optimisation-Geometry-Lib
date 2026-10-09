@@ -1,0 +1,50 @@
+import AutoSamplingTheory.Probability
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolev
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DonskerVaradhan
+
+/-!
+# ASTIS-native variational and LSI/FI bookkeeping lemmas
+
+These declarations are small compiled proof blocks extracted from the SALD
+formalization effort.  They represent prior/background analytic algebra such
+as Donsker--Varadhan one-sided consequences and LSI density bookkeeping; large
+background theorems remain proof obligations until locally ported.
+
+New code should prefer the focused modules
+`TechnicalLemmas.InformationTheory.DonskerVaradhan` and
+`TechnicalLemmas.FunctionalInequalities.LogSobolev`.  This file remains as a
+compatibility aggregator.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Variational
+
+export AutoSamplingTheory (
+  lsiKlFiSqrtDensitySquareScalar
+  lsiKlFiSqrtDensityEntropyIntegrandScalar
+  lsiKlFiSqrtDensityNormalizationScalar
+  lsiKlFiRnDerivLIntegralMassOne
+  lsiKlFiRnDerivDensityMassOne
+  lsiKlFiSqrtRnDerivTestMassOne
+  lsiKlFiRnDerivEntropyIntegral
+  lsiKlFiSqrtRnDerivEntropyIntegral
+  lsiKlFiSqrtDensityFisherChainScalar
+  lsiKlFiSqrtDensityFisherChainOfDerivativesScalar
+  lsiKlFiSqrtDensityFisherChainFiniteSumScalar
+  lsiKlFiSqrtDensityFisherChainFiniteSumHandoffScalar
+  lsiKlFiSqrtDensityFisherChainIntegralFiniteSum
+  lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar
+  dvVariationalOneSidedConsequenceScalar
+  dvVariationalOneSidedFromSupremumScalar
+  dvFiniteLogMgfOfLeAlpha
+  dvVariationalOneSidedOfTiltedRight
+  dvVariationalOneSidedOfScaledTest
+  dvVariationalScaledTestEnergyBound
+  dvVariationalScaledTestEnergyBoundWithCoeff
+  dvVariationalTiltedRightOneSidedConsequence
+)
+
+end Variational
+end TechnicalLemmas
+end AutoSamplingTheory

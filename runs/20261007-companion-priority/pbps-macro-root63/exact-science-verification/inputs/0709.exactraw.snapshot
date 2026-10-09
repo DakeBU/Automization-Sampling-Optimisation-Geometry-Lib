@@ -1,0 +1,135 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.AdaptiveCenterRGO
+import Mathlib.InformationTheory.KullbackLeibler.ChainRule
+import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+import Mathlib.Probability.Kernel.RadonNikodym
+import Mathlib.Probability.Kernel.CompProdEqIff
+
+/-!
+# Actual adaptive backward-kernel KL error
+
+Expanded probability semantics for SPHMC v1 Theorem 6.5 A1 recursive error
+propagation. Conditional KL measurability and its integral identity are proved,
+including non-absolutely-continuous and infinite-divergence branches.
+The supplied approximate kernel is not asserted to implement the paper sampler
+or satisfy any accuracy or expected query cost guarantee.
+-/
+
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal
+
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.AdaptiveKLError
+
+/-- Construct the ideal center-dependent kernels and bound the actual composed
+output KL by the input KL plus the conditional KL integrated under that actual
+input law. No finite-divergence or separately assumed measurability premise. -/
+theorem adaptive_center_kl_error {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [IsProbabilityMeasure μ] (b a : ℝ) (hb : 0 ≤ b) (ha : 0 < a) :
+    ∃ (T H : Kernel E E) (B : Kernel (E × E) (E × E)),
+      IsMarkovKernel T ∧ IsMarkovKernel H ∧ IsMarkovKernel B ∧
+      (∀ u, T u = μ.tilted (fun x => -(b/2)*‖x-u‖^2)) ∧
+      (∀ u, H u = GaussianSmoothing.gaussianSmoothing (T u) (Real.sqrt a)) ∧
+      (∀ u y, B (u,y) = Measure.map (Prod.mk u)
+        ((T u).tilted (fun x => -‖x-y‖^2/(2*a)))) ∧
+      (∀ u y, B (u,y) = Measure.map (Prod.mk u)
+        (μ.tilted (fun x => -((b+a⁻¹)/2)*
+          ‖x-(b+a⁻¹)⁻¹ • (b • u+a⁻¹ • y)‖^2))) ∧
+      (∀ (ν : Measure E), IsProbabilityMeasure ν → B ∘ₘ (ν ⊗ₘ H) = ν ⊗ₘ T) ∧
+      ∀ (ν : Measure E), IsProbabilityMeasure ν →
+        ∀ (P : Measure (E × E)), IsProbabilityMeasure P →
+        ∀ (L : Kernel (E × E) (E × E)), IsMarkovKernel L →
+          Measurable (fun s => klDiv (L s) (B s)) ∧
+          klDiv (L ∘ₘ P) (ν ⊗ₘ T) ≤ klDiv P (ν ⊗ₘ H) + ∫⁻ s, klDiv (L s) (B s) ∂P := by
+  have measurable_fiber_kl (L K : Kernel (E × E) (E × E)) [IsMarkovKernel L] [IsMarkovKernel K] :
+      Measurable (fun x => klDiv (L x) (K x)) := by
+    classical
+    have hf : Measurable (fun p : (E × E) × (E × E) =>
+        ENNReal.ofReal (klFun ((Kernel.rnDeriv L K p.1 p.2).toReal))) := by
+      exact ENNReal.measurable_ofReal.comp
+        (continuous_klFun.measurable.comp (Kernel.measurable_rnDeriv L K).ennreal_toReal)
+    have heq (x : (E × E)) : klDiv (L x) (K x) =
+        if L x ≪ K x then ∫⁻ y, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K x y).toReal)) ∂K x
+        else ∞ := by
+      rw [klDiv_eq_lintegral_klFun]
+      split_ifs
+      · apply lintegral_congr_ae
+        filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := L) (η := K) (a := x)] with y hy
+        rw [hy]
+      · rfl
+    simp_rw [heq]
+    exact Measurable.ite (Kernel.measurableSet_absolutelyContinuous L K)
+      hf.lintegral_kernel_prod_right' measurable_const
+
+
+  have conditional_kl_integral (μ : Measure (E × E)) [IsProbabilityMeasure μ]
+      (L K : Kernel (E × E) (E × E)) [IsMarkovKernel L] [IsMarkovKernel K] :
+      klDiv (μ ⊗ₘ L) (μ ⊗ₘ K) = ∫⁻ x, klDiv (L x) (K x) ∂μ := by
+    classical
+    by_cases hac : μ ⊗ₘ L ≪ μ ⊗ₘ K
+    · have hfiber := hac.kernel_of_compProd
+      have hwd : (μ ⊗ₘ K).withDensity (fun p => Kernel.rnDeriv L K p.1 p.2) = μ ⊗ₘ L := by
+        rw [← Measure.compProd_withDensity (Kernel.measurable_rnDeriv L K)]
+        apply Measure.compProd_congr
+        filter_upwards [hfiber] with x hx
+        exact Kernel.withDensity_rnDeriv_eq hx
+      have hrn : (μ ⊗ₘ L).rnDeriv (μ ⊗ₘ K) =ᵐ[μ ⊗ₘ K]
+          (fun p => Kernel.rnDeriv L K p.1 p.2) := by
+        rw [← hwd]
+        exact Measure.rnDeriv_withDensity _ (Kernel.measurable_rnDeriv L K)
+      rw [klDiv_eq_lintegral_klFun_of_ac hac]
+      calc
+        _ = ∫⁻ p, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K p.1 p.2).toReal)) ∂(μ ⊗ₘ K) := by
+          apply lintegral_congr_ae
+          filter_upwards [hrn] with p hp
+          rw [hp]
+        _ = ∫⁻ x, ∫⁻ y, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K x y).toReal)) ∂K x ∂μ := by
+          apply Measure.lintegral_compProd
+          exact ENNReal.measurable_ofReal.comp
+            (continuous_klFun.measurable.comp (Kernel.measurable_rnDeriv L K).ennreal_toReal)
+        _ = _ := by
+          apply lintegral_congr_ae
+          filter_upwards [hfiber] with x hx
+          rw [klDiv_eq_lintegral_klFun_of_ac hx]
+          apply lintegral_congr_ae
+          filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := L) (η := K) (a := x)] with y hy
+          rw [hy]
+    · rw [klDiv_of_not_ac hac]
+      symm
+      by_contra hfinite
+      have hf := ae_lt_top (measurable_fiber_kl L K) hfinite
+      apply hac
+      apply Measure.AbsolutelyContinuous.compProd_right
+      filter_upwards [hf] with x hx
+      exact (klDiv_ne_top_iff.mp hx.ne).1
+
+
+  have composed_kl_bound (P Q : Measure (E × E)) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+      (L K : Kernel (E × E) (E × E)) [IsMarkovKernel L] [IsMarkovKernel K] :
+      klDiv (L ∘ₘ P) (K ∘ₘ Q) ≤ klDiv P Q + ∫⁻ x, klDiv (L x) (K x) ∂P := by
+    calc
+      klDiv (L ∘ₘ P) (K ∘ₘ Q) = klDiv (P ⊗ₘ L).snd (Q ⊗ₘ K).snd := by
+        rw [Measure.snd_compProd, Measure.snd_compProd]
+      _ ≤ klDiv (P ⊗ₘ L) (Q ⊗ₘ K) := klDiv_map_le _ _ measurable_snd
+      _ = _ := by rw [klDiv_compProd_eq_add, conditional_kl_integral]
+
+
+  obtain ⟨T,H,B,hT,hH,hB,hTf,hHf,hBf,hUpd,hrec⟩ :=
+    AdaptiveCenterRGO.adaptive_center_recovery μ b a hb ha
+  let := hT
+  let := hH
+  let := hB
+  refine ⟨T,H,B,hT,hH,hB,hTf,hHf,hBf,hUpd,hrec,?_⟩
+  intro ν hν P hP L hL
+  let := hν
+  let := hP
+  let := hL
+  refine ⟨measurable_fiber_kl L B,?_⟩
+  have h := composed_kl_bound P (ν ⊗ₘ H) L B
+  rw [hrec ν hν] at h
+  exact h
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.AdaptiveKLError

@@ -1,0 +1,55 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport
+import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexMinimizer
+
+/-!
+# SPHMC q=2 initialization without a supplied minimizer
+
+This module discharges the minimizer witness used implicitly in the proof of
+Chen--Chewi--Lu--Zhang, arXiv:2609.06906v1, Lemma 4.16.  Positive Hessian
+curvature yields a genuine global minimizer with zero gradient; the already
+verified smoothed-Gibbs phase-transport theorem then supplies the numerical
+`q = 2` estimate.
+
+The source's all-`q` concentration statement, Picard dynamics, final sampling
+accuracy and query complexity remain separate obligations.
+-/
+
+noncomputable section
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal RealInnerProductSpace
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional
+
+open AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+open AutoSamplingTheory.TechnicalLemmas.Analysis
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- The actual SPHMC initial phase law satisfies the squared `M_κ` transport
+bound at `q = 2` under the paper's curvature and reference-gradient assumptions,
+without taking a critical point as an extra input. -/
+theorem initial_gibbs_phase_transport_q2_of_hessian_bounds
+    {U : E → ℝ} {α η : ℝ≥0} (hα : 0 < α) (hαone : α ≤ 1)
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+        fderiv ℝ (fderiv ℝ U) x v v ≤ ‖v‖ ^ 2)
+    (xref : E) (href : ‖gradient U xref‖ ^ 2 ≤
+      (α : ℝ) * (Module.finrank ℝ E : ℝ)) (hη : η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x ↦ -U x)
+    let πη := gaussianSmoothing μ (Real.sqrt η)
+    PhaseMetric.phaseWassersteinSq (1 / (α : ℝ))
+      ((Measure.dirac xref).prod (stdGaussian E))
+      (πη.prod (stdGaussian E)) ≤
+        ENNReal.ofReal (5 * (1 / (α : ℝ)) * (Module.finrank ℝ E : ℝ)) := by
+  have hsc : StrongConvexOn (Set.univ : Set E) (α : ℝ) U :=
+    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hU
+      (fun x v ↦ (hH x v).1)
+  obtain ⟨p, _, hp⟩ := StrongConvexMinimizer.exists_isMinOn_and_gradient_eq_zero
+    (show (0 : ℝ) < α by exact hα) (hU.differentiable (by norm_num)) hsc
+  exact InitialGibbsPhaseTransport.initial_gibbs_phase_transport_q2
+    hα hαone hU hH p xref hp href hη
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransportUnconditional

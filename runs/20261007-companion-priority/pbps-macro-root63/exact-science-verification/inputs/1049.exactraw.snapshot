@@ -1,0 +1,29 @@
+import Mathlib.Probability.Kernel.Invariance
+
+/-!
+# Invariance under measurable changes of coordinates
+
+Transport a kernel and its invariant measure through a measurable equivalence.
+The result applies to arbitrary kernels and measures, without Markovness,
+finiteness, s-finiteness, Standard Borel or nonempty assumptions.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport
+
+open MeasureTheory ProbabilityTheory
+
+/-- Conjugating a kernel by a measurable equivalence preserves invariance of
+the corresponding pushforward measure. The input is pulled back with `e.symm`
+and the output is pushed forward with `e`.
+
+This is exact invariance only, not reversibility or convergence. The equivalence
+supplies genuine measurability, so no nonmeasurable-map fallback is used. -/
+theorem invariant_map_comap {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {κ : Kernel α α} {μ : Measure α} (e : α ≃ᵐ β) (hκ : κ.Invariant μ) :
+    ((κ.comap e.symm e.symm.measurable).map e).Invariant (μ.map e) := by
+  change ((κ.comap e.symm e.symm.measurable).map e) ∘ₘ μ.map e = μ.map e
+  rw [← Measure.map_comp _ _ e.measurable,
+    ← Kernel.comp_deterministic_eq_comap, ← Measure.comp_assoc,
+    Measure.deterministic_comp_eq_map, e.map_symm_map, hκ.def]
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport

@@ -1,0 +1,123 @@
+import Mathlib.Tactic
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalCanonicalLocalizerLimit
+
+/-!
+# A dyadic cofinal subsequence of the global localization ladder
+
+The global canonical localizers are indexed by all positive integer horizons
+`n+1`.  For gluing the completed Itô constructions across horizons it is useful
+to pass to the cofinal subsequence
+
+`n_k = 2^k - 1`,  hence  `H_k = n_k + 1 = 2^k`.
+
+Nothing probabilistic is lost: a cofinal monotone subsequence of a localizing
+sequence is again a localizing sequence tending to infinity.  The gain is that
+dyadic partitions on the horizons `1,2,4,...` can be aligned exactly by adding
+the horizon exponent to the dyadic refinement level.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace DyadicGlobalHorizon
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open GlobalCanonicalLocalizer GlobalCanonicalLocalizerLimit
+  GlobalLocalProgressiveL2 ProgressiveL2 StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- Index in the original integer-horizon ladder corresponding to horizon
+`2^k`. -/
+def dyadicGlobalIndex (k : ℕ) : ℕ := 2 ^ k - 1
+
+/-- The corresponding positive dyadic horizon. -/
+def dyadicHorizon (k : ℕ) : ℝ≥0 := (2 ^ k : ℕ)
+
+@[simp] theorem dyadicGlobalIndex_add_one (k : ℕ) :
+    dyadicGlobalIndex k + 1 = 2 ^ k := by
+  have hpos : 0 < 2 ^ k := by positivity
+  simp only [dyadicGlobalIndex]
+  omega
+
+@[simp] theorem integerHorizon_dyadicGlobalIndex (k : ℕ) :
+    integerHorizon (dyadicGlobalIndex k) = dyadicHorizon k := by
+  simp [integerHorizon, dyadicHorizon, dyadicGlobalIndex_add_one]
+
+@[simp] theorem dyadicHorizon_pos (k : ℕ) : 0 < dyadicHorizon k := by
+  simp [dyadicHorizon]
+
+/-- The dyadic subsequence indices are monotone. -/
+theorem dyadicGlobalIndex_mono : Monotone dyadicGlobalIndex := by
+  intro k l hkl
+  have hp : 2 ^ k ≤ 2 ^ l := Nat.pow_le_pow_right (by decide) hkl
+  exact Nat.sub_le_sub_right hp 1
+
+/-- The dyadic subsequence is cofinal in the natural-number index set. -/
+theorem dyadicGlobalIndex_ge_self (k : ℕ) : k ≤ dyadicGlobalIndex k := by
+  have hpow : k < 2 ^ k := Nat.lt_two_pow_self
+  simp only [dyadicGlobalIndex]
+  omega
+
+/-- Topological cofinality of `k ↦ 2^k - 1`. -/
+theorem tendsto_dyadicGlobalIndex_atTop :
+    Tendsto dyadicGlobalIndex atTop atTop := by
+  apply tendsto_atTop.2
+  intro N
+  filter_upwards [eventually_ge_atTop N] with k hk
+  exact hk.trans (dyadicGlobalIndex_ge_self k)
+
+/-- The global canonical localizer restricted to dyadic horizons. -/
+noncomputable def dyadicGlobalLocalizingTime
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) (omega : Omega) : ℝ≥0 :=
+  globalLocalizingTime hUsual eta (dyadicGlobalIndex k) omega
+
+/-- Every member of the dyadic subsequence remains a Chewi stopping time. -/
+theorem dyadicGlobalLocalizingTime_isChewiStoppingTime
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu) (k : ℕ) :
+    IsChewiStoppingTime filtration
+      (fun omega =>
+        (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0)) := by
+  exact globalLocalizingTime_isChewiStoppingTime hUsual eta (dyadicGlobalIndex k)
+
+/-- The dyadic global localizers are pointwise increasing. -/
+theorem dyadicGlobalLocalizingTime_mono
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu) :
+    Monotone (fun k => dyadicGlobalLocalizingTime hUsual eta k) := by
+  intro k l hkl
+  exact globalLocalizingTime_mono hUsual eta (dyadicGlobalIndex_mono hkl)
+
+/-- The `k`-th dyadic global localizer is bounded by the matching horizon
+`2^k`. -/
+theorem dyadicGlobalLocalizingTime_le_horizon
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) (omega : Omega) :
+    dyadicGlobalLocalizingTime hUsual eta k omega ≤ dyadicHorizon k := by
+  simpa only [dyadicGlobalLocalizingTime, integerHorizon_dyadicGlobalIndex] using
+    globalLocalizingTime_le_horizon hUsual eta (dyadicGlobalIndex k) omega
+
+/-- The cofinal dyadic subsequence still tends to infinity almost surely. -/
+theorem dyadicGlobalLocalizingTime_tendsto_top_ae
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu) :
+    ∀ᵐ omega ∂mu,
+      Tendsto
+        (fun k =>
+          (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0))
+        atTop (𝓝 (⊤ : WithTop ℝ≥0)) := by
+  filter_upwards [globalLocalizingTime_tendsto_top_ae hUsual eta]
+    with omega homega
+  exact homega.comp tendsto_dyadicGlobalIndex_atTop
+
+end DyadicGlobalHorizon
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,75 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.Truncation
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianMixture
+
+/-!
+# One truncation proxy with uniform Gaussian reverse transport
+
+Substantive composition of arXiv:2609.06906v1 Lemmas6.2 and6.3(ii): actual
+infimum p-cost budget supplies one proxy and coupling before all tau>0,q>1.
+The same proxy has eventwise TV control and actual GaussianSmoothing RN power
+and logarithm bounds with the exact delta^(-2/p) dependence.
+
+We retain p>=2 from the invoked Lemma6.2 proof route; Lemma6.3(ii) does not
+separately repeat it. The input is the genuine infimum cost bounded by r^p,
+not an assumed optimizer or proxy. Finite-dimensional real inner-product
+Borel spaces and dropping marginal Pp membership explicitly generalize this
+budget form. Finite displacement cost does not establish marginal p-moments.
+Full Wp/Renyi metric/divergence API identification, recursive warmness and
+actual sampler/error/query-cost conclusions remain separate.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProxyReverseTransport
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+open scoped ENNReal
+
+/-- One actual proxy and coupling simultaneously satisfy eventwise TV,
+bounded displacement and all positive-time Gaussian RN moment/log bounds. -/
+theorem proxy_reverse_transport {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (P Q : Measure E) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    (p r δ : ℝ) (hp : 2 ≤ p) (hr : 0 ≤ r) (hδ : 0 < δ) (hδ1 : δ < 1)
+    (hcost : Transport.transportCost (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖^p)) P Q ≤ ENNReal.ofReal (r^p)) :
+    ∃ Pdag : Measure E, ∃ Γ : Measure (E × E),
+      IsProbabilityMeasure Pdag ∧ IsProbabilityMeasure Γ ∧ Transport.IsCoupling Γ Pdag Q ∧
+      (∀ B, MeasurableSet B → |P.real B-Pdag.real B| ≤ δ) ∧
+      (∀ᵐ z ∂Γ, ‖z.1-z.2‖ ≤ r*δ^(-1/p)) ∧
+      ∀ τ : ℝ, 0 < τ → ∀ q : ℝ, 1 < q →
+        let H := fun μ : Measure E => GaussianSmoothing.gaussianSmoothing μ (Real.sqrt τ)
+        H Pdag ≪ H Q ∧
+          (∫⁻ z, ((H Pdag).rnDeriv (H Q) z)^q ∂H Q) ≤
+            ENNReal.ofReal (Real.exp (q*(q-1)*r^2/(2*τ*δ^(2/p)))) ∧
+          Integrable (fun z => ((H Pdag).rnDeriv (H Q) z).toReal^q) (H Q) ∧
+          (∫ z, ((H Pdag).rnDeriv (H Q) z).toReal^q ∂H Q) ≤
+            Real.exp (q*(q-1)*r^2/(2*τ*δ^(2/p))) ∧
+          Real.log (∫ z, ((H Pdag).rnDeriv (H Q) z).toReal^q ∂H Q)/(q-1) ≤
+            q*r^2/(2*τ*δ^(2/p)) := by
+  obtain ⟨γ,hγ,hcouple,hopt,hT,hPdag,hΓ,hΓcouple,hdisp,hTV⟩ :=
+    Truncation.truncated_proxy P Q p r δ hp hr hδ hδ1 hcost
+  let T := fun z : E × E => if ‖z.1-z.2‖ ≤ r*δ^(-1/p) then z.1 else z.2
+  refine ⟨γ.map T,γ.map (fun z => (T z,z.2)),hPdag,hΓ,hΓcouple,hTV,hdisp,?_⟩
+  intro τ hτ q hq
+  let : IsProbabilityMeasure (γ.map T) := hPdag
+  have ht : 0 ≤ r*δ^(-1/p) := mul_nonneg hr (Real.rpow_nonneg hδ.le _)
+  have h := GaussianMixture.bounded_displacement_reverse_transport
+    (γ.map T) Q (γ.map (fun z => (T z,z.2))) hΓcouple τ q (r*δ^(-1/p)) hτ hq ht hdisp
+  have he : (r*δ^(-1/p))^2 = r^2 / δ^(2/p) := by
+    rw [mul_pow]
+    have hd : (δ^(-1/p))^2 = (δ^(2/p))⁻¹ := by
+      rw [← Real.rpow_natCast,← Real.rpow_mul hδ.le]
+      change δ^((-1/p)*(2 : ℝ)) = (δ^(2/p))⁻¹
+      have hex : (-1/p)*(2 : ℝ) = -(2/p) := by ring
+      rw [hex,Real.rpow_neg hδ.le]
+    rw [hd]
+    exact (div_eq_mul_inv _ _).symm
+  have hc1 : q*(q-1)*(r*δ^(-1/p))^2/(2*τ) = q*(q-1)*r^2/(2*τ*δ^(2/p)) := by
+    rw [he]
+    ring
+  have hc2 : q*(r*δ^(-1/p))^2/(2*τ) = q*r^2/(2*τ*δ^(2/p)) := by
+    rw [he]
+    ring
+  dsimp only at h ⊢
+  simpa only [hc1,hc2] using h
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProxyReverseTransport

@@ -1,5 +1,54 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS unique positive macroscopic defect root (2026-10-09)
+
+Independently VERIFIED science commit 4d02622332d02d0bd6c977d3cee48fd535ebf203. SAME original-input stationary
+reflected kernel, real conditional operator T and joint reflection U now feed
+the canonical onto isometry e from marginal L2 to exact complete HP=lpMeas=ran(P).
+A=e T e^-1; B:HP-to-joint is actual leakage. SAME positive real root transports
+to GammaP=e Gamma e^-1, with GammaP^2=I_HP-A^2=B.adjoint composed B, all-macro
+norm/energy and ALL positive same-square macro uniqueness. Alternatives require
+no supplied energy. Fulljoint Gram remains P-AJ^2. C2/two Hessian/positive capped
+eta, rank0 and alphaeta=1 retained; zero extra public certificates/private providers.
+
+Root39868 and independent3376 focused3920, followed by exactSCI63 verifier41344
+focused3920, fresh anonymous decoder and independent primary-first seven-slot
+review/current eight formula steps accepted. The initial
+step3 excerpt binding failure was preserved and only its source span/bytes fixed;
+independent presentation review confirms all8 literal excerpts. Full rendered
+Exposition Seal/post-merge purification remain separate.
+
+The SCI63 remote site and formalization workflows failed at the same Frontier
+Cell process enum/salvage fields, with publication229 passing. The three fields
+were corrected only after exact-review closure; source/Lean/lesson/audit bytes
+and publication binding/context were checked unchanged. Corrected repository
+acceptance still requires the actual serialized gates below.
+
+NEXT mathematical work is centered root restriction/coercivity/invertibility and
+B15 operator lower order/B16 normalized polar isometry. Exact constants:
+rho=(1-alphaeta)/(1+alphaeta), gamma=2sqrt(alphaeta)/(1+alphaeta).
+An inverse belongs only on the centered space; norm lower bounds alone do not
+certify the printed operator order. Genuine earlier sharp Test consumers must
+be connected through their actual production parents, never imported into production.
+H1/event process/nonexplosion/invariance/hypocoercivity/main mixing/implementation
+errors/actual-input expected-query costs and SPHMC composition remain separate.
+Gaussian Cloud then midpoint follow the existing four-paper priority.
+TV proximity transfers no unbounded expected cost.
+
+Previous integration44dc6d6 has independent scoped repository/reader admission and
+all three GitHub workflows terminal SUCCESS, including formalization37833436296.
+Serialized Registry508/imports/Tests and affected reader/graph gates remain pending
+below. No MERGED/live/PURIFIED/full paper/Goal claim. Earlier checkpoints preserved.
+
+Serialized local aggregate63: root9170, Tests9465, Registry508; all296 Python
+regressions,229 publication units, contributor/semantic/frontier/site and bounded
+graph check PASS. Complete statement,8formula steps and same compiled branch
+were visually inspected. Two copy callbacks and two local Lean downloads match
+exact source; all8folded step literals match sealed excerpts. Independent
+repository/exposition admission, integration remote CI,main/live/PURIFIED and
+whole-paper results remain open.
+
+
 ## Actual PBPS unique positive real scalar root (2026-10-09)
 
 Independently VERIFIED science commit 9d7f7b640c7cb18fea133ccbd300de129af40b83. Shared Measure/L2RealSquareRootUnique

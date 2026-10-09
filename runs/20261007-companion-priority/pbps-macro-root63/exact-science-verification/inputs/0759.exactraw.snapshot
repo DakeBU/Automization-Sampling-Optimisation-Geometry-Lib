@@ -1,0 +1,68 @@
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Positivity
+
+/-!
+# Well-conditioned recursive RGO variance progress
+
+Source: Chen, Chewi, Lu and Zhang, *Smoothed Picard Hamiltonian Monte Carlo*,
+arXiv:2609.06906v1, Lemma 6.6(ii), update (6.1) and schedule (6.2).
+
+The scalar branch uses precision `r`, so `r = 0` also describes the source's
+infinite initial regularization variance. The updated variance is finite.
+The comparison with the *previous* real reciprocal is guarded by `0 < r`;
+Lean's totalized inverse of zero is never used to represent infinity.
+This is the RGO regularization parameter, not the covariance of a Gibbs law.
+
+The source's branch test selects `tau = c`; selection, later stage semantics,
+termination, sampling error and query costs are not conclusions here.
+The source restriction `c < 1/4` is unnecessary for this scalar inequality.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RecursiveVariance
+
+/-- One well-conditioned precision update yields a positive finite variance
+bounded by `2*c`. If the previous variance is finite, it contracts by
+`2*c/(1+2*c)`. Positivity of every denominator follows from the hypotheses. -/
+theorem variance_update_bounds {r h c : ℝ} (hr : 0 ≤ r) (hh : 0 < h)
+    (hhc : h ≤ c) :
+    let a := (h + c) / (1 + r)
+    let rp := r + a⁻¹
+    let Aplus := rp⁻¹
+    let rho := 2 * c / (1 + 2 * c)
+    0 < rp ∧ 0 < Aplus ∧ Aplus ≤ 2 * c ∧
+      0 < rho ∧ rho < 1 ∧ (0 < r → Aplus ≤ rho * r⁻¹) := by
+  have hc : 0 < c := lt_of_lt_of_le hh hhc
+  have ht : 0 < h + c := add_pos hh hc
+  have ht_upper : h + c ≤ 2 * c := by linarith
+  have hbeta : 0 < 1 + r := by positivity
+  have ha : 0 < (h + c) / (1 + r) := div_pos ht hbeta
+  have hrp : 0 < r + ((h + c) / (1 + r))⁻¹ :=
+    add_pos_of_nonneg_of_pos hr (inv_pos.mpr ha)
+  have hD : 0 < 1 + r + r * (h + c) := by positivity
+  have hformula :
+      (r + ((h + c) / (1 + r))⁻¹)⁻¹ =
+        (h + c) / (1 + r + r * (h + c)) := by
+    rw [inv_div]
+    field_simp
+    exact add_comm _ _
+  have hbound : (h + c) / (1 + r + r * (h + c)) ≤ 2 * c := by
+    apply le_trans _ ht_upper
+    apply (div_le_iff₀ hD).2
+    nlinarith [mul_nonneg hr ht.le, mul_nonneg ht.le (mul_nonneg hr ht.le)]
+  have hrhoden : 0 < 1 + 2 * c := by positivity
+  have hscaled : r * ((h + c) / (1 + r + r * (h + c))) ≤
+      2 * c / (1 + 2 * c) := by
+    rw [← mul_div_assoc]
+    apply (div_le_div_iff₀ hD hrhoden).2
+    nlinarith [mul_nonneg hr (sub_nonneg.mpr ht_upper)]
+  refine ⟨hrp, inv_pos.mpr hrp, ?_, div_pos (by positivity) hrhoden, ?_, ?_⟩
+  · simpa only [hformula] using hbound
+  · exact (div_lt_one hrhoden).2 (by linarith)
+  · intro hrpos
+    rw [hformula, ← div_eq_mul_inv]
+    apply (le_div_iff₀ hrpos).2
+    simpa only [mul_comm] using hscaled
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RecursiveVariance

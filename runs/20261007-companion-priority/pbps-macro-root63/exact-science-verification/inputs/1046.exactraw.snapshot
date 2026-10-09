@@ -1,0 +1,81 @@
+import Mathlib.Probability.Kernel.WithDensity
+import Mathlib.Probability.Kernel.Invariance
+import Mathlib.Data.ENNReal.BigOperators
+
+/-!
+# Finite state-independent mixtures of kernels
+
+Fixed nonnegative weights summing to one preserve a common invariant measure
+and the Markov property. The target measure need not be finite or s-finite.
+
+The s-finite component hypothesis is the current `Kernel.withDensity` API
+contract, automatically supplied by Markov components. It is not asserted to
+be mathematically necessary for every conceivable finite-mixture construction.
+Weights here do not depend on the current state. No reversibility or mixing
+claim is made.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal
+
+variable {ι α β : Type*} [Fintype ι] [MeasurableSpace α] [MeasurableSpace β]
+
+/-- A finite fixed-weight mixture, formed through constant-density kernels.
+Normalization is required by the correctness theorems, not the definition. -/
+noncomputable def finiteMixture (w : ι → ℝ≥0) (κ : ι → Kernel α β)
+    [∀ i, IsSFiniteKernel (κ i)] : Kernel α β :=
+  ∑ i, (κ i).withDensity (fun _ _ => (w i : ℝ≥0∞))
+
+/-- Pointwise measure law of the finite mixture. Constant uncurry densities are
+measurable, so the totalized `withDensity` zero fallback is never used. -/
+theorem finiteMixture_apply (w : ι → ℝ≥0) (κ : ι → Kernel α β)
+    [∀ i, IsSFiniteKernel (κ i)] (a : α) :
+    finiteMixture w κ a = ∑ i, (w i : ℝ≥0∞) • κ i a := by
+  classical
+  rw [finiteMixture, sum_apply]
+  apply Finset.sum_congr rfl
+  intro i _
+  rw [Kernel.withDensity_apply _ measurable_const, MeasureTheory.withDensity_const]
+
+/-- Fixed normalized nonnegative weights mix Markov kernels into a Markov kernel.
+Zero weights are allowed. -/
+theorem finiteMixture_isMarkovKernel (w : ι → ℝ≥0) (κ : ι → Kernel α β)
+    [∀ i, IsMarkovKernel (κ i)] (hsum : ∑ i, w i = 1) :
+    IsMarkovKernel (finiteMixture w κ) := by
+  have hsum' : ∑ i, (w i : ℝ≥0∞) = 1 := by
+    simpa using congrArg (fun r : ℝ≥0 => (r : ℝ≥0∞)) hsum
+  constructor
+  intro a
+  constructor
+  rw [finiteMixture_apply, Measure.finsetSum_apply]
+  simpa only [Measure.smul_apply, measure_univ, smul_eq_mul, mul_one] using hsum'
+
+/-- A fixed normalized finite mixture preserves any common invariant measure.
+
+There is no finite or s-finite assumption on `μ`. The component s-finiteness is
+only the `withDensity` construction contract; intended Markov components satisfy
+it automatically. This statement does not extend to state-dependent weights. -/
+theorem finiteMixture_invariant (w : ι → ℝ≥0) (κ : ι → Kernel α α)
+    [∀ i, IsSFiniteKernel (κ i)] (μ : Measure α)
+    (hsum : ∑ i, w i = 1) (hκ : ∀ i, (κ i).Invariant μ) :
+    (finiteMixture w κ).Invariant μ := by
+  have hsum' : ∑ i, (w i : ℝ≥0∞) = 1 := by
+    simpa using congrArg (fun r : ℝ≥0 => (r : ℝ≥0∞)) hsum
+  change μ.bind (finiteMixture w κ) = μ
+  ext s hs
+  calc
+    (μ.bind (finiteMixture w κ)) s = ∫⁻ a, ∑ i, (w i : ℝ≥0∞) * κ i a s ∂μ := by
+      rw [Measure.bind_apply hs (Kernel.aemeasurable _)]
+      simp only [finiteMixture_apply, Measure.finsetSum_apply, Measure.smul_apply, smul_eq_mul]
+    _ = ∑ i, ∫⁻ a, (w i : ℝ≥0∞) * κ i a s ∂μ :=
+      lintegral_finsetSum _ (fun i _ => ((κ i).measurable_coe hs).const_mul _)
+    _ = ∑ i, (w i : ℝ≥0∞) * μ s := by
+      apply Finset.sum_congr rfl
+      intro i _
+      rw [lintegral_const_mul _ ((κ i).measurable_coe hs),
+        ← Measure.bind_apply hs (κ i).aemeasurable, (hκ i).def]
+    _ = μ s := by rw [← Finset.sum_mul, hsum', one_mul]
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture

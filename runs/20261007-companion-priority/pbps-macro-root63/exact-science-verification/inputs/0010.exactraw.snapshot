@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-2ab533cdcc5ee29b",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\n  [inst_3 : MeasurableSpace E] [BorelSpace E] (μ : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure μ]\n  (a : NNReal × E × ℕ × (ℕ → E) → ℝ),\n  Measurable a →\n    ∀ (ha0 : ∀ (s : NNReal × E × ℕ × (ℕ → E)), 0 < a s) (threshold : NNReal),\n      have F := fun p =>\n        (⟨↑p.1.1 + (a p.1)⁻¹, add_nonneg (NNReal.coe_nonneg p.1.1) (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,\n          (↑p.1.1 + (a p.1)⁻¹)⁻¹ • (↑p.1.1 • p.1.2.1 + (a p.1)⁻¹ • p.2), p.1.2.2.1 + 1, fun n =>\n          Nat.casesOn n p.2 p.1.2.2.2);\n      ∃ T H,\n        ProbabilityTheory.IsMarkovKernel T ∧\n          ProbabilityTheory.IsMarkovKernel H ∧\n            (∀ (s : NNReal × E × ℕ × (ℕ → E)), T s = μ.tilted fun x => -(↑s.1 / 2) * ‖x - s.2.1‖ ^ 2) ∧\n              (∀ (s : NNReal × E × ℕ × (ℕ → E)),\n                  H s = AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing (T s) √(a s)) ∧\n                ∀ (Q L : ProbabilityTheory.Kernel (NNReal × E × ℕ × (ℕ → E)) E),\n                  ProbabilityTheory.IsMarkovKernel Q →\n                    ProbabilityTheory.IsMarkovKernel L →\n                      ∃ P R,\n                        ProbabilityTheory.IsMarkovKernel P ∧\n                          (∀ (n : ℕ), ProbabilityTheory.IsMarkovKernel (R n)) ∧\n                            (∀ (s : NNReal × E × ℕ × (ℕ → E)),\n                                P s =\n                                  if threshold ≤ s.1 then MeasureTheory.Measure.dirac s\n                                  else MeasureTheory.Measure.map (fun y => F (s, y)) (Q s)) ∧\n                              R 0 = L ∧\n                                (∀ (n : ℕ) (s : NNReal × E × ℕ × (ℕ → E)),\n                                    (R (n + 1)) s =\n                                      if threshold ≤ s.1 then L s else (Q s).bind fun y => (R n) (F (s, y))) ∧\n                                  have e := fun s => if threshold ≤ s.1 then 0 else InformationTheory.klDiv (Q s) (H s);\n                                  have t := fun s => InformationTheory.klDiv (L s) (T s);\n                                  Measurable e ∧\n                                    Measurable t ∧\n                                      ∀ (n : ℕ) (s : NNReal × E × ℕ × (ℕ → E)),\n                                        InformationTheory.klDiv ((R n) s) (T s) ≤\n                                          ∑ j ∈ Finset.range n, ∫⁻ (x : NNReal × E × ℕ × (ℕ → E)), e x ∂(P ^ j) s +\n                                            ∫⁻ (x : NNReal × E × ℕ × (ℕ → E)), t x ∂(P ^ n) s",
+    "statement_sha256": "2ab533cdcc5ee29bf40abe60d1384c9ec9b453a4e3dcad2d5a818b8dd17a0a5b",
+    "compiled": true,
+    "approved_definition_context": [
+      "Measure E is a countably additive measure; IsProbabilityMeasure means mass one. Kernel X Y is a measurable family of measures; IsMarkovKernel means every fiber has mass one.",
+      "The state is the right-associated product NNReal times E times Nat times (Nat to E). For s=(b,u,k,h), s.1=b, s.2.1=u, s.2.2.1=k, s.2.2.2=h. Nat.casesOn n y h prepends y to h.",
+      "Measure.tilted mu f is the normalized measure with density exp(f) against mu. GaussianSmoothing.gaussianSmoothing nu sigma is convolution of nu with the centered isotropic Gaussian of standard deviation sigma. Vector multiplication in the statement is scalar multiplication.",
+      "Measure.map is pushforward and Measure.bind integrates the displayed measure-valued function against the input measure. Measure.dirac is point mass. P^0 is the identity kernel; P^n is n successive applications.",
+      "InformationTheory.klDiv is relative entropy taking values in the extended nonnegative reals, including infinity. The lintegral is the nonnegative extended integral. The finite range n consists of 0,...,n-1. Threshold comparison includes equality in the stopped branch."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "5e2728e8eb164a5ce41479de3dce6aa001af0bb23a05282d34bbbd61819f038d"
+}

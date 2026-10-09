@@ -1,0 +1,85 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMassSliceFamily
+import AutoSamplingTheory.TechnicalLemmas.Measure.PermutedMarginalReplacement
+
+/-!
+# Permutation replacement of the canonical common-mass slice family
+
+This module is only a composition node.  `CommonMassSliceFamily` constructs
+positive equal-mass slices dominated by the original local blocks, while
+`PermutedMarginalReplacement` re-pairs any equal-mass family and preserves the
+total source and target marginals.
+
+No mass-selection or product-measure algebra is reproved here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonSlicePermutationReplacement
+
+open MeasureTheory
+open CommonMassSliceFamily CommonRemovableMass PermutedMarginalReplacement
+open scoped BigOperators
+
+noncomputable section
+
+variable {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+
+/-- Sum of the canonical equal-mass slices removed from the local joint blocks. -/
+noncomputable def commonSliceRemoved {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure (X × Y)) : FiniteMeasure (X × Y) :=
+  ∑ i, commonMassSliceFamily mu i
+
+/-- Canonical replacement obtained by permuting the target marginals of the
+common-mass slices. -/
+noncomputable def commonSlicePermutationReplacement {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) : FiniteMeasure (X × Y) :=
+  permutedMarginalReplacement (fun i => commonMassSliceFamily mu i) σ
+
+/-- The canonical replacement has exactly the first marginal of the removed
+slice sum. -/
+theorem commonSlicePermutationReplacement_map_fst {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure (X × Y))
+    (hpos : ∀ i, 0 < (mu i).mass)
+    (σ : Equiv.Perm (Fin (n + 1))) :
+    (commonSlicePermutationReplacement mu σ).map Prod.fst =
+      (commonSliceRemoved mu).map Prod.fst := by
+  unfold commonSlicePermutationReplacement commonSliceRemoved
+  apply permutedMarginalReplacement_map_fst
+      (fun i => commonMassSliceFamily mu i) σ (commonRemovableMass mu)
+  · exact fun i => commonMassSliceFamily_mass mu hpos i
+  · exact commonRemovableMass_pos mu hpos
+
+/-- The canonical replacement has exactly the second marginal of the removed
+slice sum. -/
+theorem commonSlicePermutationReplacement_map_snd {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure (X × Y))
+    (hpos : ∀ i, 0 < (mu i).mass)
+    (σ : Equiv.Perm (Fin (n + 1))) :
+    (commonSlicePermutationReplacement mu σ).map Prod.snd =
+      (commonSliceRemoved mu).map Prod.snd := by
+  unfold commonSlicePermutationReplacement commonSliceRemoved
+  apply permutedMarginalReplacement_map_snd
+      (fun i => commonMassSliceFamily mu i) σ (commonRemovableMass mu)
+  · exact fun i => commonMassSliceFamily_mass mu hpos i
+  · exact commonRemovableMass_pos mu hpos
+
+/-- Both marginal identities packaged for the global replacement competitor. -/
+theorem commonSlicePermutationReplacement_preserves_removed_marginals {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure (X × Y))
+    (hpos : ∀ i, 0 < (mu i).mass)
+    (σ : Equiv.Perm (Fin (n + 1))) :
+    (commonSlicePermutationReplacement mu σ).map Prod.fst =
+        (commonSliceRemoved mu).map Prod.fst ∧
+      (commonSlicePermutationReplacement mu σ).map Prod.snd =
+        (commonSliceRemoved mu).map Prod.snd := by
+  exact ⟨commonSlicePermutationReplacement_map_fst mu hpos σ,
+    commonSlicePermutationReplacement_map_snd mu hpos σ⟩
+
+end
+
+end CommonSlicePermutationReplacement
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

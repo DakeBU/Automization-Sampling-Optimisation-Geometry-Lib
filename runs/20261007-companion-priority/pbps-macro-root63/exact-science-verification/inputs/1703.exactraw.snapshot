@@ -1,0 +1,92 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "Section 1.1 introduces a distribution μ on a subset of binary configurations {0,1}^V and defines Ω to be exactly its positive-probability support. The selected Section 1.3 target chooses one vertex uniformly and resamples its spin from μ conditional on the fixed spins at the other vertices. The graph supplies the vertex set but its edges do not occur in this general conditional-update rule.",
+      "reconstructed": "A probability measure μ on the full finite Boolean cube Fin(n+1) → Bool, a current configuration x, an output configuration y, and the randomScan kernel. The blind reconstruction describes randomScan as the uniform mixture of coordinate-update kernels obtained from regular conditional distributions.",
+      "relation": "equivalent",
+      "evidence": "Full visual inspection of printed/PDF p.4, Section 1.1, and p.5, Section 1.3, shows that Bool represents the two source spin values. A distribution on the source support can be extended by zero to the ambient cube, and any probability measure on the finite cube has exactly such a positive support. No graph-edge dependence is needed for this particular one-update law. The description of the implementation using regular conditional distributions comes from the blind reconstruction, not from independent inspection of Lean definitions."
+    },
+    "domains": {
+      "original": "A finite vertex set V of cardinality N, a support Ω = {σ ∈ {0,1}^V : μ(σ) > 0}, and an input X_t ∈ Ω. Uniform selection of a vertex presupposes N > 0. The source update takes values in Ω.",
+      "reconstructed": "The site type is Fin(n+1), so every represented site set has positive size. x and y are quantified over the ambient cube, while μ{x} ≠ 0 restricts the asserted law to supported inputs. The formula also states zero transition mass at every unsupported output y. The decoder's symbol Ω denotes the full cube, unlike the source's Ω, which denotes positive support.",
+      "relation": "explicit-elaboration",
+      "evidence": "The support equality is printed on p.4; the general update on p.5 begins from X_t ∈ Ω. Relabelling any finite nonempty V through a bijection with Fin(N), with N=n+1, gives the Lean indexing. The input condition is not a full-support hypothesis on μ. If μ{y}=0, every matching-site term is zero and every nonmatching term is explicitly zero, giving the harmless ambient-output extension. Although the reconstructed kernel exists on ambient null inputs, this theorem makes no claim about its law there. The decoder's reuse of Ω must not be mistaken for a change to the source support definition."
+    },
+    "quantifiers": {
+      "original": "The general distribution update applies to any binary distribution in the Section 1.1 setting and any supported current state; its one-step transition law determines probabilities of possible output configurations. A site is chosen uniformly from the whole vertex set.",
+      "reconstructed": "For every natural n, every probability measure μ on Fin(n+1) → Bool, and every ambient x and y, the stated equality holds whenever μ{x} ≠ 0. The displayed finite sum ranges over every i ∈ Fin(n+1), and agreement with x is required at every j distinct from i.",
+      "relation": "explicit-elaboration",
+      "evidence": "The Section 1.3 paragraph introducing the general definition on p.5 is not limited to the preceding hard-core example. The Lean quantifiers cover every positive finite cardinality by writing N=n+1. They provide the pointwise law at every supported input, not merely an almost-everywhere assertion. Quantifying y over the ambient cube is the zero-extension of the support-indexed transition law, not an assertion that null configurations are supported."
+    },
+    "assumptions": {
+      "original": "μ is a probability distribution; the system is binary and finite; the current state has positive probability by membership in Ω. Selecting a vertex uniformly requires a nonempty vertex set. The specifically cited general conditional-update rule requires no hard-core activity, graph connectivity, full support, or irreducibility assumption.",
+      "reconstructed": "IsProbabilityMeasure μ, the finite nonempty site type Fin(n+1), Boolean spins, and the hypothesis μ{x} ≠ 0. No other mathematical hypotheses appear in the supplied Lean statement.",
+      "relation": "explicit-elaboration",
+      "evidence": "For a nonnegative measure, μ{x} ≠ 0 is exactly μ{x} > 0. For each selected i, the conditioning fibre E_i = {z : z agrees with x off i} contains x, so 0 < μ{x} ≤ μ(E_i) ≤ 1. Thus the conditional denominator is positive and finite at all inputs covered by the theorem. Fin(n+1) exposes the nonemptiness presupposed by p.5's uniform vertex choice rather than requiring an extra positive-support condition at every configuration. The surrounding hard-core discussion is not an assumption of the later general update."
+    },
+    "conclusion": {
+      "original": "For the cited explanatory rule, all unselected spins retain their own previous values and the selected spin is sampled conditionally on those retained values. This determines the probability of each configuration after one uniformly selected coordinate update; the source does not print the displayed finite-sum singleton formula.",
+      "reconstructed": "The singleton transition mass is (n+1)⁻¹ times the sum over sites i of μ(E_i)⁻¹ μ{y} when y agrees with x away from i, and zero otherwise, with E_i expressed by deleting coordinate i using i.succAbove. The equality is in the extended nonnegative reals.",
+      "relation": "explicit-elaboration",
+      "evidence": "For fixed i, a nonmatching y is impossible under retained off-site values. For matching y, the event specifying the retained values together with the newly sampled value y_i is exactly {y}, so its conditional probability is μ{y}/μ(E_i). Averaging over the uniform site choice gives exactly the displayed equality. The map i.succAbove enumerates all sites other than i, so the conditioning event represents all and only the retained coordinates. Positivity and finiteness of μ(E_i) make the extended-nonnegative-real arithmetic coincide with the ordinary finite conditional-probability ratio. Diagonal transitions are included: when y=x, all selected sites contribute their respective holding probability. This is a semantic derivation from the supplied statement and source context, not verification of the Lean proof or kernel implementation."
+    },
+    "scopes": {
+      "original": "The pinned comparison explicitly selects Section 1.1's support definition and Section 1.3's general site-selection step, conditional-sampling step, and explanatory prose immediately after that sampling step. It concerns one transition X_t → X_{t+1}.",
+      "reconstructed": "The theorem identifies the one-step singleton law of the uniform random-scan kernel at supported inputs. It does not concern a sweep, several updates, convergence, stationarity, mixing time, or the full range of claims in the monograph.",
+      "relation": "same",
+      "evidence": "On the fully inspected p.5, the explanatory prose says to fix all vertices except the selected one, and the conditional expression conditions on σ(w)=X_t(w) for all w distinct from that vertex. However, the adjacent general numbered step 2 literally writes X_{t+1}(w)=X_t(v), using the selected vertex's old value instead of w's own old value. That line conflicts with the specifically cited explanatory target and is excluded by the packet's stated scope. Acceptance here therefore does not certify the literal full numbered algorithm. It also does not certify the preceding hard-core ergodicity discussion or the subsequent mixing-time definition."
+    },
+    "constant_dependencies": {
+      "original": "The site-selection probability is exactly 1/|V| per vertex. Conditional probabilities depend on μ and the off-site values of the current state, through the mass of the corresponding conditioning fibre. There is one selected-site update per time step.",
+      "reconstructed": "The exact prefactor is (↑n+1)⁻¹, the inverse of the cardinality of Fin(n+1). Each matching term has exactly one inverse fibre mass multiplied by μ{y}; the sum has n+1 terms. There is no activity parameter, extra lazy factor, sweep normalization, or unspecified asymptotic constant.",
+      "relation": "equivalent",
+      "evidence": "The source's n=|V| and the Lean parameter n differ by the explicit cardinality convention N=n+1; the physical number of sites, and hence the update rate, agree. For N=1 the deleted-coordinate fibre is the full cube, its mass is 1, and the formula reduces to μ{y}, as a one-site resampling must. For general N the selected site is uniform on all sites, not only feasible or changing sites. The displayed normalizer depends only on μ, i, and x off i, and the output numerator is precisely μ{y}; there is no hidden dependence on edges or the preceding hard-core parameter λ."
+    }
+  },
+  "deltas": [
+    {
+      "id": "finite-nonempty-representation",
+      "slot": "domains",
+      "severity": "informational",
+      "description": "The source's finite nonempty vertex set of size N is represented by Fin(n+1). N>0 is implicit in the source's uniform site choice and explicit in Lean's type; source n and Lean n should not be numerically identified.",
+      "impact": "No semantic mismatch for the selected executable update rule. No empty-site update is certified."
+    },
+    {
+      "id": "support-versus-ambient-cube",
+      "slot": "domains",
+      "severity": "informational",
+      "description": "The source uses Ω for positive support, whereas the blind reconstruction uses Ω for the entire Boolean cube. The Lean antecedent restricts inputs to support and the ambient-output formula extends the supported law by zero.",
+      "impact": "The theorem neither requires full support nor identifies the kernel's behavior at null inputs. This is a notation and domain elaboration, not a changed supported-state law."
+    },
+    {
+      "id": "conditional-law-expanded",
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The finite-sum singleton formula is derived from the cited conditional-update prose; it is not a verbatim source formula. Supported inputs guarantee positive finite conditioning denominators.",
+      "impact": "The exact formula and constants are equivalent to the narrow cited update after elementary finite conditional-probability elaboration."
+    },
+    {
+      "id": "adjacent-numbered-step-conflict",
+      "slot": "scopes",
+      "severity": "review",
+      "description": "The general numbered step 2 on p.5 writes X_{t+1}(w)=X_t(v) for w≠v, while step 3 conditions on X_t(w) and its explanation fixes the spins on the rest of the vertices. The Lean formula matches step 3 and its explanatory rule, not literal copying of X_t(v) into the other coordinates.",
+      "impact": "This is not blocking for the expressly pinned target, which excludes the conflicting step 2. Any later claim of fidelity to the entire printed numbered algorithm requires a separate explicit source-error or correction review; this acceptance must not be generalized to that claim."
+    },
+    {
+      "id": "pdf-hash-provenance",
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The packet contains no expected primary PDF SHA256. The independent byte digest is 3cc2f911b33bb5538157ef8a70f0c7e0f3c812ecd06dc9c1d5ea0bfdae11a52a. After that computation was reported, the coordinator separately supplied the identical expected source-metadata digest.",
+      "impact": "PDF identity matches the supplemental provenance input. It was not possible to verify the PDF against an expected PDF digest contained in the packet itself, and no such in-packet verification is claimed."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "/root/random_scan_source_review",
+  "reviewer_state": "accepted",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Fresh independent source-semantic review of packet ASTIS-REVIEW-97206374d96c805f. Read the complete review packet and the complete PDF skill, computed the primary PDF's SHA256 directly, rendered only complete PDF pages 4 and 5 at 150 dpi with the specified pdftoppm, and visually inspected both full rendered pages including surrounding hard-core context, all general numbered steps, explanatory prose, and the beginning of the mixing-time paragraph. The primary PDF at D:/Users/HUAWEI/Desktop/Github/Auto-Sampling-Theory-In-Sleep/.astis/source-cache/2307.13826v4.pdf has independently computed SHA256 3cc2f911b33bb5538157ef8a70f0c7e0f3c812ecd06dc9c1d5ea0bfdae11a52a. The packet itself does not carry an expected primary PDF hash; a later neutral coordinator message separately supplies exactly this expected hash from fixed source metadata, matching the computation. The original packet was not changed. Its actual file-byte SHA256 is 975db7bb8844ed8f57918fa0ab8abd142e731c8d4a6f36e3d820182d8074d35d; reviewer_packet_sha256 below records its declared packet_sha256, a distinct value, without claiming that declared digest is the raw-file digest. All seven semantic slots were audited against the primary pages and the supplied Lean statement plus blind reconstruction. The source.original_text field is an ASTIS paraphrase, not an original quotation, and was checked rather than treated as primary evidence. Accepted means that the precisely cited support definition and explanatory one-update rule are faithfully represented after finite-coordinate relabelling, support/ambient zero-extension, and expansion of the conditional probability. It does not mean the literal complete printed algorithm is accepted: the conflicting general step 2 remains outside this target. No repository source maps, Lean implementation, proofs, previous audits, prior verdicts, repair proposals, other reviewers, or unrelated files were read. No Lean proof or build certification was performed; the packet's compiled flag was not independently verified. No stationarity, irreducibility, convergence, later mixing result, or whole-monograph fidelity is certified. No mathematical repair to this pinned target is proposed. The self-run hash is deliberately blank for coordinator hashing of the completed immutable response bytes.",
+  "review_run_sha256": "",
+  "reviewer_packet_sha256": "fa10a2be8138a2f1f238507c1039ac79ceeea230dca5544f1b266675a4aa657e"
+}

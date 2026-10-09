@@ -1,0 +1,34 @@
+import Mathlib
+
+/-!
+# Reciprocal growth implies an inverse-time rate
+
+This algebraic leaf isolates the last rearrangement used in inverse-time
+convergence arguments: if `1 / k` has increased by at least `t / A` from a
+positive initial reciprocal, then `k ≤ A / t`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Algebra
+
+/-- Reciprocal growth converts to the usual `A / t` upper bound. -/
+theorem reciprocal_growth_implies_inverse_time_bound
+    {k k0 A t : ℝ}
+    (hk : 0 < k) (hk0 : 0 < k0) (hA : 0 < A) (ht : 0 < t)
+    (hgrowth : 1 / k0 + t / A ≤ 1 / k) :
+    k ≤ A / t := by
+  have hk0inv : 0 ≤ 1 / k0 := one_div_nonneg.mpr (le_of_lt hk0)
+  have hbase : t / A ≤ 1 / k := by
+    linarith
+  have hta : t ≤ A / k := by
+    have h := (div_le_iff₀ hA).mp hbase
+    simpa [div_eq_mul_inv, mul_comm] using h
+  have htk : t * k ≤ A := (le_div_iff₀ hk).mp hta
+  have hkt : k * t ≤ A := by
+    simpa [mul_comm] using htk
+  exact (le_div_iff₀ ht).2 hkt
+
+end Algebra
+end TechnicalLemmas
+end AutoSamplingTheory

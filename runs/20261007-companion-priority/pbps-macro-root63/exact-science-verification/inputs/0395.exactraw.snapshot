@@ -1,0 +1,37 @@
+from pathlib import Path
+import hashlib,json,sys
+sys.path.insert(0,str(Path('tools').resolve()))
+import astis_publication as pub
+r=Path('runs/20261007-companion-priority/pbps-real-defect-root61');m=r/'independent-math61';pre=Path('runs/20261007-companion-priority/pbps-real-defect-root-preproof61');primary=pre/'independent-preproof61'
+load=lambda p:json.loads(Path(p).read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest();can=lambda x:json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+def w(p,x):
+ p=Path(p);assert not p.exists(),p;p.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+def pin(p):
+ p=Path(p);b=p.read_bytes();return dict(path=p.resolve().as_posix(),raw_bytes=len(b),raw_sha256=sha(b),lf_sha256=sha(b.replace(b'\r\n',b'\n')))
+seen=set()
+def walk(x):
+ if isinstance(x,dict):
+  if {'path','raw_sha256'}<=x.keys():
+   p=Path(x['path']);key=(p.resolve().as_posix(),x['raw_sha256'],x.get('lf_sha256'))
+   if key not in seen:
+    q=pin(p);assert q['raw_sha256']==x['raw_sha256'],p
+    if 'lf_sha256' in x:assert q['lf_sha256']==x['lf_sha256'],p
+    for k in ['bytes','raw_bytes','raw_byte_count']:
+     if k in x:assert q['raw_bytes']==x[k],p
+    seen.add(key)
+  for v in x.values():walk(v)
+ elif isinstance(x,list):
+  for v in x:walk(v)
+mr=load(m/'run.json');ml=load(m/'lease.json');mp=load(m/'payload.json')
+assert ml['status']=='CLOSEDLAST'
+assert sha(can({k:v for k,v in mr.items() if k!='run_sha256'}))==mr['run_sha256']=='5e94c9f4d18e4607eeb6328d08dcda8250c8064ca9bc5dc286ea026eeac45cf8'
+assert sha(can(mr['named_mathematics_payload']))==mr['named_mathematics_payload_sha256']=='6f0a1f457086c632b5214933ba9ec5c53e544fa74f2f53ad4f802091ab608b00'
+assert mr['named_mathematics_payload']['verdict']=='ACCEPT_SCOPED_NO_MATHEMATICAL_BLOCKER'
+assert mr['actual_compiler']['exit_code']==0 and mr['actual_compiler']['terminal_closed']
+for p in m.glob('*.json'):walk(load(p))
+w(r/'root.math61.adoption.json',dict(status='INDEPENDENT_PRECOMMIT_SCOPED_MATHEMATICS_ACCEPTED',run_sha256=mr['run_sha256'],named_mathematics_payload_sha256=mr['named_mathematics_payload_sha256'],qualified_pin_readbacks=len(seen),complete_proofs_reviewed=True,focused_build='Actual53352 EXIT0 PASS3916; own pre-run input hashes; standard3.',checked_base_commit=mr['checked_base_commit'],VERIFIED=False,full_paper=False))
+plan=load(r/'publication-plan.json');packets=[load(r/f'source.{i}.reviewer-packet.json') for i in range(2)]
+sourceinputs=[primary/'inputs/04-primary.exact-regions.json.raw.snapshot',primary/'inputs/05-cap.source.supplement.json.raw.snapshot',primary/'source.graph.before-candidate.json',primary/'source.coverage.before-candidate.json',primary/'source.boundary.before-candidate.json']+[Path(x) for x in load(r/'claim.json')['proposed_files']]+[r/f'source.{i}.reviewer-packet.json' for i in range(2)]+[Path('research-wiki/semantic-roundtrip/audits')/(aid+'.json') for aid in plan['audit_ids']]+[r/'publication-plan.json',r/'exposition.draft.json']+[Path('website/content')/folder/(slug+'.json') for folder in ['publications','declaration_lessons'] for slug in plan['slugs']]
+w(r/'source.review.lease.json',dict(status='OPEN',reviewer='/root/next_primary59',input_artifacts=[pin(p) for p in sourceinputs],reviewer_packet_sha256=[p['packet_sha256'] for p in packets],compiler_started=False,scope='Primary-first anti-anchored current exact signatures/bodies and all nine formula proof steps and ten private providers. Independently reconstructed before-source proof graph distinct from implementation route. No prior postproof semantic verdict or repair. Real-root existence and full scalar PBPS energy only; printed joint root/real uniqueness/ontoM/B*B/main/cost/composition still separate.',allowed_outputs=['source-review61/*'],final_closure_order='Original OPEN lease immutable; reviewer own CLOSEDLAST after actual readbacks.'))
+pub.inputs.cache_clear();pub.load.cache_clear();pub.check_advance(plan['mathematical_declarations'],reviewed=False)
+print('Independent complete math61 adopted; closed anonymous61 bound;',len(sourceinputs),'primary-first anti-anchored source inputs ready. No PROVED_LOCAL or VERIFIED.')

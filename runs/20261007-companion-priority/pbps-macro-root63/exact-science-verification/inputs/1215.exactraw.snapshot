@@ -1,0 +1,88 @@
+# Actual gradient kernel and centered epsilon-zero: source/API preread
+
+2026-10-06. Independent author `phase_source_reviewer_20261005`, distinct from formalizer and decoder. This is a bounded scheduling/dependency note, not a source-equivalence verdict, new SAU, compiled theorem, independent Lean verification, Poincare/BL completion or main-result claim. No compiler was run. Repository HEAD at footprint collection: `3f0597ab25879b6299147d8dd42557c1d6c049ae`. Current compact weighted results are used only for their independently read local prerequisite boundary; their administrative admission status supplies no next-edge evidence.
+
+## Primary contract, read first
+
+Fresh web reads on 2026-10-06, before the proposal/API search: [PBPS arXiv:2609.06905v1 Section2.2](https://arxiv.org/html/2609.06905v1#S2.SS2), HTML168-212; [AppendixC.1](https://arxiv.org/html/2609.06905v1#A3.SS1), HTML1197-1237; [SPHMC arXiv:2609.06906v1 Section4.1](https://arxiv.org/html/2609.06906v1#S4.SS1), HTML403-430. No local primary cache exists in this workflow; these are actual v1 web reads, not metadata treated as original text.
+
+PBPS assumes C2 curvature bounds with positive alpha<=beta and eta in(0,1/beta]. Its conditional analysis invokes Poincare after a compact-smooth density/closedness step. SPHMC invokes BL covariance upper and separate CR covariance lower for its RGO. This note reconstructs an omitted full-space analytic prerequisite, not a quoted numbered theorem.
+
+Keep the actual potentials distinct:
+\[
+ W_y^S(z)=V((y+z)/2)+\frac{\|z-y\|^2}{8\eta},\quad
+ W_y^R(x)=V(x)+\frac{\|x-y\|^2}{2\eta}.
+\]
+The reflection is z=2x-y with Jacobian2^{-d}; its lower Hessian is m_S=(alpha+eta^{-1})/4, versus m_R=alpha+eta^{-1}. Corresponding gradient-energy and Poincare constants differ by four. Neither a law nor an operator is identified across this change without the genuine pushforward adapter. Source upper/lower Hessian and eta cap remain visible; the kernel leaf itself needs only the weaker contracts below.
+
+Exposure: own earlier primary/API prereads and full matching local parent reviews; earlier covariance signature/keyword/matching-line searches. The specified root zero-gradient note was opened only after primary reconstruction, as an unvalidated proposal. This search read existing public signatures and selected implementations, not current/future global-cutoff prototypes, ignored candidate logs, future anonymous reconstructions, mathematical review verdicts or prior source classifications as proof evidence. It is not complete candidate blindness.
+
+## Seven semantic slots
+
+| Slot | Exact proposed contract and boundary |
+| --- | --- |
+| Objects | Actual positive normalized mu=volume.tilted(-W), original compact-C-infinity gradient D, its genuine closure A=D.closure, weighted scalar/vector L2 classes and their actual AE representatives. Ordinary weak zero-gradient is first a separate real-function leaf. |
+| Domains | Full finite real Hilbert/Borel E, including0. Kernel statement is local-volume-L1, not global-volume-L1; constants need not be integrable for infinite volume. Weighted L2 and ordinary weak tests remain distinct. Original closed graph, not a replacement or supplied kernel certificate. |
+| Quantifiers | Fix original D first; all graph/domain elements u. Leaf: all real C1 compact psi and directions a, then exists one real c with u=c volume-AE. Conditional: common actual R/S, each y fixes D_y before all positive epsilon/forcing; the same actual u_epsilon per forcing is used. No jointly measurable fiber selector. |
+| Assumptions | Leaf: genuine LocallyIntegrable u volume and both legal L1 weak products with zero directional integral. Adapter: W C1, genuine exp(-W) integrability/positive mass, exact smooth-test graph, closability. Constant-domain production uses finite probability mass and actual smooth cutoffs, not Poincare, moments or globally bounded drift. Global positive-curvature coercivity remains a separate producer. |
+| Conclusion | First actual volume-AE constancy, then weighted-AE constancy and constants in the SAME A.domain with zero A. Later centered forcing derives centering of u_epsilon, residual epsilon*u_epsilon vanishing, and only after genuine global scalar coercivity a Poincare inequality for original-domain classes. |
+| Scopes | Full-space connectedness is essential; disconnected/open domains may have one constant per component. No classical derivative of rough u, H2, rough Bochner identity, adjoint/core equivalence, generator-domain equality, BL, complete PBPS/SPHMC theorem or kernel composition is supplied. |
+| Constant dependencies | Kernel and constant-domain leaves need no positive curvature. Resolvent elementary bounds depend on epsilon. Poincare later needs m>0 and exact 1/m; arbitrary signed m from compact scalar parent is insufficient. For reflected source 1/m_S=4/(alpha+eta^{-1}); unreflected source 1/m_R=1/(alpha+eta^{-1}). |
+
+## Genuine existing interfaces versus consumed premises
+
+`WeightedGradient.compact_gradient_closable` (line34) constructs a dense closable original smooth compact graph from C1 W and actual Gibbs integrability. `WeightedGradientDistribution.closed_gradient_distributional` (line46) derives local-volume-L1 and all C1 compact directional weak identities from membership in the SAME closure graph. It is one-way: it does not identify its kernel or assert the converse domain. `WeightedLocalL2.lp_locallyMemLp_volume` (line24) gives actual compact-volume-L2. None is a supplied Poincare theorem.
+
+Pinned Mathlib is db584cd6d46c92f209a44c0f1c829460d327499d, Lean4.33.0. `tilted_absolutelyContinuous` and `absolutelyContinuous_tilted` (Tilted.lean280/283) give BOTH AE directions when the exponential is integrable; use the correct direction to turn weighted zero-gradient representatives into ordinary-volume zero. `HasCompactSupport.hasFDerivAt_convolution_left` (ContDiff/Convolution.lean93) requires the true compact C1 kernel, locally integrable input, invariant volume and actual convolution. `ContDiffBump.ae_convolution_tendsto_right_of_locallyIntegrable` (BumpFunction/Convolution.lean107) needs shrinking outer radii and bounded outer/inner ratio. `is_const_of_fderiv_eq_zero` (MeanValue.lean566) consumes actual differentiability and zero Frechet derivative; totalized fderiv=0 by itself is insufficient. No matching completed ordinary weak-zero-gradient leaf was found in the bounded local search.
+
+`Cutoff.radialSmoothCutoff_contDiff`, `_hasCompactSupport`, `_mem_Icc`, `_fderiv_bound` and `_tendsto_one` provide an actual scale-uniform first-derivative bound C/R, support, range and limit. Convert that bound to the true gradient norm, not an assumed final class. For the zero-dimensional branch, E is a singleton with finite volume; constants already have compact support. Do not add Nontrivial E to a theorem advertised to include0.
+
+`ClosedGraphResolvent.weak_resolvent` (line24) produces one unique positive-epsilon solution for any closed real Hilbert partial operator; no dense domain is needed there. Its actual energy identity only yields ||u||<=||f||/epsilon, not a uniform zero-epsilon bound. LaxMilgram's `IsCoercive` API consumes a positive coercivity bound on a complete space; invoking it on a centered gradient space before proving Poincare/completeness would be circular.
+
+Riesz `InnerProductSpace.toDual` and `WeakDual.isCompact_closedBall` (WeakDual.lean270) provide a real Hilbert weak-compactness route. `Convex.toWeakSpace_closure` (WeakSpace.lean43) can transfer closed submodule graphs to weakly closed graphs. These require actual topology/Riesz adapters, not norm-compactness of an infinite-dimensional L2 ball. Sequential `WeakDual.isSeqCompact_closedBall` (370) additionally requires separability; prove the actual L2 instance or use compactness/subnets. Bounded source state dimension does not make weighted L2 finite-dimensional. Existing bounded-operator orthogonal-range identities cannot silently identify the unbounded gradient generator.
+
+## Proposed implementation route, at most seven steps
+
+1. **Smallest new leaf:** for locally-volume-integrable real u satisfying integral u*D_a psi=0 with legal products for all C1 compact psi/a, derive exists c, u=c volume-AE. Use actual normalized shrinking compact bumps, rOut<=2*rIn. Translated tests psi(z)=rho(x-z) kill each convolution derivative, with the minus sign checked. Genuine differentiated convolution and mean-value constancy make every mollification constant. Choose one point in the full-measure convergence set using nonzero volume, then compare its same constant sequence at every other AE point. Handle0 without division by dimension.
+2. **Actual same-D adapter:** apply the existing distributional theorem to (u,A u) and A u=0. Transfer zero representatives to volume using volume<<mu, invoke step1, and transfer constancy back using mu<<volume. Construct the actual constant L2 class via finite probability mass and AE quotient equality. No zero mean u premise is introduced.
+3. **Constants in the same closed domain:** actual smooth cutoffs chi_R satisfy chi_R->1 and ||gradientchi_R||<=C/R. Derived weighted L2 limits of (c*chi_R,c*gradientchi_R) are (c,0), using finite mu, dominated convergence, the actual graph characterization and genuine graph closure. Thus actual constant class belongs to A.domain and A(const)=0. This alone is not spectral gap or inverse range.
+4. **Centered scaled residual, before any uniform u bound:** for centered forcing f, test the positive-epsilon variational identity at actual constant1. Derive epsilon*mean(u_epsilon)=mean(f)=0, hence u_epsilon is centered. Existing energy gives ||epsilon*u_epsilon||<=||f|| and ||epsilon*A u_epsilon||<=sqrt(epsilon)||f||. Weak compactness plus the SAME weakly closed graph forces every limit of this pair into the actual constant kernel; centering forces that constant0. Derive epsilon*u_epsilon weakly0, then strongly0 from ||epsilon*u_epsilon||^2<=inner(f,epsilon*u_epsilon). No Poincare norm bound is used.
+5. **Separate missing global producer:** obtain m||A u_epsilon||^2<=||f-epsilon*u_epsilon||^2 for the SAME genuine solution from true compact weighted scalar coercivity and real cutoff removal, with m>0. The compact theorem alone does not provide this. Energy algebra gives ||f-epsilon*u_epsilon||<=||f||, so gradients become uniformly bounded by ||f||/sqrt(m).
+6. **Poincare before zero-epsilon solution:** for actual centered z in A.domain, take forcing f=z. The variational identity and step4 remove inner(epsilon*u_epsilon,z); step5 bounds inner(Au_epsilon,Az). Infer ||z||^2<=||z||*||Az||/sqrt(m), handling z=0 separately. For arbitrary z, subtract its DERIVED mean times the actual domain constant; get variance<=||Az||^2/m. This is a future proof obligation, not a present norm certificate.
+7. **Only afterward range/epsilon-zero:** Poincare and energy can now yield the derived uniform centered ||u_epsilon||<=||f||/m. Weak graph passage may produce an actual same-domain zero-epsilon weak solution and uniqueness modulo constants. A closed-range/generator/adjoint identification needs its own exact domain argument; no full smooth core is implied. Linear-observable domain/moment adapters are still required before any BL covariance consumer.
+
+## Failure boundary and next scheduling edge
+
+Prefer step1 as the smallest independently testable source-neutral analytic leaf, then steps2-3 as actual Gibbs/original-domain integration. A weak-compactness residual leaf can follow without global coercivity or prior Poincare. Fail if a mollifier derivative is totalized rather than genuine, ordinary weak data are replaced by weighted integration, AE transfer uses the wrong absolute-continuity direction, constants are asserted in the initial compact domain, or an epsilon bound is mislabeled uniform. Adding centered u as a premise, assuming a spectral gap/norm bound, or assuming the final kernel is exactly constants would remove the intended mathematics. Source C2 is adequate; no C-infinity potential, global bounded drift, position-times-u moment or joint fiber selection is justified.
+
+Global cutoff removal, true global scalar coercivity, all residual weak-topology adapters, centered zero-epsilon range, Poincare and BL remain open in this note. It changes no theorem statement, source acceptance, lifecycle or repository completion badge.
+
+## Immutable input footprint
+
+The following table records exact bytes of files whose public contracts/selected proof lines were read or searched; it does not claim a fresh whole-module proof audit. Existing compact-parent review is reused only as a bounded independently inspected source boundary. Primary web material has edition/anchors/read date above, not a fabricated local raw-file hash. Blueprint/math-review/current future prototypes are excluded.
+
+| Input | Raw SHA256 | LF SHA256 | Bytes |
+| --- | --- | --- | --- |
+| `research-wiki/cited-results/Weighted_zero_gradient_kernel_route.md` | `298313d755a8c6fb680c67e13a143d449cce19d98ea58cc450b28aa34682f34e` | `b1923eea9bdbee434546b2a70d54f4b7d5a03fa9f6a66be418bdb2cef99d746a` | 2771 |
+| `AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradient.lean` | `c2495b6ab8a4c82cadf0d86b910d663e0e4f65f6b96bc4b449149112756d4690` | `5bd3402124330f69d7875e9bbfc6eb31760b70528850ac841d1ff7c84ab72149` | 14800 |
+| `AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradientWeak.lean` | `9a733bd21cf4d16b8ff1f0b204be9473755c75c1c7bedb3abc0f9696311d409c` | `229fdeede8f2517cd6125ad74c2fd7feb9454c9268e18bd72d7bae141f32aa5c` | 8207 |
+| `AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedGradientDistribution.lean` | `212dc09403d2991e33d546bfeb2963e8ba2f3756fd5fd7a9b1004a1aed57329b` | `0e4292c24ad6b24cff053cddd8a9fb4dc24ad3b573886284cfc7bb1f5b29c6fc` | 5557 |
+| `AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedLocalL2.lean` | `01ac3e08ef17d0b87fe3ff873a61ea138dc7a3ac81289f8742cf642ad0e7aee4` | `a61421bdad21ef0ebf65dce11738f20146a7f53107ad6c355e31f7f973c14bb8` | 2279 |
+| `AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/ClosedGraphResolvent.lean` | `1ab1ae53e9251ae4fc210fc3b5b938f3f503419dc817df8771817e2dd2821c98` | `32ed6c367cdd5f52578366b83a448f96619f362b05d05e25963c3efbf870e022` | 5258 |
+| `AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedResolvent.lean` | `34e3d1772e756ff0e59155590877b47bd36fb0c76ed58119810ec16d7c6fa044` | `21108f9c99d5f944e97e3c4721d1f9e5f9e2a68afa6122916ba3a16606e1edd3` | 6092 |
+| `AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/Cutoff.lean` | `fe9b99800277b9e9aae9b453a2edcdb2aa6e18a566096440179a4ea9c804d979` | `2e931c85c06a0a5ad815a396e7b9e678dc5fb0fd8bcdf6ba6ab2eabe2cde1706` | 22044 |
+| `AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/Gradient.lean` | `b0e6a1c0c60c273621d9d612bf7874ac90fb5d90dee0c202d56b75a149e16db5` | `9482edb1349892d5a8104f25080e5ce2a0b6135862a3ece6ec283a614e42920a` | 9433 |
+| `.lake/packages/mathlib/Mathlib/Analysis/Calculus/BumpFunction/Convolution.lean` | `42770c7caab00fa5dcb8412eaed82ab70ca515d14306c2b90be7f79707487c59` | `7e89c7cb27e6d8fbeba7ef17cff8f9f62e4467337e5bf9e9d132b92825cf088a` | 7390 |
+| `.lake/packages/mathlib/Mathlib/Analysis/Calculus/ContDiff/Convolution.lean` | `e88453ce9a1e1735a0335b4c092ec662e72e798835b945e3dbb7ca7b3bc265a7` | `51c4b08497f08a898573cabb6ad5a95f4a1e170ab74fec15d2bf4fdd8eba370b` | 25454 |
+| `.lake/packages/mathlib/Mathlib/Analysis/Calculus/MeanValue.lean` | `8eec26eb1ee4f0f0764f3468b10bc3fb353dcf19a2172cf5de55eefd3fb9cc9c` | `5aff545ba7e780be43b7c856f683bfe41f037f372fdd6e879c5ed76880c9f02b` | 48743 |
+| `.lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Tilted.lean` | `53cc37610d1b21725a178c7d8064c59bb28629625d844b02430a30714ecd0c3e` | `355cce542b03dd9130d9511f80ae803cc11a12ba9e6a947e68402b124be2165f` | 17366 |
+| `.lake/packages/mathlib/Mathlib/Topology/Algebra/Module/LinearPMap.lean` | `8b034650fd42dd1eb87719892c80cc46f8d0d627fd386fe3e5aa5a6a0a451936` | `0f09b4171438d914fb2326706eea68be85b1423d1e9340cdd07afa6fc87e4360` | 9614 |
+| `.lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/LinearPMap.lean` | `6ab5e25e327273af06267f2a2a292c5fba2645e592a9c0644d81ead6065369cd` | `52eb9aade1019a56c5299e3eee416b3f301327ab2c11741e5a142f78a47bf847` | 13248 |
+| `.lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Dual.lean` | `17e758ce67aea692c91ca0cd2a6159818aa228af92327672101136c789e4436d` | `84f219ae95e919e3f3e96d83787ddc0d1a67b10bebf7340df374d3dab4cd4ecc` | 9265 |
+| `.lake/packages/mathlib/Mathlib/Analysis/Normed/Module/WeakDual.lean` | `950f00b90360bcc2b02971f7ff129a0757c52565e8a8c78eba8af6392683ccc6` | `9351a861215e238c39d5cf93aa050a3909108a8b6305d6be6d6afc8ff16e2783` | 21535 |
+| `.lake/packages/mathlib/Mathlib/Analysis/LocallyConvex/WeakSpace.lean` | `ed8facef1bb1c8015e647e061b10d5d5a41b5fa3547bcade62cc22262c370493` | `0e026f535c5c0176abfedbba42f388aa224bc0c6e673c785d46e435aa5a1e8fb` | 7403 |
+| `.lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/LaxMilgram.lean` | `451bcde5469edcad15f6d521ff374c54ca30ea809e53569780ef9ec78aee265b` | `e07020c3178e65a89d3e207ef37d08ab223945637564467b902556f70d512edb` | 4459 |
+| `lean-toolchain` | `b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477` | `302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b` | 26 |
+| `lake-manifest.json` | `b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2` | `b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37` | 3234 |
+
+Only this raw source/API note was written. Compiler NOT RUN. Production/shared/cell/audit/ledger untouched. All writes CLOSED.

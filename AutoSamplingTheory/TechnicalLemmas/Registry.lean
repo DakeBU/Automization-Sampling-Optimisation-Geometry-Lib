@@ -87,6 +87,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.hilbertCorrectorPerturbation"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation"
+    upstreamDecl := "Hilbert corrector perturbation algebra with actual PBPS consumer"
+    upstreamFile := "arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Hilbert", "corrector", "perturbation"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI72 18183c58eee62145b6059ded11c7be05a4cb82de. Explicit auxiliary structural assumptions on one complete real Hilbert space; exact C(u+Gr,v-Ar)-C(u,v)=inner(u,Inv r)+norm(r)^2/2. Actual72 supplies all conditions internally. No probabilistic or actual-r_rho producer. Rank0/alphaeta1 legal; no extra caller, onto or higher regularity. Full Exposition/PURIFIED/main/live/Goal not inferred."
+  },
+  {
     key := "analysis.hilbertSharpQuadraticCorrectorBound"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound.quadratic_corrector_bound_of_square_identity"
     upstreamDecl := "Sharp quadratic corrector bound from a selfadjoint square identity"
@@ -2108,6 +2118,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 ]
 
 def measureMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualCorrectorPerturbation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
+    upstreamDecl := "Actual PBPS corrector perturbation on the same centered space"
+    upstreamFile := "arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "conditional-expectation", "corrector", "perturbation"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI72 18183c58eee62145b6059ded11c7be05a4cb82de. Same original six analytic callers/twelve witnesses/all actual71 clauses; same C/A0/Gamma0/Inv exact perturbation for every u,v,r in HP0. Generic conditions produced internally. Arbitrary r is not actual r_rho; actual H/K/B27/B28, dynamics/nonexplosion/main/errors/cost/composition remain open. Rank0/alphaeta1 legal; no extra caller, onto or higher regularity. Full Exposition/PURIFIED/main/live/Goal not inferred."
+  },
   {
     key := "pbps.actualCorrectorChange"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange.actual_corrector_change"

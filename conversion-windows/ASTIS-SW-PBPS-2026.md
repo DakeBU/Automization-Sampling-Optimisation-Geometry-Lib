@@ -1,5 +1,21 @@
 # Proximal BPS · formalization result window
 
+## Exact perturbation checkpoint72 (2026-10-10)
+
+Independent science commit 18183c58eee62145b6059ded11c7be05a4cb82de; canonical full statements and six/four-step
+formula proofs are authored once in declaration_lessons/pbps-hilbert-corrector-
+perturbation.json and declaration_lessons/pbps-actual-corrector-perturbation.json.
+Their complete exact Lean is adjacent and initially folded on the original
+companion page. One SAU joins the auxiliary Hilbert lemma to actual PBPS inputs.
+
+For the SAME C(u,v)=(norm(u)^2-norm(v)^2)/2-inner(A0(Invu),v),
+C(u+Gamma0 r,v-A0 r)-C(u,v)=inner(u,Inv r)+norm(r)^2/2.
+All original actual71 clauses persist. Arbitrary r is not actual r_rho;
+Algorithm1 H/K/B27/B28, full dynamics/main/errors/cost/composition remain open.
+Serialized reader/aggregate admission is recorded separately in integration72;
+this is not a full Exposition Seal, PURIFIED, main/live or whole-paper completion.
+
+
 ## Current verified corrector checkpoint (2026-10-10)
 
 The historical source packets and earlier checkpoint paragraphs below are

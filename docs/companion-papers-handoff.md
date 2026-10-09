@@ -1,5 +1,33 @@
 # Companion-paper formalization handoff
 
+## Exact PBPS corrector perturbation (2026-10-10)
+
+Independent exact science72 VERIFIED commit 18183c58eee62145b6059ded11c7be05a4cb82de. The same B20 corrector
+on the same centered HP0 obeys C(u+Gamma0 r,v-A0 r)-C(u,v)
+=inner(u,Inv r)+norm(r)^2/2 for every u,v,r in HP0. One reusable complete-real-
+Hilbert algebra leaf is consumed inside the actual PBPS original-six-input
+theorem. Twelve witnesses, all actual71 clauses and the exact half/sign remain.
+Two connected publication cells belong to one SAU; no second SAU or fake consumer.
+Rank0/alphaeta1 remain legal, with no extra caller, onto or higher derivative.
+
+Arbitrary r is not the source r_rho. The actual Algorithm1 half-turn endpoint
+H_y, its joint Borel/nonexplosive construction, reversal and same-J lift, actual
+K/B7/r_rho/B27/B28, full B4/H1, main/error/cap/cost/composition results remain open.
+Q_y and same-J Gaussian disintegration ALREADY exist in
+GaussianConditionalKernel.exists_tilted_isCondKernel; the actual affine reflected
+law relation also exists. Reuse these before introducing any reference-law copy.
+Next source-first work is the earliest deterministic flow/bounce/rate construction
+ingredient with a real Proposition3.1 nonexplosion consumer. The independent
+prospective73 source plan is planning only, no new proof or completion credit.
+
+Serialized local aggregate72:root9183,Tests9483,Registry521;242 publication units.
+Two statements,6+4 exact formula/BODY steps and actual branch were inspected;
+five isolated copy callbacks and five RAW downloads exact. Final graph/gates follow
+these final cell writes and are recorded in72 integration.notes.json. Independent exactSCI, aggregate/reader, remote CI,
+main/live, full Exposition/PURIFIED and whole-paper/Goal completion are distinct.
+PBPS/SPHMC and their actual-input composition precede GaussianCloud and midpoint;
+older Chewi/frontiers/cycles/memory persist. TV does not transfer unbounded cost.
+
 ## Actual PBPS corrector change (2026-10-10)
 
 Independently VERIFIED science commit 4e7ce5d2996ffe1d1b0ab570778e02425c6be34e. For SAME actual original globally

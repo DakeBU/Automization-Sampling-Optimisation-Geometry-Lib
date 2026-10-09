@@ -175,6 +175,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | --- | --- | --- | --- |
 | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange` | `pbps.actualCorrectorChange` | `actual_corrector_change` | arXiv2609.06905v1 Appendix B3 B20/B21; Lemma B4/B28 ingredient |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation` | `pbps.actualCorrectorPerturbation` | `actual_corrector_perturbation` | arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation` | `pbps.actualProjectedRotation` | `actual_projected_rotation` | arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation` | `pbps.actualRootInverseCommutation` | `actual_same_root_inverse_commutation` | arXiv2609.06905v1 Appendix B3 proof ingredient for Lemma B3/B23 and B21 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector` | `pbps.ambientAdjointCorrector` | `actual_ambient_adjoint_centered_decomposition` | arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20 |
@@ -344,6 +345,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.GradientFlowValue` | `analysis.gradient-flow.convex-value-rate` | `value_le` | Chewi Lectures on Optimization arXiv:2605.07006v1 Section2; Mathlib.Analysis.ODE.Gronwall |
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator` | `analysis.hessian-secant.actual-integral` | `hessian_secant_operator` | arXiv:2609.06906v1 Lemma4.6 proof HTML568-572 |
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound` | `analysis.hilbertSharpQuadraticCorrectorBound` | `quadratic_corrector_bound_of_square_identity` | arXiv2609.06905v1 Appendix B3 (B23); ASTIS auxiliary Hilbert-space estimate |
+| `AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation` | `pbps.hilbertCorrectorPerturbation` | `quadratic_corrector_perturbation` | arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34 |
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability` | `analysis.integrability.of-real-lintegral-finite` | `lintegral_ofReal_ne_top_of_integrable_nonneg` | Mathlib.MeasureTheory.Function.L1Space.Integrable |
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability` | `analysis.integrability.gaussian-quadratic-tail` | `integrable_exp_neg_mul_norm_sq` | Mathlib.Analysis.SpecialFunctions.Gaussian.FourierTransform |
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability` | `analysis.integrability.shifted-gaussian-quadratic-tail` | `integrable_exp_neg_add_mul_norm_sq` | AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability |

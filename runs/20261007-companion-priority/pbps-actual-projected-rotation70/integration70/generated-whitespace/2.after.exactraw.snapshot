@@ -1,0 +1,25 @@
+# AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation
+
+- File: `AutoSamplingTheory\ExampleCases\ProximalBPS\ActualProjectedRotation.lean`
+- Layer: uncategorized
+- Purpose:
+- Mathlib-quality status:
+
+## Imports
+
+- `AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining`
+
+## Representative Declarations And Exports
+
+- `actual_projected_rotation_statement`
+- `actual_projected_rotation`
+
+## Curated Formalized Memory Entries
+
+- `pbps.actualProjectedRotation` -> `actual_projected_rotation` (arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites)
+
+## Agent Usage
+
+Search this card before inventing a nearby technical lemma.  If the needed fact
+is generic and missing, create a Mathlib-ready leaf packet rather than hiding
+the requirement inside a paper-specific theorem.

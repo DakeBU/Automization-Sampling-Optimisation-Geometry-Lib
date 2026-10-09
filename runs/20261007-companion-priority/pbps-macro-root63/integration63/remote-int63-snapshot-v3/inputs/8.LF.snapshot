@@ -1,0 +1,317 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-unique-macroscopic-defect-root",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS unique positive macroscopic defect root and typed Gram",
+  "mode": "faithfulPaper",
+  "source_anchor": "arXiv2609.06905v1 AppendixB1-B5 first identity/B10-B11 and D1; original C2/two Hessian/positive capped eta",
+  "target_statement": "theorem actual_unique_positive_macroscopic_defect_root\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              (∀ f : HP, ‖B f‖ = ‖ΓP f‖ ∧\n                ‖ΓP f‖^2 = ‖f‖^2-‖A f‖^2) ∧\n              (∀ G : HP →L[ℝ] HP,\n                G.IsPositive → G*G=(1 : HP →L[ℝ] HP)-A*A → G=ΓP)\n",
+  "status": "independently_verified",
+  "parents": [
+    "ASTIS-SW-PBPS-macroscopic-centered-range",
+    "ASTIS-SW-PBPS-centered-selfadjoint-defect",
+    "ASTIS-SW-PBPS-reflection-l2-blocks",
+    "ASTIS-SHARED-l2-positive-real-square-root",
+    "ASTIS-SHARED-l2-positive-real-root-uniqueness"
+  ],
+  "consumers": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root",
+    "Planned B15 centered lower root order/inverse and B16 polar decomposition; not admitted here."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib canonical58 macro range, actual59 S/U/M/T, ReflectionL2 actual joint block algebra, shared61 real root and shared62 real uniqueness; pinned Mathlib lpMeas completeness, equivRange/ofEq, conjStarAlgEquiv, subtype adjoint and projection; independent source-first scout63/preproof63."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root",
+    "canonical_shared_cell": "ASTIS-SW-PBPS-unique-macroscopic-defect-root",
+    "reason": "One actual macro integration joining verified parents; no new generic wrappers or copied scalar root providers."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib canonical58 macro range, actual59 S/U/M/T, ReflectionL2 actual joint block algebra, shared61 real root and shared62 real uniqueness; pinned Mathlib lpMeas completeness, equivRange/ofEq, conjStarAlgEquiv, subtype adjoint and projection; independent source-first scout63/preproof63."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange.actual_macroscopic_centered_range",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot.exists_positive_real_square_root",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique.positive_square_roots_unique"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root"
+    ],
+    "planned_consumers": [
+      "Planned B15 centered lower root order/inverse and B16 polar decomposition; not admitted here."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One actual macro integration joining verified parents; no new generic wrappers or copied scalar root providers."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root"
+    ],
+    "visual_review": "runs/20261007-companion-priority/pbps-macro-root63/visual.inspection.json"
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261009-PBPSUniqueMacroscopicDefectRoot",
+    "statement_seal": "runs/20261007-companion-priority/pbps-macro-root-preproof63/root.statement-seal63.json",
+    "focused_checks": [
+      {
+        "command": "lake build Tests.ProximalBPSMacroscopicDefectRoot",
+        "result": "PASS3920; exact sealed main/consumer, standard3, zero private providers.",
+        "evidence": "runs/20261007-companion-priority/pbps-macro-root63/focused-production63-v1/receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/MacroscopicDefectRoot.lean",
+      "Tests/ProximalBPSMacroscopicDefectRoot.lean"
+    ],
+    "truth_boundary": "Actual printed macro positive square root B10/B11 and typed first B5 Gram on HP=lpMeas=ran(P) only. SAME canonical M/e/U/T, scalar Gamma and transported GammaP. All positive macro alternatives, no public completeness/CFC/onto/root/energy certificate. Centered order/inverse/polar/H1/dynamics/nonexplosion/invariance/hypocoercivity/main/errors/querycost/composition remain separate.",
+    "proof_review": "runs/20261007-companion-priority/pbps-macro-root63/independent-math63/native.receipt.json",
+    "source_review": "runs/20261007-companion-priority/pbps-macro-root63/source.0.review.root-adapter.json",
+    "execution_boundary": "Selected printed B1-B5 first Gram identity/B10-B11 on the exact closed macro domain H_P=lpMeas=ran(P), using the SAME actual M/e/U/T and transported root. Full-joint Gram is P−A_J², not I_J−A_J². The other B5 identity, centered root order/inverse/polar, H1, event process/nonexplosion/invariance/hypocoercivity/main mixing, implementation error and actual-input expected query costs/composition remain separate. Independent mathematics, fresh source-blind decoder, source-first seven-slot review and mechanical excerpt repair/all8 literal spans accepted. Exact-science verification, serialized aggregate and rendered Exposition Seal remain separate.",
+    "independent_verification": "runs/20261007-companion-priority/pbps-macro-root63/verified.json",
+    "serialized_shared_gate": {
+      "evidence": "runs/20261007-companion-priority/pbps-macro-root63/integration63/mandatory-astis-check-final/receipt.json",
+      "root_jobs": 9170,
+      "test_jobs": 9465,
+      "registry_count": 508,
+      "status": "PASS",
+      "proof_commit": "4d02622332d02d0bd6c977d3cee48fd535ebf203",
+      "scope": "Exact63 plus serialized local aggregate; remoteCI/repository reader admission/main/live/PURIFIED remain distinct."
+    }
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Focused, independent science/decoder/source, publication and local aggregate63 accepted within bounded macro-root/Gram scope."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "PBPS2609.06905v1; Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "arXiv2609.06905v1 AppendixB1-B5 first identity/B10-B11 and D1; original C2/two Hessian/positive capped eta",
+    "fidelity_boundary": "Actual printed macro positive square root B10/B11 and typed first B5 Gram on HP=lpMeas=ran(P) only. SAME canonical M/e/U/T, scalar Gamma and transported GammaP. All positive macro alternatives, no public completeness/CFC/onto/root/energy certificate. Centered order/inverse/polar/H1/dynamics/nonexplosion/invariance/hypocoercivity/main/errors/querycost/composition remain separate.",
+    "detail_status": "cites_external",
+    "gap": "D1 positive-root background is supplied by verified shared61/62; current macro transport/typed Gram remains unproved until this exact producer builds.",
+    "consulted": [
+      {
+        "source": "Pinned primary PBPSv1, Samplinglib and fixed Mathlib; independent63 source/API audit",
+        "anchor": "B1-B5 first identity/B10-B11/D1; exact closed macro domain and canonical operator/root transport",
+        "hypothesis_adapter": "Original C2/two Hessian/positive capped eta only; derived ambient measurable Fact and closed HP completeness, no new premise.",
+        "expanded_binder_audit": [
+          {
+            "binder": "E + NormedAddCommGroup/InnerProductSpace ℝ/FiniteDimensional ℝ/MeasurableSpace/BorelSpace",
+            "classification": "structural-typing-and-explicit-coordinate-extension",
+            "source": "S1 Rd, D1 realHilbert; finite base admits rank0, not finiteL2"
+          },
+          {
+            "binder": "V:E→ℝ; α β:NNReal; η:ℝ",
+            "classification": "source-objects",
+            "source": "S1 real potential/positive curvature/positive capped step"
+          },
+          {
+            "binder": "hα,hαβ,hV,hH,hη,hβη",
+            "classification": "source-hypotheses",
+            "source": "0<α≤β,C2,lower/upper Hessian for everyx/v,η>0,βη≤1 literalS1/S2cap/A2cap"
+          },
+          {
+            "binder": "μ,J,ν,Λ,F",
+            "classification": "canonical-definition-lets",
+            "source": "Normalized volume.tilted(-V), independent augmentation Y=X+sqrtηZ, marginalJ.snd,reflected(Y,2X-Y),jointreflection(x,2x-y)"
+          },
+          {
+            "binder": "mY",
+            "classification": "source-domain-definition-let",
+            "source": "Comap snd sigma algebra expresses y-only macro functions inB2; not a new ambient measurable space"
+          },
+          {
+            "binder": "letI ambient Product instance",
+            "classification": "internal-typing-clarification",
+            "source": "Restores SAME ambient Product sigma algebra used byJ; exactreversebytes recovers initialheader; no public assumption"
+          },
+          {
+            "binder": "letI Fact(mY≤ambient)",
+            "classification": "internally-derived-typing-fact",
+            "source": "Derived measurable_snd.comap_le; nocaller containment/completeness certificate"
+          },
+          {
+            "binder": "HP,P,hp,M",
+            "classification": "canonical-definition-lets",
+            "source": "HP=lpMeas ℝ ℝ mY2J closed fromMathlib;P=subtype∘condExpL2 μ=J;hp sndmeasurepreserving rfl;M canonicalL2pullback isometry"
+          },
+          {
+            "binder": "Probability μ/J/ν;HP=rangeP;Pf=f;S Markov/density/disintegration/stationarity",
+            "classification": "existential/conjunctive-conclusions",
+            "source": "Actualsource laws/kernels produced under originalmodel;S everyy tilted normalizeddensity, no callerprobability/normalizer/kernel"
+          },
+          {
+            "binder": "e,∀u subtype(eu)=Mu",
+            "classification": "internally-produced-domain-isometry-onto",
+            "source": "e scalarL2ν≃li exactHP, not arbitrary callerontoM certificate;B2 marginaldefinitionadapter"
+          },
+          {
+            "binder": "U AEpullback/involution/selfadjoint",
+            "classification": "internally-produced-actual-reflection",
+            "source": "B4/SS1p3; SAME everyg per-gAE reflection, no arbitraryisometry witness"
+          },
+          {
+            "binder": "T selfadjoint/contractive/conditional-AE-action/mean",
+            "classification": "internally-produced-actual-scalar-operator",
+            "source": "B9/C1 sourceS; per-observableνAE action separate everyy density;integrability fromprobability/L2 internally"
+          },
+          {
+            "binder": "A,B",
+            "classification": "canonical-dependent-definition-lets",
+            "source": "A=HP.projection∘U∘subtype;B=(I_joint-P)UP∘subtype:HP→joint, not HPendomorphism;P(Bf)=0 concludes exactmicroscopicimage"
+          },
+          {
+            "binder": "A=e.conjStarAlgEquiv T,selfadjoint,all-fcontraction",
+            "classification": "conclusions-and-SAME-object-identification",
+            "source": "eTu=Aeu equivalent toM(Tu)=PUP(Mu); no duplicateT that merely sharesnorms"
+          },
+          {
+            "binder": "Γpositive;Γ²=I_scalar-T²;ΓP=e.conjStarAlgEquiv Γ",
+            "classification": "internally-produced-root-and-canonical-transport",
+            "source": "Compiled61/62 real scalar existence/uniqueness internal; macroΓP positive squareI_HP-A²; no publicCFC/rootpreservation certificate"
+          },
+          {
+            "binder": "B.adjoint∘B=ΓP²;∀f normBf=normΓPf and macroenergy",
+            "classification": "selected-source-B11-conclusions",
+            "source": "TypedB:HP→joint makesadjoint:joint→HP; isometricmicroinclusion leavesGram/normequalities unchanged; no I_joint substitution"
+          },
+          {
+            "binder": "∀G:HPoperator,Gpositive→G²=I_HP-A²→G=ΓP",
+            "classification": "ALL-alternatives-conclusion",
+            "source": "D1 canonical positive-root uniqueness on completeHP; quantifiedoutsideall-fenergy, no alternativeenergy or commutation premise"
+          },
+          {
+            "binder": "header1 additional∀f ΓPcontraction",
+            "classification": "genuine-Test-extra-mathematical-corollary",
+            "source": "Macroenergy plusnorm(Af)²≥0 yieldsΓPcontraction; not an extra source hypothesis or strictcenteredrate"
+          }
+        ]
+      }
+    ],
+    "source_preread": "runs/20261007-companion-priority/pbps-real-complex-lift60/next-real-root-source61/next-target.source-contract.json"
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Named TYPE ambient measurable-space diagnosis before sealing; exact-header proof drafts exposed extensionality, alias unfolding and locally missing Fact. Original statement unchanged; successful main v5, combined consumer v7 and first production focused build retained.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-canonical-macro-root-typed-Gram-transport"
+      ],
+      "expected_information_gain": "Sole production writer; required independent source/TYPE, mathematics, anonymous decoder and anti-source checks remain distinct.",
+      "shared_verified_context_digest": "a1d645bfe4e2903bc2b56225e4bb17e434e7d459dc863a5d73347f2403248ad4"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "source:model",
+        "source:cap",
+        "source:joint",
+        "source:Hilbert",
+        "source:P",
+        "source:HP",
+        "source:identification",
+        "source:blocks",
+        "source:U",
+        "source:A",
+        "source:B",
+        "source:B5first",
+        "source:positive-root",
+        "source:GammaP",
+        "source:B11",
+        "source:energy",
+        "source:scalarT",
+        "source:adjoint",
+        "source:kernel"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange.actual_macroscopic_centered_range",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot.exists_positive_real_square_root",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique.positive_square_roots_unique"
+    ],
+    "bookkeeping": [
+      "Same actual joint law, canonical M range and e inclusion; independently produced reflection witnesses aligned by AE action.",
+      "I_HP is only identity on macro domain; fulljoint P-A_joint squared retained; B.adjoint comp B has HP endomorphism type."
+    ],
+    "new_reusable": [],
+    "new_topology": "Canonical macro onto isometry joins actual reflected T/U with scalar positive root existence and uniqueness; transport gives actual macro root and typed Gram."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-macro-root-preproof63/root.statement-seal63.json",
+    "source_revision": "2609.06905v1/Lean4.33.0/Mathlibdb584cd6",
+    "statement_version": 1,
+    "signature_digest": "7f4190cc60e39892ef91a028303c017607a0ec62f1ad04f44892f5afb7468e01",
+    "binder_audit": "runs/20261007-companion-priority/pbps-macro-root-preproof63/independent-preproof63/statement-binder.review.json",
+    "definition_kind": "Actual closed HP=lpMeas=ran(P); canonical M/e/SAME U/T and transported GammaP; B is HP-to-joint and adjoint comp typed."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-macro-root-preproof63/independent-preproof63/source.graph.before-candidate.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-macro-root-preproof63/independent-preproof63/source.coverage.before-candidate.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-macro-root-preproof63/independent-preproof63/statement-binder.review.json",
+    "coverage_status": "Independent24 literal regions56 exhaustive NODE/EXCLUDED items;19 source nodes13 typed source-context hyperedges. Source topology independent of planned scalar-root transport implementation."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "No new production proof yet; use existing actual and shared parents without copied providers.",
+    "duplicate_semantics_audit": "Actual macro integration only; scalar root/unique/background remains canonical.",
+    "canonicalization": "One actual macro declaration consumes canonical range/actual operator/root parents.",
+    "compressed_spine_delta": "Canonical macro onto isometry joins actual reflected T/U with scalar positive root existence and uniqueness; transport gives actual macro root and typed Gram.",
+    "reader_default_view": "Existing companion/conversion window, formula steps with adjacent folded exact Lean.",
+    "scope": "Actual printed macro positive square root B10/B11 and typed first B5 Gram on HP=lpMeas=ran(P) only. SAME canonical M/e/U/T, scalar Gamma and transported GammaP. All positive macro alternatives, no public completeness/CFC/onto/root/energy certificate. Centered order/inverse/polar/H1/dynamics/nonexplosion/invariance/hypocoercivity/main/errors/querycost/composition remain separate."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "The proposed e-conjugation is exact operator algebra within one actual PBPS probability model, and is the current explicit theorem target. Existing proximal-energy/gap-gradient families and earlier real fixed-space candidate remain separate, with no validation or new mirror promotion."
+  }
+}

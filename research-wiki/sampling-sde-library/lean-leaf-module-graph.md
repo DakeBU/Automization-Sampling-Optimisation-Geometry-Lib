@@ -175,6 +175,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | --- | --- | --- | --- |
 | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator` | `pbps.actualCenteredSelfadjointDefect` | `actual_centered_selfadjoint_defect` | arXiv2609.06905v1 AppendixB B1-B5/D1-D2 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse` | `pbps.actualCenteredRootOrderInverse` | `actual_centered_root_order_inverse` | arXiv2609.06905v1 B15; C2/C3/C4; B16 actual input |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy` | `pbps.reflectedConditional.outerGradientEnergy` | `reflected_conditional_gradient_energy` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance` | `pbps.reflectedConditional.gradientVariance` | `reflected_conditional_gradient_variance` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift` | `pbps.actualPositiveDefectComplexLift` | `actual_positive_defect_complex_lift` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
@@ -496,6 +497,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.Measure.KantorovichDual` | `measure.transport.chewi-display-1-3-7` | `dualTransportValue_eq_sSup` | Log-Concave Sampling, book page 21 / PDF page 33 |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange` | `l2Pullback.rangeEqLpMeas` | `l2_pullback_range_eq_lpMeas` | arXiv2609.06905v1 AppendixB B1-B5/C3-C4 |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator` | `measure.positiveRealL2ComplexLift` | `exists_positive_complex_lift` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
+| `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder` | `measure.realL2PositiveSquareOrder` | `positive_square_order` | PBPS arXiv2609.06905v1 D1 order/root background; ASTIS internal complexification completion |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot` | `measure.positiveRealL2SquareRoot` | `exists_positive_real_square_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique` | `measure.positiveRealL2SquareRootUnique` | `positive_square_roots_unique` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.TechnicalLemmas.Measure.Product` | `measure.pi.update-coordinate-map` | `map_update_prod_pi` | SLT/EfronStein.lean; Mathlib.MeasureTheory.Constructions.Pi |

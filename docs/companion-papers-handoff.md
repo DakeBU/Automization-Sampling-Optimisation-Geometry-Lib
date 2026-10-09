@@ -1,5 +1,40 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS centered root order and bounded inverse (2026-10-09)
+
+Independently VERIFIED science commit 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Original C2/two global Hessian
+bounds and positive capped eta internally yield the printed B15 operator order
+Gamma0 >= gamma I on the SAME exact complete HP0=ker inner(e1,.), where
+gamma=2sqrt(alpha eta)/(1+alpha eta)>0. Both inverse cancellations and the
+bounded inverse norm <=1/gamma are conclusions. Canonical actual laws/e/U/T
+and SAME GammaP are retained. Rank0 and alphaeta=1 remain legal.
+
+Canonical arbitrary-real-L2 positive square order has a genuine actual B15
+consumer. The actual C4 estimate joins the SAME compact-gradient closure from
+RoughMeanGradient and GaussianMarginalPoincare; no gap/root/onto/unit certificate
+became a public premise. Test derives norm preservation and ker P membership
+of normalized actual leakage directly from original inputs.
+
+Next: B16 polar map from HP0 into the exact closed microscopic complement,
+its factorization and V.adjoint composed V=I. No surjectivity onto the whole
+microscopic space is claimed. H1/B13/B14, events/nonexplosion/invariance,
+hypocoercivity/main mixing, implementation errors and actual-input expected
+query costs/PBPS-SPHMC composition remain separate. Gaussian Cloud then midpoint
+follow the existing four-paper priority. TV proximity transfers no unbounded cost.
+
+Previous integration ee6bdf2 has independent scoped repository/reader admission
+and all GitHub workflows terminal SUCCESS. Serialized Registry510/imports/Tests
+and affected reader/graph gates remain pending below. No merged/live/PURIFIED,
+full paper or whole Goal completion. Earlier checkpoints are preserved.
+
+Serialized local aggregate64:root9172,Tests9468,Registry510;296 Python
+regressions,231 publication items,contributor/semantic/frontier/site and both
+bounded graph checks PASS. Two attributed statements,3+9 formula steps and
+two actual branches inspected. Four isolated copy callbacks/four RAW source
+downloads/all12 folded literals match. Independent repository/exposition
+admission,remoteCI/main/live/PURIFIED and whole-paper results remain separate.
+
+
 ## Actual PBPS unique positive macroscopic defect root (2026-10-09)
 
 Independently VERIFIED science commit 4d02622332d02d0bd6c977d3cee48fd535ebf203. SAME original-input stationary

@@ -1,5 +1,46 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS typed polar isometry and adjoint corrector (2026-10-09)
+
+Independently VERIFIED science commit ecd9d1f10ad0241312492cefacd5fe48c317e9c2. SAME original finite real Hilbert
+C2/two Hessian/positive capped eta inputs now produce the actual typed B16
+B0:HP0->kerP and V0=B0 Inv. The exact closed conditional kernel is distinct
+from global joint centering. B0=V0 Gamma0, V0.adjoint composed V0=I, and
+all-vector norm preservation are proved. Rank0 and alphaeta=1 remain legal.
+
+The original-input Test derives B0.adjoint=Gamma0 V0.adjoint, adjoint
+contraction and V0.adjoint(g-V0(V0.adjoint g))=0. No onto kerP or reverse
+product identity is asserted; no root/gap/unit/H1/floor premise was added.
+Fresh compiler3945/standard3, independent math, blind decoder, source-first
+full seven-slot review and all5 literal BODY formula steps are accepted.
+
+Next dependency-ready candidate: the ambient extension of the printed block
+adjoint and the actual globally centered micro-macro decomposition. This
+closes the domain adapter needed by the first-corrector pairing before B20.
+The SAME root/reflection commutation discovery for B21 is retained RAW and
+unvalidated; it follows this nearer genuine consumer blocker.
+The reflection U and conditional half-turn H are different operators.
+B17/H1/B13/B14, events/nonexplosion/invariance,hypocoercivity/main mixing,
+implementation errors and actual-input expected queries/composition remain
+open. TV proximity transfers no unbounded expected cost. Gaussian Cloud then
+midpoint follow the existing four-paper priority; older frontiers are preserved.
+
+Previous INT64 0aef19c has scoped independent repository/reader acceptance
+with explicit debt and all remote formal/site/contributor workflows SUCCESS.
+Its two stale shared-cell attribution/status fields have a separately reviewed
+exact overlay; other reader/purification debt remains. Serialized Registry511,
+imports/Tests and affected reader/graph gates are pending below. No merged/live,
+full Exposition/PURIFIED, whole-paper or Goal completion is claimed.
+
+Serialized local aggregate65:root9173,Tests9470,Registry511;232
+publication items and contributor/semantic/frontier/site/affected graph PASS.
+Unchanged tools/site-script Python296 regression evidence is reused from exact
+INT64 rather than reported as rerun. One complete statement,all5 formula steps
+and actual branch inspected;two copy callbacks/two RAW source downloads exact.
+Independent repository/exposition admission,remoteCI/main/live/PURIFIED and
+whole-paper results remain separate.
+
+
 ## Actual PBPS centered root order and bounded inverse (2026-10-09)
 
 Independently VERIFIED science commit 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Original C2/two global Hessian

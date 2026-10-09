@@ -184,6 +184,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot` | `pbps.actualUniquePositiveMacroscopicDefectRoot` | `actual_unique_positive_macroscopic_defect_root` | arXiv2609.06905v1 AppendixB1-B5 first Gram/B10-B11; attributed ASTIS completion |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy` | `pbps.reflectedConditional.macroscopicBlockEnergy` | `actual_macroscopic_gradient_energy_blocks` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange` | `pbps.actualMacroscopicCenteredRange` | `actual_macroscopic_centered_range` | arXiv2609.06905v1 AppendixB B1-B5/C3-C4 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry` | `pbps.actualPolarIsometry` | `actual_centered_polar_isometry` | arXiv2609.06905v1 B16 and B3 first corrector |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot` | `pbps.actualPositiveRealDefectRoot` | `actual_positive_real_defect_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRootUnique` | `pbps.actualUniquePositiveRealDefectRoot` | `actual_unique_positive_real_defect_root` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient` | `pbps.actualL2.roughMeanGradient` | `actual_rough_mean_gradient` | arXiv2609.06905v1 |

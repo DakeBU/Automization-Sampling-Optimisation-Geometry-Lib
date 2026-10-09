@@ -1,0 +1,13 @@
+from pathlib import Path
+import sys,json,hashlib
+sys.path.insert(0,str(Path.cwd()/'tools'));import astis_advance as adv
+r=Path('runs/20261007-companion-priority/pbps-ambient-adjoint66');pre=Path('runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66')
+load=lambda p:json.loads(p.read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest()
+assert load(pre/'root.type-representation66.adoption.json')['owned_files']==147
+assert load(r/'focused-main-private-v6/receipt.json')['exit_code']==0
+ledger=Path('runs/substantive_discoveries.jsonl');before=ledger.read_bytes()
+proposal=adv.Discovery(discovery_id='ASTIS-DISC-20261009-DependentPropStatementStaging',advance_id='ASTIS-SA-20261009-PBPSAmbientAdjointCorrector',kind='process',statement='For the exact66 deep dependent existential/let-instance statement under pinned Lean4.33.0,unknown-tactic failure did not establish full inline theorem elaboration. The literal full expression elaborated as Prop; direct/id/show/async inline routes remained unsupported. A private transparent definition with the same complete proposition and caller binders staged the theorem proof successfully without a mathematical provider or new premise.',evidence=(pre/'root.type-representation66.adoption.json').as_posix()+';'+(r/'focused-main-private-v6/receipt.json').as_posix(),where_it_matters='Only the recorded66 dependent-generalization failure fingerprint and exact literal representation adapter; inspect/recheck before reuse elsewhere.',provenance='Independent CLOSED147 neutral probes and seven-slot representation review;root actual main3945 compile. Earlier unknown-tactic credit withdrawn;all negatives retained.',created_by='companion_root_20261005',frontier_cell='ASTIS-SW-PBPS-ambient-adjoint-corrector',metadata=dict(process_only=True,standing_instruction=False,mathematical_progress_credit=False,source_math_repair=False,private_mathematical_provider=False,exact_literal_expansion_required=True,whole_module_source_review_required=True,scope='Bounded implementation route observation; not a generic Lean theorem or an instruction to introduce aliases everywhere.'))
+adv.publish_discovery(proposal);after=ledger.read_bytes();assert after[:len(before)]==before
+out=r/'process-discovery66';out.mkdir(exist_ok=False);(out/'event.exactraw.jsonl').write_bytes(after[len(before):])
+(out/'prefix-pin.json').write_text(json.dumps(dict(ledger=ledger.as_posix(),prefix_bytes=len(before),prefix_raw_sha256=sha(before),exact_append_raw_sha256=sha(after[len(before):]),status='RAW_PROCESS_DISCOVERY_NOT_FORMAL_EDGE'),indent=2)+'\n',encoding='utf-8',newline='\n')
+print('Published bounded RAW process discovery; no standing rule or theorem dependency promoted.')

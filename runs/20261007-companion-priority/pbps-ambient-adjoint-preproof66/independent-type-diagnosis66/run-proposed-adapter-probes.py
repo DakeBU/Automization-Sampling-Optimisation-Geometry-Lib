@@ -1,0 +1,8 @@
+from pathlib import Path
+import json,subprocess,hashlib,datetime,os
+O=Path(r'E:/Samplinglib/runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/independent-type-diagnosis66');H=lambda b:hashlib.sha256(b).hexdigest()
+for i in range(2):
+ h=(O/('sealed.header%d.raw.lean'%i)).read_text(encoding='utf-8');name=h.splitlines()[0].split()[1];stmt=name+'_statement';s=(O/('named-goal%d.lean'%i)).read_text(encoding='utf-8').replace('exact_Prop_expression%d'%i,stmt).replace('theorem named_goal%d'%i,'theorem '+name)
+ p=O/('proposed-named-adapter%d.lean'%i);p.write_bytes(s.encode('utf-8'));start=datetime.datetime.now(datetime.timezone.utc).isoformat();proc=subprocess.Popen(['lake','env','lean',str(p)],cwd='E:/Samplinglib',stdout=subprocess.PIPE,stderr=subprocess.PIPE);out,err=proc.communicate();label='proposed-named-adapter%d'%i
+ (O/(label+'.stdout.log')).write_bytes(out);(O/(label+'.stderr.log')).write_bytes(err);d=dict(schema='diagnosis66-neutral-TYPE-terminal-v1',probe=label,actual_foreground_pid=proc.pid,actual_exit_code=proc.returncode,terminal_closed=True,observer_pid=os.getpid(),started_utc=start,finished_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),input_RAW_sha256=H(p.read_bytes()),stdout_RAW_sha256=H(out),stderr_RAW_sha256=H(err),proof_search=False,source_math_change=False)
+ (O/(label+'.receipt.json')).write_bytes((json.dumps(d,sort_keys=True,indent=2)+'\n').encode());print(json.dumps(d,sort_keys=True),flush=True);print(out.decode('utf-8')[-800:],flush=True)

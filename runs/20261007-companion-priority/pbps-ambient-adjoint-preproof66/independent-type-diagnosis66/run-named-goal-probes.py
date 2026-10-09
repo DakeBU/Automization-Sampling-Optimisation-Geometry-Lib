@@ -1,0 +1,5 @@
+from pathlib import Path
+import json,subprocess,hashlib,datetime,os
+O=Path(__file__).parent;H=lambda b:hashlib.sha256(b).hexdigest()
+for name in ['named-goal0','named-goal1']:
+ p=O/(name+'.lean');start=datetime.datetime.now(datetime.timezone.utc).isoformat();proc=subprocess.Popen(['lake','env','lean',str(p)],cwd='E:/Samplinglib',stdout=subprocess.PIPE,stderr=subprocess.PIPE);out,err=proc.communicate();(O/(name+'.stdout.log')).write_bytes(out);(O/(name+'.stderr.log')).write_bytes(err);d=dict(schema='diagnosis66-neutral-TYPE-terminal-v1',probe=name,actual_foreground_pid=proc.pid,actual_exit_code=proc.returncode,terminal_closed=True,observer_pid=os.getpid(),started_utc=start,finished_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),input_RAW_sha256=H(p.read_bytes()),stdout_RAW_sha256=H(out),stderr_RAW_sha256=H(err),proof_search=False,source_math_change=False);(O/(name+'.receipt.json')).write_bytes((json.dumps(d,sort_keys=True,indent=2)+'\n').encode());print(json.dumps(d,sort_keys=True),flush=True);print(out.decode('utf-8')[:5000],flush=True)

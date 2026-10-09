@@ -1,0 +1,218 @@
+"""Adjacent, declaration-specific Lean disclosures for mathematical exposition.
+
+This is presentation infrastructure, not an automatic mathematical proof writer.
+Missing authored mathematics must remain a documentation gap.
+"""
+from __future__ import annotations
+
+from functools import lru_cache
+import json
+import re
+from pathlib import Path
+
+import astis_site as base
+
+
+def split_statement(source: str) -> tuple[str, str]:
+    """Split the outer assignment, retaining local definitions in the result type.
+
+If no outer assignment exists (e.g. a structure), retain the full declaration.
+This is source syntax, not an elaborated replacement for implicit parameters.
+Unrecognized local-definition syntax also keeps the complete source rather than
+discarding part of its proposition.
+"""
+    clean = base.sanitize_lean(source)
+    clean = re.sub(r'«[^»]*»', lambda m: ' ' * len(m[0]), clean)
+    if re.match(r'^\s*(?:(?:private|protected)\s+)?(?:structure|class|inductive)\b', clean):
+        return source, ''  # Field defaults are part of a type's specification.
+    depth = 0
+    local_assignments = 0
+    in_result_type = False
+    local_keywords = {m.start() for m in re.finditer(
+        r"(?<![\w'.])(?:let|letI|have|haveI)(?![\w'.])", clean)}
+    for i, char in enumerate(clean):
+        if depth == 0 and char == ':' and clean[i:i+2] != ':=':
+            in_result_type = True
+        if depth == 0 and in_result_type and i in local_keywords:
+            local_assignments += 1
+        if char in '([{':
+            depth += 1
+        elif char in ')]}':
+            depth -= 1
+        elif clean[i:i+2] == ':=' and depth == 0:
+            if local_assignments:
+                local_assignments -= 1
+                continue
+            return source[:i].rstrip(), source[i:]
+        elif depth == 0 and not local_assignments and clean[i:i+5] == 'where' and (i == 0 or clean[i-1].isspace()) and (i+5 == len(clean) or clean[i+5].isspace()):
+            return source[:i].rstrip(), source[i:]
+    return source, ''
+
+
+def display_source(source: str) -> str:
+    """Drop a following declaration's top-level docstring from display code.
+
+    The source inventory is deliberately conservative and ends one declaration
+    at the next declaration token.  Consequently, the next declaration's
+    column-zero docstring can be part of the stored slice.  It is useful while
+    scanning, but it does not belong in the current declaration's Lean fold.
+    Nested/indented docstrings remain untouched.
+    """
+    marker = source.rfind('\n/--')
+    if marker >= 0 and re.fullmatch(r'/--[\s\S]*?-/', source[marker + 1:].strip()):
+        return source[:marker].rstrip()
+    return source
+
+
+@lru_cache(maxsize=1)
+def declarations() -> dict:
+    if base._SOURCE_BY_NAME:
+        return base._SOURCE_BY_NAME
+    return {d.full_name: d for d in base.scan_project_sources()[1]}
+
+
+def disclosure(name: str, *, role: str, explanation: str,
+               page: str, helpers: tuple[str, ...] = (),
+               trim_following_docstring: bool = False) -> str:
+    declaration = declarations()[name]
+    exact_source = (display_source(declaration.source_text)
+                    if trim_following_docstring else declaration.source_text)
+    signature, body = split_statement(exact_source)
+    code = signature if role == 'statement' else exact_source
+    label = 'Lean statement' if role == 'statement' else 'Lean proof / instance' if declaration.kind == 'instance' else 'Lean proof' if declaration.kind in {'theorem', 'lemma'} else 'Lean construction'
+    literal_statement = declaration.kind == 'def' and declaration.short_name.endswith('_statement')
+    if role == 'proof' and literal_statement:
+        label = 'Full Lean proposition (definition)'
+        explanation = ('This literal definition stores the complete proposition asserted above. '
+                       'It supplies no mathematical proof or additional hypothesis; the theorem proof must establish its value.')
+    if role == 'statement' and not body and declaration.kind in {'theorem', 'lemma'}:
+        label = 'Complete Lean declaration (unsplit)'
+    href, _ = base.source_href(declaration, from_path=page)
+    helper_html = ''.join(disclosure(
+        n, role='proof', explanation='Supporting proof called by the result above.',
+        page=page, trim_following_docstring=trim_following_docstring) for n in helpers)
+    return (
+        f'<details class="inline-lean inline-lean-{role}" data-inline-lean="{base.esc(name)}" data-lean-code-panel>'
+        f'<summary>{label} · {base.esc(declaration.short_name)}</summary>'
+        f'<p>{base.esc(explanation)}</p>'
+        '<p>Braces mark parameters Lean can infer; square brackets request structures '
+        'such as a measurable space or probability measure. Named hypotheses are '
+        'mathematical premises, not facts established by this declaration. '
+        'Section parameters are described in the mathematical hypotheses above; '
+        'the module link retains their exact source context.</p>'
+        + base.lean_source_actions(declaration.source_file, page=page,
+                                   copy_label='Copy statement' if role == 'statement' else 'Copy declaration')
+        + base.code_html(code)
+        + f'<p><a href="{base.esc(href)}">Exact module and namespace context</a></p>'
+        + helper_html + '</details>'
+    )
+
+
+def block_bounds(text: str, css: str) -> tuple[int, int] | None:
+    """Locate a balanced HTML div/details block with an exact class token."""
+    start = re.search(r'<(div|details)\b[^>]*class="[^"]*\b' + re.escape(css) + r'\b[^"]*"[^>]*>', text)
+    if not start:
+        return None
+    tag = start.group(1)
+    depth = 1
+    for match in re.finditer(r'</?' + tag + r'\b[^>]*>', text[start.end():]):
+        depth += -1 if match.group(0).startswith('</') else 1
+        if depth == 0:
+            return start.start(), start.end() + match.end()
+    raise ValueError(f'Unclosed reader block: {css}')
+
+
+def enrich_textbook(output: Path) -> int:
+    """Expose actual mapped Lean underneath each source statement and proof.
+
+    This does not create missing natural-language proofs. Existing rigorous
+    mathematics is made visible; unmapped/unproved source results stay explicit.
+    """
+    sources = json.loads((base.ROOT / 'website/content/source_correspondence.json').read_text(encoding='utf-8'))
+    by_id = {s['id']: s for s in sources}
+    implicit_items = json.loads((base.ROOT / 'website/content/implicit_prerequisites.json').read_text(encoding='utf-8'))
+    implicit_by_id = {s['id']: s for s in implicit_items}
+    known = declarations()
+    count = 0
+    for path in sorted((output / 'textbook').rglob('*.html')):
+        text = path.read_text(encoding='utf-8')
+        rel = path.relative_to(output).as_posix()
+
+        def update(match):
+            nonlocal count
+            card = match.group(0)
+            source = by_id.get(match.group(1), {})
+            names = [n for n in source.get('lean_declarations', []) if n in known]
+            if not names or 'data-inline-source="true"' in card:
+                return card
+            # Mathematical expansion is ordinary visible text, not optional code.
+            bounds = block_bounds(card, 'source-contract-astis-latex')
+            if bounds:
+                block = card[bounds[0]:bounds[1]]
+                block = re.sub(r'^<details\b', '<div', block)
+                block = re.sub(r'</details>$', '</div>', block)
+                block = block.replace('<summary>', '<h3>').replace('</summary>', '</h3>')
+                card = card[:bounds[0]] + block + card[bounds[1]:]
+            # Add code directly below its mathematical counterpart, not at footer.
+            statement = block_bounds(card, 'source-contract-chewi-statement')
+            if statement:
+                code = ''.join(disclosure(n, role='statement', explanation='Compare this exact declaration with the source statement and explicit hypotheses on this card. A formal premise is not proved merely because Lean accepts a conditional theorem.', page=rel) for n in names)
+                card = card[:statement[1]] + code + card[statement[1]:]
+            proof_class = 'source-contract-astis-latex' if block_bounds(card, 'source-contract-astis-latex') else 'source-contract-chewi-proof'
+            proof = block_bounds(card, proof_class)
+            if proof:
+                code = ''.join(disclosure(n, role='proof', explanation='This is the complete declaration source underlying this mathematical step. Follow the named parent results, distinguishing the hypotheses supplied to the theorem from conclusions actually derived. Source correspondence and compilation are separate statuses.', page=rel) for n in names)
+                card = card[:proof[1]] + code + card[proof[1]:]
+            # The legacy end panel now contains provenance links only.
+            card = card.replace('<summary>Lean formalization</summary>', '<summary>Source mapping and supporting declarations</summary>')
+            card = card.replace('kept in the folded formalization below', 'shown in the rigorous mathematical expansion below')
+            card = card.replace('data-source-id=', 'data-inline-source="true" data-source-id=', 1)
+            count += 1
+            return card
+
+        pattern = r'<section class="[^"]*\bsource-contract-card\b[^"]*"[^>]*data-source-id="([^"]+)"[^>]*>.*?</section>'
+        updated = re.sub(pattern, update, text, flags=re.S)
+
+        def update_implicit(match):
+            card, item_id = match.group(0), match.group(1)
+            if 'data-inline-implicit="true"' in card:
+                return card
+            item = implicit_by_id.get(item_id, {})
+            names = [n for n in item.get('lean_declarations', []) if n in known]
+            bounds = block_bounds(card, 'source-contract-implicit-proof')
+            if bounds:
+                block = card[bounds[0]:bounds[1]]
+                block = re.sub(r'^<details\b', '<div', block)
+                block = re.sub(r'</details>$', '</div>', block)
+                block = block.replace('<summary>Mathematical proof</summary>', '<h3>Mathematical proof</h3>')
+                before = ''.join(disclosure(n, role='statement', explanation='The background statement above and this exact formal declaration have distinct scopes. A mapped Lean result may be a specialization; compare its actual hypotheses instead of promoting the whole background theorem from this link.', page=rel) for n in names)
+                after = ''.join(disclosure(n, role='proof', explanation='Follow the actual proof calls for the mapped ASTIS result. The displayed mathematical background explains their use; compilation of this declaration does not certify a broader unmapped statement.', page=rel) for n in names)
+                card = card[:bounds[0]] + before + block + after + card[bounds[1]:]
+            card = card.replace('<summary>Lean formalization</summary>', '<summary>Source mapping and supporting declarations</summary>')
+            return card.replace('data-provenance=', 'data-inline-implicit="true" data-provenance=', 1)
+
+        updated = re.sub(r'<article class="[^"]*\bsource-contract-implicit\b[^"]*"[^>]*id="([^"]+)"[^>]*>.*?</article>', update_implicit, updated, flags=re.S)
+        if updated != text:
+            path.write_text(updated, encoding='utf-8')
+    return count
+
+
+def validate_textbook(output: Path) -> list[str]:
+    errors = []
+    sources = json.loads((base.ROOT / 'website/content/source_correspondence.json').read_text(encoding='utf-8'))
+    by_id = {s['id']: s for s in sources}
+    known = declarations()
+    for path in sorted((output / 'textbook').rglob('*.html')):
+        text = path.read_text(encoding='utf-8')
+        for match in re.finditer(r'<section class="[^"]*\bsource-contract-card\b[^"]*"[^>]*data-source-id="([^"]+)"[^>]*>.*?</section>', text, flags=re.S):
+            source_id, card = match.group(1), match.group(0)
+            names = [n for n in by_id.get(source_id, {}).get('lean_declarations', []) if n in known]
+            if not names:
+                continue  # The existing source/declaration gate owns unknown names.
+            for name in names:
+                for role in ('statement', 'proof'):
+                    if f'class="inline-lean inline-lean-{role}" data-inline-lean="{base.esc(name)}"' not in card:
+                        errors.append(f'{source_id}: missing adjacent Lean {role} for {name}')
+            if re.search(r'<details[^>]*class="[^"]*source-contract-astis-latex', card):
+                errors.append(f'{source_id}: rigorous mathematical expansion must be visible')
+    return errors

@@ -1,0 +1,52 @@
+--- E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/reader-helper-contract70/check_cross_domain_browser.py.before.exactraw.snapshot
++++ E:/Samplinglib/website/scripts/check_cross_domain_browser.py
+@@ -12,6 +12,7 @@
+ import re
+ import shutil
+ import threading
++from collections import Counter
+ from pathlib import Path
+ from urllib.parse import parse_qs, urlsplit, quote
+ from playwright.sync_api import sync_playwright
+@@ -226,13 +227,25 @@
+             items = [i for f in (ROOT/'website/content/publications').glob('*.json')
+                      for i in json.loads(f.read_text(encoding='utf-8'))['items']
+                      if i['chapter_path'].startswith('example-cases/samplewiki/companions/')]
++            lesson_units = {u['declaration']: u
++                            for f in (ROOT/'website/content/declaration_lessons').glob('*.json')
++                            for u in json.loads(f.read_text(encoding='utf-8'))['units']}
+             report['companion_publications'] = []
+             for rel in sorted({i['chapter_path'] for i in items}):
+                 goto(rel)
+                 expected = sum(len(i['bindings']) for i in items if i['chapter_path'] == rel)
++                proof_names = [name for i in items if i['chapter_path'] == rel
++                               for b in i['bindings']
++                               for name in [b['declaration'], *lesson_units[b['declaration']].get('helpers', [])]]
++                expected_proof_panels = len(proof_names)
+                 assert page.locator('[data-authored-declaration]').count() == expected, rel
++                assert page.locator('details.inline-lean-statement').count() == expected, rel
+                 assert page.locator('details.inline-lean-statement:not([open])').count() == expected, rel
+-                assert page.locator('details.inline-lean-proof:not([open])').count() == expected, rel
++                proof_panels = page.locator('details.inline-lean-proof')
++                assert proof_panels.count() == expected_proof_panels, rel
++                assert page.locator('details.inline-lean-proof[open]').count() == 0, rel
++                assert Counter(proof_panels.evaluate_all(
++                    "nodes => nodes.map(node => node.getAttribute('data-inline-lean'))")) == Counter(proof_names), rel
+                 if not args.offline_dom:
+                     page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                     page.evaluate('() => MathJax.startup.promise')
+@@ -241,11 +254,12 @@
+                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), rel
+                 for summary in page.locator('details.inline-lean-proof > summary').all():
+                     summary.click()
+-                assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == expected, rel
++                assert page.locator('details.inline-lean-proof[open]').count() == expected_proof_panels, rel
++                assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == expected_proof_panels, rel
+                 page.locator('[data-authored-declaration]').last.scroll_into_view_if_needed()
+                 page.screenshot(path=str(evidence/(Path(rel).stem+'-proof-mobile.png')))
+                 report['companion_publications'].append({'path': rel, 'declarations': expected,
+-                    'adjacent_lean': True, 'mobile_overflow': False})
++                    'proof_panels': expected_proof_panels, 'adjacent_lean': True, 'mobile_overflow': False})
+             assert not report['runtime_errors'],report['runtime_errors']
+             browser.close()
+     except Exception as error:

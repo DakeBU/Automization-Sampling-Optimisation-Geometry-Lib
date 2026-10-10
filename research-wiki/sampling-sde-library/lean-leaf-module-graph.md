@@ -176,6 +176,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate` | `pbps.actualBounceRate` | `actual_bounce_rate_energy_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity` | `pbps.actualBoundedTestContinuity` | `actual_bounded_test_expectation_continuity` | arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival` | `pbps.actualConditionalNextWaitSurvival` | `actual_conditional_next_wait_survival` | arXiv2609.06905v1 AppendixA1 A1 A2 survival implicit A7 and AppendixA2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange` | `pbps.actualCorrectorChange` | `actual_corrector_change` | arXiv2609.06905v1 Appendix B3 B20/B21; Lemma B4/B28 ingredient |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation` | `pbps.actualCorrectorPerturbation` | `actual_corrector_perturbation` | arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw` | `pbps.actualFiniteFirstEventLaw` | `actual_finite_first_event_law` | arXiv2609.06905v1 AppendixA1 A1 A2 first density factor implicit A7 |

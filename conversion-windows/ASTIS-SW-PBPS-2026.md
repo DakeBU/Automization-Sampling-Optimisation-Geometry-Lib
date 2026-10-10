@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual conditional next-wait survival88 (2026-10-11)
+
+Independent science 456e13f9561abcf01a285133e91b3951bf2ed892. Same six original analytic hypotheses and literal actual stopped recursion. For every deterministic event depth n, Borel duration d of complete history H_n and Borel event A, derive joint next-wait event measurability, Borel weight q_d in [0,1], and P(H_n in A and live next wait>d(H_n))=integral_A q_d d(map H_n P). Stopped histories have zero weight; live infinite waits survive all finite durations. No normalization, boundedness of d or law/measurability provider premise. Actual87 joint history/tail law, actual75 hazard survival and actual77 coordinate law are compiled parents. Only S87-I4 closes. S87-I5 conditional finite-wait density, ordered-time disintegration/iteration, final factor/fullA7, random-depth and physical-time residual restart/Markov/invariance/cost/main/composition/wholepaper/Goal remain OPEN.
+
+Five exact proof regions and adjacent folded Lean. Existing sole lane; local aggregate/actual browser/main/PURIFIED/live remain distinct.
+
+
 ## Actual finite history and unused-clock tail law87 (2026-10-11)
 
 Independent science ada2d073d04a78493555b2ac35344b9c5a264bfc. Same six source analytic hypotheses and literal actual76 stopped recursion driven by actual77 iidExp1. For every deterministic n, actual history R0..Rn consumes raw coordinates k<n: derive ambient and F_n measurability, pointwise prefix causality, unchanged full infinite raw tail starting n, history-tail independence/product law and unnormalized restricted-tail pushforward, including n0/stopped/null A. Truncation is only a measurable proof factorization. Closes only probability substrate of G86-11/S87I1-I3; conditional random-hazard next-wait survival/density/final survival/iteration S87I4-I5/fullA7, random stopping/physical-time residual memorylessness/restart/Markov/invariance/allL2/main/error/unboundedcost/composition/wholepaper/Goal remain OPEN.

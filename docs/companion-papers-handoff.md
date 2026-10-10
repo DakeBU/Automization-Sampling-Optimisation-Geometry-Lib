@@ -1,5 +1,49 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS history-dependent next-wait survival (2026-10-11)
+
+Independent science 456e13f9561abcf01a285133e91b3951bf2ed892. Keep the original six analytic hypotheses and
+literal actual stopped recursion. For each deterministic event depth n let
+H_n=(R_0,...,R_n), with law mu_n. For every Borel finite-valued nonnegative
+duration function d on the complete history space and Borel history event A,
+derive the exact unnormalized identity
+
+P(H_n in A and R_n live and next wait > d(H_n))
+  = integral_A q(h_n,d(h)) mu_n(dh),
+
+where q(live(T,z),u)=exp(-Lambda_z(u)) and q(stopped,u)=0. The joint survival
+event is Borel; the weight is Borel and lies in [0,1] on every history, including
+unrealizable histories. d itself is a fixed Borel test function; d(H_n) can be
+random. d need not be bounded and A need not have positive probability.
+Live infinite waits survive every finite duration; stopped records have no
+fictitious next phase. n=0, zero rates, null events and rank zero are included.
+
+The proof consumes actual87 joint history/tail product, actual75 joint Borel
+hazard/clock and deterministic survival, and actual77 coordinate law. These are
+internal dependencies, never additional source premises. Five exhaustive exact
+BODY regions accompany attributed complete statement and stepwise formula
+proofs, with adjacent initially folded Lean. Independent whole mathematics,
+source-blind decoding and primary-first anti-anchored source review are separate
+native evidence. No mathematical or exposition repair was required.
+
+Only S87-I4 conditional survival is now closed. S87-I5 conditional finite-wait
+density, ordered-time disintegration/iteration and final factor assembly remain
+OPEN; full(A.7) is not completed. The next bounded mathematical edge must be
+selected from a fresh capsule and pinned source: derive the conditional finite
+next-wait density, reusing the existing actual86 deterministic first-event law
+and this history-dependent integration. Inspect exact requirements for a Borel
+time-varying test before sealing it; do not introduce density providers.
+
+Physical-time residual memorylessness, random-depth stopping/restart/Markovness,
+path law/reversal/invariance/semigroup/all-L2/hypocoercivity, implementation
+error/unbounded query cost/main/composition remain OPEN. Keep PBPS/SPHMC and
+actual-input composition first, Gaussian Cloud second, midpoint third without
+extra higher derivatives. No TV transfer of unbounded costs. This independently
+VERIFIED child uses the existing sole stabilization lane. Local aggregate,
+actual page/fine-branch visual checks, main merge, PURIFIED, live, wholepaper and
+Goal completion remain distinct; no browser acceptance is inferred from DOM.
+
+
 ## Actual PBPS finite history and unused-clock tail law (2026-10-11)
 
 Independent science ada2d073d04a78493555b2ac35344b9c5a264bfc. For each deterministic event depth n, retain the

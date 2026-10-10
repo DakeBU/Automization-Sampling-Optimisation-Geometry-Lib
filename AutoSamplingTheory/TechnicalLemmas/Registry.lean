@@ -53,6 +53,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuit
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -97,6 +98,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualConditionalNextWaitSurvival"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival.actual_conditional_next_wait_survival"
+    upstreamDecl := "Actual PBPS history-dependent next-wait conditional survival"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A1 A2 survival implicit A7 and AppendixA2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "conditional-survival", "finite-history", "random-duration"]
+    saldUse := "Actual PBPS finite-event iteration substrate; no SALD claim"
+    note := "Independent science 456e13f9561abcf01a285133e91b3951bf2ed892. Same six original analytic hypotheses and literal actual stopped recursion. For every deterministic event depth n, Borel duration d of complete history H_n and Borel event A, derive joint next-wait event measurability, Borel weight q_d in [0,1], and P(H_n in A and live next wait>d(H_n))=integral_A q_d d(map H_n P). Stopped histories have zero weight; live infinite waits survive all finite durations. No normalization, boundedness of d or law/measurability provider premise. Actual87 joint history/tail law, actual75 hazard survival and actual77 coordinate law are compiled parents. Only S87-I4 closes. S87-I5 conditional finite-wait density, ordered-time disintegration/iteration, final factor/fullA7, random-depth and physical-time residual restart/Markov/invariance/cost/main/composition/wholepaper/Goal remain OPEN."
+  },
   {
     key := "pbps.actualFiniteHistoryTailLaw"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law"

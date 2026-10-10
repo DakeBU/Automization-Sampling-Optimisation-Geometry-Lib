@@ -147,6 +147,15 @@ def validate_projection(projection: dict, known: dict) -> None:
 def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
     name = unit['declaration']
     declaration = inline_lean.declarations()[name]
+    # Literal Prop helpers contain the expanded theorem statement, not a proof.
+    statement_helpers = []
+    for helper in unit.get('helpers', []):
+        item = inline_lean.declarations()[helper]
+        signature, _ = inline_lean.split_statement(inline_lean.display_source(item.source_text))
+        if (item.kind == 'def' and item.short_name.endswith('_statement')
+                and re.search(r':\s*Prop\s*$', base.sanitize_lean(signature)) is not None):
+            statement_helpers.append(helper)
+    proof_helpers = tuple(n for n in unit.get('helpers', []) if n not in statement_helpers)
     is_proof = declaration.kind in {'lemma', 'theorem', 'instance'}
     proof_title = 'Mathematical proof' if is_proof else 'Construction and meaning'
     roadmap = ''.join(
@@ -194,18 +203,22 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         '<div class="reader-first-pass-label">Read this first</div>'
         f'<h2>Mathematical statement</h2><p class="reader-claim">{base.esc(unit["statement"])}</p>'
         f'<div class="proof-reader-equation reader-main-equation">\\[{base.esc(unit["formula"])}\\]</div>'
-        '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol></section>'
+        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
+                                 page=page, trim_following_docstring=True)
+        + ''.join(inline_lean.disclosure(helper, role='proof',
+                                        explanation='Complete literal proposition asserted by the theorem above.',
+                                        page=page, trim_following_docstring=True)
+                  for helper in statement_helpers)
+        + '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol></section>'
         '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
         '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
         + base.list_html(unit.get('conventions', []), empty='') + '</details>'
         + f'<h2>{proof_title}</h2>' + steps
         + '<section class="lean-verification"><h2>Lean verification</h2>'
-        '<p>The exact proposition and proof begin folded so the mathematical argument remains the primary reading path.</p>'
-        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
-                                 page=page, trim_following_docstring=True)
+        '<p>The exact proof begins folded immediately after the mathematical argument.</p>'
         + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
-                                 helpers=tuple(unit.get('helpers', [])),
+                                 helpers=proof_helpers,
                                  trim_following_docstring=True)
         + '</section>'
         + examples

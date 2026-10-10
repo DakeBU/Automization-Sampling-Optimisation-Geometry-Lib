@@ -45,6 +45,6 @@ for offset in range(0,len(paths),25):subprocess.run(['git','-c','core.autocrlf=f
 actual=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
 assert actual.issubset(set(paths)) and set(claim['proposed_files']).issubset(actual)
 q=subprocess.run(['git','-c','core.whitespace=cr-at-eol','diff','--cached','--check'],capture_output=True)
-(r/'science-stage-whitespace86.log').write_bytes(q.stdout+q.stderr);assert q.returncode==0,(q.stdout+q.stderr).decode(errors='replace')[:4000]
+log=r/'science-stage-whitespace86.final-pass.log';assert not log.exists();log.write_bytes(q.stdout+q.stderr);assert q.returncode==0,(q.stdout+q.stderr).decode(errors='replace')[:4000]
 subprocess.run(['git','commit','-q','-m','Prove actual PBPS finite first-event density and marked law'],check=True)
 print('SCIENCE_COMMIT',subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())

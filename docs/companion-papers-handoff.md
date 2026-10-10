@@ -1,5 +1,56 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite first-event density and marked law (2026-10-11)
+
+Independent exact-science commit 0bb3cd64ba1235114feaeed99ba22e675b23db76. Under the six original analytic
+hypotheses and the eight literal actual definitions, actual Exp(1) coordinate0
+gives U=tau(epsilon0). Restrict to A_T={0<U<=T} before projecting its finite
+waiting time. Its time law is exactly lambda(Phi_s z) exp(-Lambda_z(s)) ds on
+(0,T], and mapping the SAME law through (s,S(Phi_s z)) gives the actual first
+post-bounce marked law. Mass is1-exp(-Lambda_z(T))<=1 without renormalization;
+the missing probability includes waits beyond T or infinite. Flat hazard,
+zero-normal identity reflection, rank0, T=0 and M=0 are included.
+
+For every bounded Borel real test on nonnegative-time x full phase, derive
+integrability under the marked law, under actual restricted clocks, and for
+the weighted Lebesgue integrand. Their exact Bochner integral identity follows.
+Rate continuity, measurable clock/mark, density and all integrability are
+produced dependencies, not new source premises. The proof uses the existing
+actual75 survival, actual73 flow, actual74 bounce and UnitExponentialProduct;
+the strictly new edge is the finite density and actual marked law.
+
+Five explicit key-lemma proofs and six contiguous public BODY/formula regions
+are published with initially folded exact Lean adjacent. The independent source
+graph has47inventory/38nodes/76relations:73dependencies and3excluded associations,
+all72independent primary anchors mapped (65leaf atoms plus7equation-row anchors). Its two sufficient density routes are OR choices,
+each internally AND with the common Borel mark. The CDF/FTC route is implemented;
+the inverse-hazard alternative is not an extra required premise. The source
+graph remains distinct from the exact compiled kernel dependency certificate.
+
+Next strict mathematical edge: derive the actual unused-clock-tail conditioning
+at finite recursion depth, with a measurable actual-history interface and exact
+canonical iid product law, before iterating first-event factors in(A.7). This is
+pending, not a scheduled proof from old result counts; validate it against the
+fresh capsule/source graph and ownership/reuse search before claiming a newSAU.
+
+FullA7/final survival/path sigma algebra, density-value bounce adapter, reversal,
+outer Tonelli/invariance, restart/Markov/semigroup, AE-safe allL2/Jensen/density,
+hypocoercivity/implemented errors/unbounded query costs/main/composition remain
+OPEN. TV proximity never transfers unbounded costs. Continue PBPS/SPHMC and
+actual-input composition, then Gaussian Cloud, then midpoint without added
+higher derivative bounds. Keep their independent theorem boundaries.
+
+This VERIFIED child uses the existing sole stabilization lane. Local aggregate86
+passed (root9197, Tests9497, Registry535), including tools/astis.py check,
+fake-closure scans and py_compile. Current contributor/publication/semantic/frontier/
+graph/site checks are bound in86 integration.notes.json. The separately reviewed V4
+reader places complete exact literal statements before the roadmap, and all eleven
+proof steps retain adjacent initially folded exact Lean. The current coarse SVG was
+rendered and actually viewed. Generated name-scanned references remain distinct from
+independently certified kernel dependencies. Actual reader/interactive graph visual
+acceptance, main merge/PURIFIED/live and complete-paper/Goal remain separate.
+
+
 ## Actual PBPS jointly indexed full-phase law (2026-10-11)
 
 Independent exact-science commit 6d7d42f996a4fbb159c518623fd35c1ac7717fe9. Retain the original six analytic

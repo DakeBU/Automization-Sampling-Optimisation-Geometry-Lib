@@ -11,9 +11,16 @@ ledger.write_bytes(prefix+tail.replace(b'\r\n',b'\n'))
 private_names={'root.primary-anchor-read86.private.json','primary-first86.json','anchor-readback86.json','anchor-readback86.spaced-normalization.json'}
 def publishable(p):return '.private.' not in p.name and p.name not in private_names
 exclude={x['raw_path'] for x in load(r/'immutable-whitespace-archives86.json')['files']};logs=[]
-for p in sorted(x for x in r.rglob('*') if x.is_file() and publishable(x) and x.suffix in {'.log','.diff'}):
+for p in sorted(x for folder in [r,pre] for x in folder.rglob('*') if x.is_file() and publishable(x) and x.suffix in {'.log','.diff','.lean'}):
  raw=p.read_bytes();a=Path(str(p)+'.gz')
  if not a.exists():a.write_bytes(gzip.compress(raw,mtime=0))
+ if gzip.decompress(a.read_bytes())!=raw:
+  diagnosis=load(r/'science-stage-recorder-path-reuse86.diagnosis.json')
+  assert p.resolve()==(r/'science-stage-whitespace86.log').resolve()
+  assert sha(raw)==diagnosis['current_log_RAW_sha256']
+  assert sha(gzip.decompress(a.read_bytes()))==diagnosis['original_RAW_sha256']
+  logs.append(dict(path=p.as_posix(),historical_RAW_sha256=diagnosis['original_RAW_sha256'],archive=a.as_posix(),current_observation_RAW_sha256=sha(raw),explicit_diagnosis=(r/'science-stage-recorder-path-reuse86.diagnosis.json').as_posix()))
+  continue
  assert gzip.decompress(a.read_bytes())==raw
  logs.append(dict(path=p.as_posix(),RAW_sha256=sha(raw),archive=a.as_posix(),archive_RAW_sha256=sha(a.read_bytes())))
 (out/'immutable-integration-log-archives86.json').write_text(json.dumps(logs,indent=2)+'\n',encoding='utf8',newline='\n')
@@ -21,7 +28,7 @@ owned=load(out/'integration-scope.json')['owned']+[cp.as_posix(),'runs/substanti
 for folder in [r,pre]:
  for p in folder.rglob('*'):
   name=p.as_posix()
-  if p.is_file() and publishable(p) and name not in exclude and '__pycache__' not in p.parts and p.suffix not in {'.log','.diff','.html','.pyc','.olean','.ilean','.c','.o','.ir'} and not name.endswith('.text.txt'):owned.append(name)
+  if p.is_file() and publishable(p) and name not in exclude and '__pycache__' not in p.parts and p.suffix not in {'.log','.diff','.html','.lean','.pyc','.olean','.ilean','.c','.o','.ir'} and not name.endswith('.text.txt'):owned.append(name)
 paths=sorted({Path(p).resolve().relative_to(Path.cwd()).as_posix() for p in owned});saved=load(pre/'pre-fetch86.workspace-RAW.json')['tracked_modified']
 assert len(saved)==21 and not set(paths).intersection(saved)
 for p,h in saved.items():assert sha(Path(p).read_bytes())==h,p

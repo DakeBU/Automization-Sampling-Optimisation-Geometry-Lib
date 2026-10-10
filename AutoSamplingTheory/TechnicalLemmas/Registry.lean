@@ -51,6 +51,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -95,6 +96,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualFiniteFirstEventLaw"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw.actual_finite_first_event_law"
+    upstreamDecl := "Actual PBPS first finite event density and post-bounce marked law"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A1 A2 first density factor implicit A7"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "first-event-density", "finite-subprobability", "post-bounce-law", "bounded-Borel-test"]
+    saldUse := "Actual PBPS first density factor for source path law; no SALD claim"
+    note := "Independent science 0bb3cd64ba1235114feaeed99ba22e675b23db76. Under the six original analytic hypotheses retain literal actual P/epsilon/c/Phi/S/rate/Lambda/tau and derive U from actual coordinate0. On A_T={0<U<=T}, prove exact finite first-event time density and SAME post-bounce marked law, mass1-exp(-LambdaT)<=1, three bounded Borel real-test L1 outputs and exact weighted Lebesgue integral. Finite mass is not renormalized; infinity/default0 excluded before projection. T0/M0/rank0/flat hazard/zero-normal identity remain included. Five key-lemma and six public BODY regions. Unused-tail conditioning, fullA7/path/reversal/invariance/restart/Markov/allL2/hypocoercivity/implementation/error/unboundedcost/main/composition remain OPEN. No TV-to-unbounded-cost inference; browser/main/PURIFIED/live/wholepaper/Goal separate."
+  },
   {
     key := "pbps.actualPhaseTransitionKernel"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel"

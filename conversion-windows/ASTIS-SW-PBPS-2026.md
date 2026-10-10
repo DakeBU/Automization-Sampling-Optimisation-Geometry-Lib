@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual finite first-event density and marked law86 (2026-10-11)
+
+Independent science 0bb3cd64ba1235114feaeed99ba22e675b23db76. Original six analytic hypotheses and literal actual clocks/flow/reflection/hazard give the first finite waiting-time density on(0,T], its SAME post-bounce marked law, mass1-exp(-LambdaT)<=1 and three bounded Borel real-test L1 outputs plus weighted integral identity. No renormalization or added positive hazard/finite wait/regularity premise. Five keylemmas and six contiguous public BODY regions. Unused-tail conditioning/fullA7/path/reversal/invariance/Markov/allL2/main/implementation/error/unboundedcost/composition and actual browser/main/PURIFIED/live/wholepaper/Goal remain OPEN.
+
+
 ## Actual jointly indexed full-phase law85 (2026-10-11)
 
 Independent science 6d7d42f996a4fbb159c518623fd35c1ac7717fe9. The retained actual80 phase and actual Exp1 clocks yield a jointly Borel full-phase probability kernel, exact pushforward/event law and Dirac0 initialization. Every bounded Borel real test has dual L1 integrability and exact expectation transfer. Six exact adjacent formula/BODY regions; probability fibers do not assert process Markovness. Source failed0 and total fallbackinitialphase remain distinct. Path-law/reversal/invariance/restart/Markov/allL2/main/implementation/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.

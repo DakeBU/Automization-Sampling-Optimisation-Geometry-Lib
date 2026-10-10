@@ -1,0 +1,219 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DiscreteDoobL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryRefinement
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoAlgebra
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoProcess
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation
+
+/-!
+# Doob L2 control for elementary Ito processes
+
+The discrete maximal inequality is applied to deterministic dyadic samples of
+the continuous elementary Ito martingale.  Path continuity is recorded in
+`ElementaryItoProcess` and is the bridge used by the subsequent process-limit
+module to pass from these finite maxima to uniform control on `[0,T]`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoDoobL2
+
+open MeasureTheory
+open scoped ENNReal NNReal
+
+open BrownianMotion DiscreteDoobL2 DyadicElementaryRefinement ElementaryItoAlgebra
+  ElementaryItoIntegral ElementaryItoL2 ElementaryItoProcess ProgressiveL2Density
+  SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ} {n : ℕ}
+
+/-- The `k`-th point of the level-`level` dyadic observation grid. -/
+noncomputable def dyadicObservationTime (T : ℝ≥0) (level k : ℕ) : ℝ≥0 :=
+  k * dyadicMesh T level
+
+theorem dyadicObservationTime_monotone (T : ℝ≥0) (level : ℕ) :
+    Monotone (dyadicObservationTime T level) := by
+  intro i j hij
+  unfold dyadicObservationTime
+  gcongr
+
+@[simp] theorem dyadicObservationTime_terminal (T : ℝ≥0) (level : ℕ) :
+    dyadicObservationTime T level (2 ^ level) = T := by
+  simp only [dyadicObservationTime, dyadicMesh, Nat.cast_pow, Nat.cast_ofNat]
+  rw [mul_comm, div_mul_cancel₀]
+  positivity
+
+theorem dyadicObservationTime_refine (T : ℝ≥0) (level k : ℕ) :
+    dyadicObservationTime T (level + 1) (2 * k) =
+      dyadicObservationTime T level k := by
+  apply NNReal.eq
+  simp only [dyadicObservationTime, dyadicMesh, pow_succ, NNReal.coe_mul,
+    Nat.cast_mul, Nat.cast_ofNat]
+  norm_num
+  ring_nf
+
+/-- Finite dyadic running maxima are measurable random variables. -/
+theorem measurable_runningAbsMax_dyadic
+    {M : ℝ≥0 → Omega → ℝ} {filtration : Filtration ℝ≥0 m}
+    (hM : StronglyAdapted filtration M) (T : ℝ≥0) (level : ℕ) :
+    Measurable
+      (runningAbsMax (fun k => M (dyadicObservationTime T level k)) (2 ^ level)) := by
+  rw [show runningAbsMax (fun k => M (dyadicObservationTime T level k)) (2 ^ level) =
+      fun omega => (Finset.range (2 ^ level + 1)).sup'
+        Finset.nonempty_range_add_one
+        (fun k => |M (dyadicObservationTime T level k) omega|) by rfl]
+  convert Finset.measurable_sup' Finset.nonempty_range_add_one
+      (fun k (_hk : k ∈ Finset.range (2 ^ level + 1)) =>
+        ((hM (dyadicObservationTime T level k)).mono
+          (filtration.le (dyadicObservationTime T level k))).measurable.abs) using 1
+  funext omega
+  rw [Finset.sup'_apply]
+
+/-- Refining a dyadic observation grid can only increase its running maximum. -/
+theorem runningAbsMax_dyadic_mono_level
+    (M : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (level : ℕ) (omega : Omega) :
+    runningAbsMax (fun k => M (dyadicObservationTime T level k)) (2 ^ level) omega ≤
+      runningAbsMax (fun k => M (dyadicObservationTime T (level + 1) k))
+        (2 ^ (level + 1)) omega := by
+  unfold runningAbsMax
+  rw [Finset.sup'_le_iff]
+  intro k hk
+  have hk' : 2 * k ∈ Finset.range (2 ^ (level + 1) + 1) := by
+    simp only [Finset.mem_range] at hk ⊢
+    simp only [pow_succ]
+    omega
+  calc
+    |M (dyadicObservationTime T level k) omega| =
+        |M (dyadicObservationTime T (level + 1) (2 * k)) omega| := by
+      rw [dyadicObservationTime_refine]
+    _ ≤ _ := Finset.le_sup'
+      (fun j => |M (dyadicObservationTime T (level + 1) j) omega|) hk'
+
+/-- Put two dyadic elementary processes on their common grid and subtract. -/
+noncomputable def commonDifference
+    (eta xi : DyadicElementaryProcess filtration T) :
+    ElementaryAdaptedProcess filtration (2 ^ commonDyadicLevel eta xi) :=
+  sub
+    (commonRefinementLeftProcess eta xi)
+    (commonRefinementRightProcess eta xi)
+    (commonRefinementProcess_times_eq eta xi)
+
+theorem elementaryItoProcess_commonDifference
+    (eta xi : DyadicElementaryProcess filtration T)
+    (B : ℝ≥0 → Omega → ℝ) (S t : ℝ≥0) (omega : Omega) :
+    elementaryItoProcess (commonDifference eta xi) B S t omega =
+      elementaryItoProcess eta.process B S t omega -
+        elementaryItoProcess xi.process B S t omega := by
+  unfold elementaryItoProcess
+  change elementaryItoIntegral
+      (sub
+        (commonRefinementLeftProcess eta xi)
+        (commonRefinementRightProcess eta xi)
+        (commonRefinementProcess_times_eq eta xi))
+      B (min t S) omega = _
+  rw [elementaryItoIntegral_sub]
+  rw [show elementaryItoIntegral
+      (commonRefinementLeftProcess eta xi)
+      B (min t S) omega =
+      elementaryItoIntegral eta.process B (min t S) omega by
+        exact refineDyadic_elementaryItoIntegral_eq eta _ _ B _ omega]
+  rw [show elementaryItoIntegral
+      (commonRefinementRightProcess eta xi)
+      B (min t S) omega =
+      elementaryItoIntegral xi.process B (min t S) omega by
+        exact refineDyadic_elementaryItoIntegral_eq xi _ _ B _ omega]
+
+theorem elementaryItoIntegral_commonDifference
+    (eta xi : DyadicElementaryProcess filtration T)
+    (B : ℝ≥0 → Omega → ℝ) (S : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (commonDifference eta xi) B S omega =
+      elementaryItoIntegral eta.process B S omega -
+        elementaryItoIntegral xi.process B S omega := by
+  simpa only [elementaryItoProcess, min_self] using
+    elementaryItoProcess_commonDifference eta xi B S S omega
+
+/-- The terminal `eLpNorm` of the common-grid difference is exactly the
+product-space `L2` distance of the two integrands. -/
+theorem eLpNorm_commonDifference_terminal
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    eLpNorm (elementaryItoIntegral (commonDifference eta xi) B T) 2 mu =
+      ‖processToLp eta hB - processToLp xi hB‖ₑ := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hterminal : elementaryItoTerminalToLp (commonDifference eta xi) hB T =
+      terminalToLp eta hB - terminalToLp xi hB := by
+    change elementaryItoTerminalToLp
+      (sub (commonRefinementLeftProcess eta xi)
+        (commonRefinementRightProcess eta xi)
+        (commonRefinementProcess_times_eq eta xi)) hB T = _
+    rw [elementaryItoTerminalToLp_sub]
+    rw [show elementaryItoTerminalToLp (commonRefinementLeftProcess eta xi) hB T =
+        terminalToLp eta hB by
+          exact refineDyadic_terminalToLp_eq eta _ _ hB T]
+    rw [show elementaryItoTerminalToLp (commonRefinementRightProcess eta xi) hB T =
+        terminalToLp xi hB by
+          exact refineDyadic_terminalToLp_eq xi _ _ hB T]
+  calc
+    eLpNorm (elementaryItoIntegral (commonDifference eta xi) B T) 2 mu =
+        ‖elementaryItoTerminalToLp (commonDifference eta xi) hB T‖ₑ :=
+      (Lp.enorm_toLp
+        (elementaryItoIntegral_memLp_two (commonDifference eta xi) hB T)).symm
+    _ = ‖terminalToLp eta hB - terminalToLp xi hB‖ₑ := by rw [hterminal]
+    _ = ‖processToLp eta hB - processToLp xi hB‖ₑ := by
+      rw [← ofReal_norm, ← ofReal_norm]
+      exact congrArg ENNReal.ofReal (norm_terminal_sub_eq_process_sub eta xi hB)
+
+/-- Finite-grid Doob control for an elementary Ito martingale. -/
+theorem doobL2_elementaryItoProcess
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (T : ℝ≥0) (level : ℕ) :
+    eLpNorm
+        (runningAbsMax
+          (fun k => elementaryItoProcess eta B T (dyadicObservationTime T level k))
+          (2 ^ level)) 2 mu ≤
+      2 * eLpNorm (elementaryItoIntegral eta B T) 2 mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have h := doobL2_sampled (elementaryItoProcess_martingale eta hB T)
+    (dyadicObservationTime T level) (dyadicObservationTime_monotone T level) (2 ^ level)
+  simpa only [dyadicObservationTime_terminal, elementaryItoProcess_terminal] using h
+
+/-- Finite-grid Doob control for the difference of two heterogeneous dyadic
+elementary Ito processes. -/
+theorem doobL2_elementaryItoProcess_sub
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (level : ℕ) :
+    eLpNorm
+        (runningAbsMax
+          (fun k => elementaryItoProcess eta.process B T
+              (dyadicObservationTime T level k) -
+            elementaryItoProcess xi.process B T
+              (dyadicObservationTime T level k))
+          (2 ^ level)) 2 mu ≤
+      2 * eLpNorm
+        (fun omega => elementaryItoIntegral eta.process B T omega -
+          elementaryItoIntegral xi.process B T omega) 2 mu := by
+  have h := doobL2_elementaryItoProcess (commonDifference eta xi) hB T level
+  have hprocess :
+      (fun k => elementaryItoProcess (commonDifference eta xi) B T
+        (dyadicObservationTime T level k)) =
+      (fun k => elementaryItoProcess eta.process B T
+          (dyadicObservationTime T level k) -
+        elementaryItoProcess xi.process B T
+          (dyadicObservationTime T level k)) := by
+    funext k omega
+    exact elementaryItoProcess_commonDifference eta xi B T _ omega
+  have hterminal : elementaryItoIntegral (commonDifference eta xi) B T =
+      fun omega => elementaryItoIntegral eta.process B T omega -
+        elementaryItoIntegral xi.process B T omega := by
+    funext omega
+    exact elementaryItoIntegral_commonDifference eta xi B T omega
+  rwa [hprocess, hterminal] at h
+
+end ElementaryItoDoobL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,189 @@
+import Mathlib.Probability.Distributions.Gaussian.Basic
+import Mathlib.Probability.BrownianMotion.Basic
+import Mathlib.Probability.ConditionalExpectation
+import Mathlib.Probability.Independence.Basic
+import Mathlib.Probability.Independence.Integration
+import Mathlib.Probability.Process.Adapted
+import Mathlib.MeasureTheory.Function.L2Space
+
+/-!
+# Standard Brownian motion
+
+The predicate below formalizes Chewi's Definition 1.1.1 on a finite-
+dimensional real Hilbert space.  The centered isotropic increment law is stated
+through every continuous linear functional, which is Mathlib's native
+characterization of a Gaussian measure and avoids choosing coordinates.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace BrownianMotion
+
+open MeasureTheory ProbabilityTheory Set
+open scoped NNReal RealInnerProductSpace Topology
+
+variable {Omega E : Type*} [MeasurableSpace Omega]
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- The variance of a standard Brownian increment after applying a continuous
+linear functional `ell`: `(t-s) * ||ell||^2`. -/
+noncomputable def projectedIncrementVariance
+    (s t : ℝ≥0) (ell : StrongDual ℝ E) : ℝ≥0 :=
+  Real.toNNReal (((t - s : ℝ≥0) : ℝ) * ‖ell‖ ^ 2)
+
+/-- Chewi Definition 1.1.1: a standard Brownian motion in a finite-dimensional
+real Hilbert space.
+
+Independent increments are stated for every finite family of pairwise
+disjoint half-open time intervals.  The Gaussian law is characterized by all
+one-dimensional continuous-linear projections; this says exactly that an
+increment has mean zero and covariance `(t-s) I`. -/
+def IsStandardBrownianMotion
+    (B : ℝ≥0 → Omega → E) (mu : Measure Omega) : Prop :=
+  (∀ omega, B 0 omega = 0) ∧
+    (∀ (n : ℕ) (s t : Fin n → ℝ≥0),
+      (∀ i, s i ≤ t i) →
+      Pairwise (fun i j => Disjoint (Ioc (s i) (t i)) (Ioc (s j) (t j))) →
+      iIndepFun (fun i omega => B (t i) omega - B (s i) omega) mu) ∧
+    (∀ s t : ℝ≥0, s < t → ∀ ell : StrongDual ℝ E,
+      HasLaw
+        (fun omega => ell (B t omega - B s omega))
+        (gaussianReal 0 (projectedIncrementVariance s t ell)) mu) ∧
+    ∀ᵐ omega ∂mu, Continuous (fun t => B t omega)
+
+/-! ## Brownian motion relative to a filtration -/
+
+/-- A real Brownian motion relative to a specified filtration.
+
+The last field is the condition needed for stochastic integration: the
+increment after `s` is independent of the whole past sigma-algebra `F_s`.
+Bare independent increments do not imply this for an arbitrary enlarged
+filtration. -/
+structure IsBrownianMotionWithFiltration
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (B : ℝ≥0 → Omega → ℝ) (filtration : Filtration ℝ≥0 m)
+    (mu : Measure Omega) : Prop where
+  isBrownian : ProbabilityTheory.IsBrownianReal B mu
+  stronglyAdapted : StronglyAdapted filtration B
+  incrementIndependent : ∀ s t, s ≤ t →
+    Indep (filtration s)
+      (MeasurableSpace.comap (fun omega => B t omega - B s omega) (borel ℝ)) mu
+
+namespace IsBrownianMotionWithFiltration
+
+variable {Ω : Type*} {m : MeasurableSpace Ω}
+  {B : ℝ≥0 → Ω → ℝ} {filtration : Filtration ℝ≥0 m} {μ : Measure Ω}
+
+/-- A Brownian-filtration contract carries a probability measure. -/
+theorem isProbabilityMeasure (hB : IsBrownianMotionWithFiltration B filtration μ) :
+    IsProbabilityMeasure μ :=
+  hB.isBrownian.toIsPreBrownianReal.isGaussianProcess.isProbabilityMeasure
+
+/-- Every Brownian increment is strongly measurable in the ambient
+sigma-algebra. -/
+theorem increment_stronglyMeasurable
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (s t : ℝ≥0) :
+    StronglyMeasurable (fun omega => B t omega - B s omega) :=
+  ((hB.stronglyAdapted t).mono (filtration.le t)).sub
+    ((hB.stronglyAdapted s).mono (filtration.le s))
+
+/-- Any real random variable measurable at time `s` is independent of a
+future Brownian increment. -/
+theorem indepFun_increment_of_stronglyMeasurable
+    (hB : IsBrownianMotionWithFiltration B filtration μ)
+    {s t : ℝ≥0} (hst : s ≤ t) {Z : Ω → ℝ}
+    (hZ : StronglyMeasurable[filtration s] Z) :
+    IndepFun Z (fun omega => B t omega - B s omega) μ := by
+  rw [IndepFun_iff_Indep]
+  exact indep_of_indep_of_le (hB.incrementIndependent s t hst)
+    hZ.measurable.comap_le le_rfl
+
+/-- A Brownian increment has mean zero. -/
+theorem integral_increment_eq_zero
+    (hB : IsBrownianMotionWithFiltration B filtration μ) (s t : ℝ≥0) :
+    ∫ omega, (B t omega - B s omega) ∂μ = 0 := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  rw [integral_sub (hB.isBrownian.integrable_eval t)
+      (hB.isBrownian.integrable_eval s),
+    hB.isBrownian.integral_eval, hB.isBrownian.integral_eval, sub_zero]
+
+/-- The conditional mean of a future Brownian increment given the past is
+zero. -/
+theorem condExp_increment_eq_zero
+    (hB : IsBrownianMotionWithFiltration B filtration μ)
+    {s t : ℝ≥0} (hst : s ≤ t) :
+    μ[fun omega => B t omega - B s omega | filtration s] =ᵐ[μ]
+      fun _ => 0 := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  let increment : Ω → ℝ := fun omega => B t omega - B s omega
+  have hincrement : StronglyMeasurable increment := hB.increment_stronglyMeasurable s t
+  have hincrementComap :
+      StronglyMeasurable[MeasurableSpace.comap increment (borel ℝ)] increment :=
+    (comap_measurable increment).stronglyMeasurable
+  have hcond := condExp_indep_eq hincrement.measurable.comap_le
+    (filtration.le s) hincrementComap (hB.incrementIndependent s t hst).symm
+  simpa [increment, hB.integral_increment_eq_zero s t] using hcond
+
+/-- The second moment of a Brownian increment is its elapsed time. -/
+theorem integral_increment_sq
+    (hB : IsBrownianMotionWithFiltration B filtration μ)
+    {s t : ℝ≥0} (hst : s ≤ t) :
+    ∫ omega, (B t omega - B s omega) ^ 2 ∂μ = ((t - s : ℝ≥0) : ℝ) := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  have hpre := hB.isBrownian.toIsPreBrownianReal
+  have ht : MemLp (B t) 2 μ := hpre.isGaussianProcess.hasGaussianLaw_eval t |>.memLp_two
+  have hs : MemLp (B s) 2 μ := hpre.isGaussianProcess.hasGaussianLaw_eval s |>.memLp_two
+  have hmean : ∫ omega, (B t omega - B s omega) ∂μ = 0 :=
+    hB.integral_increment_eq_zero s t
+  have hvarT : Var[B t; μ] = (t : ℝ) := by
+    rw [← covariance_self ht.aemeasurable, hpre.covariance_eval, min_self]
+  have hvarS : Var[B s; μ] = (s : ℝ) := by
+    rw [← covariance_self hs.aemeasurable, hpre.covariance_eval, min_self]
+  have hcov : cov[B t, B s; μ] = (s : ℝ) := by
+    rw [hpre.covariance_eval, min_eq_right hst]
+  have hvar : Var[fun omega => B t omega - B s omega; μ] =
+      ((t - s : ℝ≥0) : ℝ) := by
+    rw [variance_fun_sub ht hs, hvarT, hvarS, hcov, NNReal.coe_sub hst]
+    ring
+  have hvarianceEq := variance_eq_sub (ht.sub hs)
+  have hmean' : ∫ omega, (B t - B s) omega ∂μ = 0 := by
+    simpa using hmean
+  rw [hmean'] at hvarianceEq
+  norm_num at hvarianceEq
+  have hsquare : ∫ omega, ((B t - B s) ^ 2) omega ∂μ =
+      ((t - s : ℝ≥0) : ℝ) := hvarianceEq.symm.trans hvar
+  simpa using hsquare
+
+/-- The conditional second moment of a future Brownian increment is its
+elapsed time. -/
+theorem condExp_increment_sq
+    (hB : IsBrownianMotionWithFiltration B filtration μ)
+    {s t : ℝ≥0} (hst : s ≤ t) :
+    μ[fun omega => (B t omega - B s omega) ^ 2 | filtration s] =ᵐ[μ]
+      fun _ => ((t - s : ℝ≥0) : ℝ) := by
+  let _ : IsProbabilityMeasure μ := hB.isProbabilityMeasure
+  let increment : Ω → ℝ := fun omega => B t omega - B s omega
+  let incrementSq : Ω → ℝ := fun omega => increment omega ^ 2
+  have hincrement : StronglyMeasurable increment :=
+    hB.increment_stronglyMeasurable s t
+  have hincrementComap :
+      StronglyMeasurable[MeasurableSpace.comap increment (borel ℝ)] increment :=
+    (comap_measurable increment).stronglyMeasurable
+  have hsquareRelative :
+      StronglyMeasurable[MeasurableSpace.comap increment (borel ℝ)] incrementSq := by
+    exact hincrementComap.pow 2
+  have hcond := condExp_indep_eq
+    (m₁ := MeasurableSpace.comap increment (borel ℝ))
+    (m₂ := filtration s) (f := incrementSq)
+    hincrement.measurable.comap_le (filtration.le s) hsquareRelative
+    (hB.incrementIndependent s t hst).symm
+  simpa [incrementSq, increment, hB.integral_increment_sq hst] using hcond
+
+end IsBrownianMotionWithFiltration
+
+end BrownianMotion
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

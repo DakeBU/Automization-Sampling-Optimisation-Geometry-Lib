@@ -1,0 +1,15 @@
+We do not register this as an instance to avoid an instance loop when trying to prove the
+properness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Declare the instance
+explicitly when needed. -/
+theorem FiniteDimensional.proper [FiniteDimensional 𝕜 E] : ProperSpace E := by
+  have : ProperSpace 𝕜 := .of_locallyCompactSpace 𝕜
+  set e := ContinuousLinearEquiv.ofFinrankEq (@finrank_fin_fun 𝕜 _ _ (finrank 𝕜 E)).symm
+  exact e.symm.antilipschitz.properSpace e.symm.continuous e.symm.surjective
+
+end LocallyCompactField
+
+/-- Over the real numbers, we can register the previous statement as an instance as it will not
+cause problems in instance resolution since the properness of `ℝ` is already known. -/
+instance (priority := 900) FiniteDimensional.proper_real (E : Type u) [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [FiniteDimensional ℝ E] : ProperSpace E :=
+  FiniteDimensional.proper ℝ E

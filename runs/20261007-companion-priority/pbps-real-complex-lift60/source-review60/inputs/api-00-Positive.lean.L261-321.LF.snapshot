@@ -1,0 +1,61 @@
+
+namespace ContinuousLinearMap
+
+/-- A continuous linear endomorphism `T` of a Hilbert space is **positive** if it is symmetric
+  and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
+def IsPositive (T : E →L[𝕜] E) : Prop :=
+  T.IsSymmetric ∧ ∀ x, 0 ≤ T.reApplyInnerSelf x
+
+theorem isPositive_def {T : E →L[𝕜] E} :
+    T.IsPositive ↔ T.IsSymmetric ∧ ∀ x, 0 ≤ T.reApplyInnerSelf x := Iff.rfl
+
+/-- In a complete space, a continuous linear endomorphism `T` is **positive** if it is
+symmetric and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
+theorem isPositive_def' [CompleteSpace E] {T : E →L[𝕜] E} :
+    T.IsPositive ↔ IsSelfAdjoint T ∧ ∀ x, 0 ≤ T.reApplyInnerSelf x := by
+  simp [IsPositive, isSelfAdjoint_iff_isSymmetric, LinearMap.IsSymmetric]
+
+theorem IsPositive.isSymmetric {T : E →L[𝕜] E} (hT : T.IsPositive) :
+    T.IsSymmetric := hT.1
+
+theorem IsPositive.isSelfAdjoint [CompleteSpace E] {T : E →L[𝕜] E} (hT : IsPositive T) :
+    IsSelfAdjoint T := hT.isSymmetric.isSelfAdjoint
+
+theorem IsPositive.inner_left_eq_inner_right {T : E →L[𝕜] E} (hT : IsPositive T) (x y : E) :
+    ⟪T x, y⟫ = ⟪x, T y⟫ := hT.isSymmetric _ _
+
+theorem IsPositive.re_inner_nonneg_left {T : E →L[𝕜] E} (hT : IsPositive T) (x : E) :
+    0 ≤ re ⟪T x, x⟫ := hT.2 x
+
+lemma _root_.LinearMap.isPositive_toContinuousLinearMap_iff
+    [FiniteDimensional 𝕜 E] (T : E →ₗ[𝕜] E) :
+    T.toContinuousLinearMap.IsPositive ↔ T.IsPositive := Iff.rfl
+
+lemma isPositive_toLinearMap_iff (T : E →L[𝕜] E) :
+    (T : E →ₗ[𝕜] E).IsPositive ↔ T.IsPositive := Iff.rfl
+
+alias ⟨_, IsPositive.toLinearMap⟩ := isPositive_toLinearMap_iff
+
+theorem IsPositive.re_inner_nonneg_right {T : E →L[𝕜] E} (hT : IsPositive T) (x : E) :
+    0 ≤ re ⟪x, T x⟫ := hT.toLinearMap.re_inner_nonneg_right x
+
+/-- An operator is positive iff it is symmetric and `0 ≤ ⟪T x, x⟫`.
+
+For the version with `IsSelfAdjoint` instead of `IsSymmetric`, see
+`ContinuousLinearMap.isPositive_iff'`. -/
+theorem isPositive_iff (T : E →L[𝕜] E) :
+    IsPositive T ↔ T.IsSymmetric ∧ ∀ x, 0 ≤ ⟪T x, x⟫ := LinearMap.isPositive_iff _
+
+/-- An operator is positive iff it is self-adjoint and `0 ≤ ⟪T x, x⟫`.
+
+For the version with `IsSymmetric` instead of `IsSelfAdjoint`, see
+`ContinuousLinearMap.isPositive_iff`. -/
+theorem isPositive_iff' [CompleteSpace E] (T : E →L[𝕜] E) :
+    IsPositive T ↔ IsSelfAdjoint T ∧ ∀ x, 0 ≤ ⟪T x, x⟫ := by
+  simp [isSelfAdjoint_iff_isSymmetric, isPositive_iff]
+
+theorem IsPositive.inner_nonneg_left {T : E →L[𝕜] E} (hT : IsPositive T) (x : E) :
+    0 ≤ ⟪T x, x⟫ := hT.toLinearMap.inner_nonneg_left x
+
+theorem IsPositive.inner_nonneg_right {T : E →L[𝕜] E} (hT : IsPositive T) (x : E) :
+    0 ≤ ⟪x, T x⟫ := hT.toLinearMap.inner_nonneg_right x

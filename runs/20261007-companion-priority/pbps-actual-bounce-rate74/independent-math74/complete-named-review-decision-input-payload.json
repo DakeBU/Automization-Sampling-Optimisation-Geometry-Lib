@@ -1,0 +1,580 @@
+{
+  "review_name": "Independent whole-body mathematics74",
+  "decision": {
+    "status": "ACCEPTED_MATHEMATICS_ONLY",
+    "reviewer": "/root/header_math72",
+    "checked_parent": "e91f9b3acfeea172c33053b28d88b7fea6e61e9d",
+    "ten_clauses_mathematically_correct": true,
+    "minimum_mathematical_repair": [],
+    "fake_closures": 0,
+    "rank_zero_allowed": true,
+    "alphaeta_one_allowed": true,
+    "zero_energy_allowed": true,
+    "zero_normal_allowed": true,
+    "original_six_callers_preserved": true,
+    "no_new_public_analytic_premises": true,
+    "source_review": false,
+    "VERIFIED": false,
+    "full_paper": false,
+    "Goal_complete": false,
+    "full_Exposition_Seal": false,
+    "PURIFIED": false,
+    "main": false,
+    "live": false,
+    "new_Lean_implementation_or_proof_search_by_reviewer": false,
+    "negative_evidence": [],
+    "warnings_preserved": "All compiler linter warnings remain in exact RAW logs; no failed compile/audit in this review."
+  },
+  "full_exact_module_UTF8": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization\nimport Mathlib.Analysis.InnerProductSpace.Projection.Reflection\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Basic\n\n/-!\nChen--Chewi--Lu--Zhang arXiv:2609.06905v1, Section2 (reflection), Algorithm1,\nAppendixA.1 Ex4--6. Actual zero-safe Borel bounce and energy-layer rate bound.\nThis statement asserts no random path, clock, Markov kernel or nonexplosion.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate\nopen InnerProductSpace\nopen scoped ContDiff NNReal Topology\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_bounce_rate_energy_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n    let R : E → E → E := fun n p =>\n      p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, R (h xRef z.1) z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))\n\ntheorem actual_bounce_rate_energy_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_bounce_rate_energy_statement hα hαβ hV hH hη hβη := by\n\n  let c : E → E → E := fun y xRef => y - η • gradient V xRef\n  let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n  let R : E → E → E := fun n p => p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n  let S : E → (E × E) → (E × E) := fun xRef z => (z.1, R (h xRef z.1) z.2)\n  let rate : E → (E × E) → ℝ := fun xRef z =>\n    Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n  let H : E → E → (E × E) → ℝ := fun y xRef z =>\n    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n  change\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))\n  letI : CompleteSpace E := FiniteDimensional.complete ℝ E\n  have hLip : LipschitzWith β (gradient V) := by\n    simpa using\n      (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n        (m := α) (L := β) (r := 0) hV hH (0 : E)).2\n  have hgrad : Continuous (gradient V) := hLip.continuous\n  have hRzero (p : E) : R 0 p = p := by simp [R]\n  have hRreflect (n p : E) : R n p = (ℝ ∙ n)ᗮ.reflection p := by\n    rw [Submodule.reflection_orthogonal_apply, Submodule.reflection_singleton_apply]\n    simp only [two_smul, neg_sub]\n    dsimp [R]\n    simp only [div_eq_mul_inv, mul_smul]\n    rw [real_inner_comm n p]\n    module\n  have hRlaws (n p : E) : R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n := by\n    refine ⟨?_, ?_, ?_⟩\n    · simp only [hRreflect, Submodule.reflection_reflection]\n    · rw [hRreflect]; exact LinearIsometryEquiv.norm_map _ _\n    · by_cases hn : n = 0\n      · simp [hn]\n      · have hn2 : ‖n‖ ^ 2 ≠ 0 := pow_ne_zero _ (norm_ne_zero_iff.mpr hn)\n        dsimp [R]\n        rw [inner_sub_left, real_inner_smul_left, real_inner_self_eq_norm_sq]\n        field_simp [hn2] <;> ring\n  have hSmeas : Measurable (fun a : E × (E × E) => S a.1 a.2) := by\n    dsimp [S, R, h]\n    fun_prop\n  have hratecont : Continuous (fun a : E × (E × E) => rate a.1 a.2) := by\n    dsimp [rate, h]\n    fun_prop\n  have hSlaws (xRef : E) (z : E × E) :\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z := by\n    refine ⟨rfl, ?_⟩\n    exact Prod.ext rfl (hRlaws (h xRef z.1) z.2).1\n  have hHbounce (y xRef : E) (z : E × E) : H y xRef (S xRef z) = H y xRef z := by\n    dsimp [H, S]\n    rw [(hRlaws (h xRef z.1) z.2).2.1]\n  have hrateflip (xRef : E) (z : E × E) :\n      rate xRef (S xRef z) = Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) := by\n    dsimp [rate, S]\n    rw [(hRlaws (h xRef z.1) z.2).2.2]\n  have hratelaws (xRef : E) (z : E × E) : 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) = Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) = Real.sqrt η * inner ℝ z.2 (h xRef z.1) := by\n    refine ⟨mul_nonneg (Real.sqrt_nonneg _) (le_max_left _ _), hrateflip xRef z, ?_⟩\n    rw [hrateflip]\n    dsimp [rate]\n    by_cases hi : 0 ≤ inner ℝ z.2 (h xRef z.1)\n    · rw [max_eq_right hi, max_eq_left (by linarith)]\n      ring\n    · rw [max_eq_left (le_of_not_ge hi), max_eq_right (by linarith)]\n      ring\n  have hzero (xRef x p : E) (hh : h xRef x = 0) :\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0 := by\n    simp [S, rate, hh, hRzero]\n  have hHnonneg (y xRef : E) (z : E × E) : 0 ≤ H y xRef z := by\n    exact div_nonneg (add_nonneg (mul_nonneg (inv_nonneg.mpr hη.le) (sq_nonneg _))\n      (sq_nonneg _)) (by norm_num)\n  refine ⟨hSmeas, hratecont, hratecont.measurable, hRzero, hRlaws,\n    hSlaws, hHbounce, hratelaws, hzero, ?_⟩\n  intro y xRef z₀\n  refine ⟨hHnonneg y xRef z₀, ?_⟩\n  intro z heq\n  have hsum : η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2 = 2 * H y xRef z₀ := by\n    change (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2 = _ at heq\n    linarith\n  have hp2 : ‖z.2‖ ^ 2 ≤ 2 * H y xRef z₀ := by\n    have := mul_nonneg (inv_nonneg.mpr hη.le) (sq_nonneg ‖z.1 - c y xRef‖)\n    linarith\n  have hxweighted : η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 ≤ 2 * H y xRef z₀ := by\n    nlinarith [sq_nonneg ‖z.2‖]\n  have hx2 : ‖z.1 - c y xRef‖ ^ 2 ≤ 2 * η * H y xRef z₀ := by\n    calc\n      ‖z.1 - c y xRef‖ ^ 2 = η * (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2) := by\n        rw [← mul_assoc, mul_inv_cancel₀ (ne_of_gt hη), one_mul]\n      _ ≤ η * (2 * H y xRef z₀) := mul_le_mul_of_nonneg_left hxweighted hη.le\n      _ = _ := by ring\n  have hp : ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) := Real.le_sqrt_of_sq_le hp2\n  have hx : ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) :=\n    Real.le_sqrt_of_sq_le hx2\n  refine ⟨hp, hx, ?_⟩\n  have htriangle : ‖z.1 - xRef‖ ≤ ‖z.1 - c y xRef‖ + ‖c y xRef - xRef‖ := by\n    calc\n      ‖z.1 - xRef‖ = ‖(z.1 - c y xRef) + (c y xRef - xRef)‖ := by\n        congr 1\n        abel\n      _ ≤ _ := norm_add_le _ _\n  have hnormal : ‖h xRef z.1‖ ≤ (β : ℝ) *\n      (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖) := by\n    calc\n      ‖h xRef z.1‖ ≤ (β : ℝ) * ‖z.1 - xRef‖ := hLip.norm_sub_le z.1 xRef\n      _ ≤ _ := mul_le_mul_of_nonneg_left (htriangle.trans (add_le_add hx le_rfl)) β.coe_nonneg\n  have hpair : max 0 (inner ℝ z.2 (h xRef z.1)) ≤ ‖z.2‖ * ‖h xRef z.1‖ :=\n    max_le (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (real_inner_le_norm _ _)\n  calc\n    rate xRef z ≤ Real.sqrt η * (‖z.2‖ * ‖h xRef z.1‖) :=\n      mul_le_mul_of_nonneg_left hpair (Real.sqrt_nonneg _)\n    _ ≤ Real.sqrt η * (Real.sqrt (2 * H y xRef z₀) *\n        ((β : ℝ) * (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))) :=\n      mul_le_mul_of_nonneg_left\n        (mul_le_mul hp hnormal (norm_nonneg _) (Real.sqrt_nonneg _)) (Real.sqrt_nonneg _)\n    _ = _ := by ring\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate\n",
+  "input_manifest": {
+    "input_count": 13,
+    "inputs": [
+      {
+        "original": {
+          "path": "E:/Samplinglib/lean-toolchain",
+          "RAW_bytes": 26,
+          "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+          "LF_bytes": 25,
+          "LF_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/00.exactRAW.snapshot",
+          "RAW_bytes": 26,
+          "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+          "LF_bytes": 25,
+          "LF_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/lake-manifest.json",
+          "RAW_bytes": 3234,
+          "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+          "LF_bytes": 3138,
+          "LF_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/01.exactRAW.snapshot",
+          "RAW_bytes": 3234,
+          "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+          "LF_bytes": 3138,
+          "LF_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+          "RAW_bytes": 10565,
+          "RAW_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+          "LF_bytes": 10565,
+          "LF_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/02.exactRAW.snapshot",
+          "RAW_bytes": 10565,
+          "RAW_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+          "LF_bytes": 10565,
+          "LF_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularization.lean",
+          "RAW_bytes": 5800,
+          "RAW_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+          "LF_bytes": 5683,
+          "LF_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/03.exactRAW.snapshot",
+          "RAW_bytes": 5800,
+          "RAW_sha256": "3c7a609371bc9439392a9f9a414f7dfa3d3b942561f2c33fa4a207111119efb2",
+          "LF_bytes": 5683,
+          "LF_sha256": "516ac170f482f2e038f79292a2e5dc3ab3138ea9a574e08e088bf59cfba48303"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounce-rate-preproof74/root.statement-seal74.json",
+          "RAW_bytes": 1955,
+          "RAW_sha256": "7e32a975132dfe1f706c94fbec8dd996fa063b78a411163bc94b816ca2cfefa1",
+          "LF_bytes": 1955,
+          "LF_sha256": "7e32a975132dfe1f706c94fbec8dd996fa063b78a411163bc94b816ca2cfefa1"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/04.exactRAW.snapshot",
+          "RAW_bytes": 1955,
+          "RAW_sha256": "7e32a975132dfe1f706c94fbec8dd996fa063b78a411163bc94b816ca2cfefa1",
+          "LF_bytes": 1955,
+          "LF_sha256": "7e32a975132dfe1f706c94fbec8dd996fa063b78a411163bc94b816ca2cfefa1"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/expanded74.frozen.header.lean",
+          "RAW_bytes": 2314,
+          "RAW_sha256": "c394e16d1dfe4f4c7dc60ee53e59a6d0b5cdb3317a129de55218805b370a1de1",
+          "LF_bytes": 2314,
+          "LF_sha256": "c394e16d1dfe4f4c7dc60ee53e59a6d0b5cdb3317a129de55218805b370a1de1"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/05.exactRAW.snapshot",
+          "RAW_bytes": 2314,
+          "RAW_sha256": "c394e16d1dfe4f4c7dc60ee53e59a6d0b5cdb3317a129de55218805b370a1de1",
+          "LF_bytes": 2314,
+          "LF_sha256": "c394e16d1dfe4f4c7dc60ee53e59a6d0b5cdb3317a129de55218805b370a1de1"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounce-rate-preproof74/header74.proposed.lean",
+          "RAW_bytes": 3537,
+          "RAW_sha256": "d72435795cd225af382948e8da683b6eb4b9e5b05509f8e3b0d10a3ed5a5a96e",
+          "LF_bytes": 3537,
+          "LF_sha256": "d72435795cd225af382948e8da683b6eb4b9e5b05509f8e3b0d10a3ed5a5a96e"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/06.exactRAW.snapshot",
+          "RAW_bytes": 3537,
+          "RAW_sha256": "d72435795cd225af382948e8da683b6eb4b9e5b05509f8e3b0d10a3ed5a5a96e",
+          "LF_bytes": 3537,
+          "LF_sha256": "d72435795cd225af382948e8da683b6eb4b9e5b05509f8e3b0d10a3ed5a5a96e"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounce-rate-preproof74/independent-header-math74/decision.json",
+          "RAW_bytes": 19328,
+          "RAW_sha256": "ddc44b29bbcd4a9589f7e0e3d2561cc6df44e70193cb0234e4f5d7243350878f",
+          "LF_bytes": 19328,
+          "LF_sha256": "ddc44b29bbcd4a9589f7e0e3d2561cc6df44e70193cb0234e4f5d7243350878f"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/07.exactRAW.snapshot",
+          "RAW_bytes": 19328,
+          "RAW_sha256": "ddc44b29bbcd4a9589f7e0e3d2561cc6df44e70193cb0234e4f5d7243350878f",
+          "LF_bytes": 19328,
+          "LF_sha256": "ddc44b29bbcd4a9589f7e0e3d2561cc6df44e70193cb0234e4f5d7243350878f"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/.lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Projection/Reflection.lean",
+          "RAW_bytes": 6699,
+          "RAW_sha256": "74301dfd7c88bef9fd2553409d6bd0ed3c7cd47221bd3aff8612995e12cc74cd",
+          "LF_bytes": 6528,
+          "LF_sha256": "b59a6f6a7cd79373caa4e5bb0f6d04ed7e3ed005821bccc586836ee083746368"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/08.exactRAW.snapshot",
+          "RAW_bytes": 6699,
+          "RAW_sha256": "74301dfd7c88bef9fd2553409d6bd0ed3c7cd47221bd3aff8612995e12cc74cd",
+          "LF_bytes": 6528,
+          "LF_sha256": "b59a6f6a7cd79373caa4e5bb0f6d04ed7e3ed005821bccc586836ee083746368"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Basic.lean",
+          "RAW_bytes": 35237,
+          "RAW_sha256": "c57afe79c1cb0df8bd438b5d4197d748d8935ccc19bf18e7b09a02f551664de2",
+          "LF_bytes": 34486,
+          "LF_sha256": "d24a9ae0e039064eb61570a7260171f6e4f77f6abebd16250aabd1a76a63029a"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/09.exactRAW.snapshot",
+          "RAW_bytes": 35237,
+          "RAW_sha256": "c57afe79c1cb0df8bd438b5d4197d748d8935ccc19bf18e7b09a02f551664de2",
+          "LF_bytes": 34486,
+          "LF_sha256": "d24a9ae0e039064eb61570a7260171f6e4f77f6abebd16250aabd1a76a63029a"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/.lake/packages/mathlib/Mathlib/MeasureTheory/Group/Arithmetic.lean",
+          "RAW_bytes": 38683,
+          "RAW_sha256": "3cc852a0231ba701a60ab3c39736f31d72be6a9b73f7702190c0db24565fb1f9",
+          "LF_bytes": 37805,
+          "LF_sha256": "b3d9743fafd96a414a6f658284a4ec87a02fd1a17b96103f75bb6e66ac041c6c"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/10.exactRAW.snapshot",
+          "RAW_bytes": 38683,
+          "RAW_sha256": "3cc852a0231ba701a60ab3c39736f31d72be6a9b73f7702190c0db24565fb1f9",
+          "LF_bytes": 37805,
+          "LF_sha256": "b3d9743fafd96a414a6f658284a4ec87a02fd1a17b96103f75bb6e66ac041c6c"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/mathematics-freeze74.json",
+          "RAW_bytes": 4128,
+          "RAW_sha256": "cc0993bcc22c4f326859a150556971af479130a7c6fca4258eebfb7b787f92b7",
+          "LF_bytes": 4128,
+          "LF_sha256": "cc0993bcc22c4f326859a150556971af479130a7c6fca4258eebfb7b787f92b7"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/11.exactRAW.snapshot",
+          "RAW_bytes": 4128,
+          "RAW_sha256": "cc0993bcc22c4f326859a150556971af479130a7c6fca4258eebfb7b787f92b7",
+          "LF_bytes": 4128,
+          "LF_sha256": "cc0993bcc22c4f326859a150556971af479130a7c6fca4258eebfb7b787f92b7"
+        }
+      },
+      {
+        "original": {
+          "path": "E:/Samplinglib/AutoSamplingTheory/TechnicalLemmas/Analysis/HessianStrongConvexity.lean",
+          "RAW_bytes": 4021,
+          "RAW_sha256": "78dcbca82db4c1aaaf2fb5ab59e2df74b23f2e48c805e41cde07f33d9f72ad30",
+          "LF_bytes": 3937,
+          "LF_sha256": "2274e86f3affb400c4de8c94c1796bb103d4b77c980a530ff23bd4c344e0bb62"
+        },
+        "snapshot": {
+          "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/12.exactRAW.snapshot",
+          "RAW_bytes": 4021,
+          "RAW_sha256": "78dcbca82db4c1aaaf2fb5ab59e2df74b23f2e48c805e41cde07f33d9f72ad30",
+          "LF_bytes": 3937,
+          "LF_sha256": "2274e86f3affb400c4de8c94c1796bb103d4b77c980a530ff23bd4c344e0bb62"
+        }
+      }
+    ],
+    "checked_parent": "e91f9b3acfeea172c33053b28d88b7fea6e61e9d",
+    "RAW_LF_recipe": "Replace CRLF byte pairs with LF ONLY; preserve every other byte.",
+    "no_mutable_publication_cell_ledger_inputs": true,
+    "no_primary_source_or_decoder_verdict_read": true,
+    "combined_header_adoption_only_opaque_frozen_pin_checked_not_interpreted": true,
+    "actual_prepare_PID": 3468
+  },
+  "named_mathematical_review_UTF8": "Independent mathematics review74 — actual zero-safe bounce, rate and energy layer\n\nDecision: ACCEPTED_MATHEMATICS_ONLY, with no mathematical repair. I reviewed the entire211-line exact module RAW fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c at checked parent e91f9b3acfeea172c33053b28d88b7fea6e61e9d. The module is an uncommitted frozen candidate at this parent, not a verified science commit. The accepted prospective header74 is reused only for its mathematical signature review; the BODY is audited here independently. I did not read primary paper source or decoder verdict, and give no source acceptance.\n\nThe complete private literal and public header retain exactly hα,hαβ,hV,hH,hη,hβη with their original types. The expanded frozen literal and previously sealed3537-byte header match exactly. The private definition merely specifies c,h,R,S,rate,H and all ten clauses; it supplies no proof premise. The proof-local definitions and change target unfold that same specification. No extra caller, arbitrary gradient certificate or process law is introduced.\n\nThe internal analytic bridge is valid. Finite-dimensional real E supplies CompleteSpace. QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic is applied with U=V,m=α,L=β,r=0,u=0. Its W(x)=V(x)+0/2||x||² is exactly V and its Lipschitz constant β+0 is β. Its inputs are the original C² hV and both genuine Hessian inequalities hH; nonnegativity of α and β comes from their NNReal types. This produces LipschitzWith β (gradient V), hence gradient continuity, internally. It does not strengthen the public assumptions. The BODY uses hV,hH,hη; hα,hαβ,hβη remain explicit source-standing callers.\n\nWrite c=y−η∇V(xRef), n=h(xRef,x)=∇V(x)−∇V(xRef), a=<p,n>, and R(n,p)=p−(2a/||n||²)n. At n=0, total real division and scalar multiplication give R(0,p)=p. For every n, R is reflection in (span n) orthogonal complement: Mathlib reflection in span n is 2 projection−id, and orthogonal-complement reflection is its negative. The inner product is real symmetric, so its singleton formula has the exact required orientation. The resulting linear isometry is involutive and preserves norm, including n=0. Directly for n≠0, <R(n,p),n>=a−2a=−a; the n=0 branch is zero on both sides. This checks clauses4–5 without a nonzero-normal premise.\n\nClause1 is jointly Borel in (xRef,x,p). Joint n is continuous; inner product, norm squared, arithmetic, total real division, scalar multiplication and product pairing are measurable. Total inverse on the real group-with-zero is Borel despite its singularity at0. No continuity of S is asserted. Clauses2–3 follow because rate=√η max(0,<p,n>) is jointly continuous, then Borel, on the stated finite-dimensional product Borel spaces. This distinction is necessary: in E=ℝ, V(x)=x²/2, xRef=0,p=1,α=β=η=1, S has momentum1 at x=0 but−1 at every x≠0. These callers therefore do not imply continuous bounce.\n\nFor clause6, S(x,p)=(x,R(n,p)) keeps x fixed, hence keeps n fixed at the second bounce; R involution gives S²=id. Clause7 preserves H=(η⁻¹||x−c||²+||p||²)/2 exactly: x and c stay fixed and ||R(n,p)||=||p||. H is the weighted SUM of the two squared individual norms, not a product-space max norm.\n\nFor clause8, √η≥0 ensures rate≥0. Pairing flips a to−a, so rate(Sz)=√η max(0,−a). The elementary identity max(0,a)−max(0,−a)=a gives rate(z)−rate(Sz)=√η a with the stated sign and scale, including a=0. Clause9 uses n=0 to obtain S(x,p)=(x,p) and rate=0 even when p is nonzero.\n\nFor clause10 put e=H(y,xRef,z0). Since η>0, η⁻¹≥0 and each squared norm is nonnegative, e≥0. If H(z)=e, then η⁻¹||x−c||²+||p||²=2e. Thus ||p||²≤2e and ||x−c||²≤2ηe. Taking the nonnegative square-root bounds gives ||p||≤√(2e) and ||x−c||≤√(2ηe); no positive-energy premise is needed. Gradient Lipschitz continuity and triangle yield ||n||≤β||x−xRef||≤β(√(2ηe)+||c−xRef||). Cauchy-Schwarz gives max(0,<p,n>)≤||p||||n||. Multiplying only by the nonnegative factors √η,β and the square-root bounds proves\n  rate(z) ≤ √η β √(2e) (√(2ηe)+||c−xRef||).\nEvery factor, the initial1/2 in H, and both η scales match the literal. The envelope is constant on the whole exact energy layer for fixed y,xRef,z0; it is not yet a rate bound along a constructed random path.\n\nDegenerate cases are valid. At e=0 the layer forces p=0 and x=c, so rate=0 whether or not n=0; zero energy must not be conflated with zero normal. Rank-zero E is allowed and all vectors, gradients and norms vanish. The endpoint αη=1 is allowed because no inverse of1−αη appears. η remains strictly positive. No positive dimension, strict step cap, extra derivative bound, integrability, domination, decay or differentiability of the bounce is introduced.\n\nFresh direct source elaboration used the real pinned Lean4.33.0 executable and original Lake LEAN_PATH/LEAN_SRC_PATH roots. PID19204 compiled the exact canonical10565-byte source to this review's own ActualBounceRate.olean and terminated EXIT0; this was no Lake build-cache replay and wrote no canonical olean. A separate audit-only driver re-elaborated all exact source bytes followed only by #print axioms for the public theorem, PID52720 EXIT0. The result uses precisely propext, Classical.choice and Quot.sound. Local fake-closure scan found0 hits and exactly one public theorem/one private literal specification. Original linter warnings about unused private specification binders and style are retained in complete terminal RAW logs; there was no failed mathematical or compiler route in this review.\n\nThis result is mathematics-only. The theorem supplies actual Borel bounce, continuous rate and deterministic energy-layer algebra. It neither constructs a path/clock/Markov kernel nor proves nonexplosion, invariance, a terminal law, full PBPS/SPHMC mains, implementation errors/caps, expected-query cost or actual-input composition. It has no ActualHarmonicFlow73 formal parent; that future composition remains a separate edge. No new source review, decoder, VERIFIED, PURIFIED, Exposition Seal, main/live, full-paper or Goal-completion credit is supplied. No canonical, ledger or Git files were changed. All finite mathematical inputs have exact RAW and CRLF-to-LF-only snapshots; mutable publication/cell/global ledgers were excluded.\n",
+  "whole_body_audit": {
+    "status": "PASS_INDEPENDENT_MATHEMATICS_ONLY",
+    "module_lines": 211,
+    "ten_clauses": [
+      {
+        "id": 1,
+        "name": "Joint Borel actual bounce",
+        "statement_lines": [
+          35,
+          35
+        ],
+        "proof_lines": [
+          131,
+          133
+        ],
+        "derivation": "The joint gradient difference is continuous. Scalar inner product/norm/power are Borel, and total real inverse/division is Borel including zero. Subtraction, scalar multiplication and product pairing preserve measurability."
+      },
+      {
+        "id": 2,
+        "name": "Joint continuous actual rate",
+        "statement_lines": [
+          36,
+          36
+        ],
+        "proof_lines": [
+          134,
+          136
+        ],
+        "derivation": "Joint gradient difference, inner product and positive-part max are continuous; sqrt eta is fixed."
+      },
+      {
+        "id": 3,
+        "name": "Joint Borel actual rate",
+        "statement_lines": [
+          37,
+          37
+        ],
+        "proof_lines": [
+          165,
+          166
+        ],
+        "derivation": "Continuous implies measurable on the given finite-dimensional real product Borel spaces."
+      },
+      {
+        "id": 4,
+        "name": "Zero-normal reflection",
+        "statement_lines": [
+          38,
+          38
+        ],
+        "proof_lines": [
+          112,
+          112
+        ],
+        "derivation": "At n=0 both inner product and scalar-multiple term vanish under total division, so R(0,p)=p."
+      },
+      {
+        "id": 5,
+        "name": "Householder involution norm and pairing",
+        "statement_lines": [
+          39,
+          40
+        ],
+        "proof_lines": [
+          113,
+          130
+        ],
+        "derivation": "R(n,p) is reflection in (span n) orthogonal complement, not reflection in span n. Thus R squared=id and norm is preserved. For n nonzero, pairing equals a-2a=-a; at n=0 both sides vanish."
+      },
+      {
+        "id": 6,
+        "name": "Actual bounce fixes position and is involutive",
+        "statement_lines": [
+          41,
+          42
+        ],
+        "proof_lines": [
+          137,
+          140
+        ],
+        "derivation": "Position is unchanged, so the second application uses the same normal h(xRef,x); apply R involution."
+      },
+      {
+        "id": 7,
+        "name": "Exact weighted SUM energy preserved",
+        "statement_lines": [
+          43,
+          44
+        ],
+        "proof_lines": [
+          141,
+          143
+        ],
+        "derivation": "Both the center and position stay fixed, and the individual momentum norm is preserved. The exact inverse-eta weight and factor one half remain unchanged."
+      },
+      {
+        "id": 8,
+        "name": "Rate positivity flipped positive part and signed balance",
+        "statement_lines": [
+          45,
+          49
+        ],
+        "proof_lines": [
+          144,
+          158
+        ],
+        "derivation": "For a=<p,h>, reflection sends a to -a. Since sqrt eta is nonnegative, rate>=0 and rate(Sz)=sqrt eta max(0,-a). Identity max(0,a)-max(0,-a)=a gives the exact signed rate difference."
+      },
+      {
+        "id": 9,
+        "name": "Actual zero-normal bounce and rate",
+        "statement_lines": [
+          50,
+          51
+        ],
+        "proof_lines": [
+          159,
+          161
+        ],
+        "derivation": "If h(xRef,x)=0, R fixes p and the pairing and rate vanish, with no requirement p=0."
+      },
+      {
+        "id": 10,
+        "name": "Nonnegative energy and same-layer uniform rate cap",
+        "statement_lines": [
+          52,
+          59
+        ],
+        "proof_lines": [
+          162,
+          164,
+          167,
+          208
+        ],
+        "derivation": "For e=H(z0)>=0 and H(z)=e, weighted SUM gives ||p||<=sqrt(2e) and ||x-c||<=sqrt(2 eta e). Lipschitz gradient, triangle and Cauchy-Schwarz give lambda<=sqrt eta beta sqrt(2e)(sqrt(2 eta e)+||c-xRef||)."
+      }
+    ],
+    "exhaustive_line_partition": [
+      {
+        "start": 1,
+        "end": 15,
+        "role": "imports/documentation/namespace"
+      },
+      {
+        "start": 16,
+        "end": 60,
+        "role": "full private literal and six original binders"
+      },
+      {
+        "start": 61,
+        "end": 105,
+        "role": "public six-binder theorem and exact local definitions/change"
+      },
+      {
+        "start": 106,
+        "end": 111,
+        "role": "internal completeness and r0 quadratic-gradient producer"
+      },
+      {
+        "start": 112,
+        "end": 119,
+        "role": "zero and correct orthogonal-reflection orientation"
+      },
+      {
+        "start": 120,
+        "end": 130,
+        "role": "involution/norm/pairing laws"
+      },
+      {
+        "start": 131,
+        "end": 136,
+        "role": "joint Borel bounce and continuous rate"
+      },
+      {
+        "start": 137,
+        "end": 143,
+        "role": "position/involution and weighted energy"
+      },
+      {
+        "start": 144,
+        "end": 158,
+        "role": "rate flip/nonnegativity/signed balance"
+      },
+      {
+        "start": 159,
+        "end": 164,
+        "role": "zero normal and nonnegative energy"
+      },
+      {
+        "start": 165,
+        "end": 169,
+        "role": "ten-clause assembly and same-layer quantifiers"
+      },
+      {
+        "start": 170,
+        "end": 186,
+        "role": "weighted sum and both sqrt radius bounds"
+      },
+      {
+        "start": 187,
+        "end": 200,
+        "role": "triangle Lipschitz normal bound and Cauchy-Schwarz"
+      },
+      {
+        "start": 201,
+        "end": 209,
+        "role": "exact scalar rate envelope"
+      },
+      {
+        "start": 210,
+        "end": 211,
+        "role": "section/namespace closures"
+      }
+    ],
+    "caller_audit": {
+      "original_six": [
+        "hα",
+        "hαβ",
+        "hV",
+        "hH",
+        "hη",
+        "hβη"
+      ],
+      "used_in_BODY": [
+        "hV",
+        "hH",
+        "hη"
+      ],
+      "retained_standing_unused_in_BODY": [
+        "hα",
+        "hαβ",
+        "hβη"
+      ],
+      "extra_public_analytic_premises": [],
+      "CompleteSpace": "Derived from FiniteDimensional real E.",
+      "gradient_Lipschitz": "Existing QuadraticRegularization theorem with U=V,m=alpha,L=beta,r=0,u=0; W=V and L+r=beta by simp.",
+      "integrability_decay_or_higher_regularities": "Not needed or introduced."
+    },
+    "boundary_audit": {
+      "zero_normal": "R0=id and lambda0=0, even p nonzero.",
+      "zero_energy": "p=0 and x=c on the same H=0 layer, hence lambda=0 even if h(xRef,c) is nonzero.",
+      "rank_zero": "All vectors/norms/gradients vanish; finite-dimensional completeness and reflection APIs include the zero space.",
+      "alpha_eta_one": "No inverse or division by 1-alpha*eta occurs; eta stays positive.",
+      "Borel_vs_continuity": "Actual S is only Borel; rate is continuous. Discontinuity of S at zero normal can occur even under the callers."
+    },
+    "mathematical_repair": [],
+    "source_review": false,
+    "VERIFIED": false
+  },
+  "literal_fake_closure_audit": {
+    "status": "PASS",
+    "actual_audit_PID": 3472,
+    "module_lines": 211,
+    "private_public_callers": [
+      "hα",
+      "hαβ",
+      "hV",
+      "hH",
+      "hη",
+      "hβη"
+    ],
+    "header_exact_preserved": true,
+    "expanded_private_literal_exact": true,
+    "public_theorems": 1,
+    "private_literal_specs": 1,
+    "fake_closure_hits": [],
+    "source_review": false,
+    "no_actual73_formal_parent": true
+  },
+  "fresh_compiler": {
+    "status": "PASS",
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+    "fresh_source_elaboration": true,
+    "Lake_build_cache_replay": false,
+    "terminal_EXIT": 0,
+    "actual_foreground_Lean_PID": 19204,
+    "standard_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "compiler_receipt": {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/terminals/fresh-exact-whole-module.receipt.json",
+      "RAW_bytes": 1362,
+      "RAW_sha256": "610d7d577c138db89389f877f949fa4deae01c774dd374edfe5896ccd8a01baf",
+      "LF_bytes": 1362,
+      "LF_sha256": "610d7d577c138db89389f877f949fa4deae01c774dd374edfe5896ccd8a01baf"
+    },
+    "output_olean": {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/output/ActualBounceRate.olean",
+      "RAW_bytes": 581688,
+      "RAW_sha256": "1bd84d4a8a59d90b3eff0fc71594c3885d3bd9115b0cc16502e626dffbb038aa",
+      "LF_bytes": 581685,
+      "LF_sha256": "b02eb3fc803db3d8c7541cd29fe78458353b5fbfa0c05712838e7427fb8900d0"
+    },
+    "canonical_olean_written": false,
+    "original_fixed_Lake_search_roots": true,
+    "LEAN_PATH": "E:\\Samplinglib\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;E:\\Samplinglib\\.lake\\build\\lib\\lean;c:\\Users\\admin\\.elan\\toolchains\\leanprover--lean4---v4.33.0\\lib\\lean",
+    "LEAN_SRC_PATH": "E:\\Samplinglib\\.lake\\packages\\Cli;E:\\Samplinglib\\.lake\\packages\\Cli;E:\\Samplinglib\\.lake\\packages\\batteries;E:\\Samplinglib\\.lake\\packages\\batteries;E:\\Samplinglib\\.lake\\packages\\Qq;E:\\Samplinglib\\.lake\\packages\\Qq;E:\\Samplinglib\\.lake\\packages\\aesop;E:\\Samplinglib\\.lake\\packages\\aesop;E:\\Samplinglib\\.lake\\packages\\proofwidgets;E:\\Samplinglib\\.lake\\packages\\proofwidgets;E:\\Samplinglib\\.lake\\packages\\proofwidgets;E:\\Samplinglib\\.lake\\packages\\importGraph;E:\\Samplinglib\\.lake\\packages\\importGraph;E:\\Samplinglib\\.lake\\packages\\LeanSearchClient;E:\\Samplinglib\\.lake\\packages\\LeanSearchClient;E:\\Samplinglib\\.lake\\packages\\plausible;E:\\Samplinglib\\.lake\\packages\\plausible;E:\\Samplinglib\\.lake\\packages\\mathlib;E:\\Samplinglib\\.lake\\packages\\mathlib;E:\\Samplinglib\\.lake\\packages\\mathlib;E:\\Samplinglib\\.lake\\packages\\mathlib;E:\\Samplinglib\\.lake\\packages\\mathlib;E:\\Samplinglib\\.lake\\packages\\mathlib;E:\\Samplinglib;E:\\Samplinglib;c:\\Users\\admin\\.elan\\toolchains\\leanprover--lean4---v4.33.0\\src\\lean\\lake",
+    "real_Lean_executable": {
+      "path": "e:/Samplinglib/.astis/toolchain/lean-4.33.0-windows/bin/lean.exe",
+      "RAW_bytes": 83456,
+      "RAW_sha256": "dd86e9b24990b1da425ea4af910f016e4db8f9a25c9ddad27bc6bee3690e677f",
+      "LF_bytes": 83433,
+      "LF_sha256": "4a728c905cbe69be10e00e1cdf68581c99cf21d717264b06479c69d5b3571eae"
+    },
+    "version_output": {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/terminals/fixed-lean-version.stdout.RAW",
+      "RAW_bytes": 104,
+      "RAW_sha256": "b8d335ab8351a408bac4208701a6e820c84b47cae026393a5e88ffbd40c5447e",
+      "LF_bytes": 104,
+      "LF_sha256": "b8d335ab8351a408bac4208701a6e820c84b47cae026393a5e88ffbd40c5447e"
+    },
+    "axiom_audit_receipt": {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/terminals/fresh-exact-source-standard-axioms.receipt.json",
+      "RAW_bytes": 1300,
+      "RAW_sha256": "a80fa6bb91ef6d3e3a68c92ae4357a67e60c474935ce6f14dcbaf5d4c9b7ccd8",
+      "LF_bytes": 1300,
+      "LF_sha256": "a80fa6bb91ef6d3e3a68c92ae4357a67e60c474935ce6f14dcbaf5d4c9b7ccd8"
+    },
+    "axiom_audit_PID": 52720,
+    "axiom_audit_driver": {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/independent-math74/inputs/ActualBounceRate.axiom-audit.lean",
+      "RAW_bytes": 10672,
+      "RAW_sha256": "f4570620754d3175bca07eb2d7a55f5bfac28fc86b719035985feb08c62cee42",
+      "LF_bytes": 10672,
+      "LF_sha256": "f4570620754d3175bca07eb2d7a55f5bfac28fc86b719035985feb08c62cee42"
+    },
+    "axiom_driver_exact_module_prefix": true,
+    "axiom_driver_only_suffix": "\n#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws\n"
+  }
+}

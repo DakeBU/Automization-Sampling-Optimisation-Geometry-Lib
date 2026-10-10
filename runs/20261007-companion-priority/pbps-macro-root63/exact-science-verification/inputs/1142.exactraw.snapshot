@@ -1,0 +1,77 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalKLDissipation
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LangevinCanonicalFisherGamma
+
+/-!
+# Concrete Langevin KL/Fisher dissipation join
+
+This file is deliberately thin.  The two independent Chapter 1.2 branches are
+already formalized separately:
+
+* `CanonicalKLDissipation` turns a differentiable density flow satisfying the
+  forward equation into `KL' = - E_pi(rho, log rho)` and then `-FI` once a
+  canonical Gamma/Fisher identification is supplied;
+* `LangevinCanonicalFisherGamma` supplies that Gamma/Fisher identification for
+  an abstract generator that agrees locally with the Langevin differential
+  expression on `rho`, `log rho`, and `rho log rho`.
+
+The theorem below only joins those branches.  It does not hide the remaining
+analytic obligations: differentiation under the integral, generator-domain
+membership, stationarity/symmetry, and the smooth score-chain contract remain
+visible hypotheses.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace LangevinKLDissipation
+
+open MeasureTheory
+
+noncomputable section
+
+/-- Source-facing smooth finite-domain Langevin entropy dissipation:
+
+`d/dt KL(mu_t || pi) = - FI(mu_t || pi)`.
+
+Every non-algebraic obligation remains explicit in the three domain contracts.
+This is the Chapter 1.2 join node consumed later by functional-inequality and
+sampling-convergence arguments. -/
+theorem kl_hasDerivAt_eq_neg_information
+    {n : ℕ}
+    (V : EuclideanSpace ℝ (Fin (n + 1)) → ℝ)
+    (mu : ℝ → Measure (EuclideanSpace ℝ (Fin (n + 1))))
+    (pi : Measure (EuclideanSpace ℝ (Fin (n + 1))))
+    (generator :
+      (EuclideanSpace ℝ (Fin (n + 1)) → ℝ) →ₗ[ℝ]
+        (EuclideanSpace ℝ (Fin (n + 1)) → ℝ))
+    (rhoDot : EuclideanSpace ℝ (Fin (n + 1)) → ℝ)
+    (t : ℝ)
+    [SigmaFinite (mu t)] [Measure.HaveLebesgueDecomposition (mu t) pi]
+    (hscore :
+      InformationTheory.CanonicalRelativeFisher.SmoothFiniteScoreDomain
+        (mu t) pi)
+    (hflow :
+      InformationTheory.CanonicalKLDissipation.FlowDerivativeDomain
+        mu pi generator rhoDot t)
+    (hpair :
+      InformationTheory.CanonicalDirichletFisher.DirichletPairDomain
+        (mu t) pi generator)
+    (hlangevin :
+      LangevinCanonicalFisherGamma.SmoothCanonicalPairDomain
+        V (mu t) pi generator) :
+    HasDerivAt
+      (fun s => (_root_.InformationTheory.klDiv (mu s) pi).toReal)
+      (-InformationTheory.CanonicalRelativeFisher.information
+        (mu t) pi hscore) t := by
+  exact
+    InformationTheory.CanonicalKLDissipation.kl_hasDerivAt_eq_neg_information
+      mu pi generator rhoDot t hscore hflow hpair
+      (LangevinCanonicalFisherGamma.hasCanonicalFisherGamma
+        V (mu t) pi generator hlangevin)
+
+end
+
+end LangevinKLDissipation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

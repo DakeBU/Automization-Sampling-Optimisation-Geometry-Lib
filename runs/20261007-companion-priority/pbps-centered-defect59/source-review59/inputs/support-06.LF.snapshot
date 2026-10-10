@@ -1,0 +1,30 @@
+def disclosure(name: str, *, role: str, explanation: str,
+               page: str, helpers: tuple[str, ...] = (),
+               trim_following_docstring: bool = False) -> str:
+    declaration = declarations()[name]
+    exact_source = (display_source(declaration.source_text)
+                    if trim_following_docstring else declaration.source_text)
+    signature, body = split_statement(exact_source)
+    code = signature if role == 'statement' else exact_source
+    label = 'Lean statement' if role == 'statement' else 'Lean proof / instance' if declaration.kind == 'instance' else 'Lean proof' if declaration.kind in {'theorem', 'lemma'} else 'Lean construction'
+    if role == 'statement' and not body and declaration.kind in {'theorem', 'lemma'}:
+        label = 'Complete Lean declaration (unsplit)'
+    href, _ = base.source_href(declaration, from_path=page)
+    helper_html = ''.join(disclosure(
+        n, role='proof', explanation='Supporting proof called by the result above.',
+        page=page, trim_following_docstring=trim_following_docstring) for n in helpers)
+    return (
+        f'<details class="inline-lean inline-lean-{role}" data-inline-lean="{base.esc(name)}" data-lean-code-panel>'
+        f'<summary>{label} · {base.esc(declaration.short_name)}</summary>'
+        f'<p>{base.esc(explanation)}</p>'
+        '<p>Braces mark parameters Lean can infer; square brackets request structures '
+        'such as a measurable space or probability measure. Named hypotheses are '
+        'mathematical premises, not facts established by this declaration. '
+        'Section parameters are described in the mathematical hypotheses above; '
+        'the module link retains their exact source context.</p>'
+        + base.lean_source_actions(declaration.source_file, page=page,
+                                   copy_label='Copy statement' if role == 'statement' else 'Copy declaration')
+        + base.code_html(code)
+        + f'<p><a href="{base.esc(href)}">Exact module and namespace context</a></p>'
+        + helper_html + '</details>'
+    )

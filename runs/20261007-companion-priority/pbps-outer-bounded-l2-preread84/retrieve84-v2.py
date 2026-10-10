@@ -1,0 +1,23 @@
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+import hashlib,json,subprocess
+r=Path(__file__).parent;out=r/'retrieval84-v2';out.mkdir(exist_ok=False)
+queries=[
+ ('local-normalization',['rg','-n','theorem|IsProbabilityMeasure|isProbabilityMeasure|tilted_tilted','AutoSamplingTheory/ExampleCases/ProximalBPS/GibbsAugmentation.lean','AutoSamplingTheory/ExampleCases/ProximalBPS/IdealHalfTurnKernel.lean','AutoSamplingTheory/TechnicalLemmas/Probability/GaussianConditionalKernel.lean','AutoSamplingTheory/TechnicalLemmas/Measure/Gibbs.lean']),
+ ('local-outer',['rg','-n','integral_prod_right|dominated_convergence|MemLp.of_bound|integral.*kernel','AutoSamplingTheory/ExampleCases/ProximalBPS/MacroscopicRepresentative.lean','AutoSamplingTheory/TechnicalLemmas/Probability/GaussianLipschitzExponential.lean','AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedTestContinuity.lean']),
+ ('mathlib-exact',['rg','-n','integral_prod_right|tendsto_integral_filter_of_dominated_convergence|norm_integral_le_of_norm_le_const|tilted_tilted|isProbabilityMeasure_tilted','@M/MeasureTheory/Integral/Prod.lean','@M/MeasureTheory/Integral/DominatedConvergence.lean','@M/MeasureTheory/Integral/Bochner/Basic.lean','@M/MeasureTheory/Measure/Tilted.lean']),
+ ('frontier-shared',['rg','-l','outer.*L2|bounded.*continuity|dominated.*convergence|conditional.*gibbs','research-wiki/frontier-cells','Libraries/shared-foundations.yml']),
+ ('upstream-index',['rg','-l','outer.*L2|bounded.*continuous|dominated.*convergence|conditional.*gibbs','research-wiki/external-lean-libraries','research-wiki/openai-math-2026-intake.json'])]
+queries=[(label,[x.replace('@M','.lake/packages/mathlib/Mathlib') for x in args]) for label,args in queries]
+def search(item):
+ label,args=item;p=subprocess.run(args,capture_output=True);assert p.returncode in (0,1),(args,p.stderr)
+ path=out/(label+'.txt');path.write_bytes(p.stdout)
+ return dict(query=args,exit_code=p.returncode,output=path.as_posix(),RAW_sha256=hashlib.sha256(p.stdout).hexdigest(),lines=len(p.stdout.splitlines()))
+with ThreadPoolExecutor(max_workers=5) as pool:checks=list(pool.map(search,queries))
+prior=json.loads((r.parent/'pbps-actual-bounded-test-continuity83/retrieval83/reuse-decision83.json').read_bytes())['protocol_and_interface_pins']
+for p,h in prior.items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h,p
+cards=['research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity.md','AutoSamplingTheory/ExampleCases/ProximalBPS/GibbsAugmentation.lean','AutoSamplingTheory/TechnicalLemmas/Probability/GaussianConditionalKernel.lean']
+card_readings={p:Path(p).read_text(encoding='utf8') for p in cards};(out/'parent-interfaces.read.json').write_text(json.dumps(card_readings,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+z=dict(classification='adapt',decision='adapt_existing',canonical_declaration='Prospective source-specific outer bounded-test consumer, target not yet sealed.',canonical_shared_cell='',queries=checks,protocol_reuse='All mandatory83 protocol/interface RAW hashes rechecked unchanged; previous reads reused.',protocol_and_interface_pins=prior,parent_interface_pins={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in cards},reused_declarations=['ActualBoundedTestContinuity.actual_bounded_test_expectation_continuity','GibbsAugmentation.normalized_augmentation_density','GaussianConditionalKernel.exists_tilted_isCondKernel','UnitExponentialProduct.unit_exponential_product_laws','MeasureTheory.StronglyMeasurable.integral_prod_right\u0027','MeasureTheory.tendsto_integral_filter_of_dominated_convergence','MeasureTheory.tilted_tilted','MeasureTheory.norm_integral_le_of_norm_le_const'],actual_consumer='PBPS source Ex22 p6.2 bounded-test outer-state square-integral limit, after actual83 pointwise clock expectation.',reason='Generic parameter-integral measurability and filter DCT already exist in fixed Mathlib. Existing actual source Gibbs normalization and Gaussian conditional kernel supply the exact phase law; no invariant-law premise is needed for finite-probability bounded-class DCT. Source all-L2 quotient/contraction/density remains separate. No existing actual PBPS outer bounded-test consumer found; no new generic leaf or upstream port is justified.',external_port_used=False,no_implementation_BODY_before_statement_seal=True,proof_ingredients_not_source_binders=True)
+(out/'reuse-decision84.json').write_text(json.dumps(z,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+print('Five searches and current source-parent cards recorded; fixed Mathlib reused, no external port or generic duplicate')

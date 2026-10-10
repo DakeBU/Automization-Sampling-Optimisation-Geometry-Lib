@@ -1,0 +1,134 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingBoundary
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+/-!
+# Process-level dyadic approximation of random stopping
+
+The previous random-stopping modules compare coefficients and terminal finite
+Ito sums.  This file packages the stopped refinement again as a dyadic
+process and lifts coefficientwise equality to equality of the *entire time
+process* at a fixed sample point.
+
+This is deliberately still an elementary-process statement.  It is the exact
+algebraic bridge needed before passing to product-space `L2`: no expectation,
+dominated convergence, optional stopping, or completed stochastic integral is
+used here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingProcessApprox
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open ContinuousDoobL2 DyadicElementaryRefinement DyadicElementaryStopping
+  ElementaryItoIntegral ElementaryStoppingTime ProgressiveL2Density
+  RandomStoppingBoundary RandomStoppingDyadicApprox StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {T : ℝ≥0}
+
+/-- The refined elementary process stopped by the original random time,
+repackaged with its regular dyadic grid. -/
+noncomputable def stopRefinedDyadic
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (n : ℕ) : DyadicElementaryProcess filtration T where
+  level := stoppingLevel eta n
+  process :=
+    stopElementary
+      (refineDyadic eta (stoppingLevel eta n)
+        (level_le_stoppingLevel eta n)).process
+      (fun w => (tau w : WithTop ℝ≥0)) htau
+  times_eq := rfl
+
+@[simp] theorem stopRefinedDyadic_level
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (n : ℕ) :
+    (stopRefinedDyadic eta tau htau n).level = stoppingLevel eta n :=
+  rfl
+
+@[simp] theorem stopRefinedDyadic_process
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (n : ℕ) :
+    (stopRefinedDyadic eta tau htau n).process =
+      stopElementary
+        (refineDyadic eta (stoppingLevel eta n)
+          (level_le_stoppingLevel eta n)).process
+        (fun w => (tau w : WithTop ℝ≥0)) htau :=
+  rfl
+
+/-- At a positive stopping value, not only the coefficients and terminal Ito
+sum but the whole stopped refined time process agrees exactly with the
+process cut off at the deterministic right endpoint of the fine cell
+containing `tau omega`. -/
+theorem stopRefinedDyadic_value_eq_rightApprox
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (n : ℕ) (omega : Omega) (homega : 0 < tau omega)
+    (s : ℝ≥0) :
+    (stopRefinedDyadic eta tau htau n).process.value s omega =
+      (stopAtRightApprox eta (DyadicElementaryProcess.horizon_pos eta)
+        homega (htauT omega) n).process.value s omega := by
+  change
+    (stopElementary
+        (refineDyadic eta (stoppingLevel eta n)
+          (level_le_stoppingLevel eta n)).process
+        (fun w => (tau w : WithTop ℝ≥0)) htau).value s omega =
+      (stopAtRightApprox eta (DyadicElementaryProcess.horizon_pos eta)
+        homega (htauT omega) n).process.value s omega
+  unfold ElementaryAdaptedProcess.value
+  apply Finset.sum_congr rfl
+  intro j _hj
+  rw [stopRefined_coeff_eq_rightCutoff eta tau htau htauT n omega homega j]
+  rfl
+
+/-- At a zero stopping value, the whole stopped refined time process vanishes,
+not merely its terminal finite Ito sum. -/
+theorem stopRefinedDyadic_value_eq_zero_of_stoppingValue_eq_zero
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (n : ℕ) (omega : Omega) (homega : tau omega = 0)
+    (s : ℝ≥0) :
+    (stopRefinedDyadic eta tau htau n).process.value s omega = 0 := by
+  change
+    (stopElementary
+        (refineDyadic eta (stoppingLevel eta n)
+          (level_le_stoppingLevel eta n)).process
+        (fun w => (tau w : WithTop ℝ≥0)) htau).value s omega = 0
+  unfold ElementaryAdaptedProcess.value
+  apply Finset.sum_eq_zero
+  intro j _hj
+  by_cases hcell :
+      (stopElementary
+          (refineDyadic eta (stoppingLevel eta n)
+            (level_le_stoppingLevel eta n)).process
+          (fun w => (tau w : WithTop ℝ≥0)) htau).times j.castSucc < s ∧
+        s ≤ (stopElementary
+          (refineDyadic eta (stoppingLevel eta n)
+            (level_le_stoppingLevel eta n)).process
+          (fun w => (tau w : WithTop ℝ≥0)) htau).times j.succ
+  · rw [if_pos hcell]
+    exact stopRefined_coeff_eq_zero_of_stoppingValue_eq_zero
+      eta tau htau n omega homega j
+  · rw [if_neg hcell]
+
+end RandomStoppingProcessApprox
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

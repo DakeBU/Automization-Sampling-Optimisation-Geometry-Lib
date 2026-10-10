@@ -1,0 +1,98 @@
+# Anonymous reconstruction 1
+
+Let E be a finite-dimensional real inner product space, with its normed additive commutative group structure and its Borel measurable structure. Let V:E->R be twice continuously Frechet differentiable, alpha,beta be nonnegative real parameters, and eta be real. Assume 0<alpha, alpha<=beta, eta>0 and beta*eta<=1. Assume for every x,v:E that
+  alpha*||v||^2 <= (D(DV)(x)[v])[v] <= beta*||v||^2.
+All products here use the real coercions of alpha,beta. The derivative DV(x) is a bounded real-linear functional E->R, and D(DV)(x)[v] is another such functional. These are all the caller assumptions.
+
+Define mu=volume.tilted(x->-V(x)), with tilted interpreted as normalized exponential tilting. Define J as the pushforward of the product measure mu times stdGaussian(E) by (x,z)->(x,x+sqrt(eta)*z), nu=J.snd, Lambda as the pushforward of J by (x,y)->(y,2*x-y), and F(x,y)=(x,2*x-y). These coordinates are intentional: J has coordinates (x,y); Lambda has coordinates (y,2*x-y).
+
+Give E x E its product measurable structure. Define mY as the comap of the measurable structure of E by the second-coordinate map. Let H=L2(J), K=L2(nu), and HP=lpMeas(R,R,mY,2,J), the closed subspace of H of classes measurable for mY. H and K are complete real Hilbert spaces of almost-everywhere classes. Write i:HP->H for the continuous inclusion and pi:H->HP for the orthogonal projection. Define P:H->H as i composed with L2 conditional expectation onto mY. The fact mY is contained in the product sigma algebra is internally derived from measurability of the second-coordinate map; it is not an input. Define M:K->H as the real-linear isometric pullback along the second-coordinate map, whose measure-preserving witness is internally derived from nu=J.snd.
+
+Then mu,J,nu are probability measures. HP equals the algebraic range of P.toLinearMap, and P(i(f))=i(f) for every f:HP.
+
+There exists a Markov kernel S:E->E such that for every y:E, exactly as measures,
+  S(y)=volume.tilted(x->-V((y+x)/2)-||y-x||^2/(8*eta)).
+This is an every-state formula. S is a conditional kernel for Lambda (the conditional second-coordinate law given the first, in the supplied IsCondKernel sense); Lambda.fst=nu and Lambda.snd=nu.
+
+There exists a real-linear isometric equivalence e:K->HP, onto that exact subspace, such that i(e(u))=M(u) for every u:K. There exists a real-linear isometry U:H->H such that for every g:H the representative of U(g) equals g composed with F J-almost everywhere. U is involutive, U(U(g))=g for every g, and U.toContinuousLinearMap is selfadjoint.
+
+There exists a bounded real-linear operator T:K->K which is selfadjoint and, for every u:K, satisfies all three conclusions:
+  ||T(u)||<=||u||;
+  T(u)(y)=integral u(x) dS(y)(x) for nu-almost every y;
+  integral T(u)(y) dnu(y)=integral u(y) dnu(y).
+The representative equalities for U and T are asserted separately for each observable; there is no asserted common exceptional set for all observables.
+
+Define A:HP->HP by A=pi composed with U composed with i, and B:HP->H by B=(I_H-P) composed with U composed with P composed with i. Then A=e composed with T composed with e^{-1}; A is selfadjoint; ||A(f)||<=||f|| for every f:HP; and P(B(f))=0 for every f:HP.
+
+There exists a positive bounded operator Gamma:K->K such that Gamma composed with Gamma=I_K-T composed with T. Define GammaP:HP->HP by GammaP=e composed with Gamma composed with e^{-1}. Then GammaP is positive,
+  GammaP composed with GammaP=I_HP-A composed with A,
+  B.adjoint composed with B=GammaP composed with GammaP.
+Here B.adjoint:H->HP, so the last equality acts on HP. Gamma and GammaP are operator square roots, not real scalars. Positivity means selfadjointness and nonnegative quadratic form.
+
+There exists q:K equal to the constant function 1 nu-almost everywhere, with T(q)=q and <q,u>_K=integral u(y) dnu(y) for every u:K. Set qP=e(q). Define HP0 to be exactly the kernel inside HP of the continuous real-linear functional f-><qP,f>_HP, namely ker(innerSL R qP). It carries the inherited normed additive group and real inner product structures, and is a complete Hilbert space as a closed subspace. Set
+  gamma=2*sqrt(alpha*eta)/(1+alpha*eta).
+For every f:HP, f belongs to HP0 if and only if integral (e^{-1}(f))(y) dnu(y)=0. Also GammaP(qP)=0 and gamma>0.
+
+There exists a bounded real-linear endomorphism GammaP0:HP0->HP0 whose inclusion into HP equals GammaP applied to the inclusion of f, for every f:HP0. This is an internally produced restriction on that exact centered subspace. GammaP0 is positive; GammaP0-gamma*I_HP0 is positive; and GammaP0 is a unit in the algebra of bounded endomorphisms of HP0. There exists a bounded real-linear endomorphism Inv:HP0->HP0 with both exact identities
+  Inv composed with GammaP0=I_HP0,
+  GammaP0 composed with Inv=I_HP0,
+and operator-norm bound ||Inv||<=1/gamma.
+
+No inverse on K or HP is concluded: the displayed constant vector is in the kernel of GammaP. No positive-dimensionality or nontriviality premise is present for E or HP0. A zero centered space is allowed, with the identity and both inverse identities interpreted in its own endomorphism algebra. alpha=0 and eta=0 are excluded by the hypotheses. Every original space, structure, V and parameter is universally quantified subject to the assumptions. The witnesses are produced in dependent order S,e,U,T,Gamma,q,GammaP0,Inv. All other displayed measures, maps, spaces and gamma are definitions or internally derived structures rather than caller premises. Marginal, range, conjugation, fixed-point and operator identities are exact at their displayed types, and all L2 identities are identities of almost-everywhere classes.
+
+## objects
+
+- Caller data E,V,alpha,beta,eta. Constructed mu,J,nu,Lambda,F,mY,H,K,HP,P,M and internal measurable/measure-preserving witnesses.
+- Produced S,e,U,T,Gamma,q,GammaP0,Inv; defined A,B,GammaP,qP,HP0,gamma. All measures, operators, vectors, subspaces and their formulas are specified in the complete theorem.
+
+## domains
+
+- E is finite-dimensional real inner product/Borel space. mu,nu are on E; J,Lambda are on product E x E. S is a kernel E to E. The Hessian bounds quantify x,v in E.
+- H=L2(J), K=L2(nu) are real complete AE-class Hilbert spaces. HP=lpMeas(mY,2,J) is the closed subspace of H. i:HP->H, pi:H->HP, P,U:H->H, M:K->H, e:K equiv_isometry HP.
+- T,Gamma:K->K; A,GammaP:HP->HP; B:HP->H and B.adjoint:H->HP; GammaP0,Inv:HP0->HP0 only.
+- HP0=ker(innerSL R qP) inside HP, with inherited norm/inner product and complete closed-subspace structure. Identity operators belong to their displayed endomorphism algebras.
+
+## quantifiers
+
+- All E, displayed structures, V,alpha,beta,eta are universal under the hypotheses. Both Hessian inequalities hold for every x,v:E.
+- Existential witnesses in dependent order S,e,U,T,Gamma,q,GammaP0,Inv. No constructed measure, compatibility Fact, pullback, root, fixed vector or inverse is a caller premise.
+- The exact kernel formula is for every y:E. The pullback coherence is for every u:K. U action is J-AE separately for every g:H; T action is nu-AE separately for every u:K.
+- The contraction and integral invariance are for every u:K; compression contraction/orthogonality and centered membership equivalence for every f:HP; q pairing for every u:K; restriction coherence for every f:HP0.
+
+## assumptions
+
+- NormedAddCommGroup E; InnerProductSpace R E; FiniteDimensional R E; MeasurableSpace E; BorelSpace E.
+- alpha,beta:nonnegative reals; 0<(alpha:R); alpha<=beta; ContDiff R 2 V.
+- For every x,v:E: (alpha:R)*||v||^2 <= (D(DV)(x)[v])[v] and (D(DV)(x)[v])[v] <= (beta:R)*||v||^2.
+- eta:R; eta>0; (beta:R)*eta<=1. No further normalization, probability, higher derivative, disintegration, projection-surjectivity, spectral-root, nontriviality or inverse premise.
+
+## conclusion
+
+- mu,J,nu are probability measures. HP=range(P.toLinearMap), and P fixes the inclusion of every f:HP.
+- S is Markov; for every y, S(y)=volume.tilted(x->-V((y+x)/2)-||y-x||^2/(8*eta)); Lambda.IsCondKernel S; Lambda.fst=nu=Lambda.snd.
+- e:K equiv_isometry HP agrees after inclusion with M. U:H->H implements F per-observable J-AE, is involutive, and its bounded operator is selfadjoint.
+- T:K->K is selfadjoint; every u satisfies ||Tu||<=||u||, Tu(y)=integral u dS(y) per-observable nu-AE, and integral Tu dnu=integral u dnu.
+- A=pi U i=e T e^{-1}, is selfadjoint and contractive. B=(I_H-P) U P i:HP->H and P Bf=0 for every f:HP.
+- Gamma:K->K is positive and Gamma^2=I_K-T^2. GammaP=e Gamma e^{-1} is positive, GammaP^2=I_HP-A^2, and B.adjoint B=GammaP^2.
+- q:K equals 1 nu-AE, Tq=q, and <q,u>=integral u dnu. qP=e(q), HP0=ker(innerSL R qP), membership means zero nu-integral after e^{-1}; GammaP qP=0; gamma>0.
+- GammaP0:HP0->HP0 agrees after inclusion with the restriction of GammaP, is positive, GammaP0-gamma I_HP0 is positive, and IsUnit GammaP0.
+- Inv:HP0->HP0 satisfies Inv GammaP0=I_HP0 and GammaP0 Inv=I_HP0 and ||Inv||<=1/gamma in operator norm.
+
+## scopes
+
+- Tilt is normalized exponential tilting. Products of operators are composition; real sqrt(eta) and gamma are scalars, while Gamma,GammaP,GammaP0 are operators. IsPositive includes selfadjointness/nonnegative quadratic form.
+- Only S formula is every-state. U and T representatives are AE separately per observable, with no uniform exceptional set. Disintegration is retained in the supplied IsCondKernel sense, without a stronger every-state conditional-version claim.
+- HP0 is the exact inherited closed centered subspace, not an externally assumed model. q and its fixed-point/integral pairing are produced. Inverse exists only on HP0; full-space constant kernel is explicit.
+- Zero-dimensional E and trivial HP0 are allowed; their identity operators retain their endomorphism-algebra meaning. alpha=0 and eta=0 are excluded. No extra nontriviality or higher smoothness premise.
+- Probability, range, marginal, conjugation, fixed-point, lower-order, two-sided inverse and norm conclusions are exact at the specified types. Compiled status is packet-supplied, not independently rebuilt.
+
+## constant_dependencies
+
+- gamma=2*sqrt((alpha:R)*eta)/(1+(alpha:R)*eta)>0, and inverse bound 1/gamma, depend explicitly only on alpha and eta. beta enters the Hessian upper bound, alpha<=beta and beta*eta<=1.
+- Fixed construction constants are sqrt(eta), reflection 2, midpoint 1/2, denominator 8*eta. No hidden constant, dimension factor or asymptotic estimate. Produced objects depend on the exact space, potential and parameters.
+
+## Ambiguities and limits
+
+- No unresolved displayed-formula ambiguity. Implementation-level definitions of tilted and IsCondKernel are not supplied; reconstruction retains their approved abstractions instead of inventing extra normalization conventions or pointwise conditional-law claims.
+
+Reconstructed text UTF-8 SHA256: `bf71a09d3f5c34257c8c659bacd8541f9fb55acb650e34fc04724fbf6c657fc7`

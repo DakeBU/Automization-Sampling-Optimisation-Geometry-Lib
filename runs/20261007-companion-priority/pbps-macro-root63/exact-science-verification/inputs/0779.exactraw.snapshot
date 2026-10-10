@@ -1,0 +1,287 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.LogarithmicDepth
+
+/-!
+# Actual stopped RGO depth and finite-cap stability
+
+Source: SPHMC arXiv:2609.06906v1 Algorithm 3.3 and Theorem 6.5, (6.2)-(6.4).
+Fix the initial state first. Its terminal variance threshold and logarithmic
+stage bound remain fixed throughout the execution. The smoothing parameter
+may depend measurably on the complete current state and observation history.
+
+The source scalar formulas below use baseline smoothness normalized to one.
+The dimension is the actual positive real finrank. C >= 8 is an explicit
+sufficient constant proved in LogarithmicDepth, not a numerical choice quoted
+from the paper. General smoothness requires the separate source scaling.
+
+The proof invokes the actual FiniteRGOProgram, establishes probability-one
+terminal support at J, and hence proves output stability for all larger caps
+at the same initial state. It does not construct the concrete smoothed sampler
+or FORS, validate arbitrary initialized histories, or bound approximation error
+or expected gradient queries. Absorbing-state map representations add no oracle
+calls. Different initial states need not share a threshold, transition or J.
+-/
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StoppedRGODepth
+
+variable {E : Type*} [MeasurableSpace E] [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [BorelSpace E]
+local notation "PS" => ℝ≥0 × E × ℕ × (ℕ → E)
+
+/-- With the source variance schedule and fixed initial-state threshold, the actual
+absorbed RGO program reaches the terminal set by the explicit logarithmic stage bound.
+Its output law at that initial state is unchanged by any further cap extension. -/
+theorem stopped_rgo_depth (μ : Measure E) [IsProbabilityMeasure μ]
+    (η : PS → ℝ) (hηm : Measurable η) (κ c q Δ γ C : ℝ)
+    (hκ : 1 ≤ κ) (hc : 0 < c) (hc1 : c < 1/4)
+    (hη : ∀ s, 0 < η s ∧ η s ≤ c) (hd : 0 < Module.finrank ℝ E) (hq : 2 ≤ q)
+    (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2) (hγ : 0 < γ) (hγ1 : γ ≤ 1) (hC : 8 ≤ C)
+    (s0 : PS) (Q Lterm : Kernel PS E) [IsMarkovKernel Q] [IsMarkovKernel Lterm] :
+    let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+    let τ := fun r : ℝ => if 2 ≤ K r then K r else c
+    let a := fun s : PS => (η s+τ s.1)/(1+s.1)
+    let L := q+Real.log (K s0.1*Module.finrank ℝ E*q/Δ)
+    let B := γ/(Real.sqrt (Module.finrank ℝ E*L)+L)
+    let J := Nat.ceil (C*Real.log (Real.exp 1*K s0.1/B))
+    ∃ (F : PS × E → PS) (P : Kernel PS PS) (R : ℕ → Kernel PS E),
+      (∀ s y, ((F (s,y)).1 : ℝ) = (s.1 : ℝ)+(a s)⁻¹ ∧
+        (F (s,y)).2 =
+         (((s.1 : ℝ)+(a s)⁻¹)⁻¹ • ((s.1 : ℝ) • s.2.1+(a s)⁻¹ • y),
+          s.2.2.1+1,fun n => Nat.casesOn n y s.2.2.2)) ∧
+      IsMarkovKernel P ∧ (∀ n, IsMarkovKernel (R n)) ∧
+      (∀ s, P s = if B⁻¹ ≤ (s.1 : ℝ) then Measure.dirac s else
+        (Q s).map (fun y => F (s,y))) ∧
+      (∀ n, R n = Lterm ∘ₖ (P^n)) ∧
+      0 < B ∧ (P^J) s0 {s | B⁻¹ ≤ (s.1 : ℝ)} = 1 ∧
+      (∀ m, R (J+m) s0 = R J s0) ∧
+      (J : ℝ) ≤ (3*C+(C/2)*Real.log (1/γ))*L := by
+  classical
+  let statePath (G : PS × E → PS) (s : PS) (ys : ℕ → E) : ℕ → PS :=
+    Nat.rec s (fun n x => G (x,ys n))
+  have statePath_shift (G : (PS) × E → (PS)) (n : ℕ) (s : (PS)) (ys : ℕ → E) :
+      statePath G s ys (n+1) = statePath G (G (s,ys 0)) (fun k => ys (k+1)) n := by
+    induction n with
+    | zero => rfl
+    | succ n ih =>
+      change G (statePath G s ys (n+1),ys (n+1)) =
+        G (statePath G (G (s,ys 0)) (fun k => ys (k+1)) n,ys (n+1))
+      rw [ih]
+  have path_endpoint_mass (G : (PS) × E → (PS)) (hG : Measurable G)
+      (Q : Kernel (PS) E) [IsMarkovKernel Q] (P : Kernel (PS) (PS)) [IsMarkovKernel P]
+      (hP : ∀ s, P s = (Q s).map (fun y => G (s,y)))
+      (D : Set (PS)) (hD : MeasurableSet D) (n : ℕ) (s : (PS))
+      (hpaths : ∀ ys : ℕ → E, statePath G s ys n ∈ D) [Nonempty E] :
+      (P^n) s D = 1 := by
+    have hp (k : ℕ) : IsMarkovKernel (P^k) := by
+      induction k with
+      | zero => change IsMarkovKernel Kernel.id; infer_instance
+      | succ k ih =>
+        let := ih
+        rw [pow_succ]
+        change IsMarkovKernel ((P^k) ∘ₖ P)
+        infer_instance
+    induction n generalizing s with
+    | zero =>
+      classical
+      have hs := hpaths (fun _ => Classical.choice inferInstance)
+      change Measure.dirac s D = 1
+      exact Measure.dirac_apply_of_mem hs
+    | succ n ih =>
+      let := hp n
+      rw [pow_succ]
+      change ((P^n) ∘ₖ P) s D = 1
+      rw [Kernel.comp_apply' _ _ _ hD,hP,
+        lintegral_map ((P^n).measurable_coe hD)
+          (show Measurable (fun y : E => G (s,y)) from hG.comp measurable_prodMk_left)]
+      have hall (y : E) : (P^n) (G (s,y)) D = 1 := by
+        apply ih
+        intro ys
+        have hh := hpaths (fun k => Nat.casesOn k y ys)
+        rw [statePath_shift] at hh
+        exact hh
+      simp_rw [hall]
+      simp
+  have absorbed_precision_path (b : (PS) → ℝ) (η : (PS) → ℝ) (τ : ℝ → ℝ)
+      (F : (PS) × E → (PS)) (threshold : ℝ)
+      (hF : ∀ s y, b (F (s,y)) = b s + ((η s + τ (b s))/(1+b s))⁻¹)
+      (s0 : (PS)) (ys : ℕ → E) :
+      let G : (PS) × E → (PS) := fun p => if threshold ≤ b p.1 then p.1 else F p
+      let x := statePath G s0 ys
+      let r : ℕ → ℝ := Nat.rec (b s0) (fun n r => r + ((η (x n)+τ r)/(1+r))⁻¹)
+      ∀ n, threshold ≤ b (x n) ∨ b (x n) = r n := by
+    classical
+    intro G x r n
+    induction n with
+    | zero => exact Or.inr rfl
+    | succ n ih =>
+      have hx : x (n+1) = G (x n,ys n) := rfl
+      by_cases hs : threshold ≤ b (x n)
+      · left
+        rw [hx,show G (x n,ys n) = x n from if_pos hs]
+        exact hs
+      · right
+        have heq := ih.resolve_left hs
+        rw [hx,show G (x n,ys n) = F (x n,ys n) from if_neg hs,hF]
+        change b (x n) + ((η (x n)+τ (b (x n)))/(1+b (x n)))⁻¹ =
+          r n + ((η (x n)+τ (r n))/(1+r n))⁻¹
+        rw [heq]
+  have pathwise_log_depth (b : (PS) → ℝ) (η : (PS) → ℝ) (F : (PS) × E → (PS))
+      (κ c q Δ γ C : ℝ) (d : ℕ) (s0 : (PS))
+      (hκ : 1 ≤ κ) (hc : 0 < c) (hc1 : c < 1/4) (hb0 : 0 ≤ b s0)
+      (hη : ∀ s, 0 < η s ∧ η s ≤ c) (hd : 0 < d) (hq : 2 ≤ q)
+      (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2) (hγ : 0 < γ) (hγ1 : γ ≤ 1) (hC : 8 ≤ C) :
+      let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+      let τ := fun r : ℝ => if 2 ≤ K r then K r else c
+      let L := q+Real.log (K (b s0)*d*q/Δ)
+      let B := γ/(Real.sqrt (d*L)+L)
+      let J := Nat.ceil (C*Real.log (Real.exp 1*K (b s0)/B))
+      (∀ s y, b (F (s,y)) = b s + ((η s+τ (b s))/(1+b s))⁻¹) →
+      ∀ ys : ℕ → E,
+        let G : (PS) × E → (PS) := fun p => if B⁻¹ ≤ b p.1 then p.1 else F p
+        B⁻¹ ≤ b (statePath G s0 ys J) := by
+    classical
+    intro K τ L B J hF ys G
+    let x := statePath G s0 ys
+    let r : ℕ → ℝ := Nat.rec (b s0) (fun n r => r + ((η (x n)+τ r)/(1+r))⁻¹)
+    have hh := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.LogarithmicDepth.terminal_depth
+      (η := fun n => η (x n)) hκ hc hc1 hb0 (fun n => hη (x n)) hd hq hΔ hΔ1 hγ hγ1 hC
+    change 2 ≤ L ∧ (0 < B ∧ B ≤ 1) ∧ 0 < J ∧ 0 < (r J)⁻¹ ∧ (r J)⁻¹ ≤ B ∧ _ at hh
+    obtain ⟨hL,hB,hJ,hrpos,hrB,hJbound⟩ := hh
+    have hr : 0 < r J := inv_pos.mp hrpos
+    have hbJ : B⁻¹ ≤ r J := by
+      rw [inv_eq_one_div]
+      apply (div_le_iff₀ hB.1).2
+      have hm : 1 ≤ B * r J := (div_le_iff₀ hr).1 (by simpa [one_div] using hrB)
+      simpa [mul_comm] using hm
+    have hinv := absorbed_precision_path b η τ F B⁻¹ hF s0 ys J
+    change B⁻¹ ≤ b (x J) ∨ b (x J) = r J at hinv
+    rcases hinv with h | h
+    · exact h
+    · change B⁻¹ ≤ b (x J)
+      rw [h]
+      exact hbJ
+  have source_variance (b : (PS) → ℝ) (hb : Measurable b) (hb0 : ∀ s, 0 ≤ b s)
+      (η : (PS) → ℝ) (hη : Measurable η) (hη0 : ∀ s, 0 < η s) (κ c : ℝ) (hc : 0 < c) :
+      let K := fun s => (1+b s)/(κ⁻¹+b s)
+      let τ := fun s => if 2 ≤ K s then K s else c
+      let a := fun s => (η s+τ s)/(1+b s)
+      Measurable a ∧ ∀ s, 0 < a s := by
+    intro K τ a
+    have hK : Measurable K := by dsimp [K]; fun_prop
+    have hτ : Measurable τ := Measurable.ite
+      (measurableSet_le measurable_const hK) hK measurable_const
+    refine ⟨(hη.add hτ).div (measurable_const.add hb),?_⟩
+    intro s
+    have ht : 0 < τ s := by
+      dsimp only [τ]
+      split_ifs with h
+      · linarith
+      · exact hc
+    exact div_pos (add_pos (hη0 s) ht) (by linarith [hb0 s])
+  have finite_output_stability (P : Kernel (PS) (PS)) [IsMarkovKernel P]
+      (L : Kernel (PS) E) [IsMarkovKernel L] (R : ℕ → Kernel (PS) E)
+      (hR : ∀ n, R n = L ∘ₖ (P^n)) (D : Set (PS)) (hD : MeasurableSet D)
+      (hstop : ∀ n s, s ∈ D → R n s = L s) (J : ℕ) (s : (PS))
+      (hmass : (P^J) s D = 1) : ∀ m, R (J+m) s = R J s := by
+    have hp (k : ℕ) : IsMarkovKernel (P^k) := by
+      induction k with
+      | zero => change IsMarkovKernel Kernel.id; infer_instance
+      | succ k ih =>
+        let := ih
+        rw [pow_succ]
+        change IsMarkovKernel ((P^k) ∘ₖ P)
+        infer_instance
+    let := hp J
+    have hae : ∀ᵐ t ∂((P^J) s), t ∈ D := (mem_ae_iff_prob_eq_one hD).2 hmass
+    intro m
+    let := hp m
+    rw [hR (J+m),Nat.add_comm J m,pow_add]
+    change (L ∘ₖ ((P^m) ∘ₖ (P^J))) s = R J s
+    rw [← Kernel.comp_assoc,← hR m,hR J,Kernel.comp_apply,Kernel.comp_apply]
+    apply Measure.bind_congr_right
+    filter_upwards [hae] with t ht
+    exact hstop m t ht
+  intro K τ a L B J
+  have hb : Measurable (fun s : PS => (s.1 : ℝ)) := by fun_prop
+  have hva := source_variance (fun s : PS => (s.1 : ℝ)) hb (fun s => s.1.coe_nonneg)
+    η hηm (fun s => (hη s).1) κ c hc
+  change Measurable a ∧ (∀ s, 0 < a s) at hva
+  obtain ⟨ha,ha0⟩ := hva
+  have hdepth := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.LogarithmicDepth.terminal_depth
+    (r₀ := (s0.1 : ℝ)) (η := fun _ => c) hκ hc hc1 s0.1.coe_nonneg
+    (fun _ => ⟨hc,le_rfl⟩) hd hq hΔ hΔ1 hγ hγ1 hC
+  change 2 ≤ L ∧ (0 < B ∧ B ≤ 1) ∧ 0 < J ∧ _ ∧ _ ∧
+    (J : ℝ) ≤ (3*C+(C/2)*Real.log (1/γ))*L at hdepth
+  have hB := hdepth.2.1.1
+  have hJB := hdepth.2.2.2.2.2
+  let threshold : ℝ≥0 := ⟨B⁻¹,le_of_lt (inv_pos.mpr hB)⟩
+  let F : PS × E → PS := fun p =>
+      (⟨(p.1.1 : ℝ)+(a p.1)⁻¹, add_nonneg p.1.1.coe_nonneg (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,
+       ((p.1.1 : ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1 : ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+       p.1.2.2.1+1, fun n => Nat.casesOn n p.2 p.1.2.2.2)
+  have hF : Measurable F := by
+    apply Measurable.prodMk
+    · exact Measurable.subtype_mk (by fun_prop)
+    · apply Measurable.prodMk
+      · fun_prop
+      · apply Measurable.prodMk
+        · fun_prop
+        · apply measurable_pi_lambda
+          intro n
+          cases n <;> fun_prop
+  obtain ⟨T,H,hT,hH,hTf,hHf,hprog⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram.finite_rgo_program μ a ha ha0 threshold
+  obtain ⟨P,R,hP,hR,hPf,hzero,hrec,hstop,hpath,hideal⟩ := hprog Q Lterm inferInstance inferInstance
+  let := hP
+  let D : Set PS := {s | B⁻¹ ≤ (s.1 : ℝ)}
+  have hD : MeasurableSet D := measurableSet_le measurable_const hb
+  let G : PS × E → PS := fun p => if B⁻¹ ≤ (p.1.1 : ℝ) then p.1 else F p
+  have hG : Measurable G := Measurable.ite
+    (measurableSet_le measurable_const (hb.comp measurable_fst)) measurable_fst hF
+  have hcompare (s : PS) : (threshold ≤ s.1) ↔ B⁻¹ ≤ (s.1 : ℝ) := Iff.rfl
+  have hPf' (s : PS) : P s = if B⁻¹ ≤ (s.1 : ℝ) then Measure.dirac s else
+      (Q s).map (fun y => F (s,y)) := by
+    rw [hPf]
+    rfl
+  have hPmap (s : PS) : P s = (Q s).map (fun y => G (s,y)) := by
+    rw [hPf']
+    by_cases hs : B⁻¹ ≤ (s.1 : ℝ)
+    · simp only [if_pos hs,G]
+      simp [Measure.map_const]
+    · simp only [if_neg hs,G]
+  have hmass : (P^J) s0 D = 1 := by
+    apply path_endpoint_mass G hG Q P hPmap D hD J s0
+    intro ys
+    exact pathwise_log_depth (fun s : PS => (s.1 : ℝ)) η F κ c q Δ γ C
+      (Module.finrank ℝ E) s0 hκ hc hc1 s0.1.coe_nonneg hη hd hq hΔ hΔ1 hγ hγ1 hC
+      (fun _ _ => rfl) ys
+  have hRstep (n : ℕ) : R (n+1) = R n ∘ₖ P := by
+    ext s t ht
+    rw [Kernel.comp_apply,hPf,hrec]
+    by_cases hs : threshold ≤ s.1
+    · rw [if_pos hs,if_pos hs,Measure.dirac_bind (R n).measurable,hstop n s hs]
+    · rw [if_neg hs,if_neg hs]
+      change ((Q s).bind (fun y => R n (F (s,y)))) t =
+        (((Q s).map (fun y => F (s,y))).bind (R n)) t
+      rw [Measure.bind_apply ht (show AEMeasurable (fun y : E => R n (F (s,y))) (Q s)
+          from ((R n).measurable.comp (hF.comp measurable_prodMk_left)).aemeasurable),
+        Measure.bind_apply ht (R n).aemeasurable]
+      exact (lintegral_map ((R n).measurable_coe ht)
+        (show Measurable (fun y : E => F (s,y)) from hF.comp measurable_prodMk_left)).symm
+  have hRp (n : ℕ) : R n = Lterm ∘ₖ (P^n) := by
+    induction n with
+    | zero =>
+      change R 0 = Lterm ∘ₖ Kernel.id
+      rw [Kernel.comp_id,hzero]
+    | succ n ih =>
+      rw [hRstep,ih,pow_succ]
+      exact Kernel.comp_assoc Lterm (P^n) P
+  refine ⟨F,P,R,fun _ _ => ⟨rfl,rfl⟩,hP,hR,hPf',hRp,hB,hmass,?_,hJB⟩
+  exact finite_output_stability P Lterm R hRp D hD
+    (fun n s hs => hstop n s ((hcompare s).2 hs)) J s0 hmass
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StoppedRGODepth

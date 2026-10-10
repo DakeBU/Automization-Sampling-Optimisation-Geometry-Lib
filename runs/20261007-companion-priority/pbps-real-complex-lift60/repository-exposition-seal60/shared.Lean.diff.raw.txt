@@ -1,0 +1,80 @@
+diff --git a/AutoSamplingTheory/ExampleCases.lean b/AutoSamplingTheory/ExampleCases.lean
+index 929a90d4..23da19ac 100644
+--- a/AutoSamplingTheory/ExampleCases.lean
++++ b/AutoSamplingTheory/ExampleCases.lean
+@@ -14,6 +14,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator
++import AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
+ import AutoSamplingTheory.ExampleCases.SampleWiki
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection
+diff --git a/AutoSamplingTheory/TechnicalLemmas.lean b/AutoSamplingTheory/TechnicalLemmas.lean
+index b94bcae3..3b7e2afb 100644
+--- a/AutoSamplingTheory/TechnicalLemmas.lean
++++ b/AutoSamplingTheory/TechnicalLemmas.lean
+@@ -19,6 +19,7 @@ import AutoSamplingTheory.TechnicalLemmas.InformationTheory
+ import AutoSamplingTheory.TechnicalLemmas.InformationTheory.ProductEntropy
+ import AutoSamplingTheory.TechnicalLemmas.Measure
+ import AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange
++import AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator
+ import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationP2ConstantSpeed
+ import AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity
+ import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain
+diff --git a/AutoSamplingTheory/TechnicalLemmas/Registry.lean b/AutoSamplingTheory/TechnicalLemmas/Registry.lean
+index f6798f27..d43d9f13 100644
+--- a/AutoSamplingTheory/TechnicalLemmas/Registry.lean
++++ b/AutoSamplingTheory/TechnicalLemmas/Registry.lean
+@@ -2098,6 +2098,26 @@ def calculusMemory : List LemmaMemoryEntry := [
+ ]
+ 
+ def measureMemory : List LemmaMemoryEntry := [
++  {
++    key := "measure.positiveRealL2ComplexLift"
++    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
++    upstreamDecl := "ASTIS positive real L2 operator complexification"
++    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
++    status := LemmaMemoryStatus.formalizedLocal
++    tags := ["L2", "positive", "complexification", "fixed-range"]
++    saldUse := "Actual PBPS consumer; no SALD admission"
++    note := "Independently exact-science60 verified 0a77416f5ec38702c46ec1358966b9dd4846c8d3. Arbitrary measure real positive bounded D; actual compLpL scalar maps, norm-preserving embedding, full pointwise-conjugation fixed range, actual positive bounded complex lift with literal formula/intertwining/conjugation. Reused by actual PBPS consumer. Complex-root API test only; real-root preservation/descent/Gamma/B11/polar/fullH1/dynamics/main/error/cost/composition remain open."
++  },
++  {
++    key := "pbps.actualPositiveDefectComplexLift"
++    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift"
++    upstreamDecl := "PBPS actual positive squared-defect complex lift"
++    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
++    status := LemmaMemoryStatus.formalizedLocal
++    tags := ["PBPS", "L2", "positive", "complexification"]
++    saldUse := "Actual PBPS consumer; no SALD admission"
++    note := "Independently exact-science60 verified 0a77416f5ec38702c46ec1358966b9dd4846c8d3. Original C2, both global Hessian bounds, 0<alpha<=beta, eta>0, beta*eta<=1; actual normalized Gaussian reflected kernel produces same verified59 T and D=1-T*T internally. No caller D/positivity/embedding/CFC certificate. Rank zero extension and alpha*eta=1 retained. Complex-root API test only; real-root preservation/descent/Gamma/B11/polar/fullH1/dynamics/main/error/cost/composition remain open."
++  },
+   {
+     key := "pbps.actualCenteredSelfadjointDefect"
+     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect"
+diff --git a/Tests.lean b/Tests.lean
+index 8adda915..4f004551 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -212,6 +212,7 @@ import Tests.ProximalBPSRoughMeanGradient
+ import Tests.GaussianMarginalPoincare
+ import Tests.ProximalBPSMacroscopicRange
+ import Tests.ProximalBPSCenteredDefect
++import Tests.ProximalBPSDefectComplexLift
+ import Tests.ProximalBPSMacroscopicRepresentative
+ import Tests.ProximalBPSConditionalScoreDomain
+ import Tests.ProximalBPSConditionalBochner
+diff --git a/Tests/Basic.lean b/Tests/Basic.lean
+index e2e488d3..5c04c25a 100644
+--- a/Tests/Basic.lean
++++ b/Tests/Basic.lean
+@@ -44,7 +44,7 @@ example : openProblemCount = 1 := rfl
+ 
+ example : forbiddenProofPatterns.length = 5 := rfl
+ 
+-example : TechnicalLemmas.formalizedTechnicalLemmaCount = 501 := by native_decide
++example : TechnicalLemmas.formalizedTechnicalLemmaCount = 503 := by native_decide
+ 
+ example (x : ℝ) :
+     TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff x =

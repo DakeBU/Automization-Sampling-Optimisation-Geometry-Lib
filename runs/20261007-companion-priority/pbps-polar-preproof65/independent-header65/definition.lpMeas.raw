@@ -1,0 +1,29 @@
+an `m`-strongly measurable function. -/
+def lpMeasSubgroup (m : MeasurableSpace α) [MeasurableSpace α] (p : ℝ≥0∞) (μ : Measure α) :
+    AddSubgroup (Lp F p μ) where
+  carrier := {f : Lp F p μ | AEStronglyMeasurable[m] f μ}
+  zero_mem' := ⟨(0 : α → F), @stronglyMeasurable_zero _ _ m _ _, Lp.coeFn_zero _ _ _⟩
+  add_mem' {f g} hf hg := (hf.add hg).congr (Lp.coeFn_add f g).symm
+  neg_mem' {f} hf := AEStronglyMeasurable.congr hf.neg (Lp.coeFn_neg f).symm
+
+variable (𝕜)
+
+/-- `lpMeas F 𝕜 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
+`AEStronglyMeasurable[m] f μ`, i.e. functions which are `μ`-a.e. equal to
+an `m`-strongly measurable function. -/
+def lpMeas (m : MeasurableSpace α) [MeasurableSpace α] (p : ℝ≥0∞) (μ : Measure α) :
+    Submodule 𝕜 (Lp F p μ) where
+  carrier := {f : Lp F p μ | AEStronglyMeasurable[m] f μ}
+  zero_mem' := ⟨(0 : α → F), @stronglyMeasurable_zero _ _ m _ _, Lp.coeFn_zero _ _ _⟩
+  add_mem' {f g} hf hg := (hf.add hg).congr (Lp.coeFn_add f g).symm
+  smul_mem' c f hf := (hf.const_smul c).congr (Lp.coeFn_smul c f).symm
+
+variable {F 𝕜}
+
+theorem mem_lpMeasSubgroup_iff_aestronglyMeasurable {m m0 : MeasurableSpace α} {μ : Measure α}
+    {f : Lp F p μ} : f ∈ lpMeasSubgroup F m p μ ↔ AEStronglyMeasurable[m] f μ := by
+  rw [← AddSubgroup.mem_carrier, lpMeasSubgroup, Set.mem_ofPred_eq]
+
+theorem mem_lpMeas_iff_aestronglyMeasurable {m m0 : MeasurableSpace α} {μ : Measure α}
+    {f : Lp F p μ} : f ∈ lpMeas F 𝕜 m p μ ↔ AEStronglyMeasurable[m] f μ := by
+  rw [← SetLike.mem_coe, ← Submodule.mem_carrier, lpMeas, Set.mem_ofPred_eq]

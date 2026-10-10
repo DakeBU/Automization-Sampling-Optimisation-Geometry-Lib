@@ -1,0 +1,15 @@
+from pathlib import Path
+import ast, datetime, hashlib, json, os
+
+ROOT=Path('E:/Samplinglib')
+O=Path(__file__).resolve().parent
+CACHE=ROOT/'.astis/repository-reader76'
+assert not (O/'lease.final.json').exists()
+CACHE.mkdir(parents=True,exist_ok=True)
+script=O/'review76.py'
+raw=script.read_bytes(); ast.parse(raw.decode('utf-8'))
+reference=ROOT/'runs/20261007-companion-priority/pbps-actual-hazard-clock75/independent-repository-reader75/review75.py'
+plan={'schema':'independent-scoped-reader76-preparation/v1','status':'PREPARATION_ONLY_AWAIT_ROOT_FINAL_PACKET','actor':'/root/fresh_source76','writer_PID':os.getpid(),'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'science_commit_expected_not_independently_checked':'e1f1d85d34426954829a97a46b563ea8e1dab8f1','owned_directory':O.as_posix(),'owned_runtime_directory':CACHE.as_posix(),'reference_structure_only':{'path':reference.as_posix(),'RAW_sha256':hashlib.sha256(reference.read_bytes()).hexdigest(),'prior_actor_outcomes_receipts_and_counts_reused':False},'prepared_script':{'path':script.as_posix(),'RAW_bytes':len(raw),'RAW_sha256':hashlib.sha256(raw).hexdigest(),'syntax_parse':'PASS','current_reader_gate_run':False},'final_dispatch_not_read':True,'expected_dispatch_path':(O.parent/'final-reader-repository-packet76.json').as_posix(),'requires_future_explicit_execution_authorization':True,'future_checks':['Frozen final dispatch membership and every exact RAW/CRLF-pairs-only LF pin.','Exact SCI76 commit and full current source bytes; reuse closed mathematics/source admissions only as unchanged finite artifacts.','Ten authored BODY/formula steps, full statement and boundary, binding recomputation, initially folded adjacent Lean.','Personally view every actual pinned PNG; prepare separate native observations only after viewing.','Actual native browser callbacks and RAW downloads; distinguish page callback probes from physical OS clipboard.','Current graph bytes/digest/typed connections and affected generated outputs.','Actual root/Tests/publication/site/frontier/graph gate receipts, exact counts and current checked parent.','No canonical/Git/ledger writes or VERIFIED transition.','Native decision/run/complete named RAW/last lease; external actual exit and read-only closure validation.'],'unverified_expectations_only':{'Registry':525,'publication_units':246,'module_lines':412,'BODY_steps':10,'PNGs':13,'copy_callbacks':3,'RAW_downloads':3},'current_aggregate_or_reader_acceptance':False,'new_mathematical_or_source_verdict':False,'new_VERIFIED_transition':False,'prior_source_CLOSED121_writes_performed':False,'prepared_output_contract':['decision.json','checks.json','run.json','complete.named.RAW-payload.json','named-review76.txt','lease.final.json'],'remaining_preparation':'Bind the packet-specific finite checker and external read-only closure validator to the actual final frozen schema after root dispatch; do not run predicted checks now.'}
+target=O/'preparation.json'; assert not target.exists()
+target.write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+print(json.dumps(plan,ensure_ascii=False,indent=2))

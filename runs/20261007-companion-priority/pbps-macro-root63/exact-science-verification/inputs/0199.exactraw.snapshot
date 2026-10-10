@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-967721ee8c829b9e",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let ι : Lp ℝ 2 ν →L[ℝ] Lp ℂ 2 ν := Complex.ofRealCLM.compLpL 2 ν\n    let R : Lp ℂ 2 ν →L[ℝ] Lp ℝ 2 ν := Complex.reCLM.compLpL 2 ν\n    let Q : Lp ℂ 2 ν →L[ℝ] Lp ℝ 2 ν := Complex.imCLM.compLpL 2 ν\n    let C : Lp ℂ 2 ν →L[ℝ] Lp ℂ 2 ν := Complex.conjCLE.toContinuousLinearMap.compLpL 2 ν\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n        IsSelfAdjoint T ∧\n        (∀ u : Lp ℝ 2 ν, ‖T u‖ ≤ ‖u‖ ∧\n          (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n          (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n        ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧\n        (∀ u : Lp ℝ 2 ν, ‖ι u‖ = ‖u‖) ∧\n        (∀ g : Lp ℂ 2 ν, C g = g ↔ ∃ u : Lp ℝ 2 ν, ι u = g) ∧\n        ∃ Dc : Lp ℂ 2 ν →L[ℂ] Lp ℂ 2 ν,\n          Dc.IsPositive ∧\n          (∀ g : Lp ℂ 2 ν, Dc g =\n            ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) (R g)) +\n            Complex.I • ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) (Q g))) ∧\n          (∀ u : Lp ℝ 2 ν, Dc (ι u) = ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u)) ∧\n          (∀ g : Lp ℂ 2 ν, C (Dc g) = Dc (C g))",
+    "statement_sha256": "967721ee8c829b9e5f0db17c71ac28540efccc0345d212e491f680e18f0739d1",
+    "compiled": true,
+    "approved_definition_context": [
+      "The underlying base is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension. The displayed potential is C2 with the two global Hessian bounds; positive ordered curvature and positive capped step are the entire analytic hypotheses.",
+      "Measure.tilted denotes normalized exponential tilting. The displayed joint is the pushforward of an independent product with the standard Gaussian; the marginal is its second-coordinate law. Kernel normalization, Markov measurability, disintegration and both stationary marginals are produced conclusions.",
+      "Lp exponent 2 denotes AE square-integrable quotient functions on the displayed marginal. Conditional operator action is an AE conclusion, while the displayed kernel density identity holds at every state. Operator multiplication is composition.",
+      "compLpL lifts the displayed scalar embedding/real part/imaginary part/pointwise conjugation to quotient classes. Positivity includes selfadjointness. The real operator and its positive squared defect are produced internally; the complex positive lift is a conclusion. No square root or inverse is asserted."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "5b7b4629800e2e063cd26c870d14f0e6db69bfdd646b76302eb6c279be48c424"
+}

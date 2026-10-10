@@ -1,0 +1,72 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PermutedQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductPairMarginal
+import Mathlib.MeasureTheory.Integral.Pi
+
+/-!
+# Permuted quadratic cost under a finite product law
+
+This module identifies the expectation of a fixed-point-free permuted
+quadratic cost with the sum of the corresponding two-coordinate product-law
+expectations.
+
+The only probabilistic input is the already verified two-coordinate marginal
+identity.  We package that identity as a measure-preserving pair evaluation so
+that component integrability on the product law automatically pulls back to the
+full tuple product.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PermutedProductCostIntegral
+
+open MeasureTheory
+open PermutedQuadraticCost
+open AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductPairMarginal
+open scoped BigOperators
+
+noncomputable section
+
+variable {E I : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E] [Fintype I]
+
+/-- Evaluating two distinct coordinates of a finite product probability is a
+measure-preserving map to the corresponding two-coordinate product law. -/
+theorem measurePreserving_pair_eval
+    (mu : I → ProbabilityMeasure (E × E)) {i j : I} (hij : i ≠ j) :
+    MeasurePreserving (fun q : I → E × E => (q i, q j))
+      (Measure.pi (fun k => (mu k : Measure (E × E))))
+      ((mu i : Measure (E × E)).prod (mu j : Measure (E × E))) := by
+  exact ⟨((measurable_pi_apply i).prodMk (measurable_pi_apply j)),
+    map_pair_eval_eq_prod mu hij⟩
+
+/-- For a fixed-point-free permutation, the expected permuted quadratic cost
+under the finite product law is the sum of the corresponding two-coordinate
+cross-cost expectations. -/
+theorem integral_permutedQuadraticCost_eq_sum
+    (mu : I → ProbabilityMeasure (E × E))
+    (σ : Equiv.Perm I)
+    (hσ : ∀ i, σ i ≠ i)
+    (hcost : ∀ i, Integrable
+      (fun z : (E × E) × (E × E) => ‖z.1.1 - z.2.2‖ ^ 2)
+      ((mu (σ i) : Measure (E × E)).prod (mu i : Measure (E × E)))) :
+    (∫ q : I → E × E, permutedQuadraticCost q σ
+        ∂Measure.pi (fun i => (mu i : Measure (E × E)))) =
+      ∑ i, ∫ z : (E × E) × (E × E), ‖z.1.1 - z.2.2‖ ^ 2
+        ∂((mu (σ i) : Measure (E × E)).prod (mu i : Measure (E × E))) := by
+  classical
+  rw [permutedQuadraticCost]
+  rw [integral_finset_sum]
+  · apply Finset.sum_congr rfl
+    intro i _hi
+    exact integral_comp_pair_eval mu (hσ i) (hcost i).aestronglyMeasurable
+  · intro i _hi
+    have hmp := measurePreserving_pair_eval mu (hσ i)
+    simpa [Function.comp_def] using hmp.integrable_comp_of_integrable (hcost i)
+
+end
+
+end PermutedProductCostIntegral
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

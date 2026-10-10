@@ -1,0 +1,66 @@
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+/-!
+# Entropy algebra under a transported log-density identity
+
+The hard analytic part of Chewi's displacement-entropy argument is obtaining a
+legitimate density change-of-variables relation for the displacement map. The
+subsequent entropy bookkeeping should not be hidden inside that analytic edge.
+
+This module isolates the purely measure-theoretic consequence. If `S` pushes
+`mu0` to `muT` and the logarithmic densities satisfy
+
+`logRhoT (S x) = logRho0 x - logJ x`
+
+`mu0`-almost everywhere, then integration against the transported law gives
+
+`∫ logRhoT dmuT = ∫ logRho0 dmu0 - ∫ logJ dmu0`.
+
+All integrability needed for the subtraction is explicit. No Jacobian or
+density transformation theorem is asserted here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementEntropyPushforward
+
+open MeasureTheory
+
+noncomputable section
+
+variable {E : Type*} [MeasurableSpace E]
+
+/-- Push a logarithmic density identity through an exact transport map and
+separate the endpoint entropy term from the logarithmic Jacobian term. -/
+theorem integral_logDensity_eq_endpoint_sub_logJacobian
+    {mu0 muT : Measure E} {S : E → E}
+    {logRho0 logRhoT logJ : E → ℝ}
+    (hS : Measurable S)
+    (hmap : Measure.map S mu0 = muT)
+    (hlogRhoT : AEStronglyMeasurable logRhoT muT)
+    (hlogRho0 : Integrable logRho0 mu0)
+    (hlogJ : Integrable logJ mu0)
+    (hchange : ∀ᵐ x ∂mu0,
+      logRhoT (S x) = logRho0 x - logJ x) :
+    (∫ y, logRhoT y ∂muT) =
+      (∫ x, logRho0 x ∂mu0) - ∫ x, logJ x ∂mu0 := by
+  have hlogRhoTMap :
+      AEStronglyMeasurable logRhoT (Measure.map S mu0) := by
+    simpa [hmap] using hlogRhoT
+  calc
+    (∫ y, logRhoT y ∂muT) =
+        ∫ y, logRhoT y ∂Measure.map S mu0 := by rw [hmap]
+    _ = ∫ x, logRhoT (S x) ∂mu0 :=
+      integral_map hS.aemeasurable hlogRhoTMap
+    _ = ∫ x, (logRho0 x - logJ x) ∂mu0 :=
+      integral_congr_ae hchange
+    _ = (∫ x, logRho0 x ∂mu0) - ∫ x, logJ x ∂mu0 :=
+      integral_sub hlogRho0 hlogJ
+
+end
+
+end DisplacementEntropyPushforward
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

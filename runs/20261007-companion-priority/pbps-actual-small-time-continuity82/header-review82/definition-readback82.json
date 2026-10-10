@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-actual-small-time-continuity82/header82.proposed.lean",
+    "RAW_bytes": 5689,
+    "RAW_sha256": "0333cf3e488effe1fa6f516553bb1e63a3bb650bfe09aca234ed20375cf85e64"
+  },
+  "actual80": {
+    "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhysicalTimeMeasurability.lean",
+    "RAW_bytes": 14418,
+    "RAW_sha256": "bf8f66a8484fa82c46b26ac6b66a6c8484e6dd6465ac8587d7e27b2489e73a5c"
+  },
+  "six_original_binders_exact": true,
+  "eleven_actual_definitions_exact": true,
+  "actual_definitions": [
+    "P",
+    "ε",
+    "c",
+    "Φ",
+    "S",
+    "rate",
+    "Λ",
+    "τ",
+    "next",
+    "record",
+    "eventTime"
+  ],
+  "all_four_actual80_Z_properties_byte_text_preserved": true,
+  "expanded_binders": "    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1)",
+  "literal_definitions": {
+    "P": "    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))",
+    "ε": "    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)",
+    "c": "    let c : E → E → E := fun y xRef => y - η • gradient V xRef",
+    "Φ": "    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)",
+    "S": "    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))",
+    "rate": "    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))",
+    "Λ": "    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)",
+    "τ": "    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)",
+    "next": "    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))",
+    "record": "    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n",
+    "eventTime": "    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)"
+  },
+  "new_public_provider_premises": [],
+  "new_conclusions": "Measurable actual phase/harmonic defect with P.real bound1-exp(-Λ_t); measurable norm tail for δ>0 and convergence of its real probability as NNReal time tends to neighborhood0.",
+  "no_theorem_BODY": true
+}

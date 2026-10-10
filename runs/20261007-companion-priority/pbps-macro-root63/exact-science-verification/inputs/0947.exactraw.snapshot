@@ -1,0 +1,60 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass
+import Mathlib.MeasureTheory.Measure.WithDensity
+
+/-!
+# Equal-mass products as scaled normalized product laws
+
+This module isolates the exact scaling identity used when the Brenier
+perturbation passes from normalized local probability laws back to finite
+common-mass replacement blocks.
+
+If two finite measures have the same positive mass `m`, then the canonical
+`commonMassProduct` joining them is exactly `m` times the product of their
+normalized probability laws.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonMassNormalizedProduct
+
+open MeasureTheory
+open CommonMass
+open scoped NNReal
+
+noncomputable section
+
+variable {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+
+/-- The equal-mass finite product is the common mass times the product of the
+normalized probability laws. -/
+theorem commonMassProduct_toMeasure_eq_mass_smul_normalized_prod
+    (mu : FiniteMeasure X) (nu : FiniteMeasure Y)
+    (hmass : mu.mass = nu.mass) (hpos : 0 < mu.mass) :
+    (commonMassProduct mu nu : Measure (X × Y)) =
+      (mu.mass : ℝ≥0) •
+        ((mu.normalize : Measure X).prod (nu.normalize : Measure Y)) := by
+  have hmu :
+      (mu : Measure X) =
+        (mu.mass : ℝ≥0) • (mu.normalize : Measure X) := by
+    have h := congrArg
+      (fun eta : FiniteMeasure X => (eta : Measure X))
+      mu.self_eq_mass_smul_normalize
+    simpa using h
+  have hnu :
+      (nu : Measure Y) =
+        (mu.mass : ℝ≥0) • (nu.normalize : Measure Y) := by
+    have h := congrArg
+      (fun eta : FiniteMeasure Y => (eta : Measure Y))
+      nu.self_eq_mass_smul_normalize
+    simpa [← hmass] using h
+  change (mu.mass⁻¹ : ℝ≥0) • ((mu : Measure X).prod (nu : Measure Y)) = _
+  rw [hmu, hnu, Measure.prod_smul_left, Measure.prod_smul_right]
+  simp [ne_of_gt hpos, smul_smul, mul_assoc]
+
+end
+
+end CommonMassNormalizedProduct
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

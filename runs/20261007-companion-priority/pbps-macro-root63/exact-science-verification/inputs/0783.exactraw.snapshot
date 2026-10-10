@@ -1,0 +1,187 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.OptimalContinuousCost
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Function.L1Space.Integrable
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.MeasureTheory.Function.SpecialFunctions.Basic
+
+/-!
+# SPHMC truncation from the actual infimum p-cost
+
+Expanded proof of arXiv:2609.06906v1 Lemma 6.2. The input is the true infimum
+of the pth displacement moment over all couplings, bounded by r^p. We prove
+optimizer existence and finite integrability, then construct the measurable
+proxy and its bounded-displacement coupling, with the exact eventwise TV bound.
+The zero-radius case is included. Complete second-countable normed Borel
+spaces generalize the source Euclidean setting explicitly. This certificate
+expresses the Wp-cost and Winfinity-coupling content without a full Wp metric
+API. It does not prove reverse transport, Renyi warmness or sampler costs.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.Truncation
+
+open MeasureTheory Set
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal NNReal
+
+/-- A finite infimum p-cost budget produces an actual optimal coupling and
+an explicit truncated proxy within delta in eventwise total variation, coupled
+to Q at displacement at most r * delta^(-1/p). -/
+theorem truncated_proxy {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
+    [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]
+    (P Q : Measure E) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    (p r δ : ℝ) (hp : 2 ≤ p) (hr : 0 ≤ r) (hδ : 0 < δ) (hδ1 : δ < 1)
+    (hcost : Transport.transportCost (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖ ^ p)) P Q ≤ ENNReal.ofReal (r ^ p)) :
+    ∃ γ : Measure (E × E), IsProbabilityMeasure γ ∧ Transport.IsCoupling γ P Q ∧
+      (∫⁻ z, ENNReal.ofReal (‖z.1-z.2‖ ^ p) ∂γ) =
+        Transport.transportCost (fun z => ENNReal.ofReal (‖z.1-z.2‖ ^ p)) P Q ∧
+      let t := r * δ ^ (-1 / p)
+      let T := fun z : E × E => if ‖z.1-z.2‖ ≤ t then z.1 else z.2
+      Measurable T ∧ IsProbabilityMeasure (γ.map T) ∧
+        IsProbabilityMeasure (γ.map (fun z => (T z,z.2))) ∧
+        Transport.IsCoupling (γ.map (fun z => (T z,z.2))) (γ.map T) Q ∧
+        (∀ᵐ z ∂(γ.map (fun z => (T z,z.2))), ‖z.1-z.2‖ ≤ t) ∧
+        ∀ B, MeasurableSet B → |P.real B - (γ.map T).real B| ≤ δ := by
+  have truncation_coupling
+      (γ : Measure (E × E)) [IsProbabilityMeasure γ] (t : ℝ) (ht : 0 ≤ t) :
+      let T := fun z : E × E => if ‖z.1-z.2‖ ≤ t then z.1 else z.2
+      Measurable T ∧ IsProbabilityMeasure (γ.map T) ∧
+        IsProbabilityMeasure (γ.map (fun z => (T z,z.2))) ∧
+        Transport.IsCoupling (γ.map (fun z => (T z,z.2))) (γ.map T) γ.snd ∧
+        (∀ᵐ z ∂(γ.map (fun z => (T z,z.2))), ‖z.1-z.2‖ ≤ t) ∧
+        ∀ B, MeasurableSet B → |γ.fst.real B - (γ.map T).real B| ≤ γ.real {z | t < ‖z.1-z.2‖} := by
+    classical
+    dsimp only
+    let T := fun z : E × E => if ‖z.1-z.2‖ ≤ t then z.1 else z.2
+    have hT : Measurable T :=
+      Measurable.ite (measurableSet_le (measurable_fst.sub measurable_snd).norm measurable_const)
+        measurable_fst measurable_snd
+    have hp : Measurable (fun z : E × E => (T z,z.2)) := hT.prodMk measurable_snd
+    have hbound (z : E × E) : ‖T z-z.2‖ ≤ t := by
+      dsimp only [T]
+      split_ifs with hz
+      · exact hz
+      · simpa using ht
+    refine ⟨hT,γ.isProbabilityMeasure_map hT.aemeasurable,
+      γ.isProbabilityMeasure_map hp.aemeasurable,?_,?_,?_⟩
+    · constructor
+      · rw [Measure.fst,Measure.map_map measurable_fst hp]
+        rfl
+      · rw [Measure.snd,Measure.map_map measurable_snd hp]
+        rfl
+    · exact (ae_map_iff hp.aemeasurable (measurableSet_le
+        (measurable_fst.sub measurable_snd).norm measurable_const)).2 (Filter.Eventually.of_forall hbound)
+    · intro B hB
+      have hm1 : γ.fst.real B = γ.real (Prod.fst ⁻¹' B) := by
+        rw [Measure.fst,measureReal_def,Measure.map_apply measurable_fst hB]
+        rfl
+      have hm2 : (γ.map T).real B = γ.real (T ⁻¹' B) := by
+        rw [measureReal_def,Measure.map_apply hT hB]
+        rfl
+      rw [hm1,hm2]
+      have hsub1 : Prod.fst ⁻¹' B ⊆ T ⁻¹' B ∪ {z | t < ‖z.1-z.2‖} := by
+        intro z hz
+        by_cases hg : ‖z.1-z.2‖ ≤ t
+        · exact Or.inl (by simpa [T,hg] using hz)
+        · exact Or.inr (lt_of_not_ge hg)
+      have hsub2 : T ⁻¹' B ⊆ Prod.fst ⁻¹' B ∪ {z | t < ‖z.1-z.2‖} := by
+        intro z hz
+        by_cases hg : ‖z.1-z.2‖ ≤ t
+        · exact Or.inl (by simpa [T,hg] using hz)
+        · exact Or.inr (lt_of_not_ge hg)
+      have h1 := (measureReal_mono (μ := γ) hsub1).trans (measureReal_union_le _ _)
+      have h2 := (measureReal_mono (μ := γ) hsub2).trans (measureReal_union_le _ _)
+      exact abs_le.mpr ⟨by linarith, by linarith⟩
+  
+  have moment_tail
+      (γ : Measure (E × E)) [IsProbabilityMeasure γ] (p t : ℝ) (hp : 2 ≤ p) (ht : 0 < t)
+      (hI : Integrable (fun z : E × E => ‖z.1-z.2‖ ^ p) γ) :
+      γ.real {z | t < ‖z.1-z.2‖} ≤ (∫ z, ‖z.1-z.2‖ ^ p ∂γ) / t ^ p := by
+    have hnon : 0 ≤ᵐ[γ] (fun z : E × E => ‖z.1-z.2‖ ^ p) :=
+      Filter.Eventually.of_forall fun z => Real.rpow_nonneg (norm_nonneg _) _
+    have hm := mul_meas_ge_le_integral_of_nonneg hnon hI (t ^ p)
+    have hs : {z : E × E | t < ‖z.1-z.2‖} ⊆ {z | t ^ p ≤ ‖z.1-z.2‖ ^ p} := by
+      intro z hz
+      exact Real.rpow_le_rpow ht.le (le_of_lt hz) (by linarith)
+    have hmeasure := measureReal_mono (μ := γ) hs
+    have htpos : 0 < t ^ p := Real.rpow_pos_of_pos ht p
+    apply (le_div_iff₀ htpos).2
+    nlinarith
+  
+  have moment_proxy
+      (γ : Measure (E × E)) [IsProbabilityMeasure γ] (p r δ : ℝ)
+      (hp : 2 ≤ p) (hr : 0 ≤ r) (hδ : 0 < δ) (hδ1 : δ < 1)
+      (hI : Integrable (fun z : E × E => ‖z.1-z.2‖ ^ p) γ)
+      (hbudget : (∫ z, ‖z.1-z.2‖ ^ p ∂γ) ≤ r ^ p) :
+      let t := r * δ ^ (-1 / p)
+      let T := fun z : E × E => if ‖z.1-z.2‖ ≤ t then z.1 else z.2
+      Measurable T ∧ IsProbabilityMeasure (γ.map T) ∧
+        IsProbabilityMeasure (γ.map (fun z => (T z,z.2))) ∧
+        Transport.IsCoupling (γ.map (fun z => (T z,z.2))) (γ.map T) γ.snd ∧
+        (∀ᵐ z ∂(γ.map (fun z => (T z,z.2))), ‖z.1-z.2‖ ≤ t) ∧
+        ∀ B, MeasurableSet B → |γ.fst.real B - (γ.map T).real B| ≤ δ := by
+    let t := r * δ ^ (-1 / p)
+    have ht : 0 ≤ t := mul_nonneg hr (Real.rpow_nonneg hδ.le _)
+    obtain ⟨hT,hP,hΓ,hcouple,hbound,hTV⟩ := truncation_coupling γ t ht
+    refine ⟨hT,hP,hΓ,hcouple,hbound,?_⟩
+    have htail : γ.real {z | t < ‖z.1-z.2‖} ≤ δ := by
+      by_cases hr0 : r = 0
+      · have hp0 : p ≠ 0 := by linarith
+        have hz : (∫ z, ‖z.1-z.2‖ ^ p ∂γ) = 0 := by
+          have hnon : 0 ≤ (∫ z : E × E, ‖z.1-z.2‖ ^ p ∂γ) :=
+            integral_nonneg (fun z => Real.rpow_nonneg (norm_nonneg (z.1-z.2)) p)
+          have hupper : (∫ z : E × E, ‖z.1-z.2‖ ^ p ∂γ) ≤ 0 := by
+            simpa [hr0,Real.zero_rpow hp0] using hbudget
+          exact le_antisymm hupper hnon
+        have hae := (integral_eq_zero_iff_of_nonneg_ae
+          (Filter.Eventually.of_forall (fun z : E × E => Real.rpow_nonneg (norm_nonneg (z.1-z.2)) p)) hI).mp hz
+        have hb : γ {z : E × E | 0 < ‖z.1-z.2‖} = 0 := by
+          apply measure_eq_zero_iff_ae_notMem.mpr
+          filter_upwards [hae] with z hz
+          have hn : ‖z.1-z.2‖ = 0 := (Real.rpow_eq_zero_iff_of_nonneg (norm_nonneg _)).mp hz |>.1
+          simp [hn]
+        have ht0 : t = 0 := by simp [t,hr0]
+        rw [ht0,measureReal_def,hb,ENNReal.toReal_zero]
+        exact hδ.le
+      · have hrpos : 0 < r := lt_of_le_of_ne hr (Ne.symm hr0)
+        have htpos : 0 < t := mul_pos hrpos (Real.rpow_pos_of_pos hδ _)
+        have hp0 : p ≠ 0 := by linarith
+        have htp : t ^ p = r ^ p / δ := by
+          dsimp only [t]
+          rw [Real.mul_rpow hr (Real.rpow_nonneg hδ.le _), ← Real.rpow_mul hδ.le]
+          have hpow : (-1 / p) * p = -1 := by field_simp
+          rw [hpow,Real.rpow_neg_one]
+          rfl
+        have hm := moment_tail γ p t hp htpos hI
+        have htpPos : 0 < t ^ p := Real.rpow_pos_of_pos htpos p
+        have hmul := (le_div_iff₀ htpPos).mp hm
+        have hcancel : δ * t ^ p = r ^ p := by rw [htp]; field_simp
+        have hle : γ.real {z | t < ‖z.1-z.2‖} * t ^ p ≤ δ * t ^ p := by nlinarith
+        exact (mul_le_mul_iff_left₀ htpPos).mp hle
+    intro B hB
+    exact (hTV B hB).trans htail
+  have hn (z : E × E) : 0 ≤ ‖z.1-z.2‖ ^ p := Real.rpow_nonneg (norm_nonneg _) _
+  let c : E × E → ℝ≥0 := fun z => ⟨‖z.1-z.2‖ ^ p, hn z⟩
+  have hf : Continuous (fun z : E × E => ‖z.1-z.2‖ ^ p) :=
+    (Real.continuous_rpow_const (by linarith : 0 ≤ p)).comp (continuous_fst.sub continuous_snd).norm
+  have hc : Continuous c := hf.subtype_mk _
+  obtain ⟨γ,hprob,hcouple,hopt⟩ := OptimalContinuousCost.exists_optimal_coupling P Q c hc
+  let : IsProbabilityMeasure γ := hprob
+  have heq : (fun z => (c z : ℝ≥0∞)) = (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖ ^ p)) := by
+    funext z
+    exact (ENNReal.ofReal_eq_coe_nnreal (hn z)).symm
+  rw [heq] at hopt
+  have hfinite : (∫⁻ z, ENNReal.ofReal (‖z.1-z.2‖ ^ p) ∂γ) ≠ ∞ :=
+    ne_of_lt (lt_of_le_of_lt (hopt.le.trans hcost) ENNReal.ofReal_lt_top)
+  have hnon : 0 ≤ᵐ[γ] (fun z : E × E => ‖z.1-z.2‖ ^ p) := Filter.Eventually.of_forall hn
+  have hI := (lintegral_ofReal_ne_top_iff_integrable hf.aestronglyMeasurable hnon).mp hfinite
+  have hbudget : (∫ z, ‖z.1-z.2‖ ^ p ∂γ) ≤ r ^ p := by
+    rw [integral_eq_lintegral_of_nonneg_ae hnon hf.aestronglyMeasurable]
+    have hh := ENNReal.toReal_mono ENNReal.ofReal_ne_top (hopt.le.trans hcost)
+    simpa [ENNReal.toReal_ofReal (Real.rpow_nonneg hr p)] using hh
+  refine ⟨γ,hprob,hcouple,hopt,?_⟩
+  have hproxy := moment_proxy γ p r δ hp hr hδ hδ1 hI hbudget
+  rw [hcouple.1,hcouple.2] at hproxy
+  exact hproxy
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.Truncation

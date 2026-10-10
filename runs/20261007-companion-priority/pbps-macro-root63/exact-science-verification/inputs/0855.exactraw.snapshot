@@ -1,0 +1,105 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+
+/-!
+# Quadratic cost gap under a finite re-pairing
+
+This module isolates the finite-dimensional algebra converting a positive
+pairing-cycle gap into a strict decrease of quadratic transport cost.
+
+The natural statement is permutation-generic.  For finitely many points
+`(x_i,y_i)` and a permutation `σ`, compare the diagonal cost
+
+`sum_i ‖x_i - y_i‖²`
+
+with the re-paired cost
+
+`sum_i ‖x_{σ i} - y_i‖²`.
+
+Their difference is exactly twice the pairing increment
+
+`sum_i <y_i, x_{σ i} - x_i>`.
+
+The cancellation of the pure `‖x_i‖²` terms uses only invariance of a finite
+sum under `σ`.  Thus the theorem matches the permutation-generic measure
+replacement algebra and leaves the later cyclic-successor specialization to a
+small index-combinatorics node.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PermutedQuadraticCost
+
+open scoped BigOperators
+
+noncomputable section
+
+variable {E I : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [Fintype I]
+
+/-- Diagonal quadratic cost of a finite family of pairs. -/
+def diagonalQuadraticCost (p : I → E × E) : ℝ :=
+  ∑ i, ‖(p i).1 - (p i).2‖ ^ 2
+
+/-- Quadratic cost after permuting only the source coordinates. -/
+def permutedQuadraticCost (p : I → E × E) (σ : Equiv.Perm I) : ℝ :=
+  ∑ i, ‖(p (σ i)).1 - (p i).2‖ ^ 2
+
+/-- Pairing increment associated with the same permutation. -/
+def permutedPairingGap (p : I → E × E) (σ : Equiv.Perm I) : ℝ :=
+  ∑ i, inner ℝ (p i).2 ((p (σ i)).1 - (p i).1)
+
+/-- Pointwise square expansion used before summing over the permutation. -/
+theorem quadraticCostDifference_pointwise (x x' y : E) :
+    ‖x - y‖ ^ 2 - ‖x' - y‖ ^ 2 =
+      (‖x‖ ^ 2 - ‖x'‖ ^ 2) + 2 * inner ℝ y (x' - x) := by
+  rw [norm_sub_sq_real, norm_sub_sq_real, inner_sub_right]
+  rw [real_inner_comm x y, real_inner_comm x' y]
+  ring
+
+/-- Exact algebraic identity behind the quadratic-cost perturbation argument:
+re-pairing by `σ` changes the finite quadratic cost by twice the corresponding
+pairing increment. -/
+theorem diagonal_sub_permuted_eq_two_pairingGap
+    (p : I → E × E) (σ : Equiv.Perm I) :
+    diagonalQuadraticCost p - permutedQuadraticCost p σ =
+      2 * permutedPairingGap p σ := by
+  classical
+  rw [diagonalQuadraticCost, permutedQuadraticCost, ← Finset.sum_sub_distrib]
+  calc
+    ∑ i, (‖(p i).1 - (p i).2‖ ^ 2 - ‖(p (σ i)).1 - (p i).2‖ ^ 2) =
+        ∑ i, ((‖(p i).1‖ ^ 2 - ‖(p (σ i)).1‖ ^ 2) +
+          2 * inner ℝ (p i).2 ((p (σ i)).1 - (p i).1)) := by
+      apply Finset.sum_congr rfl
+      intro i _hi
+      exact quadraticCostDifference_pointwise (p i).1 (p (σ i)).1 (p i).2
+    _ = (∑ i, (‖(p i).1‖ ^ 2 - ‖(p (σ i)).1‖ ^ 2)) +
+        ∑ i, 2 * inner ℝ (p i).2 ((p (σ i)).1 - (p i).1) := by
+      rw [Finset.sum_add_distrib]
+    _ = ((∑ i, ‖(p i).1‖ ^ 2) - ∑ i, ‖(p (σ i)).1‖ ^ 2) +
+        2 * ∑ i, inner ℝ (p i).2 ((p (σ i)).1 - (p i).1) := by
+      rw [Finset.sum_sub_distrib, ← Finset.mul_sum]
+    _ = 2 * ∑ i, inner ℝ (p i).2 ((p (σ i)).1 - (p i).1) := by
+      have hperm :
+          (∑ i, ‖(p (σ i)).1‖ ^ 2) = ∑ i, ‖(p i).1‖ ^ 2 :=
+        Equiv.sum_comp σ (fun i => ‖(p i).1‖ ^ 2)
+      rw [hperm]
+      ring
+    _ = 2 * permutedPairingGap p σ := by
+      rfl
+
+/-- A positive pairing gap gives a strictly cheaper quadratic re-pairing. -/
+theorem permutedQuadraticCost_lt_of_pairingGap_pos
+    (p : I → E × E) (σ : Equiv.Perm I)
+    (hgap : 0 < permutedPairingGap p σ) :
+    permutedQuadraticCost p σ < diagonalQuadraticCost p := by
+  have hdiff := diagonal_sub_permuted_eq_two_pairingGap p σ
+  linarith
+
+end
+
+end PermutedQuadraticCost
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

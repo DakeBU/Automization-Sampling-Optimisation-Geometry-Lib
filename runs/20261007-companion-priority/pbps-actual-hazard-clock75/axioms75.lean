@@ -1,0 +1,2 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws

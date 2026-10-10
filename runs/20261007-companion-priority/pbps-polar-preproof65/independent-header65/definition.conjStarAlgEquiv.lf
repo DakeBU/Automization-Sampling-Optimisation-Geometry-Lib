@@ -1,0 +1,21 @@
+
+open ContinuousLinearMap ContinuousLinearEquiv in
+/-- An isometric linear equivalence of two Hilbert spaces induces an equivalence of
+⋆-algebras of their endomorphisms.
+
+When `H = K`, this is exactly `Unitary.conjStarAlgAut`
+(see `Unitary.conjStarAlgEquiv_unitaryLinearIsometryEquiv` and
+`Unitary.conjStarAlgAut_symm_unitaryLinearIsometryEquiv`). -/
+def conjStarAlgEquiv (e : H ≃ₗᵢ[𝕜] K) : (H →L[𝕜] H) ≃⋆ₐ[𝕜] (K →L[𝕜] K) :=
+  .ofAlgEquiv e.toContinuousLinearEquiv.conjContinuousAlgEquiv fun x ↦ by
+    simp [star_eq_adjoint, conjContinuousAlgEquiv_apply, ← toContinuousLinearEquiv_symm, comp_assoc]
+
+@[simp] lemma conjStarAlgEquiv_apply_apply (e : H ≃ₗᵢ[𝕜] K) (x : H →L[𝕜] H) (y : K) :
+    e.conjStarAlgEquiv x y = e (x (e.symm y)) := rfl
+
+theorem symm_conjStarAlgEquiv_apply_apply (e : H ≃ₗᵢ[𝕜] K) (f : K →L[𝕜] K) (x : H) :
+    e.conjStarAlgEquiv.symm f x = e.symm (f (e x)) := rfl
+
+lemma conjStarAlgEquiv_apply (e : H ≃ₗᵢ[𝕜] K) (x : H →L[𝕜] H) :
+    e.conjStarAlgEquiv x = e ∘L x ∘L e.symm := rfl
+

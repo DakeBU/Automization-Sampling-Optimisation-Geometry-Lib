@@ -1,0 +1,86 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolation
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+/-!
+# Real quadratic coupling cost and the squared Wasserstein distance
+
+Chewi's strong-displacement-convexity correction is a real-valued term
+`∫ ||x-y||^2 d gamma`, while Samplinglib's Kantorovich/Wasserstein layer uses
+the extended-nonnegative cost
+
+`quadraticCost(x,y) = ENNReal.ofReal (||x-y||^2)`.
+
+This module is the exact bridge between those two representations.  Under
+ordinary real integrability, Mathlib's `ofReal_integral_eq_lintegral_ofReal`
+identifies the two costs.  If the coupling is quadratic-cost optimal, the
+existing `wassersteinDistance_sq` theorem then identifies that cost with
+`W₂^2`.
+
+No existence of an optimal coupling is proved here; the optimality witness is
+an explicit input.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementRealQuadraticCost
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- The real Bochner integral of squared displacement and the ENNReal
+quadratic-cost lintegral are the same finite quantity, viewed in ENNReal. -/
+theorem ofReal_integral_norm_sq_eq_lintegral_quadraticCost
+    (γ : Measure (E × E))
+    (hcost : Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) γ) :
+    ENNReal.ofReal (∫ z, ‖z.1 - z.2‖ ^ 2 ∂γ) =
+      ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ := by
+  simpa [WassersteinSpace.quadraticCost] using
+    (ofReal_integral_eq_lintegral_ofReal hcost
+      (Filter.Eventually.of_forall fun z : E × E => sq_nonneg ‖z.1 - z.2‖))
+
+/-- For a quadratic-cost optimal coupling, the real squared-displacement
+integral is exactly the squared Wasserstein distance after embedding into
+ENNReal. -/
+theorem ofReal_integral_norm_sq_eq_wassersteinDistance_sq_of_optimal
+    {γ : Measure (E × E)} {μ₀ μ₁ : Measure E}
+    (hγ : DisplacementInterpolation.IsQuadraticOptimalCoupling γ μ₀ μ₁)
+    (hcost : Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) γ) :
+    ENNReal.ofReal (∫ z, ‖z.1 - z.2‖ ^ 2 ∂γ) =
+      WassersteinSpace.wassersteinDistance μ₀ μ₁ ^ 2 := by
+  calc
+    ENNReal.ofReal (∫ z, ‖z.1 - z.2‖ ^ 2 ∂γ) =
+        ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ :=
+      ofReal_integral_norm_sq_eq_lintegral_quadraticCost γ hcost
+    _ = Transport.transportCost
+        (WassersteinSpace.quadraticCost (E := E)) μ₀ μ₁ := hγ.2
+    _ = WassersteinSpace.wassersteinDistance μ₀ μ₁ ^ 2 :=
+      (WassersteinSpace.wassersteinDistance_sq μ₀ μ₁).symm
+
+/-- Real-valued form convenient for the potential-energy inequality: the
+quadratic coupling integral is the `toReal` value of `W₂^2`.  Integrability of
+the real cost supplies finiteness automatically through the preceding ENNReal
+identity. -/
+theorem integral_norm_sq_eq_wassersteinDistance_sq_toReal_of_optimal
+    {γ : Measure (E × E)} {μ₀ μ₁ : Measure E}
+    (hγ : DisplacementInterpolation.IsQuadraticOptimalCoupling γ μ₀ μ₁)
+    (hcost : Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) γ) :
+    (∫ z, ‖z.1 - z.2‖ ^ 2 ∂γ) =
+      (WassersteinSpace.wassersteinDistance μ₀ μ₁ ^ 2).toReal := by
+  have hnonneg : 0 ≤ ∫ z, ‖z.1 - z.2‖ ^ 2 ∂γ :=
+    integral_nonneg fun z => sq_nonneg ‖z.1 - z.2‖
+  have h := congrArg ENNReal.toReal
+    (ofReal_integral_norm_sq_eq_wassersteinDistance_sq_of_optimal hγ hcost)
+  simpa [ENNReal.toReal_ofReal hnonneg] using h
+
+end
+
+end DisplacementRealQuadraticCost
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,55 @@
+import Mathlib.MeasureTheory.Measure.FiniteMeasurePi
+import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+
+/-!
+# Probability-one boxes in finite product measures
+
+For finitely many probability measures, if each coordinate set has probability
+one, then their Cartesian box has probability one under the canonical finite
+product probability measure.  The measurable-box form immediately gives an
+almost-sure membership statement.
+
+This is the product support bridge used after normalizing the equal-mass local
+slices in the direct Brenier perturbation.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace FiniteProductSupport
+
+open MeasureTheory Set
+
+noncomputable section
+
+variable {I : Type*} [Fintype I]
+variable {X : I → Type*} [∀ i, MeasurableSpace (X i)]
+
+/-- Coordinate probability-one sets form a probability-one box. -/
+theorem pi_box_apply_eq_one
+    (mu : ∀ i, ProbabilityMeasure (X i)) (s : ∀ i, Set (X i))
+    (hs : ∀ i, mu i (s i) = 1) :
+    ProbabilityMeasure.pi mu (Set.pi Set.univ s) = 1 := by
+  rw [ProbabilityMeasure.pi_pi]
+  simp [hs]
+
+/-- Under coordinate measurability, the product tuple belongs to the
+probability-one box almost surely. -/
+theorem ae_mem_pi_box
+    (mu : ∀ i, ProbabilityMeasure (X i)) (s : ∀ i, Set (X i))
+    (hmeas : ∀ i, MeasurableSet (s i))
+    (hs : ∀ i, mu i (s i) = 1) :
+    ∀ᵐ x ∂(ProbabilityMeasure.pi mu : Measure (∀ i, X i)),
+      x ∈ Set.pi Set.univ s := by
+  have hbox : MeasurableSet (Set.pi Set.univ s) :=
+    MeasurableSet.pi countable_univ (fun i _hi => hmeas i)
+  apply (mem_ae_iff_prob_eq_one hbox).2
+  rw [← ProbabilityMeasure.ennreal_coeFn_eq_coeFn_toMeasure]
+  simp [pi_box_apply_eq_one mu s hs]
+
+end
+
+end FiniteProductSupport
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

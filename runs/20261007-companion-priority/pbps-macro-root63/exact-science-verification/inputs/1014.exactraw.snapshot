@@ -1,0 +1,113 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingGraphIdentity
+import AutoSamplingTheory.TechnicalLemmas.Measure.PositiveComponentAE
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuadraticOptimalBrenierMap
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuadraticOptimalMidpoint
+import Mathlib.MeasureTheory.Measure.Support
+
+/-!
+# Uniqueness of quadratic-optimal couplings from an absolutely continuous source
+
+This is the uniqueness join in the Brenier chain.
+
+Given two quadratic-optimal couplings with the same marginals, average them.
+The midpoint remains optimal.  The already verified Brenier graph theorem forces
+that midpoint almost everywhere onto one Rockafellar-gradient graph.  Since
+both original couplings occur with positive weight in the midpoint, the same
+graph property holds almost everywhere for each component.  Finally, a coupling
+concentrated on a measurable graph is completely determined by its first
+marginal, so the two original couplings coincide.
+
+Only the first marginal is assumed absolutely continuous, matching the Brenier
+truth boundary.  The target law needs only the finite second moment used by the
+quadratic graph theorem.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace QuadraticOptimalUniqueness
+
+open MeasureTheory Set
+open scoped ENNReal RealInnerProductSpace Gradient
+
+open AutoSamplingTheory.TechnicalLemmas.Analysis.MeasurableGradient
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarPotential
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarRealDomain
+open CouplingGraphIdentity PositiveComponentAE QuadraticOptimalBrenierMap
+open QuadraticOptimalMidpoint Transport WassersteinSpace
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- Two quadratic-optimal couplings with the same marginals are equal when the
+first marginal is absolutely continuous and both marginals have finite second
+moments. -/
+theorem eq_of_quadraticOptimal
+    {gamma₀ gamma₁ : Measure (E × E)} {mu₀ mu₁ : Measure E}
+    [IsProbabilityMeasure mu₀]
+    (h₀ : IsQuadraticOptimalCoupling gamma₀ mu₀ mu₁)
+    (h₁ : IsQuadraticOptimalCoupling gamma₁ mu₀ mu₁)
+    (hmu₀ac : mu₀ ≪ (volume : Measure E))
+    (hmu₀ : Integrable (fun x : E => ‖x‖ ^ 2) mu₀)
+    (hmu₁ : Integrable (fun y : E => ‖y‖ ^ 2) mu₁) :
+    gamma₀ = gamma₁ := by
+  have hmid :
+      IsQuadraticOptimalCoupling (midpointMeasure gamma₀ gamma₁) mu₀ mu₁ :=
+    isQuadraticOptimalCoupling_midpoint h₀ h₁
+  letI : IsProbabilityMeasure (midpointMeasure gamma₀ gamma₁) :=
+    isProbabilityMeasure_of_isCoupling_left hmid.1
+  have hmid_ne : midpointMeasure gamma₀ gamma₁ ≠ 0 := by
+    intro hzero
+    have hmass : midpointMeasure gamma₀ gamma₁ Set.univ = 1 := measure_univ
+    simpa [hzero] using hmass
+  rcases Measure.nonempty_support hmid_ne with ⟨base, hbase⟩
+  let T : E → E :=
+    gradient
+      (finitePart
+        (properRockafellarPotential base (midpointMeasure gamma₀ gamma₁).support))
+  have hmidGraph :
+      ∀ᵐ z ∂midpointMeasure gamma₀ gamma₁, z.2 = T z.1 := by
+    simpa [T] using
+      (ae_snd_eq_gradient_of_quadraticOptimal_of_base
+        hmid hmu₀ac hmu₀ hmu₁ hbase)
+  have hhalf : (2 : ℝ≥0∞)⁻¹ ≠ 0 := by
+    norm_num
+  have hgamma₀Graph : ∀ᵐ z ∂gamma₀, z.2 = T z.1 := by
+    apply ae_of_ae_smul_add_left
+      (μ := gamma₀) (ν := (2 : ℝ≥0∞)⁻¹ • gamma₁) hhalf
+    simpa [midpointMeasure] using hmidGraph
+  have hgamma₁Graph : ∀ᵐ z ∂gamma₁, z.2 = T z.1 := by
+    apply ae_of_ae_add_smul_right
+      (μ := (2 : ℝ≥0∞)⁻¹ • gamma₀) (ν := gamma₁) hhalf
+    simpa [midpointMeasure] using hmidGraph
+  have hT : Measurable T := by
+    dsimp [T]
+    exact measurable_gradient _
+  calc
+    gamma₀ = Measure.map (fun x : E => (x, T x)) mu₀ :=
+      eq_map_graph_of_isCoupling_of_ae_snd_eq h₀.1 hT hgamma₀Graph
+    _ = gamma₁ :=
+      (eq_map_graph_of_isCoupling_of_ae_snd_eq h₁.1 hT hgamma₁Graph).symm
+
+/-- `P₂,ac` wrapper on the source law.  The target is deliberately not assumed
+absolutely continuous; only its finite second moment enters the uniqueness
+proof. -/
+theorem eq_of_quadraticOptimal_p2ac_source
+    {gamma₀ gamma₁ : Measure (E × E)} {mu₀ mu₁ : Measure E}
+    (hmu₀ : IsAbsolutelyContinuousFiniteSecondMoment mu₀)
+    (hmu₁ : Integrable (fun y : E => ‖y‖ ^ 2) mu₁)
+    (h₀ : IsQuadraticOptimalCoupling gamma₀ mu₀ mu₁)
+    (h₁ : IsQuadraticOptimalCoupling gamma₁ mu₀ mu₁) :
+    gamma₀ = gamma₁ := by
+  letI : IsProbabilityMeasure mu₀ := hmu₀.1
+  exact eq_of_quadraticOptimal h₀ h₁ hmu₀.2.1 hmu₀.2.2 hmu₁
+
+end
+
+end QuadraticOptimalUniqueness
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

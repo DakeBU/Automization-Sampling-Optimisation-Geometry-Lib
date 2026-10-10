@@ -1,0 +1,17 @@
+theorem norm_map_iff_adjoint_comp_self (u : H →L[𝕜] K) :
+    (∀ x : H, ‖u x‖ = ‖x‖) ↔ adjoint u ∘L u = 1 := by
+  rw [LinearMap.norm_map_iff_inner_map_map u, u.inner_map_map_iff_adjoint_comp_self]
+
+theorem isometry_iff_adjoint_comp_self (u : H →L[𝕜] K) :
+    Isometry u ↔ adjoint u ∘L u = 1 := by
+  rw [AddMonoidHomClass.isometry_iff_norm, norm_map_iff_adjoint_comp_self]
+
+@[simp]
+lemma _root_.LinearIsometryEquiv.adjoint_eq_symm (e : H ≃ₗᵢ[𝕜] K) :
+    adjoint (e : H →L[𝕜] K) = e.symm :=
+  calc
+    _ = adjoint (e : H →L[𝕜] K) ∘L e ∘L (e.symm : K →L[𝕜] H) := by simp
+    _ = e.symm := by
+      rw [← comp_assoc, norm_map_iff_adjoint_comp_self _ |>.mp e.norm_map, one_def, id_comp]
+
+omit [CompleteSpace H] [CompleteSpace K] in

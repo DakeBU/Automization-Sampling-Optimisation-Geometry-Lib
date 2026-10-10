@@ -1,0 +1,61 @@
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+import Mathlib.Tactic
+
+/-!
+# Uniform almost-sure gaps give strict expectation gaps
+
+A uniform positive pointwise margin cannot disappear after integrating against
+a probability measure.  This tiny order/integration lemma is separated from the
+transport application so the later Brenier cost proof only has to supply the
+almost-sure gap and integrability of the two cost functions.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace UniformExpectationGap
+
+open MeasureTheory
+
+noncomputable section
+
+variable {Ω : Type*} [MeasurableSpace Ω]
+variable {μ : Measure Ω} [IsProbabilityMeasure μ]
+
+/-- If `f` dominates `g` by one uniform positive margin almost everywhere,
+then the expectation of `f` is strictly larger than that of `g`. -/
+theorem integral_lt_integral_of_ae_add_le
+    {f g : Ω → ℝ} {ε : ℝ}
+    (hf : Integrable f μ) (hg : Integrable g μ)
+    (hε : 0 < ε)
+    (hgap : ∀ᵐ x ∂μ, g x + ε ≤ f x) :
+    (∫ x, g x ∂μ) < ∫ x, f x ∂μ := by
+  have hconst : Integrable (fun _ : Ω => ε) μ := by fun_prop
+  have hsum : Integrable (fun x => g x + ε) μ := hg.add hconst
+  have hle := integral_mono_ae hsum hf hgap
+  have hsumIntegral :
+      (∫ x, g x + ε ∂μ) = (∫ x, g x ∂μ) + ε := by
+    rw [integral_add hg hconst]
+    simp
+  rw [hsumIntegral] at hle
+  linarith
+
+/-- Difference form, convenient when a pointwise cost identity is already
+available. -/
+theorem integral_lt_integral_of_ae_gap
+    {f g : Ω → ℝ} {ε : ℝ}
+    (hf : Integrable f μ) (hg : Integrable g μ)
+    (hε : 0 < ε)
+    (hgap : ∀ᵐ x ∂μ, ε ≤ f x - g x) :
+    (∫ x, g x ∂μ) < ∫ x, f x ∂μ := by
+  apply integral_lt_integral_of_ae_add_le hf hg hε
+  filter_upwards [hgap] with x hx
+  linarith
+
+end
+
+end UniformExpectationGap
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

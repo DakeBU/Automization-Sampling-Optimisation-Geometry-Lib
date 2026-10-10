@@ -1,0 +1,296 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalReferenceGradientDescent
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateInitialGradientMoment
+import Mathlib.Tactic
+
+open MeasureTheory Set InnerProductSpace ProbabilityTheory
+open scoped RealInnerProductSpace NNReal
+/-!
+# Actual joint inner reference gradient descent
+
+Section 6.3 of Chen, Chewi, Lu and Zhang, arXiv:2609.06906v1, uses
+gradient-square threshold a*d for the inner reference construction. This
+module preserves that actual first-hit algorithm. The previously proved
+terminal threshold d/A is only a finite witness and a larger count bound;
+the two stopping indices and outputs are not equated.
+
+The same pair (Y,Z) determines the initial state Y and center Y+sqrt(tau)*Z.
+Joint iteration continuity proves stopping/output measurability. The actual
+Wasserstein input supplies a proved joint initial moment, and logarithmic
+integrability precedes integration of the count bound. N+1 includes the
+initial and final gradient checks; no evaluator trace or cross-sampler
+cache discount is asserted.
+
+The displayed logarithmic count bound is a sufficient bound derived using
+the stricter terminal witness. General beta, coordinate-free dimension and
+eta=0 extend the source setting; dimension is positive and tau>0. The
+upstream Wasserstein guarantee remains supplied. Conditional histories,
+joint dependence on all parameters, stage sums and both main results remain
+separate proof obligations.
+-/
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.JointReferenceGradientDescent
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+omit [CompleteSpace E] in
+private theorem joint_iterates {g : E → E} (hg : Continuous g)
+    {u : E × E → E} (hu : Continuous u) (A c : ℝ) (n : ℕ) :
+    Continuous (fun p : E × E =>
+      (fun x => x-c⁻¹ • (g x+A⁻¹ • (x-u p)))^[n] p.1) := by
+  induction n with
+  | zero => simpa only [Function.iterate_zero, id_eq] using continuous_fst
+  | succ n ih =>
+    simp only [Function.iterate_succ_apply']
+    exact ih.sub (((hg.comp ih).add ((ih.sub hu).const_smul _)).const_smul _)
+
+private def jointIndex (T : E × E → E → E) (g : E × E → E → ℝ)
+    (s : ℝ) (p : E × E) : ℕ := by
+  classical
+  exact if h : ∃ n, g p ((T p)^[n] p.1) ≤ s then Nat.find h else 0
+
+omit [CompleteSpace E] [InnerProductSpace ℝ E] in
+private theorem joint_stop [MeasurableSpace E] [BorelSpace E]
+    (T : E × E → E → E) (g : E × E → E → ℝ) (s : ℝ)
+    (B : E × E → ℝ)
+    (hi : ∀ n : ℕ, Measurable (fun p : E × E => (T p)^[n] p.1))
+    (hp : ∀ n : ℕ, MeasurableSet {p : E × E | g p ((T p)^[n] p.1) ≤ s})
+    (hw : ∀ p : E × E, ∃ n : ℕ, g p ((T p)^[n] p.1) ≤ s ∧ (n:ℝ)+1 ≤ B p) :
+    let N := jointIndex T g s
+    Measurable N ∧ Measurable (fun p => (T p)^[N p] p.1) ∧
+      ∀ p, g p ((T p)^[N p] p.1) ≤ s ∧
+        (∀ j < N p, s < g p ((T p)^[j] p.1)) ∧ (N p:ℝ)+1 ≤ B p := by
+  classical
+  let N := jointIndex T g s
+  have ht (p : E × E) : ∃ n, g p ((T p)^[n] p.1) ≤ s :=
+    let ⟨n,hn,_⟩ := hw p; ⟨n,hn⟩
+  have hn (p : E × E) : N p = Nat.find (ht p) := by
+    simp only [N,jointIndex,dif_pos (ht p)]
+  have hNm : Measurable N := by
+    have he : N = fun p => Nat.find (ht p) := funext hn
+    rw [he]
+    exact measurable_find ht hp
+  have hOm : Measurable (fun p => (T p)^[N p] p.1) := by
+    have he : (fun p => (T p)^[N p] p.1) =
+        (fun p => (T p)^[Nat.find (ht p)] p.1) := by funext p; rw [hn]
+    rw [he]
+    exact Measurable.find hi hp ht
+  refine ⟨hNm,hOm,fun p => ?_⟩
+  change g p ((T p)^[N p] p.1) ≤ s ∧
+    (∀ j < N p, s < g p ((T p)^[j] p.1)) ∧ (N p:ℝ)+1 ≤ B p
+  refine ⟨?_,?_,?_⟩
+  · rw [hn]; exact Nat.find_spec (ht p)
+  · intro j hj
+    rw [hn] at hj
+    exact lt_of_not_ge (Nat.find_min (ht p) hj)
+  · obtain ⟨n,hs,hB⟩ := hw p
+    have hle : N p ≤ n := by rw [hn]; exact Nat.find_min' (ht p) hs
+    have hr : (N p:ℝ) ≤ n := by exact_mod_cast hle
+    linarith
+
+private theorem actual_joint_program [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β:ℝ)*‖v‖^2)
+    (hαβ : α ≤ β) {A d τ : ℝ} (hA : 0 < A) (hd : 0 < d)
+    (hdim : d = Module.finrank ℝ E) :
+    let u := fun p : E × E => p.1+Real.sqrt τ • p.2
+    let F := fun p x => U x+A⁻¹/2*‖x-u p‖^2
+    let a := (α:ℝ)+A⁻¹
+    let c := (β:ℝ)+A⁻¹
+    let k := c/a
+    let T := fun p x => x-c⁻¹ • gradient (F p) x
+    let N := jointIndex T (fun p x => ‖gradient (F p) x‖^2) (a*d)
+    Measurable N ∧ Measurable (fun p => (T p)^[N p] p.1) ∧
+      ∀ p, ‖gradient (F p) ((T p)^[N p] p.1)‖^2 ≤ a*d ∧
+        (∀ j < N p, a*d < ‖gradient (F p) ((T p)^[j] p.1)‖^2) ∧
+        (N p:ℝ)+1 ≤ k*Real.log (1+A*‖gradient (F p) p.1‖^2/d)+2 := by
+  let u := fun p : E × E => p.1+Real.sqrt τ • p.2
+  let F := fun p x => U x+A⁻¹/2*‖x-u p‖^2
+  let a := (α:ℝ)+A⁻¹
+  let c := (β:ℝ)+A⁻¹
+  let k := c/a
+  let T := fun p x => x-c⁻¹ • gradient (F p) x
+  have H (p : E × E) :=
+    TerminalReferenceGradientDescent.terminal_reference_gradient_descent
+      hU hH hαβ hA hd hdim (u p)
+  have hg (p : E × E) (x : E) :
+      gradient (F p) x=gradient U x+A⁻¹ • (x-u p) := (H p).2.2.2.1 x
+  have hu : Continuous u := continuous_fst.add (continuous_snd.const_smul _)
+  have hgU : Continuous (gradient U) :=
+    TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+      (hU.of_le (by norm_num))
+  have hTeq : T = fun p x => x-c⁻¹ • (gradient U x+A⁻¹ • (x-u p)) := by
+    funext p x; exact congrArg (fun z => x-c⁻¹ • z) (hg p x)
+  have hi (n : ℕ) : Continuous (fun p : E × E => (T p)^[n] p.1) := by
+    rw [hTeq]
+    exact joint_iterates hgU hu A c n
+  have hp (n : ℕ) : MeasurableSet
+      {p : E × E | ‖gradient (F p) ((T p)^[n] p.1)‖^2 ≤ a*d} := by
+    simp_rw [hg]
+    exact measurableSet_le
+      (((hgU.comp (hi n)).add (((hi n).sub hu).const_smul _)).norm.pow 2).measurable
+      measurable_const
+  have hs : d/A ≤ a*d := by
+    dsimp [a]
+    have hn := mul_nonneg α.coe_nonneg hd.le
+    rw [div_eq_mul_inv]
+    nlinarith
+  have hw (p : E × E) : ∃ n : ℕ,
+      ‖gradient (F p) ((T p)^[n] p.1)‖^2 ≤ a*d ∧
+      (n:ℝ)+1 ≤ k*Real.log (1+A*‖gradient (F p) p.1‖^2/d)+2 := by
+    have hv := (H p).2.2.2.2.2.2.1 p.1
+    exact ⟨_,hv.1.trans hs,hv.2.2.2.2.2⟩
+  exact joint_stop T (fun p x => ‖gradient (F p) x‖^2) (a*d)
+    (fun p => k*Real.log (1+A*‖gradient (F p) p.1‖^2/d)+2)
+    (fun n => (hi n).measurable) hp hw
+
+private theorem expected_count {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsProbabilityMeasure μ] (g : X → ℝ) (N : X → ℕ)
+    {k s M : ℝ} (hk : 0 < k) (hs : 0 < s)
+    (hgm : Measurable g) (hgi : Integrable g μ) (hg : ∀ x, 0 ≤ g x)
+    (hNm : Measurable N) (hM : (∫ x, g x ∂μ) ≤ M)
+    (hbound : ∀ x, (N x:ℝ)+1 ≤ k*Real.log (1+g x/s)+2) :
+    Integrable (fun x => (N x:ℝ)+1) μ ∧
+      (∫ x, (N x:ℝ)+1 ∂μ) ≤ 2+k*Real.log (1+M/s) := by
+  have hM0 : 0 ≤ M := (integral_nonneg hg).trans hM
+  have hden : 0 < 1+M/s := by positivity
+  have hsm : 0 < s+M := by positivity
+  have hpos (x : X) : 0 < 1+g x/s := by have := hg x; positivity
+  have hl0 (x : X) : 0 ≤ Real.log (1+g x/s) :=
+    Real.log_nonneg (by have := div_nonneg (hg x) hs.le; linarith)
+  have hlub (x : X) : Real.log (1+g x/s) ≤ g x/s := by
+    have := Real.log_le_sub_one_of_pos (hpos x)
+    linarith
+  have hlm : Measurable (fun x => Real.log (1+g x/s)) :=
+    (measurable_const.add (hgm.div_const s)).log
+  have hli : Integrable (fun x => Real.log (1+g x/s)) μ :=
+    (hgi.div_const s).mono' hlm.aestronglyMeasurable (Filter.Eventually.of_forall fun x => by
+      rw [Real.norm_eq_abs,abs_of_nonneg (hl0 x)]
+      exact hlub x)
+  have htangent (x : X) : Real.log (1+g x/s) ≤
+      Real.log (1+M/s)+(g x-M)/(s+M) := by
+    have ht := Real.log_le_sub_one_of_pos (div_pos (hpos x) hden)
+    rw [Real.log_div (hpos x).ne' hden.ne'] at ht
+    have he : (1+g x/s)/(1+M/s)-1=(g x-M)/(s+M) := by
+      field_simp; ring
+    rw [he] at ht
+    linarith
+  have hsubi : Integrable (fun x => g x-M) μ := hgi.sub (integrable_const M)
+  have hdivi : Integrable (fun x => (g x-M)/(s+M)) μ := hsubi.div_const _
+  have hri : Integrable (fun x => Real.log (1+M/s)+(g x-M)/(s+M)) μ :=
+    (integrable_const _).add hdivi
+  have hj := integral_mono hli hri htangent
+  rw [integral_add (integrable_const _) hdivi,
+    integral_div,integral_sub hgi (integrable_const M)] at hj
+  simp only [integral_const,probReal_univ,smul_eq_mul,one_mul] at hj
+  have hlog : (∫ x, Real.log (1+g x/s) ∂μ) ≤ Real.log (1+M/s) := by
+    have hn : ((∫ x,g x ∂μ)-M)/(s+M) ≤ 0 :=
+      div_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr hM) hsm.le
+    linarith
+  have hbi : Integrable (fun x => k*Real.log (1+g x/s)+2) μ :=
+    (hli.const_mul k).add (integrable_const 2)
+  have hNr : Measurable (fun x => (N x:ℝ)) := measurable_from_nat.comp hNm
+  have hci : Integrable (fun x => (N x:ℝ)+1) μ :=
+    hbi.mono' (hNr.add measurable_const).aestronglyMeasurable
+      (Filter.Eventually.of_forall fun x => by
+        rw [Real.norm_eq_abs,abs_of_nonneg (by positivity : 0 ≤ (N x:ℝ)+1)]
+        exact hbound x)
+  refine ⟨hci,?_⟩
+  have hc := integral_mono hci hbi hbound
+  rw [integral_add (hli.const_mul k) (integrable_const 2),integral_const_mul] at hc
+  simp only [integral_const,probReal_univ,smul_eq_mul,one_mul] at hc
+  have hh := mul_le_mul_of_nonneg_left hlog hk.le
+  linarith
+
+
+theorem joint_reference_gradient_descent [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β:ℝ)*‖v‖^2)
+    {η τ r : ℝ} (hη : 0 ≤ η) (hτ : 0 < τ) (hr : 0 ≤ r)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (ν : Measure E) [IsProbabilityMeasure ν]
+    (hw : TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance ν
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        ((volume : Measure E).tilted (fun x => -U x)) (Real.sqrt η)) ^ 2 ≤ ENNReal.ofReal (r^2)) :
+    let d : ℝ := Module.finrank ℝ E
+    let A := η+τ
+    let a := (α:ℝ)+A⁻¹
+    let c := (β:ℝ)+A⁻¹
+    let k := c/a
+    let M := 4*(β:ℝ)*d+4*(β:ℝ)^2*η*d+2*(β:ℝ)^2*r^2
+    let u := fun p : E × E => p.1+Real.sqrt τ • p.2
+    let F := fun p x => U x+A⁻¹/2*‖x-u p‖^2
+    let T := fun p x => x-c⁻¹ • gradient (F p) x
+    let N := jointIndex T (fun p x => ‖gradient (F p) x‖^2) (a*d)
+    let out := fun p => (T p)^[N p] p.1
+    Measurable N ∧ Measurable out ∧
+      (∀ p, ‖gradient (F p) (out p)‖^2 ≤ a*d ∧
+        ‖u p-A • gradient U (out p)-out p‖ = A*‖gradient (F p) (out p)‖ ∧
+        ‖u p-A • gradient U (out p)-out p‖ ≤ A*Real.sqrt (a*d) ∧
+        (∀ j < N p, a*d < ‖gradient (F p) ((T p)^[j] p.1)‖^2) ∧
+        (N p:ℝ)+1 ≤ k*Real.log (1+A*‖gradient (F p) p.1‖^2/d)+2) ∧
+      Integrable (fun p => (N p:ℝ)+1) (ν.prod (stdGaussian E)) ∧
+      (∫ p, (N p:ℝ)+1 ∂ν.prod (stdGaussian E)) ≤
+        2+k*Real.log (1+A*(M+τ*d/A^2)/d) := by
+  let d : ℝ := Module.finrank ℝ E
+  let A := η+τ
+  let a := (α:ℝ)+A⁻¹
+  let c := (β:ℝ)+A⁻¹
+  let k := c/a
+  let M := 4*(β:ℝ)*d+4*(β:ℝ)^2*η*d+2*(β:ℝ)^2*r^2
+  let u := fun p : E × E => p.1+Real.sqrt τ • p.2
+  let F := fun p x => U x+A⁻¹/2*‖x-u p‖^2
+  let T := fun p x => x-c⁻¹ • gradient (F p) x
+  let N := jointIndex T (fun p x => ‖gradient (F p) x‖^2) (a*d)
+  let out := fun p => (T p)^[N p] p.1
+  have hA : 0 < A := add_pos_of_nonneg_of_pos hη hτ
+  have ha : 0 < a := add_pos_of_nonneg_of_pos α.coe_nonneg (inv_pos.mpr hA)
+  have hc : 0 < c := add_pos_of_nonneg_of_pos β.coe_nonneg (inv_pos.mpr hA)
+  have hP := actual_joint_program (τ:=τ) hU hH hαβ hA hd rfl
+  have hgrad (p : E × E) (x : E) :
+      gradient (F p) x=gradient U x+A⁻¹ • (x-u p) :=
+    (TerminalReferenceGradientDescent.terminal_reference_gradient_descent
+      hU hH hαβ hA hd rfl (u p)).2.2.2.1 x
+  have hres (p : E × E) (x : E) :
+      ‖u p-A • gradient U x-x‖=A*‖gradient (F p) x‖ := by
+    have he : u p-A • gradient U x-x=-(A • gradient (F p) x) := by
+      rw [hgrad,smul_add,smul_smul,mul_inv_cancel₀ hA.ne',one_smul]
+      abel
+    rw [he,norm_neg,norm_smul,Real.norm_eq_abs,abs_of_pos hA]
+  have hMom := ApproximateInitialGradientMoment.approximate_initial_gradient_moment
+    hα hαβ hU hH hη hτ hr ν hw
+  have hFeq (y z : E) :
+      (fun x => U x+‖x-(y+Real.sqrt τ • z)‖^2/(2*(η+τ)))=F (y,z) := by
+    funext x
+    dsimp [F,u,A]
+    simp only [div_eq_mul_inv,mul_inv_rev]
+    ring
+  have hgi : Integrable (fun p : E × E => ‖gradient (F p) p.1‖^2)
+      (ν.prod (stdGaussian E)) := by
+    simpa only [hFeq] using hMom.2.2.2.1
+  have hM : (∫ p : E × E, ‖gradient (F p) p.1‖^2 ∂ν.prod (stdGaussian E)) ≤
+      M+τ*d/A^2 := by
+    simpa only [hFeq] using hMom.2.2.2.2.2.1
+  have hgm : Measurable (fun p : E × E => ‖gradient (F p) p.1‖^2) := by
+    simp_rw [hgrad]
+    have hgU := TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+      (hU.of_le (by norm_num))
+    exact ((hgU.comp continuous_fst).add
+      ((continuous_fst.sub (continuous_fst.add (continuous_snd.const_smul _))).const_smul _)).norm.pow 2 |>.measurable
+  have ratio (z : ℝ) : z/(d/A)=A*z/d := by field_simp
+  have hE := expected_count (ν.prod (stdGaussian E))
+    (fun p => ‖gradient (F p) p.1‖^2) N (k:=k) (s:=d/A)
+    (div_pos hc ha) (div_pos hd hA)
+    hgm hgi (fun p => sq_nonneg _) hP.1 hM (fun p => by
+      simpa only [ratio] using (hP.2.2 p).2.2)
+  refine ⟨hP.1,hP.2.1,fun p => ?_,hE.1,?_⟩
+  · have hp := hP.2.2 p
+    refine ⟨hp.1,hres p _,?_,hp.2.1,hp.2.2⟩
+    rw [hres]
+    exact mul_le_mul_of_nonneg_left (Real.le_sqrt_of_sq_le hp.1) hA.le
+  · simpa only [ratio] using hE.2
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.JointReferenceGradientDescent

@@ -1,0 +1,539 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalReferenceGradientDescent
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalSamplerAccuracyCost
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection
+import Mathlib.Tactic
+
+open MeasureTheory Set InnerProductSpace ProbabilityTheory
+open scoped RealInnerProductSpace NNReal ENNReal
+/-!
+# Actual terminal reference and parameterized local FORS program
+
+Source: Chen, Chewi, Lu and Zhang, arXiv:2609.06906v1, Algorithm 3.3,
+Section 6.3 terminal reference construction and Theorem A.4(2).
+
+The potential V, its curvature bounds, Renyi order ell and error eps are
+fixed. The positive precision b, center u and initial reference vary
+measurably with the state. Every state satisfies the explicit sufficient
+terminal precision condition. Reaching this domain is not proved here.
+The genuine first GD hit uses the terminal gradient-square threshold d*b,
+not the inner-stage threshold (alpha+b)*d. Its reference residual is derived.
+
+A fixed auxiliary probability space is used to construct a genuine Markov
+output kernel. Gaussian scaling occurs inside both position and velocity
+of the clipped cached arc estimator. The actual first-success program has
+this kernel as its output law and never fails almost surely. The same law
+satisfies both explicit RN-power and logarithmic accuracy bounds.
+
+The full retry-stream pushforward to the original scaled-auxiliary program
+preserves acceptance and full-batch counts pointwise. Default outputs u(s)
+and zero agree only almost everywhere, using the proved never-hit null set.
+Auxiliary arc time is uniform on Ioc(0,1); the separate acceptance uniform
+is on Icc(0,1). The endpoints and independent coordinates are not identified.
+
+The sampling-stage bound 1+2*exp(2) counts one cached gradient and one new
+gradient per auxiliary estimator, including the successful batch. It excludes
+all GD reference-initialization queries and does not discount a repeated
+last GD check against the cache. There is no evaluator/compiler trace.
+
+The source convex smooth theorem is instantiated under C2 and genuine
+Hessian bounds, which are stronger regularity assumptions. Alpha may be zero:
+this remains convex, not a nonconvex extension. The coordinate-free setting
+requires positive finite dimension and beta>0. The order ell>=2 matches Theorem A.4(2);
+the upstream B.12 proof for 1<ell<2 is not used. Constants 64 and the explicit RN
+and expected-query bounds are proved sufficient refinements, not a claim of
+verbatim source constants. The source high-probability query bound is not
+returned by this theorem. No state-varying V,ell,eps, joint stream-output
+measurability claim, target-family kernel, recursive history, stage sum,
+initialization-cost integral, full composition or complete paper follows.
+-/
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalFORSKernel
+variable {E X : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [MeasurableSpace X]
+
+private theorem state_iterates {g : E → E} (hg : Measurable g)
+    {b step : X → ℝ} {u initial : X → E}
+    (hb : Measurable b) (hs : Measurable step) (hu : Measurable u)
+    (hi : Measurable initial) (n : ℕ) :
+    Measurable (fun s => (fun x => x-step s • (g x+b s • (x-u s)))^[n] (initial s)) := by
+  induction n with
+  | zero => simpa only [Function.iterate_zero,id_eq] using hi
+  | succ n ih =>
+    simp only [Function.iterate_succ_apply']
+    exact ih.sub (hs.smul ((hg.comp ih).add (hb.smul (ih.sub hu))))
+
+private def firstIndex (q : ℕ → X → ℝ) (b : X → ℝ) (s : X) : ℕ := by
+  classical
+  exact if h : ∃ n, q n s ≤ b s then Nat.find h else 0
+
+omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
+private theorem stopped_family (x : ℕ → X → E) (q : ℕ → X → ℝ) (b : X → ℝ)
+    (hx : ∀ n, Measurable (x n))
+    (hq : ∀ n, MeasurableSet {s | q n s ≤ b s})
+    (ht : ∀ s, ∃ n, q n s ≤ b s) :
+    let N := firstIndex q b
+    Measurable N ∧ Measurable (fun s => x (N s) s) ∧
+      ∀ s, q (N s) s ≤ b s ∧ ∀ j < N s, b s < q j s := by
+  classical
+  let N := firstIndex q b
+  have hn (s : X) : N s=Nat.find (ht s) := by
+    simp only [N,firstIndex,dif_pos (ht s)]
+  have hm : Measurable N := by
+    rw [show N=(fun s => Nat.find (ht s)) from funext hn]
+    exact measurable_find ht hq
+  have ho : Measurable (fun s => x (N s) s) := by
+    simp_rw [hn]
+    exact Measurable.find hx hq ht
+  refine ⟨hm,ho,fun s => ?_⟩
+  change q (N s) s ≤ b s ∧ ∀ j < N s, b s < q j s
+  rw [hn]
+  exact ⟨Nat.find_spec (ht s),fun j hj => lt_of_not_ge (Nat.find_min (ht s) hj)⟩
+
+private theorem variable_reference {V : E → ℝ} {α β : ℝ≥0}
+    (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ (β:ℝ)*‖v‖^2)
+    (hαβ : α ≤ β) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    {b : X → ℝ} {u initial : X → E} (hb : Measurable b)
+    (hb0 : ∀ s, 0 < b s) (hu : Measurable u) (hi : Measurable initial) :
+    let d : ℝ := Module.finrank ℝ E
+    let F := fun s x => V x+b s/2*‖x-u s‖^2
+    let T := fun s x => x-((β:ℝ)+b s)⁻¹ • gradient (F s) x
+    let q := fun n s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2
+    let N := firstIndex q (fun s => d*b s)
+    Measurable N ∧ Measurable (fun s => (T s)^[N s] (initial s)) ∧
+      (∀ s x, gradient (F s) x=gradient V x+b s • (x-u s)) ∧
+      ∀ s, q (N s) s ≤ d*b s ∧
+        (∀ j < N s, d*b s < q j s) ∧
+        ‖u s-(b s)⁻¹ • gradient V ((T s)^[N s] (initial s))-
+          (T s)^[N s] (initial s)‖ ≤ Real.sqrt (d*(b s)⁻¹) := by
+  let d : ℝ := Module.finrank ℝ E
+  let F := fun s x => V x+b s/2*‖x-u s‖^2
+  let T := fun s x => x-((β:ℝ)+b s)⁻¹ • gradient (F s) x
+  let q := fun n s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2
+  have hgrad (s : X) (x : E) : gradient (F s) x=gradient V x+b s • (x-u s) := by
+    have h := TerminalReferenceGradientDescent.terminal_reference_gradient_descent
+      hV hH hαβ (inv_pos.mpr (hb0 s)) hd rfl (u s)
+    simpa only [inv_inv] using h.2.2.2.1 x
+  have hgV : Measurable (gradient V) :=
+    (TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+      (hV.of_le (by norm_num))).measurable
+  have hTeq : T=(fun s x => x-((β:ℝ)+b s)⁻¹ • (gradient V x+b s • (x-u s))) := by
+    funext s x
+    dsimp [T]
+    rw [hgrad]
+  have hm (n : ℕ) : Measurable (fun s => (T s)^[n] (initial s)) := by
+    rw [hTeq]
+    exact state_iterates hgV hb ((measurable_const.add hb).inv) hu hi n
+  have hq (n : ℕ) : Measurable (q n) := by
+    change Measurable (fun s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2)
+    simp_rw [hgrad]
+    exact ((hgV.comp (hm n)).add (hb.smul ((hm n).sub hu))).norm.pow_const 2
+  have hevent (n : ℕ) : MeasurableSet {s | q n s ≤ d*b s} :=
+    measurableSet_le (hq n) (measurable_const.mul hb)
+  have ht (s : X) : ∃ n, q n s ≤ d*b s := by
+    have h := TerminalReferenceGradientDescent.terminal_reference_gradient_descent
+      hV hH hαβ (inv_pos.mpr (hb0 s)) hd rfl (u s)
+    simp only [inv_inv] at h
+    have hp := h.2.2.2.2.2.2.1 (initial s)
+    exact ⟨_,by simpa only [div_inv_eq_mul] using hp.1⟩
+  have hs := stopped_family (fun n s => (T s)^[n] (initial s)) q
+    (fun s => d*b s) hm hevent ht
+  refine ⟨hs.1,hs.2.1,hgrad,fun s => ⟨(hs.2.2 s).1,(hs.2.2 s).2,?_⟩⟩
+  let xp := (T s)^[firstIndex q (fun s => d*b s) s] (initial s)
+  have hstop : ‖gradient (F s) xp‖^2 ≤ d*b s := (hs.2.2 s).1
+  have he : u s-(b s)⁻¹ • gradient V xp-xp = -((b s)⁻¹ • gradient (F s) xp) := by
+    rw [hgrad,smul_add,smul_smul,inv_mul_cancel₀ (hb0 s).ne',one_smul]
+    abel
+  change ‖u s-(b s)⁻¹ • gradient V xp-xp‖ ≤ Real.sqrt (d*(b s)⁻¹)
+  rw [he,norm_neg,norm_smul,Real.norm_eq_abs,abs_of_pos (inv_pos.mpr (hb0 s))]
+  apply Real.le_sqrt_of_sq_le
+  rw [mul_pow]
+  have hh := mul_le_mul_of_nonneg_left hstop (sq_nonneg ((b s)⁻¹))
+  have hid : ((b s)⁻¹)^2*(d*b s)=d*(b s)⁻¹ := by field_simp
+  rwa [hid] at hh
+
+
+variable {S : Type*} [MeasurableSpace S]
+private theorem gaussian_proposal {A : S → ℝ} {h : S → E}
+    (hA : Measurable A) (hh : Measurable h) :
+    ∃ Q : Kernel S E, IsMarkovKernel Q ∧ ∀ s,
+      Q s = (stdGaussian E).map (fun z => h s+Real.sqrt (A s) • z) := by
+  let f : S × E → E := fun p => h p.1+Real.sqrt (A p.1) • p.2
+  have hf : Measurable f := (hh.comp measurable_fst).add
+    ((hA.comp measurable_fst).sqrt.smul measurable_snd)
+  let Q := (Kernel.id ×ₖ Kernel.const S (stdGaussian E)).map f
+  have hQ : IsMarkovKernel Q := Kernel.IsMarkovKernel.map _ hf
+  refine ⟨Q,hQ,fun s => ?_⟩
+  dsimp only [Q]
+  rw [Kernel.map_apply _ hf,Kernel.prod_apply,Kernel.id_apply,Kernel.const_apply,
+    Measure.dirac_prod,Measure.map_map hf (by fun_prop)]
+  rfl
+
+private def scaledCached (V : E → ℝ) (A : S → ℝ) (h g : S → E)
+    (p : (S × E) × (ℝ × E)) : ℝ :=
+  let s := p.1.1
+  let x := p.1.2
+  let t := p.2.1
+  let z := Real.sqrt (A s) • p.2.2
+  inner ℝ ((Real.pi/2) • (Real.cos (Real.pi/2*t) • (x-h s)-
+    Real.sin (Real.pi/2*t) • z))
+    (g s-gradient V (h s+Real.sin (Real.pi/2*t) • (x-h s)+
+      Real.cos (Real.pi/2*t) • z))
+
+private theorem measurable_scaledCached {V : E → ℝ} {A : S → ℝ} {h g : S → E}
+    (hV : Measurable (gradient V)) (hA : Measurable A)
+    (hh : Measurable h) (hg : Measurable g) :
+    Measurable (scaledCached V A h g) := by
+  unfold scaledCached
+  fun_prop
+private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))
+
+private def attemptLaw {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) (nu : Measure A) (B : ℝ) (hB : 0 < B) : Measure (Attempt X A) :=
+  q.prod ((poissonMeasure (⟨2*B, by positivity⟩ : ℝ≥0)).prod
+    ((Measure.infinitePi (fun _ : ℕ => nu)).prod (volume.restrict (Set.Icc 0 1))))
+
+private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B+W (p.1,p.2.2.1 i.val))/(2*B)}
+
+private def output {X A : Type*} (W : X × A → ℝ) (B : ℝ) (x0 : X)
+    (omega : ℕ → Attempt X A) : X := by
+  classical
+  exact if h : ∃ n, omega n ∈ accepted W B then (omega (Nat.find h)).1 else x0
+
+private def queryCount {X A : Type*} (W : X × A → ℝ) (B : ℝ)
+    (omega : ℕ → Attempt X A) : ℝ≥0∞ := by
+  classical
+  exact ∑' n : ℕ, if ∀ i < n, omega i ∉ accepted W B then (omega n).2.1 else 0
+
+private theorem actual_kernel_program {V : E → ℝ} {A : S → ℝ} {h g : S → E}
+    (hV : Measurable (gradient V)) (hA : Measurable A)
+    (hh : Measurable h) (hg : Measurable g) :
+    let ν := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+    let W := fun p => min 1 (max (-1) (scaledCached V A h g p))
+    let Ws := fun s (p : E × (ℝ × E)) => W ((s,p.1),p.2)
+    let q := fun s => (stdGaussian E).map (fun z => h s+Real.sqrt (A s) • z)
+    let ρ := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (q s) ν 1 (by norm_num))
+    ∃ R : Kernel S E, IsMarkovKernel R ∧ ∀ s,
+      Measurable (output (Ws s) 1 0) ∧ (ρ s).map (output (Ws s) 1 0)=R s ∧
+      R s = (q s).tilted (fun x => ∫ z, W ((s,x),z) ∂ν) ∧
+      ρ s {ω | ∀ n, ω n ∉ accepted (Ws s) 1}=0 ∧
+      (∫⁻ ω, 1+queryCount (Ws s) 1 ω ∂ρ s) ≤ ENNReal.ofReal (1+2*Real.exp 2) := by
+  let ν := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+  let W := fun p => min 1 (max (-1) (scaledCached V A h g p))
+  let Ws := fun s (p : E × (ℝ × E)) => W ((s,p.1),p.2)
+  let q := fun s => (stdGaussian E).map (fun z => h s+Real.sqrt (A s) • z)
+  let ρ := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (q s) ν 1 (by norm_num))
+  have : IsProbabilityMeasure (volume.restrict (Set.Ioc (0 : ℝ) 1)) := ⟨by simp⟩
+  have : IsProbabilityMeasure (volume.restrict (Set.Icc (0 : ℝ) 1)) := ⟨by simp⟩
+  have : IsProbabilityMeasure ν := by dsimp [ν]; infer_instance
+  have hW : Measurable W := measurable_const.min
+    (measurable_const.max (measurable_scaledCached hV hA hh hg))
+  have hb (s : S) (x : E) (z : ℝ × E) : |W ((s,x),z)| ≤ 1 := by
+    rw [abs_le]
+    exact ⟨le_min (by norm_num) (le_max_left _ _),min_le_left _ _⟩
+  obtain ⟨Q,hQ,hQs⟩ := gaussian_proposal hA hh
+  let : IsMarkovKernel Q := hQ
+  obtain ⟨R,hR,hRs⟩ := PoissonRejection.poisson_rejection_output Q ν W hW 1
+    (by norm_num) hb 0
+  refine ⟨R,hR,fun s => ?_⟩
+  have hqp : IsProbabilityMeasure (q s) := by
+    change IsProbabilityMeasure ((stdGaussian E).map (fun z => h s+Real.sqrt (A s) • z))
+    rw [← hQs s]
+    infer_instance
+  have : IsProbabilityMeasure (attemptLaw (q s) ν 1 (by norm_num)) := by
+    let r : ℝ≥0 := ⟨2*1,by positivity⟩
+    let : IsProbabilityMeasure (poissonMeasure r) := inferInstance
+    change IsProbabilityMeasure ((q s).prod ((poissonMeasure r).prod
+      ((Measure.infinitePi (fun _ : ℕ => ν)).prod (volume.restrict (Icc (0 : ℝ) 1)))))
+    infer_instance
+  have : IsProbabilityMeasure (ρ s) := by dsimp only [ρ]; infer_instance
+  have hs := hRs s
+  simp only [hQs] at hs
+  rcases hs with ⟨ho,hl,hr,_,_,_,hn,_,_,_,hc⟩
+  have hc' : (∫⁻ ω, queryCount (Ws s) 1 ω ∂ρ s) ≤ ENNReal.ofReal (2*Real.exp 2) := by
+    have hc0 : (∫⁻ ω, queryCount (Ws s) 1 ω ∂ρ s) ≤ ENNReal.ofReal (2*1*Real.exp (2*1)) := hc
+    simpa only [mul_one] using hc0
+  refine ⟨ho,hl,hr,hn,?_⟩
+  rw [lintegral_add_left measurable_const,lintegral_const,measure_univ,mul_one]
+  calc
+    _ ≤ 1+ENNReal.ofReal (2*Real.exp 2) := add_le_add le_rfl hc'
+    _ = ENNReal.ofReal (1+2*Real.exp 2) := by rw [ENNReal.ofReal_add (by norm_num) (by positivity),ENNReal.ofReal_one]
+private def cachedEstimator (V : E → ℝ) (h g : E) (p : E × (ℝ × E)) : ℝ :=
+  inner ℝ ((Real.pi/2) • (Real.cos (Real.pi/2*p.2.1) • (p.1-h)-
+    Real.sin (Real.pi/2*p.2.1) • p.2.2))
+    (g-gradient V (h+Real.sin (Real.pi/2*p.2.1) • (p.1-h)+
+      Real.cos (Real.pi/2*p.2.1) • p.2.2))
+
+private theorem auxiliary_scale (a : ℝ) :
+    ((volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)).map
+      (fun p : ℝ × E => (p.1,Real.sqrt a • p.2)) =
+    (volume.restrict (Ioc (0 : ℝ) 1)).prod
+      ((stdGaussian E).map (fun z => Real.sqrt a • z)) := by
+  have h := (Measure.map_prod_map (volume.restrict (Ioc (0 : ℝ) 1))
+    (stdGaussian E) measurable_id (show Measurable (fun z : E => Real.sqrt a • z) by fun_prop)).symm
+  simp only [Measure.map_id] at h
+  exact h
+
+omit [MeasurableSpace S] in
+private theorem scaled_mean {V : E → ℝ} (hV : Measurable (gradient V))
+    (A : S → ℝ) (h g : S → E) (s : S) (x : E) :
+    (∫ z, min 1 (max (-1) (scaledCached V A h g ((s,x),z)))
+      ∂(volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)) =
+    ∫ z, min 1 (max (-1) (cachedEstimator V (h s) (g s) (x,z)))
+      ∂(volume.restrict (Ioc (0 : ℝ) 1)).prod
+        ((stdGaussian E).map (fun z => Real.sqrt (A s) • z)) := by
+  rw [← auxiliary_scale (E:=E) (A s)]
+  rw [integral_map (by fun_prop)
+    (show AEStronglyMeasurable
+      (fun z => min (1 : ℝ) (max (-1) (cachedEstimator V (h s) (g s) (x,z)))) _ from
+      (show Measurable (fun z => min (1 : ℝ) (max (-1)
+        (cachedEstimator V (h s) (g s) (x,z)))) by unfold cachedEstimator; fun_prop).aestronglyMeasurable)]
+  rfl
+
+namespace Stream
+private abbrev Attempt (X Z : Type*) := X × (ℕ × ((ℕ → Z) × ℝ))
+private def attemptLaw {X Z : Type*} [MeasurableSpace X] [MeasurableSpace Z]
+    (q : Measure X) (ν : Measure Z) : Measure (Attempt X Z) :=
+  q.prod ((poissonMeasure (2 : ℝ≥0)).prod
+    ((Measure.infinitePi (fun _ : ℕ => ν)).prod (volume.restrict (Icc 0 1))))
+private def attemptMap {X Z Z' : Type*} (f : Z → Z') (p : Attempt X Z) : Attempt X Z' :=
+  (p.1,(p.2.1,((fun n => f (p.2.2.1 n)),p.2.2.2)))
+private def accepted {X Z : Type*} (W : X × Z → ℝ) : Set (Attempt X Z) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (1+W (p.1,p.2.2.1 i.val))/2}
+private def output {X Z : Type*} (W : X × Z → ℝ) (x0 : X)
+    (ω : ℕ → Attempt X Z) : X := by
+  classical
+  exact if h : ∃ n, ω n ∈ accepted W then (ω (Nat.find h)).1 else x0
+private def queryCount {X Z : Type*} (W : X × Z → ℝ)
+    (ω : ℕ → Attempt X Z) : ℝ≥0∞ := by
+  classical
+  exact ∑' n, if ∀ i < n, ω i ∉ accepted W then (ω n).2.1 else 0
+
+private theorem stream_law {X Z Z' : Type*}
+    [MeasurableSpace X] [MeasurableSpace Z] [MeasurableSpace Z']
+    (q : Measure X) [IsProbabilityMeasure q] (ν : Measure Z) [IsProbabilityMeasure ν]
+    (f : Z → Z') (hf : Measurable f) :
+    (Measure.infinitePi (fun _ : ℕ => attemptLaw q ν)).map
+      (fun ω n => attemptMap f (ω n)) =
+      Measure.infinitePi (fun _ : ℕ => attemptLaw q (ν.map f)) := by
+  have hu : IsProbabilityMeasure (volume.restrict (Icc (0 : ℝ) 1)) := ⟨by simp⟩
+  have : IsProbabilityMeasure (attemptLaw q ν) := by unfold attemptLaw; infer_instance
+  have hm : Measurable (attemptMap (X:=X) f) := by unfold attemptMap; fun_prop
+  rw [Measure.infinitePi_map_pi (fun _ : ℕ => attemptLaw q ν) (fun _ => hm)]
+  have he : (attemptLaw q ν).map (attemptMap f) = attemptLaw q (ν.map f) := by
+    unfold attemptLaw
+    change (q.prod ((poissonMeasure (2 : ℝ≥0)).prod
+      ((Measure.infinitePi (fun _ : ℕ => ν)).prod (volume.restrict (Icc 0 1))))).map
+      (Prod.map id (Prod.map id (Prod.map (fun z n => f (z n)) id))) = _
+    rw [← Measure.map_prod_map _ _ measurable_id (by fun_prop),Measure.map_id,
+      ← Measure.map_prod_map _ _ measurable_id (by fun_prop),Measure.map_id,
+      ← Measure.map_prod_map _ _ (by fun_prop) measurable_id,Measure.map_id,
+      Measure.infinitePi_map_pi (fun _ : ℕ => ν) (fun _ => hf)]
+  simp only [he]
+
+private theorem stream_program {X Z Z' : Type*} (f : Z → Z') (W : X × Z' → ℝ)
+    (x0 : X) (ω : ℕ → Attempt X Z) :
+    let W0 := fun p : X × Z => W (p.1,f p.2)
+    (∀ n, attemptMap f (ω n) ∈ accepted W ↔ ω n ∈ accepted W0) ∧
+    output W x0 (fun n => attemptMap f (ω n)) = output W0 x0 ω ∧
+    queryCount W (fun n => attemptMap f (ω n)) = queryCount W0 ω := by
+  classical
+  dsimp only
+  have he (n : ℕ) : attemptMap f (ω n) ∈ accepted W ↔
+      ω n ∈ accepted (fun p : X × Z => W (p.1,f p.2)) := Iff.rfl
+  refine ⟨he,?_,?_⟩
+  · unfold output
+    simp only [he]
+    split_ifs <;> rfl
+  · unfold queryCount
+    simp only [he]
+    rfl
+
+private theorem stream_output_ae {X Z Z' : Type*}
+    [MeasurableSpace X] [MeasurableSpace Z]
+    (f : Z → Z') (W : X × Z' → ℝ) (x0 x1 : X)
+    (ρ : Measure (ℕ → Attempt X Z))
+    (hn : ρ {ω | ∀ n, ω n ∉ accepted (fun p : X × Z => W (p.1,f p.2))}=0) :
+    (fun ω => output W x0 (fun n => attemptMap f (ω n))) =ᵐ[ρ]
+      output (fun p : X × Z => W (p.1,f p.2)) x1 := by
+  classical
+  have ha : ∀ᵐ ω ∂ρ, ∃ n, ω n ∈ accepted (fun p : X × Z => W (p.1,f p.2)) := by
+    rw [ae_iff]
+    simpa only [not_exists] using hn
+  filter_upwards [ha] with ω hω
+  rw [(stream_program f W x0 ω).2.1]
+  unfold output
+  rw [dif_pos hω,dif_pos hω]
+
+end Stream
+
+private theorem output_eq_stream {Y Z : Type*} (W : Y × Z → ℝ) (x : Y) :
+    output W 1 x=Stream.output W x := by
+  classical
+  have ha : accepted W 1=Stream.accepted W := by
+    ext p
+    simp only [accepted,Stream.accepted,mul_one]
+  funext ω
+  unfold output Stream.output
+  rw [ha]
+
+private theorem source_correspondence (V : E → ℝ) (a : ℝ) (h g x0 : E) :
+    let f := fun p : ℝ × E => (p.1,Real.sqrt a • p.2)
+    let ν0 := (volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+    let νa := (volume.restrict (Ioc (0 : ℝ) 1)).prod ((stdGaussian E).map (fun z => Real.sqrt a • z))
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt a • z)
+    let W := fun p => min 1 (max (-1) (cachedEstimator V h g p))
+    let W0 := fun p : E × (ℝ × E) => W (p.1,f p.2)
+    let ρ0 := Measure.infinitePi (fun _ : ℕ => attemptLaw q ν0 1 (by norm_num))
+    let ρa := Measure.infinitePi (fun _ : ℕ => attemptLaw q νa 1 (by norm_num))
+    let Φ := fun (ω : ℕ → Attempt E (ℝ × E)) n => Stream.attemptMap f (ω n)
+    ρ0.map Φ=ρa ∧
+    (∀ ω n, Φ ω n ∈ accepted W 1 ↔ ω n ∈ accepted W0 1) ∧
+    (∀ ω, queryCount W 1 (Φ ω)=queryCount W0 1 ω) ∧
+    (ρ0 {ω | ∀ n, ω n ∉ accepted W0 1}=0 →
+      (fun ω => output W 1 x0 (Φ ω)) =ᵐ[ρ0] output W0 1 0) := by
+  let f := fun p : ℝ × E => (p.1,Real.sqrt a • p.2)
+  let ν0 := (volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+  let νa := (volume.restrict (Ioc (0 : ℝ) 1)).prod ((stdGaussian E).map (fun z => Real.sqrt a • z))
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt a • z)
+  let W := fun p => min 1 (max (-1) (cachedEstimator V h g p))
+  let W0 := fun p : E × (ℝ × E) => W (p.1,f p.2)
+  let ρ0 := Measure.infinitePi (fun _ : ℕ => attemptLaw q ν0 1 (by norm_num))
+  let ρa := Measure.infinitePi (fun _ : ℕ => attemptLaw q νa 1 (by norm_num))
+  let Φ := fun (ω : ℕ → Attempt E (ℝ × E)) n => Stream.attemptMap f (ω n)
+  have hf : Measurable f := by fun_prop
+  have : IsProbabilityMeasure q := Measure.isProbabilityMeasure_map (by fun_prop)
+  have : IsProbabilityMeasure (volume.restrict (Ioc (0 : ℝ) 1)) := ⟨by simp⟩
+  have : IsProbabilityMeasure ν0 := by dsimp [ν0]; infer_instance
+  have hν : ν0.map f=νa := auxiliary_scale a
+  have hl := Stream.stream_law q ν0 f hf
+  rw [hν] at hl
+  refine ⟨?_,?_,?_,?_⟩
+  · simp only [Stream.attemptLaw] at hl
+    dsimp only [ρ0,ρa,attemptLaw]
+    simp only [mul_one]
+    exact hl
+  · intro ω n
+    unfold accepted
+    rfl
+  · intro ω
+    have hc := (Stream.stream_program f W (0 : E) ω).2.2
+    unfold Stream.queryCount at hc
+    simp only [Stream.accepted] at hc
+    unfold queryCount
+    simp only [accepted,mul_one]
+    exact hc
+  · intro hn
+    have hn' : ρ0 {ω | ∀ n, ω n ∉ Stream.accepted W0}=0 := by
+      simpa only [Stream.accepted,accepted,mul_one] using hn
+    have he := Stream.stream_output_ae f W x0 (0 : E) ρ0 hn'
+    simp only [output_eq_stream]
+    exact he
+/-- Construct the actual terminal reference and Markov sampler, identify its
+retry program and source reparameterization, and prove two-way RN accuracy
+and sampling-stage expected cached query cost on the terminal state domain. -/
+theorem terminal_fors_kernel {V : E → ℝ} {α β : ℝ≥0}
+    (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ (β:ℝ)*‖v‖^2)
+    (hαβ : α ≤ β) (hβ : 0 < (β:ℝ)) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    {b : S → ℝ} {u initial : S → E} (hb : Measurable b)
+    (hb0 : ∀ s, 0 < b s) (hu : Measurable u) (hi : Measurable initial)
+    (ell eps : ℝ) (hell : 2 ≤ ell) (heps : 0 < eps) (heps1 : eps ≤ 1/2)
+    (hstep : ∀ s, 64*(β:ℝ)*(Real.sqrt ((Module.finrank ℝ E:ℝ)*(ell+Real.log (1/eps)))+
+      (ell+Real.log (1/eps))) ≤ b s) :
+    let d : ℝ := Module.finrank ℝ E
+    let F := fun s x => V x+b s/2*‖x-u s‖^2
+    let T := fun s x => x-((β:ℝ)+b s)⁻¹ • gradient (F s) x
+    let Qn := fun n s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2
+    let N := firstIndex Qn (fun s => d*b s)
+    let xp := fun s => (T s)^[N s] (initial s)
+    let A := fun s => (b s)⁻¹
+    let g := fun s => gradient V (xp s)
+    let h := fun s => u s-A s • g s
+    let ν := (volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+    let W := fun s (p : E × (ℝ × E)) => min 1 (max (-1) (scaledCached V A h g ((s,p.1),p.2)))
+    let q := fun s => (stdGaussian E).map (fun z => h s+Real.sqrt (A s) • z)
+    let ρ := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (q s) ν 1 (by norm_num))
+    let π := fun s => ((stdGaussian E).map (fun z => u s+Real.sqrt (A s) • z)).tilted (fun x => -V x)
+    let νa := fun s => (volume.restrict (Ioc (0 : ℝ) 1)).prod ((stdGaussian E).map (fun z => Real.sqrt (A s) • z))
+    let Wa := fun s (p : E × (ℝ × E)) => min 1 (max (-1) (cachedEstimator V (h s) (g s) p))
+    let ρa := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (q s) (νa s) 1 (by norm_num))
+    let Φ := fun s (ω : ℕ → Attempt E (ℝ × E)) n =>
+      Stream.attemptMap (fun p : ℝ × E => (p.1,Real.sqrt (A s) • p.2)) (ω n)
+    Measurable N ∧ Measurable xp ∧
+    (∀ s, Qn (N s) s ≤ d*b s ∧ (∀ j < N s, d*b s < Qn j s) ∧
+      ‖h s-xp s‖ ≤ Real.sqrt (d*A s)) ∧
+    ∃ R : Kernel S E, IsMarkovKernel R ∧ ∀ s,
+      (Measurable (output (W s) 1 0) ∧ (ρ s).map (output (W s) 1 0)=R s ∧
+        ρ s {ω | ∀ n, ω n ∉ accepted (W s) 1}=0 ∧
+        (∫⁻ ω, 1+queryCount (W s) 1 ω ∂ρ s) ≤ ENNReal.ofReal (1+2*Real.exp 2)) ∧
+      IsProbabilityMeasure (π s) ∧ π s ≪ R s ∧ R s ≪ π s ∧
+      Integrable (fun x => ((π s).rnDeriv (R s) x).toReal^ell) (R s) ∧
+      Integrable (fun x => ((R s).rnDeriv (π s) x).toReal^ell) (π s) ∧
+      0 < (∫ x, ((π s).rnDeriv (R s) x).toReal^ell ∂R s) ∧
+      0 < (∫ x, ((R s).rnDeriv (π s) x).toReal^ell ∂π s) ∧
+      (∫ x, ((π s).rnDeriv (R s) x).toReal^ell ∂R s) ≤ 1+eps^2 ∧
+      (∫ x, ((R s).rnDeriv (π s) x).toReal^ell ∂π s) ≤ 1+eps^2 ∧
+      Real.log (∫ x, ((π s).rnDeriv (R s) x).toReal^ell ∂R s)/(ell-1) ≤ eps^2 ∧
+      Real.log (∫ x, ((R s).rnDeriv (π s) x).toReal^ell ∂π s)/(ell-1) ≤ eps^2 ∧
+      (ρ s).map (Φ s)=ρa s ∧
+      (∀ ω n, Φ s ω n ∈ accepted (Wa s) 1 ↔ ω n ∈ accepted (W s) 1) ∧
+      (∀ ω, queryCount (Wa s) 1 (Φ s ω)=queryCount (W s) 1 ω) ∧
+      (fun ω => output (Wa s) 1 (u s) (Φ s ω)) =ᵐ[ρ s] output (W s) 1 0 := by
+  let d : ℝ := Module.finrank ℝ E
+  let F := fun s x => V x+b s/2*‖x-u s‖^2
+  let T := fun s x => x-((β:ℝ)+b s)⁻¹ • gradient (F s) x
+  let Qn := fun n s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2
+  let N := firstIndex Qn (fun s => d*b s)
+  let xp := fun s => (T s)^[N s] (initial s)
+  let A := fun s => (b s)⁻¹
+  let g := fun s => gradient V (xp s)
+  let h := fun s => u s-A s • g s
+  let ν := (volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+  let W := fun s (p : E × (ℝ × E)) => min 1 (max (-1) (scaledCached V A h g ((s,p.1),p.2)))
+  let q := fun s => (stdGaussian E).map (fun z => h s+Real.sqrt (A s) • z)
+  let ρ := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (q s) ν 1 (by norm_num))
+  let π := fun s => ((stdGaussian E).map (fun z => u s+Real.sqrt (A s) • z)).tilted (fun x => -V x)
+  let νa := fun s => (volume.restrict (Ioc (0 : ℝ) 1)).prod ((stdGaussian E).map (fun z => Real.sqrt (A s) • z))
+  let Wa := fun s (p : E × (ℝ × E)) => min 1 (max (-1) (cachedEstimator V (h s) (g s) p))
+  let ρa := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (q s) (νa s) 1 (by norm_num))
+  let Φ := fun s (ω : ℕ → Attempt E (ℝ × E)) n =>
+    Stream.attemptMap (fun p : ℝ × E => (p.1,Real.sqrt (A s) • p.2)) (ω n)
+  have href := variable_reference hV hH hαβ hd hb hb0 hu hi
+  have hxp : Measurable xp := href.2.1
+  have hVm : Measurable (gradient V) :=
+    (TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+      (hV.of_le (by norm_num))).measurable
+  have hAm : Measurable A := hb.inv
+  have hgm : Measurable g := hVm.comp hxp
+  have hhm : Measurable h := hu.sub (hAm.smul hgm)
+  have hlip : LipschitzWith β (gradient V) := by
+    have hh := (TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+      (r:=0) hV hH (0 : E)).2
+    simpa using hh
+  obtain ⟨R,hR,hRs⟩ := actual_kernel_program hVm hAm hhm hgm
+  refine ⟨href.1,hxp,href.2.2.2,R,hR,fun s => ?_⟩
+  have hs := hRs s
+  refine ⟨⟨hs.1,hs.2.1,hs.2.2.2.1,hs.2.2.2.2⟩,?_⟩
+  have hcenter : ‖(u s-A s • gradient V (xp s))-xp s‖ ≤ Real.sqrt (d*A s) :=
+    (href.2.2.2 s).2.2
+  have ht := TerminalSamplerAccuracyCost.terminal_sampler_accuracy_cost V
+    (hV.differentiable (by norm_num)) (A s) (β:ℝ) ell eps
+    (inv_pos.mpr (hb0 s)) hβ hell heps heps1 hd hlip (u s) (xp s) hcenter
+    (by simpa only [A,one_div,inv_inv] using hstep s)
+  have hr := hs.2.2.1
+  change R s = (q s).tilted (fun x => ∫ z,
+    min 1 (max (-1) (scaledCached V A h g ((s,x),z))) ∂ν) at hr
+  dsimp only [ν] at hr
+  simp_rw [scaled_mean hVm A h g s] at hr
+  rw [hr]
+  rcases ht with ⟨_,_,_,_,_,hpi,hpq,hqp,hfi,hri,hfp,hrp,hfb,hrb,hfl,hrl,_,_⟩
+  have hc := source_correspondence V (A s) (h s) (g s) (u s)
+  refine ⟨hpi,hpq,hqp,hfi,hri,hfp,hrp,hfb,hrb,hfl,hrl,hc.1,hc.2.1,hc.2.2.1,?_⟩
+  exact hc.2.2.2 hs.2.2.2.1
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalFORSKernel

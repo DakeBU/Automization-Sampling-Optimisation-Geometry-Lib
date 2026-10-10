@@ -1,0 +1,172 @@
+Anonymous theorem reconstruction
+
+Fix an arbitrary type E with a normed additive commutative group structure, a real inner-product-space structure, finite dimension over R, and a measurable-space structure that is its Borel structure. Dimension zero is permitted. Fix a function V:E->R, nonnegative real parameters alpha,beta, and a real parameter eta. All these data are arbitrary subject to exactly the following six supplied hypotheses:
+(1) 0 < alpha, where alpha is coerced to R.
+(2) alpha <= beta in the nonnegative reals.
+(3) V is twice continuously Frechet differentiable over R.
+(4) For every x,v in E, both
+    alpha * ||v||^2 <= (D(DV)(x)[v])[v]
+    and (D(DV)(x)[v])[v] <= beta * ||v||^2.
+    Here the middle expression is the second Frechet derivative, first applied to v as a direction and then to v as the argument of the resulting linear functional.
+(5) 0 < eta.
+(6) beta * eta <= 1, with beta coerced to R.
+No starting point, trajectory, measurable selection, or kernel is an assumed input.
+
+The following objects are definitions inside the conclusion, rather than extra assumptions. Let Omega=N->R and let P be the countable product of the rate-one exponential measure on R. Every real sequence remains an element of Omega, including sequences outside the probability-one support. Set epsilon(sample,k)=max(sample(k),0), valued in the nonnegative reals.
+
+For arbitrary y,xRef in E, define c(y,xRef)=y-eta*gradient(V)(xRef). For z=(q,p) in E x E and any real time u, put
+Phi(y,xRef,u,z) = (
+    c(y,xRef)+cos(u)*(q-c(y,xRef))+(sqrt(eta)*sin(u))*p,
+    (-sin(u)/sqrt(eta))*(q-c(y,xRef))+cos(u)*p
+).
+All products of real scalars and vectors here are scalar multiplication. Define d(xRef,z)=gradient(V)(q)-gradient(V)(xRef), and define
+S(xRef,z) = (q, p-(2*<p,d(xRef,z)>/||d(xRef,z)||^2)*d(xRef,z)),
+rate(xRef,z)=sqrt(eta)*max(0,<p,d(xRef,z)>).
+The formula for S is literal and total; no nonzero-gradient-difference premise occurs. In Lean's real field, division by zero is total, so d=0 leaves the second component unchanged.
+
+For nonnegative time t, let
+Lambda(y,xRef,z,t) = integral from 0 to (t:R) of rate(xRef,Phi(y,xRef,s,z)) ds.
+This is the displayed real interval/Bochner integral. Define
+ tau(y,xRef,z,e) = inf {t in nonnegative reals : Lambda(y,xRef,z,t)-e >= 0},
+valued in WithTop(nonnegative reals), using hittingAfter at start time 0 and infinity when the hit set is empty. This definition does not itself assert that its infimum is attained. All coercions of e into this inequality are to R.
+
+A record belongs to the disjoint union ((nonnegative reals x (E x E)) + Unit). Its left branch stores (accumulated time,state); its right branch is an absorbing stopped record without a state at infinity. Define next(y,xRef,e,r) as follows. A stopped record stays stopped. From r=left(s,z), it becomes stopped if tau(y,xRef,z,e)=infinity. Otherwise it becomes
+ left(s+delta, S(xRef,Phi(y,xRef,(delta:R),z))),
+where delta=untopD(0,tau(y,xRef,z,e)); untopD returns the finite value, with default 0 at infinity. The infinity branch is checked before the finite update.
+
+For an arbitrary nonnegative sequence e:N->nonnegative reals, define record(y,xRef,z0,e,0)=left(0,z0), and recursively
+ record(y,xRef,z0,e,n+1)=next(y,xRef,e(n),record(y,xRef,z0,e,n)).
+Thus coordinate n is used for update n to n+1. Set T_n=eventTime(y,xRef,z0,e,n), defined to be the accumulated time of a left record, coerced to WithTop(nonnegative reals), and infinity for a stopped record.
+
+The assertion is that there exists ONE total function
+ Z:E->E->(E x E)->nonnegative reals->Omega->(E x E)
+with all of the following properties simultaneously.
+
+A. Joint measurability. The single function
+ (((y,xRef),z0),t,sample) |-> Z(y,xRef,z0,t,sample)
+is measurable on the displayed product of E x E, E x E, nonnegative time and the countable product sequence space. All structures are the displayed Borel/product structures. This is joint measurability, not just separate measurability in fixed parameters.
+
+B. All-input flow on each event interval. For EVERY y,xRef in E, z0 in E x E, sample in Omega, t in the nonnegative reals, n in N and a=(s,z) in nonnegative reals x (E x E), use e=epsilon(sample). If
+ T_n <= t < T_(n+1), and record(y,xRef,z0,e,n)=left(a),
+where t is coerced to WithTop(nonnegative reals), then
+ Z(y,xRef,z0,t,sample)=Phi(y,xRef,((t-s):R),z).
+Here t-s is subtraction in the nonnegative reals, namely max(t-s,0), before coercion to R. There is no almost-everywhere restriction in B. The left endpoint is included and the right endpoint is excluded.
+
+C. All-input fallback. For EVERY y,xRef,z0,sample,t as above, if there is no n in N satisfying T_n <= t < T_(n+1), then
+ Z(y,xRef,z0,t,sample)=z0.
+This also holds on exceptional samples, with no almost-everywhere restriction. It defines the witness's value outside any covering event interval; it is not an asserted limiting state at a possible accumulation time.
+
+D. Almost-sure simultaneous coverage and initialization. For EVERY fixed y,xRef in E and z0 in E x E, for P-almost EVERY sample, BOTH of the following hold:
+ (i) For EVERY nonnegative real t there exist n in N and a=(s,z) in nonnegative reals x (E x E) such that, with e=epsilon(sample),
+      T_n <= t < T_(n+1),
+      record(y,xRef,z0,e,n)=left(a),
+      s <= t,
+      ((t-s):WithTop(nonnegative reals)) < tau(y,xRef,z,e(n)),
+      Z(y,xRef,z0,t,sample)=Phi(y,xRef,((t-s):R),z).
+ (ii) Z(y,xRef,z0,0,sample)=z0.
+The almost-everywhere quantifier precedes the universal time quantifier and contains the conjunction with initialization. Thus one full-measure event works simultaneously for all t for each fixed (y,xRef,z0). The statement does not assert one full-measure event simultaneously for all parameter/initial-state triples. The witnesses n and a may depend on the fixed parameters, sample and t. The strict residual-wait inequality is part of the conclusion even when the next waiting time is infinite. Coverage allows a last finite record followed by an infinite next event time; it does not assert infinitely many finite jumps.
+
+E. A probability-valued measurable law kernel. There exists ONE kernel
+ K:Kernel((((E x E) x (E x E)) x nonnegative reals),(E x E))
+such that all of the following hold simultaneously:
+ (i) IsMarkovKernel K: each fiber is a probability measure, with the evaluation measurability supplied by Kernel.
+ (ii) For EVERY y,xRef,z0,t,
+      K((((y,xRef),z0),t))=Measure.map(Z(y,xRef,z0,t),P).
+      This is equality of measures, with all parameters and finite nonnegative times quantified pointwise.
+ (iii) For EVERY y,xRef,z0,t and EVERY B subset of E x E, if B is measurable then
+      K((((y,xRef),z0),t))(B)=P({sample : Z(y,xRef,z0,t,sample) belongs to B}).
+ (iv) For EVERY y,xRef,z0,
+      K((((y,xRef),z0),0))=dirac(z0).
+ (v) For EVERY y,xRef,z0,t, EVERY function g:(E x E)->R, if g is measurable, then for EVERY real M, if 0<=M and |g(z)|<=M for EVERY z in E x E, all three conclusions hold:
+      g is integrable with respect to K((((y,xRef),z0),t));
+      sample |-> g(Z(y,xRef,z0,t,sample)) is integrable with respect to P;
+      integral g(z) dK((((y,xRef),z0),t))(z)
+        = integral g(Z(y,xRef,z0,t,sample)) dP(sample).
+      The bound is global over all states, not merely almost everywhere. M and g occur after K, so K does not depend on the test or its bound. These are real Bochner/L1 assertions; no expectation claim for arbitrary unbounded tests is supplied.
+
+Quantifier and dependency summary. E and its structures, V, alpha, beta, eta and their six hypotheses come first. After the literal local definitions comes an existential Z satisfying A, B, C and D and admitting the existential K in E. Z and K may depend on the initially fixed data and proofs; they are chosen before all y,xRef,z0,t,sample and bounded-test parameters quantified inside their properties. K may depend on the chosen Z. There is no assertion of a single Z or K uniform over varying potentials or spaces. Alpha and beta are hypothesis parameters; they do not occur in the trajectory and rate definitions themselves. No additional numerical constant is existentially introduced.
+
+Probability-kernel terminology versus temporal process claims. The law kernel is indexed by both the fixed pair (y,xRef), the starting state z0 and time t. IsMarkovKernel means its fibers have total mass one. No filtration, conditional-law identity, temporal Markov property, independent future increment claim, Chapman-Kolmogorov equation, semigroup law, or invariant measure is included. Joint measurability plus the explicit path formula must not be promoted into any of those omitted conclusions. Likewise the assertion does not explicitly state right continuity, left limits, uniqueness of a stochastic process, or a distributional generator identity.
+
+Interpretation boundary. No source text or source identity was supplied or used. No source-fidelity verdict is made. The packet reports compilation, but this decoder neither compiles nor inspects a proof body. The result reconstructs the proposition and its definitions only.
+
+Exact anonymous formal proposition retained for binder/coercion accountability:
+
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=
+      fun y xRef z₀ e n => (record y xRef z₀ e n).elim
+        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)
+    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),
+      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>
+        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,
+        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),
+          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →
+          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →
+          record y xRef z₀ (ε sample) n = Sum.inl a →
+          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,
+        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧
+          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →
+          Z y xRef z₀ t sample = z₀) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,
+        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),
+          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧
+          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧
+          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧
+          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧
+          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧
+        Z y xRef z₀ 0 sample = z₀)
+      ∧ (∃ K : Kernel (((E × E) × (E × E)) × ℝ≥0) (E × E),
+        IsMarkovKernel K ∧
+        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,
+          K (((y, xRef), z₀), t) = Measure.map (Z y xRef z₀ t) P) ∧
+        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,
+          ∀ B : Set (E × E), MeasurableSet B →
+            K (((y, xRef), z₀), t) B = P ((Z y xRef z₀ t) ⁻¹' B)) ∧
+        (∀ y xRef : E, ∀ z₀ : E × E,
+          K (((y, xRef), z₀), 0) = Measure.dirac z₀) ∧
+        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,
+          ∀ g : (E × E) → ℝ, Measurable g →
+            ∀ M : ℝ, 0 ≤ M → (∀ z : E × E, |g z| ≤ M) →
+              Integrable g (K (((y, xRef), z₀), t)) ∧
+              Integrable (fun sample => g (Z y xRef z₀ t sample)) P ∧
+              (∫ z, g z ∂K (((y, xRef), z₀), t)) =
+                ∫ sample, g (Z y xRef z₀ t sample) ∂P))

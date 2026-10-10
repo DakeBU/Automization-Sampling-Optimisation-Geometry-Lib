@@ -1,0 +1,63 @@
+import AutoSamplingTheory.TechnicalLemmas.Algebra.LinearGrowthOfStep
+import AutoSamplingTheory.TechnicalLemmas.Algebra.ReciprocalGrowthRate
+
+/-!
+# SampleWiki case: ideal proximal chain
+
+Source case:
+`ASTIS-SW-SETTING-LOG-CONCAVE-SMOOTH-UPPER-IDEAL-PROXIMAL-CHAIN`
+
+Source row points to Sinho Chewi, *Log-Concave Sampling*, Theorem 8.4.1.
+The source theorem proves, under log-concavity, an inverse-time KL bound for the
+ideal proximal sampler.  Its analytic proof passes through simultaneous forward
+and backward heat flows, KL/Fisher dissipation, displacement convexity of KL,
+Cauchy--Schwarz, and Wasserstein contraction.
+
+This module formalizes the **final discrete reciprocal-KL telescoping step**
+exactly.  It does not claim that the full source theorem has already been
+formalized: the hypothesis `hstep` below is the still-open analytic interface
+that the heat-flow/Wasserstein part of the ASTIS graph must discharge.
+-/
+
+namespace AutoSamplingTheory
+namespace ExampleCases
+namespace SampleWiki
+namespace Cases
+namespace IdealProximalChain
+
+open TechnicalLemmas.Algebra
+
+/-- Exact algebraic tail of the inverse-time proximal-sampler argument.
+
+If every proximal step increases reciprocal KL by at least `h / R2`, then after
+any positive number `n` of steps the KL value is at most `R2 / (n h)`.
+
+Here `R2` is the abstract slot later occupied by the squared initial
+Wasserstein distance.  Positivity of the KL values is used only for reciprocal
+algebra.  The zero-KL case of the eventual source theorem is separately
+trivial once the analytic objects are present. -/
+theorem kl_rate_from_reciprocal_step
+    (kl : ℕ → ℝ) (R2 h : ℝ) (n : ℕ)
+    (hkl : ∀ j : ℕ, 0 < kl j)
+    (hR2 : 0 < R2) (hh : 0 < h) (hn : 0 < n)
+    (hstep : ∀ j : ℕ, 1 / kl j + h / R2 ≤ 1 / kl (j + 1)) :
+    kl n ≤ R2 / ((n : ℝ) * h) := by
+  have hgrowth :
+      1 / kl 0 + (n : ℝ) * (h / R2) ≤ 1 / kl n :=
+    linear_growth_of_step_growth (fun j => 1 / kl j) (h / R2) hstep n
+  have hgrowth' :
+      1 / kl 0 + ((n : ℝ) * h) / R2 ≤ 1 / kl n := by
+    calc
+      1 / kl 0 + ((n : ℝ) * h) / R2 =
+          1 / kl 0 + (n : ℝ) * (h / R2) := by ring
+      _ ≤ 1 / kl n := hgrowth
+  have htime : 0 < (n : ℝ) * h :=
+    mul_pos (by exact_mod_cast hn) hh
+  exact reciprocal_growth_implies_inverse_time_bound
+    (hkl n) (hkl 0) hR2 htime hgrowth'
+
+end IdealProximalChain
+end Cases
+end SampleWiki
+end ExampleCases
+end AutoSamplingTheory

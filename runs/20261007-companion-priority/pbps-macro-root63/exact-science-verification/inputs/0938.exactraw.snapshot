@@ -1,0 +1,57 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergence
+import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.Tactic
+
+/-!
+# Gradient cancellation for simultaneous f-divergence flows
+
+After differentiating `q f(p/q)` in time and integrating the two common
+Fokker--Planck terms by parts, Chewi Theorem 8.3.1 uses a pointwise cancellation.
+Writing `rho = p/q`, the gradient identities have the shape
+
+`grad p = rho * grad q + q * grad rho`,
+`grad (f'(rho)) = f''(rho) grad rho`,
+`grad(f(rho) - rho f'(rho)) = -rho f''(rho) grad rho`.
+
+The theorem below isolates the remaining Hilbert-space algebra.  It does not
+prove those gradient identities or any integration-by-parts theorem.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace SimultaneousFDivergenceGradient
+
+open scoped RealInnerProductSpace
+
+/-- Pointwise cancellation of the two gradient pairings in a simultaneous
+common-diffusion `f`-divergence calculation. -/
+theorem common_diffusion_pairing_eq
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (q rho fpp : ℝ) (gradQ gradRho : E) :
+    inner ℝ (fpp • gradRho) (rho • gradQ + q • gradRho) +
+        inner ℝ ((-rho * fpp) • gradRho) gradQ =
+      q * fpp * ‖gradRho‖ ^ 2 := by
+  rw [inner_add_right, real_inner_smul_left, real_inner_smul_right,
+    real_inner_smul_left, real_inner_smul_right,
+    real_inner_smul_left, real_inner_self_eq_norm_sq]
+  ring
+
+/-- Source-shaped variant where the three gradient expressions have already
+been identified and are supplied by equality hypotheses. -/
+theorem common_diffusion_pairing_eq_of_gradients
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (q rho fpp : ℝ)
+    (gradP gradQ gradRho gradFPrime gradComp : E)
+    (hgradP : gradP = rho • gradQ + q • gradRho)
+    (hgradFPrime : gradFPrime = fpp • gradRho)
+    (hgradComp : gradComp = (-rho * fpp) • gradRho) :
+    inner ℝ gradFPrime gradP + inner ℝ gradComp gradQ =
+      q * fpp * ‖gradRho‖ ^ 2 := by
+  rw [hgradP, hgradFPrime, hgradComp]
+  exact common_diffusion_pairing_eq q rho fpp gradQ gradRho
+
+end SimultaneousFDivergenceGradient
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

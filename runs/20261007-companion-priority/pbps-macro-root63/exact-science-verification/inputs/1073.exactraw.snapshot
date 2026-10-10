@@ -1,0 +1,121 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalRawLocalization
+
+/-!
+# L2 certificate for the source-facing canonical localizing sequence
+
+This file closes the semantic gap between Chewi's raw stopped integrand
+`eta_t 1_{t <= tau_n}` and the completed representative used internally by
+the global L2 Ito construction.  The two agree almost everywhere in time,
+so the completed pathwise energy estimate transfers to the literal raw
+localizing-sequence predicate.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace CanonicalRawLocalizationL2
+
+open Filter MeasureTheory Set
+open scoped ENNReal NNReal Topology
+
+open ProgressiveL2 LocalProgressiveL2 CanonicalRawLocalization
+  EnergyStoppedIntegrand
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- On each sample path, the literal source stopped integrand has nonnegative
+Lebesgue energy at most the canonical level `n+1`. -/
+theorem rawStoppedTimeLintegral_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (n : ℕ) (omega : Omega) :
+    (∫⁻ t in Icc (0 : ℝ≥0) T,
+      ENNReal.ofReal
+        ((Localization.stoppedIntegrand eta.process
+          (fun w =>
+            (canonicalRawLocalizingTime hUsual eta n w : WithTop ℝ≥0))
+          t omega) ^ 2)
+        ∂TimeMeasure.nnrealLebesgue) ≤ ENNReal.ofReal (n + 1 : ℝ) := by
+  change
+    (∫⁻ t,
+      ENNReal.ofReal
+        ((Localization.stoppedIntegrand eta.process
+          (fun w =>
+            (canonicalRawLocalizingTime hUsual eta n w : WithTop ℝ≥0))
+          t omega) ^ 2)
+        ∂(TimeMeasure.nnrealLebesgue.restrict (Icc (0 : ℝ≥0) T))) ≤
+      ENNReal.ofReal (n + 1 : ℝ)
+  rw [← TimeMeasure.upTo_eq_restrict_nnrealLebesgue T]
+  have hae := stoppedIntegrand_ae_eq_energyStoppedIntegrand
+    hUsual eta n omega
+  have hsq :
+      (fun t => ENNReal.ofReal
+        ((Localization.stoppedIntegrand eta.process
+          (fun w =>
+            (canonicalRawLocalizingTime hUsual eta n w : WithTop ℝ≥0))
+          t omega) ^ 2)) =ᵐ[TimeMeasure.upTo T]
+      (fun t => ENNReal.ofReal
+        ((energyStoppedIntegrand hUsual eta (n + 1 : ℝ) t omega) ^ 2)) := by
+    filter_upwards [hae] with t ht
+    rw [ht]
+  rw [lintegral_congr_ae hsq]
+  rw [← ofReal_integral_eq_lintegral_ofReal
+    (sectionSquare_integrable hUsual eta (n + 1 : ℝ) omega)
+    (ae_of_all _ fun _ => sq_nonneg _)]
+  exact ENNReal.ofReal_le_ofReal
+    (integral_energyStoppedIntegrand_sq_le hUsual eta (by positivity) omega)
+
+/-- Integrating the pathwise `n+1` bound over a probability space gives the
+finite expected stopped energy required by Definition 1.1.12. -/
+theorem rawStoppedProductEnergy_lt_top
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (n : ℕ) :
+    (∫⁻ omega, ∫⁻ t in Icc (0 : ℝ≥0) T,
+      ENNReal.ofReal
+        ((Localization.stoppedIntegrand eta.process
+          (fun w =>
+            (canonicalRawLocalizingTime hUsual eta n w : WithTop ℝ≥0))
+          t omega) ^ 2)
+        ∂TimeMeasure.nnrealLebesgue ∂mu) < ∞ := by
+  calc
+    (∫⁻ omega, ∫⁻ t in Icc (0 : ℝ≥0) T,
+      ENNReal.ofReal
+        ((Localization.stoppedIntegrand eta.process
+          (fun w =>
+            (canonicalRawLocalizingTime hUsual eta n w : WithTop ℝ≥0))
+          t omega) ^ 2)
+        ∂TimeMeasure.nnrealLebesgue ∂mu) ≤
+        ∫⁻ _omega, ENNReal.ofReal (n + 1 : ℝ) ∂mu := by
+      apply lintegral_mono
+      intro omega
+      exact rawStoppedTimeLintegral_le hUsual eta n omega
+    _ = ENNReal.ofReal (n + 1 : ℝ) := by simp
+    _ < ∞ := ENNReal.ofReal_lt_top
+
+/-- Chewi Proposition 1.1.13 in the exact repository-native source contract:
+the canonical raw times form a `Localization.IsLocalizingSequence` for the
+original progressive locally square-integrable integrand. -/
+theorem canonicalRaw_isLocalizingSequence
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T) :
+    Localization.IsLocalizingSequence eta.process filtration mu T
+      (fun n omega =>
+        (canonicalRawLocalizingTime hUsual eta n omega : WithTop ℝ≥0)) := by
+  refine ⟨eta.progressive, ?_, ?_, ?_, ?_⟩
+  · intro n
+    exact canonicalRawLocalizingTime_isStoppingTime hUsual eta n
+  · intro n k hnk omega
+    simpa only [WithTop.coe_le_coe] using
+      ((canonicalRawLocalizingTime_mono hUsual eta) hnk omega)
+  · intro n
+    exact rawStoppedProductEnergy_lt_top hUsual eta n
+  · exact canonicalRawLocalizingTime_tendsto_terminal_ae hUsual eta
+
+end CanonicalRawLocalizationL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

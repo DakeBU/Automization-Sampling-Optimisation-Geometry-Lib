@@ -1,0 +1,215 @@
+3.2 The ideal conditional half-turn process
+
+Fix $Y=y$ . Recall from (2.8) that the position
+$X$ to be sampled has conditional law
+
+$\pi_{\eta}^{X\mid Y=y}(\mathrm{d}x)\propto e^{-V_{y}(x)}\,\mathrm{d}x\,,\hskip 20.00003ptV_{y}(x)\coloneqq V(x)+\frac{\|x-y\|^{2}}{2\eta}\,.$
+
+We construct the half-turn process so that its induced transition
+preserves this law. The
+construction starts from vanilla BPS for the conditional target, absorbs
+the quadratic coupling potential into the deterministic motion, and then
+introduces
+an independent conditional reference point to localize the remaining
+bounce rate. We begin by introducing a Gaussian momentum
+$p\sim\mathcal{N}(0,I)$ . The phase space law to be preserved is
+
+$\nu_{\eta,y}(\mathrm{d}x\,\mathrm{d}p)\coloneqq\pi_{\eta}^{X\mid Y=y}(\mathrm{d}x)\,\mathcal{N}(0,I)(\mathrm{d}p)\propto\exp\Bigl\{-V_{y}(x)-\frac{\|p\|^{2}}{2}\Bigr\}\,\mathrm{d}x\,\mathrm{d}p\,.$
+
+(3.1)
+
+Recall from (2.4) that $R_{h}$ denotes specular
+reflection across the hyperplane orthogonal to $h$ .
+
+A natural first attempt is to apply vanilla BPS directly to this
+conditional distribution. Its infinitesimal generator acts on a smooth
+test function $f$ as
+
+$\begin{split}(\mathsf{L}_{y}^{\rm vanilla}f)(x,p)&=\sqrt{\eta}\,p^{\top}\nabla_{x}f(x,p)\\
+&\quad+\sqrt{\eta}\,[p^{\top}\nabla V_{y}(x)]_{+}\bigl\{f(x,R_{\nabla V_{y}(x)}p)-f(x,p)\bigr\}\,.\end{split}$
+
+(3.2)
+
+The common factor $\sqrt{\eta}$ only fixes the unit of time; it does not
+change the invariant law. We choose this unit so that the harmonic motion
+introduced below has period $2\pi$ .
+The first term gives straight-line motion, while the second reflects the
+momentum against the full conditional gradient. This process is exact,
+but it can be expensive: even when $V=0$ , the quadratic coupling potential
+$\|{\cdot}-y\|^{2}/(2\eta)$ produces a stationary mean bounce rate of order
+$\sqrt{d}$ .
+
+To reduce the number of bounce events, we put the quadratic part of the
+conditional gradient into the deterministic dynamics. This gives the
+generator
+
+$\begin{split}(\mathsf{L}_{y}^{\rm harm}f)(x,p)&=\sqrt{\eta}\,p^{\top}\nabla_{x}f(x,p)-\frac{(x-y)^{\top}}{\sqrt{\eta}}\nabla_{p}f(x,p)\\
+&\quad+\sqrt{\eta}\,[p^{\top}\nabla V(x)]_{+}\bigl\{f(x,R_{\nabla V(x)}p)-f(x,p)\bigr\}\,.\end{split}$
+
+(3.3)
+
+The first line is the Hamiltonian flow associated with the quadratic
+coupling potential: between bounces, it rotates $(x-y)/\sqrt{\eta}$ and
+$p$ . This use of a quadratic reference flow, with the remaining force
+handled by bounce events, is analogous to the Boomerang
+sampler [4].
+The direct harmonic generator (3.3)
+still bounces against the full gradient $\nabla V$ , so its bounce rate
+can remain large.
+
+To further reduce the bounce rate and the resulting computational
+cost, we introduce a conditional reference point and use the smoothness of
+$V$ to control the local gradient difference. Specifically, draw
+$\widetilde{X}\sim\pi_{\eta}^{X\mid Y=y}$ independently and write the exact
+decomposition
+
+$\nabla V(x)=\nabla V(\widetilde{X})+\{\nabla V(x)-\nabla V(\widetilde{X})\}\,.$
+
+Conditionally on $\widetilde{X}=\widetilde{x}$ , we incorporate the fixed
+reference term into the deterministic dynamics and retain only the gradient
+difference in the BPS jump term. Define the equilibrium position of this
+deterministic harmonic flow and the residual gradient by
+
+$c_{y,\widetilde{x}}\coloneqq y-\eta\nabla V(\widetilde{x})\,,\hskip 20.00003pth_{\widetilde{x}}(x)\coloneqq\nabla V(x)-\nabla V(\widetilde{x})\,.$
+
+(3.4)
+
+The resulting generator is
+
+$\begin{split}\mathsf{L}_{y,\widetilde{x}}f(x,p)&\coloneqq\sqrt{\eta}\,p^{\top}\nabla_{x}f(x,p)-\frac{(x-c_{y,\widetilde{x}})^{\top}}{\sqrt{\eta}}\nabla_{p}f(x,p)\\
+&\quad+\sqrt{\eta}\,[p^{\top}h_{\widetilde{x}}(x)]_{+}\bigl\{f(x,R_{h_{\widetilde{x}}(x)}p)-f(x,p)\bigr\}\,.\end{split}$
+
+(3.5)
+
+The harmonic and residual terms sum to the full conditional force
+$\sqrt{\eta}\,\nabla V_{y}(x)$ . Thus $\widetilde{x}$ changes only how this
+force is divided between deterministic motion and bounces. By the
+$\beta$ -smoothness of $V$ ,
+
+$\|h_{\widetilde{x}}(x)\|=\|\nabla V(x)-\nabla V(\widetilde{x})\|\leq\beta\,\|x-\widetilde{x}\|\,.$
+
+Drawing the reference point from the same localized conditional law keeps
+the residual gradient small and reduces the expected number of bounces per
+run of the half-turn process to order $\beta\eta\sqrt{d}$ ; see
+Proposition 3.3.
+
+Having specified the dynamics, it remains to choose the integration
+horizon. For fixed $(y,\widetilde{x})$ , the deterministic part of
+(3.5) is harmonic motion about its equilibrium
+position $c_{y,\widetilde{x}}$ . In the absence of bounces, its position at
+time $t$ satisfies
+
+$x_{t}-c_{y,\widetilde{x}}=(x_{0}-c_{y,\widetilde{x}})\cos t+\sqrt{\eta}\,p_{0}\sin t\,.$
+
+(3.6)
+
+As discussed earlier, we choose the integration horizon $t=\pi$ , corresponding to one
+half-period. This is the first non-zero harmonic time at which the
+position $x_{\pi}$ no longer depends on the initial momentum $p_{0}$ .
+Without bounces, the resulting map is
+
+$(x_{\pi},p_{\pi})=(2c_{y,\widetilde{x}}-x_{0},-p_{0})\,.$
+
+(3.7)
+
+Thus, the position is reflected through the equilibrium position
+$c_{y,\widetilde{x}}$ and retains its dependence on $x_{0}$ . Bounce
+events correct for the residual force along the trajectory, while the
+fixed horizon $t=\pi$ retains the memory-preserving structure of the
+half-turn process.
+
+The construction is now complete. The following algorithm gives its
+pathwise prescription: it draws the reference point and momentum, evolves
+the process with generator (3.5) for time $\pi$ , and
+returns only the final position.
+
+Algorithm 1 Simulation of the ideal conditional half-turn process
+
+1:
+
+Input: state $(x,y)$
+
+2:
+
+Draw $\widetilde{X}\sim\pi_{\eta}^{X\mid Y=y}$ and
+$p_{0}\sim\mathcal{N}(0,I)$ independently.
+
+3:
+
+Query $\nabla V(\widetilde{X})$ .
+
+4:
+
+Set $x_{0}\leftarrow x$ .
+
+5:
+
+Evolve $(x_{t},p_{t})$ according to
+
+$\dot{x}=\sqrt{\eta}\,p\,,\hskip 20.00003pt\dot{p}=-\frac{x-y}{\sqrt{\eta}}-\sqrt{\eta}\,\nabla V(\widetilde{X})\,,$
+
+(3.8)
+
+until $t=\pi$ .
+
+6:
+
+During the evolution, generate bounce events at rate
+
+$\lambda_{\widetilde{X}}(x,p)=\sqrt{\eta}\,\bigl[p^{\top}[\nabla V(x)-\nabla V(\widetilde{X})]\bigr]_{+}\,.$
+
+(3.9)
+
+7:
+
+At each bounce, set
+$p_{t}\leftarrow R_{\nabla V(x_{t})-\nabla V(\widetilde{X})}p_{t}$ .
+
+8:
+
+return $x_{\pi}$
+
+Proposition 3.1 (Well-posedness and stationarity of the conditional phase space process).
+
+For every fixed $y,\widetilde{x}\in\mathbb{R}^{d}$ and initial phase space point
+$(x_{0},p_{0})$ , the event-driven dynamics in Algorithm 1, with
+the reference point fixed at $\widetilde{x}$ , defines a unique
+non-explosive, time-homogeneous Markov process. The phase space measure
+$\nu_{\eta,y}$ is stationary for this process. In particular, the
+returned position $x_{\pi}$ is well-defined almost surely.
+
+The well-posedness and stationarity assertions are proved in
+Section A.1.
+
+The induced Markov kernel on positions also satisfies the following
+reversibility property.
+
+Proposition 3.2 (Reversibility of the conditional half-turn kernel).
+
+For every $y\in\mathbb{R}^{d}$ , let $\mathcal{H}_{y}$ be the Markov kernel on
+$\mathbb{R}^{d}$ induced by Algorithm 1; thus
+$\mathcal{H}_{y}(x,\cdot)$ is the law of the returned position $x_{\pi}$
+for input $(x,y)$ . Then $\mathcal{H}_{y}$ is reversible with respect to
+$\pi_{\eta}^{X\mid Y=y}$ .
+
+The proof is deferred to Appendix A.2.
+
+The following proposition quantifies the stationary bounce count of the
+ideal half-turn process.
+
+Proposition 3.3 (Stationary bounce count).
+
+There exists a universal constant $K_{\rm id}\geq 1$ such that the
+following holds. Suppose that $(x_{0},Y)\sim\pi_{\eta}$ . Conditional on
+$Y$ , let $\widetilde{X}\sim\pi_{\eta}^{X\mid Y}$ be independent of
+$x_{0}$ , and let $p_{0}\sim\mathcal{N}(0,I)$ be independent of all position
+variables. If $N_{\rm b}^{\rm id}$ denotes the number of bounce events
+in the resulting ideal half-turn process of Algorithm 1, then
+
+$\mathbb{E}N_{\rm b}^{\rm id}\leq K_{\rm id}\beta\eta\sqrt{d}\,.$
+
+(3.10)
+
+The proof is deferred to
+Appendix A,
+proof of Proposition 3.3.

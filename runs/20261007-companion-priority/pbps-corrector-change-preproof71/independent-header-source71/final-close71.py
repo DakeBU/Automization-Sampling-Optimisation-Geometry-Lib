@@ -1,0 +1,16 @@
+import sys
+sys.dont_write_bytecode=True
+sys.stdout.reconfigure(encoding='utf-8')
+import pathlib,json,hashlib,os,datetime
+O=pathlib.Path(__file__).resolve().parent;H=lambda b:hashlib.sha256(b).hexdigest();C=lambda x:json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode();J=lambda n:json.loads((O/n).read_bytes())
+def put(n,x):assert not (O/n).exists();(O/n).write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+receipt=J('final-preclose71.terminal-receipt.json');assert receipt['exit_code']==0
+run=J('header-source71.run.json');assert H(C({k:v for k,v in run.items() if k!='run_sha256'}))==run['run_sha256']
+files=[]
+for p in sorted(O.iterdir()):
+ assert p.is_file() and not p.is_symlink();b=p.read_bytes();l=b.replace(b'\r\n',b'\n');files.append({'path':p.name,'RAW_bytes':len(b),'RAW_sha256':H(b),'LF_bytes':len(l),'LF_sha256':H(l)})
+m={'schema':'prospective-header71-complete-finite-native-manifest-v1','file_count':len(files),'owned_count_including_manifest_and_final_lease':len(files)+2,'files':files,'entries_canonical_sha256':H(C(files)),'whole_logical_run_sha256':run['run_sha256'],'exact_input_count':14,'complete_named_payload':{'path':'complete-named-review-decision-input-payload.json','RAW_bytes':(O/'complete-named-review-decision-input-payload.json').stat().st_size,'RAW_sha256':H((O/'complete-named-review-decision-input-payload.json').read_bytes())},'all_helpers_reading_aids_retired_v1_and_terminal_receipts_bound':True,'scope':'Prospective source header only, no71 implementation/compile/full-source/VERIFIED claim.','self_policy':'Exclude only self and future lease; lease binds manifest and every regular owned file; lease final owned write.'}
+put('owned-manifest.json',m);mb=(O/'owned-manifest.json').read_bytes()
+l={'schema':'prospective-header71-CLOSED-LAST-native-v1','status':'CLOSED_LAST','owned_count':len(files)+2,'bound_layer_count':len(files)+1,'native_manifest_RAW_sha256':H(mb),'entries_canonical_sha256':m['entries_canonical_sha256'],'bindings':files+[{'path':'owned-manifest.json','RAW_bytes':len(mb),'RAW_sha256':H(mb),'LF_bytes':len(mb),'LF_sha256':H(mb)}],'whole_logical_run_sha256':run['run_sha256'],'decision_RAW_sha256':H((O/'header-source71.decision.json').read_bytes()),'candidate_header_RAW_sha256':J('header-source71.decision.json')['candidate_header_RAW_sha256'],'complete_named_payload':m['complete_named_payload'],'last_owned_write':'lease.final.json','no_further_owned_writes':True,'seal_actual_python_PID':os.getpid(),'seal_EXIT_policy':'Actual EXIT0 must be established by authoritative foreground terminal return after last write.','completed_preclose_actual_PID':receipt['actual_pid'],'completed_preclose_actual_EXIT':0,'closed_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'originalCLOSED319_portable14_sourcefirst116_unchanged':True,'no71_proof_compile_claim_or_canonical_writes':True}
+put('lease.final.json',l)
+print(json.dumps({'actual_pid':os.getpid(),'status':'CLOSED_LAST','owned_count':l['owned_count'],'manifest_RAW_sha256':H(mb),'entries_canonical_sha256':m['entries_canonical_sha256'],'lease_RAW_sha256':H((O/'lease.final.json').read_bytes()),'whole_logical_run_sha256':run['run_sha256'],'decision_RAW_sha256':l['decision_RAW_sha256'],'named_payload':m['complete_named_payload']},ensure_ascii=False))

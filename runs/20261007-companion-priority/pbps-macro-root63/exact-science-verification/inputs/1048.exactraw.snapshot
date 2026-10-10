@@ -1,0 +1,86 @@
+import Mathlib.MeasureTheory.Integral.Layercake
+import Mathlib.Probability.Kernel.Composition.MeasureComp
+
+/-!
+# Eventwise total-variation contraction under a Markov kernel
+
+For two probability input laws, a common Markov kernel cannot increase their
+uniform discrepancy on measurable events. This is the exact factor-one step
+used to transfer actual/proxy input error in SPHMC, arXiv:2609.06906v1, §7.2.
+It also supports the existing MCMC E6 perturbed-kernel error-propagation route.
+Neither an algorithm kernel nor its mixing or expected-cost guarantee is
+constructed here. In particular, TV proximity does not control unbounded cost.
+
+For an output event `t`, its kernel probability is a measurable `[0,1]`-valued
+function. Layercake writes its integral as the integral of superlevel-event
+probabilities over `(0,1]`, whose Lebesgue measure is one. Boundedness supplies
+both input integrability and layer integrability; no conditional representative
+or standard-Borel hypothesis is needed.
+
+The local tail-integrability argument follows Mathlib's
+`MeasureTheory/Measure/LevyProkhorovMetric.lean` (Kalle Kytölä and Mathlib
+contributors, Apache-2.0). We reuse its public Layercake and measure APIs without
+importing the Lévy–Prokhorov development or introducing a new TV definition.
+-/
+
+open MeasureTheory ProbabilityTheory Set
+open scoped ProbabilityTheory
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation
+
+/-- An eventwise probability discrepancy bound is preserved by a common Markov
+kernel. The hypothesis on the empty event already implies `0 ≤ δ`. All helper
+functions and integrability proofs are local; the conclusion concerns the
+actual kernel-composed measures, not an assumed integral-contraction premise. -/
+theorem abs_real_comp_sub_le
+    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]
+    (μ ν : Measure A) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (K : Kernel A B) [IsMarkovKernel K]
+    {δ : ℝ}
+    (hδ : ∀ s, MeasurableSet s → |μ.real s - ν.real s| ≤ δ) :
+    ∀ t, MeasurableSet t →
+      |(K ∘ₘ μ).real t - (K ∘ₘ ν).real t| ≤ δ := by
+  intro t ht
+  let f : A → ℝ := fun x => (K x).real t
+  have hf : Measurable f := (K.measurable_coe ht).ennreal_toReal
+  have hf0 (x : A) : 0 ≤ f x := measureReal_nonneg
+  have hf1 (x : A) : f x ≤ 1 := measureReal_le_one
+  have hfi (ρ : Measure A) [IsProbabilityMeasure ρ] :
+      Integrable f ρ := by
+    apply (integrable_const (1 : ℝ)).mono' hf.aestronglyMeasurable
+    exact Filter.Eventually.of_forall fun x => by
+      simpa only [Real.norm_eq_abs, abs_of_nonneg (hf0 x)] using hf1 x
+  have happly (ρ : Measure A) [IsProbabilityMeasure ρ] :
+      (K ∘ₘ ρ).real t = ∫ x, f x ∂ρ := by
+    change (Measure.bind ρ K t).toReal = ∫ x, (K x t).toReal ∂ρ
+    rw [Measure.bind_apply ht K.aemeasurable]
+    exact (integral_toReal (K.measurable_coe ht).aemeasurable
+      (Filter.Eventually.of_forall fun x => measure_lt_top (K x) t)).symm
+  have htail (ρ : Measure A) [IsProbabilityMeasure ρ] :
+      IntegrableOn (fun u : ℝ => ρ.real {x | u ≤ f x}) (Ioc 0 1) := by
+    apply Measure.integrableOn_of_bounded
+      (M := ρ.real univ) measure_Ioc_lt_top.ne
+    · apply
+        (Measurable.ennreal_toReal (Antitone.measurable ?_)).aestronglyMeasurable
+      exact fun _ _ huv => measure_mono (fun _ hx => huv.trans hx)
+    · exact Filter.Eventually.of_forall fun u => by
+        simp only [Real.norm_eq_abs, abs_of_nonneg measureReal_nonneg]
+        exact measureReal_mono (subset_univ _)
+  have hlayer (ρ : Measure A) [IsProbabilityMeasure ρ] :
+      (∫ x, f x ∂ρ) =
+        ∫ u in Ioc (0 : ℝ) 1, ρ.real {x | u ≤ f x} :=
+    (hfi ρ).integral_eq_integral_Ioc_meas_le
+      (Filter.Eventually.of_forall hf0)
+      (Filter.Eventually.of_forall hf1)
+  rw [happly μ, happly ν, hlayer μ, hlayer ν,
+    ← integral_sub (htail μ) (htail ν)]
+  simpa [Real.norm_eq_abs, measureReal_def] using
+    (norm_integral_le_of_norm_le_const
+      (μ := volume.restrict (Ioc (0 : ℝ) 1))
+      (f := fun u => μ.real {x | u ≤ f x} - ν.real {x | u ≤ f x})
+      (C := δ)
+      (Filter.Eventually.of_forall fun u => by
+        simpa only [Real.norm_eq_abs] using
+          hδ {x | u ≤ f x} (measurableSet_le measurable_const hf)))
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation

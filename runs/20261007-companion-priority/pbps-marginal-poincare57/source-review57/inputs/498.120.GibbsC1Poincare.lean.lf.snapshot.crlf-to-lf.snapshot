@@ -1,0 +1,68 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare
+/-! Actual C1 scalar/gradient weightedL2 functions enter the genuine original compact-smooth closure graph after centering by the real normalized mean. Derive all three real integrability facts and exact AE quotient norm/variance/Dirichlet identities, then consume actual centered-domain Poincare. No assumed Satisfies, extra spatial moment or zero-mean uncentered test. BOTH global curvature bounds/C2 law remain explicit. -/
+set_option autoImplicit false
+noncomputable section
+open Filter InnerProductSpace MeasureTheory
+open scoped Topology RealInnerProductSpace ContDiff
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare
+private theorem norm_sq_toLp_integral
+    {E F : Type*} [MeasurableSpace E] [NormedAddCommGroup F] [InnerProductSpace ℝ F]
+    (μ : Measure E) (f : E → F) (hf : MemLp f 2 μ) :
+    ‖hf.toLp f‖^2=∫ x, ‖f x‖^2 ∂μ := by
+  rw [← real_inner_self_eq_norm_sq,L2.inner_def]
+  apply integral_congr_ae
+  filter_upwards [hf.coeFn_toLp] with x hx
+  rw [hx,real_inner_self_eq_norm_sq]
+
+theorem gibbs_c1_variance_poincare
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (hI : Integrable (fun x => Real.exp (-W x)))
+    (hZ : 0 < ∫ x, Real.exp (-W x))
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hlower : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hupper : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ f : E → ℝ, ContDiff ℝ 1 f → MemLp f 2 μ → MemLp (gradient f) 2 μ →
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.Admissible μ f ∧
+      m*AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance μ f ≤
+        AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.dirichletEnergy μ f := by
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  let : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hI
+  obtain ⟨D,_,hD,_,hgraph⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient.compact_gradient_closable
+      W (hW.of_le (by norm_num)) hI
+  dsimp only
+  intro f hf hp hq
+  let c : ℝ := ∫ x, f x ∂μ
+  let g : E → ℝ := fun x => f x-c
+  have hg : ContDiff ℝ 1 g := hf.sub contDiff_const
+  have hgp : MemLp g 2 μ := hp.sub (memLp_const c)
+  have hgrad : gradient g=gradient f := by
+    funext x
+    simp only [g,gradient,fderiv_sub_const]
+  have hgq : MemLp (gradient g) 2 μ := hgrad ▸ hq
+  have hfi : Integrable f μ := hp.integrable (by norm_num)
+  refine ⟨⟨hfi,hgp.integrable_sq,
+    (memLp_two_iff_integrable_sq_norm hq.aestronglyMeasurable).mp hq⟩,?_⟩
+  have hgm : (∫ x, g x ∂μ)=0 := by
+    rw [integral_sub hfi (integrable_const c),integral_const]
+    simp [c]
+  have hmem :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain.c1_in_closed_gradient
+      μ D hD hgraph hg hgp hgq
+  obtain ⟨z,hz,hDz⟩ := (LinearPMap.mem_graph_iff D.closure).mp hmem
+  have hzmean : (∫ x, (z:Lp ℝ 2 μ) x ∂μ)=0 := by
+    rw [hz]
+    exact (integral_congr_ae hgp.coeFn_toLp).trans hgm
+  have hb := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare.gibbs_centered_domain_poincare W hW hI hZ m M hm hmM hlower hupper
+    D hD hgraph z hzmean
+  rw [hz,hDz,norm_sq_toLp_integral μ g hgp,norm_sq_toLp_integral μ (gradient g) hgq] at hb
+  simpa only [g,hgrad,Real.norm_eq_abs,sq_abs,
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance,
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.dirichletEnergy] using hb
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare

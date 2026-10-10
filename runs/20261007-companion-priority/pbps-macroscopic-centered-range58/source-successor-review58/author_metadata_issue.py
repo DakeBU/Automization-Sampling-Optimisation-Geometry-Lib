@@ -1,0 +1,17 @@
+import json, hashlib, os, subprocess
+from pathlib import Path
+R=Path('E:/Samplinglib');T=R/'runs/20261007-companion-priority/pbps-macroscopic-centered-range58';B=T/'source-successor-review58'
+def h(b):return hashlib.sha256(b).hexdigest()
+def can(o):return json.dumps(o,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()
+def load(p):return json.loads(Path(p).read_text(encoding='utf-8'))
+def rec(p):
+ b=Path(p).read_bytes();l=b.replace(b'\r\n',b'\n');return dict(path=str(p).replace('\\','/'),raw_bytes=len(b),raw_sha256=h(b),lf_bytes=len(l),lf_sha256=h(l))
+def write(n,o):(B/n).write_text(json.dumps(o,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+packet=load(T/'source.2.successor.reviewer-packet.json');deps=packet['candidate_publication_context']['lesson']['mathlib_dependencies'];assert deps[2]=='Lp.norm_map'
+api=R/'.lake/packages/mathlib/Mathlib/Analysis/Normed/Operator/LinearIsometry.lean';lines=api.read_text(encoding='utf-8').splitlines();assert 'namespace LinearIsometry' in lines[135] and 'protected lemma norm_map' in lines[199]
+q=subprocess.run(['rg','-n','theorem norm_map|lemma norm_map|def norm_map|Lp.norm_map',str(R/'.lake/packages/mathlib/Mathlib/MeasureTheory/Function/LpSpace')],stdout=subprocess.PIPE,stderr=subprocess.PIPE);assert q.returncode==1 and not q.stdout and not q.stderr
+issue=dict(schema_version=1,id='ASTIS58-SUCCESSOR-MATHLIB-NORM-MAP-LOCATOR',classification='publication-reference-label-mismatch',blocking_publication=True,blocking_mathematics=False,packet_sha256=packet['packet_sha256'],pointer='/candidate_publication_context/lesson/mathlib_dependencies/2',frozen_value='Lp.norm_map',actual_declaration='LinearIsometry.norm_map',actual_source=rec(api),actual_source_line=200,namespace_line=136,explanation='M is a linear isometry. Both uses of M.norm_map in the current proof invoke LinearIsometry.norm_map. The frozen lesson names Lp.norm_map; this reference label does not identify the invoked API.',absence_query=dict(argv=q.args,actual_exit_code=q.returncode,stdout='',stderr='',scope='Pinned Mathlib MeasureTheory/Function/LpSpace'),proposed_repair_only='Replace this lesson reference label with LinearIsometry.norm_map in a separately authored and reviewed overlay. No theorem, proof, formula or signature repair is needed.',source_dimension_wording='Accepted: actual, potentially infinite-dimensional L2(J), with no finite-dimensionality imposed on L2; includes rank zero.',current_inputs_changed=False,future_overlay_accepted=False)
+write('metadata-issue.original.json',issue)
+payload=load(B/'source-review-payload.json');r=payload['results'][0];r['publication_review_status']='BLOCKED_PUBLICATION_REFERENCE_LABEL';r['publication_blockers']=[issue];r['repairs']=[];r['metadata_label_audit']='LinearIsometry.norm_map is the actual invoked API; frozen Lp.norm_map label requires separate publication correction.';r['dimension_wording_review_status']='ACCEPTED_CURRENT_WORDING';payload['supplemental_input_count']=13;payload['metadata_issue']=rec(B/'metadata-issue.original.json');write('source-review-payload.json',payload)
+m=load(B/'input.manifest.json');m['supplemental_readonly_inputs'].append(rec(api));m['supplemental_input_count']=13;write('input.manifest.json',m)
+print(json.dumps(dict(pid=os.getpid(),publication_status=r['publication_review_status'],mathematical_fidelity=r['mathematical_fidelity_verdict'],mathematical_blockers=0,publication_blockers=1,source_review_payload_sha256=h(can(payload)),root_inputs=32,supplemental_inputs=13)))

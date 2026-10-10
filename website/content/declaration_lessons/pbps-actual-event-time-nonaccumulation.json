@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation",
+      "title": "Actual PBPS event-time nonaccumulation",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1",
+          "label": "arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+          "scope": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation"
+      ],
+      "assumptions": [
+        "E is finite-dimensional real inner-product with its Borel measurable structure; no positive-dimension restriction. V is C² and α,β≥0.",
+        "The six exact source conditions are α>0; α≤β; V∈C²; for all x,v, α‖v‖²≤D²V(x)[v,v]≤β‖v‖²; η>0; βη≤1. No third or higher derivative condition.",
+        "y,xRef,z0 are arbitrary deterministic parameters. P and ε are literal canonical definitions. No probability, iid, positivity, divergence, cap, energy, waiting-time or recurrence certificate is a public premise.",
+        "Threshold positivity and faithful clamp/raw equality hold simultaneously only almost surely. The all-finite-horizon conclusion is pathwise on the common good-input event for each fixed parameter triple; no uncountable intersection over triples is assumed.",
+        "Stopped records have eventTime=∞ with no phase at infinity. The statement counts indices including index0, not a physical bounce-count expectation. The author direct Exp mean-one strong-law route is distinct from the reused ASTIS bounded-indicator sufficient route."
+      ],
+      "statement": "Let E be any finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure. Let V:E→ℝ be C². Let α,β be nonnegative reals and η a real number satisfying α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0, and βη≤1. Fix any y,xRef∈E and initial phase z0=(x0,p0)∈E×E. Set c=y−η∇V(xRef). For z=(x,p), define the actual harmonic flow Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), reflection S(z)=(x,p−[2〈p,g(x)〉/‖g(x)‖²]g(x)), residual g(x)=∇V(x)−∇V(xRef), and rate λ(z)=√η max{0,〈p,g(x)〉}. The reflection uses total real division, hence is the identity when g(x)=0. Define Λ(z,t)=∫_0^t λ(Φ_s(z)) ds for finite t≥0 and τ(z,e)=inf{t≥0:Λ(z,t)≥e}, with inf empty=∞. Let P be the actual countable product of rate-one exponential Borel measures on Ω=ℝ^ℕ; let ε_k(sample)=max{sample_k,0} viewed as a nonnegative real. Define active records (T,z) and an absorbing stopped record carrying no phase. Initialize record0=(0,z0). At index k, a stopped record stays stopped; an active record (T,z) becomes stopped if τ(z,ε_k)=∞ and otherwise becomes (T+τ(z,ε_k), S(Φ_{τ(z,ε_k)}(z))). Its event time T_k is the finite time component if active and ∞ if stopped. Then for these fixed y,xRef,z0, for P-almost every sample, simultaneously: (i) for every finite nonnegative horizon t, all sufficiently large k satisfy t<T_k; (ii) for every such t the set {k∈ℕ:T_k≤t} is finite. Initialization index0 is included, and ε_k is source E_(k+1). The result includes both eventual stopping and infinite continuing paths with unbounded event times; it does not assert eventual stopping. It is an actual-input, fixed-reference nonaccumulation conclusion of Appendix A.1 Ex9, with ASTIS total-record and finite-index adapters. The global physical-time process and its additional properties are separate obligations.",
+      "formula": "P=\\mathrm{Exp}(1)^{\\otimes\\mathbb N},\\quad\\varepsilon_k=\\max\\{\\omega_k,0\\},\\quad P\\text{-a.s.}:\\ \\forall t<\\infty,\\quad T_n>t\\text{ eventually},\\quad\\#\\{n:T_n\\le t\\}<\\infty.",
+      "boundary": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit.",
+      "steps": [
+        {
+          "title": "Fix the actual source objects and stopped event times",
+          "text": "Use the literal harmonic flow, zero-safe reflection, integrated rate, first hitting time and stopped recursion from the actual finite-prefix theorem. Fix the canonical Exp1 product and its total nonnegative thresholds. The energy H and finite cap C are internal formulas: H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2 and C=√η β√(2H(z0))(√(2ηH(z0))+‖c−xRef‖). They are proved recurrence invariants and bounds, not theorem assumptions.",
+          "formula": "H(z)=\\tfrac12(\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2),\\quad C=\\sqrt\\eta\\,\\beta\\sqrt{2H(z_0)}(\\sqrt{2\\eta H(z_0)}+\\|c-x_{\\rm ref}\\|).",
+          "lean": "  classical\n  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n  let c : E → E → E := fun y xRef => y - η • gradient V xRef\n  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n    (c y xRef + Real.cos t • (z.1 - c y xRef) +\n        (Real.sqrt η * Real.sin t) • z.2,\n     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n  let S : E → (E × E) → (E × E) := fun xRef z =>\n    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n  let rate : E → (E × E) → ℝ := fun xRef z =>\n    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n  let H : E → E → (E × E) → ℝ := fun y xRef z =>\n    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n  let C : E → E → (E × E) → ℝ := fun y xRef z =>\n    Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n      (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n    MeasureTheory.hittingAfter\n      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n    match r with\n    | Sum.inr _ => Sum.inr ()\n    | Sum.inl a =>\n      if τ y xRef a.2 e = ⊤ then Sum.inr () else\n        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n  let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n    fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n      (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n  change ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n    (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n      (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n    (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 74,
+            "end_line": 116,
+            "exact_code_raw_sha256": "8472ac978ac71c8dc9b958c18b6fc25ac10821d1ab0fbe7c5dc99eb5dbcd72aa"
+          }
+        },
+        {
+          "title": "Join the two actual compiled parents",
+          "text": "Apply the finite-recursion theorem to the six analytic source hypotheses. It supplies initialization, monotone times, absorbing stopping, C≥0, the positive-cap increment and zero-cap stopping. Apply the concrete product theorem to obtain a common positive-threshold event and divergent partial sums, with no supplied stochastic witness.",
+          "formula": "C\\ge0,\\quad C>0\\Longrightarrow T_n+\\varepsilon_n/C\\le T_{n+1},\\quad C=0,\\ \\varepsilon_n>0\\Longrightarrow\\text{next active record stops}.",
+          "lean": "  -- Reuse the actual deterministic recurrence; no cap or recurrence is supplied.\n  rcases ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion\n      hα hαβ hV hH hη hβη with\n    ⟨hinit, _, _, _, _, htime, hstop, _, hcap, _⟩\n  -- The good event supplies all positive thresholds and divergent actual sums.\n  rcases AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws with\n    ⟨_, _, _, hgood, hdiv⟩\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 117,
+            "end_line": 123,
+            "exact_code_raw_sha256": "85cd1db02123c7b64221467e5741091ed9422ee2bbcdd8005b452db8f6b8c0c2"
+          }
+        },
+        {
+          "title": "Intersect the two good-input events",
+          "text": "For arbitrary fixed y,xRef,z0, intersect the almost-sure all-coordinate positivity and divergent-sum events. Positivity makes every clamped ε_k strictly positive. Extract the cap laws for this actual sample; these facts remain internal to the proof.",
+          "formula": "P\\text{-a.s.}:\\quad\\forall k,\\ \\varepsilon_k>0,\\qquad S_n:=\\sum_{k<n}\\varepsilon_k\\longrightarrow+\\infty.",
+          "lean": "  intro y xRef z₀\n  filter_upwards [hgood, hdiv] with sample hpos hsum\n  have hepos (k : ℕ) : 0 < ε sample k :=\n    Real.toNNReal_pos.mpr (hpos k).1\n  obtain ⟨hC, hinc, hzero⟩ := hcap y xRef z₀ (ε sample)\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 124,
+            "end_line": 128,
+            "exact_code_raw_sha256": "1ca606f5abab82521b192f3db9ed74836da823a941f3a6827d3e9b76fe22a8a9"
+          }
+        },
+        {
+          "title": "Handle zero cap by absorbing stopping",
+          "text": "Split on C=0. The initial record is active and ε0>0, so its first update stops. Absorption proves T_(1+k)=∞ for every k. Every finite horizon is therefore exceeded at all indices n≥1. This includes zero-energy and dimension-zero cases.",
+          "formula": "C=0\\Longrightarrow\\operatorname{record}_1=\\mathrm{stopped}\\Longrightarrow\\forall n\\ge1,\\ T_n=\\infty>t.",
+          "lean": "  have hescape : ∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n      (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n := by\n    -- Zero cap forces the first positive-threshold update to stop; it absorbs.\n    by_cases hC0 : C y xRef z₀ = 0\n    · have hfirst : record y xRef z₀ (ε sample) 1 = Sum.inr () :=\n        hzero hC0 0 (0, z₀) (hinit y xRef z₀ (ε sample)) (hepos 0)\n      intro t\n      filter_upwards [eventually_ge_atTop (1 : ℕ)] with n hn\n      obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le hn\n      have hs : record y xRef z₀ (ε sample) (1 + k) = Sum.inr () :=\n        hstop y xRef z₀ (ε sample) 1 k hfirst\n      change (t : WithTop ℝ≥0) < (record y xRef z₀ (ε sample) (1 + k)).elim _ _\n      rw [hs]\n      exact WithTop.coe_lt_top t\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 129,
+            "end_line": 142,
+            "exact_code_raw_sha256": "78fc652000fb8b533f0e10be2428989ca6dccfb209174ad0d3827211d8604671"
+          }
+        },
+        {
+          "title": "Sum the actual positive-cap increments",
+          "text": "In the other branch C≥0 and C≠0 give C>0. Let cap=toNNReal(C), whose real coercion is C. Starting from S0=T0=0, apply the actual extended-valued increment inequality and induction: S_(n+1)/C=S_n/C+ε_n/C≤T_n+ε_n/C≤T_(n+1). The same inequality remains valid after stopping since times are top.",
+          "formula": "C>0\\Longrightarrow\\forall n,\\quad \\frac{S_n}{C}\\le T_n.",
+          "lean": "    -- Positive cap: inductively compare every actual clock with partial sums/C.\n    · have hCp : 0 < C y xRef z₀ := lt_of_le_of_ne hC (Ne.symm hC0)\n      let cap : ℝ≥0 := Real.toNNReal (C y xRef z₀)\n      have hcapcoe : (cap : ℝ) = C y xRef z₀ := Real.coe_toNNReal _ hC\n      have hcapPos : 0 < cap := Real.toNNReal_pos.mpr hCp\n      have hbound (n : ℕ) :\n          (((∑ k ∈ Finset.range n, ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0) ≤\n            eventTime y xRef z₀ (ε sample) n := by\n        induction n with\n        | zero => simpa using (htime y xRef z₀ (ε sample)).1.ge\n        | succ n ih =>\n          have hi := hinc hCp n\n          have hterm : Real.toNNReal ((ε sample n : ℝ) / C y xRef z₀) =\n              ε sample n / cap := by\n            rw [Real.toNNReal_div (ε sample n).coe_nonneg, Real.toNNReal_coe]\n          rw [hterm] at hi\n          calc\n            (((∑ k ∈ Finset.range (n + 1), ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0)\n                = (((∑ k ∈ Finset.range n, ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0) +\n                    ((ε sample n / cap : ℝ≥0) : WithTop ℝ≥0) := by\n                      rw [Finset.sum_range_succ, add_div, WithTop.coe_add]\n            _ ≤ eventTime y xRef z₀ (ε sample) n +\n                    ((ε sample n / cap : ℝ≥0) : WithTop ℝ≥0) := add_le_add ih le_rfl\n            _ ≤ eventTime y xRef z₀ (ε sample) (n + 1) := hi\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 143,
+            "end_line": 166,
+            "exact_code_raw_sha256": "859040dda9835528764f052ecc6bac7d1e96ecdbf07baf84cbb2cda62efe8cbc"
+          }
+        },
+        {
+          "title": "Use divergent inputs to escape every finite horizon",
+          "text": "For any finite t, divergence gives S_n>tC eventually. Because C>0 this implies S_n/C>t. Combine this strict finite inequality, lifted into WithTop NNReal, with the prefix lower bound. This proves finite-horizon escape without requiring eventual equality to infinity.",
+          "formula": "S_n>tC\\Longrightarrow t<S_n/C\\le T_n.",
+          "lean": "      intro t\n      have hs : ∀ᶠ n : ℕ in atTop,\n          (t : ℝ) * C y xRef z₀ < ∑ k ∈ Finset.range n, (ε sample k : ℝ) :=\n        hsum.eventually (eventually_gt_atTop ((t : ℝ) * C y xRef z₀))\n      filter_upwards [hs] with n hn\n      have ht : t < (∑ k ∈ Finset.range n, ε sample k) / cap := by\n        apply (NNReal.coe_lt_coe).mp\n        push_cast\n        rw [hcapcoe]\n        exact (lt_div_iff₀ hCp).mpr hn\n      exact lt_of_lt_of_le (WithTop.coe_lt_coe.mpr ht) (hbound n)\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 167,
+            "end_line": 177,
+            "exact_code_raw_sha256": "1780ce9b2561348136790ae30f0decf7e7455c78e0b5d02a82710468c7d030d4"
+          }
+        },
+        {
+          "title": "Turn escape into a finite index set",
+          "text": "For each t, choose N such that n≥N implies t<T_n. Any n with T_n≤t must satisfy n<N. The sublevel index set is therefore contained in the finite natural interval [0,N); index0 is retained. Assemble both almost-sure conclusions.",
+          "formula": "\\{n:T_n\\le t\\}\\subseteq\\{0,\\ldots,N-1\\}\\quad\\Longrightarrow\\quad\\#\\{n:T_n\\le t\\}<\\infty.",
+          "lean": "  refine ⟨hescape, ?_⟩\n  -- The bounded-horizon index set is contained in a finite initial interval.\n  intro t\n  obtain ⟨N, hN⟩ := eventually_atTop.mp (hescape t)\n  apply (Set.finite_Iio N).subset\n  intro n hn\n  exact lt_of_not_ge (fun hge => (not_lt_of_ge hn) (hN n hge))\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 178,
+            "end_line": 184,
+            "exact_code_raw_sha256": "093d05764bb1629ea7f6d2ef93966edf23bc72b4c274a295976b6b782d60c6af"
+          }
+        }
+      ],
+      "lean_statement": "Let E be any finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure. Let V:E→ℝ be C². Let α,β be nonnegative reals and η a real number satisfying α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0, and βη≤1. Fix any y,xRef∈E and initial phase z0=(x0,p0)∈E×E. Set c=y−η∇V(xRef). For z=(x,p), define the actual harmonic flow Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), reflection S(z)=(x,p−[2〈p,g(x)〉/‖g(x)‖²]g(x)), residual g(x)=∇V(x)−∇V(xRef), and rate λ(z)=√η max{0,〈p,g(x)〉}. The reflection uses total real division, hence is the identity when g(x)=0. Define Λ(z,t)=∫_0^t λ(Φ_s(z)) ds for finite t≥0 and τ(z,e)=inf{t≥0:Λ(z,t)≥e}, with inf empty=∞. Let P be the actual countable product of rate-one exponential Borel measures on Ω=ℝ^ℕ; let ε_k(sample)=max{sample_k,0} viewed as a nonnegative real. Define active records (T,z) and an absorbing stopped record carrying no phase. Initialize record0=(0,z0). At index k, a stopped record stays stopped; an active record (T,z) becomes stopped if τ(z,ε_k)=∞ and otherwise becomes (T+τ(z,ε_k), S(Φ_{τ(z,ε_k)}(z))). Its event time T_k is the finite time component if active and ∞ if stopped. Then for these fixed y,xRef,z0, for P-almost every sample, simultaneously: (i) for every finite nonnegative horizon t, all sufficiently large k satisfy t<T_k; (ii) for every such t the set {k∈ℕ:T_k≤t} is finite. Initialization index0 is included, and ε_k is source E_(k+1). The result includes both eventual stopping and infinite continuing paths with unbounded event times; it does not assert eventual stopping. It is an actual-input, fixed-reference nonaccumulation conclusion of Appendix A.1 Ex9, with ASTIS total-record and finite-index adapters. The global physical-time process and its additional properties are separate obligations.",
+      "lean_proof": "Fix the actual source objects and stopped event times; Join the two actual compiled parents; Intersect the two good-input events; Handle zero cap by absorbing stopping; Sum the actual positive-cap increments; Use divergent inputs to escape every finite horizon; Turn escape into a finite index set",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+      ],
+      "mathlib_dependencies": [
+        "Real.toNNReal_pos",
+        "Real.coe_toNNReal",
+        "Real.toNNReal_div",
+        "Real.toNNReal_coe",
+        "NNReal.coe_lt_coe",
+        "Finset.sum_range_succ",
+        "WithTop.coe_add",
+        "WithTop.coe_lt_coe",
+        "WithTop.coe_lt_top",
+        "Filter.eventually_ge_atTop",
+        "Filter.eventually_gt_atTop",
+        "Filter.eventually_atTop",
+        "Set.finite_Iio"
+      ]
+    }
+  ]
+}

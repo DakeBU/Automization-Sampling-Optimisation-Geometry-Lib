@@ -1,0 +1,126 @@
+∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]
+  [inst_3 : FiniteDimensional ℝ E] [inst_4 : MeasurableSpace E] [inst_5 : BorelSpace E] {rho : E → ℝ} {L : ℝ≥0},
+  ContDiff ℝ 2 rho →
+    rho 0 = 0 →
+      gradient rho 0 = 0 →
+        (∀ (u v : E), 0 ≤ ((fderiv ℝ (fderiv ℝ rho) u) v) v ∧ ((fderiv ℝ (fderiv ℝ rho) u) v) v ≤ ↑L * ‖v‖ ^ 2) →
+          let gamma := stdGaussian E;
+          let Z := ∫ (u : E), Real.exp (-rho u) ∂gamma;
+          let q := fun u => Real.exp (-rho u) / Z;
+          let f := fun u => Real.exp (-rho u / 2) / √Z;
+          let r := gamma.tilted fun u => -rho u;
+          0 < Z ∧
+            Z ≤ 1 ∧
+              (r = ℙ.tilted fun u => -(‖u‖ ^ 2 / 2 + rho u)) ∧
+                (r = gamma.withDensity fun u => ENNReal.ofReal (q u)) ∧
+                  IsProbabilityMeasure r ∧
+                    (∀ (u : E), 0 < q u ∧ f u ^ 2 = q u) ∧
+                      ∫ (u : E), q u ∂gamma = 1 ∧
+                        ContDiff ℝ 2 f ∧
+                          MemLp f 2 gamma ∧
+                            MemLp (gradient f) 2 gamma ∧
+                              MemLp (gradient rho) 2 r ∧
+                                Integrable (fun u => q u * Real.log (q u)) gamma ∧
+                                  (∀ (u : E), gradient f u = -(f u / 2) • gradient rho u) ∧
+                                    (∀ (u : E), gradient (fun z => Real.log (q z)) u = -gradient rho u) ∧
+                                      ∫ (u : E), ‖gradient f u‖ ^ 2 ∂gamma =
+                                        1 / 4 * ∫ (u : E), ‖gradient rho u‖ ^ 2 ∂r : Prop
+.astis\gaussian-domain32\StatementTypeProbe.lean:9:29: warning: Variable name `hrho` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hrho
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:10:5: warning: Variable name `hrho0` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hrho0
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:10:25: warning: Variable name `hgrad0` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hgrad0
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:11:5: warning: Variable name `hH` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hH
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+∀ {E : Type u_1} {S : Type u_2} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]
+  [inst_2 : CompleteSpace E] [inst_3 : FiniteDimensional ℝ E] [inst_4 : MeasurableSpace E] [inst_5 : BorelSpace E]
+  [inst_6 : MeasurableSpace S] {V : E → ℝ} {κ : ℝ},
+  1 ≤ κ →
+    ContDiff ℝ 2 V →
+      (∀ (x v : E), κ⁻¹ * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ‖v‖ ^ 2) →
+        ∀ {eta : S → ℝ} {y : S → E},
+          Measurable eta →
+            Measurable y →
+              (∀ (s : S), 0 < eta s) →
+                ∃ p,
+                  Measurable p ∧
+                    (∀ (s : S), p s + eta s • gradient V (p s) = y s) ∧
+                      let rho := fun s u => V (p s + √(eta s) • u) - V (p s) - √(eta s) * ⟪gradient V (p s), u⟫;
+                      let mu := ℙ.tilted fun x => -V x;
+                      let R := fun s => mu.tilted fun x => -‖x - y s‖ ^ 2 / (2 * eta s);
+                      let r := fun s => Measure.map (fun x => (√(eta s))⁻¹ • (x - p s)) (R s);
+                      let gamma := stdGaussian E;
+                      let Z := fun s => ∫ (u : E), Real.exp (-rho s u) ∂gamma;
+                      let q := fun s u => Real.exp (-rho s u) / Z s;
+                      let f := fun s u => Real.exp (-rho s u / 2) / √(Z s);
+                      ∀ (s : S),
+                        0 < Z s ∧
+                          Z s ≤ 1 ∧
+                            (r s = gamma.tilted fun u => -rho s u) ∧
+                              (r s = gamma.withDensity fun u => ENNReal.ofReal (q s u)) ∧
+                                IsProbabilityMeasure (r s) ∧
+                                  (∀ (u : E), 0 < q s u ∧ f s u ^ 2 = q s u) ∧
+                                    ∫ (u : E), q s u ∂gamma = 1 ∧
+                                      ContDiff ℝ 2 (f s) ∧
+                                        MemLp (f s) 2 gamma ∧
+                                          MemLp (gradient (f s)) 2 gamma ∧
+                                            MemLp (gradient (rho s)) 2 (r s) ∧
+                                              Integrable (fun u => q s u * Real.log (q s u)) gamma ∧
+                                                (∀ (u : E), gradient (f s) u = -(f s u / 2) • gradient (rho s) u) ∧
+                                                  (∀ (u : E),
+                                                      gradient (fun z => Real.log (q s z)) u = -gradient (rho s) u) ∧
+                                                    ∫ (u : E), ‖gradient (f s) u‖ ^ 2 ∂gamma =
+                                                      1 / 4 * ∫ (u : E), ‖gradient (rho s) u‖ ^ 2 ∂r s : Prop
+.astis\gaussian-domain32\StatementTypeProbe.lean:36:5: warning: Variable name `hκ` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hκ
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:36:18: warning: Variable name `hV` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hV
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:37:5: warning: Variable name `hH` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hH
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:39:31: warning: Variable name `heta` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _heta
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:39:55: warning: Variable name `hy` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hy
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis\gaussian-domain32\StatementTypeProbe.lean:40:5: warning: Variable name `hpos` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hpos
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`

@@ -1,0 +1,83 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FellerSemigroup
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GeneratorStationarity
+
+/-!
+# Feller semigroups preserve constants
+
+A Markov transition kernel integrates a constant observable to the same
+constant. At the continuous-linear Feller layer this says `P_t c = c`; the
+abstract fixed-vector generator lemma then gives `A c = 0`.
+
+This is a Chapter 1.2 operator/generator bridge only. It does not construct a
+concrete Langevin diffusion and uses no stochastic-calculus result from
+Section 1.1.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace FellerGeneratorBridge
+
+open MeasureTheory ProbabilityTheory
+open scoped NNReal ProbabilityTheory BoundedContinuousFunction
+
+noncomputable section
+
+open OperatorGenerator OperatorGeneratorDomain
+open FellerSemigroup GeneratorStationarity
+
+variable {E : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E]
+
+/-- The Feller Markov operator fixes every real constant observable. -/
+@[simp]
+theorem fellerOperator_const
+    {K : ℝ≥0 → Kernel E E}
+    (hK : FellerTransitionKernelContract K)
+    (t : ℝ≥0) (c : ℝ) :
+    fellerOperator hK t (BoundedContinuousFunction.const E c) =
+      BoundedContinuousFunction.const E c := by
+  letI : IsMarkovKernel (K t) := hK.toTransitionKernelContract.isMarkov t
+  ext x
+  change (∫ _y, c ∂K t x) = c
+  simp
+
+/-- The continuous-linear semigroup induced by a Feller kernel fixes every
+constant observable. -/
+theorem continuousLinearSemigroupOfFeller_op_const
+    {K : ℝ≥0 → Kernel E E}
+    (hK : FellerTransitionKernelContract K)
+    (t : ℝ≥0) (c : ℝ) :
+    (continuousLinearSemigroupOfFeller hK).op t
+        (BoundedContinuousFunction.const E c) =
+      BoundedContinuousFunction.const E c :=
+  fellerOperator_const hK t c
+
+/-- Every constant bounded continuous observable has right-generator value
+zero for the Feller continuous-linear semigroup. -/
+theorem hasRightGeneratorAt_const
+    {K : ℝ≥0 → Kernel E E}
+    (hK : FellerTransitionKernelContract K)
+    (c : ℝ) :
+    HasRightGeneratorAt (continuousLinearSemigroupOfFeller hK)
+      (BoundedContinuousFunction.const E c) 0 :=
+  hasRightGeneratorAt_zero_of_fixed
+    (continuousLinearSemigroupOfFeller hK)
+    (fun t => continuousLinearSemigroupOfFeller_op_const hK t c)
+
+/-- Constants belong to the canonical Feller generator domain. -/
+theorem const_mem_generatorDomainSubmodule
+    {K : ℝ≥0 → Kernel E E}
+    (hK : FellerTransitionKernelContract K)
+    (c : ℝ) :
+    BoundedContinuousFunction.const E c ∈
+      generatorDomainSubmodule (continuousLinearSemigroupOfFeller hK) :=
+  mem_generatorDomainSubmodule_of_fixed
+    (continuousLinearSemigroupOfFeller hK)
+    (fun t => continuousLinearSemigroupOfFeller_op_const hK t c)
+
+end
+
+end FellerGeneratorBridge
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,174 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingIntegrandLimit
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoEmbedding
+
+/-!
+# Progressive L2 packaging of a randomly stopped elementary integrand
+
+The preceding module proves pointwise convergence of legal stopped dyadic
+refinements to Chewi's closed stopped integrand `eta_t * 1_{t <= tau}`.
+Here that limit is promoted to the actual progressive product-space `L2`
+domain used by the completed Ito integral.
+
+The key point is that no separate stopping-event measurability argument is
+needed. Strong progressiveness and joint strong measurability pass to the
+pointwise limit of the elementary stopped approximants. A deterministic bound
+coming from the finitely many original coefficients then gives `MemLp` on any
+finite probability-time horizon.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingProgressiveL2
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open DyadicElementaryRefinement DyadicElementaryStopping ElementaryItoEmbedding
+  ElementaryItoIntegral ProgressiveL2 ProgressiveL2Density
+  RandomStoppingIntegrandLimit RandomStoppingProcessApprox StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Chewi's closed stopped elementary integrand is strongly progressive.  The
+proof is by pointwise limit of the already legal elementary stopped
+refinements, so the stopping-time measurability is inherited rather than
+reconstructed by hand. -/
+theorem stoppedIntegrand_stronglyProgressive
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    IsStronglyProgressive filtration
+      (Localization.stoppedIntegrand eta.process.value
+        (fun w => (tau w : WithTop ℝ≥0))) := by
+  apply isStronglyProgressive_of_tendsto
+    (U := fun n => (stopRefinedDyadic eta tau htau n).process.value)
+  · intro n
+    exact value_stronglyProgressive (stopRefinedDyadic eta tau htau n).process
+  · rw [tendsto_pi_nhds]
+    intro s
+    rw [tendsto_pi_nhds]
+    intro omega
+    exact tendsto_stopRefinedDyadic_value_stoppedIntegrand
+      eta tau htau htauT s omega
+
+/-- The sample-first product representative of the stopped integrand is
+strongly measurable.  This is the product-space analogue of the progressive
+limit theorem above. -/
+theorem stoppedProcessFunction_stronglyMeasurable
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    StronglyMeasurable
+      (processFunction
+        (Localization.stoppedIntegrand eta.process.value
+          (fun w => (tau w : WithTop ℝ≥0)))) := by
+  refine stronglyMeasurable_of_tendsto atTop
+    (fun n => processFunction_stronglyMeasurable
+      (stopRefinedDyadic eta tau htau n).process) ?_
+  rw [tendsto_pi_nhds]
+  intro z
+  exact tendsto_stopRefinedDyadic_value_stoppedIntegrand
+    eta tau htau htauT z.2 z.1
+
+/-- Stopping never increases the deterministic elementary-process value bound. -/
+theorem abs_stoppedIntegrand_le_valueBound
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (s : ℝ≥0) (omega : Omega) :
+    |Localization.stoppedIntegrand eta.process.value
+        (fun w => (tau w : WithTop ℝ≥0)) s omega| ≤
+      valueBound eta.process := by
+  rw [Localization.stoppedIntegrand]
+  split_ifs
+  · exact abs_value_le_valueBound eta.process s omega
+  · simp only [abs_zero]
+    exact (abs_value_le_valueBound eta.process s omega).trans'
+      (abs_nonneg _)
+
+/-- Every legal stopped dyadic refinement is dominated by the same bound as
+the original elementary process.  This uniform bound is the domination used
+by the next product-space `L2` convergence layer. -/
+theorem abs_stopRefinedDyadic_value_le_valueBound
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (n : ℕ) (s : ℝ≥0) (omega : Omega) :
+    |(stopRefinedDyadic eta tau htau n).process.value s omega| ≤
+      valueBound eta.process := by
+  by_cases hzero : tau omega = 0
+  · rw [stopRefinedDyadic_value_eq_zero_of_stoppingValue_eq_zero
+      eta tau htau n omega hzero s]
+    simp only [abs_zero]
+    exact (abs_value_le_valueBound eta.process s omega).trans'
+      (abs_nonneg _)
+  · have homega : 0 < tau omega :=
+      lt_of_le_of_ne bot_le (Ne.symm hzero)
+    rw [stopRefinedDyadic_value_eq_rightApprox
+      eta tau htau htauT n omega homega s,
+      stopAtRightApprox_value_eq]
+    split_ifs
+    · exact abs_value_le_valueBound eta.process s omega
+    · simp only [abs_zero]
+      exact (abs_value_le_valueBound eta.process s omega).trans'
+        (abs_nonneg _)
+
+/-- The stopped elementary integrand belongs to the product-space `L2` domain
+on every finite horizon and finite sample measure. -/
+theorem stoppedIntegrand_memLp_two [IsFiniteMeasure mu]
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    MemLp
+      (processFunction
+        (Localization.stoppedIntegrand eta.process.value
+          (fun w => (tau w : WithTop ℝ≥0))))
+      2 (processTimeMeasure mu T) := by
+  let _ : IsFiniteMeasure (processTimeMeasure mu T) := by
+    unfold processTimeMeasure
+    infer_instance
+  exact MemLp.of_bound
+    (stoppedProcessFunction_stronglyMeasurable eta tau htau htauT).aestronglyMeasurable
+    (valueBound eta.process)
+    (ae_of_all _ fun z => by
+      simpa [Real.norm_eq_abs, processFunction] using
+        abs_stoppedIntegrand_le_valueBound eta tau z.2 z.1)
+
+/-- The actual progressive `L2` object represented by Chewi's stopped
+integrand. -/
+noncomputable def stoppedProgressiveL2 [IsFiniteMeasure mu]
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    ProgressiveL2Integrand filtration mu T where
+  process := Localization.stoppedIntegrand eta.process.value
+    (fun w => (tau w : WithTop ℝ≥0))
+  progressive := stoppedIntegrand_stronglyProgressive eta tau htau htauT
+  memLp := stoppedIntegrand_memLp_two eta tau htau htauT
+
+@[simp] theorem stoppedProgressiveL2_process [IsFiniteMeasure mu]
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    (stoppedProgressiveL2 (mu := mu) eta tau htau htauT).process =
+      Localization.stoppedIntegrand eta.process.value
+        (fun w => (tau w : WithTop ℝ≥0)) :=
+  rfl
+
+end RandomStoppingProgressiveL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

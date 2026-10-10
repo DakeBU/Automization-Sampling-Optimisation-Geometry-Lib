@@ -1,0 +1,42 @@
+import Mathlib.Analysis.Calculus.Deriv.Basic
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Tactic
+
+/-!
+# KL-density algebra leaves
+
+Small pointwise and derivative-target algebra used after the analytic
+differentiation-under-the-integral hypotheses for KL densities have been
+supplied.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace KLDensity
+
+/-- Pointwise algebra for differentiating `q * log (q / p)`.
+
+This proves only the real-field simplification.  Positivity, measurability,
+integrability, and dominated differentiation under the integral are separate
+regularity contracts.
+-/
+theorem klPointwiseDerivSimplify {q p qdot pdot : ℝ}
+    (hq : q ≠ 0) (hp : p ≠ 0) :
+    qdot * Real.log (q / p) + q * (qdot / q - pdot / p)
+      =
+    qdot * Real.log (q / p) + qdot - (q / p) * pdot := by
+  field_simp [hq, hp]
+  ring
+
+/-- Remove the mass-conservation term from a supplied KL derivative. -/
+theorem klDerivativeRemoveMassTerm {F : ℝ → ℝ} {s0 A M B : ℝ}
+    (h : HasDerivAt F (A + M - B) s0)
+    (hmass : M = 0) :
+    HasDerivAt F (A - B) s0 := by
+  simpa [hmass, sub_eq_add_neg, add_assoc, add_comm, add_left_comm] using h
+
+end KLDensity
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

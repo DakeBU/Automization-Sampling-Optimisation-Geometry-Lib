@@ -1,0 +1,272 @@
+{
+  "id": "ASTIS-RT-20261008-GaussianMarginalPoincare",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion-background:gaussian-marginal-poincare",
+    "anchor": "PBPS2609.06905v1 Eq2.13 and AppendixD.2 D6/D10 feeding C3; original C2, two Hessian bounds,0<alpha<=beta and capped positive eta remain.",
+    "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+    "original_text": "Attributed ASTIS-authored actual Gaussian Gibbs marginal centered compact-gradient-domain Poincare; faithful source coefficient and standing hypotheses retained.\nLet E be a finite-dimensional real Hilbert Borel space with canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, α‖a‖²≤D²V(x)[a,a]≤β‖a‖² for every x,a, η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ,Z∼N(0,I), and ν=J.snd. Then ν is a probability. There exists one densely defined closable real linear gradient G:L²(ν)⇀L²(ν;E), whose graph consists exactly of AE classes (φ,∇φ) for smooth compactly supported φ, and whose closure has closed graph. For every z in domḠ with ∫z dν=0, [α/(1+αη)]‖z‖²≤‖Ḡz‖². The same G is chosen before every such z. No caller normalization, curvature, Poincare, law, domain, convergence or extra moment certificate is assumed. This is the genuine compact-gradient closure formulation of the source marginal PI; equivalence with a separately defined weighted H1 remains open.\nSource boundary: PBPS2609.06905v1 Eq2.13 and AppendixD.2 D6/D10 feeding C3; original C2, two Hessian bounds,0<alpha<=beta and capped positive eta remain.\nExplicit extension: Finite real Hilbert/Borel including rank0 explicit; exact compact-gradient closure Poincare, not equality to a separately defined weighted H1. Uniform genuine G selected before all centered domain z.\nActual objects: mu=tilt-volume(-V), J=law(X,X+sqrtetaZ), nu=J.snd; G exact smooth compact scalar/vector-L2 graph, actual closure and actual normalized mean.\nConsumer: Actual56 SAME-nu Tu/Ku closure pair, derived coefficient alpha/(1+alphaeta) in sourceC3. Focused Test must identify same G by exact graph, combine56 sharp estimate; no caller PI/law/gradient/domain/normalizer/curvature certificate.",
+    "text_sha256": "4d0578bc371effd7f4c1c72a21e7f517cd897372ab358503905e1575feaf5771"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare",
+    "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/GaussianMarginalPoincare.lean",
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    IsProbabilityMeasure ν ∧\n      ∃ G : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν,\n        Dense (G.domain : Set (Lp ℝ 2 ν)) ∧ G.IsClosable ∧ G.closure.IsClosed ∧\n        (∀ (u : Lp ℝ 2 ν) (v : Lp E 2 ν), (u,v) ∈ G.graph ↔\n          ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n            u =ᵐ[ν] φ ∧ v =ᵐ[ν] gradient φ) ∧\n        ∀ z : G.closure.domain,\n          (∫ x, (z : Lp ℝ 2 ν) x ∂ν) = 0 →\n          ((α : ℝ)/(1+(α : ℝ)*η))*‖(z : Lp ℝ 2 ν)‖^2 ≤ ‖G.closure z‖^2",
+    "statement_sha256": "4773ae60f44a4bba65da1a75ad8e25c9de9d8b0bfdf266dbf2e7ef6716ebe91c",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a finite-dimensional real inner-product Borel space with canonical volume, including rank zero. V is C2, alpha,beta nonnegative with alpha>0 and alpha<=beta; the displayed actual global second derivative lies between alpha and beta times squared direction norm. eta>0,beta*eta<=1 retained.",
+      "Measure.tilted is normalized exponential tilting. mu is exactly volume.tilted(-V); J is independent mu times standardGaussian pushforward (x,z)->(x,x+sqrteta*z); nu=J.snd. Probability nu is a conclusion, not a supplied normalization or moment certificate.",
+      "Lp F2nu consists of AE classes of strongly measurable square-integrable functions, with canonical strongly measurable representatives. Finite dimension of E does not make L2nu finite dimensional.",
+      "G is a genuine partially defined real linear map from scalar L2nu to vector L2nu. Graph iff is exact: represented AE by the SAME smooth compact phi and its genuine Euclidean gradient. Domain is dense; closability means topological graph closure single-valued, and G.closure is the resulting closed partial linear map.",
+      "One G and all its exact graph/density/closure properties are chosen BEFORE every z in G.closure.domain. A z is a scalar AE class with actual closed derivative G.closure z. The integral(z)=0 condition restricts the Poincare conclusion to centered z; it is not an extra input assumption on V,nu or a supplied operator.",
+      "The conclusion is [alpha/(1+alpha*eta)]*normz^2 <= norm(G.closure z)^2 for every such centered z. No caller measure/kernel/domain/gradient/curvature/Poincare/convergence certificate, extra moment or compactness of z occurs.",
+      "No separately defined weak-H1 equivalence, onto macroscopic range, defect square root/inverse, dynamics, algorithmic mixing, main result or cost is asserted."
+    ],
+    "compiler_evidence": "runs/20261007-companion-priority/pbps-marginal-poincare57/tests.4.log PASS3904: SAME56 domain/centering C3 and exactrhoC4; main+Test standard3."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/next_primary56",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Own primary57/precision/blueprint CLOSED before candidate; exact1244 independent StatementSeal; original606region/385pin topology review with two historical negatives; distinct consumer overlay acceptance. Final614 raw/LF inputs and602 mathfreeze pins checked, production0 andtests4 nativeEXIT0/CLOSED (no compiler rerun); final header1244 e706b4e6c3c07f58a090ee86cb51dd91be2f11afe707db653737e4983c7181e9. Seven semantic slots, allsix formula steps and actual complete main/Test source-facing objects/contracts/formulas checked against own source. Publication binding cd7704313084137b33ef2cff81e754a65cfe0cee0af14f8eddcacef27de8442e recomputed from native complete bindingpayload; projectedcontext digest is distinct. Decoder native complete-minus-runsha 9f632ccdfc5c98a62526386a54740dfdf8bb2cad163219d21cd3deba7e8e7ed0 valid, sourceTEXTblind and identityfalse. Temporal originalOPENlease receipt explicitly verified against preserved exact739 raw/712LF snapshot; no malformedlocator or repair. Final candidatebody exposed, strict finalbodyblindnessfalse; preproof independent chronology preserved. No wholemathverdict read, no canonicalwrites or automatic theorem/PURIFIED admission.",
+    "review_run_sha256": "35e5f216e513a097ffb3dd8ff41ec3eaab380f5258e274ab9bc5fdbd0e4448f0",
+    "reviewer_packet_sha256": "a2f0d11b4671dcc01db4027c58601ac45b59e2f33846da87bae9b260422a8da3",
+    "run_artifact": "runs/20261007-companion-priority/pbps-marginal-poincare57/source-review57/result0.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "cd7704313084137b33ef2cff81e754a65cfe0cee0af14f8eddcacef27de8442e",
+  "publication_context": {
+    "file": "268f015d5ea781d00bf941077cf0de6b051a4943bddcb2b142ad7e63688a61ff",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient\nimport AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare\nimport AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper\n\n/-!\n# Actual centered Poincare for the Gaussian Gibbs marginal\n\nPBPS arXiv:2609.06905v1 Eq2.13, D.6/D.10 and C.3. The positive C2\nnormalized marginal is derived from the actual Gibbs/Gaussian law. Posterior\ncovariance upper and the existing exact smoothed Hessian upper producer give\nalpha/(1+alpha eta) and beta/(1+beta eta); all moment, partition and law\nadapters are internal. Existing original-domain Poincare is consumed on one\ngenuine smooth-compact gradient closure selected before all centered inputs.\nOriginal C2/two Hessian bounds and positive capped eta remain. Finite Hilbert,\nBorel and rank0 are explicit extensions. This does not identify full weighted\nH1, macro range, Gamma/inverses, dynamics, mixing, main results or query costs.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare\nopen Set MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped RealInnerProductSpace ContDiff NNReal Topology\nnoncomputable section\nset_option autoImplicit false\nset_option backward.isDefEq.respectTransparency false\nset_option maxHeartbeats 1600000\n\ntheorem actual_gaussian_marginal_centered_poincare\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    IsProbabilityMeasure ν ∧\n      ∃ G : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν,\n        Dense (G.domain : Set (Lp ℝ 2 ν)) ∧ G.IsClosable ∧ G.closure.IsClosed ∧\n        (∀ (u : Lp ℝ 2 ν) (v : Lp E 2 ν), (u,v) ∈ G.graph ↔\n          ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n            u =ᵐ[ν] φ ∧ v =ᵐ[ν] gradient φ) ∧\n        ∀ z : G.closure.domain,\n          (∫ x, (z : Lp ℝ 2 ν) x ∂ν) = 0 →\n          ((α : ℝ)/(1+(α : ℝ)*η))*‖(z : Lp ℝ 2 ν)‖^2 ≤ ‖G.closure z‖^2 := by\n  classical\n  letI : CompleteSpace E := FiniteDimensional.complete ℝ E\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n  let Vη := fun y : E => -Real.log (A y)\n  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n  let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)\n  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n  obtain ⟨hZ,hμ,_hlaw,hIA,hIntA,hTilt,hA,hC2,hshift⟩ :=\n    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential\n      hα hV (fun x a => (hH x a).1) hη\n  letI : IsProbabilityMeasure μ := hμ\n  have hpair : Measurable (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) := by fun_prop\n  letI : IsProbabilityMeasure J := Measure.isProbabilityMeasure_map hpair.aemeasurable\n  letI : IsProbabilityMeasure ν := Measure.isProbabilityMeasure_map measurable_snd.aemeasurable\n  have htilt : ν = (volume : Measure E).tilted (fun y => -Vη y) :=\n    (Measure.map_map measurable_snd hpair).trans hTilt\n  have hC : 0<C := by dsimp only [C]; positivity\n  obtain ⟨hRm,_hD,hDD⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC\n  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n    hα (hV.differentiable (by norm_num))\n    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x a => (hH x a).1))\n  have hcov (y : E) : ∀ a : E, covarianceBilin (R y) a a ≤ ‖a‖^2/((α : ℝ)+η⁻¹) := by\n    let W := fun x => V x+η⁻¹/2*‖x-y‖^2\n    have hW : ContDiff ℝ 2 W := hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))\n    have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)\n    have hVdd : Differentiable ℝ (fderiv ℝ V) := (hV.fderiv_right (m:=1) (by norm_num)).differentiable_one\n    have hq (x : E) : HasFDerivAt (fun z => η⁻¹/2*‖z-y‖^2)\n        (η⁻¹ • innerSL ℝ (x-y)) x := by\n      convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul (η⁻¹/2)\n        using 1 <;> first | rfl | (ext a; simp;ring)\n    have hWfd (x : E) : fderiv ℝ W x = fderiv ℝ V x+η⁻¹ • innerSL ℝ (x-y) :=\n      ((hVd x).hasFDerivAt.add (hq x)).fderiv\n    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=\n      {toFun := fun a => innerSL ℝ a\n       map_add' := by intros;ext;simp\n       map_smul' := by intros;ext;simp\n       cont := (innerSL ℝ (E:=E)).continuous}\n    have hWdd (x : E) : HasFDerivAt (fderiv ℝ W)\n        (fderiv ℝ (fderiv ℝ V) x+η⁻¹ • J) x := by\n      rw [show fderiv ℝ W=(fun z => fderiv ℝ V z+η⁻¹ • innerSL ℝ (z-y)) from funext hWfd]\n      convert (hVdd x).hasFDerivAt.add ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const y)).const_smul η⁻¹) using 1 <;> rfl\n    have hb (x a : E) : ((α : ℝ)+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a ∧\n        fderiv ℝ (fderiv ℝ W) x a a ≤ ((β : ℝ)+η⁻¹)*‖a‖^2 := by\n      rw [(hWdd x).fderiv]\n      change ((α : ℝ)+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ∧\n        fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ≤ ((β : ℝ)+η⁻¹)*‖a‖^2\n      rw [real_inner_self_eq_norm_sq]\n      constructor <;> nlinarith [(hH x a).1,(hH x a).2]\n    have hm : 0<(α : ℝ)+η⁻¹ := add_pos hα (inv_pos.mpr hη)\n    have hmM : (α : ℝ)+η⁻¹≤(β : ℝ)+η⁻¹ := by\n      simpa only [add_comm] using (add_le_add_right (show (α : ℝ) ≤ (β : ℝ) from hαβ) η⁻¹)\n    have hiW := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n      hm (hW.differentiable (by norm_num))\n      (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hW (fun x a => (hb x a).1))\n    have hRW : R y=(volume : Measure E).tilted (fun x => -W x) := by\n      dsimp only [R,μ]\n      rw [tilted_tilted hi]\n      congr 1\n      funext x\n      simp only [Pi.add_apply,W]\n      field_simp [hη.ne']\n      ring\n    have hX : MemLp id 2 ((volume : Measure E).tilted (fun x => -W x)) := hRW ▸ (hRm y).2\n    rw [hRW]\n    exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper\n      W hW hiW (integral_exp_pos hiW) ((α : ℝ)+η⁻¹) ((β : ℝ)+η⁻¹) hm hmM\n      (fun x a => (hb x a).1) (fun x a => (hb x a).2) hX\n  have he : U=(fun y => Vη y+Real.log ZV) := funext hshift\n  have hd : fderiv ℝ U=fderiv ℝ Vη := by\n    rw [he]\n    funext y\n    exact fderiv_add_const _\n  change ∀ y a b, fderiv ℝ (fderiv ℝ U) y a b = _ at hDD\n  rw [hd] at hDD\n  let m := (α : ℝ)/(1+(α : ℝ)*η)\n  let M := (β : ℝ)/(1+(β : ℝ)*η)\n  have hden : 0<1+(α : ℝ)*η := by positivity\n  have hbden : 0<1+(β : ℝ)*η := by positivity\n  have hm : 0<m := div_pos hα hden\n  have hmM : m≤M := by\n    dsimp only [m,M]\n    apply (div_le_div_iff₀ hden hbden).2\n    nlinarith [show (α : ℝ) ≤ (β : ℝ) from hαβ]\n  have hlower (y a : E) : m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a := by\n    rw [hDD y a a,real_inner_self_eq_norm_sq]\n    have hp : 0<(α : ℝ)+η⁻¹ := add_pos hα (inv_pos.mpr hη)\n    calc\n      m*‖a‖^2 = ‖a‖^2/η-(‖a‖^2/((α : ℝ)+η⁻¹))/η^2 := by\n        dsimp only [m]\n        field_simp [hη.ne',hp.ne',hden.ne']\n        ring\n      _ ≤ ‖a‖^2/η-covarianceBilin (R y) a a/η^2 :=\n        sub_le_sub_left (div_le_div_of_nonneg_right (hcov y a) (sq_nonneg η)) _\n  have hupper : ∀ y a : E, fderiv ℝ (fderiv ℝ Vη) y a a ≤ M*‖a‖^2 :=\n    (AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper\n      (show 0<α from hα) hαβ hV hH hη).2\n  have hI : Integrable (fun y => Real.exp (-Vη y)) (volume : Measure E) := by\n    have hexp (y : E) : Real.exp (-Vη y)=A y := by\n      dsimp only [Vη];rw [neg_neg,Real.exp_log (hA y)]\n    simpa only [hexp] using hIA\n  have hZη : 0<∫ y, Real.exp (-Vη y) ∂(volume : Measure E) := integral_exp_pos hI\n  obtain ⟨G,hDense,hClose,hClosed,hGraph⟩ :=\n    GaussianMarginalGradient.gaussian_marginal_gradient_closable μ hη\n  refine ⟨inferInstance,G,hDense,hClose,hClosed,hGraph,?_⟩\n  have hPI : ∀ (D : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν), D.IsClosable →\n      (∀ (a : Lp ℝ 2 ν) (F : Lp E 2 ν), (a,F) ∈ D.graph ↔\n        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n          a =ᵐ[ν] φ ∧ F =ᵐ[ν] gradient φ) →\n      ∀ z : D.closure.domain, (∫ x, (z : Lp ℝ 2 ν) x ∂ν)=0 →\n        m*‖(z : Lp ℝ 2 ν)‖^2 ≤ ‖D.closure z‖^2 := by\n    rw [htilt]\n    exact CenteredDomainPoincare.gibbs_centered_domain_poincare\n      Vη hC2 hI hZη m M hm hmM hlower hupper\n  exact hPI G hClose hGraph\n\nend\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "PBPS arXiv2609.06905v1; fixedMathlib; Lean4.33.0",
+      "anchor": "PBPS2609.06905v1 Eq2.13 and AppendixD.2 D6/D10 feeding C3; original C2, two Hessian bounds,0<alpha<=beta and capped positive eta remain.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS-authored actual marginal centered-domain PI for Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, fixed PBPS Eq2.13/D6/D10/C3; genuine compact closure and finite Hilbert/Borel/rank0 explicitly scoped. Actual same-law C3/C4 consumers, not fullH1/B13/Gamma/main/composition."
+    },
+    "statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, α‖a‖²≤D²V(x)[a,a]≤β‖a‖² for every x,a, η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ,Z∼N(0,I), and ν=J.snd. Then ν is a probability. There exists one densely defined closable real linear gradient G:L²(ν)⇀L²(ν;E), whose graph consists exactly of AE classes (φ,∇φ) for smooth compactly supported φ, and whose closure has closed graph. For every z in domḠ with ∫z dν=0, [α/(1+αη)]‖z‖²≤‖Ḡz‖². The same G is chosen before every such z. No caller normalization, curvature, Poincare, law, domain, convergence or extra moment certificate is assumed. This is the genuine compact-gradient closure formulation of the source marginal PI; equivalence with a separately defined weighted H1 remains open.",
+    "formulae": [
+      {
+        "label": "Poincare for the actual Gaussian Gibbs marginal",
+        "tex": "\\nu=\\operatorname{Law}(X+\\sqrt\\eta Z),\\quad m_\\eta=\\frac{\\alpha}{1+\\alpha\\eta};\\qquad\\forall z\\in\\operatorname{dom}\\overline G,\\ \\int z\\,d\\nu=0\\Rightarrow m_\\eta\\|z\\|_{L^2(\\nu)}^2\\le\\|\\overline Gz\\|_{L^2(\\nu;E)}^2."
+      }
+    ],
+    "assumptions": [
+      "Finite real Hilbert/Borel E with canonical volume, including rank0 explicit source extension.",
+      "V C2,0<α≤β and both global Hessian bounds;η>0 andβη≤1. The cap is retained although standalone PI needs less; actual sharp source consumer uses it.",
+      "Uniform genuine G before all centered z in its closed domain. Centering restricts the PI conclusion; no supplied operator/domain/law/PI or extra moment certificate.",
+      "Ḡ is exactly the closed smooth-compact gradient. Separately defined source weakH1 and onto macro range equivalences are not inferred."
+    ],
+    "obligations": [
+      {
+        "id": "actual-marginal-poincare",
+        "label": "Actual normalized marginal centered compact-domain PI and real SAME56 consumer"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "FullH1/macro-range/B13/Gamma/main/error/cost/composition open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare",
+      "title": "Poincare for the actual Gaussian Gibbs marginal",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS2609.06905v1 Eq2.13 and AppendixD.2 D6/D10 feeding C3; original C2, two Hessian bounds,0<alpha<=beta and capped positive eta remain.",
+          "scope": "Actual normalized Gibbs/Gaussian marginal nu has one genuine dense closable compact-gradient G and closed closure, selected before every centered z in its domain; alpha/(1+alpha eta)||z||²<=||Gbar z||². Original C2/two global Hessian bounds,0<alpha<=beta,eta>0,beta eta<=1 retained; finite Hilbert/Borel/rank0 explicitly extends source Euclidean setting. Actual56 SAME T/K image and internally derived stationarity/centering consume this for C3 and exactrho contraction. Full weakH1/macro-range/B13/Gamma/dynamics/main/errors/cost/composition remain open."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianMarginalPoincare"
+      ],
+      "assumptions": [
+        "Finite real Hilbert/Borel E with canonical volume, including rank0 explicit source extension.",
+        "V C2,0<α≤β and both global Hessian bounds;η>0 andβη≤1. The cap is retained although standalone PI needs less; actual sharp source consumer uses it.",
+        "Uniform genuine G before all centered z in its closed domain. Centering restricts the PI conclusion; no supplied operator/domain/law/PI or extra moment certificate.",
+        "Ḡ is exactly the closed smooth-compact gradient. Separately defined source weakH1 and onto macro range equivalences are not inferred."
+      ],
+      "statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, α‖a‖²≤D²V(x)[a,a]≤β‖a‖² for every x,a, η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ,Z∼N(0,I), and ν=J.snd. Then ν is a probability. There exists one densely defined closable real linear gradient G:L²(ν)⇀L²(ν;E), whose graph consists exactly of AE classes (φ,∇φ) for smooth compactly supported φ, and whose closure has closed graph. For every z in domḠ with ∫z dν=0, [α/(1+αη)]‖z‖²≤‖Ḡz‖². The same G is chosen before every such z. No caller normalization, curvature, Poincare, law, domain, convergence or extra moment certificate is assumed. This is the genuine compact-gradient closure formulation of the source marginal PI; equivalence with a separately defined weighted H1 remains open.",
+      "formula": "\\nu=\\operatorname{Law}(X+\\sqrt\\eta Z),\\quad m_\\eta=\\frac{\\alpha}{1+\\alpha\\eta};\\qquad\\forall z\\in\\operatorname{dom}\\overline G,\\ \\int z\\,d\\nu=0\\Rightarrow m_\\eta\\|z\\|_{L^2(\\nu)}^2\\le\\|\\overline Gz\\|_{L^2(\\nu;E)}^2.",
+      "steps": [
+        {
+          "title": "Derive the actual marginal law and its potential",
+          "text": "Original lower curvature and C2 yield positive finite ZV and probability μ. The existing smoothed Gibbs producer gives Aη(y)=cη∫exp(−V(x)−‖y−x‖²/(2η))dx, positive C2 Vη=−logAη, ∫Aη=ZV and the exact actual add-noise law ν=volume.tilted(−Vη). The normalized negative-log density Uη differs from Vη by logZV; no normalizer or law equality is supplied.",
+          "formula": "\\nu=\\mathrm{vol}.\\mathrm{tilted}(-V_\\eta),\\quad A_\\eta=e^{-V_\\eta}>0,\\quad\\int A_\\eta=Z_V>0,\\quad U_\\eta=V_\\eta+\\log Z_V.",
+          "lean": "SmoothedGibbsPotential.smoothed_gibbs_potential; htilt; hIA; hIntA; hA; hC2; hshift; Measure.map_map"
+        },
+        {
+          "title": "Produce the true conditional covariance bound",
+          "text": "The actual Gaussian derivative producer supplies probability and vectorL2 moments of R_y=μ.tilted(x↦−‖x−y‖²/(2η)). Derive R_y=volume.tilted(−W_y) with W_y(x)=V(x)+‖x−y‖²/(2η). Its genuine Hessian lies between α+η⁻¹ and β+η⁻¹. Strong convexity gives exp-L1 and a positive partition internally. Existing original-domain covariance upper applies to the actual posterior and its produced moments; no covariance or moment certificate is a theorem premise.",
+          "formula": "W_y(x)=V(x)+\\frac{\\|x-y\\|^2}{2\\eta},\\quad(\\alpha+\\eta^{-1})I\\preceq D^2W_y\\preceq(\\beta+\\eta^{-1})I,\\quad\\operatorname{Var}_{R_y}\\langle a,X\\rangle\\le\\frac{\\|a\\|^2}{\\alpha+\\eta^{-1}}.",
+          "lean": "GaussianConvolutionRegularity.gaussian_convolution_derivatives; hRm; hcov; hWdd; hb; hiW; hRW; GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper"
+        },
+        {
+          "title": "Obtain both exact marginal curvature constants",
+          "text": "The actual normalized Hessian identity and additive partition shift imply D²Vη(y)[a,a]=‖a‖²/η−CovR_y(a,a)/η². The produced covariance upper gives mη=α/(1+αη). Reuse the already verified generic SmoothedHessianUpper producer for Mη=β/(1+βη); it retains the true Cramer-Rao/posterior inputs and is not replaced by a coarse certificate. α≤β gives mη≤Mη.",
+          "formula": "D^2V_\\eta(y)[a,a]=\\frac{\\|a\\|^2}{\\eta}-\\frac{\\operatorname{Cov}_{R_y}(a,a)}{\\eta^2},\\quad0<m_\\eta=\\frac\\alpha{1+\\alpha\\eta}\\le M_\\eta=\\frac\\beta{1+\\beta\\eta},\\quad m_\\eta I\\preceq D^2V_\\eta\\preceq M_\\eta I.",
+          "lean": "hDD; he; hd; hlower; SmoothedHessianUpper.smoothed_hessian_upper; hupper; hm; hmM"
+        },
+        {
+          "title": "Apply Poincare on the genuine closed gradient domain",
+          "text": "The actual Gaussian marginal gradient producer constructs the dense smooth-compact graph G, closability and its closed closure. The actual potential has exp-L1 and a positive partition from step1. The existing centered-domain Poincare producer applies to this exact G under both derived curvature bounds. Thus one G works for every centered member of its genuine closed domain. This is a scoped closure result; the original source weakH1 identification remains a separate obligation.",
+          "formula": "\\operatorname{graph}G=\\{([\\varphi],[\\nabla\\varphi]):\\varphi\\in C_c^\\infty\\},\\quad\\overline{\\operatorname{dom}G}=L^2(\\nu),\\quad\\int z\\,d\\nu=0\\Rightarrow m_\\eta\\|z\\|^2\\le\\|\\overline Gz\\|^2.",
+          "lean": "GaussianMarginalGradient.gaussian_marginal_gradient_closable; hI; hZη; CenteredDomainPoincare.gibbs_centered_domain_poincare; hPI"
+        },
+        {
+          "title": "Derive domain agreement and centeredness for the real mean",
+          "text": "The real consumer obtains G56,T56,K56 from the actual rough mean-gradient theorem. The two exact compact graph iff statements over the same ν imply G56=G57 and hence equality of their closures; the genuine pair (T56u,K56u) transfers internally. Actual55 constructs the literal reflected Markov S with a conditional joint Λ and both marginals ν. Using actual56 AE source means and actual disintegration gives ∫T56u dν=∫u dν for every L2 input. Thus centered u gives centered T56u; no output-centering/domain certificate is supplied.",
+          "formula": "G_{56}=G_{57},\\quad(Tu,Ku)\\in\\operatorname{graph}\\overline G;\\quad\\Lambda=\\nu\\otimes S,\\ \\Lambda_2=\\nu\\Rightarrow\\int Tu\\,d\\nu=\\int u\\,d\\nu.",
+          "lean": "Tests.GaussianMarginalPoincare.actual_same_mean_centered_contraction; hSameG; LinearPMap.eq_of_eq_graph; hcompS; hMean; hPreserve; Measure.integral_compProd; integral_map"
+        },
+        {
+          "title": "Consume the exact source C3 and sharp C4 estimate",
+          "text": "For centered u the preceding derived domain and centering allow PI on Tu: mη‖Tu‖²≤‖Ku‖². Combine it with actual56 sharp energy η‖Ku‖²≤c(‖u‖²−‖Tu‖²), c=(1−αη)²/[4(1+αη)]. Explicit scalar algebra yields (1+αη)²‖Tu‖²≤(1−αη)²‖u‖². Original α≤β and βη≤1 make ρ=(1−αη)/(1+αη) nonnegative, so squared comparison gives ‖Tu‖≤ρ‖u‖, including αη=1 without dividing by1−αη. Full macro-range, H1 and Γ identity are separate.",
+          "formula": "m_\\eta\\|Tu\\|^2\\le\\|Ku\\|^2,\\quad\\eta\\|Ku\\|^2\\le\\frac{(1-\\alpha\\eta)^2}{4(1+\\alpha\\eta)}(\\|u\\|^2-\\|Tu\\|^2)\\Rightarrow\\|Tu\\|\\le\\frac{1-\\alpha\\eta}{1+\\alpha\\eta}\\|u\\|.",
+          "lean": "hC3; hSharp; hP; hSharp′; hSq; hSq′; sq_le_sq₀"
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, α‖a‖²≤D²V(x)[a,a]≤β‖a‖² for every x,a, η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ,Z∼N(0,I), and ν=J.snd. Then ν is a probability. There exists one densely defined closable real linear gradient G:L²(ν)⇀L²(ν;E), whose graph consists exactly of AE classes (φ,∇φ) for smooth compactly supported φ, and whose closure has closed graph. For every z in domḠ with ∫z dν=0, [α/(1+αη)]‖z‖²≤‖Ḡz‖². The same G is chosen before every such z. No caller normalization, curvature, Poincare, law, domain, convergence or extra moment certificate is assumed. This is the genuine compact-gradient closure formulation of the source marginal PI; equivalence with a separately defined weighted H1 remains open.",
+      "lean_proof": "Derive the actual marginal law and its potential; Produce the true conditional covariance bound; Obtain both exact marginal curvature constants; Apply Poincare on the genuine closed gradient domain; Derive domain agreement and centeredness for the real mean; Consume the exact source C3 and sharp C4 estimate",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare.gibbs_centered_domain_poincare",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper"
+      ],
+      "mathlib_dependencies": [
+        "Measure.map_map",
+        "Measure.tilted_tilted",
+        "integral_exp_pos",
+        "fderiv_add_const",
+        "LinearPMap.eq_of_eq_graph",
+        "Measure.disintegrate",
+        "Measure.integral_compProd",
+        "integral_map",
+        "sq_le_sq₀"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare",
+      "role": "proof-edge",
+      "supports": [
+        "actual-marginal-poincare"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "PBPS2609.06905v1 Eq2.13 and AppendixD.2 D6/D10 feeding C3; original C2, two Hessian bounds,0<alpha<=beta and capped positive eta remain.",
+        "lean": "mu=tilt-volume(-V), J=law(X,X+sqrtetaZ), nu=J.snd; G exact smooth compact scalar/vector-L2 graph, actual closure and actual normalized mean."
+      },
+      {
+        "source": "Source Euclidean weighted-H1 marginal Poincare and C3.",
+        "lean": "Finite real Hilbert/Borel including rank0 explicit; exact compact-gradient closure Poincare, not equality to a separately defined weighted H1. Uniform genuine G selected before all centered domain z."
+      },
+      {
+        "source": "C3 applies PI to centered actual Af; C4 sharp energy yields macroscopic contraction.",
+        "lean": "Test identifies SAME56 compact gradient, derives integral preservation and centeredness from actual55 law, then exactrho on real L2(nu)."
+      },
+      {
+        "source": "Whole macro-range, fullB13/Gamma/dynamics/main/errors/cost/composition.",
+        "lean": "Actual normalized Gibbs/Gaussian marginal nu has one genuine dense closable compact-gradient G and closed closure, selected before every centered z in its domain; alpha/(1+alpha eta)||z||²<=||Gbar z||². Original C2/two global Hessian bounds,0<alpha<=beta,eta>0,beta eta<=1 retained; finite Hilbert/Borel/rank0 explicitly extends source Euclidean setting. Actual56 SAME T/K image and internally derived stationarity/centering consume this for C3 and exactrho contraction. Full weakH1/macro-range/B13/Gamma/dynamics/main/errors/cost/composition remain open."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be a finite-dimensional real inner-product space equipped with its Borel measurable structure and canonical volume measure. The zero-dimensional case is included. Let V : E -> R be twice continuously differentiable. Let alpha and beta be nonnegative real numbers with alpha > 0 and alpha <= beta, and let eta be real with eta > 0 and beta eta <= 1. Assume, for every x,v in E, that\nalpha ||v||^2 <= (D(DV)(x)[v])[v] <= beta ||v||^2.\nHere D(DV)(x)[v] is the derivative of the derivative of V at x applied to v, and its value is then applied to v again.\nDefine mu = volume.tilted(x -> -V(x)), using normalized exponential tilting. Thus the measure is the normalized exponential tilt of canonical volume by exp(-V); this is the actual named measure construction, with its normalization built into tilted. Define J to be the pushforward of mu tensor stdGaussian(E) under (x,w) -> (x, x + sqrt(eta) w), and define nu to be the second marginal of J. The standard Gaussian is on E and is independent of the mu coordinate in this product construction.\nThen nu is a probability measure, and there exists one partially defined real linear operator G from L^2(nu; R) to L^2(nu; E) with all the following properties. Its domain is dense in L^2(nu; R). It is closable, and its graph-closure operator Gbar is closed. For every u in L^2(nu; R) and v in L^2(nu; E), (u,v) is in the graph of G if and only if there exists a single infinitely continuously differentiable compactly supported function phi : E -> R such that u = phi nu-almost everywhere and v = grad(phi) nu-almost everywhere, using the genuine Euclidean gradient of that same phi.\nFor this same G, for every z in the domain of Gbar, if integral z dnu = 0, then\n[alpha / (1 + alpha eta)] ||z||_{L^2(nu; R)}^2 <= ||Gbar z||_{L^2(nu; E)}^2.\nElements of these L^2 spaces are almost-everywhere classes of strongly measurable square-integrable functions; the displayed integral uses the canonical representative of the scalar class. Gbar z is the actual closed derivative determined by the closure of the exact graph just specified. The density, closability, closedness and exact graph properties belong to the single existentially chosen operator before the universal quantification over centered z. No measure, kernel, domain, gradient operator, curvature certificate, Poincare certificate, moment certificate, or convergence certificate is provided as an additional hypothesis. The statement does not assert an independently defined weak-H^1 identification, surjectivity, inverse or square-root operators, dynamics, algorithmic mixing, a broader result, or a cost estimate.",
+    "text_sha256": "46ea13a8b6d17d653c115f72a6c7ec0f21081aabe761151d8172e4a1ab713080",
+    "decoder": "/root/fresh_blind_decoder57",
+    "decoder_run_sha256": "9f632ccdfc5c98a62526386a54740dfdf8bb2cad163219d21cd3deba7e8e7ed0",
+    "decoder_packet_sha256": "330933e8a5db6c9aa8d8786468de1c453177f0fb880cb3f0ce26c4b89d4ee8e2",
+    "source_text_visible": false,
+    "lean_statement_sha256": "4773ae60f44a4bba65da1a75ad8e25c9de9d8b0bfdf266dbf2e7ef6716ebe91c",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "runs/20261007-companion-priority/pbps-marginal-poincare57/anonymous-decoder/packet0.json",
+        "bytes": 4384,
+        "raw_sha256": "bad5b11677bce7072460be706caa71ceaa994ba445a59948bc1a4e848cbb384b",
+        "lf_sha256": "fe27b94e5761f9317ddd061ff0199254f049bac6cc07f31feb39a0429294aa24"
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/pbps-marginal-poincare57/anonymous-decoder/result0.json",
+    "run_binding": "runs/20261007-companion-priority/pbps-marginal-poincare57/anonymous-decoder/run.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "PBPS actual mu=normalized exp(-V) volume, J=law(X,X+sqrtetaZ), nu=pi_eta^Y; source marginal U_eta negative-log normalized density; actual gradient of scalar observables.",
+      "reconstructed": "Same exact let-bound tilted-volume mu, independent standardGaussian product pushforward J and J.snd nu. One real partial-linear G from scalar L2nu to vector L2nu; exact graph iff a single smooth compact phi and its genuine gradient AE.",
+      "relation": "explicit-elaboration",
+      "evidence": "Own primary57 contract and Eq2.13/D10/C3 anchors predate candidate; exact1244 header and blind reconstruction agree. Main internally obtains actual normalized Gibbs law from SmoothedGibbsPotential, U_eta=Veta+logZV; Hessians agree through additive constant. No arbitrary measure/operator or unrelated Gaussian law."
+    },
+    "domains": {
+      "original": "Printed Euclidean R^d, actual marginal probability, smooth marginal PI extended in source weightedH1 convention; C3 applies to centered Af. This review targets the attributed compact-gradient-closure component, fullH1 identification remains separate.",
+      "reconstructed": "Finite real Hilbert/Borel carrier with canonical volume inclrank0 explicit extension; true scalar/vector Lp2 AE classes under actualnu. G dense,closable; Gbar closed. All z in Gbar.domain with meanzero have the same derivative. Ambient L2 is not assumed finite-dimensional.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source-first57 and own accepted1244 StatementSeal disclose finiteHilbert/rank0 and scoped compact closure. Probability makes scalarL2 inputs L1 so mean condition is meaningful; vectorLp derivative remains genuine. Neither caller domain nor sourceweakH1 equality added. Original606region topology and distinct7node/7edge overlay preserved."
+    },
+    "quantifiers": {
+      "original": "Under standing source assumptions, the actual marginal PI has fixed coefficient and gradient independent of each centered observable. Density/closedness is an analytic ingredient, not a caller convergence certificate.",
+      "reconstructed": "IsProbabilityMeasure nu and EXISTS ONE G with dense/closable/closed/exactcore properties BEFORE FORALL z:Gbar.domain, integralz=0 implies PI. FORALL u,v in graph iff requires one same phi. Test obtains uniform56G,T,K and keeps SAME T/K for allroughu.",
+      "relation": "explicit-elaboration",
+      "evidence": "Exact1244 binder order and decoder reconstruction match own frozen preproof seal. Actual Test internally proves G56=G57 from both exact graph iff, transfers closure pair, then invokes PI. No z-dependent gradient choice, supplied equality/domain convergence or pointwise-every-y rough claim."
+    },
+    "assumptions": {
+      "original": "V C2;0<alpha<=beta;global alpha||a||²<=D²V(x)[a,a]<=beta||a||² for everyx,a;eta>0 betaeta<=1; actual Gibbs/Gaussian laws derived under these assumptions.",
+      "reconstructed": "All original hAlpha,hAlphaBeta,hV,hH lower AND upper,hEta,hBetaEta retained. NNReal nonnegativity is typing. No added normalizer/moment/law/curvature/PI/stationarity/domain certificate, no higher derivative/smaller cap.",
+      "relation": "same",
+      "evidence": "Main and exact header preserve unused-in-standalone hbetaeta, with actual sharp consumer using the cap. CompleteSpace E is constructed internally from finite-dimensional realHilbert E; not a public binder. Conditional W_y curvature and normalization/moment/partition prerequisites are derived internally using existing producer contracts."
+    },
+    "conclusion": {
+      "original": "D6 plus Eq2.13/D10 supplies Var_nu(g)<=((1/alpha)+eta) integral||gradg||²; C3 centered Af has variance equal squarednorm. Attributed bounded target is the genuine centered compact-gradient-closure PI.",
+      "reconstructed": "nu probability; genuine G with closedclosure; for every centeredz in its closure domain, alpha/(1+alphaeta)||z||²<=||Gbarz||². Real SAME56 Test derives integralTu=integralu, m||Tu||²<=||Ku||² and exactrho contraction.",
+      "relation": "equivalent",
+      "evidence": "Reciprocal coefficient equals1/((1/alpha)+eta), alphaeta positive. Closed gradient statement is exact1244, unchanged from seal. Six-step authored formulas track actual law, posterior covariance, both marginal curvature bounds, original-domain PI and actual consumer. Test retains SAME pair and literal reflected mean, not a scalar/norm-only certificate wrapper."
+    },
+    "scopes": {
+      "original": "Source PI on actual nu and C3/C4 are inputs toward LemmaB1; source weakH1, macroH_P identification, fullB13/Gamma and lateralgorithm results require separate adapters.",
+      "reconstructed": "Explicitly scoped compact-gradient-closure PI plus Test on actual centered L2nu T56/K56. Printed sourceC3/C4 not rewritten. FiniteHilbert/rank0 extension attributed. FullweakH1/onto macro range/fullB13/Gamma/halfturn/dynamics/main/errors/cost/composition remain OPEN.",
+      "relation": "explicit-elaboration",
+      "evidence": "Publication, lesson, cell source_detail_audit and module scope agree. Original two missing consumer paths remain historically negative; separately reviewed overlay is now source-consistent in actual Test body. FullsourceH1 is neither a new premise nor silently discharged. No whole-paper/VERIFIED/PURIFIED/main/live inference."
+    },
+    "constant_dependencies": {
+      "original": "Marginal curvature m_eta=alpha/(1+alphaeta), upper beta/(1+betaeta); PI constant1/alpha+eta. C2 c=(1-alphaeta)²/[4(1+alphaeta)] and C4rho=(1-alphaeta)/(1+alphaeta), endpointalphaeta1 permitted.",
+      "reconstructed": "Same m_eta; beta enters retained assumptions and derived exact upper curvature M_eta; generic SmoothedHessianUpper reused. Test combines same56 sharpc with derivedm; original cap gives0<alphaeta<=1 andnonnegativerho.",
+      "relation": "same",
+      "evidence": "D10 Hessian I/eta−cov/eta², posterior uppercov1/(alpha+eta^-1), exact marginal lower m. NormalizedU_eta/sourceVeta additive shift leaves Hessian unchanged. Test denominator1+alphaeta positive and no division by1-alphaeta; includesallowedendpoint, dimension-independent m and no eta prefactor silently altered."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Finite real Hilbert/Borel including rank0 explicitly extends printed Euclidean presentation; ambientL2 not finite-dimensional.",
+      "evidence": "Independent source classification: explicit-attributed-background-extension; explicitly nonblocking."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "Genuine compact-gradient closure PI and actualL2nu SAME56 C3/C4 consumer; separately defined weakH1 and onto macroH_P equivalence/fullB13/Gamma are not claimed.",
+      "evidence": "Independent source classification: explicit-scoped-authored-integration; explicitly nonblocking."
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "Reused source unnormalized SPHMC Veta differs from PBPS normalized marginal negative-log Ueta by logZV; actualtilted law and Hessian identities are matched internally, no literal potential equality assumed.",
+      "evidence": "Independent source classification: notation-resolution; explicitly nonblocking."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration"
+}

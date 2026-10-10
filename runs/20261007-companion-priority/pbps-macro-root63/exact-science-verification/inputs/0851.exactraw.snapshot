@@ -1,0 +1,71 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarRealDomain
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarSubgradient
+
+/-!
+# Real support inequality on the proper Rockafellar effective domain
+
+`ProperSupportsAt` is the honest extended-real support relation produced by the
+Rockafellar construction.  Once both the contact point and a comparison point
+lie in the effective domain, the `WithTop ℝ` inequality can be reflected back
+to an ordinary real inequality for `finitePart`.
+
+This module performs only that conversion.  It does not identify the supporting
+vector with a gradient; that requires the separate local-support uniqueness and
+differentiability nodes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingRockafellarRealSupport
+
+open PairingRockafellarPotential PairingRockafellarSubgradient
+open PairingRockafellarRealDomain
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- An extended-real supporting vector becomes an ordinary supporting
+inequality for `finitePart` after restricting the comparison point to the
+finite effective domain. -/
+theorem finitePart_support_on_effectiveDomain
+    {Phi : E → WithTop ℝ} {x y : E}
+    (hsupport : ProperSupportsAt Phi x y) :
+    ∀ z, z ∈ EffectiveDomain Phi →
+      finitePart Phi x + inner ℝ y (z - x) ≤ finitePart Phi z := by
+  rcases hsupport with ⟨rx, hx, hsupport⟩
+  intro z hz
+  have hzlt : Phi z < ⊤ := hz
+  have hcoe :
+      (((rx + inner ℝ y (z - x) : ℝ) : ℝ) : WithTop ℝ) ≤
+        ((finitePart Phi z : ℝ) : WithTop ℝ) := by
+    rw [coe_finitePart_of_lt_top hzlt]
+    exact hsupport z
+  have hreal : rx + inner ℝ y (z - x) ≤ finitePart Phi z :=
+    WithTop.coe_le_coe.mp hcoe
+  have hxreal : finitePart Phi x = rx := by
+    simp [finitePart, hx]
+  rw [hxreal]
+  exact hreal
+
+/-- Specialized consumer-facing form for points of a closed-chain-monotone
+relation. -/
+theorem finitePart_support_on_effectiveDomain_of_mem
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChain.PairingClosedChainMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma) :
+    ∀ z, z ∈ EffectiveDomain (properRockafellarPotential base Gamma) →
+      finitePart (properRockafellarPotential base Gamma) x +
+          inner ℝ y (z - x) ≤
+        finitePart (properRockafellarPotential base Gamma) z :=
+  finitePart_support_on_effectiveDomain
+    (properSupportsAt_of_mem hbase hclosed hxy)
+
+end
+
+end PairingRockafellarRealSupport
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,142 @@
+import Mathlib.Analysis.Normed.Operator.Basic
+
+/-!
+# Continuous-linear semigroups and right generators
+
+This file formalizes the operator-theoretic calculation behind Chewi's
+Definition 1.2.3 and Proposition 1.2.5.  It keeps the function space and
+continuity topology explicit: a semigroup acts by continuous linear maps on a
+real normed space, and its generator is represented by a right-hand difference
+quotient in that norm topology.
+
+The results below prove that the generator domain is preserved by the
+semigroup, that the generator commutes with the semigroup on this domain, and
+that the right time-difference quotient of the orbit has the claimed limit.
+They do not construct a concrete Langevin semigroup or identify its generator
+with a differential operator.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace OperatorGenerator
+
+open Filter Set
+open scoped NNReal Topology
+
+noncomputable section
+
+variable {M : Type*} [NormedAddCommGroup M] [NormedSpace ℝ M]
+
+/-- A nonnegative-time semigroup of continuous linear operators on a real
+normed space. -/
+structure ContinuousLinearSemigroup (M : Type*) [NormedAddCommGroup M]
+    [NormedSpace ℝ M] where
+  op : ℝ≥0 → M →L[ℝ] M
+  op_zero : op 0 = ContinuousLinearMap.id ℝ M
+  op_add : ∀ s t, op (s + t) = (op s).comp (op t)
+
+/-- Application form of the semigroup law. -/
+theorem ContinuousLinearSemigroup.op_add_apply
+    (S : ContinuousLinearSemigroup M) (s t : ℝ≥0) (f : M) :
+    S.op (s + t) f = S.op s (S.op t f) := by
+  rw [S.op_add]
+  rfl
+
+/-- Operators in a one-parameter semigroup commute. -/
+theorem ContinuousLinearSemigroup.op_comm_apply
+    (S : ContinuousLinearSemigroup M) (s t : ℝ≥0) (f : M) :
+    S.op s (S.op t f) = S.op t (S.op s f) := by
+  calc
+    S.op s (S.op t f) = S.op (s + t) f :=
+      (S.op_add_apply s t f).symm
+    _ = S.op (t + s) f := by rw [add_comm]
+    _ = S.op t (S.op s f) := S.op_add_apply t s f
+
+/-- The right difference quotient used to define the infinitesimal generator
+in the chosen norm topology. -/
+def rightDifferenceQuotient (S : ContinuousLinearSemigroup M)
+    (h : ℝ≥0) (f : M) : M :=
+  ((h : ℝ)⁻¹) • (S.op h f - f)
+
+/-- `g` is the right-generator value of `f` when the semigroup difference
+quotient converges to `g` through strictly positive times. -/
+def HasRightGeneratorAt (S : ContinuousLinearSemigroup M)
+    (f g : M) : Prop :=
+  Tendsto (fun h : ℝ≥0 => rightDifferenceQuotient S h f)
+    (nhdsWithin 0 (Ioi 0)) (𝓝 g)
+
+/-- The domain of the right generator in the chosen norm topology. -/
+def generatorDomain (S : ContinuousLinearSemigroup M) : Set M :=
+  {f | ∃ g, HasRightGeneratorAt S f g}
+
+/-- The right difference quotient commutes with every semigroup operator. -/
+theorem rightDifferenceQuotient_map
+    (S : ContinuousLinearSemigroup M) (t h : ℝ≥0) (f : M) :
+    rightDifferenceQuotient S h (S.op t f) =
+      S.op t (rightDifferenceQuotient S h f) := by
+  unfold rightDifferenceQuotient
+  rw [S.op_comm_apply h t f]
+  rw [← (S.op t).map_sub]
+  rw [(S.op t).map_smul]
+
+/-- The generator graph is invariant under the semigroup, and the generator
+commutes with the semigroup on its domain. -/
+theorem HasRightGeneratorAt.map
+    {S : ContinuousLinearSemigroup M} {f g : M}
+    (hfg : HasRightGeneratorAt S f g) (t : ℝ≥0) :
+    HasRightGeneratorAt S (S.op t f) (S.op t g) := by
+  unfold HasRightGeneratorAt at hfg ⊢
+  have hop :
+      Tendsto (S.op t) (𝓝 g) (𝓝 (S.op t g)) :=
+    (S.op t).continuous.continuousAt
+  have hmapped :
+      Tendsto (fun h : ℝ≥0 => S.op t (rightDifferenceQuotient S h f))
+        (nhdsWithin 0 (Ioi 0)) (𝓝 (S.op t g)) :=
+    hop.comp hfg
+  simpa only [rightDifferenceQuotient_map] using hmapped
+
+/-- In particular, the right-generator domain is preserved by the semigroup. -/
+theorem generatorDomain_map
+    (S : ContinuousLinearSemigroup M) {f : M}
+    (hf : f ∈ generatorDomain S) (t : ℝ≥0) :
+    S.op t f ∈ generatorDomain S := by
+  rcases hf with ⟨g, hfg⟩
+  exact ⟨S.op t g, hfg.map t⟩
+
+/-- The forward right difference quotient of the semigroup orbit at time `t`. -/
+def rightOrbitDifferenceQuotient (S : ContinuousLinearSemigroup M)
+    (t h : ℝ≥0) (f : M) : M :=
+  ((h : ℝ)⁻¹) • (S.op (t + h) f - S.op t f)
+
+/-- Semigroup algebra rewrites the orbit quotient at time `t` as the generator
+quotient applied to `S.op t f`. -/
+theorem rightOrbitDifferenceQuotient_eq
+    (S : ContinuousLinearSemigroup M) (t h : ℝ≥0) (f : M) :
+    rightOrbitDifferenceQuotient S t h f =
+      rightDifferenceQuotient S h (S.op t f) := by
+  unfold rightOrbitDifferenceQuotient rightDifferenceQuotient
+  rw [add_comm t h]
+  rw [S.op_add_apply h t f]
+
+/-- Chewi's backward-equation calculation, in a precise right-difference
+quotient form: if `g` is the generator value of `f`, then the orbit derivative
+at time `t` converges to `S.op t g`, and this is also the generator value of
+`S.op t f`. -/
+theorem kolmogorov_backward_right
+    (S : ContinuousLinearSemigroup M) {f g : M}
+    (hfg : HasRightGeneratorAt S f g) (t : ℝ≥0) :
+    HasRightGeneratorAt S (S.op t f) (S.op t g) ∧
+      Tendsto (fun h : ℝ≥0 => rightOrbitDifferenceQuotient S t h f)
+        (nhdsWithin 0 (Ioi 0)) (𝓝 (S.op t g)) := by
+  have hmap := hfg.map t
+  constructor
+  · exact hmap
+  · simpa only [HasRightGeneratorAt, rightOrbitDifferenceQuotient_eq] using hmap
+
+end
+
+end OperatorGenerator
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

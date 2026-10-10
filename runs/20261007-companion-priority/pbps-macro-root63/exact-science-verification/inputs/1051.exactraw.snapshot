@@ -1,0 +1,67 @@
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.MeasureTheory.Measure.Restrict
+
+/-!
+# Support information under finite-measure normalization
+
+The Brenier perturbation later normalizes equal positive-mass local slices to
+probability measures before taking a finite product.  This module records the
+small bridge needed for that step: if a nonzero finite measure is dominated by
+an ambient restriction to a measurable set, then its normalized probability
+measure lies in that set almost surely.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace NormalizedFiniteMeasure
+
+open MeasureTheory Set
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X] [Nonempty X]
+
+/-- Domination by a restriction forces the dominated measure to give zero mass
+to the complement. -/
+theorem compl_null_of_toMeasure_le_restrict
+    (mu ambient : FiniteMeasure X) {s : Set X}
+    (hs : MeasurableSet s)
+    (hle : (mu : Measure X) ≤ (ambient : Measure X).restrict s) :
+    (mu : Measure X) sᶜ = 0 := by
+  have hrest : ((ambient : Measure X).restrict s) sᶜ = 0 := by
+    rw [Measure.restrict_apply hs.compl]
+    simp
+  exact nonpos_iff_eq_zero.mp ((hle sᶜ).trans_eq hrest)
+
+/-- A positive finite measure dominated by an ambient restriction gives
+probability one to that restriction set after normalization. -/
+theorem normalize_apply_eq_one_of_toMeasure_le_restrict
+    (mu ambient : FiniteMeasure X) {s : Set X}
+    (hs : MeasurableSet s) (hpos : 0 < mu.mass)
+    (hle : (mu : Measure X) ≤ (ambient : Measure X).restrict s) :
+    (mu.normalize : Measure X) s = 1 := by
+  have hmassne : mu.mass ≠ 0 := ne_of_gt hpos
+  have hmune : mu ≠ 0 := mu.mass_nonzero_iff.mp hmassne
+  have hmucompl : (mu : Measure X) sᶜ = 0 :=
+    compl_null_of_toMeasure_le_restrict mu ambient hs hle
+  have hnormcompl : (mu.normalize : Measure X) sᶜ = 0 := by
+    rw [mu.toMeasure_normalize_eq_of_nonzero hmune]
+    simp [hmucompl]
+  exact (prob_compl_eq_zero_iff hs).mp hnormcompl
+
+/-- Almost-sure form consumed directly by product-probability arguments. -/
+theorem ae_mem_of_toMeasure_le_restrict
+    (mu ambient : FiniteMeasure X) {s : Set X}
+    (hs : MeasurableSet s) (hpos : 0 < mu.mass)
+    (hle : (mu : Measure X) ≤ (ambient : Measure X).restrict s) :
+    ∀ᵐ x ∂(mu.normalize : Measure X), x ∈ s := by
+  exact (mem_ae_iff_prob_eq_one hs).2
+    (normalize_apply_eq_one_of_toMeasure_le_restrict mu ambient hs hpos hle)
+
+end
+
+end NormalizedFiniteMeasure
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,22 @@
+import os,sys,json,subprocess,traceback
+from pathlib import Path
+import verify68 as R
+O=R.O;pin=R.pin;save=R.save;get=R.get;now=R.now
+def owned(exclude=()):return [pin(p) for p in sorted(O.rglob('*')) if p.is_file() and p.relative_to(O).as_posix() not in exclude]
+def finalize():
+ R.finalchecks();assert get('verification-verdict.json')['status']=='OBSTRUCTED_EXACT_SCI68_NO_VERIFIED'
+ labels=['freeze-v2','focused','native-v2','bindings-v5','scans','gates','remaining','obstruction'];terminals={n:get(n+'.terminal.json') for n in labels}
+ for n,t in terminals.items():assert t['exit_code']==(1 if n=='gates' else 0) and t['terminal_closed']
+ active=['finalize.stdout.log','finalize.stderr.log','finalize.terminal.json']
+ payload=dict(name='COMPLETE_NAMED_RAW_INDEPENDENT_EXACT_SCI68_VERIFICATION_PAYLOAD',actor=R.ACTOR,checked_commit=R.SCI,parent=R.BASE,complete_native_verdict=get('verification-verdict.json'),complete_RAW_LF_input_manifest=get('inputs.manifest.json'),complete_exact_Git_blob_manifest=get('Git.blobs.manifest.json'),actual_stage_terminals=terminals,all_observer_and_gate_failures=[dict(file=p.name,complete_record=R.read(p)) for p in sorted(O.glob('*.failure.json'))],negative_resolutions=get('observer-failure-resolutions.json'),postcommit_receipt_classification=get('postcommit-receipt-boundary.json'),owned_pre_payload_outputs=owned(exclude=active),active_terminal_outputs_bound_by_final_lease=active,VERIFIED=False,ledger_append=False,closure_self_layers='Final CLOSED_LAST lease binds every owned file except itself; its own RAW independently read after close.')
+ save('named-verification.payload.json',payload)
+ rows=owned(exclude=active+['outputs.manifest.json','run.json','lease.final.json']);save('outputs.manifest.json',dict(file_count=len(rows),rows=rows,self_layers='Manifest/run/finalizer/readback/close receipts and all helper/failure layers bound by final CLOSED_LAST lease.'))
+ run=dict(schema_version=1,status='OBSTRUCTED_EXACT_SCI68_NO_VERIFIED',actor=R.ACTOR,checked_commit=R.SCI,parent=R.BASE,actual_finalizer_PID=os.getpid(),utc=now(),input_manifest=pin(O/'inputs.manifest.json'),input_count=get('inputs.manifest.json')['input_count'],Git_blob_manifest=pin(O/'Git.blobs.manifest.json'),native_verdict=pin(O/'verification-verdict.json'),named_complete_RAW_review=pin(O/'named-verification.payload.json'),outputs_manifest=pin(O/'outputs.manifest.json'),focused_actual_Lake_PID=get('focused.result.json')['receipt']['actual_foreground_PID'],focused_EXIT=0,standard3_declarations=3,required_frontier_PID=25248,required_frontier_EXIT=1,exact_source_audits=2,separate_Test_source_review=True,source_slots=21,retained_nonblocking_deltas=15,strict_BODY_spans=11,fakeclosures=0,private_mathematical_providers=0,required_gate_not_bypassed=True,ledger_append=False,VERIFIED=False,canonical_Git_or_ledger_writes=False,full_Exposition=False,PURIFIED=False,whole_paper=False,Goal=False,logical_hash_policy='Canonical sorted compact JSON of WHOLE run object after deleting ONLY top-level run_sha256.',named_RAW_policy='Complete exact named-verification.payload.json bytes, distinct from whole logical run and simple verdict RAW.',closure_policy='CLOSED_LAST lease final owned write covers all owned/self/helper/negative/terminal layers; read-only postclose measures actual lease RAW.')
+ run['run_sha256']=R.logical(run);save('run.json',run);print(json.dumps(dict(status='FINALIZED_OBSTRUCTION',actual_PID=os.getpid(),whole_logical_run_sha256=run['run_sha256'],complete_named_RAW=run['named_complete_RAW_review'])))
+def readback():
+ p=subprocess.Popen([sys.executable,'-B','-X','utf8',str(O/'readonly68.py'),'preclose'],cwd=R.ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE);out,err=p.communicate();(O/'readback.validator.stdout.log').write_bytes(out);(O/'readback.validator.stderr.log').write_bytes(err);save('readback.validator.terminal.json',dict(actual_parent_PID=os.getpid(),actual_readonly_validator_PID=p.pid,exit_code=p.returncode,terminal_closed=True,stdout=pin(O/'readback.validator.stdout.log'),stderr=pin(O/'readback.validator.stderr.log')));assert p.returncode==0;print(out.decode(),end='')
+if __name__=='__main__':
+ try:globals()[sys.argv[1]]()
+ except Exception as e:
+  if not(O/'lease.final.json').exists():save((sys.argv[2] if len(sys.argv)>2 else sys.argv[1])+'.failure.json',dict(actual_PID=os.getpid(),utc=now(),error=repr(e),traceback=traceback.format_exc()))
+  raise

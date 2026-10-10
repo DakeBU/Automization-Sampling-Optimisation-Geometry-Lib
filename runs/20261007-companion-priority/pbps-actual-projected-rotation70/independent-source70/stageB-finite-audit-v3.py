@@ -1,0 +1,11 @@
+import pathlib
+p=pathlib.Path(__file__).with_name('stageB-finite-audit.py')
+s=p.read_text(encoding='utf-8').replace("s['lean'].encode()==raw.rstrip(b'\\n')", "s['lean'].encode()==raw")
+s=s.replace("stageB.exact-header-and-eight-BODY-audit.json", "stageB.exact-header-and-eight-BODY-audit.v3.json")
+s=s.replace("assert before!=after and '\\\\\\\\' not in after", "assert before==after and chr(92)+chr(92) not in before")
+s=s.replace("formula_changes.append(", "formula_changes.append(")
+s=s.replace("'eight_formula_changes':formula_changes", "'eight_formula_checks':formula_changes")
+s=s.replace("'decision':'recommend both reader corrections; no mathematical statement repair'", "'decision':'recommend only the two stale dead_code_audit reader fields; all eight formulas already have correct single TeX backslashes; no mathematical statement repair'")
+s=s.replace("website/scripts/declaration_lessons.py:159 places the unnormalized formula directly inside MathJax display delimiters via base.esc; main formula uses single TeX backslashes, eight step formulas incorrectly contain double literal backslashes.", "website/scripts/declaration_lessons.py:159 places formula values inside MathJax display delimiters via base.esc. Direct UTF-8 byte inspection confirms correct single TeX backslashes in all eight steps. An earlier nested-repr misreading was withdrawn; failed checks retained.")
+s=s.replace("'reader_formula_repairs':8", "'reader_formula_repairs':0")
+exec(compile(s,str(p),'exec'))

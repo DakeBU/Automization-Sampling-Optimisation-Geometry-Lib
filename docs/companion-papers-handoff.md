@@ -1,5 +1,1584 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS bounded-test outer square-integral continuity (2026-10-11)
+
+Independent exact-science commit dd3a23011b91569acbcd591ccd7b06301147d339. Retain the full actual83 physical
+phase contract and the original six analytic hypotheses. Derive, rather than
+assume, the exact conditional Gibbs probability q_y and initial phase law
+nu_y=q_y x N(0,I). For each fixed y,xRef, every continuous real test with
+|f|<=M and M>=0 has state-measurable actual clock expectation A_t f(z).
+Its square discrepancy is integrable under nu_y and bounded everywhere by4M².
+The actual83 expectation limit holds for every initial phase. Finite-probability
+filter dominated convergence therefore gives integral (A_t f-f)² dnu_y ->0
+at ordinary nonpunctured NNReal0. No phase invariance is a premise of this
+bounded-test argument, and no samplewise AS limit is inferred.
+
+The source uses C_c; bounded real C_b and explicit4M² are attributed ASTIS
+elaborations. The same Z precedes every test and bound; rank0 and M=0 are
+included. Eight exact contiguous formula/BODY regions passed independent
+mathematics, fresh source-blind decoding and anti-anchored source review.
+The independently rebuilt/reviewed source graph has47inventory/23nodes/
+39relations:37dependency rows including5futureOPEN and2excluded associations.
+Normalization alternatives remain whole OR routes with their ingredients AND.
+The future density node is distinct from invariant-law/Jensen contraction.
+
+This closes the bounded-test outer square-integral ingredient. Full all-L2
+equivalence-class operators, phase invariance, Jensen/contraction and C_c
+density remain OPEN, along with actual restart/Markov/semigroup/hypocoercivity,
+implementation/error/unbounded expected oracle cost/main and PBPS-SPHMC
+composition. TV does not transfer unbounded expected costs. Continue the current
+PBPS/SPHMC dependencies/composition, then Gaussian Cloud, then midpoint without
+adding higher derivative assumptions. Select the next strict mathematical edge
+from the current capsule and independently reconstructed primary-source graph.
+
+This VERIFIED child uses the existing sole stabilization lane. Local aggregate84
+passed (root9195, Tests9495, Registry533), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
+/graph checks are bound in84 integration.corrected.notes.json. Generated HTML contains eight
+exact adjacent step Lean regions, all initially folded. The current affected static
+SVG was rendered and actually viewed with exact RAW pins. Actual reader page and
+interactive visual acceptance, main merge/PURIFIED/live and full-paper/Goal
+completion remain separate.
+
+
+## Actual PBPS bounded-test clock expectation (2026-10-10)
+
+Independent exact-science commit 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. For each fixed y,xRef,z0 and every
+continuous real test f on phase space with a global bound |f|<=M and M>=0, the
+actual clock pullback f(Z_t) is measurable and integrable for every finite t>=0.
+The same actual phase representative satisfies
+|E_P f(Z_t)-f(Phi_t z0)| <= 2M (1-exp(-Lambda(z0,t))).
+On the measurable phase-flow defect event, the difference is bounded by2M;
+off that event it is zero. Integrating its indicator under the actual probability
+law and applying the independently verified first-event defect bound proves the
+estimate. Continuity of Phi and Lambda at0, Lambda0=0, a squeeze and addition give
+E_P f(Z_t)->f(z0) at ordinary nonpunctured NNReal0. No samplewise almost-sure
+convergence is inferred from the preceding convergence-in-probability result.
+
+All original six dynamics hypotheses, eleven literal actual definitions and all
+prior covered/fallback/common-AE/initialization/defect clauses remain intact. A
+single existential phase precedes all f and M. Rank0, M=0, threshold-zero null
+inputs and infinite waits are included. The C_b test class and explicit2M bound
+are attributed ASTIS elaborations of AppendixA1 Ex22's C_c pointwise ingredient.
+Eight contiguous formula/BODY regions passed independent mathematics, a fresh
+source-blind decoder and anti-anchored exhaustive primary-source review. The
+independently reviewed source graph keeps the optional epsilon/delta branch's
+two ingredients conjunctive and its whole route optional; the excluded-boundary
+association is explicitly not a proved dependency.
+
+This closes a bounded clock-expectation prerequisite. Outer L2 continuity still
+requires its invariant phase law, Jensen/contraction and density arguments.
+Markov/restart/semigroup/invariance/hypocoercivity, actual implementation/error/
+unbounded expected oracle cost/main theorem and PBPS-SPHMC composition remain OPEN.
+TV does not transfer unbounded expected costs. No uniform parameter conclusion
+or arbitrary correlated clock replacement is inferred. Continue PBPS/SPHMC and
+composition, then Gaussian Cloud, then midpoint without extra higher derivatives.
+The next bounded candidate is84: measurability of the actual state-to-clock
+expectation and its outer squared-integral limit for bounded continuous tests,
+under the internally normalized exact conditional Gibbs position x standard
+Gaussian momentum law. This bounded subclass can use finite-probability4M2
+domination without presupposing process invariance. Its source-only inventory,
+graph and candidate are frozen in pbps-outer-bounded-l2-preread84 and bound by
+83 next-source84.readiness.json. Independent topology review and any separately
+reviewed exact repair remain required before header/Statement Seal/proof search.
+No84 Lean header, proof, claim or theorem credit exists at this checkpoint.
+All-L2 contraction/density/invariance remain distinct OPEN dependencies. Select
+work from the current capsule and these exact source anchors, not old counts.
+
+This VERIFIED child uses the existing sole stabilization lane. Local aggregate83
+passed (root9194, Tests9494, Registry532), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
+/graph checks are bound in83 integration.notes.json. Generated HTML contains eight
+exact adjacent step Lean regions, all initially folded. The current affected static
+SVG was rendered and actually viewed with exact RAW pins. Actual reader page and
+interactive visual acceptance, main merge/PURIFIED/live and full-paper/Goal
+completion remain separate.
+
+
+## Actual PBPS zero-time stochastic continuity (2026-10-10)
+
+Independent exact-science commit 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. The actual physical phase now obeys
+P[Z_t != Phi_t(z0)] <= 1-exp(-Lambda(z0,t)), with the event measurable, for every
+fixed y,xRef,z0 and finite t>=0. The zeroth coordinate under the actual exponential
+product has Exp(1) law, so the already proved inverse-hazard survival probability
+applies to the actual first wait. Before that wait, the initialized live interval
+gives Z_t=Phi_t(z0). The defect event is contained in the first-event event; it is
+not asserted equal, because an ineffective bounce or later return is possible.
+
+For each real delta>0, the measurable phase norm-tail probability tends to0 as
+NNReal t tends to0 in its ordinary nonpunctured neighborhood filter. Flow continuity
+at0 and Lambda0=0 prove this by an eventual inclusion and probability squeeze.
+The explicit source energy-cap Ct alternative is optional and unused. Finite/top
+waits, rank0, threshold0 null inputs, halfopen endpoints and all prior measurable
+representative/covered/fallback/common-AE clauses remain intact. All original six
+analytic hypotheses are retained; no phase or probability-law producer is a premise.
+
+Nine exact formula/BODY regions passed independent mathematical review, a fresh
+source-blind reconstruction and primary-first exhaustive source coverage. A stale
+prospective-header docstring and premature survival-step bound were corrected as
+documentation only; the mathematical statement and BODY remained byte-identical.
+This is the pointwise actual smalltime prerequisite of AppendixA1 Ex22. Full L2
+strong continuity still requires its separate invariant-law/Jensen/contractivity,
+dominated-convergence and density arguments. Process Markov/restart/semigroup,
+invariance/hypocoercivity, implementation/error/query-cost/main and actual-input
+PBPS-SPHMC composition remain OPEN. No arbitrary correlated input substitution or
+uniform parameter event/limit is inferred. TV does not transfer unbounded costs.
+
+Continue dependency-ready actual PBPS/SPHMC and composition work, then Gaussian
+Cloud, then midpoint with no added higher derivatives. Select one next bounded
+mathematical edge from the current capsule and source anchor, not old counts.
+This VERIFIED child uses the sole existing stabilization lane. Local aggregate82
+passed (root9193, Tests9493, Registry531), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
+/graph checks are bound in82 integration.notes.json. Generated HTML content and
+initially folded exact Lean regions passed. Current affected static SVG was rendered
+and actually viewed with exact RAW pins. Actual reader page/interactive visual acceptance, main
+merge/PURIFIED/live and full-paper/Goal completion remain separate.
+
+The next bounded source-only candidate is actual bounded-continuous-test
+integrability and expectation continuity at0, consuming this actual82 theorem
+internally. Source Ex22 uses compactly supported continuous tests; the bounded
+continuous extension is explicitly an ASTIS elaboration. Its frozen source
+inventory/graph and optional-route supplement are under
+`runs/20261007-companion-priority/pbps-bounded-test-preread83/` and mechanically
+RAW-checked by82 `next-source83.readiness.json`. Independent source-topology and
+header review are still required before a83 Statement Seal; no83 Lean proof or
+SAU admission is claimed. Convergence in probability does not supply samplewise
+almost-sure convergence for dominated convergence. Outer-state L2, invariance,
+Markov/restart/semigroup and all main/error/cost/composition edges remain OPEN.
+
+
+## Ideal PBPS half-turn returned-position probability kernel (2026-10-10)
+
+Independent exact-science commit 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. The original six analytic conditions
+and literal actual dynamics now produce the ideal exact-reference returned-position
+kernel H_y at pi, jointly Borel in (y,x), with probability fibers. The exact
+conditional reference law q_y is normalized internally via the canonical Gibbs
+and Gaussian conditional-kernel parents. It is not the implemented approximate
+reference law q-hat. Momentum is standard Gaussian, and input association is
+((reference,momentum),actual exponential clock stream), independent as displayed.
+
+The full finite-time origin/terminal live-arc event is proved Borel before product
+Fubini. Hence, for each fixed y,x, this actual product law supports physical
+initialization and a genuine live harmonic arc at pi. The phase0 pushforward is
+dirac(x) x standard Gaussian. The previously verified joint phase and fixed-input
+common-AE all-time properties remain intact, including last-live infinite waits,
+rank0 and explicitly labelled exceptional fallback conventions. No arbitrary
+correlated random-parameter substitution or uniform parameter AE event is inferred.
+
+Ten exact formula/BODY regions passed independent mathematics, source-blind
+reconstruction and source-first coverage review. This closes an ideal initialized
+probability-kernel edge, not an implemented sampler or full PBPS theorem. Full
+random all-time path law/version uniqueness, phase Markov/semigroup/invariance,
+mixing/hypocoercivity, approximate-reference implementation/errors/oracle cost,
+and actual-input PBPS-SPHMC composition remain OPEN. TV proximity never transfers
+unbounded expected cost. Current next work must be selected from the capsule and
+source-ready frontier, not old counts or this list interpreted as invented dependencies.
+
+Priority remains PBPS/SPHMC and actual-input composition, then Gaussian Cloud,
+then midpoint without extra higher derivatives. Preserve older routes/cycles and
+collaborator work. The sole existing stabilization lane carries this VERIFIED
+child. Local aggregate81 passed (root9192, Tests9492, Registry530),
+including canonical tools/astis.py check, ATLAS and fake-closure scans; py_compile
+passed. Publication/site/graph checks are bound in81 integration.notes.json.
+Static SVG was actually viewed and generated HTML content/folding checked. Actual
+page/interactive branch visual acceptance remains pending because the bound
+browser surface has no inspectable tab. Main merge, PURIFIED/Exposition, live delivery and whole Goal
+completion remain separate.
+
+
+## Actual PBPS jointly measurable physical-time phase (2026-10-10)
+
+Independent exact-science commit ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. Actual finite recursion, harmonic
+flow, positive actual inputs and interval coverage are genuine parents. Under
+the original six analytic conditions, the actual phase has a total representative
+jointly Borel in deterministic parameters, finite time and the input stream.
+Every actual covering live interval selects its exact harmonic arc. When no
+interval covers t, the initial-phase fallback is an explicit ASTIS representative
+convention. A last live interval with infinite next wait remains an actual arc.
+
+For every fixed deterministic parameter tuple, one actual-product almost-sure
+event supports all finite times simultaneously and the representative starts
+at z0. The proof derives positive first waiting time from actual positive inputs;
+it does not add a positive-wait, clock, selector or nonexplosion provider premise.
+Joint measurability does not turn these separate fixed-parameter AE statements
+into a uniform event or justify arbitrary correlated random initialization.
+
+Nine complete formula/BODY steps and the exact sealed statement passed independent
+mathematics, source-blind reconstruction and fresh source-first review. Actual
+interval assembly, measurability and fixed-parameter AE initialization are now
+closed within this precise boundary. Path regularity, adaptedness, Markov and
+probability-kernel semantics, invariant law, hypocoercivity, main error and expected
+query cost, and actual-input PBPS-SPHMC composition remain OPEN. These results do
+not complete PBPS or the four-paper Goal; no unbounded cost is transferred by TV.
+
+Next bounded source-only candidate: construct the ideal Algorithm1 returned
+position law H_y from the exact normalized conditional Gibbs reference (2.8),
+Gaussian momentum and independent actual exponential stream, with derived
+initialization law. The independent source-only81 inventory/graph is frozen in
+runs/20261007-companion-priority/pbps-physical-time-law-preread81/. Existing
+conditional/Gaussian APIs still require exact source correspondence checking
+and a frozen Statement Seal before implementation. No81 proof, reference-sampler
+execution, Markov/semigroup/invariance or cost credit is claimed by this preread.
+
+PBPS/SPHMC and their actual-input composition remain first, then Gaussian Cloud,
+then midpoint with no added higher derivative bound. Preserve all older sources,
+routes, cycles and collaborator work. The single existing stabilization lane
+carries this VERIFIED child. Local aggregate80 passed (root9191,
+Tests9491, Registry529), including canonical tools/astis.py check, ATLAS and
+fake-closure scans; py_compile passed. Publication/site/graph checks are bound
+in80 integration.notes.json. Static SVG was actually viewed; generated HTML
+content/folding is checked separately. Actual page/interactive branch visual
+acceptance remains pending because the bound browser surface has no inspectable
+tab. Main merge,
+PURIFIED/Exposition, live deployment and whole-paper/Goal completion remain separate.
+
+
+## Actual PBPS finite physical-time interval coverage (2026-10-10)
+
+Independent exact-science commit 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion76 and
+actual nonaccumulation78 are genuine parents. With the original six analytic
+source conditions and actual countable Exp1 inputs, almost surely every finite
+physical time t belongs to one unique half-open event interval T[n]<=t<T[n+1].
+Its unique actual live record a has a.time<=t and finite nonnegative elapsed
+t-a.time strictly below its own actual next wait, including wait=infinity.
+Zero-length intervals are empty; no strict positive-wait premise is added.
+A stopped next record does not remove the last live harmonic arc.
+
+Nine complete formula/BODY steps and the exact sealed literal statement passed
+independent mathematics, source-blind reconstruction and fresh source-first
+review. Every source inventory node/edge was compared; initialization and
+physical interpolation residuals remain PARTIAL/OPEN. Next bounded boundary is
+a jointly measurable actual phase representative with common-AE all-time arc
+agreement and initialization derived from actual positive inputs. A total
+exceptional extension must be explicit; no global off-null-set uniqueness or
+measurable-selector/clock/nonexplosion certificate may be assumed.
+
+No global physical-time interpolation/measurability/origin, path regularity,
+Markov/invariance/kernel, hypocoercivity/main/error/expected query cost or
+PBPS-SPHMC composition completion follows from interval coverage alone.
+PBPS/SPHMC and actual-input composition remain first, then Gaussian Cloud,
+then midpoint with no extra higher derivative bound. Do not transfer unbounded
+cost by TV. Preserve all older sources, routes, cycles and collaborator work.
+
+The single existing stabilization lane carries this VERIFIED child. Serialized
+local aggregate79 passed (root9190, Tests9490, Registry528), including
+canonical tools/astis.py check, ATLAS and fake-closure scans; py_compile passed.
+Publication/site/graph checks are recorded in79 integration.notes.json. Static
+module SVG was actually viewed; browser page/interactive branch visual
+acceptance remains pending because the available browser surface has no
+inspectable tab. Main merge, PURIFIED/Exposition, live deployment and
+whole-paper/Goal completion remain separate. The explicit direct product import
+is optional purification debt, not a mathematical blocker.
+
+
+## Actual PBPS event-time nonaccumulation (2026-10-10)
+
+Independent exact-science commit bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. The actual finite stopped
+recursion76 and canonical countable exponential product77 are genuine parents.
+Under the original six analytic source hypotheses, for every fixed y/xRef/z0,
+almost surely the actual event times exceed every finite horizon eventually,
+and the sublevel event-index set is finite, including initialization index0.
+Zero cap forces the first positive-threshold update to stop; absorption covers
+all later indices. Positive cap gives T[n]>=sum(k<n,epsilon[k])/C0, including
+stopped infinity times. The actual divergent threshold sums then imply escape.
+No arbitrary iid/energy/cap/clock/recursion/divergence certificate is assumed.
+WithTop atTop is not used as the target: escape does not require eventual stop.
+The source direct Exp mean-one SLLN and the independently verified sufficient
+ASTIS indicator-SLLN route remain explicit alternatives.
+
+Seven complete formula/BODY steps, exact literal private statement and all
+six original conditions passed independent math, blind reconstruction and
+fresh source-first review. Next bounded mathematical boundary: construct the
+actual state at every finite physical time from these finite stopped records,
+including the last active arc on a stopped path; establish its measurability
+and exact finite-prefix agreement before Markov/invariance. No global-path,
+Markov/invariance/kernel, hypocoercivity/main/error/unbounded expected query
+cost/composition claim follows from this clock result alone. Do not transfer
+unbounded costs by TV. PBPS/SPHMC and actual-input composition remain first,
+then Gaussian Cloud, then midpoint without extra higher derivative bounds.
+
+The single existing stabilization lane carries this VERIFIED child. Serialized
+local aggregate78 passed (root9189, Tests9489, Registry527), including
+canonical tools/astis.py check, ATLAS and fake-closure scans; py_compile passed.
+Publication/site/graph checks are recorded in78 integration.notes.json. Static
+module SVG was actually viewed; browser page/interactive branch visual
+acceptance remains pending because the available browser surface has no
+inspectable tab. Main merge, PURIFIED/Exposition, live deployment and
+whole-paper/Goal completion are separate. The stale prospective module prose
+and unused local positivity fact are recorded purification debts; neither
+changes the sealed mathematical contract. Preserve all older work and memories.
+
+
+## Actual countable exponential inputs (2026-10-10)
+
+Independently verified science commit 4f88383540a865aea304c63c40de5a699ea61611.
+The actual countable Exp(1) product is a probability measure; raw coordinate
+and clamped threshold maps are Borel, raw coordinate laws are exactly Exp(1)
+and mutually independent. On one full-measure event all coordinates are
+strictly positive and equal their nonnegative clamps. Threshold partial sums
+diverge almost surely. There are no supplied probability/iid/moment/SLLN
+premises. The sufficient ASTIS indicator-SLLN route and original author direct
+Exp mean-one route are explicitly distinct; the latter remains an open
+background expansion. Seven adjacent formula/BODY steps, independent math,
+blind reconstruction and fresh source-first review accepted the exact module.
+
+Next edge: compose these actual inputs with the verified finite recursion76
+and original-energy waiting increment to obtain event-time nonaccumulation.
+Treat C0=0/positive first threshold separately; positive cap division is used
+only for C0>0. In WithTop NNReal, convergence to infinity uses neighborhoods of
+top or eventual passage above every finite time, not the atTop filter, which
+would require eventually equal to top. No physical-time global process,
+Markov/invariance/kernel, full hypocoercivity/main/error/cap/expected-query
+cost or actual-input composition is admitted. TV proximity does not transfer
+unbounded costs. PBPS/SPHMC plus composition precede Gaussian Cloud, then
+midpoint with no extra higher derivative premise. Preserve older work.
+
+Current local aggregate77 passed: root9188, Tests9488, Registry526,
+ATLAS check and fake-closure scan; tools/astis.py py_compile also passed.
+Publication/site/graph checks are recorded in77 integration.notes.json.
+Static module SVG was viewed; browser page/interactive branch visual
+acceptance is pending because no inspectable browser tab is available. Main merge, PURIFIED/Exposition, live deployment and
+whole-paper/Goal completion remain distinct and unearned.
+
+
+## Exact finite PBPS jump recursion (2026-10-10)
+
+Independent exact science76 VERIFIED commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The actual73 flow, actual74
+bounce/rate and actual75 first hazard clock are genuine formal parents. The
+postjump recursion uses finite(time,phase) or stopped, with event time infinity
+for stopped and no assigned phase there. It follows AppendixA1(A2), retaining
+the original six analytic callers, eleven literal definitions, rank0, alphaeta1,
+zero energy and arbitrary zero thresholds. Joint Borel measurability holds for
+updates, every finite record and event time. Event times are monotone; stopping
+is absorbing. Original energy H(z0) is retained on active states and pre-jump
+arcs, so the same original-energy C0 bounds every outgoing actual rate.
+For C0>0, T[n+1]>=T[n]+e[n]/C0 includes already stopped infinity records.
+For C0=0 and e[n]>0, an active record stops. Zero thresholds give an immediate
+bounce; positive thresholds and active finite successors give strict growth.
+Arbitrary zero thresholds do not yet define a global physical-time phase.
+
+The exact412-line theorem and ten formula/BODY steps passed independent math,
+strict blind reconstruction and fresh source-first anti-anchored review.
+The stale prospective module comment and historical neutral-binder coordinates
+remain explicit nonmathematical debts, with reviewer relocation as evidence.
+Next dependency-ready leaf77 is the actual countable Exp1 product, its a.s.
+positive coordinates and divergent partial sums. Its real consumer is this
+recursion's uniform spacing, then event-time nonaccumulation. No assumed iid
+sequence/provider, nonexplosion, global path/Markov/invariance/kernel, full
+hypocoercivity/main/error/expected-query cost/composition is admitted here.
+TV proximity does not transfer unbounded costs. PBPS/SPHMC and composition
+precede Gaussian Cloud and midpoint. Preserve Chewi/frontiers/cycles/memory.
+
+Serialized local aggregate76: root9187, Tests9487, Registry525;246 publication units.
+One statement and ten formula/BODY steps plus the actual branch were inspected;
+three isolated copy callbacks and three RAW downloads were exact.
+Final current graph/gates are recorded in76 integration.notes.json.
+ExactSCI, aggregate, remoteCI/main/live, Exposition/PURIFIED and full-paper/Goal
+completion remain distinct.
+
+## Exact PBPS first hazard clock (2026-10-10)
+
+Independent exact science75 VERIFIED commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. The actual harmonic flow73
+and actual bounce/rate74 are true formal parents. For the actual rate along Phi,
+Lambda_z(t)=integral_0^t lambda(Phi_s z) ds is jointly continuous/Borel and has
+finite-interval integrability, Lambda(0)=0 and nonnegative monotonicity.
+The continuous-time first crossing tau_z(e)=inf{t>=0:Lambda_z(t)>=e} takes
+values in [0,infinity], with inf(empty)=infinity. Its finite sublevels are
+exactly {e<=Lambda_z(t)}; finite tau attains Lambda(tau)=e, e>0 gives tau>0,
+and tau(0)=0. Joint Borel measurability is proved, not supplied.
+
+The ACTUAL pushforward of Exp(1) under e->tau_z(max(e,0)) is a probability
+measure W_z, with exact strict survival W_z((t,infinity])=exp(-Lambda_z(t)).
+The tail includes infinity. Its actual initial-energy C_z is nonnegative,
+Lambda_z(t)<=C_z*t, C_z>0 implies tau_z(e)>=e/C_z, and C_z=0,e>0 implies
+tau=infinity. No almost-sure finite wait, arbitrary hazard/cap/law provider,
+positive energy/dimension or higher derivative premise is introduced. Original
+six analytic callers and legal rank0/zero-energy/e0/alphaeta1 cases persist.
+Exact396-line module and nine formula/BODY blocks are independently reviewed.
+
+This closes one first-clock law only. Next dependency-ready edge is the actual
+finite stopped postjump recursion(A.2), its joint Borel dependence and inherited
+H(z0) invariant, following source-only preread76. No phase at infinity and no
+global physical-time phase is assigned to arbitrary zero thresholds. iid Exp
+realization, moments/SLLN and nonaccumulation precede global path/Markov proofs.
+Invariance/reversal, terminal kernel, hypocoercivity/main/errors/caps, expected
+query cost and actual-input composition remain open. TV proximity does not
+transfer unbounded costs. Reuse Q_y/same-J and existing reflected-law facts.
+
+Serialized local aggregate75: root9186, Tests9486, Registry524;245 publication units.
+One statement and nine formula/BODY steps plus the actual branch were inspected;
+four isolated copy callbacks and four RAW downloads were exact.
+Final current graph/gates are recorded in75 integration.notes.json. Source review input
+contamination was retained as supplemental evidence and repaired by an exact
+metadata overlay plus a fresh anti-anchored review; it was never source admission.
+ExactSCI, aggregate, remoteCI/main/live, Exposition/PURIFIED and full-paper/Goal
+completion remain distinct. PBPS/SPHMC composition precedes GaussianCloud and
+midpoint; preserve older Chewi/frontiers/cycles/memory.
+
+## Exact PBPS bounce rate (2026-10-10)
+
+Independent exact science74 VERIFIED commit d556a7550f0395d149720da6478bfdfff98368a7. The actual residual is
+h=gradientV(x)-gradientV(xRef), R_h p=p-2 inner(p,h)h/norm(h)^2 with R_0=I,
+S(x,p)=(x,R_h p), lambda=sqrt(eta) max(0,inner(p,h)). The complete ten-clause
+theorem proves joint Borel S, continuous/Borel nonnegative lambda, zero branch,
+involution/norm/pairing laws, actual weighted SUM H conservation and exact
+flipped-rate difference. For E=H(z0), SAME-H-layer z satisfies the two radii and
+lambda(z)<=sqrt(eta) beta sqrt(2E)(sqrt(2 eta E)+norm(c-xRef)),
+c=y-eta gradientV(xRef). Beta-Lipschitz gradient is produced internally at r=0.
+All six original analytic callers persist; no nonzero-normal, positive-energy,
+positive-dimension, higher derivative or supplied-Lipschitz premise is added.
+The exact211-line module and seven formula/BODY steps have independent math,
+strict blind reconstruction, source review and exact-science verification.
+
+This closes actual deterministic jump/rate prerequisites only. The verified
+harmonic flow73 is a sibling for the later path construction, not a74 import.
+Next bounded edge is actual rate-composed-with-flow integrated hazard and first
+clock, following the independent prospective75 source plan. Algorithm1 has no
+refresh clock. Recursive paths, iid clocks/nonexplosion, Markov memorylessness,
+invariance/reversal, terminal kernel, full hypocoercivity/main/errors/caps,
+expected-query costs and actual-input composition remain open. TV proximity
+does not transfer unbounded costs. Existing Q_y/same-J disintegration and actual
+reflected-law relation must be reused; no reference-law duplicate.
+
+Serialized local aggregate74: root9185, Tests9485, Registry523;244 publication units.
+One statement and seven formula/BODY steps plus the actual branch were inspected;
+three isolated copy callbacks and three RAW downloads were exact.
+Final current graph/gates are recorded in74 integration.notes.json. ExactSCI, aggregate,
+remoteCI/main/live, Exposition/PURIFIED and full-paper/Goal completion stay
+distinct. PBPS/SPHMC actual-input composition precedes GaussianCloud/midpoint;
+preserve older Chewi/frontiers/cycles/memory.
+
+## Exact PBPS harmonic flow (2026-10-10)
+
+Independent exact science73 VERIFIED commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. For
+c=y-eta gradientV(xRef), the actual harmonic flow is
+X_t=c+cos(t)(x-c)+sqrt(eta)sin(t)p,
+P_t=-sin(t)/sqrt(eta)(x-c)+cos(t)p.
+The complete nine-clause theorem proves joint continuity and joint Borel
+measurability, zero/group/both inverse laws, the actual two ODE derivatives,
+nonnegativity and conservation of the weighted SUM energy
+(eta^-1 norm(x-c)^2+norm(p)^2)/2, and the exact pi endpoint (2c-x,-p).
+It retains all six original analytic callers; rank0/alphaeta1/zero energy
+remain legal. C2 V and positive eta suffice inside this deterministic proof.
+
+This is an ingredient of Algorithm1/Proposition3.1, not its stochastic
+construction. Actual reflection/bounce/rate, clock measurable recursion,
+nonexplosion, invariance/reversal, actual H/K/B27/B28 and full B4/H1,
+main/error/cap/expected-query-cost/composition results remain open.
+Q_y and same-J Gaussian disintegration and the actual reflected-law relation
+already exist; reuse those before adding any reference-law copy.
+Next source-first bounded edge is the actual bounce/rate ingredient used by
+the half-turn nonexplosion construction. TV does not transfer unbounded cost.
+
+Serialized local aggregate73: root9184, Tests9484, Registry522;243 publication units.
+One statement and six formula/BODY steps plus the actual branch were inspected;
+three isolated copy callbacks and three RAW downloads were exact.
+Final current graph/gates are recorded in73 integration.notes.json. ExactSCI, aggregate,
+remote CI, main/live, full Exposition/PURIFIED and full-paper/Goal completion
+remain distinct. PBPS/SPHMC actual-input composition comes first, then
+GaussianCloud and midpoint; preserve older Chewi/frontiers/cycles/memory.
+
+## Exact PBPS corrector perturbation (2026-10-10)
+
+Independent exact science72 VERIFIED commit 18183c58eee62145b6059ded11c7be05a4cb82de. The same B20 corrector
+on the same centered HP0 obeys C(u+Gamma0 r,v-A0 r)-C(u,v)
+=inner(u,Inv r)+norm(r)^2/2 for every u,v,r in HP0. One reusable complete-real-
+Hilbert algebra leaf is consumed inside the actual PBPS original-six-input
+theorem. Twelve witnesses, all actual71 clauses and the exact half/sign remain.
+Two connected publication cells belong to one SAU; no second SAU or fake consumer.
+Rank0/alphaeta1 remain legal, with no extra caller, onto or higher derivative.
+
+Arbitrary r is not the source r_rho. The actual Algorithm1 half-turn endpoint
+H_y, its joint Borel/nonexplosive construction, reversal and same-J lift, actual
+K/B7/r_rho/B27/B28, full B4/H1, main/error/cap/cost/composition results remain open.
+Q_y and same-J Gaussian disintegration ALREADY exist in
+GaussianConditionalKernel.exists_tilted_isCondKernel; the actual affine reflected
+law relation also exists. Reuse these before introducing any reference-law copy.
+Next source-first work is the earliest deterministic flow/bounce/rate construction
+ingredient with a real Proposition3.1 nonexplosion consumer. The independent
+prospective73 source plan is planning only, no new proof or completion credit.
+
+Serialized local aggregate72:root9183,Tests9483,Registry521;242 publication units.
+Two statements,6+4 exact formula/BODY steps and actual branch were inspected;
+five isolated copy callbacks and five RAW downloads exact. Final graph/gates follow
+these final cell writes and are recorded in72 integration.notes.json. Independent exactSCI, aggregate/reader, remote CI,
+main/live, full Exposition/PURIFIED and whole-paper/Goal completion are distinct.
+PBPS/SPHMC and their actual-input composition precede GaussianCloud and midpoint;
+older Chewi/frontiers/cycles/memory persist. TV does not transfer unbounded cost.
+
+## Actual PBPS corrector change (2026-10-10)
+
+Independently VERIFIED science commit 4e7ce5d2996ffe1d1b0ab570778e02425c6be34e. For SAME actual original globally
+centered f and actual g=U(P-Pperp)f, its actual conditional gP and polar gV obey
+C(gP,gV)-C(fP,fV)=-norm(fP)^2+norm(fV)^2, where
+C(u,v)=(norm(u)^2-norm(v)^2)/2-inner(A0(Inv u),v).
+The half, signs and SAME inverse are exact. Six original analytic callers,
+twelve common witnesses and every parent70 clause persist. Rank0 and
+alphaeta=1 remain legal; no onto, extra regularity, mean or sharp-bound premise.
+The whole528-line module, full private literal and eight exact formula/BODY
+steps have independent math, blind reconstruction and primary-first source review.
+
+This closes the actual discrete B21 ingredient only. Next is B4's exact
+corrector perturbation and its actual-update component/B27 interface, followed
+by the half-turn estimate and full one-step dynamics. H1/B2, invariance/nonexplosion,
+PBPS/SPHMC mains, errors/caps and actual-input expected-query costs/composition
+remain independent. TV proximity does not transfer unbounded costs. Four-paper
+priority, Chewi and older frontiers/cycles/memory persist. Full Exposition/PURIFIED,
+main/live and whole-paper/Goal completion remain unearned.
+
+Serialized local aggregate71: root9181, Tests9481, Registry519;240 publication units.
+One complete statement, eight formula/BODY steps, full private-Prop helper and actual
+branch inspected; three isolated copy callbacks and three RAW downloads exact.
+Current graph regeneration follows these final cell writes; final gates are recorded
+in existing71 integration.notes.json. Current full Python regression and real-browser
+checks use the reviewed helper-aware scripts. Independent repository/reader, remoteCI/main/live and
+full Exposition/PURIFIED remain separate. Previous INT70 site and contributor CI passed;
+its formalization CI status is recorded separately without extrapolation.
+
+## Actual PBPS projected rotation (2026-10-10)
+
+Independently VERIFIED science commit c46af8a55e89419109f654c4553cf527993cbeed. For SAME actual original globally
+centered f and actual g=U(P-Pperp)f, mean(g)=0 is proved internally. The actual
+conditional gP and polar gV satisfy gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV,
+with exact sum-of-squared-norm preservation. All six original analytic callers
+and twelve witnesses persist; rank0 and alphaeta=1 remain legal. There is no
+extra mean premise, RHS-defined output or sharp-energy68 proof dependency.
+The whole544-line module, expanded private literal Prop, eight exact formula/BODY
+steps and seven decoder/source slots have independent math and source review.
+The full private Prop is exposed adjacent to the proof as a proposition definition.
+
+This closes actual projected rotation and pair energy only. Next is the actual
+B21 corrector change on SAME witnesses, then Lemma B4. B4/H1/B2 dynamics,
+invariance/nonexplosion, PBPS/SPHMC mains, implementation errors/caps and actual-input
+expected-query costs/composition remain open. TV proximity does not transfer
+unbounded expected cost. Four-paper priority and all older frontiers/cycles/memory
+persist. Full Exposition/PURIFIED, main/live and whole-paper/Goal completion remain
+unearned. INT69 site CI failed its old helper-panel count; the helper-aware gate
+repair is a separate reviewed code change; fresh local browser checks passed. Remote70 CI remains pending.
+
+Serialized local aggregate70: root9180, Tests9480, Registry518;239 publication units.
+One complete statement, eight formula/BODY steps, full private-Prop helper and actual
+branch inspected; three isolated copy callbacks and three RAW downloads exact.
+Current graph regeneration follows these final cell writes; final gates are recorded
+in existing70 integration.notes.json. Current full Python regression and real-browser
+checks use the reviewed helper-aware scripts. Independent repository/reader, remoteCI/main/live and
+full Exposition/PURIFIED remain separate.
+
+## Actual PBPS reflection intertwining (2026-10-09)
+
+Independently VERIFIED science commit 2d286c283a6fb5dfc13180204bb0da54531a5c67. The SAME actual reflection,
+conditional projection and centered polar maps now give D=R U inclusion and
+V0*D=-A0V0* on the ENTIRE ker P, without an onto-V0 or range restriction.
+Actual AE pullback formulas prove U2=U before the existing block identity is
+used. All six original analytic callers and twelve witnesses persist; rank0
+and alphaeta=1 remain legal. Sharp energy68 is not a proof dependency.
+The whole446-line module, expanded private literal Prop, six exact formula/BODY
+steps and seven decoder/source slots have independent math and source review.
+The complete private Prop is also exposed through the existing adjacent proof
+fold helper; it is a representation, not a proof provider.
+
+This closes the full-micro intertwining ingredient only. Next is the actual
+g=U(P-(I-P))f projected rotation, internally producing mean(g)=0 and actual
+conditional gP/polar gV, then B21 corrector change. Raw header70 is not a proof.
+B4/H1/B2 dynamics, invariance/nonexplosion, full PBPS/SPHMC mains, implementation
+errors/caps and actual-input expected-query costs/composition remain open.
+TV proximity does not transfer unbounded expected cost. Four-paper priority,
+Chewi and all older frontiers/cycles/memory persist. Full Exposition/PURIFIED,
+main/live and whole-paper/Goal completion remain unearned.
+
+Serialized local aggregate69: root9179, Tests9479, Registry517;238 publication units.
+One complete statement, six formula/BODY steps, full private-Prop helper and actual
+branch inspected; three isolated copy callbacks and three RAW downloads exact.
+Current graph regeneration follows these final cell writes; final gates are recorded
+in existing69 integration.notes.json. Python296 evidence is reused from INT64 against
+unchanged tools/site scripts. Independent repository/reader, remoteCI/main/live and
+full Exposition/PURIFIED remain separate.
+
+## Sharp PBPS corrector bound and modified energy (2026-10-09)
+
+Independently VERIFIED science commit 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. The reusable Hilbert estimate
+I+K²=D² gives the exact c/2 bound without finite dimension or nontriviality.
+SAME original PBPS inputs produce K=A0 Inv and D=Inv, hence B23 with 1/(2gamma).
+Every actual globally centered f has its original conditional fP, perpendicular
+component and fV, with norm(fP)²+norm(fV)²<=norm(f)² and the same sharp C bound.
+The genuine original-input Test proves Lemma B3's half/three-halves energy
+equivalence and exact perturbation bound for every0<omegaWeight<=gamma.
+No caller/provider, extra regularity, strict endpoint or nontriviality is added.
+Rank0 and alphaeta=1 remain legal. Full original literal private statements and
+three whole modules have independent math, blind decoding and primary-first
+source review; eleven formula steps have exact adjacent Lean BODY spans.
+The corrected frontier classification records only the evidenced PBPS route;
+the compiled Test is its transitive consumer, not a second consuming route.
+The separately approved S,T notation overlay defines both energy sums in place
+and refreshes the source packet without changing Lean, formulas or proof spans.
+
+This closes sharp corrector energy only. Next dependency-ready source target
+is B21's actual reflection intertwining and then corrector rotation, with the
+exact U(P-Pperp) action and B4 consumer independently checked. The next bounded
+reflection-intertwining Statement Seal69 is accepted but not yet proved.
+H1/B2, B4 dynamics/hypocoercivity, invariance/nonexplosion, main results,
+implementation errors and actual-input expected-query costs/composition remain
+open. TV proximity does not transfer unbounded expected cost. Four-paper
+priority and older routes remain intact. Full Exposition/PURIFIED, merged/live
+and whole-paper/Goal completion remain separate unearned claims.
+
+INT67 38e5f34 has all four exact remote workflows SUCCESS and scoped current
+reader/graph admission. Historical INT66 graph-freshness withholding remains
+historical. Serialized local aggregate68: root9178, Tests9478, Registry516;237 publication units.
+Two statements, eleven exact formula steps and the actual branch inspected;four copy
+callbacks/four RAW downloads exact. Current graph regeneration follows these final
+cell writes, with final gates recorded in the existing68 integration.notes.json.
+Unchanged tools/site-script Python296 evidence is reused from INT64;not rerun.
+Independent repository/reader, remoteCI/main/live/PURIFIED remain separate.
+
+## Same PBPS root and centered inverse commutation (2026-10-09)
+
+Independently VERIFIED science commit 3da29415011a971a65f749502a625e416213f487. The arbitrary-real-L2 positive
+square commutation leaf is now consumed internally for SAME actual PBPS roots.
+Original finite real Hilbert/Borel/C2/two Hessians/positive capped eta callers
+produce Commute Gamma T and GammaP A, the exact selfadjoint restriction A0 on
+SAME HP0, A0²+Gamma0²=I, and SAME inverse selfadjoint/commuting with A0.
+The genuine original-input Test derives K=A0 Inv selfadjoint and I+K²=Inv².
+No positivity of T/A/A0, caller CFC/provider, new nontriviality or strict endpoint
+premise appears. Rank0 and alphaeta=1 remain legal.
+
+Two literal private Prop definitions preserve the complete sealed statements;
+both full modules and ten literal formula/BODY steps have independent math,
+blind decoder and primary-first seven-slot source admission. Reviewed metadata
+accurately attributes older ambient-adjoint Test reconstruction/norm budget,
+links generic background to D1 and lists only used generic Mathlib APIs.
+Next dependency-ready target is printed B20/B23 sharp corrector energy and
+Lemma B3 (B19/B22/B24): exact1/(2gamma), then half/three-halves norm equivalence.
+Its complete draft headers are not proofs, and B21 rotation remains independent.
+Weak H1/B2, dynamics/hypocoercivity/main/invariance/nonexplosion, implementation
+errors and actual-input expected cost/composition remain open. TV proximity
+does not transfer unbounded expected cost. Four-paper priority and older routes
+remain intact; no merged/live/full Exposition/PURIFIED/whole-Goal claim.
+
+INT66 eb3d5ff has all four remote workflows SUCCESS and scoped independent
+science/shared/historical-reader acceptance. Its local final-admin graph cache
+freshness was withheld; this cycle must regenerate against final current cells
+after admin writes. That debt must not be silently upgraded by old receipts.
+Serialized local aggregate67: root9176, Tests9475, Registry514;235 publication units.
+Two statements, ten exact formula steps and the actual branch inspected;four copy
+callbacks/four RAW downloads exact. Current graph regeneration follows these final
+cell writes, with final gates recorded in the existing67 integration.notes.json.
+Unchanged tools/site-script Python296 evidence is reused from INT64;not rerun.
+Independent repository/reader, remoteCI/main/live/PURIFIED remain separate.
+
+## Actual PBPS ambient adjoint and globally centered corrector (2026-10-09)
+
+Independently VERIFIED science commit a115115d42b3fa2b67885d87fe4d5300af36fcd1. SAME original finite real Hilbert
+C2/two Hessian/positive capped eta inputs now produce canonical R:L2(J)->kerP
+with inclusion Rg=g-Pg and Bambient* g=i0 B0* Rg for every joint g.
+For every joint input with zero integral, the actual conditional mean belongs
+to SAME HP0. Its fperp=Rf and fV=V0* fperp satisfy the exact Gamma action,
+orthogonal squared-norm decomposition and contraction. The genuine Test gives
+f=i0 fP+fperp, B*f=GammaP i0 fV and ||fV||^2<=||f||^2-||fP||^2.
+Rank0 and alphaeta=1 remain legal; no premise/provider was added.
+
+Two private full literal Prop definitions preserve the sealed public statements
+and exact caller conditions; both whole modules and their expansions were
+independently reviewed. Six exact BODY formula steps, blind decoder and full
+seven-slot source review accepted the bounded source-derived domain adapter.
+Printed B20 defines the first corrector; the sharp energy estimate is B23 in
+Lemma B.3. Next dependency-ready candidate is SAME actual root/centered-inverse
+commutation, a real printed proof ingredient for B23 and B21 rotation. Existing
+commutation retrieval is RAW and unvalidated, not a public premise or proof.
+Reflection U and conditional half-turn H remain distinct.
+B17/H1/B13/B14, event process/nonexplosion/invariance,hypocoercivity/main,
+implementation errors and actual-input expected queries/composition are open.
+TV proximity transfers no unbounded expected cost. Gaussian Cloud then midpoint
+follow the existing four-paper priority; all older frontiers are preserved.
+
+Previous INT65 31ce36e has scoped independent repository/reader acceptance and
+all four remote formal/site/contributor workflows SUCCESS. The reviewed64
+two-field shared-cell overlay is already applied and is not reapplied here.
+Serialized Registry512/imports/Tests and affected reader/graph gates are pending.
+No merged/live, full Exposition/PURIFIED, whole-paper or Goal claim is made.
+
+Serialized local aggregate66:root9174,Tests9472,Registry512;233
+publication items and contributor/semantic/frontier/site/affected graph PASS.
+Unchanged tools/site-script Python296 regression evidence is reused from exact
+INT64 rather than reported as rerun. One complete statement,all6 formula steps
+and actual branch inspected;two copy callbacks/two RAW source downloads exact.
+Independent repository/exposition admission,remoteCI/main/live/PURIFIED and
+whole-paper results remain separate.
+
+
+## Actual PBPS typed polar isometry and adjoint corrector (2026-10-09)
+
+Independently VERIFIED science commit ecd9d1f10ad0241312492cefacd5fe48c317e9c2. SAME original finite real Hilbert
+C2/two Hessian/positive capped eta inputs now produce the actual typed B16
+B0:HP0->kerP and V0=B0 Inv. The exact closed conditional kernel is distinct
+from global joint centering. B0=V0 Gamma0, V0.adjoint composed V0=I, and
+all-vector norm preservation are proved. Rank0 and alphaeta=1 remain legal.
+
+The original-input Test derives B0.adjoint=Gamma0 V0.adjoint, adjoint
+contraction and V0.adjoint(g-V0(V0.adjoint g))=0. No onto kerP or reverse
+product identity is asserted; no root/gap/unit/H1/floor premise was added.
+Fresh compiler3945/standard3, independent math, blind decoder, source-first
+full seven-slot review and all5 literal BODY formula steps are accepted.
+
+Next dependency-ready candidate: the ambient extension of the printed block
+adjoint and the actual globally centered micro-macro decomposition. This
+closes the domain adapter needed by the first-corrector pairing before B20.
+The SAME root/reflection commutation discovery for B21 is retained RAW and
+unvalidated; it follows this nearer genuine consumer blocker.
+The reflection U and conditional half-turn H are different operators.
+B17/H1/B13/B14, events/nonexplosion/invariance,hypocoercivity/main mixing,
+implementation errors and actual-input expected queries/composition remain
+open. TV proximity transfers no unbounded expected cost. Gaussian Cloud then
+midpoint follow the existing four-paper priority; older frontiers are preserved.
+
+Previous INT64 0aef19c has scoped independent repository/reader acceptance
+with explicit debt and all remote formal/site/contributor workflows SUCCESS.
+Its two stale shared-cell attribution/status fields have a separately reviewed
+exact overlay; other reader/purification debt remains. Serialized Registry511,
+imports/Tests and affected reader/graph gates are pending below. No merged/live,
+full Exposition/PURIFIED, whole-paper or Goal completion is claimed.
+
+Serialized local aggregate65:root9173,Tests9470,Registry511;232
+publication items and contributor/semantic/frontier/site/affected graph PASS.
+Unchanged tools/site-script Python296 regression evidence is reused from exact
+INT64 rather than reported as rerun. One complete statement,all5 formula steps
+and actual branch inspected;two copy callbacks/two RAW source downloads exact.
+Independent repository/exposition admission,remoteCI/main/live/PURIFIED and
+whole-paper results remain separate.
+
+
+## Actual PBPS centered root order and bounded inverse (2026-10-09)
+
+Independently VERIFIED science commit 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Original C2/two global Hessian
+bounds and positive capped eta internally yield the printed B15 operator order
+Gamma0 >= gamma I on the SAME exact complete HP0=ker inner(e1,.), where
+gamma=2sqrt(alpha eta)/(1+alpha eta)>0. Both inverse cancellations and the
+bounded inverse norm <=1/gamma are conclusions. Canonical actual laws/e/U/T
+and SAME GammaP are retained. Rank0 and alphaeta=1 remain legal.
+
+Canonical arbitrary-real-L2 positive square order has a genuine actual B15
+consumer. The actual C4 estimate joins the SAME compact-gradient closure from
+RoughMeanGradient and GaussianMarginalPoincare; no gap/root/onto/unit certificate
+became a public premise. Test derives norm preservation and ker P membership
+of normalized actual leakage directly from original inputs.
+
+Next: B16 polar map from HP0 into the exact closed microscopic complement,
+its factorization and V.adjoint composed V=I. No surjectivity onto the whole
+microscopic space is claimed. H1/B13/B14, events/nonexplosion/invariance,
+hypocoercivity/main mixing, implementation errors and actual-input expected
+query costs/PBPS-SPHMC composition remain separate. Gaussian Cloud then midpoint
+follow the existing four-paper priority. TV proximity transfers no unbounded cost.
+
+Previous integration ee6bdf2 has independent scoped repository/reader admission
+and all GitHub workflows terminal SUCCESS. Serialized Registry510/imports/Tests
+and affected reader/graph gates remain pending below. No merged/live/PURIFIED,
+full paper or whole Goal completion. Earlier checkpoints are preserved.
+
+Serialized local aggregate64:root9172,Tests9468,Registry510;296 Python
+regressions,231 publication items,contributor/semantic/frontier/site and both
+bounded graph checks PASS. Two attributed statements,3+9 formula steps and
+two actual branches inspected. Four isolated copy callbacks/four RAW source
+downloads/all12 folded literals match. Independent repository/exposition
+admission,remoteCI/main/live/PURIFIED and whole-paper results remain separate.
+
+
+## Actual PBPS unique positive macroscopic defect root (2026-10-09)
+
+Independently VERIFIED science commit 4d02622332d02d0bd6c977d3cee48fd535ebf203. SAME original-input stationary
+reflected kernel, real conditional operator T and joint reflection U now feed
+the canonical onto isometry e from marginal L2 to exact complete HP=lpMeas=ran(P).
+A=e T e^-1; B:HP-to-joint is actual leakage. SAME positive real root transports
+to GammaP=e Gamma e^-1, with GammaP^2=I_HP-A^2=B.adjoint composed B, all-macro
+norm/energy and ALL positive same-square macro uniqueness. Alternatives require
+no supplied energy. Fulljoint Gram remains P-AJ^2. C2/two Hessian/positive capped
+eta, rank0 and alphaeta=1 retained; zero extra public certificates/private providers.
+
+Root39868 and independent3376 focused3920, followed by exactSCI63 verifier41344
+focused3920, fresh anonymous decoder and independent primary-first seven-slot
+review/current eight formula steps accepted. The initial
+step3 excerpt binding failure was preserved and only its source span/bytes fixed;
+independent presentation review confirms all8 literal excerpts. Full rendered
+Exposition Seal/post-merge purification remain separate.
+
+The SCI63 remote site and formalization workflows failed at the same Frontier
+Cell process enum/salvage fields, with publication229 passing. The three fields
+were corrected only after exact-review closure; source/Lean/lesson/audit bytes
+and publication binding/context were checked unchanged. Corrected repository
+acceptance still requires the actual serialized gates below.
+
+NEXT mathematical work is centered root restriction/coercivity/invertibility and
+B15 operator lower order/B16 normalized polar isometry. Exact constants:
+rho=(1-alphaeta)/(1+alphaeta), gamma=2sqrt(alphaeta)/(1+alphaeta).
+An inverse belongs only on the centered space; norm lower bounds alone do not
+certify the printed operator order. Genuine earlier sharp Test consumers must
+be connected through their actual production parents, never imported into production.
+H1/event process/nonexplosion/invariance/hypocoercivity/main mixing/implementation
+errors/actual-input expected-query costs and SPHMC composition remain separate.
+Gaussian Cloud then midpoint follow the existing four-paper priority.
+TV proximity transfers no unbounded expected cost.
+
+Previous integration44dc6d6 has independent scoped repository/reader admission and
+all three GitHub workflows terminal SUCCESS, including formalization37833436296.
+Serialized Registry508/imports/Tests and affected reader/graph gates remain pending
+below. No MERGED/live/PURIFIED/full paper/Goal claim. Earlier checkpoints preserved.
+
+Serialized local aggregate63: root9170, Tests9465, Registry508; all296 Python
+regressions,229 publication units, contributor/semantic/frontier/site and bounded
+graph check PASS. Complete statement,8formula steps and same compiled branch
+were visually inspected. Two copy callbacks and two local Lean downloads match
+exact source; all8folded step literals match sealed excerpts. Independent
+repository/exposition admission, integration remote CI,main/live/PURIFIED and
+whole-paper results remain open.
+
+
+## Actual PBPS unique positive real scalar root (2026-10-09)
+
+Independently VERIFIED science commit 9d7f7b640c7cb18fea133ccbd300de129af40b83. Shared Measure/L2RealSquareRootUnique
+proves that bounded positive REAL operators A,B on the SAME arbitrary-measure L2
+with A*A=B*B are equal. Canonical complex lifts, complex positive-root uniqueness
+and real isometry injectivity supply the proof. No finite/probability measure,
+finite L2, Nontrivial or caller CFC/root/energy certificate is assumed.
+
+The actual PBPS consumer retains C2, both global Hessian bounds,0<alpha<=beta,
+eta>0,betaeta<=1, rank-zero extension and legal alphaeta=1. It produces SAME
+stationary reflected S/T/D and positive REAL Gamma from original inputs, then
+proves ALL positive alternative same-square roots equal Gamma. This universal
+quantifier is outside the every-u energy and assumes no alternative energy.
+Root520 and independent3700 focused3918, zero private providers, fresh anonymous
+decoder, primary-first seven-slot source/current seven formula steps pass.
+Exact science verification remains separate from aggregate/reader/remote CI.
+
+NEXT selected mathematical edge is the genuine printed macro B10/B11: canonical
+M onto exact lpMeas=ran(P), same U/T identification, transport via e and typed
+B_macro.adjoint composed B_macro. I_H_P-A_macro^2 holds on H_P; fulljoint defect
+is P-A_joint^2. No fulljoint identity substitution or caller completeness.
+Centered root lower order/inverse/polar, H1/dynamics/nonexplosion/invariance,
+hypocoercivity/main/implementation errors/costs remain separate. SPHMC and
+actual-input precision/expected-query-cost composition remain open;
+TV proximity transfers no unbounded cost. Four-paper priority unchanged.
+
+Previous scalar-root integration d1b150d has independently accepted scoped
+repository/exposition evidence and all three remote CI workflows terminal SUCCESS.
+Serialized aggregate62 PASSES: root9169, Tests9463, Registry507, publication228,
+contributor/semantic/frontier/Python/site and both affected graph checks.
+Eight actual local browser views were inspected: two full statements, seven
+formula proof steps and two compiled Registry-backed branches.
+Independent repository/exposition admission and integration remote CI remain
+separate. Copy-tail and dense graph layout debts remain explicitly recorded.
+No MERGED/live/PURIFIED/full-paper/Goal claim. All earlier checkpoints preserved.
+
+## Actual PBPS positive real scalar root (2026-10-09)
+
+Independently VERIFIED science commit bcd245d90b21b899acb9937fc54dffcea20e86ee. Canonical shared
+Measure/L2RealSquareRoot constructs a bounded positive REAL Gamma for every
+bounded positive real D on arbitrary-measure L2, with Gamma^2=D and
+||Gamma u||^2=<Du,u> for every scalar u. Complex CFC is constructed internally;
+actual antiunitary pointwise conjugation and complex positive-root uniqueness
+prove root preservation of the full real fixed space before descending.
+No finite/probability measure, finite-dimensional L2, nontriviality,
+caller CFC/root/commutation certificate is assumed.
+
+The actual PBPS consumer retains the original C2, both global Hessian bounds,
+0<alpha<=beta, eta>0 and beta*eta<=1, with explicit rank-zero extension and
+legal alpha*eta=1. It internally produces the SAME stationary reflected
+Gaussian S, selfadjoint contractive mean-preserving T and positive D=I-T^2.
+The positive REAL root satisfies ||Gamma u||^2=||u||^2-||T u||^2 for every u;
+the genuine original-input Test also checks ||Gamma u||<=||u||.
+Every-y normalized S density is distinct from per-observable AE action.
+
+Root and independent focused3916, all10 private providers, fresh anonymous
+decoder, primary-first seven-slot source review and nine current formula
+proof steps are scoped evidence. This is the full scalar precursor to B.10-B.11.
+Printed joint Gamma_P additionally requires the SAME canonical M onto ran(P),
+positive-root transport to that closed macro subspace, actual PUP restriction
+and typed B*B identity. P is identity only on ran(P), never the full joint space.
+Exported real uniqueness and the canonical unique root remain separate.
+Centered root order/inverse/polar, weakH1, event dynamics/nonexplosion/invariance,
+hypocoercivity, mixing, implementation error and query costs remain separate.
+SPHMC/composition actual-input precision and expected work remain open;
+TV proximity transfers no unbounded cost. Four-paper priority unchanged.
+
+Earlier complex-lift integration 63c7435 has independently accepted scoped
+repository/exposition evidence and all three remote CI workflows terminal
+SUCCESS; dense reader layout remains explicitly recorded debt.
+Serialized aggregate61 PASSES: root9167, Tests9460, Registry505, publication226,
+contributor/semantic/frontier/Python/site and both affected graph checks.
+Eight actual local browser views were inspected: two full statements, nine
+formula proof steps and two compiled Registry-backed branches.
+Science bcd245d has independent exact-commit verification. Repository/exposition
+seal and integration remote CI remain separate. No MERGED/live/PURIFIED,
+completed paper or Goal. All earlier checkpoints remain.
+
+## Actual PBPS positive complex lift (2026-10-08)
+
+Independently VERIFIED science commit 0a77416f5ec38702c46ec1358966b9dd4846c8d3. The canonical shared
+Measure/L2RealComplexOperator theorem constructs the actual quotient maps
+ofReal/Re/Im/pointwise conjugation on arbitrary-measure real and complex L2.
+The embedding preserves norm and has exactly the full conjugation-fixed range.
+For a bounded positive real D, the actual complex lift satisfies
+Dc g = iota D(Re g) + i iota D(Im g), Dc>=0,
+Dc iota = iota D and C Dc = Dc C. No finite/probability measure,
+finite-dimensional L2, nontriviality or CFC/root certificate is assumed.
+
+The actual PBPS consumer retains the original C2/global lower and upper
+Hessian bounds, 0<alpha<=beta, eta>0 and beta*eta<=1, with the explicit
+rank-zero extension. It internally obtains the SAME verified59 stationary
+reflected Gaussian S, selfadjoint contractive mean-preserving T and positive
+D=I-T^2 on the actual marginal nu, then applies the shared theorem.
+Every-y normalized S density, disintegration and both stationary marginals
+are conclusions; the operator action is AE. Pointwise C is not operator adjoint.
+
+Root focused3915, independent complete mathematics with all26 private providers,
+fresh source/identity-blind decoder and primary-first anti-anchored seven-slot
+source/current eight formula steps pass. Diff-aware publication inventories
+all26 private providers under the accepted public whole-module owner.
+The anonymous Test constructs a COMPLEX positive CFC root with proof-local,
+target-typed fixed-Mathlib instances; it proves no real root or descent.
+
+NEXT bounded mathematical edge: show this complex positive root preserves
+Fix(C), descend it to a bounded positive REAL scalar Gamma with Gamma^2=D,
+and prove ||Gamma u||^2=||u||^2-||T u||^2. This is only a B.11 precursor.
+Printed joint Gamma_P additionally requires the SAME canonical M onto ran(P),
+transport through that isometry and B=(I-P)UP / B*B identification. Source61
+scout confirms these distinct domains; P is identity only on ran(P).
+Conjugation of D alone does not prove conjugation of its root.
+Centered root lower bound/inverse/polar, weakH1, actual event dynamics,
+nonexplosion/invariance, hypocoercivity, mixing, implementation errors and
+query costs remain separate. SPHMC/composition actual-input precision and
+expected work remain open; TV proximity transfers no unbounded cost.
+The older conceptual candidate remains raw/unvalidated; no certified functor
+or conceptual Lean implication is added. The four-paper priority is unchanged.
+
+Serialized aggregate60 PASSES: root9165, Tests9457, Registry503, publication224,
+contributor/semantic/frontier/Python/site and both affected graph checks.
+Eight actual desktop captures were viewed: two exact statements, eight
+formula/boundary steps and two Registry-backed branches. Canonical metadata
+from63 cards is preserved;80 unrelated generator changes were restored.
+Science0a77416f was safely pushed to existing PR315. Repository/exposition
+seals and remote CI remain separate; no MERGED/live/PURIFIED/paper/Goal closure.
+All earlier source/proof/collaborator checkpoints remain below.
+
+## Accepted scoped centered-defect integration59 (2026-10-08)
+
+Science2d6cd016 and serialized integration47a28adf both reached terminal SUCCESS
+in GitHub Lean, site and contributor workflows. The exact47a integration has an
+independent scoped repository/exposition acceptance in
+`runs/20261007-companion-priority/pbps-centered-defect59/repository-exposition-seal59/`;
+root readback is `root.repository-exposition59.adoption.json` beside that folder.
+The post-administration stale graph was archived as a typed negative. The official
+successor changes only its input-digest header, with identical nodes/edges and
+both affected graph checks plus final site validation passing. No mathematics,
+source statement, lesson or semantic binding changed. Draft deployment remains
+skipped; main/live/full Chapter1.3 reader/PURIFIED are not granted.
+
+Next60 is only an unproved real-L2 positive-operator complex-lift candidate with
+actual PBPS D=I-T*T as its internally produced consumer. Both full signatures
+elaborate, but preproof sealing/source topology and actual proofs must precede
+admission. No caller CFC/root/operator certificate or finite-dimensional L2
+assumption is allowed. Real Gamma descent/uniqueness, centered order/inverse/polar
+and the remaining paper/main/error/querycost/composition boundaries remain open.
+Push each meaningful reviewed science milestone and accepted integration.
+
+## Actual PBPS centered squared defect (2026-10-08)
+
+Actual serialized aggregate passes: root9163, Tests9454, Registry501, current
+contributor/publication/semantic/frontier/site gates and both affected graph
+checks. Eight native desktop views of both statements, ten formula steps and
+exact branches were inspected; original reader debts remain explicit. Science
+2d6cd016 was safely pushed to PR315 after a fetch confirmed unchanged main
+c05de12e and preserved all working edits. Its remote contributor CI succeeds;
+Lean/site terminal acceptance and the successor integration commit remain
+separate. Push each meaningful reviewed science/integration milestone.
+
+Independently VERIFIED science commit 2d6cd0167adc4fae1d8d166068a2eda51cd3c3ad. Under the original C2,
+both global Hessian bounds, 0<alpha<=beta, eta>0 and beta*eta<=1, the actual
+reflected Gaussian marginal kernel produces the SAME real L2 operator T.
+Its selfadjointness, mean preservation, canonical constant q, exact closed
+centered kernel H0=L2_0(nu), actual selfadjoint restriction T0, and positive
+full/centered squared defects D=I-T^2,D0=I_H0-T0^2 are proved internally.
+The full D annihilates q; the centered D0 is its actual restriction.
+The real Test consumes exact58 allmacro contraction and the actual M mean
+transport, yielding rho=(1-alpha*eta)/(1+alpha*eta),
+delta=4*alpha*eta/(1+alpha*eta)^2>0,
+inner(D0u,u)>=delta||u||^2 and IsUnit D0 on exactly H0.
+Rank zero is explicitly extended, L2 may be infinite dimensional, and
+alpha*eta=1 is included. Production imports no Tests or copied Poincare proof.
+
+Root focused3911, independent complete mathematics, source/identity-blind
+reconstruction, primary-first anti-anchored seven-slot source review and ten
+current formula-proof steps pass. Two exact definitionally equal syntax
+successors preserve all hypotheses; original negatives and distinct repair
+reviews remain immutable. Exact-science verification is separate from current
+serialized Registry501/root Tests, graph/page gates, repository/exposition
+seals and postmerge purification. Current source outcome is an attributed
+ASTIS squared-defect background completion, not printed B5 block identity
+or Gamma/root/main theorem completion.
+
+The next mathematical boundary is actual positive real Gamma/root construction
+and its exact centered domain/inverse/polar adapter. IsUnit D0 is only the
+centered squared-defect inverse, not Gamma inverse. The previously recorded
+real-to-complex-L2/CFC mechanism remains an unvalidated, uncompiled candidate;
+no caller CFC, finite-L2, extension or root certificate is allowed. Promote
+actual Test-only sharp/inverse consumers into production only through a
+reviewed real interface when needed; production may not import Tests.
+Full weighted weakH1, PBPS event dynamics/nonexplosion/invariance,
+discrete hypocoercivity, mixing, implementation errors and query cost remain
+independent. SPHMC smoothing/Picard/Wp/proxy-warmness and actual-input
+PBPS/SPHMC composition remain open. Gaussian Cloud and midpoint follow the
+active four-paper priority. TV proximity transfers no unbounded expected cost.
+This packet completes neither a paper nor the active Goal.
+
+## Scoped copy/download repair and remote58 acceptance (2026-10-08)
+
+Remote CI accepted exact pushed d9bff202c861985eb444e75d6aa65ec5d65c65cf (Lean, site and contributor); draft deploy skipped. The independently accepted renderer successor ef0784198739f214b1d7bd5883b8f595179e5d04 also reached terminal SUCCESS in all three CI gates; exact receipts live in reader-controls58/remote-successor58/. Independently reviewed successor renderer repairs copy controls and complete-module downloads for the current three58 rows. Nine actual clipboard readbacks and three completed byte-exact downloads passed; original exposition negative remains immutable. Broader Chapter1.3/full reader/PURIFIED and Gamma/root/dynamics/main/cost/composition remain open. Native repair run9a6acb7d81185fc1948808d983843e3298a26d4a5ed747b7395ded5453faac90; root strict201 qualified raw/LF pins. No mathematics changed.
+
+## Actual PBPS macroscopic centered range (2026-10-08)
+
+Independently VERIFIED at 8c8847715c1d4c3033224b069d8dd694f2a4bd30. The canonical real L2 pullback for any
+measure-preserving map has range exactly the comap AE measurable L2 submodule.
+No probability, finite-measure or StandardBorel assumption is added. Applied
+to the actual Gaussian augmentation J and its second marginal nu, it proves
+ran(M)=ran(P), integral_J(Mu)=integral_nu(u), and
+M[L2_0(nu)]=ran(P) intersect L2_0(J). Probability and normalization are derived
+from the standing original C2/two Hessian/positive capped eta assumptions.
+Finite real Hilbert/Borel and rank-zero are disclosed source extensions;
+real L2 may be finite or infinite dimensional.
+
+The real Test identifies the SAME actual55 M/T with canonical pullback and
+actual57 conditional mean. Every centered macro f=Mu therefore satisfies
+||A f|| <= (1-alpha*eta)/(1+alpha*eta)||f|| and
+4*alpha*eta/(1+alpha*eta)^2 ||f||^2 <= ||B f||^2.
+The same reflection and conditional law occur throughout, including rank zero
+and alpha*eta=1. Production imports no Tests and duplicates no Poincare proof.
+These are squared-defect bounds; Gamma positivity/root/uniqueness and inverse
+are independent remaining mathematics.
+
+All three preproof signatures remain exact. Focused3908, complete independent
+mathematics, anonymous source/identity-blind decoder and anti-anchored source
+fidelity pass. Three original metadata negatives and independently reviewed
+editorial overlays remain unchanged; current metadata has zero blockers.
+The source0 schema classification addendum is separate from the immutable
+original review. Exact-science verification is distinct from serialized
+Registry500/root Tests, affected graph/page checks and later repository/
+exposition seals. Main/live/postmerge PURIFIED and full-paper acceptance stay
+open; earlier frontiers, cycles and memory remain preserved.
+
+Serialized integration a7cafde7957a8562bcd697d89c56b14768914c66 has all fourteen
+actual gates passing: root9162, Tests9452 and Registry500. Independent
+repository-seal58 accepts that exact integration; exposition-seal58 accepts
+the scoped mathematical exposition but records missing clipboard and direct
+Lean-download controls. Full Exposition Seal, Chapter1.3 reader acceptance and
+PURIFIED remain false. Both native runs and their CLOSED leases are preserved
+under runs/20261007-companion-priority/pbps-macroscopic-centered-range58/;
+root.seals58.adoption.json binds their distinct whole-run and named payload
+hashes. A later raw real/complex L2 root-adapter discovery is a downstream
+candidate only, separate from the accepted58 theorem and its historical audit.
+
+Next dependency-ready edge: the same actual scalar T is self-adjoint and
+preserves mean by its genuine stationary conditional law. Restrict it to the
+closed centered real L2 subspace, then obtain the positive defect I-T0^2 and
+its sharp coercivity through the actual macro consumer. The bounded source-only
+59 audit identifies fixed real-Hilbert APIs for this route without assuming
+finite-dimensional L2 or a caller CFC certificate. A centered inverse of the
+squared defect is separate from Gamma inverse. Full weighted weak H1,
+C5-C7/half-turn, PBPS dynamics/nonexplosion/hypocoercivity/errors/cost/main and
+actual-input PBPS/SPHMC composition remain open. SPHMC smoothing/Picard/Wp/
+proxy-warmness remain independent. Gaussian Cloud and midpoint follow the
+active four-paper priority. TV proximity does not transfer unbounded cost.
+This local theorem packet completes neither a paper nor the Goal.
+
+## Actual Gaussian marginal centered Poincare (2026-10-08)
+
+Exact1244 is independently VERIFIED at e8a9044ba5a945eaa4b4aecd110b63494fe6c68e. For the SAME actual normalized
+Gibbs/Gaussian marginal nu, one genuine dense closable compact-gradient G
+with exact smooth compact core graph and closed closure is chosen BEFORE
+every centered z in its domain. The bound is
+alpha/(1+alpha*eta)||z||² <= ||Gbar z||². Original V C2, both global Hessian
+bounds, 0<alpha<=beta, eta>0 and beta*eta<=1 remain. Finite real Hilbert/Borel
+including rank0 explicitly extends source Euclidean space; L2 is generally
+infinite dimensional. Normalization, posterior vector-L2 and both exact
+marginal Hessian bounds are internally derived through six existing actual
+ASTIS parents, with no supplied probability/curvature/moment/PI certificate.
+
+The real SAME56 consumer proves core equality from exact graph iff, matches
+the actual conditional mean with actual55 stationary disintegration, and
+derives integralTu=integralu. Applying the new PI to the actual closed pair
+(Tu,Ku) yields C3, then sharp56 energy yields
+||Tu|| <= (1-alpha*eta)/(1+alpha*eta)||u|| on centered inputs. It includes
+alpha*eta=1 and never divides by 1-alpha*eta. This actual Test joins the
+existing producer bodies; no private/background theorem was copied.
+
+Focused3904, complete independent mathematics, fresh source-TEXT-blind decoder,
+own-primary-first source fidelity and exact-science verification pass. The
+seven source slots have three disclosed nonblocking deltas and no repairs:
+finite Hilbert/rank0 extension, scoped compact closure, and normalized
+potential dictionary. Final candidate-body exposure and decoder identity
+nonblindness are disclosed. Original606-region topology and independently
+reviewed distinct7node/7edge consumer overlay stay intact; shrinking compiler
+API failures, source-binding API failure, historical OPEN decoder receipt and
+root native-schema reader negative remain preserved. No original CLOSED
+source review/decoder/native bytes were rewritten. The bounded publication
+packet command ran after focused proof; its timing debt is explicit, while
+the independent exact statement and source topology were sealed before proof.
+
+Registry498/shared FunctionalInequalities/root Tests use only the original
+PhaseKernel serialized stabilization lane. Aggregate/affected graph/original
+companion and scoped repository/exposition seals follow. Main/live/postmerge
+PURIFIED and full-paper reader acceptance remain distinct. Earlier frontiers,
+cycles/memory and presentation debts are preserved.
+
+Next: actual macro-space identification/self-adjoint scalarT/centered domain
+and the real bounded defect square root Gamma_P=(I-U_PP²)^(1/2), with source
+B11 norm identity and meanzero inverse-domain contracts. Fixed Mathlib's
+existing complex CFC interfaces need an exact real-Hilbert adapter; finite
+dimensional ambient L2 may not be assumed. Gamma has no eta prefactor and is
+not a gradient/Laplacian/resolvent square root. Full weakH1 identification,
+B13/Gamma, dynamics/nonexplosion/hypocoercivity/implementation/main/cost and
+actual-input PBPS/SPHMC composition remain OPEN. SPHMC smoothing/Picard/Wp/
+proxy-warmness stay independent; Gaussian Cloud and midpoint follow the active
+four-paper priority. TV proximity never transfers unbounded expected cost.
+This source-backed edge completes neither a paper nor the Goal.
+
+## Actual PBPS rough mean-gradient closed graph (2026-10-08)
+
+Exact1755 is independently VERIFIED at db2c1237cd56698ae560a8121abfcbf374ff8838. On the SAME actual
+Gibbs/Gaussian mu/J/nu, one genuine dense closable compact-gradient G and
+one bounded actual conditional mean T and bounded vector-L2 K are chosen
+BEFORE every rough u in L2(nu). (Tu,Ku) belongs to the true closed graph of G;
+eta||Ku||² <= c(||u||²-||Tu||²), c=(1-alpha*eta)²/[4(1+alpha*eta)], and
+4eta||Ku||² <= ||u||²-||Tu||². Original C2, both Hessian bounds and
+beta*eta<=1 remain; finite Hilbert/Borel/rank0 extends the source Euclidean
+presentation explicitly. EVERY-y literal S law stays separate from AE
+rough source mean/fiber L1 and squareL1. No caller law/operator/domain/
+convergence certificate, input compactness, centering or extra moment.
+
+Actual54 supplies the uniform true compact-gradient closure and compact
+conditional-mean graph pair; actual55 supplies SAME-law bounded T and actual
+stationary source mean; actual50 supplies sharp compact energy and real
+block defect. Fiber AE matching and graph uniqueness construct the linear
+core derivative; extendOfNorm gives one bounded K, and dense closed-set
+arguments retain graph and sharp defect. No division by 1-alpha*eta occurs.
+The actual joint BMu Test identifies the SAME T by literal AE source integrals
+and consumes rough differences; the allowed alphaeta1 endpoint forces full
+K=0. Focused3899, complete independent mathematics, fresh source-text-blind
+decoder, own-primary-first source fidelity and exact-science checks pass.
+Standard3 only. Original two-edge source-topology negative/restoration and
+independently accepted repair stay intact. Six decoder locator Length-object
+defects are retained and resolved by a distinct independently reviewed exact
+mapping; original CLOSED/result/run bytes are unchanged. Final source packet
+body exposure is disclosed; its independent source blueprint predates the
+implementation. Strict identity/final proof-body blindness is not claimed.
+
+Registry497/public ExampleCases/root Tests use only the original PhaseKernel
+serialized lane. Actual56 aggregate, affected graph, original companion and
+scoped repository/exposition seals follow; main/live/postmerge PURIFIED and
+whole-paper reader acceptance remain distinct. Earlier results and their
+presentation debts remain preserved.
+
+Next: reconcile the source H1 convention with the actual compact-gradient
+closure and construct the actual defect square root Gamma_P=(I-U_PP²)^(1/2)
+on the true macroscopic space, matching its source norm defect. Then resolve
+the meanzero/inverse spectral-domain and actual nu Poincare/coercivity
+contracts for C3/halfturn. Existing closed-graph weak resolvent background is
+already verified and must be reused only for its true consumer; the paper
+Gamma is not a gradient/Laplacian/resolvent square root. Its consumer must use
+the genuine infinite-dimensional L2 operator with exact domains. PBPS dynamics/nonexplosion/hypocoercivity/implementation/
+errors/main/cost and actual-input PBPS/SPHMC composition remain open; SPHMC
+smoothing/Picard/Wp/proxy-warmness stay independent. Gaussian Cloud and
+midpoint follow the active four-paper priority; old frontiers/cycles/memory
+remain. TV proximity never transfers unbounded expected query costs.
+This source-specific edge completes neither a paper nor the Goal.
+
+## Actual PBPS conditional mean on all L2 inputs (2026-10-08)
+
+Exact2526 is independently VERIFIED at 4f71a36d56500fda7f86e8080f695a514913950a. On the SAME actual
+Gibbs/Gaussian mu/J/nu, one genuine source Markov kernel S, reflection U,
+canonical snd isometry M and bounded linear T are chosen BEFORE every rough
+u in L2(nu). PM=M and MT=AM; T represents the literal source conditional mean
+AE nu and is contractive. Both u and u² are integrable under S_y for AE y;
+the real integrated variance is ||BMu||²=||u||²-||Tu||². Every-y source-law
+identity remains separate from AE rough-input integrability. No centering,
+compactness, pointwise rough C1, caller law/operator/domain/convergence or
+unbounded-cost certificate is introduced. Original C2, both Hessian bounds
+and beta*eta<=1 remain; finite Hilbert/Borel/rank0 extends the source Euclidean
+presentation explicitly.
+
+Actual50 supplies source probabilities/kernel/U/P/compact coherence,
+actual51 the dense true compact core, GaussianReflection stationarity,
+GaussianConditionalKernel actual posterior disintegration, ReflectionL2
+the real all-L2 conditional projection. Closed range constructs T; posterior
+uniqueness and Fubini yield source mean and variance. Genuine same-T rough
+differences and noncentered rank0 class1/variance0 compile. Focused3894,
+complete independent mathematics, fresh anonymous source-text-blind decoder,
+own-primary-first source fidelity and exact-science checks pass. Standard3
+only. Original source metadata-locator negative and independently accepted
+exact two locator repairs remain; statement/body/Tests/decoder/formulas stayed
+unchanged. Strict identity blindness is not claimed.
+
+Registry496/public ExampleCases/root Tests enter only the original PhaseKernel
+serialized lane. Full55 aggregate/affected graph/desktop/scoped seals and
+remote checks follow; main/live/postmerge PURIFIED and whole-reader acceptance
+remain distinct. Prior54 aa62b6f1 remote Lean/contributor/website checks all
+SUCCESS, deploy SKIPPED, with scoped repository/exposition seals and disclosed
+presentation debt.
+
+Next: actual54 admits each noncompact compact-input source mean to the same
+true closed-gradient graph. Combine that with actual50 sharp energy and this
+full-L2 same-law T/difference bridge: derive a bounded derivative map on the
+dense core, extend to complete vector-L2, identify its actual closed graph,
+and retain c=(1-alpha*eta)²/[4(1+alpha*eta)] and source4eta defect for every
+rough input. Exact1755 prospective56 statement is independently source/typed
+sealed; exhaustive source topology/claim/proof remain pending. Separate weak-H1
+convention/Gamma/halfturn/hypocoercivity/invariance/nonexplosion/implementation/
+errors/main/cost and actual-input PBPS/SPHMC composition remain open. Gaussian
+Cloud and midpoint follow the active four-paper Goal; older frontiers/cycles/
+memory remain. TV proximity never transfers unbounded expected query costs.
+This node completes neither a paper nor the Goal.
+
+## Literal PBPS source mean in the closed-gradient domain (2026-10-08)
+
+Exact1448 is independently VERIFIED at 16797326f3e06a853e2d047f67fde924ac8c1647. On the SAME actual outer
+law nu, one genuine dense closable compact-gradient core G is chosen before
+all signed smoothcompact f. The literal source S_y mean Tf has true L2
+function/gradient witnesses and whole-function C1; its canonical pair lies
+in G.closure.graph. No compact support of Tf, caller density/normalizer/Lp/
+C1/domain certificate or new mathematical premise is introduced. Source
+C2 potential, both Hessian bounds and beta*eta<=1 are retained. Finite real
+Hilbert/Borel/rank0, explicit core closure interpretation and compact-only
+scope are disclosed informational elaborations; no independently defined
+weak-H1 equivalence is claimed.
+
+Actual50 supplies probability/literal-law/L2 witnesses, actual53 whole C1,
+actual51 uniform true core and the public WeightedC1GradientDomain adapter
+supplies cutoff/mollifier closure. Real PUP source-mean consumption and
+noncentered rank0 canonical1/gradient0 are tested. Focused3898, independent
+complete mathematics, fresh anonymous source-text-blind reconstruction,
+own-primary-first source fidelity and exact-commit checks pass within their
+stated scopes. Only standard3 axioms occur. The source reviewer records
+incidental mathematics-summary exposure AFTER its independent assessment.
+Original failures and T54 representation repair/corrective-mapping debt stay
+preserved. No self-verification or new stabilization owner.
+
+Registry495 and public ExampleCases/root Tests enter the original PhaseKernel
+sole serialized lane. Full54 aggregate/graph/desktop/scoped seals and remote
+checks follow. Previous53 scoped seals passed with presentation debt; current
+cfcc67b5 remote Lean/contributor/website checks all SUCCESS, deploy SKIPPED.
+Main/live/postmerge PURIFIED and whole-reader acceptance remain distinct.
+
+Next: actual all-L2 canonical snd pullback M and bounded actual mean T on
+SAME laws, with PM=M, MT=AM, AE source conditional means, AE fiber L1/square
+L1 and integrated variance=||BM u||^2=||u||^2-||T u||^2. Then compact-core
+approximation on differences, gradient Cauchy convergence and true closed
+graph can address rough B13. Rough fibers need only AE integrability;
+pointwise rough C1 is not inferred. Gamma/halfturn/hypocoercivity/invariance/
+nonexplosion/implementation/errors/main/cost and actual-input PBPS/SPHMC
+composition remain open. Gaussian Cloud and midpoint follow the current
+four-paper Goal; older Chewi/frontiers/cycles/memory remain preserved.
+TV proximity does not transfer unbounded expected costs. This node completes
+neither a paper nor the Goal.
+
+## Literal PBPS source reflected law and mean C1 (2026-10-08)
+
+Exact758 is independently VERIFIED at 9f0305db380966529eb3b0fc17a62aa9bcd47a85. At EVERY y the actual
+source-volume S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)) equals
+the actual posterior R_y=mu.tilted(-norm(x-y)^2/(2eta)) reflected by2x-y;
+the whole signed compact C1 mean is C1. Genuine Gibbs normalization/L1,
+true mu probability, posterior tilt composition, exact inverse half,
+factor8eta and affine normalized Jacobian cancellation are internal.
+This is source-specific integration in ExampleCases, reusing three existing
+parents. Lower-only C2 curvature/allpositive eta/compact C1/Hilbert/rank0
+are explicit authored sufficient-background extensions, not paper repairs.
+
+The actual original-source Test retains both Hessian bounds and beta*eta<=1,
+uses smoothcompact f and SAME mu/J Markov conditional, and derives all-y
+source S probability. Source-rank0 V=0/observer1 has actual mean1 and
+derivative0. Focused3895, independent full mathematics, fresh anonymous
+statement/source-text-blind decoder, own-primary-first source fidelity and
+exact-commit verification passed in their stated scopes. The decoder disclosed
+inherited general source identities; strict source-identity blindness is false.
+Only standard3 axioms occur. All original failures and T53-1 exact header/scope
+binding negative plus independently reviewed minimal representation repair
+remain preserved. No self-verification or new stabilization owner.
+
+Registry494, public ExampleCases/Test imports and existing companion metadata
+enter the original PhaseKernel sole serialized integration lane. Full53
+aggregate, graph/reader seals and remote CI follow. Prior52 aggregate and
+scoped Proof/Exposition seals passed with presentation debt. Actual241e01d0
+remote Lean/contributor/website checks reached SUCCESS; deployment was skipped.
+Main/live/postmerge PURIFIED and full-reader completion remain distinct.
+
+Next: actual50 supplies the SAME outer-nu Tf/gradientTf Lp witnesses; verified
+source mean C1 joins actual51 dense closable compact-gradient core through
+the existing WeightedC1GradientDomain adapter. A uniform gradient core is
+distinct from50 lower-right blockD; compact f does not imply compact Tf.
+Full rough all-L2/H1 B13 still requires the actual operator/averaging bridge,
+approximation on differences and closed-graph limit. Gamma/halfturn/
+hypocoercivity/invariance/nonexplosion/implementation/errors/main/cost and
+actual-input PBPS/SPHMC composition remain open. Gaussian Cloud and midpoint
+follow the existing four-paper Goal; older Chewi/frontiers/cycles/memory remain.
+TV proximity does not transfer unbounded expected costs. No paper or Goal
+is completed by this integration node.
+
+## Literal reflected Gaussian posterior mean C1 (2026-10-08)
+
+Exact497 is independently VERIFIED at a18cd1cf8e8310f228391d4c53a2ac8f1a8900ec. For any probability mu,
+eta>0, compact C1 signed f and finite real Hilbert/Borel E including rank0,
+the literal posterior R_y=mu.tilted(-norm(x-y)^2/(2eta)) reflected by
+x->2x-y has a globally C1 exact mean. Compact f/fderiv bounds, Gaussian
+derivative domination, genuine numerator differentiation, continuous
+integrated derivative, genuine likelihood/posterior/mapped L1 and positive
+C2 normalized N/Z identity are all internal. No analytic certificate is a binder.
+
+Actual PBPS Tests produce Gibbs probability internally under unchanged
+source Hessian/step assumptions and consume the SAME mu/J everywhere-defined
+conditional R. Rank0 NONCENTERED constant1 has mean1 and actual derivative0.
+Focused3893, independent complete mathematics, fresh anonymous statement/
+source-text-blind reconstruction, own-primary-first source0 and exact-commit
+verification passed in their named scopes. Only standard3 axioms occur.
+Inherited general AGENTS source identities were disclosed by the decoder;
+strict source-identity blindness is not claimed. Its native plain-string
+identity required no projection. All actual early API/typeclass negatives,
+compiled smaller chain-rule diagnosis and source-topology negative/minimal
+separately reviewed repair are preserved. No exploratory local structure
+instances or private theorem providers remain in production.
+
+Registry493 and root/Test imports enter the original PhaseKernel sole
+serialized lane; aggregate52 and scoped graph/reader seals follow this
+checkpoint. Prior51 aggregate and independent scoped Proof/Exposition seals
+passed, with presentation debt; all four actual796ba69c remote workflows
+reached SUCCESS. Deployment was skipped. Main/live/postmerge PURIFIED and
+full-reader completion remain distinct.
+
+The next bounded edge is EVERY-y equality to the paper's source-volume
+S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)), then actual literal Tf C1.
+Existing exported AffineGibbs is a candidate reuse, not a new proof receipt.
+AE conditional-law uniqueness cannot transfer pointwise derivatives.
+Actual Tf closed-gradient membership requires its already produced scalar/
+vector Lp representatives and the existing C1 domain adapter. Full rough
+B13, Gamma/half-turn/hypocoercivity/nonexplosion/implementation/error/cost,
+SPHMC main results and actual-input composition remain open. Gaussian Cloud
+and midpoint follow the existing four-paper Goal. Older Chewi/frontiers/
+cycles/memory are preserved. TV proximity does not transfer unbounded costs.
+This result completes no paper or Goal.
+
+## Actual Gaussian outer-gradient domain (2026-10-08)
+
+The exact 697-byte statement is independently VERIFIED at 19f7e6bed7975fac9b7e1ea0b0b95d0c084083f6.
+For any probability input mu and eta>0, on the actual Gaussian augmentation
+J=law(X,X+sqrt(eta)G) and nu=J.snd, it produces a genuine smooth-compact
+scalar/vector L2(nu) gradient graph with dense domain, closability and a
+closed closure. The positive C2 Gaussian density is normalized internally:
+mass1 first gives density L1, then real integral1, then exact normalized
+tilted-law identity. The whole measure-indexed operator target is transported
+before applying the existing weighted-gradient theorem. No extra moment,
+density, potential, integrability, normalizer or gradient certificate is a binder.
+
+This is ASTIS-authored analytic background for the PBPS C.1 density/closedness
+invocation toward B.13. Generic probability input, finite Hilbert and rank0
+extensions are explicit. Actual PBPS tests retain its curvature/step conditions
+and produce genuine graph pairs for all smooth compact f; the rank0 constant
+is noncentered with mean1 and zero gradient. Focused3893, independent whole
+mathematics, fresh statement/source-text-blind reconstruction, own-primary-first
+source1 review and exact-commit verification passed in their named scopes.
+The decoder disclosed inherited general AGENTS source-identity metadata; strict
+source-identity blindness is not claimed. The canonical decoder identity needed
+one object-to-string projection; the original undispatched preparation failure
+and native raw output are preserved and independently checked. Source0 was
+never an independent source verdict. Original source-topology negative and its
+minimal separately reviewed repair remain immutable.
+
+Registry492 and root imports enter the original PhaseKernel sole serialized
+lane. Aggregate51 and independent graph/reader seals are pending at this
+checkpoint; main merge/live/postmerge PURIFIED remain distinct. Prior50 scoped
+aggregate and repaired seals passed, and all four f38a4c73 remote workflows
+passed; deployment was skipped, so no live publication is claimed.
+
+The next bounded edge is C1 of the literal reflected Gaussian posterior mean.
+It needs a real dominated differentiation/derivative continuity argument,
+with compact C1 f providing internal uniform bounds, then pointwise equality
+to the actual PBPS reflected law. AE conditional-law uniqueness cannot transfer
+pointwise derivatives. Only after this should actual Tf enter the closed gradient
+using its already produced scalar/vector L2 representatives. Full rough B.13,
+positive-root Gamma, half-turn/hypocoercivity/nonexplosion/implementation/error
+and expected cost remain open, as do SPHMC main results and actual-input
+composition. Gaussian Cloud and midpoint follow the existing four-paper Goal.
+Older Chewi/frontiers/cycles/memory are preserved; TV proximity does not
+transfer unbounded costs. This result completes no paper or Goal.
+
+## Actual PBPS macroscopic block energy (2026-10-08)
+
+The exact2907-byte sealed statement is independently VERIFIED at
+864ff305b78030d9e1c840938e82fefcf4185515. On the actual joint law J it produces one common genuine
+reflection U and conditional projection P, with A=PUP, B=(I-P)UP,
+D=(I-P)U(I-P). For each signed smooth compact f, g=[f o snd], Pg=g,
+Ag=[Tf o snd], both genuine squared norms are the corresponding nu second
+moments, and integral Var(S_y,f) dnu = ||Bg||^2. The sharp smooth energy is
+eta integral |gradient Tf|^2 dnu <= (1-alpha eta)^2/[4(1+alpha eta)] ||Bg||^2.
+Actual reflected-pair disintegration and AE kernel uniqueness identify only
+means/L2 classes; pointwise derivatives remain those of the original literal Tf.
+Global C2 Hessian bounds, 0<alpha<=beta, eta>0 and beta eta<=1 are unchanged.
+Finite Hilbert/rank0 and A/B/D aliases are disclosed authored elaborations.
+
+Focused3891, whole mathematical review, fresh source-blind50 reconstruction,
+own-primary-first source0 review and separate one-label metadata-only source1
+repair review, then exact-commit verification, passed in their recorded scopes.
+The original source0 provenance negative is preserved: its direct Mathlib
+label was corrected from IsCondKernel.disintegrate to Measure.disintegrate.
+Header, whole proof, Tests, eight formula steps and native decoder were unchanged.
+Gaussian precision gives zero true gradient energy. The rank0 noncentered
+constant has norm-square one and Ag=g; its block/variance/energy vanish.
+Three printed closures contain only standard3 axioms. All compiler/API and
+source-topology negatives and separately accepted repairs are preserved.
+
+Registry491/root imports enter through the original PhaseKernel sole serialized
+lane. Aggregate50, graph/reader seals, main merge/live and postmerge PURIFIED
+remain separate pending checks. Aggregate49/ProofSeal49/ExpositionSeal49 passed
+in their scopes and all four remote88 workflows completed successfully.
+
+Next bounded edge is selected from exact primary-source/pinned API pre-read:
+produce actual closed-gradient/H1 domain extension or the real positive-root
+Gamma adapter, without inserting their certificates as public premises.
+Full PBPS rough domain/half-turn/hypocoercivity/event nonexplosion/implementation
+error/expected cost, SPHMC main algorithms/proxy-warmness and actual-input
+composition remain OPEN. Gaussian Cloud and midpoint follow the existing four
+paper Goal; older Chewi/frontiers/cycles/memory remain preserved. TV proximity
+does not transfer unbounded expected costs. This SAU completes no paper or Goal.
+
+## Actual PBPS smooth outer gradient energy (2026-10-08)
+
+The smooth compact C.2 integral ingredient is independently VERIFIED at
+5ba91a1c9a553b13a38d48f02f0725a69af146a4. The exact1795-byte sealed statement produces the real
+mu/J/nu probabilities, one common R/S with genuine disintegration and every-y
+reflected density, and every signed smooth compact observable's differentiability,
+f/Tf/gradient L2 and conditional variance L1. It proves
+integral Var(S_y,f) dnu = integral f^2 dnu - integral Tf^2 dnu and
+eta integral |gradient Tf|^2 dnu <= (1-alpha eta)^2/[4(1+alpha eta)]
+times this actual defect. Source global C2 Hessian bounds, 0<alpha<=beta,
+eta>0 and beta eta<=1 remain exact; finite Hilbert/rank0 are explicit extensions.
+
+Focused3888, whole mathematical review, fresh source-blind49 reconstruction,
+own-primary-first source0 fidelity and exact-commit verification passed within
+their recorded scopes. The single private second-moment helper is consumed.
+Actual Gaussian precision retains every domain/defect and has zero gradient
+energy; actual rank0 passes. Three axiom sets contain only standard3 axioms.
+Original compiler/API/parser and publication enum negatives, source-topology
+negative plus separate repair reviews and immutable raw-byte whitespace diagnosis
+are retained. No mathematical/source premise was added during repair.
+
+Registry490/root imports enter through the original PhaseKernel sole serialized
+lane. Aggregate49, graph/reader seals, main merge/live and postmerge PURIFIED
+remain separate pending checks. Prior aggregate48 and four remote8c CI checks
+passed; prior79 CI fixture failures and their reviewed8c repair remain history.
+
+Next bounded mathematical edge: actual joint L2 macroscopic energy/block join.
+Identify the same conditional variance as ||(I-P)UP g||^2 and the actual PUP norm
+defect, keeping this differentiable integral representative. AE kernel equality
+transports means/L2 classes only, never pointwise derivatives. Full rough L2-to-H1
+needs actual outer-law closure and domain producers; literal Gamma remains separate.
+PBPS half-turn/invariance/nonexplosion/hypocoercivity/implementation error/cost,
+SPHMC smoothing/Picard/Wp/proxy-warmness and actual-input expected-query composition
+remain OPEN. Gaussian Cloud and midpoint follow under the existing unbudgeted
+four-paper Goal; preserve older frontiers/cycles/memory. TV proximity does not
+transfer unbounded expected cost. This leaf completes no paper or Goal.
+
+## Actual PBPS conditional gradient variance (2026-10-08)
+
+The actual pointwise source ingredient is independently VERIFIED at 8d950c37e41bd5d816c4132c6a5cdde0e30dcbee.
+The exact1356-byte statement produces the genuine reflected conditional law, every-y
+density and differentiability, with gradient norm squared bounded by
+(eta^-1-alpha)^2/[4(alpha+eta^-1)] times its actual conditional variance.
+Source globally C2 Hessian assumptions, positive alpha<=beta, eta>0 and beta*eta<=1
+are preserved; finite Hilbert and rank0 are explicitly authored extensions.
+Both genuine conditional-score and centered-score-variance producers are joined
+internally at the same S using literal densities. Centered L2 Cauchy-Schwarz and
+Riesz gradient evaluation close the bound with the zero case retained.
+
+Focused3886, independent full mathematical review, fresh source-blind48 decoder,
+anti-anchored source review and exact-commit validation passed. Original source0
+metadata rejection, three-field source1 repair and exact53 contributor rejection
+are immutable evidence; the latter is corrected only by recording the existing
+direct variance_nonneg dependency in the cell reuse_plan. Production/Test/sealed
+statement/formula proof remain unchanged. Gaussian precision gradient0 and actual
+rank0 kernel tests pass; three axiom sets contain only standard3 axioms.
+
+Registry489 and shared imports are serialized through the original PhaseKernel
+single stabilization lane. Mandatory aggregate48, graph/reader seals, main merge,
+live delivery and postmerge PURIFIED remain separate pending checks. This is the
+printed smooth-compact pointwise ingredient, not outer(C.2), B.13 or a main result.
+
+Next bounded mathematical edge: integrate against actual nu=J.snd and establish
+the conditional variance identity and true gradient-energy domain before C.2.
+Full L2-to-H1 density/closed-gradient extension is separate. PBPS invariance/
+nonexplosion/hypocoercivity/implementation error/cost, SPHMC smoothing/Picard/Wp/
+proxy-warmness and actual-input expected-query composition remain OPEN.
+The existing unbudgeted Goal also includes subsequent Gaussian Cloud and midpoint
+phases. Preserve all older frontiers/cycles/memory; TV proximity never transfers
+unbounded expected cost. Single leaves do not complete any paper or this Goal.
+
+## Actual standardized RGO numerical canonical KL (2026-10-07)
+
+The actual numerical canonical KL leaf is independently VERIFIED at 76373366787499ebbc9e778fe568d0332233aef0.
+Exact1357-byte statement preserves source globally C2 normalized Hessian assumptions and every
+positive eta, with explicit measurable-family/rank0 extension. Actual43 produces the unique
+measurable proximal witness; actual31 stationarity identifies its witness by that uniqueness.
+The entire actual31 dependent rho/Q/r output is transported before using its numerical Fisher
+bound. Retain actual43 probability, AC, finite canonical KL and true-gradient L2 domains;
+combine canonical KL<=half Fisher and Fisher<=eta²dim to yield canonical KL<=eta²dim/2.
+No public law/coherence/domain/numerical inequality certificate, new private provider or wrapper.
+
+Focused3827, independent wholemath/reachability, fresh anonymous45, anti-anchored source and
+exactcommit checks passed. Four standard3 axiom sets;286 compiled ASTIS/Test constants across
+52 modules; fake closure scan zero. Actual eta2, unbounded positive family eta(s)=s²+1 and
+rank0 true finite canonical KL0 Tests pass. Sixformula lesson/full public Lean proof remains
+in the original companion. Independent source-only graph41nodes44edges and exhaustive314
+selected rows preceded proof; original rejection and two separately reviewed citation/locator
+repairs are preserved. Original decoder and review bytes remain immutable.
+
+Registry488/ExampleCases/Test imports are serialized through the original PhaseKernel single
+stabilization lane. Actual mandatory aggregate45 passed root9150/Tests9429; all nine publication/
+semantic/frontier/contributor/site/graph checks passed. Repository/Exposition seals, complete inline imports/
+Tests, copy/download/bundles/browser/live/main and postmerge PURIFIED remain distinct pending
+checks. Current draftPR315 contains canonical KL/Fisher and numerical KL work; priorPR313 was
+externally merged into main and is preserved as history. This checkpoint claims no main merge.
+
+GaussianT2/W2/FIRST4.6 remains a separate actual producer obligation. Source-only44/46 API
+findings are typed research evidence, not Lean truth: generic static transport still needs actual
+vector derivative/PSD and a compatible representative/Jacobian passage; dynamic flow has its
+own contracts. SPHMC smoothing/Picard/Wp/proxy-warmness, PBPS reflection/invariance/nonexplosion/
+discrete hypocoercivity/implementation error/cost, both full main results and actual-input
+expected-query-cost composition remain OPEN. TV proximity does not transfer unbounded costs.
+Older frontiers/cycles/memory and the single whole-paper Goal remain preserved.
+
+## Actual same-prox canonical KL/Fisher (2026-10-07)
+
+The actual standardized RGO canonical KL/Fisher integration is independently VERIFIED at 19b569ae0fe37c97da0f98b4d1f4933ebabc7052.
+Exact1368-byte statement retains normalized globally C2 Hessian source assumptions, every positive eta,
+and explicitly authored measurable-family/rank0 extension. Actual33 produces unique measurable prox;
+actual32 stationarity and33 uniqueness identify its witness and transport rho/Z/q/f/r before any
+entropy calculation. Actual32 provides posterior probability and real sqrt-density domains/mass1/
+quarter-Fisher; actual33 supplies AC/finite canonical KL and actual qlogq identity; actual42LSI2
+yields canonical KL<=half true rho-gradient energy. No coherence or law/domain/bound certificate
+is a public premise, and no pointwise canonical RN version is differentiated.
+
+Focused3826, independent wholemath/reachability, freshblind43, anti-anchored source and exactcommit
+checks passed; fourstandard3 axiom sets,285compiled ASTIS/Test constants51modules fake0. Actual
+eta2, unbounded positive family eta(s)=s²+1 and rank0 true canonicalKL0 Tests pass. Sevenformula
+reader and full folded Lean retained in the original companion. Source-only topology50nodes66edges
+with exhaustive423 selected rows preceded proof. Original topology rejection and minimal source
+representation repair are preserved; separate minimal reader/API attribution overlay was reviewed.
+
+Registry487/ExampleCases/Test imports are serialized through the original PhaseKernel stabilization
+lane. Aggregate/site/graph/repository and Exposition seals, full inline private/Test/copy/download/
+bundles/browser/live/main and postmerge PURIFIED remain distinct.
+
+Actual31 already proves Fisher<=eta²dim; do not duplicate that moment proof. Next mathematical
+edges connect the same-p numeric KL bound and true GaussianT2/W2 to FIRST4.6. SPHMC smoothing/
+Picard/Wp/proxy-warmness and PBPS reflection/invariance/nonexplosion/discrete hypocoercivity/
+implementation error/cost, both full main theorems and actual-input expectedquerycost composition
+remain OPEN. TV proximity does not transfer unbounded costs. Older frontiers/cycles/memory,
+draftPR313 and the single whole-paper Goal remain preserved.
+
 ## Actual noncompact C2 Gaussian LSI (2026-10-07)
 
 The actual noncompact stdGaussian function LSI is independently VERIFIED at 13556ea0eccd0069b83e7f7cb452a4ac7d7105ea.

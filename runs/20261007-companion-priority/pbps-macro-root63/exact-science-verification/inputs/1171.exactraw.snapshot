@@ -1,0 +1,123 @@
+import Mathlib.MeasureTheory.Measure.Prod
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Stopping
+
+/-!
+# Stopping-time graphs are null for product time measure
+
+In continuous time, the strict convention `t < τ` and the closed convention
+`t ≤ τ` differ only on the graph `{(ω,t) | t = τ(ω)}`.  For Chewi's product
+measure `P ⊗ dt|[0,T]`, that graph is null: every time section is either empty
+(if the stopping time is infinite) or a singleton.
+
+This is deliberately packaged as a reusable Samplinglib primitive.  It keeps
+all later open/closed stopping bridges honest without invoking optional
+sampling or any Brownian calculation.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace StoppingGraphNull
+
+open MeasureTheory Set
+open scoped NNReal
+
+open ElementaryItoIntegral
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- The graph of a possibly-infinite nonnegative stopping time in
+`Omega × ℝ≥0`. -/
+def stoppingGraph (tau : Omega → WithTop ℝ≥0) : Set (Omega × ℝ≥0) :=
+  {z | (z.2 : WithTop ℝ≥0) = tau z.1}
+
+/-- A Chewi stopping time has a measurable graph in product space. -/
+theorem measurableSet_stoppingGraph
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    MeasurableSet (stoppingGraph tau) := by
+  have ht : Measurable (fun z : Omega × ℝ≥0 => (z.2 : WithTop ℝ≥0)) :=
+    (measurable_snd : Measurable (fun z : Omega × ℝ≥0 => z.2)).withTop_coe
+  have htau' : MeasureTheory.IsStoppingTime filtration tau := htau
+  have hτ : Measurable (fun z : Omega × ℝ≥0 => tau z.1) :=
+    htau'.measurable'.comp measurable_fst
+  have heq :
+      stoppingGraph tau =
+        {z : Omega × ℝ≥0 | (z.2 : WithTop ℝ≥0) ≤ tau z.1} ∩
+          {z : Omega × ℝ≥0 | tau z.1 ≤ (z.2 : WithTop ℝ≥0)} := by
+    ext z
+    constructor
+    · intro hz
+      change (z.2 : WithTop ℝ≥0) = tau z.1 at hz
+      exact ⟨hz.le, hz.ge⟩
+    · rintro ⟨hz₁, hz₂⟩
+      change (z.2 : WithTop ℝ≥0) = tau z.1
+      exact le_antisymm hz₁ hz₂
+  rw [heq]
+  exact (measurableSet_le ht hτ).inter (measurableSet_le hτ ht)
+
+/-- Every fixed-sample-path section of the stopping graph has zero stopped
+Lebesgue-time measure.  The proof avoids choosing an `untop`: if a finite
+section point exists, injectivity of the `WithTop` coercion makes the whole
+section that singleton; otherwise the section is empty. -/
+theorem timeSection_stoppingGraph_zero
+    (tau : Omega → WithTop ℝ≥0) (T : ℝ≥0) (omega : Omega) :
+    (TimeMeasure.upTo T) (Prod.mk omega ⁻¹' stoppingGraph tau) = 0 := by
+  by_cases hex : ∃ s : ℝ≥0, (s : WithTop ℝ≥0) = tau omega
+  · obtain ⟨s, hs⟩ := hex
+    have hset : Prod.mk omega ⁻¹' stoppingGraph tau = ({s} : Set ℝ≥0) := by
+      ext r
+      change ((r : WithTop ℝ≥0) = tau omega) ↔ r = s
+      constructor
+      · intro hr
+        apply WithTop.coe_eq_coe.mp
+        exact hr.trans hs.symm
+      · intro hrs
+        subst r
+        exact hs
+    rw [hset, TimeMeasure.upTo_singleton]
+  · have hset : Prod.mk omega ⁻¹' stoppingGraph tau = (∅ : Set ℝ≥0) := by
+      ext r
+      change ((r : WithTop ℝ≥0) = tau omega) ↔ False
+      constructor
+      · intro hr
+        exact hex ⟨r, hr⟩
+      · intro hfalse
+        exact hfalse.elim
+    rw [hset, measure_empty]
+
+/-- The stopping-time graph is null under Chewi's product process-time
+measure. -/
+theorem processTimeMeasure_stoppingGraph_zero
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) (T : ℝ≥0) :
+    processTimeMeasure mu T (stoppingGraph tau) = 0 := by
+  rw [processTimeMeasure,
+    Measure.prod_apply (measurableSet_stoppingGraph tau htau)]
+  simp_rw [timeSection_stoppingGraph_zero tau T]
+  simp
+
+/-- Almost every product-space point avoids the stopping-time graph. -/
+theorem ae_notMem_stoppingGraph
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) (T : ℝ≥0) :
+    ∀ᵐ z ∂processTimeMeasure mu T, z ∉ stoppingGraph tau :=
+  measure_eq_zero_iff_ae_notMem.mp
+    (processTimeMeasure_stoppingGraph_zero tau htau T)
+
+/-- Pointwise form of `ae_notMem_stoppingGraph`: almost every product-space
+point has time coordinate different from the stopping time. -/
+theorem ae_time_ne_stoppingTime
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) (T : ℝ≥0) :
+    ∀ᵐ z ∂processTimeMeasure mu T,
+      (z.2 : WithTop ℝ≥0) ≠ tau z.1 := by
+  filter_upwards [ae_notMem_stoppingGraph (mu := mu) tau htau T] with z hz
+  exact hz
+
+end StoppingGraphNull
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

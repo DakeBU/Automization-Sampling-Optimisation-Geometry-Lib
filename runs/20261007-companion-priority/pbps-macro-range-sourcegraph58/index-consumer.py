@@ -1,0 +1,25 @@
+from pathlib import Path
+import json, hashlib, os, sys, datetime
+BASE=Path('E:/Samplinglib/runs/20261007-companion-priority'); OUT=BASE/'pbps-macro-range-sourcegraph58'; P=BASE/'pbps-macro-range-preproof58'; reads=[]; writes=[]
+def sha(b): return hashlib.sha256(b).hexdigest()
+def pin(p,b):
+    lf=b.replace(b'\r\n',b'\n'); return dict(path=str(p).replace('\\','/'),bytes=len(b),raw_sha256=sha(b),lf_bytes=len(lf),lf_sha256=sha(lf))
+def read(p):
+    b=p.read_bytes(); reads.append(pin(p,b)); return b
+def write(n,d):
+    p=OUT/n
+    if isinstance(d,dict):
+        d=dict(d); d['content_self_sha256']=sha(json.dumps(d,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()); b=(json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode()
+    else: b=d
+    p.write_bytes(b); r=pin(p,b); writes.append(r); return r
+signature=read(P/'consumer-prospective-statement.txt'); proposal=read(P/'consumer.statement-proposal.json'); d=json.loads(proposal.decode('utf-8-sig')); expected=d['signature']
+assert len(signature)==expected['bytes'] and sha(signature)==expected['raw_sha256'] and sha(signature.replace(b'\r\n',b'\n'))==expected['lf_sha256']
+for label,b in [('consumer-prospective-statement',signature),('consumer.statement-proposal',proposal)]:
+    write(label+'.exactraw.snapshot',b); write(label+'.crlf-to-lf.snapshot',b.replace(b'\r\n',b'\n'))
+main=json.loads(read(OUT/'signature-indexed-binder-overlay.json').decode())
+rows=[dict(r) for r in main['main_binders'] if not r['name'].startswith('let ') and r['name'] not in ['forall u:Lp REAL2 nu','M image {u:mean_nu u=0}','{f: f in P.range AND meanJf=0}']]
+for name,cl,anchor,meaning in [('let mu/J','DEFINED_ACTUAL_INPUT','2.6/2.7','Literal same Gibbs tilt/independentGaussian pushforward, internal probability, no caller law.'),('let F','DEFINED_ACTUAL_INPUT','2.14/B.4','Actual (x,2x-y) reflection, no arbitrary unitary.'),('let P','DEFINED_ACTUAL_INPUT','B.1/B.2/D.1','Exact55 orthogonal conditional projection onto comap snd lpMeas.'),('exists U:realLinearIsometry before forallf','DERIVED_OUTPUT','B.4','Uniform actualreflectionU internally produced; no caller U or contraction certificate.'),('forall g:AEJ Ug=g composed F','CONCLUSION_QUOTIENT_ACTION','B.4/D.1','All rough AE classes, actual reflected action. Not arbitrary everypoint representative equality.'),('U involutive AND selfadjoint','DERIVED_OUTPUT','B.4','Source reflection involution and real selfadjointness, both internally produced.'),('let A=PUP;let B=(I-P)UP','DEFINED_ACTUAL_INPUT','B.3/B.4','Exact compressions from SAME U/P.'),('forall f:L2J','CONCLUSION_DOMAIN','D.1/C.4','All rough realL2 inputs.'),('f in Prange;meanJf=0','CONCLUSION_RESTRICTION','B.2/D.2/C.3','Exactly H_P,0. Source membership constraints on conclusion, not inputs about external U/M/T.'),('rho=(1-alphaeta)/(1+alphaeta)','CONCLUSION_CONSTANT','C.4/B.12','Sharp centered contraction;0<alphaeta<=1 derived,alphaeta1 allowed.'),('4alphaeta/(1+alphaeta)^2 normf²<=normBf²','CONCLUSION','finalC1B15 proof/B.5','Squared defect gap only, no Gamma symbol/root/Loewner gap or inverse.')]:
+    rows.append(dict(name=name,classification=cl,source_anchor=anchor,semantic_expansion=meaning))
+write('signature-indexed-test-consumer-overlay.json',dict(actor='/root/source_graph58',status='PROSPECTIVE_REAL_TEST_SOURCE_INDEX_PENDING_INDEPENDENT_REVIEW',signature=pin(P/'consumer-prospective-statement.txt',signature),proposal=pin(P/'consumer.statement-proposal.json',proposal),declaration=d['declaration'],exact_binders=rows,EXCESS=[],public_theorem_claim=False,test_result_claim=False,source_graph_nodes=['S:U','S:blocks','S:block-defect','S:M-onto','S:centered-onto','S:T-same','S:scalar-C4','S:macro-C4','S:squared-gap'],actual_parent_dependencies=d['parents'],same_operator_identification_obligations=['U supplied by actual55 reflection only','canonical M equals55 M from AEpullback action','T55 equals57 TestT from actualliteralS AEmean','choose centered preimage for everyf inPrange via main range/centered equality'],uniformity='exists actualU beforeALLf; exactA/B fromsameP/U; publicM is canonical and existsT55/T57 beforeallu withinparent results.',source_math='||Af||=||MTu||=||Tu||<=rho||u||=rho||f||; B5 yields||Bf||²=||f||²-||Af||²>= (1-rho²)||f||²,1-rho²=4alphaeta/(1+alphaeta)².',boundaries=d['boundaries'],chronology='Consumer prospective signature read only after source-first graph/seal, source-only coverage and existing public interfaces; no implementation exists/was read.',compiler='NOT_STARTED_CLOSED',root_signature_probe='Root reported main/generic proposition-only typecheck EXIT0/CLOSED. Not this extractor compiler evidence; consumer probe not yet observed.',creator_validation=False))
+write('consumer-signature-index-io.json',dict(actor='/root/source_graph58',python_pid=os.getpid(),python_executable=sys.executable,foreground=True,utc=datetime.datetime.utcnow().isoformat()+'Z',reads=reads,writes=writes,compiler='NOT_STARTED_CLOSED'))
+print(json.dumps(dict(status='REAL_TEST_SIGNATURE_INDEXED',binder_rows=len(rows),excess=0)))

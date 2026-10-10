@@ -1,0 +1,46 @@
+import Mathlib.Probability.Kernel.CondDistrib
+
+/-!
+# Conditional resampling of a joint law
+
+This file gives the product-state specialization of Mathlib's disintegration
+identity that is needed before Gibbs/heat-bath updates are packaged as Markov
+kernels.  It does not define a Gibbs sampler or prove a mixing rate.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace ConditionalResampling
+
+open MeasureTheory
+open scoped ProbabilityTheory
+
+/-- A joint finite law is recovered by combining its first marginal with the
+conditional distribution of the second coordinate given the first.
+
+This is the source-neutral law identity behind one-block Gibbs/heat-bath
+resampling.  It says nothing about scan order, irreducibility, convergence, or
+mixing; those are downstream kernel obligations.
+
+The nonempty Standard Borel hypothesis concerns the resampled coordinate `β`,
+not `α`. It is the regular-conditional-distribution existence contract used by
+Mathlib; the selected version agrees with the conditional law only almost
+everywhere for the first marginal. No conditional-support assertion on null
+fibers is made. Finite measures, including the zero measure, are allowed: this
+is not restricted to probability laws. -/
+theorem fst_compProd_condDistrib_snd_eq_self
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [StandardBorelSpace β] [Nonempty β]
+    {μ : Measure (α × β)} [IsFiniteMeasure μ] :
+    (μ.map Prod.fst) ⊗ₘ
+        ProbabilityTheory.condDistrib Prod.snd Prod.fst μ = μ := by
+  have h := ProbabilityTheory.compProd_map_condDistrib
+    (μ := μ) (X := Prod.fst) (Y := Prod.snd) (mβ := inferInstance)
+    measurable_snd.aemeasurable
+  simpa using h
+
+end ConditionalResampling
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

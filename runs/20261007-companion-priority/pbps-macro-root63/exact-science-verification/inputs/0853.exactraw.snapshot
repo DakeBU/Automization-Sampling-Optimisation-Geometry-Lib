@@ -1,0 +1,73 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexLocalSubgradient
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarRealSupport
+import Mathlib.Analysis.Calculus.Gradient.Basic
+
+/-!
+# Proper Rockafellar support collapses to the gradient on the interior
+
+The preceding nodes keep the Rockafellar potential honestly `WithTop ℝ`-valued,
+restrict its real representative to the finite effective domain, and formulate
+support only on that domain.  At an interior point the effective domain is a
+neighborhood, so ordinary Frechet differentiability forces the supporting
+vector to equal Mathlib's Hilbert gradient.
+
+This is the analytic graph-collapse step.  It makes no coupling or optimality
+claim by itself.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingRockafellarSupportGradient
+
+open Set Topology
+open scoped RealInnerProductSpace Gradient
+open PairingRockafellarPotential PairingRockafellarSubgradient
+open PairingRockafellarRealDomain PairingRockafellarRealSupport
+open ConvexLocalSubgradient
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E]
+
+/-- At an interior differentiability point of an extended-real potential's
+finite domain, every honest extended-real supporting vector is the gradient of
+the finite real representative. -/
+theorem eq_gradient_of_properSupportsAt_of_mem_interior
+    {Phi : E → WithTop ℝ} {x y : E}
+    (hsupport : ProperSupportsAt Phi x y)
+    (hx : x ∈ interior (EffectiveDomain Phi))
+    (hdiff : DifferentiableAt ℝ (finitePart Phi) x) :
+    y = gradient (finitePart Phi) x := by
+  have hsupportOn :
+      SupportsOn (EffectiveDomain Phi) (finitePart Phi) x y := by
+    intro z hz
+    exact finitePart_support_on_effectiveDomain hsupport z hz
+  exact eq_gradient_of_supportsOn_of_hasFDerivAt
+    hsupportOn
+    (mem_interior_iff_mem_nhds.mp hx)
+    hdiff.hasGradientAt.hasFDerivAt
+
+/-- Relation-point specialization for the proper list-based Rockafellar
+potential.  Closed-chain monotonicity supplies the support relation; interior
+membership and differentiability perform the final analytic collapse. -/
+theorem snd_eq_gradient_of_mem_of_mem_interior
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChain.PairingClosedChainMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma)
+    (hx : x ∈ interior
+      (EffectiveDomain (properRockafellarPotential base Gamma)))
+    (hdiff : DifferentiableAt ℝ
+      (finitePart (properRockafellarPotential base Gamma)) x) :
+    y = gradient (finitePart (properRockafellarPotential base Gamma)) x := by
+  exact eq_gradient_of_properSupportsAt_of_mem_interior
+    (properSupportsAt_of_mem hbase hclosed hxy) hx hdiff
+
+end
+
+end PairingRockafellarSupportGradient
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

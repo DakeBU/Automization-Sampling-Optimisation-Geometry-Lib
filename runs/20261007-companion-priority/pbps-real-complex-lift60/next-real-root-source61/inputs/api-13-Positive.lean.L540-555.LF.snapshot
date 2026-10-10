@@ -1,0 +1,16 @@
+  simp
+
+/-- In finite-dimensional spaces, a continuous linear map is positive iff it is equal to the sum
+of rank-one positive operators. -/
+theorem ContinuousLinearMap.isPositive_iff_eq_sum_rankOne [FiniteDimensional 𝕜 E] {T : E →L[𝕜] E} :
+    T.IsPositive ↔ ∃ (m : ℕ) (u : Fin m → E), T = ∑ i : Fin m, rankOne 𝕜 (u i) (u i) := by
+  refine ⟨fun hT ↦ ?_, fun ⟨m, u, hT⟩ ↦ hT ▸ isPositive_sum _ fun _ _ ↦ isPositive_rankOne_self _⟩
+  let a (i : Fin (Module.finrank 𝕜 E)) : E :=
+    ((hT.isSymmetric.eigenvalues rfl i).sqrt : 𝕜) • hT.isSymmetric.eigenvectorBasis rfl i
+  refine ⟨Module.finrank 𝕜 E, a, ext fun _ ↦ ?_⟩
+  simp_rw [_root_.sum_apply, rankOne_apply, a, inner_smul_left, smul_smul, mul_assoc, conj_ofReal,
+    mul_comm (⟪_, _⟫_𝕜), ← mul_assoc, ← ofReal_mul,
+    ← Real.sqrt_mul (hT.toLinearMap.nonneg_eigenvalues rfl _),
+    Real.sqrt_mul_self (hT.toLinearMap.nonneg_eigenvalues rfl _), mul_comm _ (⟪_, _⟫_𝕜),
+    ← smul_eq_mul, smul_assoc, ← hT.isSymmetric.apply_eigenvectorBasis, ← map_smul, ← map_sum,
+    ← OrthonormalBasis.repr_apply_apply, OrthonormalBasis.sum_repr, coe_coe]

@@ -1,0 +1,53 @@
+import Mathlib.Analysis.Convex.Measure
+import Mathlib.MeasureTheory.Measure.AbsolutelyContinuous
+
+/-!
+# Almost-everywhere interior membership for convex domains
+
+For Brenier-type arguments, a source law may be known to be concentrated on a
+convex effective domain while differentiability is available on its open
+interior.  In finite dimension these are compatible under absolute continuity:
+the frontier of a convex set is Haar-null, hence any measure absolutely
+continuous with respect to Haar measure ignores that frontier as well.
+
+This module packages that measure-theoretic bridge independently of optimal
+transport and Rockafellar potentials.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace ConvexInteriorAE
+
+open MeasureTheory Set Topology
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  {m μ : Measure E} [Measure.IsAddHaarMeasure m]
+
+/-- If `μ` is absolutely continuous with respect to additive Haar measure and
+is almost everywhere supported on a convex set `s`, then `μ` is actually almost
+everywhere supported on `interior s`.  The only removed points lie on the
+convex frontier, which is Haar-null. -/
+theorem ae_mem_interior_of_convex_of_absolutelyContinuous
+    {s : Set E}
+    (hs : Convex ℝ s)
+    (hμm : μ ≪ m)
+    (hmem : ∀ᵐ x ∂μ, x ∈ s) :
+    ∀ᵐ x ∂μ, x ∈ interior s := by
+  have hfront_m : m (frontier s) = 0 :=
+    hs.addHaar_frontier m
+  have hfront_μ : μ (frontier s) = 0 :=
+    hμm hfront_m
+  have hnotfront : ∀ᵐ x ∂μ, x ∉ frontier s :=
+    measure_eq_zero_iff_ae_notMem.mp hfront_μ
+  filter_upwards [hmem, hnotfront] with x hxs hxfront
+  have hxclosure : x ∈ closure s := subset_closure hxs
+  by_contra hxinterior
+  apply hxfront
+  simp [frontier, hxclosure, hxinterior]
+
+end ConvexInteriorAE
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

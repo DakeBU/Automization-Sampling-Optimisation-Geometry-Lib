@@ -1,0 +1,221 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation
+import Mathlib.Analysis.SpecificLimits.Basic
+
+/-!
+# Finite time-grid geometry
+
+Reusable order and cell lemmas for elementary adapted processes.  The dyadic
+results keep the truncated subtraction on `NNReal` explicit; later convergence
+arguments can therefore use the geometry without reopening finite-grid
+combinatorics.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace FiniteTimeGrid
+
+open Filter Set
+open scoped NNReal
+
+open ElementaryItoIntegral SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : MeasureTheory.Filtration ℝ≥0 m}
+
+/-- A point strictly after the first endpoint and at most the final endpoint
+belongs to a unique cell of a strictly increasing finite grid. -/
+theorem strictGrid_existsUnique_cell
+    {n : ℕ} (_hn : 0 < n)
+    {times : Fin (n + 1) → ℝ≥0}
+    (hmono : StrictMono times)
+    {t : ℝ≥0}
+    (hleft : times 0 < t)
+    (hright : t ≤ times (Fin.last n)) :
+    ∃! i : Fin n,
+      times i.castSucc < t ∧ t ≤ times i.succ := by
+  let p : Fin (n + 1) → Prop := fun j => t ≤ times j
+  have hp : ∃ j, p j := ⟨Fin.last n, hright⟩
+  let j : Fin (n + 1) := Fin.find p hp
+  have hjUpper : t ≤ times j := Fin.find_spec hp
+  have hjNe : j ≠ 0 := by
+    intro hj
+    have hjUpper' := hjUpper
+    rw [hj] at hjUpper'
+    exact (not_lt_of_ge hjUpper') hleft
+  let i : Fin n := j.pred hjNe
+  have hiSucc : i.succ = j := by
+    exact Fin.succ_pred j hjNe
+  have hiLower : times i.castSucc < t := by
+    have hilj : i.castSucc < j := by
+      rw [← hiSucc]
+      exact Fin.castSucc_lt_succ
+    exact lt_of_not_ge (Fin.find_min hp hilj)
+  refine ⟨i, ⟨hiLower, hiSucc.symm ▸ hjUpper⟩, ?_⟩
+  intro k hk
+  have hj_le_ksucc : j ≤ k.succ :=
+    Fin.find_le_of_pos hp hk.2
+  have hkcast_lt_j : k.castSucc < j := by
+    apply lt_of_not_ge
+    intro hjk
+    have htimes : times j ≤ times k.castSucc :=
+      hmono.monotone hjk
+    exact (not_lt_of_ge (hjUpper.trans htimes)) hk.1
+  have hik : i ≤ k := by
+    rw [← Fin.succ_le_succ_iff, hiSucc]
+    exact hj_le_ksucc
+  have hki : k ≤ i := by
+    rw [← Fin.castSucc_lt_succ_iff, hiSucc]
+    exact hkcast_lt_j
+  exact le_antisymm hki hik
+
+/-- Inside a cell, the elementary process is exactly that cell's coefficient. -/
+theorem ElementaryAdaptedProcess.value_eq_coeff_of_mem_cell
+    {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    {i : Fin n} {t : ℝ≥0} {omega : Omega}
+    (hi : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ) :
+    eta.value t omega = eta.coeff i omega := by
+  have hn : 0 < n := Nat.pos_of_ne_zero (fun hn => by
+    subst n
+    exact Fin.elim0 i)
+  have hfirst : eta.times 0 < t := by
+    exact (eta.times_strictMono.monotone (Fin.zero_le i.castSucc)).trans_lt hi.1
+  have hlast : t ≤ eta.times (Fin.last n) := by
+    exact hi.2.trans (eta.times_strictMono.monotone (Fin.le_last i.succ))
+  obtain ⟨j, hj, hjUnique⟩ :=
+    strictGrid_existsUnique_cell (times := eta.times) hn eta.times_strictMono hfirst hlast
+  have hji : i = j := hjUnique i hi
+  subst j
+  classical
+  simp only [ElementaryAdaptedProcess.value]
+  rw [Finset.sum_eq_single i]
+  · simp [hi]
+  · intro k _ hki
+    split_ifs with hk
+    · exact (hki (hjUnique k hk)).elim
+    · rfl
+  · simp
+
+/-- An elementary process vanishes at and before its first grid endpoint. -/
+theorem ElementaryAdaptedProcess.value_eq_zero_of_le_first
+    {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    {t : ℝ≥0} (ht : t ≤ eta.times 0) (omega : Omega) :
+    eta.value t omega = 0 := by
+  simp only [ElementaryAdaptedProcess.value]
+  apply Finset.sum_eq_zero
+  intro i _
+  by_cases hi : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+  · have hzero_le : eta.times 0 ≤ eta.times i.castSucc :=
+      eta.times_strictMono.monotone (Fin.zero_le _)
+    exact ((not_lt_of_ge (ht.trans hzero_le)) hi.1).elim
+  · simp [hi]
+
+/-- An elementary process vanishes strictly after its final grid endpoint. -/
+theorem ElementaryAdaptedProcess.value_eq_zero_of_last_lt
+    {n : ℕ}
+    (eta : ElementaryAdaptedProcess filtration n)
+    {t : ℝ≥0} (ht : eta.times (Fin.last n) < t) (omega : Omega) :
+    eta.value t omega = 0 := by
+  simp only [ElementaryAdaptedProcess.value]
+  apply Finset.sum_eq_zero
+  intro i _
+  by_cases hi : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+  · have hle_last : eta.times i.succ ≤ eta.times (Fin.last n) :=
+      eta.times_strictMono.monotone (Fin.le_last _)
+    exact ((not_lt_of_ge (hi.2.trans hle_last)) ht).elim
+  · simp [hi]
+
+/-- The real-valued mesh of the dyadic partition tends to zero. -/
+theorem dyadicMesh_tendsto_zero (T : ℝ≥0) :
+    Tendsto
+      (fun level ↦ ((dyadicMesh T level : ℝ≥0) : ℝ))
+      atTop (nhds 0) := by
+  have hpow : Tendsto (fun level : ℕ ↦ ((2 : ℝ)⁻¹) ^ level)
+      atTop (nhds 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one (by positivity) (by norm_num)
+  have hconst : Tendsto (fun _ : ℕ ↦ (T : ℝ)) atTop (nhds (T : ℝ)) :=
+    tendsto_const_nhds
+  have hmul := hconst.mul hpow
+  simpa [dyadicMesh, div_eq_mul_inv, ← inv_pow] using hmul
+
+/-- Eventually twice the dyadic mesh is below every positive real tolerance. -/
+theorem eventually_two_mul_dyadicMesh_lt
+    (T : ℝ≥0) {epsilon : ℝ} (hepsilon : 0 < epsilon) :
+    ∀ᶠ level in atTop,
+      2 * ((dyadicMesh T level : ℝ≥0) : ℝ) < epsilon := by
+  have h := (dyadicMesh_tendsto_zero T).const_mul 2
+  exact (tendsto_order.1 h).2 epsilon (by simpa using hepsilon)
+
+/-- Eventually the dyadic mesh is below every positive real tolerance. -/
+theorem eventually_dyadicMesh_lt
+    (T : ℝ≥0) {epsilon : ℝ} (hepsilon : 0 < epsilon) :
+    ∀ᶠ level in atTop,
+      ((dyadicMesh T level : ℝ≥0) : ℝ) < epsilon :=
+  (tendsto_order.1 (dyadicMesh_tendsto_zero T)).2 epsilon hepsilon
+
+/-- Every positive time up to `T` has a unique active dyadic cell. -/
+theorem dyadic_activeCell
+    {T : ℝ≥0} (hT : 0 < T) (level : ℕ)
+    {t : ℝ≥0} (ht : 0 < t) (htT : t ≤ T) :
+    ∃! i : Fin (2 ^ level),
+      regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc < t ∧
+        t ≤ regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ := by
+  apply strictGrid_existsUnique_cell (by positivity)
+    (regularGridTimes_strictMono (dyadicMesh_pos hT level) _)
+  · simpa [regularGridTimes] using ht
+  · have hlast :
+        regularGridTimes (dyadicMesh T level) (2 ^ level) (Fin.last (2 ^ level)) = T := by
+      simp only [regularGridTimes, Fin.val_last, Nat.cast_pow, Nat.cast_ofNat, dyadicMesh]
+      rw [mul_comm, div_mul_cancel₀]
+      positivity
+    rwa [hlast]
+
+/-- The left endpoint of an active dyadic cell is at most the point. -/
+theorem dyadic_activeCell_left_le
+    {T : ℝ≥0} {level : ℕ} {i : Fin (2 ^ level)} {t : ℝ≥0}
+    (hi : regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc < t ∧
+      t ≤ regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ) :
+    regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc ≤ t :=
+  hi.1.le
+
+/-- The right endpoint of a regular dyadic cell is one mesh after its left endpoint. -/
+theorem dyadic_activeCell_right
+    {T : ℝ≥0} {level : ℕ} (i : Fin (2 ^ level)) :
+    regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ =
+      regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc +
+        dyadicMesh T level := by
+  simp only [regularGridTimes, Fin.val_succ, Fin.val_castSucc, Nat.cast_add,
+    Nat.cast_one, add_mul, one_mul]
+
+/-- For every nonfirst active cell, its preceding cell lies in the left
+neighborhood of radius twice the mesh. -/
+theorem dyadic_previousCell_subset_leftNeighborhood
+    {T : ℝ≥0} {level : ℕ} {i : Fin (2 ^ level)} {t : ℝ≥0}
+    (hi : regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc < t ∧
+      t ≤ regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ)
+    (_hi0 : i ≠ 0) :
+    Ioc
+        (regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc -
+          dyadicMesh T level)
+        (regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc) ⊆
+      Ioc (t - (dyadicMesh T level + dyadicMesh T level)) t := by
+  intro s hs
+  let left := regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc
+  let delta := dyadicMesh T level
+  have ht_le : t ≤ left + delta := by
+    simpa only [left, delta, dyadic_activeCell_right i] using hi.2
+  have htrunc : t - (delta + delta) ≤ left - delta := by
+    calc
+      t - (delta + delta) ≤ (left + delta) - (delta + delta) :=
+        tsub_le_tsub_right ht_le _
+      _ = (delta + left) - (delta + delta) := by rw [add_comm left delta]
+      _ = left - delta := by
+        exact add_tsub_add_eq_tsub_left delta left delta
+  exact ⟨htrunc.trans_lt hs.1, (hs.2.trans_lt hi.1).le⟩
+
+end FiniteTimeGrid
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

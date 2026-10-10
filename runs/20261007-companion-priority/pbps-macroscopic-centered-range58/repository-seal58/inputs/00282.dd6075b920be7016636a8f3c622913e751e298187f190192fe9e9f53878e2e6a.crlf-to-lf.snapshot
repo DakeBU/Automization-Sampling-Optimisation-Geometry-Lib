@@ -1,0 +1,114 @@
+import AutoSamplingTheory.Probability
+import AutoSamplingTheory.TechnicalLemmas.Measure.CanonicalGlobalCompetitor
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMassSlice
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMassSliceFamily
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonRemovableMass
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonSlicePermutationReplacement
+import AutoSamplingTheory.TechnicalLemmas.Measure.ContinuousCostWeakLowerSemicontinuity
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingGraph
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolation
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationCoupling
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationConstantSpeed
+import AutoSamplingTheory.TechnicalLemmas.Measure.ChewiTheorem1_3_23
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementPotentialEnergy
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementRealQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianEntropy
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementEntropyPushforward
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianAffineSpectrum
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianMatrixLogDet
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapDerivative
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementDerivativeMatrix
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementDerivativeDetPos
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementDerivativeLogDet
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementChangeOfVariables
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementPositiveOperator
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapInjectivity
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMonotoneDerivative
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementSupportingPotential
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementConvexPotentialSupport
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementGradientDerivativeSymmetry
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementConvexGradientPositive
+import AutoSamplingTheory.TechnicalLemmas.Measure.FiniteRemainder
+import AutoSamplingTheory.TechnicalLemmas.Measure.FiniteSumDomination
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
+import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsIntegral
+import AutoSamplingTheory.TechnicalLemmas.Measure.GibbsLogConcavity
+import AutoSamplingTheory.TechnicalLemmas.Measure.KantorovichDual
+import AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation
+import AutoSamplingTheory.TechnicalLemmas.Measure.PermutedMarginalReplacement
+import AutoSamplingTheory.TechnicalLemmas.Measure.ProbabilityCouplingCompactness
+import AutoSamplingTheory.TechnicalLemmas.Measure.Product
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuadraticOptimalMapUniqueness
+import AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym
+import AutoSamplingTheory.TechnicalLemmas.Measure.ReplacementCompetitor
+import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
+import AutoSamplingTheory.TechnicalLemmas.Measure.TransportGluing
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleCore
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleMarginals
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangle
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleExact
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinFiniteSecondMoment
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry
+import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
+import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
+
+/-!
+# ASTIS-native measure and conditional-law technical lemmas
+
+This file is the reusable memory surface for measure-theoretic lemmas already
+formalized while reproducing SALD.  The proofs live in `Probability.lean`; this
+module gives agents a stable technical-lemma namespace to search before they
+invent new interfaces.
+
+New code should prefer the focused modules under `TechnicalLemmas.Measure` and
+`TechnicalLemmas.Probability`. In particular, the transport/Wasserstein spine is
+now exposed through displacement interpolation, gluing, Wasserstein-space, and
+triangle modules rather than hidden behind branch-local imports.
+This file remains as a compatibility aggregator.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+
+/-- Integrability is invariant under replacing the ambient measure by an equal measure. -/
+theorem integrable_of_measure_eq
+    {alpha eps : Type*} [MeasurableSpace alpha] [TopologicalSpace eps]
+    [ContinuousENorm eps]
+    {f : alpha -> eps} {mu nu : MeasureTheory.Measure alpha} (hmunu : mu = nu)
+    (hf : MeasureTheory.Integrable f mu) :
+    MeasureTheory.Integrable f nu := by
+  simpa [hmunu] using hf
+
+export AutoSamplingTheory (
+  lawMapEqOfAEEq
+  lawMapIntegral
+  lawMapIntegralHasDerivAtOfSample
+  lawIntegralHasDerivAtOfMeasureMapEqAndSample
+  lawMapIntegralHasDerivAtOfDominated
+  lawIntegralHasDerivAtOfMeasureMapEqAndDominated
+  lawMapProdEqOfAEEq
+  lawMapProdFst
+  lawMapProdSnd
+  lawMapProdSwap
+  condDistribAeEqCondExpKernelMap
+  condDistribIntegralSampleAeEqOfCondExpKernelMap
+  condDistribIntegralAEStronglyMeasurable
+  condDistribIntegralIntegrable
+  condDistribIntegralMapAEStronglyMeasurable
+  condDistribIntegralMapIntegrable
+  condDistribIntegralMapIntegral
+  condDistribIntegralNamedLawIntegral
+  condDistribIntegralNamedLawAEStronglyMeasurable
+  condDistribIntegralNamedLawIntegrable
+  condDistribIntegralNamedFieldRegularity
+)
+
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

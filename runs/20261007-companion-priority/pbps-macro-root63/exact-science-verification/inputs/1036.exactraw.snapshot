@@ -1,0 +1,80 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport
+
+/-!
+# Finite-coordinate heat-bath updates
+
+Split a dependent finite product into retained coordinates and one selected
+coordinate using Mathlib's measurable equivalences. Apply the existing
+one-block heat-bath kernel and transport back to the original state space.
+
+This is a source-neutral, noncomputable law interface. It does not assert
+Gibbs support on null fibers, reversibility, convergence, or sampling cost.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath
+
+open MeasureTheory ProbabilityTheory
+
+variable {n : ℕ} (X : Fin (n + 1) → Type*) [∀ j, MeasurableSpace (X j)]
+
+/-- Resample coordinate `i` conditionally on all remaining coordinates.
+Only the selected coordinate must be nonempty and Standard Borel. The target
+may be any finite measure, including zero; its conditional version is specified
+only almost everywhere under the retained-coordinate marginal. -/
+noncomputable def heatBath (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]
+    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)] :
+    Kernel (∀ j, X j) (∀ j, X j) :=
+  let e := (MeasurableEquiv.piFinSuccAbove X i).trans MeasurableEquiv.prodComm
+  ((HeatBath.heatBathSnd (μ.map e)).comap e e.measurable).map e.symm
+
+/-- The coordinate update has total mass one at every input. This does not
+assert conditional support on marginal-null fibers. -/
+instance heatBath_isMarkovKernel (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]
+    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)] :
+    IsMarkovKernel (heatBath X μ i) := by
+  unfold heatBath
+  exact Kernel.IsMarkovKernel.map _
+    ((MeasurableEquiv.piFinSuccAbove X i).trans MeasurableEquiv.prodComm).symm.measurable
+
+/-- Exact invariance by literal reuse of one-block heat-bath and measurable
+kernel transport. No convergence from other initial laws is inferred. -/
+theorem heatBath_invariant (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]
+    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)] :
+    (heatBath X μ i).Invariant μ := by
+  let e := (MeasurableEquiv.piFinSuccAbove X i).trans MeasurableEquiv.prodComm
+  simpa only [heatBath, MeasurableEquiv.symm_symm, MeasurableEquiv.map_symm_map] using
+    KernelTransport.invariant_map_comap e.symm (HeatBath.heatBathSnd_invariant (μ.map e))
+
+/-- At each input `x`, every coordinate other than the selected one is retained
+almost surely. Singleton measurability is needed only at the retained coordinate
+`j`: equality of a marginal law with a Dirac measure on a coarse measurable
+space would not alone imply literal almost-everywhere equality. -/
+theorem heatBath_ae_apply_eq (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]
+    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)]
+    (j : Fin (n + 1)) [MeasurableSingletonClass (X j)] (hji : j ≠ i)
+    (x : ∀ j, X j) :
+    ∀ᵐ y ∂heatBath X μ i x, y j = x j := by
+  obtain ⟨k, rfl⟩ := Fin.exists_succAbove_eq hji
+  let e := (MeasurableEquiv.piFinSuccAbove X i).trans MeasurableEquiv.prodComm
+  let ν := condDistrib Prod.snd Prod.fst (μ.map e) (e x).1
+  have hret : ∀ᵐ z ∂Measure.dirac (e x).1, z k = (e x).1 k :=
+    ae_eq_dirac' (measurable_pi_apply k)
+  have hfirst : ((Measure.dirac (e x).1).prod ν).map Prod.fst =
+      Measure.dirac (e x).1 := by
+    simp [ν]
+  have hprod : ∀ᵐ p ∂(Measure.dirac (e x).1).prod ν, p.1 k = (e x).1 k :=
+    ae_of_ae_map measurable_fst.aemeasurable (by rw [hfirst]; exact hret)
+  have hcoord (p : (∀ j, X (i.succAbove j)) × X i) :
+      e.symm p (i.succAbove k) = p.1 k :=
+    congrArg (fun q => q.1 k) (e.apply_symm_apply p)
+  change ∀ᵐ y ∂((HeatBath.heatBathSnd (μ.map e)).comap e e.measurable).map e.symm x,
+    y (i.succAbove k) = x (i.succAbove k)
+  rw [Kernel.map_apply _ e.symm.measurable, Kernel.comap_apply, HeatBath.heatBathSnd_apply]
+  apply (ae_map_iff e.symm.measurable.aemeasurable
+    ((measurable_pi_apply (i.succAbove k)) (measurableSet_singleton _))).2
+  change ∀ᵐ p ∂(Measure.dirac (e x).1).prod ν,
+    e.symm p (i.succAbove k) = (e x).1 k
+  exact hprod.mono (fun p hp => (hcoord p).trans hp)
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath

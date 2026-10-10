@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+import pathlib,json,hashlib,sys
+sys.stdout.reconfigure(encoding='utf-8');r=pathlib.Path('E:/Samplinglib');d=r/'runs/20261007-companion-priority/pbps-outer-gradient-preread49';H=lambda b:hashlib.sha256(b).hexdigest();extra=[]
+for fn in ['GaussianReflection','GaussianAugmentation','GibbsAugmentation']:
+ o=json.loads((d/(fn+'.public.json')).read_text(encoding='utf-8'));b=pathlib.Path(o['path']).read_bytes();part=b''.join(b.splitlines(keepends=True)[:o['headers'][0]['start_line']-1]);stem=fn+'.public-context';(d/(stem+'.raw.lean')).write_bytes(part);(d/(stem+'.lf.lean')).write_bytes(part.replace(b'\r\n',b'\n'));extra.append(dict(path=o['path'],span=[1,o['headers'][0]['start_line']-1],whole_raw_sha256=H(b),whole_lf_sha256=H(b.replace(b'\r\n',b'\n')),fragment_raw_sha256=H(part),fragment_lf_sha256=H(part.replace(b'\r\n',b'\n')),snapshot=stem));print(fn,'\n',part.decode('utf-8'))
+p=r/'.lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Measurable.lean';b=p.read_bytes();part=b''.join(b.splitlines(keepends=True)[103:109]);stem='fderiv-variable-context';(d/(stem+'.raw')).write_bytes(part);(d/(stem+'.lf')).write_bytes(part.replace(b'\r\n',b'\n'));extra.append(dict(path=str(p),span=[104,109],whole_raw_sha256=H(b),whole_lf_sha256=H(b.replace(b'\r\n',b'\n')),fragment_raw_sha256=H(part),fragment_lf_sha256=H(part.replace(b'\r\n',b'\n')),snapshot=stem))
+(d/'additional-input-bindings.json').write_text(json.dumps(extra,indent=2),encoding='utf-8')

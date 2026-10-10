@@ -1,0 +1,136 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOBackward
+import Mathlib.Probability.Kernel.Composition.Prod
+/-!
+# Measurable random-center RGO recovery
+
+Expanded ideal-kernel semantics needed by SPHMC v1 Lemma 6.4 (6.1) and
+Theorem 6.5. All parameters except the center law are fixed. The input joint law
+must use the constructed Gaussian observation kernel; no arbitrary correlated
+input, approximate recursion, error or expected query cost claim is made.
+-/
+
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open AutoSamplingTheory.TechnicalLemmas.Probability
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+open scoped ENNReal
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.AdaptiveCenterRGO
+
+/-- Construct globally measurable target, Gaussian forward and center-retaining
+backward kernels before every probability center law, with exact joint recovery.
+The general probability base explicitly abstracts the source Gibbs setting. -/
+theorem adaptive_center_recovery (μ : Measure E) [IsProbabilityMeasure μ] (b a : ℝ)
+    (hb : 0 ≤ b) (ha : 0 < a) :
+    ∃ (T H : Kernel E E) (B : Kernel (E × E) (E × E)),
+      IsMarkovKernel T ∧ IsMarkovKernel H ∧ IsMarkovKernel B ∧
+      (∀ u, T u = μ.tilted (fun x => -(b/2)*‖x-u‖^2)) ∧
+      (∀ u, H u = GaussianSmoothing.gaussianSmoothing (T u) (Real.sqrt a)) ∧
+      (∀ u y, B (u,y) = Measure.map (Prod.mk u)
+        ((T u).tilted (fun x => -‖x-y‖^2/(2*a)))) ∧
+      (∀ u y, B (u,y) = Measure.map (Prod.mk u)
+        (μ.tilted (fun x => -((b+a⁻¹)/2)*
+          ‖x-(b+a⁻¹)⁻¹ • (b • u+a⁻¹ • y)‖^2))) ∧
+      ∀ (ν : Measure E), IsProbabilityMeasure ν → B ∘ₘ (ν ⊗ₘ H) = ν ⊗ₘ T := by
+  have precisionKernel (μ : Measure E) [IsProbabilityMeasure μ] (q : ℝ) (hq : 0 < q) :
+      ∃ T : Kernel E E, IsMarkovKernel T ∧
+        ∀ u, T u = μ.tilted (fun x => -(q/2)*‖x-u‖^2) := by
+    obtain ⟨T,hT,hfiber,_⟩ := GaussianConditionalKernel.exists_tilted_isCondKernel μ (inv_pos.mpr hq)
+    refine ⟨T,hT,?_⟩
+    intro u
+    rw [hfiber]
+    congr 1
+    funext x
+    field_simp
+  
+  have targetKernel (μ : Measure E) [IsProbabilityMeasure μ] (b : ℝ) (hb : 0 ≤ b) :
+      ∃ T : Kernel E E, IsMarkovKernel T ∧
+        ∀ u, T u = μ.tilted (fun x => -(b/2)*‖x-u‖^2) := by
+    by_cases hb0 : b = 0
+    · subst b
+      refine ⟨Kernel.const E μ,inferInstance,?_⟩
+      intro u
+      simp
+    · exact precisionKernel μ b (lt_of_le_of_ne hb (Ne.symm hb0))
+  
+  have globalKernels (μ : Measure E) [IsProbabilityMeasure μ] (b a : ℝ)
+      (hb : 0 ≤ b) (ha : 0 < a) :
+      ∃ (T H : Kernel E E) (K : Kernel (E × E) E) (B : Kernel (E × E) (E × E)),
+        IsMarkovKernel T ∧ IsMarkovKernel H ∧ IsMarkovKernel K ∧ IsMarkovKernel B ∧
+        (∀ u, T u = μ.tilted (fun x => -(b/2)*‖x-u‖^2)) ∧
+        (∀ u, H u = GaussianSmoothing.gaussianSmoothing (T u) (Real.sqrt a)) ∧
+        (∀ u y, K (u,y) = (T u).tilted (fun x => -‖x-y‖^2/(2*a))) ∧
+        (∀ u y, K (u,y) = μ.tilted (fun x => -((b+a⁻¹)/2)*
+          ‖x-(b+a⁻¹)⁻¹ • (b • u+a⁻¹ • y)‖^2)) ∧
+        ∀ u y, B (u,y) = Measure.map (Prod.mk u) (K (u,y)) := by
+    obtain ⟨T,hT,hTf⟩ := targetKernel μ b hb
+    let := hT
+    obtain ⟨R,hR,hRf⟩ := precisionKernel μ (b+a⁻¹) (add_pos_of_nonneg_of_pos hb (inv_pos.mpr ha))
+    let := hR
+    let c : E × E → E := fun p => (b+a⁻¹)⁻¹ • (b • p.1+a⁻¹ • p.2)
+    have hc : Measurable c := by fun_prop
+    let K := R.comap c hc
+    have hK : IsMarkovKernel K := inferInstance
+    let H := (T ×ₖ Kernel.const E (GaussianSmoothing.scaledStdGaussian (E := E) (Real.sqrt a))).map
+      (fun p : E × E => p.1+p.2)
+    have hH : IsMarkovKernel H := by
+      dsimp only [H]
+      exact Kernel.IsMarkovKernel.map _ (by fun_prop)
+    let B := (Kernel.deterministic (Prod.fst : E × E → E) measurable_fst) ×ₖ K
+    have hB : IsMarkovKernel B := inferInstance
+    have hKf (u y : E) : K (u,y) = μ.tilted (fun x => -((b+a⁻¹)/2)*
+        ‖x-(b+a⁻¹)⁻¹ • (b • u+a⁻¹ • y)‖^2) := hRf (c (u,y))
+    refine ⟨T,H,K,B,hT,hH,hK,hB,hTf,?_,?_,hKf,?_⟩
+    · intro u
+      dsimp only [H]
+      rw [Kernel.map_apply _ (by fun_prop), Kernel.prod_apply]
+      rfl
+    · intro u y
+      rw [hKf,hTf]
+      have heq : (fun x : E => -‖x-y‖^2/(2*a)) = (fun x => -(a⁻¹/2)*‖x-y‖^2) := by
+        funext x
+        field_simp
+      rw [heq]
+      exact (RGOClosure.quadratic_tilt_tilt μ hb (inv_pos.mpr ha) u y).symm
+    · intro u y
+      dsimp only [B]
+      rw [Kernel.prod_apply, Kernel.deterministic_apply, Measure.dirac_prod]
+  
+  obtain ⟨T,H,K,B,hT,hH,hK,hB,hTf,hHf,hKf,hKupdated,hBf⟩ := globalKernels μ b a hb ha
+  let := hT
+  let := hH
+  let := hK
+  let := hB
+  have hrec (u : E) : (K.comap (Prod.mk u) measurable_prodMk_left) ∘ₘ H u = T u := by
+    obtain ⟨_,R,hR,hRf,_,hrecover,_⟩ := RGOBackward.rgo_backward_recovery μ b a hb ha u
+    have heq : K.comap (Prod.mk u) measurable_prodMk_left = R := by
+      ext y : 1
+      change K (u,y) = R y
+      rw [hKf,hTf,hRf]
+    rw [heq,hHf,hTf]
+    exact hrecover
+  refine ⟨T,H,B,hT,hH,hB,hTf,hHf,?_,?_,?_⟩
+  · intro u y
+    rw [hBf,hKf]
+  · intro u y
+    rw [hBf,hKupdated]
+  · intro ν hν
+    let := hν
+    ext s hs
+    rw [Measure.bind_apply hs B.aemeasurable, Measure.lintegral_compProd (B.measurable_coe hs),
+      Measure.compProd_apply hs]
+    apply lintegral_congr
+    intro u
+    have hs' := hs.preimage (measurable_prodMk_left (x := u))
+    have heq := congrArg (fun m : Measure E => m ((Prod.mk u) ⁻¹' s)) (hrec u)
+    rw [Measure.bind_apply hs' (K.comap (Prod.mk u) measurable_prodMk_left).aemeasurable] at heq
+    rw [← heq]
+    apply lintegral_congr
+    intro y
+    rw [hBf,Measure.map_apply measurable_prodMk_left hs]
+    rfl
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.AdaptiveCenterRGO

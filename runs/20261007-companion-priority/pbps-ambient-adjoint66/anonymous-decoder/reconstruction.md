@@ -1,0 +1,130 @@
+# Anonymous expanded reconstruction
+
+Let E be a finite-dimensional real inner product space with its normed additive commutative group structure, a measurable structure and BorelSpace compatibility. Let V:E->R be twice continuously Frechet differentiable, alpha,beta be nonnegative real parameters, and eta be real. Assume 0<alpha, alpha<=beta, eta>0 and beta*eta<=1. For every x,v:E assume both Hessian bounds
+  alpha*||v||^2 <= (D(DV)(x)[v])[v] <= beta*||v||^2.
+Use real coercions of alpha,beta in real formulas. DV(x):E->R and D(DV)(x)[v]:E->R are bounded real-linear functionals. These structures and assumptions are all the original public premises.
+
+Define mu=volume.tilted(x->-V(x)), where tilted means normalized exponential tilting. Define J as the pushforward of mu times stdGaussian(E) by (x,z)->(x,x+sqrt(eta)*z), and nu=J.snd. Define Lambda as the pushforward of J by (x,y)->(y,2*x-y), and define F(x,y)=(x,2*x-y). J has coordinates (x,y), while Lambda has coordinates (y,2*x-y).
+
+Use the product measurable structure on E x E. Set mY to be the comap of the measurable structure of E along the second-coordinate projection. The fact mY is contained in the product sigma algebra is derived internally from measurability of that projection. Let H=L2(J) and K=L2(nu), complete real Hilbert spaces of square-integrable measurable almost-everywhere classes. Let HP=lpMeas(R,R,mY,2,J), the closed subspace of H of mY-measurable classes. Write i:HP->H for inclusion and pi:H->HP for orthogonal projection. Define P:H->H as i composed with L2 conditional expectation onto mY. Let M:K->H be the linear isometric pullback by the second-coordinate projection; its measure-preserving witness is internally derived from nu=J.snd.
+
+Then mu,J,nu are probability measures; HP equals the algebraic range of P.toLinearMap; and P(i(f))=i(f) for every f:HP.
+
+There exists a Markov kernel S from E to E such that for every y:E, as an exact equality of measures,
+  S(y)=volume.tilted(x->-V((y+x)/2)-||y-x||^2/(8*eta)).
+This formula is normalized and every-state. S is a conditional kernel of Lambda, the second-coordinate law given the first in the supplied IsCondKernel sense; Lambda.fst=nu and Lambda.snd=nu.
+
+There exists a real-linear isometric equivalence e:K->HP onto that exact subspace with i(e(u))=M(u) for every u:K. There exists a real-linear isometry U:H->H such that for each g:H, the representative of U(g) agrees with g composed with F J-almost everywhere. U is involutive and its associated bounded operator is selfadjoint.
+
+There exists a bounded real-linear endomorphism T:K->K which is selfadjoint and, for every u:K, satisfies
+  ||T(u)||<=||u||,
+  T(u)(y)=integral u(x) dS(y)(x) for nu-almost every y,
+  integral T(u)(y) dnu(y)=integral u(y) dnu(y).
+The U and T representative formulas are separately AE for each observable; no common exceptional set is asserted.
+
+Define A:HP->HP by A=pi composed with U composed with i, and B:HP->H by B=(I_H-P) composed with U composed with P composed with i. Then A=e composed with T composed with e^{-1}; A is selfadjoint and ||A(f)||<=||f|| for every f:HP. Moreover P(B(f))=0 for every f:HP.
+
+There exists a positive bounded endomorphism Gamma:K->K with Gamma composed with Gamma=I_K-T composed with T. Define GammaP:HP->HP by GammaP=e composed with Gamma composed with e^{-1}. Then GammaP is positive, GammaP composed with GammaP=I_HP-A composed with A, and B.adjoint composed with B=GammaP composed with GammaP. Here B.adjoint:H->HP; the last identity is on HP. Gamma,GammaP are operators, not real scalar square roots. Positivity includes selfadjointness and a nonnegative real quadratic form.
+
+There exists q:K equal to the constant function 1 nu-almost everywhere, with T(q)=q and <q,u>_K=integral u(y) dnu(y) for every u:K. Set qP=e(q). Define HP0 exactly as ker(innerSL R qP) inside HP, the kernel of f-><qP,f>_HP. HP0 has the inherited normed additive group and real inner product, with completeness derived internally from closedness of the kernel. Write j:HP0->HP for its continuous inclusion. Set
+  gamma=2*sqrt(alpha*eta)/(1+alpha*eta).
+For every f:HP, f belongs to HP0 if and only if integral (e^{-1}(f))(y) dnu(y)=0. Furthermore GammaP(qP)=0 and gamma>0.
+
+There exists a bounded endomorphism GammaP0:HP0->HP0 with j(GammaP0(f))=GammaP(j(f)) for every f:HP0. GammaP0 is positive, GammaP0-gamma*I_HP0 is positive, and GammaP0 is a unit in the bounded endomorphism algebra of HP0. There exists a bounded endomorphism Inv:HP0->HP0 with both exact identities
+  Inv composed with GammaP0=I_HP0,
+  GammaP0 composed with Inv=I_HP0,
+and operator-norm bound ||Inv||<=1/gamma.
+
+Define Hperp exactly as ker(P) inside H, with inherited normed additive group and real inner product and completeness obtained internally from closedness of P's kernel. Write k:Hperp->H for inclusion. Hperp is the zero-conditional-expectation subspace for mY; it is not merely the globally zero-mean subspace of H.
+
+There exists a bounded real-linear map B0:HP0->Hperp with k(B0(f))=B(j(f)) for every f:HP0. There exists a bounded real-linear map V0:HP0->Hperp such that
+  V0=B0 composed with Inv,
+  B0=V0 composed with GammaP0,
+  V0.adjoint composed with V0=I_HP0,
+and ||V0(f)||=||f|| for every f:HP0. V0.adjoint:Hperp->HP0. This is an isometric embedding, with a domain-side left inverse; no onto-ness or identity V0 composed with V0.adjoint=I_Hperp is asserted.
+
+There exists a bounded real-linear map R:H->Hperp such that, for every g:H,
+  k(R(g))=g-P(g),
+and, again for every g:H,
+  B.adjoint(g)=j(B0.adjoint(R(g))).
+In this formula the ambient adjoint B.adjoint has the entire joint Hilbert space H as its domain and HP as its codomain. B0.adjoint has domain Hperp and codomain HP0. The map R extracts the complementary component before the intrinsic adjoint is applied; the equality is in HP. It is not restricted to centered g or to g already in Hperp.
+
+For every f:H with zero joint Bochner integral, integral f(z) dJ(z)=0, there exists fP:HP0 such that
+  j(fP)=condExpL2(f),
+where this conditional expectation is the displayed map H->HP for the sigma algebra mY and measure J. Define fperp=R(f):Hperp, and fV=V0.adjoint(fperp):HP0. Then all of the following hold:
+  B.adjoint(k(fperp))=j(GammaP0(fV)),
+  j(GammaP0(fV))=GammaP(j(fV)),
+  ||f||^2=||fP||^2+||fperp||^2,
+  ||fV||<=||fperp||.
+All norms use their exact inherited Hilbert structures. The zero-integral condition is the antecedent of this universally quantified final conclusion, not an additional public premise for the entire theorem. fP is an internally produced centered conditional mean; fperp and fV are defined from f and the already produced maps, not externally assumed correctors. The contraction bound for fV does not claim fperp=V0(fV) or equal norms between them.
+
+All original E, structures, V,alpha,beta,eta are universally quantified subject to their original hypotheses. The produced witnesses have dependent order S,e,U,T,Gamma,q,GammaP0,Inv,B0,V0,R; the final fP is produced separately for each globally centered f. All measures, maps, conjugates, subspaces, compatibility facts and inherited complete Hilbert structures are internal definitions or constructions. No inverse of GammaP on the full HP is concluded, since GammaP(qP)=0 is explicit. No nontriviality or positive-dimensionality assumption is present for E,HP0,Hperp. Zero-space cases retain their own identity-operator meaning; norm preservation by V0 does not unconditionally imply operator norm 1 on a zero domain. alpha=0 and eta=0 are excluded.
+
+The supplied statement is a literal definitional expansion of a proposition-valued representation of the theorem type. Such a transparent Prop definition records exactly this proposition and contributes neither a proof nor a new mathematical premise. The public binders remain those already listed. No implementation-level statement or source-fidelity conclusion is inferred from the representation.
+
+## objects
+
+- Universal caller data: E and displayed structures, V:E->R, alpha,beta:nonnegative reals, eta:R. Definitions mu,J,nu,Lambda,F,mY,H,K,HP,P,M and inclusions i,j,k.
+- Produced witnesses S,e,U,T,Gamma,q,GammaP0,Inv,B0,V0,R; defined A,B,GammaP,qP,HP0,Hperp,gamma. For each globally centered joint f:H, produced fP:HP0; internally defined fperp=Rf and fV=V0.adjoint fperp.
+
+## domains
+
+- E is finite-dimensional real inner product/Borel space. mu,nu are on E; J,Lambda on product E x E; S is a Markov kernel E to E. Hessian bounds quantify x,v:E.
+- H=L2(J),K=L2(nu) are complete real AE-class Hilbert spaces. HP=lpMeas(mY,2,J) is a closed subspace of H; HP0=ker(innerSL R qP) inside HP; Hperp=ker(P) inside H. All kernel subspaces carry inherited complete Hilbert structures.
+- i:HP->H, pi:H->HP, j:HP0->HP, k:Hperp->H. condExpL2:H->HP; P,U:H->H; M:K->H; e:K equiv_isometry HP.
+- T,Gamma:K->K; A,GammaP:HP->HP; B:HP->H; B.adjoint:H->HP. GammaP0,Inv:HP0->HP0. B0,V0:HP0->Hperp; their adjoints:Hperp->HP0. R:H->Hperp.
+- The centered-input f is in all joint H and has zero joint Bochner integral; fP and fV lie in HP0, fperp lies in Hperp. Adjoint and restriction identities in the final conclusion have codomain HP.
+
+## quantifiers
+
+- Public universal binders: E, NormedAddCommGroup E, InnerProductSpace R E, FiniteDimensional R E, MeasurableSpace E, BorelSpace E, V:E->R, alpha,beta:nonnegative reals, eta:R, and six proof premises h_alpha,h_alpha_beta,h_V,h_H,h_eta,h_beta_eta.
+- Both Hessian inequalities hold for all x,v:E. The normalized S formula is every y:E; U action is J-AE separately for each g:H; T action is nu-AE separately for each u:K; e pullback, T contraction/integral invariance and q pairing hold for every u:K.
+- Compression contraction/orthogonality and centered membership quantify every f:HP. Restriction, B0 coherence and V0 norm identity quantify every f:HP0. R representative equality and ambient adjoint identity quantify every g:H without a centering restriction.
+- For every joint f:H, the zero J-integral antecedent implies existence of fP:HP0 and the stated identities/decomposition/bound, with fperp=Rf and fV=V0.adjoint fperp.
+- Dependent global witness order S,e,U,T,Gamma,q,GammaP0,Inv,B0,V0,R, followed by per-centered-f witness fP. Measurable Fact, measure-preserving pullback witness and complete-space instances are internally derived.
+
+## assumptions
+
+- The five displayed E structures: normed additive commutative group, real inner product, finite dimension, measurable space and Borel compatibility.
+- h_alpha:0<(alpha:R); h_alpha_beta:alpha<=beta; h_V:ContDiff R 2 V. alpha,beta themselves are nonnegative real parameters.
+- h_H:for every x,v:E, (alpha:R)*||v||^2 <= (D(DV)(x)[v])[v] and (D(DV)(x)[v])[v] <= (beta:R)*||v||^2.
+- h_eta:0<eta; h_beta_eta:(beta:R)*eta<=1. No extra normalization, probability, kernel, root, fixed vector, inverse, factorization, higher-derivative or nontriviality premise. A transparent proposition-valued definition supplies no premise/proof.
+- The final zero J-integral antecedent is local to the last universally quantified implication; it is not a global caller hypothesis.
+
+## conclusion
+
+- mu,J,nu probability; HP=range(P.toLinearMap); P fixes included HP vectors. S is Markov with the exact every-state tilt formula; Lambda.IsCondKernel S and both Lambda marginals equal nu.
+- Produced pullback equivalence e and involutive selfadjoint reflection isometry U, with their exact Hilbert/AE coherence. Produced selfadjoint contraction T has per-observable AE S-integral action and preserves nu integral.
+- A=pi U i=e T e^{-1} is selfadjoint and contractive; B=(I_H-P) U P i and P Bf=0. Positive Gamma^2=I_K-T^2; GammaP=e Gamma e^{-1} positive; GammaP^2=I_HP-A^2; B.adjoint B=GammaP^2.
+- Produced q=1 nu-AE, Tq=q and integral pairing; qP=e(q), exact centered HP0 membership, GammaP qP=0 and gamma>0. Produced positive restriction GammaP0 satisfies GammaP0-gamma I positive and IsUnit; Inv GammaP0=I and GammaP0 Inv=I on HP0; ||Inv||<=1/gamma.
+- Produced B0:HP0->Hperp agrees with B after inclusions. Produced V0=B0 Inv satisfies B0=V0 GammaP0, V0.adjoint V0=I_HP0 and every-vector norm preservation.
+- Produced R:H->Hperp obeys k(Rg)=g-Pg for every g:H and B.adjoint g=j(B0.adjoint(Rg)) for every g:H.
+- For every f:H with integral f dJ=0, produced fP:HP0 with j(fP)=condExpL2 f. Defining fperp=Rf and fV=V0.adjoint fperp gives B.adjoint(k fperp)=j(GammaP0 fV)=GammaP(j fV), ||f||^2=||fP||^2+||fperp||^2, and ||fV||<=||fperp||.
+
+## scopes
+
+- Tilts are normalized, operator products are composition and all equalities use the exact displayed domains/inclusions. Gamma roots are operators; gamma and sqrt(eta) are real scalars. Positivity includes selfadjointness and nonnegative quadratic form.
+- Every-state S law is separate from per-observable AE actions of U,T; no common null set or everywhere conditional action is asserted. IsCondKernel is retained in its approved sense.
+- HP0 is the centered subspace of HP transported to K; Hperp=ker(P) means zero conditional expectation and cannot be replaced by global zero mean. R and ambient B.adjoint act on all joint H, not just Hperp or centered inputs.
+- V0.adjoint V0=I_HP0 asserts an isometric embedding and left inverse on its domain, not surjectivity or V0 V0.adjoint=I_Hperp. The final fV norm bound is an inequality; no fperp=V0 fV or equality of their norms is asserted.
+- All Hilbert structures and mathematical witnesses are internal. Both inverse identities concern GammaP0 on HP0, not GammaP on HP or V0 between distinct spaces. Trivial/zero-dimensional spaces are allowed; alpha=0 and eta=0 excluded; no norm(V0)=1 conclusion on a zero domain.
+- The literal transparent Prop representation adds neither proof nor mathematical premise. Compiled status is supplied by the packet and was not rerun; no source-fidelity verdict or proof credit.
+
+## constant_dependencies
+
+- gamma=2*sqrt((alpha:R)*eta)/(1+(alpha:R)*eta)>0; ||Inv||<=1/gamma. Explicit spectral scalar/inverse bound depends on alpha and eta; beta also constrains Hessian upper curvature and beta*eta<=1.
+- Exact fixed constants: sqrt(eta) in J, reflection 2, midpoint 1/2 and denominator 8*eta. V0 norm preservation and fV contraction use coefficient 1; squared-norm decomposition is exact. No hidden constant, dimension factor, asymptotic rate or additional smoothness bound.
+
+## Adjoint domains and meaning
+
+- B.adjoint:H->HP has every joint observable as domain. Its factorization is j composed with B0.adjoint composed with R, where R:H->ker(P) and B0.adjoint:ker(P)->HP0.
+- V0.adjoint:Hperp->HP0 and V0.adjoint V0=I_HP0 give a left inverse/isometric embedding. No reverse-product identity, onto-ness or two-sided inverse for V0 is supplied.
+- The final B.adjoint(k fperp)=j(GammaP0 fV) and restriction equality are in HP, for fperp=Rf and fV=V0.adjoint fperp. No recovery fperp=V0 fV is implied without a range condition.
+
+## Transparent proposition representation
+
+The packet states a literal definitional expansion of a private Prop-valued definition. Its representation changes no caller binder and is not a proof, axiom, producer premise or extra mathematical assumption.
+
+## Ambiguities and limits
+
+- No unresolved formula ambiguity in the displayed expansion and approved context. Low-level definitions of tilted and IsCondKernel are retained as supplied, without invented source conventions or stronger pointwise claims.

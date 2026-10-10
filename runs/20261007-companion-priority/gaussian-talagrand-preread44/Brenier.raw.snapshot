@@ -1,0 +1,36 @@
+namespace TechnicalLemmas
+namespace Measure
+namespace QuadraticOptimalBrenierMap
+
+open MeasureTheory Set
+open scoped RealInnerProductSpace Gradient
+
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingClosedChain
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingClosedChainMonotonicity
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarPotential
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarSubgradient
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarConvexDomain
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarRealDomain
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarSupportGradient
+open AutoSamplingTheory.TechnicalLemmas.Analysis.MeasurableGradient
+open CouplingConvexDomainAE CouplingGraph QuadraticOptimalSupportCyclic
+open QuadraticOptimalRealMinimality Transport WassersteinSpace
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+theorem exists_base_map_gradient_eq_of_quadraticOptimal
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0ac : mu0 ≪ (volume : Measure E))
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1) :
+    ∃ base : E × E,
+      base ∈ gamma.support ∧
+        Measure.map
+            (gradient
+              (finitePart (properRockafellarPotential base gamma.support))) mu0 =
+          mu1 := by
+  letI : IsProbabilityMeasure gamma :=

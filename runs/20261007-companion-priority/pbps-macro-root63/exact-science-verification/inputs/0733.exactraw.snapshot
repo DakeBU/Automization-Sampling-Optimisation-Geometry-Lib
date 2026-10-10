@@ -1,0 +1,151 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GibbsPositionMoment
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseReferenceMoment
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialPhaseTransport
+import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity
+import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+import Mathlib.Tactic
+
+/-!
+# The smoothed-Gibbs q=2 initialization component of SPHMC Lemma 4.16
+
+This result uses the actual normalized Gibbs law, its Gaussian smoothing and
+the same-momentum phase coupling.  The paper chooses a minimizer `p` in the
+proof; this interface still supplies that critical point explicitly.  Its
+existence and the source's all-q concentration estimate are separate edges.
+-/
+
+noncomputable section
+
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ENNReal NNReal RealInnerProductSpace
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport
+
+open AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+open AutoSamplingTheory.TechnicalLemmas.Analysis
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- Under the source's normalized curvature and reference-gradient hypotheses,
+the actual initial phase law is at squared `M_κ` transport cost at most `5κd`
+from the smoothed Gibbs reference phase law.  This is only the `q = 2`
+component of Lemma 4.16, conditional on the proof's critical-point witness. -/
+theorem initial_gibbs_phase_transport_q2
+    {U : E → ℝ} {α η : ℝ≥0} (hα : 0 < α) (hαone : α ≤ 1)
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+        fderiv ℝ (fderiv ℝ U) x v v ≤ ‖v‖ ^ 2)
+    (p xref : E) (hp : gradient U p = 0)
+    (href : ‖gradient U xref‖ ^ 2 ≤
+      (α : ℝ) * (Module.finrank ℝ E : ℝ)) (hη : η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -U x)
+    let πη := gaussianSmoothing μ (Real.sqrt η)
+    PhaseMetric.phaseWassersteinSq (1 / (α : ℝ))
+      ((Measure.dirac xref).prod (stdGaussian E))
+      (πη.prod (stdGaussian E)) ≤
+        ENNReal.ofReal (5 * (1 / (α : ℝ)) * (Module.finrank ℝ E : ℝ)) := by
+  classical
+  let μ := (volume : Measure E).tilted (fun x => -U x)
+  let πη := gaussianSmoothing μ (Real.sqrt η)
+  have ha : (0 : ℝ) < α := hα
+  have haone : (α : ℝ) ≤ 1 := hαone
+  have hκ : (1 : ℝ) ≤ 1 / (α : ℝ) := (one_le_div ha).2 haone
+  have hdim : (0 : ℝ) ≤ Module.finrank ℝ E := by exact_mod_cast Nat.zero_le _
+  have hdata := GibbsPositionMoment.gibbs_position_moment
+    (β := 1) hα hαone hU
+      (fun x v => ⟨(hH x v).1, by simpa using (hH x v).2⟩) p hp
+  obtain ⟨hprob, _, _, hpos, _, _, hposBound⟩ := hdata
+  change Integrable (fun x : E => ‖x - p‖ ^ 2) μ at hpos
+  change (∫ x : E, ‖x - p‖ ^ 2 ∂μ) ≤
+    (Module.finrank ℝ E : ℝ) / (α : ℝ) at hposBound
+  letI : IsProbabilityMeasure μ := hprob
+  have hsc : StrongConvexOn (Set.univ : Set E) (α : ℝ) U :=
+    HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hU
+      (fun x v => (hH x v).1)
+  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)
+  have hmono : (α : ℝ) * ‖xref - p‖ ^ 2 ≤
+      inner ℝ (gradient U xref) (xref - p) := by
+    simpa only [hp, sub_zero] using
+      (StrongConvexFirstOrder.gradient_inner_lower_bound_of_strongConvexOn
+        hsc (fun z _ => (hd z).hasGradientAt)
+        (x := p) (y := xref) (Set.mem_univ _) (Set.mem_univ _))
+  have hr : (α : ℝ) * ‖xref - p‖ ≤ ‖gradient U xref‖ := by
+    by_cases hz : ‖xref - p‖ = 0
+    · simp [hz]
+    · have hposr : 0 < ‖xref - p‖ :=
+        lt_of_le_of_ne (norm_nonneg _) (Ne.symm hz)
+      have hi := (hmono.trans (real_inner_le_norm (gradient U xref) (xref - p)))
+      have hm : ((α : ℝ) * ‖xref - p‖) * ‖xref - p‖ ≤
+          ‖gradient U xref‖ * ‖xref - p‖ := by nlinarith [hi]
+      exact le_of_mul_le_mul_right hm hposr
+  have hsq : ((α : ℝ) * ‖xref - p‖) ^ 2 ≤
+      ‖gradient U xref‖ ^ 2 :=
+    (sq_le_sq₀ (by positivity) (norm_nonneg _)).2 hr
+  have hrefDist : ‖xref - p‖ ^ 2 ≤
+      (Module.finrank ℝ E : ℝ) / (α : ℝ) := by
+    apply (le_div_iff₀ ha).2
+    have hm : (α : ℝ) * ((α : ℝ) * ‖xref - p‖ ^ 2) ≤
+        (α : ℝ) * (Module.finrank ℝ E : ℝ) := by nlinarith [hsq, href]
+    exact le_of_mul_le_mul_left (by nlinarith [hm]) ha
+  have hpoint (x : E) : ‖xref - x‖ ^ 2 ≤
+      2 * ‖x - p‖ ^ 2 + 2 * ‖xref - p‖ ^ 2 := by
+    have ht : ‖xref - x‖ ≤ ‖xref - p‖ + ‖x - p‖ := by
+      calc
+        ‖xref - x‖ = ‖(xref - p) + (p - x)‖ := by congr 1; abel
+        _ ≤ ‖xref - p‖ + ‖p - x‖ := norm_add_le _ _
+        _ = _ := by rw [norm_sub_rev p x]
+    have htsq : ‖xref - x‖ ^ 2 ≤ (‖xref - p‖ + ‖x - p‖) ^ 2 :=
+      (sq_le_sq₀ (norm_nonneg _) (by positivity)).2 ht
+    nlinarith [sq_nonneg (‖xref - p‖ - ‖x - p‖)]
+  have hsum : Integrable
+      (fun x : E => 2 * ‖x - p‖ ^ 2 + 2 * ‖xref - p‖ ^ 2) μ :=
+    (hpos.const_mul 2).add (integrable_const _)
+  have hrefI : Integrable (fun x : E => ‖xref - x‖ ^ 2) μ := by
+    apply hsum.mono' (by fun_prop)
+    filter_upwards with x
+    simpa only [Real.norm_eq_abs,
+      abs_of_nonneg (sq_nonneg (‖xref - x‖))] using hpoint x
+  have hbase : (∫ x : E, ‖xref - x‖ ^ 2 ∂μ) ≤
+      4 * ((Module.finrank ℝ E : ℝ) / (α : ℝ)) := by
+    have hi := integral_mono hrefI hsum hpoint
+    have hs : (∫ x : E,
+        2 * ‖x - p‖ ^ 2 + 2 * ‖xref - p‖ ^ 2 ∂μ) =
+        2 * (∫ x : E, ‖x - p‖ ^ 2 ∂μ) + 2 * ‖xref - p‖ ^ 2 := by
+      rw [integral_add (hpos.const_mul _) (integrable_const _),
+        integral_const_mul, integral_const]
+      simp
+    rw [hs] at hi
+    linarith
+  have hbaseI : Integrable (fun x : E => ‖x - xref‖ ^ 2) μ := by
+    simpa only [norm_sub_rev] using hrefI
+  have hsm := PhaseReferenceMoment.gaussianSmoothing_position_second_moment
+    μ xref (Real.sqrt η) hbaseI
+  change Integrable (fun y : E => ‖y - xref‖ ^ 2) πη ∧
+    (∫ y : E, ‖y - xref‖ ^ 2 ∂πη) =
+      (∫ x : E, ‖x - xref‖ ^ 2 ∂μ) +
+        (Real.sqrt η) ^ 2 * (Module.finrank ℝ E : ℝ) at hsm
+  letI : IsProbabilityMeasure πη := by
+    dsimp [πη, gaussianSmoothing,
+      AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.addNoise]
+    exact Measure.isProbabilityMeasure_map
+      (by fun_prop : AEMeasurable (fun z : E × E => z.1 + z.2)
+        (μ.prod (scaledStdGaussian (E := E) (Real.sqrt η))))
+  have hcost := InitialPhaseTransport.phaseWassersteinSq_initial_le_position_moment
+    πη xref hκ (by simpa only [norm_sub_rev] using hsm.1)
+  have hnum : (∫ y : E, ‖xref - y‖ ^ 2 ∂πη) ≤
+      5 * (1 / (α : ℝ)) * (Module.finrank ℝ E : ℝ) := by
+    have hb : (∫ x : E, ‖x - xref‖ ^ 2 ∂μ) ≤
+        4 * ((Module.finrank ℝ E : ℝ) / (α : ℝ)) := by
+      simpa only [norm_sub_rev] using hbase
+    have hetaκ : (η : ℝ) ≤ 1 / (α : ℝ) := le_trans hη hκ
+    have hh := mul_nonneg (sub_nonneg.mpr hetaκ) hdim
+    rw [show (∫ y : E, ‖xref - y‖ ^ 2 ∂πη) =
+      (∫ y : E, ‖y - xref‖ ^ 2 ∂πη) by simp only [norm_sub_rev], hsm.2,
+      Real.sq_sqrt (show (0 : ℝ) ≤ η by exact_mod_cast η.property)]
+    rw [div_eq_mul_one_div] at hb
+    nlinarith [hb, hh]
+  exact hcost.trans (ENNReal.ofReal_le_ofReal hnum)
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransport

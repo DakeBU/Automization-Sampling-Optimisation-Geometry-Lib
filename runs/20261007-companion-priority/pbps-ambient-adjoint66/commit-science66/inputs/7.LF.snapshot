@@ -1,0 +1,255 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry
+
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector
+noncomputable section
+set_option autoImplicit false
+set_option maxHeartbeats 2000000
+
+private def actual_ambient_adjoint_centered_decomposition_statement
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : Prop :=
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let ν := J.snd
+    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))
+    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=
+      ⟨measurable_snd.comap_le⟩
+    let HP := lpMeas ℝ ℝ mY 2 J
+    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩
+    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+    HP = P.toLinearMap.range ∧
+    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧
+    ∃ S : Kernel E E, IsMarkovKernel S ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧
+      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧
+      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,
+        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧
+        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+            IsSelfAdjoint T ∧
+            (∀ u : Lp ℝ 2 ν,
+              ‖T u‖ ≤ ‖u‖ ∧
+              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧
+              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧
+            let A : HP →L[ℝ] HP :=
+              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+            let B : HP →L[ℝ] Lp ℝ 2 J :=
+              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧
+            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧
+            (∀ f : HP, P (B f) = 0) ∧
+            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧
+              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧
+              B.adjoint ∘L B = ΓP*ΓP ∧
+              ∃ q : Lp ℝ 2 ν,
+                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧
+                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧
+                let qP : HP := e q
+                let HP0 := (innerSL ℝ qP).ker
+                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+                letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)
+                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧
+                ΓP qP = 0 ∧ 0 < γ ∧
+                ∃ ΓP0 : HP0 →L[ℝ] HP0,
+                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧
+                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧
+                  IsUnit ΓP0 ∧
+                  ∃ Inv : HP0 →L[ℝ] HP0,
+                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧
+                    let Hperp := P.ker
+                    letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+                    letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+                    letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+                    ∃ B0 : HP0 →L[ℝ] Hperp,
+                      (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧
+                      ∃ V0 : HP0 →L[ℝ] Hperp,
+                        V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧
+                        V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧
+                        (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧
+                        ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,
+                          (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧
+                          (∀ g : Lp ℝ 2 J,
+                            B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧
+                          (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+                            ∃ fP : HP0,
+                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+                              let fperp : Hperp := R f
+                              let fV : HP0 := V0.adjoint fperp
+                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖)
+
+
+
+theorem actual_ambient_adjoint_centered_decomposition
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : actual_ambient_adjoint_centered_decomposition_statement (E := E) (V := V) (α := α) (β := β) (η := η) hα hαβ hV hH hη hβη := by
+  unfold actual_ambient_adjoint_centered_decomposition_statement
+  classical
+  dsimp only
+  let μ := (volume : Measure E).tilted (fun x => -V x)
+  let J := (μ.prod (stdGaussian E)).map
+    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+  let ν := J.snd
+  let mY : MeasurableSpace (E × E) := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+  letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+  letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) := ⟨measurable_snd.comap_le⟩
+  let HP := lpMeas ℝ ℝ mY 2 J
+  letI : NormedAddCommGroup HP := HP.normedAddCommGroup
+  letI : InnerProductSpace ℝ HP := HP.innerProductSpace
+  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+    HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+  have hBase := AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry.actual_centered_polar_isometry
+    (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη
+  dsimp only at hBase
+  rcases hBase with
+    ⟨hμ,hJ,hν,hRange,hPf,S,hS,hSd,hSc,hSf,hSs,e,he,U,hU,hUi,hUs,
+      T,hTs,hAll,hAeq,hAs,hAn,hPB,Γ,hΓ,hΓSq,hΓP,hΓPSq,hGram,
+      q,hqa,hTq,hq,hCenter,hΓPq,hγ,ΓP0,hΓP0,hPos0,hOrder0,hUnit,
+      Inv,hLeft,hRight,hNormInv,B0,hB0,V0,hVdef,hFactor,hVadj,hVnorm⟩
+  let A : HP →L[ℝ] HP := HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+  let B : HP →L[ℝ] Lp ℝ 2 J :=
+    (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+  let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+  let qP : HP := e q
+  let HP0 := (innerSL ℝ qP).ker
+  letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+  letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+  letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+  let Hperp := P.ker
+  letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+  letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+  letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+  change HP0 →L[ℝ] Hperp at B0 V0
+  change HP0 →L[ℝ] HP0 at ΓP0 Inv
+  letI : IsProbabilityMeasure J := hJ
+  letI : IsProbabilityMeasure ν := hν
+  let C : Lp ℝ 2 J →L[ℝ] HP := condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le
+  have hPself (g k : Lp ℝ 2 J) : inner ℝ (P g) k=inner ℝ g (P k) :=
+    inner_condExpL2_left_eq_right measurable_snd.comap_le
+  have hPid (g : Lp ℝ 2 J) : P (P g)=P g := hPf (C g)
+  let R : Lp ℝ 2 J →L[ℝ] Hperp :=
+    ((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P).codRestrict Hperp (by
+      intro g
+      change P (g-P g)=0
+      rw [map_sub,hPid,sub_self])
+  have hR (g : Lp ℝ 2 J) : (R g : Lp ℝ 2 J)=g-P g := rfl
+  have hRself (g : Hperp) : R (g : Lp ℝ 2 J)=g := by
+    apply Subtype.ext
+    change (g : Lp ℝ 2 J)-P g=g
+    rw [show P (g : Lp ℝ 2 J)=0 from g.property,sub_zero]
+  have hGramLocal : B.adjoint ∘L B=ΓP*ΓP := hGram
+  have hRootq : ΓP qP=0 := hΓPq
+  have hBq : B qP=0 := by
+    have hn := B.apply_norm_sq_eq_inner_adjoint_right qP
+    rw [hGramLocal] at hn
+    have hz : (ΓP*ΓP) qP=0 := by
+      change ΓP (ΓP qP)=0
+      rw [hRootq,map_zero]
+    rw [hz,inner_zero_right] at hn
+    exact norm_eq_zero.mp (sq_eq_zero_iff.mp hn)
+  have hBCenter (g : Lp ℝ 2 J) : B.adjoint g ∈ HP0 := by
+    change inner ℝ qP (B.adjoint g)=0
+    rw [B.adjoint_inner_right,hBq,inner_zero_left]
+  have hAmbient (g : Lp ℝ 2 J) :
+      B.adjoint g=HP0.subtypeL (B0.adjoint (R g)) := by
+    let b : HP0 := ⟨B.adjoint g,hBCenter g⟩
+    have heq : b=B0.adjoint (R g) := by
+      apply ext_inner_left ℝ
+      intro u
+      change inner ℝ (u : HP) (B.adjoint g)=inner ℝ u (B0.adjoint (R g))
+      rw [B.adjoint_inner_right,B0.adjoint_inner_right]
+      change inner ℝ (B (u : HP)) g=inner ℝ (B0 u : Lp ℝ 2 J) (R g : Lp ℝ 2 J)
+      rw [hB0,hR,inner_sub_right]
+      have ho : inner ℝ (B (u : HP)) (P g)=0 := by
+        rw [← hPself,hPB,inner_zero_left]
+      rw [ho,sub_zero]
+    exact congrArg (fun z : HP0 => HP0.subtypeL z) heq
+  have hPosLocal : ΓP0.IsPositive := hPos0
+  have hBAdj : B0.adjoint=ΓP0 ∘L V0.adjoint := by
+    calc
+      B0.adjoint = (V0 ∘L ΓP0).adjoint :=
+        congrArg (fun D : HP0 →L[ℝ] Hperp => D.adjoint) hFactor
+      _ = ΓP0.adjoint ∘L V0.adjoint := ContinuousLinearMap.adjoint_comp V0 ΓP0
+      _ = ΓP0 ∘L V0.adjoint :=
+        congrArg (fun D : HP0 →L[ℝ] HP0 => D ∘L V0.adjoint)
+          hPosLocal.isSelfAdjoint.adjoint_eq
+  have hNormV : ‖V0‖ ≤ (1 : ℝ) :=
+    ContinuousLinearMap.opNorm_le_bound _ zero_le_one (by intro u; rw [hVnorm u,one_mul])
+  have hNormAdj : ‖V0.adjoint‖ ≤ (1 : ℝ) :=
+    (ContinuousLinearMap.adjoint.norm_map V0).trans_le hNormV
+  have hVcontract (g : Hperp) : ‖V0.adjoint g‖≤‖g‖ := by
+    calc
+      ‖V0.adjoint g‖ ≤ ‖V0.adjoint‖*‖g‖ := V0.adjoint.le_opNorm g
+      _ ≤ 1*‖g‖ := mul_le_mul_of_nonneg_right hNormAdj (norm_nonneg _)
+      _ = ‖g‖ := one_mul _
+  let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩
+  let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+  have hqOne : (qP : Lp ℝ 2 J)=
+      AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.one J := by
+    rw [show (qP : Lp ℝ 2 J)=M q from he q]
+    apply Lp.ext
+    have hqaPull : (fun z : E × E => q z.2)=ᵐ[J] (fun _ => (1 : ℝ)) :=
+      hp.quasiMeasurePreserving.ae hqa
+    exact (Lp.coeFn_compMeasurePreserving q hp).trans
+      (hqaPull.trans (Lp.coeFn_const (p:=(2 : ℝ≥0∞)) (μ:=J) (c:=(1 : ℝ))).symm)
+  have hqIntegral (g : Lp ℝ 2 J) : inner ℝ (qP : Lp ℝ 2 J) g=∫ z, g z ∂J := by
+    rw [hqOne]
+    exact AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.inner_one_eq_integral J g
+  have hPq : P (qP : Lp ℝ 2 J)=qP := hPf qP
+  refine ⟨hμ,hJ,hν,hRange,hPf,S,hS,hSd,hSc,hSf,hSs,e,he,U,hU,hUi,hUs,T,hTs,hAll,
+    hAeq,hAs,hAn,hPB,Γ,hΓ,hΓSq,hΓP,hΓPSq,hGram,q,hqa,hTq,hq,hCenter,hΓPq,hγ,
+    ΓP0,hΓP0,hPos0,hOrder0,hUnit,Inv,hLeft,hRight,hNormInv,B0,hB0,V0,hVdef,
+    hFactor,hVadj,hVnorm,R,hR,hAmbient,?_⟩
+  intro f hf
+  have hCf : C f ∈ HP0 := by
+    change inner ℝ qP (C f)=0
+    change inner ℝ (qP : Lp ℝ 2 J) (P f)=0
+    rw [← hPself,hPq,hqIntegral,hf]
+  let fP : HP0 := ⟨C f,hCf⟩
+  refine ⟨fP,rfl,?_,?_,?_,hVcontract (R f)⟩
+  · calc
+      B.adjoint (R f : Lp ℝ 2 J)=HP0.subtypeL (B0.adjoint (R (R f))) := hAmbient _
+      _ = HP0.subtypeL (B0.adjoint (R f)) := congrArg
+        (fun z : Hperp => HP0.subtypeL (B0.adjoint z)) (hRself (R f))
+      _ = HP0.subtypeL (ΓP0 (V0.adjoint (R f))) :=
+        congrArg (fun z : HP0 => HP0.subtypeL z)
+          (congrArg (fun D : Hperp →L[ℝ] HP0 => D (R f)) hBAdj)
+  · exact hΓP0 _
+  · have hn := HP.norm_sq_eq_add_norm_sq_starProjection f
+    have hProj : HP.starProjection=P := rfl
+    rw [hProj,HP.starProjection_orthogonal_val] at hn
+    change ‖f‖^2=‖(C f : Lp ℝ 2 J)‖^2+‖f-P f‖^2 at hn
+    exact hn
+
+end
+end AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector

@@ -1,0 +1,91 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.FisherTransport
+import Mathlib.Tactic
+
+/-!
+# Geodesic first order inequality to Fisher--transport control
+
+This module isolates the abstract geometric logic used between Chewi's
+first-order geodesic-convexity inequality (display (1.4.7)) and the
+Fisher--Wasserstein estimate consumed by the proximal sampler.
+
+The source-specific analytic task is deliberately exposed as one input:
+for the selected geodesic from the current law to the minimizer, the negative
+directional derivative is bounded by `sqrt(fisher) * distance`.  For KL in
+Wasserstein space this is the first-variation / Cauchy--Schwarz step.
+
+No measure-level Fisher definition, optimal-map theorem, or KL differentiation
+is manufactured here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace GeodesicFisherTransport
+
+open TechnicalLemmas.Geometry
+
+/-- A zero-geodesically-convex functional whose endpoint is a minimizer of
+value zero is bounded by the negative initial directional derivative.
+
+This is the direct specialization of Chewi display (1.4.7) with `alpha = 0`. -/
+theorem value_le_neg_directionalDerivative
+    {M : Type*} [MetricSpace M]
+    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ}
+    (hconvex : GeodesicConvexity.IsAlphaGeodesicallyConvex isGeodesic F 0)
+    {path : ℝ → M} (hpath : isGeodesic path)
+    {pairing : ℝ}
+    (hderiv : HasDerivAt (fun t => F (path t)) pairing 0)
+    (hterminal : F (path 1) = 0) :
+    F (path 0) ≤ -pairing := by
+  have hfirst :=
+    GeodesicConvexity.firstOrder_geodesicConvexity
+      hconvex hpath hderiv
+  rw [hterminal] at hfirst
+  simp only [zero_div, zero_mul, add_zero] at hfirst
+  linarith
+
+/-- Scalar Cauchy--Schwarz closure: a nonnegative value bounded by
+`sqrt(fisher) * distance` satisfies the squared Fisher--transport inequality. -/
+theorem sq_le_fisher_mul_sq_of_le_sqrt_mul
+    {value fisher distance : ℝ}
+    (hvalue : 0 ≤ value) (hfisher : 0 ≤ fisher) (hdistance : 0 ≤ distance)
+    (hbound : value ≤ Real.sqrt fisher * distance) :
+    value ^ 2 ≤ fisher * distance ^ 2 := by
+  have hsqrt : 0 ≤ Real.sqrt fisher := Real.sqrt_nonneg fisher
+  have hsq : value ^ 2 ≤ (Real.sqrt fisher * distance) ^ 2 := by
+    nlinarith
+  rw [mul_pow, Real.sq_sqrt hfisher] at hsq
+  exact hsq
+
+/-- Reusable geodesic Fisher--transport join.
+
+If a nonnegative zero-geodesically-convex functional vanishes at the terminal
+point of a selected geodesic, and the negative initial directional derivative
+is at most `sqrt(fisher) * dist`, then
+
+`F(x)^2 <= fisher * dist(x,y)^2`.
+
+For the SampleWiki ideal-proximal spine the intended specialization is
+`F = KL(· || pi)`, `y = pi`, and `fisher = FI(· || pi)`. -/
+theorem sq_le_fisher_mul_dist_sq_of_geodesic_first_order
+    {M : Type*} [MetricSpace M]
+    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ}
+    (hconvex : GeodesicConvexity.IsAlphaGeodesicallyConvex isGeodesic F 0)
+    {path : ℝ → M} (hpath : isGeodesic path)
+    {pairing fisher : ℝ}
+    (hderiv : HasDerivAt (fun t => F (path t)) pairing 0)
+    (hterminal : F (path 1) = 0)
+    (hvalue : 0 ≤ F (path 0))
+    (hfisher : 0 ≤ fisher)
+    (hcs : -pairing ≤ Real.sqrt fisher * dist (path 0) (path 1)) :
+    F (path 0) ^ 2 ≤ fisher * dist (path 0) (path 1) ^ 2 := by
+  have hfirst : F (path 0) ≤ -pairing :=
+    value_le_neg_directionalDerivative hconvex hpath hderiv hterminal
+  exact sq_le_fisher_mul_sq_of_le_sqrt_mul
+    hvalue hfisher dist_nonneg (hfirst.trans hcs)
+
+end GeodesicFisherTransport
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

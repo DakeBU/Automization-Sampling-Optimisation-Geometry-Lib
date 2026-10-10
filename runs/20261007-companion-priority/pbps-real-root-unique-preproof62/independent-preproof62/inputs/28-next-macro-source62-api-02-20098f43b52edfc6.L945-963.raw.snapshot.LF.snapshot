@@ -1,0 +1,19 @@
+
+instance completeSpace_map (p : Submodule R E) [CompleteSpace p] :
+    CompleteSpace (p.map (e : E →ₛₗ[σ₁₂] E₂)) :=
+  e.toLinearIsometry.completeSpace_map p
+
+/-- Construct a linear isometry equiv from a surjective linear isometry. -/
+noncomputable def ofSurjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : Function.Surjective f) :
+    F ≃ₛₗᵢ[σ₁₂] E₂ :=
+  { LinearEquiv.ofBijective f.toLinearMap ⟨f.injective, hfr⟩ with norm_map' := f.norm_map }
+
+@[simp]
+theorem coe_ofSurjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : Function.Surjective f) :
+    ⇑(LinearIsometryEquiv.ofSurjective f hfr) = f := by
+  ext
+  rfl
+
+/-- If a linear isometry has an inverse, it is a linear isometric equivalence. -/
+def ofLinearIsometry (f : E →ₛₗᵢ[σ₁₂] E₂) (g : E₂ →ₛₗ[σ₂₁] E)
+    (h₁ : f.toLinearMap.comp g = LinearMap.id) (h₂ : g.comp f.toLinearMap = LinearMap.id) :

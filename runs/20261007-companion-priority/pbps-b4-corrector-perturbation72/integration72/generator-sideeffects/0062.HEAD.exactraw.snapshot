@@ -1,0 +1,27 @@
+# AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute
+
+- File: `AutoSamplingTheory\TechnicalLemmas\Measure\L2RealSquareCommute.lean`
+- Layer: Canonical shared real-L2 operator lemma
+- Purpose: Arbitrary measure and positive real-L2 G,D: square commutation implies commutation, using same positive complexified CFC root; genuine actual PBPS consumer internally produces positive I+T. No finiteness/nontriviality/CFC caller premise or paper main claim.
+- Mathlib-quality status: Independent exact-science67 verified at 3da29415011a971a65f749502a625e416213f487. Bounded root/inverse commutation and corrector coefficient geometry only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.
+
+## Imports
+
+- `AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator`
+- `Mathlib.Analysis.InnerProductSpace.StarOrder`
+- `Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Commute`
+- `Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic`
+
+## Representative Declarations And Exports
+
+- `positive_square_commutation`
+
+## Curated Formalized Memory Entries
+
+- `measure.realL2PositiveSquareCommutation` -> `positive_square_commutation` (arXiv2609.06905v1 Appendix D1 functional calculus background; ASTIS auxiliary corollary for B23/B21)
+
+## Agent Usage
+
+Search this card before inventing a nearby technical lemma.  If the needed fact
+is generic and missing, create a Mathlib-ready leaf packet rather than hiding
+the requirement inside a paper-specific theorem.

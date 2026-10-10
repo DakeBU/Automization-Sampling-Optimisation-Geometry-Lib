@@ -1,0 +1,14 @@
+theorem rank_zero_actual_source_constant :
+    let E := EuclideanSpace ℝ (Fin 0)
+    let μ := (volume : Measure E).tilted (fun _ => -(0:ℝ))
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt (1:ℝ) • p.2))
+    let ν := J.snd
+    ∃ S : Kernel E E,
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun x => -(0:ℝ)-‖y-x‖^2/(8*(1:ℝ)))) ∧
+      ∃ hOne : MemLp (fun _ : E => (1:ℝ)) 2 ν,
+        ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+          T (hOne.toLp (fun _ => 1)) = hOne.toLp (fun _ => 1) ∧
+          (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+            (S y) (hOne.toLp (fun _ => 1) : E → ℝ) ∂ν) = 0

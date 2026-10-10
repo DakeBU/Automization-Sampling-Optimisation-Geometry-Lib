@@ -1,0 +1,46 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.OperatorGenerator
+import Mathlib.Analysis.InnerProductSpace.Basic
+
+/-!
+# Reversible continuous-linear semigroups
+
+This file formalizes Chewi's Definition 1.2.10 at its natural Hilbert-space
+level.  In the textbook application the ambient space is `L²(pi)`.  Keeping
+the Hilbert space abstract lets the definition be reused once a concrete
+Markov semigroup has been extended to that space.
+
+The predicate does not construct an `L²` extension, an invariant measure, or
+a concrete Langevin semigroup.  Those remain separate analytic obligations.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace Reversibility
+
+open OperatorGenerator
+open scoped NNReal
+
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+
+/-- Chewi Definition 1.2.10: every time operator is symmetric in the ambient
+real Hilbert-space inner product.  Taking `H = L²(pi)` gives the source
+definition of reversibility with respect to `pi`. -/
+def IsReversible (S : ContinuousLinearSemigroup H) : Prop :=
+  ∀ (t : ℝ≥0) (f g : H),
+    inner ℝ (S.op t f) g = inner ℝ f (S.op t g)
+
+/-- The constant identity semigroup is reversible on every real inner-product
+space. -/
+theorem isReversible_identity
+    (S : ContinuousLinearSemigroup H)
+    (hop : ∀ t, S.op t = ContinuousLinearMap.id ℝ H) :
+    IsReversible S := by
+  intro t f g
+  rw [hop t]
+  rfl
+
+end Reversibility
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

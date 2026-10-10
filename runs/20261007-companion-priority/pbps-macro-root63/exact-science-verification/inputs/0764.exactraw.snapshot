@@ -1,0 +1,75 @@
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+import Mathlib.MeasureTheory.Function.SpecialFunctions.Basic
+import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Positivity
+
+/-!
+# Normalized restricted Gaussian reweighting is closed under composition
+
+The normalized-law calculation in Chen, Chewi, Lu and Zhang,
+*Smoothed Picard Hamiltonian Monte Carlo*, arXiv:2609.06906v1,
+Section 6.2.2, Lemma 6.4 and (6.1).
+
+The real precisions are `r = A⁻¹` and `s = a⁻¹`: allowing `r = 0`
+retains the source case `A = ∞`. The base is already a probability measure;
+identifying it with the source Gibbs density and proving curvature updates
+are distinct obligations. The calculation itself needs only a Borel real
+inner-product space, with no moment or density assumptions.
+
+Mathlib's `Measure.tilted` supplies the existing normalized-measure API.
+The proof derives integrability and nonzero normalization from weights in
+`(0,1]`; it cannot succeed through the zero-measure fallback of that API.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOClosure
+
+open MeasureTheory
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- Applying two normalized quadratic exponential reweightings gives a single
+reweighting with summed precision and precision-weighted centre. All
+normalizing integrals are positive and finite by boundedness of the weights
+and probability of the base; no such hypotheses are supplied by the caller.
+This is the distribution-level calculation, not a sampler or curvature result. -/
+theorem quadratic_tilt_tilt (μ : Measure E) [IsProbabilityMeasure μ]
+    {r s : ℝ} (hr : 0 ≤ r) (hs : 0 < s) (u y : E) :
+    (μ.tilted (fun x => -(r / 2) * ‖x - u‖ ^ 2)).tilted
+        (fun x => -(s / 2) * ‖x - y‖ ^ 2) =
+      μ.tilted (fun x => -((r + s) / 2) *
+        ‖x - (r + s)⁻¹ • (r • u + s • y)‖ ^ 2) := by
+  have hint : ∀ (t : ℝ), 0 ≤ t → ∀ (v : E),
+      Integrable (fun x => Real.exp (-(t / 2) * ‖x - v‖ ^ 2)) μ := by
+    intro t ht v
+    have hcont : Continuous (fun x : E => Real.exp (-(t / 2) * ‖x - v‖ ^ 2)) :=
+      Real.continuous_exp.comp (continuous_const.mul ((continuous_id.sub continuous_const).norm.pow 2))
+    refine (integrable_const (1 : ℝ)).mono' hcont.aestronglyMeasurable ?_
+    filter_upwards with x
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    apply Real.exp_le_one_iff.mpr
+    exact mul_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (by positivity)) (sq_nonneg _)
+  have hrs : 0 < r + s := add_pos_of_nonneg_of_pos hr hs
+  let w : E := (r + s)⁻¹ • (r • u + s • y)
+  let c : ℝ := -(r * s / (2 * (r + s))) * ‖u - y‖ ^ 2
+  have hsq : (fun x => -(r / 2) * ‖x - u‖ ^ 2) +
+      (fun x => -(s / 2) * ‖x - y‖ ^ 2) =
+      (fun x => -((r + s) / 2) * ‖x - w‖ ^ 2) + (fun _ => c) := by
+    funext x
+    simp only [Pi.add_apply, w, c, ← real_inner_self_eq_norm_sq,
+      inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
+      real_inner_smul_left, real_inner_smul_right]
+    rw [real_inner_comm y u, real_inner_comm u x, real_inner_comm y x]
+    field_simp
+    ring
+  have : IsProbabilityMeasure
+      (μ.tilted (fun x => -((r + s) / 2) * ‖x - w‖ ^ 2)) :=
+    isProbabilityMeasure_tilted (hint (r + s) hrs.le w)
+  rw [tilted_tilted (hint r hr u), hsq,
+    ← tilted_tilted (hint (r + s) hrs.le w), tilted_const]
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.RGOClosure

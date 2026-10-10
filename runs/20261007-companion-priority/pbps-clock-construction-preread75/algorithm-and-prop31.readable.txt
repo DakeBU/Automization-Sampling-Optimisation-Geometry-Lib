@@ -1,0 +1,188 @@
+The direct harmonic generator (3.3)
+still bounces against the full gradient  $\nabla V$ , so its bounce rate
+can remain large.
+
+
+To further reduce the bounce rate and the resulting computational
+cost, we introduce a conditional reference point and use the smoothness of
+ $V$  to control the local gradient difference. Specifically, draw
+ $\widetilde{X}\sim\pi_{\eta}^{X\mid Y=y}$  independently and write the exact
+decomposition
+
+
+
+
+ $\nabla V(x)=\nabla V(\widetilde{X})+\{\nabla V(x)-\nabla V(\widetilde{X})\}\,.$ 
+
+
+Conditionally on  $\widetilde{X}=\widetilde{x}$ , we incorporate the fixed
+reference term into the deterministic dynamics and retain only the gradient
+difference in the BPS jump term. Define the equilibrium position of this
+deterministic harmonic flow and the residual gradient by
+
+
+
+
+ $c_{y,\widetilde{x}}\coloneqq y-\eta\nabla V(\widetilde{x})\,,\hskip 20.00003pth_{\widetilde{x}}(x)\coloneqq\nabla V(x)-\nabla V(\widetilde{x})\,.$ 
+
+(3.4)
+
+The resulting generator is
+
+
+
+
+ $\begin{split}\mathsf{L}_{y,\widetilde{x}}f(x,p)&\coloneqq\sqrt{\eta}\,p^{\top}\nabla_{x}f(x,p)-\frac{(x-c_{y,\widetilde{x}})^{\top}}{\sqrt{\eta}}\nabla_{p}f(x,p)\\
+&\quad+\sqrt{\eta}\,[p^{\top}h_{\widetilde{x}}(x)]_{+}\bigl\{f(x,R_{h_{\widetilde{x}}(x)}p)-f(x,p)\bigr\}\,.\end{split}$ 
+
+(3.5)
+
+The harmonic and residual terms sum to the full conditional force
+ $\sqrt{\eta}\,\nabla V_{y}(x)$ . Thus  $\widetilde{x}$  changes only how this
+force is divided between deterministic motion and bounces. By the
+ $\beta$ -smoothness of  $V$ ,
+
+
+
+
+ $\|h_{\widetilde{x}}(x)\|=\|\nabla V(x)-\nabla V(\widetilde{x})\|\leq\beta\,\|x-\widetilde{x}\|\,.$ 
+
+
+Drawing the reference point from the same localized conditional law keeps
+the residual gradient small and reduces the expected number of bounces per
+run of the half-turn process to order  $\beta\eta\sqrt{d}$ ; see
+Proposition 3.3.
+
+
+Having specified the dynamics, it remains to choose the integration
+horizon. For fixed  $(y,\widetilde{x})$ , the deterministic part of
+(3.5) is harmonic motion about its equilibrium
+position  $c_{y,\widetilde{x}}$ . In the absence of bounces, its position at
+time  $t$  satisfies
+
+
+
+
+ $x_{t}-c_{y,\widetilde{x}}=(x_{0}-c_{y,\widetilde{x}})\cos t+\sqrt{\eta}\,p_{0}\sin t\,.$ 
+
+(3.6)
+
+As discussed earlier, we choose the integration horizon  $t=\pi$ , corresponding to one
+half-period. This is the first non-zero harmonic time at which the
+position  $x_{\pi}$  no longer depends on the initial momentum  $p_{0}$ .
+Without bounces, the resulting map is
+
+
+
+
+ $(x_{\pi},p_{\pi})=(2c_{y,\widetilde{x}}-x_{0},-p_{0})\,.$ 
+
+(3.7)
+
+Thus, the position is reflected through the equilibrium position
+ $c_{y,\widetilde{x}}$  and retains its dependence on  $x_{0}$ . Bounce
+events correct for the residual force along the trajectory, while the
+fixed horizon  $t=\pi$  retains the memory-preserving structure of the
+half-turn process.
+
+
+The construction is now complete. The following algorithm gives its
+pathwise prescription: it draws the reference point and momentum, evolves
+the process with generator (3.5) for time  $\pi$ , and
+returns only the final position.
+
+
+Algorithm 1  Simulation of the ideal conditional half-turn process
+
+
+              1:
+              
+              
+            Input: state  $(x,y)$ 
+
+
+
+              2:
+              
+              
+            Draw  $\widetilde{X}\sim\pi_{\eta}^{X\mid Y=y}$  and
+ $p_{0}\sim\mathcal{N}(0,I)$  independently.
+
+
+
+              3:
+              
+              
+            Query  $\nabla V(\widetilde{X})$ .
+
+
+
+              4:
+              
+              
+            Set  $x_{0}\leftarrow x$ .
+
+
+
+              5:
+              
+              
+            Evolve  $(x_{t},p_{t})$  according to
+
+
+
+
+
+ $\dot{x}=\sqrt{\eta}\,p\,,\hskip 20.00003pt\dot{p}=-\frac{x-y}{\sqrt{\eta}}-\sqrt{\eta}\,\nabla V(\widetilde{X})\,,$ 
+
+(3.8)
+until  $t=\pi$ .
+
+
+
+              6:
+              
+              
+            During the evolution, generate bounce events at rate
+
+
+
+
+
+ $\lambda_{\widetilde{X}}(x,p)=\sqrt{\eta}\,\bigl[p^{\top}[\nabla V(x)-\nabla V(\widetilde{X})]\bigr]_{+}\,.$ 
+
+(3.9)
+
+
+
+              7:
+              
+              
+            At each bounce, set
+ $p_{t}\leftarrow R_{\nabla V(x_{t})-\nabla V(\widetilde{X})}p_{t}$ .
+
+
+
+              8:
+              
+              
+            return  $x_{\pi}$ 
+
+
+
+
+
+Proposition 3.1 (Well-posedness and stationarity of the conditional phase space process).
+
+For every fixed  $y,\widetilde{x}\in\mathbb{R}^{d}$  and initial phase space point
+ $(x_{0},p_{0})$ , the event-driven dynamics in Algorithm 1, with
+the reference point fixed at  $\widetilde{x}$ , defines a unique
+non-explosive, time-homogeneous Markov process. The phase space measure
+ $\nu_{\eta,y}$  is stationary for this process. In particular, the
+returned position  $x_{\pi}$  is well-defined almost surely.
+
+
+
+The well-posedness and stationarity assertions are proved in
+Section A.1.
+

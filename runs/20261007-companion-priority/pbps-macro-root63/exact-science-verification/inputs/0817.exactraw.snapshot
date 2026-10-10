@@ -1,0 +1,68 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PermutedQuadraticCost
+
+/-!
+# Cyclic successor specialization of the quadratic cost gap
+
+`PairingCycleNeighborhood.cycleValue` uses the modular successor `i + 1` on
+`Fin (n+1)`.  `PermutedQuadraticCost` is intentionally permutation-generic.
+This module is the thin index bridge between them.
+
+The canonical successor permutation is translation by one.  Under this
+permutation the generic pairing gap is definitionally the cycle value, so the
+verified permutation-generic cost identity immediately gives the cyclic cost
+decrease consumed by the direct Brenier perturbation.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace CyclicQuadraticCost
+
+open PairingCycleNeighborhood PermutedQuadraticCost
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Modular successor permutation on the nonempty finite cycle. -/
+noncomputable def cycleSuccessorPerm {n : ℕ} : Equiv.Perm (Fin (n + 1)) :=
+  Equiv.addRight (1 : Fin (n + 1))
+
+@[simp]
+theorem cycleSuccessorPerm_apply {n : ℕ} (i : Fin (n + 1)) :
+    cycleSuccessorPerm (n := n) i = i + 1 := by
+  rfl
+
+/-- The permutation-generic pairing gap becomes exactly the existing
+`cycleValue` for the modular successor. -/
+theorem permutedPairingGap_cycleSuccessor_eq_cycleValue
+    {n : ℕ} (p : Fin (n + 1) → E × E) :
+    permutedPairingGap p (cycleSuccessorPerm (n := n)) = cycleValue p := by
+  simp [permutedPairingGap, cycleValue, cycleSuccessorPerm]
+
+/-- Exact quadratic cost identity for the cyclic successor. -/
+theorem diagonal_sub_cyclicCost_eq_two_cycleValue
+    {n : ℕ} (p : Fin (n + 1) → E × E) :
+    diagonalQuadraticCost p -
+        permutedQuadraticCost p (cycleSuccessorPerm (n := n)) =
+      2 * cycleValue p := by
+  rw [diagonal_sub_permuted_eq_two_pairingGap,
+    permutedPairingGap_cycleSuccessor_eq_cycleValue]
+
+/-- A strict positive pairing-cycle violation produces a strictly cheaper
+quadratic cyclic re-pairing. -/
+theorem cyclicQuadraticCost_lt_of_cycleValue_pos
+    {n : ℕ} (p : Fin (n + 1) → E × E)
+    (hpos : 0 < cycleValue p) :
+    permutedQuadraticCost p (cycleSuccessorPerm (n := n)) <
+      diagonalQuadraticCost p := by
+  apply permutedQuadraticCost_lt_of_pairingGap_pos
+  simpa [permutedPairingGap_cycleSuccessor_eq_cycleValue] using hpos
+
+end
+
+end CyclicQuadraticCost
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

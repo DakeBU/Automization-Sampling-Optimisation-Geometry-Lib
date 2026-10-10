@@ -1,0 +1,6 @@
+# coding: utf-8
+import pathlib,json,hashlib,sys
+sys.stdout.reconfigure(encoding='utf-8');R=pathlib.Path('E:/Samplinglib');O=R/'runs/20261007-companion-priority/pbps-macroscopic-energy/whole-proof-review50';F=O.parent/'math-freeze.json';f=json.loads(F.read_text(encoding='utf-8-sig'));checks=[];d=O/'frozen-inputs';d.mkdir(exist_ok=True)
+for i,p in enumerate(f['inputs']):
+ path=R/p['path'];b=path.read_bytes();l=b.replace(b'\r\n',b'\n');h=hashlib.sha256(b).hexdigest();hl=hashlib.sha256(l).hexdigest();ok=h==p['raw_sha256'] and hl==p['lf_sha256'] and len(b)==p['bytes'];assert ok,p['path'];stem='%02d-%s'%(i,path.name);(d/(stem+'.raw')).write_bytes(b);(d/(stem+'.lf')).write_bytes(l);checks.append(dict(index0=i,path=str(path),raw_sha256=h,lf_sha256=hl,raw_bytes=len(b),lf_bytes=len(l),freeze_matches=True,snapshot='frozen-inputs/'+stem,semantic_read_scope='Identity pin only unless explicitly expanded in mathematical review'))
+(O/'math-freeze.raw').write_bytes(F.read_bytes());(O/'math-freeze.lf').write_bytes(F.read_bytes().replace(b'\r\n',b'\n'));(O/'freeze-bindings.json').write_bytes((json.dumps(checks,ensure_ascii=False,indent=2)+'\n').encode());print('ALL',len(checks),'PINMATCH;BASE',f['checked_base_commit']);print('\n'.join('%02d %s'%(x['index0'],pathlib.Path(x['path']).name) for x in checks))

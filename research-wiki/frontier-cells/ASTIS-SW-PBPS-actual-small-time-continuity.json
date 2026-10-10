@@ -1,0 +1,235 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-small-time-continuity",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS phase-flow defect bound and zero-time stochastic continuity",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 Ex22, A1.SS1.SSS0.Px1.p6.1-p6.2; A1.E1 integrated hazard and actual halfopen interpolation A1.SS1.p2.2. Bounded first-event/smalltime prerequisite only.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability\nimport Mathlib.MeasureTheory.MeasurableSpace.Constructions\n\n/-! Prospective exact statement82 only; no theorem proof or admission.\nPBPS arXiv2609.06905v1 AppendixA.1 Ex22 small-time continuity ingredient.\nThe actual phase/recurrence and all original six analytic conditions are literal.\nThe first-event defect probability and zero-time stochastic continuity are the\nnew obligations. Markov/restart/semigroup/invariance/L2 and main/cost remain open. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_small_time_stochastic_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        (∀ t : ℝ≥0,\n          MeasurableSet {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ∧\n          P.real {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤\n              1 - Real.exp (-Λ y xRef z₀ t)) ∧\n        (∀ δ : ℝ, 0 < δ →\n          (∀ t : ℝ≥0, MeasurableSet {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) ∧\n          Tendsto (fun t : ℝ≥0 => P.real {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) (𝓝 0) (𝓝 0)))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity\n",
+  "status": "independently_verified",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumers": [
+    "Source Appendix A.1 Ex22 pointwise small-time ingredient; full L2 continuity separately requires invariant law, contractivity, domination and density."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Actual first-event phase-flow defect and zero-time stochastic continuity independently verified and local aggregate passed. Full L2/Markov/restart/semigroup/invariance/hypocoercivity/main/implementation/error/cost/composition remain open. Reader actual visual/main/PURIFIED/live separate."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualSmallTimeContinuity",
+    "statement_seal": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/root.statement-seal82.json",
+    "focused_checks": [
+      {
+        "command": "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity",
+        "result": "PASS exact sealed statement; independent BODY review pending.",
+        "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/focused82-attempt6/receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualSmallTimeContinuity.lean"
+    ],
+    "truth_boundary": "Actual phase-flow defect bound and zero-time stochastic continuity for fixed V/alpha/beta/eta,y,xRef,z0 under actual exponential product, retaining all physical-phase realization clauses. No uniform parameter nullset/limit or arbitrary correlated substitution. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and actual reader visual/main/PURIFIED/live remain OPEN.",
+    "proof_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/independent-math82/decision82.json",
+    "source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/fresh-source82/source-review.result82.json",
+    "independent_verification": "runs/20261007-companion-priority/pbps-actual-small-time-continuity82/exact-commit-verification82/verified.json",
+    "serialized_shared_gate": {
+      "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/integration82/canonical-lean-gate/receipt.json",
+      "root_jobs": 9193,
+      "test_jobs": 9493,
+      "registry_count": 531,
+      "status": "PASS",
+      "proof_commit": "8e182aeb384e5b9edb922c02fc14ceeca6f9b090",
+      "scope": "Current local source-bound aggregate only; actual reader visual/main/PURIFIED/live separate."
+    }
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib actual80/75/73/UnitExponentialProduct and all active/shared cells; module card and shared foundations searched.",
+      "Pinned Mathlib probability pushforward/real complement/monotonicity and continuity/squeeze.",
+      "Pinned compatible upstream indexes searched; no external port used."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity",
+    "canonical_shared_cell": "",
+    "reason": "Source-specific actual process probability consumer of existing generic Mathlib floors; no shared duplicate or assumed first-event certificate."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib actual80/75/73/UnitExponentialProduct and all active/shared cells; module card and shared foundations searched.",
+      "Pinned Mathlib probability pushforward/real complement/monotonicity and continuity/squeeze.",
+      "Pinned compatible upstream indexes searched; no external port used."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Source Appendix A.1 Ex22 pointwise small-time ingredient; full L2 continuity separately requires invariant law, contractivity, domination and density."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Source-specific actual process probability consumer of existing generic Mathlib floors; no shared duplicate or assumed first-event certificate."
+  },
+  "statement_seal": {
+    "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/root.statement-seal82.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "0333cf3e488effe1fa6f516553bb1e63a3bb650bfe09aca234ed20375cf85e64",
+    "binder_audit": [
+      "Original six analytic source standing binders retained literally; no producer or probability estimate premise."
+    ],
+    "definition_kind": "Literal actual eleven definitions; same full joint Borel Z/covered/fallback/common-AE semantics as actual80. Product phase norm gives finite-dimensional phase topology."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_proof_graph82.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_inventory82.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-process-regularity-preread82/header-source-review82/header-source-review82.result.json",
+    "reviewed_adapter_overlay": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/independent-review-adoption82.json",
+    "coverage_status": "Independent source inventory36/node13/edge20 and allnine exact formula/BODY regions accepted. Actual firstwait/firstarc defect bound and fixedparameter zero-time stochastic continuity only; full L2/Markov/restart/semigroup/invariance/main/implementation/error/cost/composition remain OPEN.",
+    "compiled_source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/fresh-source82/source-review.result82.json",
+    "fresh_source_graph": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_proof_graph82.json",
+    "fresh_source_inventory": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_inventory82.json"
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 Ex22, A1.SS1.SSS0.Px1.p6.1-p6.2; A1.E1 integrated hazard and actual halfopen interpolation A1.SS1.p2.2. Bounded first-event/smalltime prerequisite only.",
+    "fidelity_boundary": "Actual phase-flow defect bound and zero-time stochastic continuity for fixed V/alpha/beta/eta,y,xRef,z0 under actual exponential product, retaining all physical-phase realization clauses. No uniform parameter nullset/limit or arbitrary correlated substitution. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and actual reader visual/main/PURIFIED/live remain OPEN.",
+    "detail_status": "omitted",
+    "gap": "Source suppresses explicit measurable realization and actual-input phase-flow defect inclusion; full source L2 continuity is outside this bounded prerequisite.",
+    "consulted": [
+      {
+        "source": "Pinned primary Ex22 and compiled actual80/75/73; fixed Mathlib",
+        "anchor": "Ex22, A1.E1 and A1.SS1.p2.2",
+        "hypothesis_adapter": "All six source standing analytic hypotheses retained, first-event law derived from existing producer, not added as premise."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "bookkeeping": [
+      "First record live at0; top wait keeps last live physical arc; exact firstwait law from actual clocks.",
+      "At each positive threshold the norm-tail is eventually contained in the measurable phase-flow defect."
+    ],
+    "new_reusable": [],
+    "new_topology": "For the actual jointly measurable PBPS phase, derive measurable phase-flow defect probability <=1-exp(-Lambda_t), then fixed-parameter zero-time stochastic continuity at every positive norm threshold."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending proof",
+    "duplicate_semantics_audit": "Actual80 constructs phase but no actual short-time probability estimate.",
+    "canonicalization": "Reuse existing generic floors and actual process producers.",
+    "compressed_spine_delta": "For the actual jointly measurable PBPS phase, derive measurable phase-flow defect probability <=1-exp(-Lambda_t), then fixed-parameter zero-time stochastic continuity at every positive norm threshold.",
+    "reader_default_view": "Full attributed statement and formula proof with adjacent folded exact Lean.",
+    "scope": "Actual phase-flow defect bound and zero-time stochastic continuity for fixed V/alpha/beta/eta,y,xRef,z0 under actual exponential product, retaining all physical-phase realization clauses. No uniform parameter nullset/limit or arbitrary correlated substitution. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and actual reader visual/main/PURIFIED/live remain OPEN."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No proof attempt before exact independent header/source/topology seal.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-firstwait/first-arc/defect-probability/smalltime-squeeze"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "45253a0383bebeffe048730edfd738b4578f281d1a6b764e95abb2388253d3c1"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual-firstwait",
+        "first-live-arc",
+        "phase-flow-defect",
+        "hazard-continuity",
+        "norm-tail-squeeze"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"
+    ],
+    "visual_review": "Current affected coarse shared-root SVG rendered and actually viewed, with exact RAW input/output pins. Precise new actual small-time dependency graph generated and checked. Actual page/interactive visual acceptance still pending; no full Exposition Seal."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "checked": [
+      {
+        "path": "Libraries/conceptual-mirror-protocol.json",
+        "RAW_bytes": 6193,
+        "RAW_sha256": "e2042abcce0423e91a50898a929fed481163c9f079719c98c3311fe05ab3839f"
+      },
+      {
+        "path": "website/content/graph_memory_index.json",
+        "RAW_bytes": 20758,
+        "RAW_sha256": "751882b6649b2136cf80d7542fbe54e2c7d377c3c21a9058d6687117030f975b"
+      },
+      {
+        "path": "website/content/functor_hypergraph.json",
+        "RAW_bytes": 75115,
+        "RAW_sha256": "cb85e4a1c42e0d4afab1e2788b5c1c8666af8cc7c7e09d28a839e8bea9e8ba26"
+      },
+      {
+        "path": "Libraries/frontloaded-shared-spine.json",
+        "RAW_bytes": 24277,
+        "RAW_sha256": "053a267a079ca22da4c392fc0ae82a950682f37f03152d1a4fe5c1bd17b08692"
+      }
+    ],
+    "reason": "Source-local no-event/flow integration uses existing probability and squeeze floors. No new cross-domain bridge found or promoted to Lean."
+  }
+}

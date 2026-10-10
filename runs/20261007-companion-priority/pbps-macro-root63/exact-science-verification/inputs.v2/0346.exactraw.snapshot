@@ -1,0 +1,19 @@
+
+/-- A point equals its orthogonal projection if and only if it lies in the subspace. -/
+theorem starProjection_eq_self_iff {v : E} : K.starProjection v = v ↔ v ∈ K := by
+  refine ⟨fun h => ?_, fun h => eq_starProjection_of_mem_of_inner_eq_zero h ?_⟩
+  · rw [← h]
+    simp
+  · simp
+
+variable (K) in
+@[simp]
+lemma isIdempotentElem_starProjection : IsIdempotentElem K.starProjection :=
+  ContinuousLinearMap.ext fun x ↦ starProjection_eq_self_iff.mpr <| by simp
+
+@[simp]
+lemma range_starProjection (U : Submodule 𝕜 E) [U.HasOrthogonalProjection] :
+    U.starProjection.range = U := by
+  ext x
+  exact ⟨fun ⟨y, hy⟩ ↦ hy ▸ coe_mem (U.orthogonalProjectionOnto y),
+    fun h ↦ ⟨x, starProjection_eq_self_iff.mpr h⟩⟩

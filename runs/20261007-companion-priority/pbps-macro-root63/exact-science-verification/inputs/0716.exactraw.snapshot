@@ -1,0 +1,475 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedTerminalExecution
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.IdealRGOIdentification
+/-!
+# Actual enhanced-state finite output KL
+
+Source: SPHMC arXiv:2609.06906v1 Section 6.3, A1 error recursion and terminal
+base case. This is the actual finite-output consumer at q=2. The stage
+sampler M remains arbitrary: its actual observation KL is retained, possibly
+infinite. Neither the numerical stage budget (6.5) nor final Delta-squared
+accuracy or total query cost is asserted.
+
+EnhancedTerminalExecution constructs the actual full-state transition P and
+terminal retry program Lt, including the retained reference obtained from the
+pre-noise sample. The theorem exposes their actual transition and terminal
+stream pushforward laws. EnhancedKLOneStep supplies the real volume Gibbs
+probability, target TG, ideal Gaussian observation H and one-step KL bound.
+The two transitions are identified by their full update formulas and the
+real/nonnegative stopping threshold coercion, not by a projected chain.
+
+On the actual P^J terminal support, capped precision equals current precision
+and is strictly greater than one. The nested volume Gibbs tilt equals the
+terminal Gaussian tilt. Exponential integrability is derived from actual
+Gibbs probability before combining tilts. The correct RN second moment,
+dLt/dTG integrated under TG, bounds KL via the square deviation; probability
+mass and square integrability are established before integral algebra.
+
+The KL recurrence accumulates observation error along actual P^j(s0). Only
+on terminal support is its residual replaced by eps^2=Delta^2/(J+1). The
+actual cap output identity yields the same bound at J+m, without extra error
+terms. Support, cap identity, inner first-hit criteria, output measurability
+and costs are consumed parent facts, not all repeated public conjuncts.
+
+The setting is normalized beta=1,kappa>=1 with genuine C2 Hessian bounds and
+positive finite dimension. Source step eta is positive measurable and bounded
+by c<1/4; Delta lies in (0,1/2]. The initial reference and history are arbitrary;
+this does not prove their origin or initialization cost. Outside terminal
+support, max(b,B^-1) is the terminal program extension; target identification
+is not asserted there. Actual M accuracy,stage/initialization costs and both
+complete paper main results remain separate.
+-/
+
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+
+private theorem klFun_le_square {x : ℝ} (hx : 0 ≤ x) : klFun x ≤ (x-1)^2 := by
+  rcases eq_or_lt_of_le hx with h | h
+  · subst x
+    norm_num [klFun_zero]
+  · have he := mul_le_mul_of_nonneg_left (Real.log_le_sub_one_of_pos h) hx
+    rw [klFun_apply]
+    nlinarith
+
+private theorem kl_le_second_moment {X : Type*} [MeasurableSpace X]
+    (μ ν : Measure X) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hac : μ ≪ ν) (eps : ℝ)
+    (hI : Integrable (fun x => ((μ.rnDeriv ν x).toReal)^2) ν)
+    (hB : (∫ x, ((μ.rnDeriv ν x).toReal)^2 ∂ν) ≤ 1+eps^2) :
+    klDiv μ ν ≤ ENNReal.ofReal (eps^2) := by
+  let r := fun x => (μ.rnDeriv ν x).toReal
+  have hr : Integrable r ν := by
+    simpa [r] using Measure.integrableOn_toReal_rnDeriv
+      (μ := μ) (ν := ν) (s := Set.univ) (measure_ne_top μ Set.univ)
+  have hmass : (∫ x, r x ∂ν) = 1 := by
+    simpa [r] using Measure.integral_toReal_rnDeriv hac
+  have h2 : Integrable (fun x => r x^2) ν := hI
+  have hlin : Integrable (fun x => 2*r x) ν := hr.const_mul 2
+  have hpoly : Integrable (fun x => r x^2-2*r x) ν := h2.sub hlin
+  have heq : (fun x => (r x-1)^2) = (fun x => r x^2-2*r x+1) := by
+    funext x
+    ring
+  have hsq : Integrable (fun x => (r x-1)^2) ν := by
+    rw [heq]
+    exact hpoly.add (integrable_const 1)
+  have hint : (∫ x, (r x-1)^2 ∂ν) ≤ eps^2 := by
+    rw [heq, integral_add hpoly (integrable_const 1),
+      integral_sub h2 hlin, integral_const_mul, hmass]
+    simp only [integral_const, probReal_univ, smul_eq_mul, one_mul]
+    change (∫ x, r x^2 ∂ν) ≤ 1+eps^2 at hB
+    linarith
+  rw [klDiv_eq_lintegral_klFun_of_ac hac]
+  calc
+    _ ≤ ∫⁻ x, ENNReal.ofReal ((r x-1)^2) ∂ν := by
+      apply lintegral_mono
+      intro x
+      exact ENNReal.ofReal_le_ofReal (klFun_le_square ENNReal.toReal_nonneg)
+    _ = ENNReal.ofReal (∫ x, (r x-1)^2 ∂ν) :=
+      (ofReal_integral_eq_lintegral_ofReal hsq (ae_of_all _ fun x => sq_nonneg _)).symm
+    _ ≤ ENNReal.ofReal (eps^2) := ENNReal.ofReal_le_ofReal hint
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem actual_terminal_target (V : E → ℝ) (hV : Differentiable ℝ V)
+    (β : ℝ≥0) (hlip : LipschitzWith β (gradient V))
+    [IsProbabilityMeasure ((volume : Measure E).tilted (fun x => -V x))]
+    (b : ℝ) (hb : 0 < b) (hstep : (β:ℝ)*b⁻¹ < 1) (u : E) :
+    (((volume : Measure E).tilted (fun x => -V x)).tilted
+      (fun x => -b/2*‖x-u‖^2)) =
+    ((stdGaussian E).map (fun z => u+Real.sqrt b⁻¹ • z)).tilted (fun x => -V x) := by
+  have hI : Integrable (fun x => Real.exp (-V x)) (volume : Measure E) := by
+    by_contra h
+    have hz := tilted_of_not_integrable h
+    have hm := measure_univ (μ := (volume : Measure E).tilted (fun x => -V x))
+    rw [hz] at hm
+    simp at hm
+  have hi := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.IdealRGOIdentification.ideal_rgo_identification
+    V hV β hlip b⁻¹ (inv_pos.2 hb) hstep u u
+  obtain ⟨_,_,_,_,_,_,heq,hvol⟩ := hi
+  rw [tilted_tilted hI]
+  have hf : ((fun x => -V x)+(fun x => -b/2*‖x-u‖^2)) =
+      (fun x => -(V x+‖x-u‖^2/(2*b⁻¹))) := by
+    funext x
+    simp only [Pi.add_apply]
+    field_simp
+    ring
+  rw [hf, Measure.tilted]
+  exact hvol.symm.trans heq
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+noncomputable section
+universe u
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+private theorem kernel_error_sum {A : Type u} [MeasurableSpace A] (P : Kernel A A) [IsMarkovKernel P]
+    (e t : A → ℝ≥0∞) (he : Measurable e) (ht : Measurable t)
+    (f : ℕ → A → ℝ≥0∞) (hzero : ∀ s, f 0 s ≤ t s)
+    (hstep : ∀ n s, f (n+1) s ≤ e s + ∫⁻ x, f n x ∂P s) :
+    ∀ n s, f n s ≤ (∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^j) s) + ∫⁻ x, t x ∂(P^n) s := by
+  have hp (n : ℕ) : IsMarkovKernel (P^n) := by
+    induction n with
+    | zero => change IsMarkovKernel Kernel.id; infer_instance
+    | succ n ih =>
+      let := ih
+      rw [pow_succ]
+      change IsMarkovKernel ((P^n) ∘ₖ P)
+      infer_instance
+  let := hp
+  have hi (n : ℕ) : Measurable (fun s => ∫⁻ x, e x ∂(P^n) s) := he.lintegral_kernel
+  intro n
+  induction n with
+  | zero =>
+    intro s
+    simp only [Finset.range_zero,Finset.sum_empty,zero_add,pow_zero]
+    change f 0 s ≤ ∫⁻ x, t x ∂Measure.dirac s
+    simpa only [lintegral_dirac' s ht] using hzero s
+  | succ n ih =>
+    intro s
+    calc
+      f (n+1) s ≤ e s + ∫⁻ x, f n x ∂P s := hstep n s
+      _ ≤ e s + ∫⁻ x, (∑ j ∈ Finset.range n, ∫⁻ y, e y ∂(P^j) x) +
+          ∫⁻ y, t y ∂(P^n) x ∂P s := add_le_add le_rfl (lintegral_mono ih)
+      _ = _ := by
+        rw [lintegral_add_left (Finset.measurable_sum _ (fun j _ => hi j))]
+        rw [lintegral_finsetSum _ (fun j _ => hi j)]
+        have hei (j : ℕ) : (∫⁻ x, ∫⁻ y, e y ∂(P^j) x ∂P s) = ∫⁻ y, e y ∂(P^(j+1)) s := by
+          rw [pow_succ]
+          exact (Kernel.lintegral_comp (P^j) P s he).symm
+        have hti : (∫⁻ x, ∫⁻ y, t y ∂(P^n) x ∂P s) = ∫⁻ y, t y ∂(P^(n+1)) s := by
+          rw [pow_succ]
+          exact (Kernel.lintegral_comp (P^n) P s ht).symm
+        simp_rw [hei]
+        rw [hti,Finset.sum_range_succ']
+        simp only [pow_zero]
+        rw [show (1 : Kernel A A) s = Measure.dirac s from rfl,lintegral_dirac' s he]
+        change e s + ((∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^(j+1)) s) + _) =
+          ((∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^(j+1)) s) + e s) + _
+        ac_rfl
+private theorem composed_error_sum {S E : Type u} [MeasurableSpace S] [MeasurableSpace E]
+    (P : Kernel S S) (T L : Kernel S E)
+    [IsMarkovKernel P] [IsMarkovKernel T] [IsMarkovKernel L]
+    (e : S → ℝ≥0∞) (he : Measurable e)
+    (hstep : ∀ R : Kernel S E, IsMarkovKernel R →
+      Measurable (fun s => klDiv (R s) (T s)) ∧
+      ∀ s, klDiv ((R ∘ₖ P) s) (T s) ≤ e s+∫⁻ t, klDiv (R t) (T t) ∂P s) :
+    ∀ n s, klDiv ((L ∘ₖ (P^n)) s) (T s) ≤
+      (∑ j ∈ Finset.range n, ∫⁻ t, e t ∂(P^j) s)+
+      ∫⁻ t, klDiv (L t) (T t) ∂(P^n) s := by
+  have hp (n : ℕ) : IsMarkovKernel (P^n) := by
+    induction n with
+    | zero => change IsMarkovKernel Kernel.id; infer_instance
+    | succ n ih =>
+      let := ih
+      rw [pow_succ]
+      change IsMarkovKernel ((P^n) ∘ₖ P)
+      infer_instance
+  let := hp
+  apply kernel_error_sum P e (fun s => klDiv (L s) (T s)) he (hstep L inferInstance).1
+    (fun n s => klDiv ((L ∘ₖ (P^n)) s) (T s))
+  · intro s
+    rw [pow_zero]
+    change klDiv ((L ∘ₖ Kernel.id) s) (T s) ≤ klDiv (L s) (T s)
+    rw [Kernel.comp_id]
+  · intro n s
+    have h := (hstep (L ∘ₖ (P^n)) inferInstance).2 s
+    rw [pow_succ]
+    change klDiv ((L ∘ₖ ((P^n) ∘ₖ P)) s) (T s) ≤ _
+    rw [← Kernel.comp_assoc]
+    exact h
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+private theorem terminal_precision_large (κ b0 : ℝ≥0) (hκ : 1 ≤ κ)
+    (d Δ : ℝ) (hd : 1 ≤ d) (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2) :
+    let K := (1+(b0:ℝ))/((κ:ℝ)⁻¹+b0)
+    let L := 2+Real.log (K*d*2/Δ)
+    let B := (1/1024)/(Real.sqrt (d*L)+L)
+    0 < B ∧ 1 < B⁻¹ := by
+  intro K L B
+  have hk : (1:ℝ) ≤ κ := by exact_mod_cast hκ
+  have hk0 : 0 < (κ:ℝ) := lt_of_lt_of_le zero_lt_one hk
+  have hki : (κ:ℝ)⁻¹ ≤ 1 := (inv_le_one₀ hk0).2 hk
+  have hden : 0 < (κ:ℝ)⁻¹+(b0:ℝ) := add_pos_of_pos_of_nonneg (inv_pos.2 hk0) b0.coe_nonneg
+  have hK : 1 ≤ K := by
+    apply (le_div_iff₀ hden).2
+    linarith
+  have hprod : 1 ≤ K*d := by nlinarith
+  have harg : 1 ≤ K*d*2/Δ := by
+    apply (le_div_iff₀ hΔ).2
+    linarith
+  have hL : 2 ≤ L := by
+    dsimp only [L]
+    linarith [Real.log_nonneg harg]
+  have hs : 0 ≤ Real.sqrt (d*L) := Real.sqrt_nonneg _
+  have hb0 : 0 < B := div_pos (by norm_num) (by linarith)
+  refine ⟨hb0,?_⟩
+  apply (one_lt_inv₀ hb0).2
+  apply (div_lt_one (by linarith : 0 < Real.sqrt (d*L)+L)).2
+  linarith
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+open Set
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL
+variable {E S X : Type*} [MeasurableSpace E] [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [BorelSpace E] [MeasurableSpace S] [MeasurableSpace X]
+private def firstIndex (q : ℕ → X → ℝ) (b : X → ℝ) (s : X) : ℕ := by
+  classical
+  exact if h : ∃ n, q n s ≤ b s then Nat.find h else 0
+
+private def scaledCached (V : E → ℝ) (A : S → ℝ) (h g : S → E)
+    (p : (S × E) × (ℝ × E)) : ℝ :=
+  let s := p.1.1
+  let x := p.1.2
+  let t := p.2.1
+  let z := Real.sqrt (A s) • p.2.2
+  inner ℝ ((Real.pi/2) • (Real.cos (Real.pi/2*t) • (x-h s)-
+    Real.sin (Real.pi/2*t) • z))
+    (g s-gradient V (h s+Real.sin (Real.pi/2*t) • (x-h s)+
+      Real.cos (Real.pi/2*t) • z))
+
+private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))
+
+private def attemptLaw {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) (nu : Measure A) (B : ℝ) (hB : 0 < B) : Measure (Attempt X A) :=
+  q.prod ((poissonMeasure (⟨2*B, by positivity⟩ : ℝ≥0)).prod
+    ((Measure.infinitePi (fun _ : ℕ => nu)).prod (volume.restrict (Set.Icc 0 1))))
+
+private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B+W (p.1,p.2.2.1 i.val))/(2*B)}
+
+private def output {X A : Type*} (W : X × A → ℝ) (B : ℝ) (x0 : X)
+    (omega : ℕ → Attempt X A) : X := by
+  classical
+  exact if h : ∃ n, omega n ∈ accepted W B then (omega (Nat.find h)).1 else x0
+
+
+local notation "S" => ℝ≥0 × E × E × ℕ × (ℕ → E)
+set_option maxHeartbeats 2000000 in
+theorem finite_output_kl {V : E → ℝ} (κ : ℝ≥0) (hκ : 1 ≤ κ)
+    (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x w : E, (κ:ℝ)⁻¹*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ ‖w‖^2)
+    (hd : 0 < Module.finrank ℝ E)
+    (η : S → ℝ) (hηm : Measurable η) (c Δ : ℝ)
+    (hc : 0 < c) (hc1 : c < 1/4) (hη : ∀ s, 0 < η s ∧ η s ≤ c)
+    (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2)
+    (s0 : S) (M : Kernel S E) [IsMarkovKernel M] :
+    let d : ℝ := Module.finrank ℝ E
+    let K := fun r : ℝ => (1+r)/((κ:ℝ)⁻¹+r)
+    let τ := fun s : S => if 2 ≤ K s.1 then K s.1 else c
+    let L := (2:ℝ)+Real.log (K s0.1*d*(2:ℝ)/Δ)
+    let B := (1/1024)/(Real.sqrt (d*L)+L)
+    let J := Nat.ceil (8*Real.log (Real.exp 1*K s0.1/B))
+    let _eps := Δ/Real.sqrt ((J:ℝ)+1)
+    let v := fun s : S => (η s+τ s)/(1+s.1)
+    let bp := fun s : S => s.1+Real.toNNReal (v s)⁻¹
+    let obs := fun p : S × (E × E) => p.2.1+Real.sqrt (τ p.1/(1+p.1.1)) • p.2.2
+    let center := fun p : S × (E × E) => (bp p.1:ℝ)⁻¹ •
+      ((p.1.1:ℝ) • p.1.2.1+(v p.1)⁻¹ • obs p)
+    let F := fun p x => V x+(bp p.1:ℝ)/2*‖x-center p‖^2
+    let T := fun p x => x-(1+(bp p.1:ℝ))⁻¹ • gradient (F p) x
+    let Qn := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖^2
+    let N := firstIndex Qn (fun p => ((κ:ℝ)⁻¹+bp p.1)*d)
+    let update := fun p : S × (E × E) =>
+      (bp p.1,center p,(T p)^[N p] p.2.1,p.1.2.2.2.1+1,
+        fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    let bb := fun s : S => max (s.1:ℝ) B⁻¹
+    let TF := fun s x => V x+bb s/2*‖x-s.2.1‖^2
+    let TT := fun s x => x-(1+bb s)⁻¹ • gradient (TF s) x
+    let TQn := fun n s => ‖gradient (TF s) ((TT s)^[n] (s.2.2.1))‖^2
+    let TN := firstIndex TQn (fun s => d*bb s)
+    let txp := fun s => (TT s)^[TN s] (s.2.2.1)
+    let TA := fun s => (bb s)⁻¹
+    let tg := fun s => gradient V (txp s)
+    let th := fun s => s.2.1-TA s • tg s
+    let tnu := (volume.restrict (Ioc (0 : ℝ) 1)).prod (stdGaussian E)
+    let tW := fun s (p : E × (ℝ × E)) => min 1 (max (-1) (scaledCached V TA th tg ((s,p.1),p.2)))
+    let tproposal := fun s => (stdGaussian E).map (fun z => th s+Real.sqrt (TA s) • z)
+    let trho := fun s => Measure.infinitePi (fun _ : ℕ => attemptLaw (tproposal s) tnu 1 (by norm_num))
+    let _tpi := fun s => ((stdGaussian E).map (fun z => s.2.1+Real.sqrt (TA s) • z)).tilted (fun x => -V x)
+    let μV := (volume : Measure E).tilted (fun x => -V x)
+    IsProbabilityMeasure μV ∧
+    ∃ (Lt : Kernel S E) (P : Kernel S S) (TG H : Kernel S E),
+      IsMarkovKernel Lt ∧ IsMarkovKernel P ∧ IsMarkovKernel TG ∧ IsMarkovKernel H ∧
+      (∀ s, P s=if B⁻¹ ≤ (s.1:ℝ) then Measure.dirac s else
+        ((M s).prod (stdGaussian E)).map (fun z => update (s,z))) ∧
+      (∀ s, (trho s).map (output (tW s) 1 0)=Lt s) ∧
+      (∀ s, TG s=μV.tilted (fun x => -((s.1:ℝ)/2)*‖x-s.2.1‖^2)) ∧
+      (∀ s, H s=AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (TG s) (Real.sqrt (v s))) ∧
+      let Q := fun s => AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (M s) (Real.sqrt (τ s/(1+s.1)))
+      let e := fun s => if B⁻¹ ≤ (s.1:ℝ) then 0 else klDiv (Q s) (H s)
+      Measurable e ∧ ∀ m : ℕ,
+        klDiv ((Lt ∘ₖ (P^(J+m))) s0) (TG s0) ≤
+          (∑ j ∈ Finset.range J, ∫⁻ s, e s ∂(P^j) s0)+
+          ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := by
+  classical
+  intro d K τ L B J eps v bp obs center F T Qn N update bb TF TT TQn TN txp TA tg th tnu tW tproposal trho tpi μV
+  have ht := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedTerminalExecution.enhanced_terminal_execution
+    κ hκ hV hH hd η hηm c 2 Δ hc hc1 hη (by norm_num) hΔ hΔ1 s0 M
+  obtain ⟨hB,heps,heps1,hbb,hn,hxp,hres,Lt,P,hLt,hP,hPs,hmass,hstable,hacc⟩ := ht
+  let := hLt
+  let := hP
+  have hk0 : (0:ℝ≥0) < κ := lt_of_lt_of_le (by norm_num) hκ
+  have ha0 : (0:ℝ≥0) < κ⁻¹ := inv_pos.2 hk0
+  have ha1 : κ⁻¹ ≤ (1:ℝ≥0) := (inv_le_one₀ hk0).2 hκ
+  have hHm : ∀ x w : E, ((κ⁻¹:ℝ≥0):ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ ((1:ℝ≥0):ℝ)*‖w‖^2 := by simpa using hH
+  have hdR : 0 < (Module.finrank ℝ E:ℝ) := by exact_mod_cast hd
+  have hτm : Measurable τ := by
+    have hKm : Measurable (fun s : S => K s.1) := by dsimp [K]; fun_prop
+    exact Measurable.ite (measurableSet_le measurable_const hKm) hKm measurable_const
+  have hτ0 (s : S) : 0 < τ s := by
+    dsimp only [τ]
+    split_ifs with h
+    · linarith
+    · exact hc
+  have hs := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedKLOneStep.one_step_kl_error
+    ha0 ha1 hV hHm hdR η τ hηm hτm (fun s => (hη s).1) hτ0 M (Real.toNNReal B⁻¹)
+  obtain ⟨hμ,TG,H,P',hTG,hHG,hP',hTGf,hHf,hPsf,he',hsteps⟩ := hs
+  let := hμ
+  let := hTG
+  let := hHG
+  let := hP'
+  have hstop (s : S) : Real.toNNReal B⁻¹ ≤ s.1 ↔ B⁻¹ ≤ (s.1:ℝ) := by
+    change ((Real.toNNReal B⁻¹:ℝ≥0):ℝ) ≤ (s.1:ℝ) ↔ B⁻¹ ≤ (s.1:ℝ)
+    rw [Real.coe_toNNReal _ (inv_pos.2 hB).le]
+  have hPeq : P'=P := by
+    apply Kernel.ext
+    intro s
+    have hx := hPsf s
+    simp only [NNReal.coe_one,NNReal.coe_inv] at hx
+    have hy : P s=if B⁻¹ ≤ (s.1:ℝ) then Measure.dirac s else
+        ((M s).prod (stdGaussian E)).map (fun z => update (s,z)) := hPs s
+    by_cases hs : B⁻¹ ≤ (s.1:ℝ)
+    · have hs' := (hstop s).2 hs
+      simp only [if_pos hs'] at hx
+      simp only [if_pos hs] at hy
+      exact hx.trans hy.symm
+    · have hs' : ¬Real.toNNReal B⁻¹ ≤ s.1 := fun h => hs ((hstop s).1 h)
+      simp only [if_neg hs'] at hx
+      simp only [if_neg hs] at hy
+      exact hx.trans hy.symm
+  subst P'
+  refine ⟨hμ,Lt,P,TG,H,hLt,hP,hTG,hHG,hPs,?_,hTGf,?_,?_⟩
+  · intro s
+    exact (hacc s).1.2.1
+  · intro s
+    simpa only [NNReal.coe_one] using hHf s
+  intro Q e
+  have heq : (fun s : S => if Real.toNNReal B⁻¹ ≤ s.1 then 0 else
+      klDiv (AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        (M s) (Real.sqrt (τ s/(1+s.1)))) (H s)) = e := by
+    funext s
+    by_cases hs : B⁻¹ ≤ (s.1:ℝ)
+    · have hs' := (hstop s).2 hs
+      simp only [if_pos hs',e,if_pos hs]
+    · have hs' : ¬Real.toNNReal B⁻¹ ≤ s.1 := fun h => hs ((hstop s).1 h)
+      simp only [if_neg hs',e,Q,if_neg hs]
+  have he : Measurable e := by
+    simp only [NNReal.coe_one] at he'
+    rw [heq] at he'
+    exact he'
+  have hstep : ∀ R : Kernel S E, IsMarkovKernel R →
+      Measurable (fun s => klDiv (R s) (TG s)) ∧
+      ∀ s, klDiv ((R ∘ₖ P) s) (TG s) ≤ e s+∫⁻ t, klDiv (R t) (TG t) ∂P s := by
+    intro R hR
+    let := hR
+    have hh := hsteps R
+    simp only [NNReal.coe_one] at hh
+    refine ⟨hh.1,fun s => ?_⟩
+    have hh' := hh.2 s
+    have heqs := congrFun heq s
+    rw [heqs] at hh'
+    exact hh' 
+  refine ⟨he,?_⟩
+  have hd1 : 1 ≤ d := by
+    have hn1 : 1 ≤ Module.finrank ℝ E := hd
+    dsimp only [d]
+    exact_mod_cast hn1
+  have hBlarge : 1 < B⁻¹ := (terminal_precision_large κ s0.1 hκ d Δ hd1 hΔ hΔ1).2
+  have hlip : LipschitzWith (1:ℝ≥0) (gradient V) := by
+    have hh := (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+      (r:=0) hV hHm (0:E)).2
+    simpa using hh
+  have hterminal (s : S) (hs : B⁻¹ ≤ (s.1:ℝ)) : klDiv (Lt s) (TG s) ≤ ENNReal.ofReal (eps^2) := by
+    have hb1 : 1 < (s.1:ℝ) := lt_of_lt_of_le hBlarge hs
+    have hb0 : 0 < (s.1:ℝ) := lt_trans zero_lt_one hb1
+    have hbstep : ((1:ℝ≥0):ℝ)*(s.1:ℝ)⁻¹ < 1 := by
+      simpa using (inv_lt_one₀ hb0).2 hb1
+    have heqt : TG s=tpi s := by
+      rw [hTGf]
+      have hh := actual_terminal_target V (hV.differentiable (by norm_num)) 1 hlip
+        (s.1:ℝ) hb0 hbstep s.2.1
+      have hbs : bb s=(s.1:ℝ) := hbb s hs
+      dsimp only [tpi,TA]
+      rw [hbs]
+      simpa only [neg_div] using hh
+    obtain ⟨_,hpi,_,hac,_,hI,_,_,_,hbound,_,_⟩ := hacc s
+    let := hpi
+    rw [heqt]
+    apply kl_le_second_moment (Lt s) (tpi s) hac eps
+    · simpa only [Real.rpow_two] using hI
+    · simpa only [Real.rpow_two] using hbound
+  have hPJ : IsMarkovKernel (P^J) := by
+    induction J with
+    | zero => change IsMarkovKernel Kernel.id; infer_instance
+    | succ n ih =>
+      let := ih
+      rw [pow_succ]
+      change IsMarkovKernel ((P^n) ∘ₖ P)
+      infer_instance
+  let := hPJ
+  have hD : ∀ᵐ s ∂(P^J) s0, B⁻¹ ≤ (s.1:ℝ) := by
+    rw [ae_iff]
+    have hbMeas : Measurable (fun s : S => (s.1:ℝ)) := by fun_prop
+    have hm : MeasurableSet {s : S | B⁻¹ ≤ (s.1:ℝ)} := measurableSet_le measurable_const hbMeas
+    change (P^J) s0 {s : S | B⁻¹ ≤ (s.1:ℝ)}ᶜ=0
+    rw [measure_compl hm (measure_ne_top _ _), hmass, measure_univ, tsub_self]
+  have hresidual : (∫⁻ s, klDiv (Lt s) (TG s) ∂(P^J) s0) ≤ ENNReal.ofReal (eps^2) := by
+    calc
+      _ ≤ ∫⁻ _s, ENNReal.ofReal (eps^2) ∂(P^J) s0 :=
+        lintegral_mono_ae (hD.mono fun s hs => hterminal s hs)
+      _ = _ := by rw [lintegral_const, measure_univ, mul_one]
+  have hepssq : eps^2=Δ^2/((J:ℝ)+1) := by
+    dsimp only [eps]
+    rw [div_pow, Real.sq_sqrt (by positivity)]
+  intro m
+  rw [hstable m]
+  have hf := composed_error_sum P TG Lt e he hstep J s0
+  exact hf.trans (add_le_add le_rfl (by simpa only [hepssq] using hresidual))
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.EnhancedFiniteOutputKL

@@ -1,0 +1,125 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryStopping
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryStoppingTime
+
+/-!
+# Itô integration at a dyadic grid-valued stopping time
+
+This file proves the first exact random-stopping identity needed for Chewi
+Proposition 1.1.16.  The stopping time is allowed to depend on the sample
+point, but each value must be one of the endpoints of the dyadic grid carried
+by the elementary process.  At a fixed sample point the random endpoint is
+therefore a deterministic grid index, so the proof reduces to the same finite
+sum calculation used by deterministic dyadic stopping.
+
+No limiting argument is used here.  General bounded stopping times will be
+handled downstream by dyadic approximation, followed by the L² isometry and
+continuous-path uniqueness already established for the Itô map.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace DyadicGridStoppingIto
+
+open MeasureTheory
+open scoped BigOperators NNReal
+
+open DyadicElementaryRefinement DyadicElementaryStopping ElementaryItoIntegral
+  ElementaryStoppingTime ProgressiveL2Density StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {T : ℝ≥0}
+
+/-- A stopping time is grid-valued relative to a dyadic elementary process if
+we have chosen, for every sample point, the grid endpoint that represents its
+value.  Keeping the witness explicit is useful in the finite-sum proof and
+avoids any measurable-selection issue at this discrete stage. -/
+def IsGridValuedFor
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → WithTop ℝ≥0)
+    (cutoff : Omega → Fin (2 ^ eta.level + 1)) : Prop :=
+  ∀ omega,
+    tau omega = (eta.process.times (cutoff omega) : WithTop ℝ≥0)
+
+/-- On one sample point, the coefficient retained by random stopping agrees
+with the deterministic coefficient cutoff at the selected grid index. -/
+theorem stopElementary_coeff_eq_gridCutoff
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau)
+    (cutoff : Omega → Fin (2 ^ eta.level + 1))
+    (hgrid : IsGridValuedFor eta tau cutoff)
+    (j : Fin (2 ^ eta.level)) (omega : Omega) :
+    (stopElementary eta.process tau htau).coeff j omega =
+      if j.castSucc < cutoff omega then eta.process.coeff j omega else 0 := by
+  rw [stopElementary_coeff, hgrid omega]
+  simp only [WithTop.coe_lt_coe]
+  by_cases hj : j.castSucc < cutoff omega
+  · have htime :
+        eta.process.times j.castSucc < eta.process.times (cutoff omega) :=
+      eta.process.times_strictMono hj
+    simp [hj, htime]
+  · have htime :
+        ¬ eta.process.times j.castSucc < eta.process.times (cutoff omega) := by
+      intro hlt
+      exact hj ((eta.process.times_strictMono.lt_iff_lt).mp hlt)
+    simp [hj, htime]
+
+/-- Exact finite-sum stopped-Itô identity for a dyadic grid-valued stopping
+time.  This is pointwise in `omega`: no expectation, completion, or limiting
+argument is hidden in the statement. -/
+theorem elementaryItoIntegral_stop_gridValued
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau)
+    (cutoff : Omega → Fin (2 ^ eta.level + 1))
+    (hgrid : IsGridValuedFor eta tau cutoff)
+    (B : ℝ≥0 → Omega → ℝ) (omega : Omega) :
+    elementaryItoIntegral (stopElementary eta.process tau htau) B T omega =
+      elementaryItoIntegral eta.process B
+        (eta.process.times (cutoff omega)) omega := by
+  unfold elementaryItoIntegral
+  apply Finset.sum_congr rfl
+  intro j _hj
+  rw [stopElementary_coeff_eq_gridCutoff eta tau htau cutoff hgrid j omega]
+  change
+    (if j.castSucc < cutoff omega then eta.process.coeff j omega else 0) *
+        (B (min (eta.process.times j.succ) T) omega -
+          B (min (eta.process.times j.castSucc) T) omega) =
+      eta.process.coeff j omega *
+        (B (min (eta.process.times j.succ) (eta.process.times (cutoff omega))) omega -
+          B (min (eta.process.times j.castSucc) (eta.process.times (cutoff omega))) omega)
+  let grid := eta.process.times
+  have hmono : StrictMono grid := eta.process.times_strictMono
+  have hlast : grid (Fin.last (2 ^ eta.level)) = T := by
+    change eta.process.times (Fin.last (2 ^ eta.level)) = T
+    rw [congrFun eta.times_eq (Fin.last (2 ^ eta.level))]
+    exact regularDyadic_last_time T eta.level
+  have hrightT : grid j.succ ≤ T := by
+    calc
+      grid j.succ ≤ grid (Fin.last (2 ^ eta.level)) :=
+        hmono.monotone (Fin.le_last j.succ)
+      _ = T := hlast
+  have hleftT : grid j.castSucc ≤ T :=
+    (hmono.monotone (Fin.castSucc_le_succ j)).trans hrightT
+  by_cases hj : j.castSucc < cutoff omega
+  · have hrightCutoff : grid j.succ ≤ grid (cutoff omega) :=
+      hmono.monotone (by
+        exact_mod_cast (Nat.succ_le_iff.mpr hj))
+    have hleftCutoff : grid j.castSucc ≤ grid (cutoff omega) :=
+      (hmono.monotone (Fin.castSucc_le_succ j)).trans hrightCutoff
+    simp [hj, grid,
+      min_eq_left hrightT, min_eq_left hleftT,
+      min_eq_left hrightCutoff, min_eq_left hleftCutoff]
+  · have hcutoffLeft : grid (cutoff omega) ≤ grid j.castSucc :=
+      hmono.monotone (le_of_not_gt hj)
+    have hcutoffRight : grid (cutoff omega) ≤ grid j.succ :=
+      hcutoffLeft.trans (hmono.monotone (Fin.castSucc_le_succ j))
+    simp [hj, grid,
+      min_eq_left hrightT, min_eq_left hleftT,
+      min_eq_right hcutoffLeft, min_eq_right hcutoffRight]
+
+end DyadicGridStoppingIto
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

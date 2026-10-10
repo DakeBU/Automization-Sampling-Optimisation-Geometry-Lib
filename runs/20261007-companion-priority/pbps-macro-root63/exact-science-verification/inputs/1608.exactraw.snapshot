@@ -1,0 +1,245 @@
+{
+  "id": "ASTIS-RT-20261006-SmoothedHessianBounds",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion:sphmc-smoothed-hessian-bounds",
+    "anchor": "SPHMC arXiv:2609.06906v1 Sections1-3 standing beta=1/alpha=kappa^-1/RGO/smoothing and Section4.1 S4.E1, Lemma4.1 S4.Thmtheorem1, S4.Ex4-6; actual unreflected posterior covariance and source unnormalized V_eta. Primary-first Smoothed_Hessian_lower_source_preread.md.",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem1",
+    "original_text": "Exact independently sealed bounded statement:\nSource C2 V with beta=1 and alpha=kappa^-1; kappa>=1; actual allpoint/allvector curvature kappa^-1*norma^2<=D2V[a,a]<=norma^2; source0<eta<=1 retained.\nActual source UNNORMALIZED exp(-V_eta)=exp(-V)*Gaussian_eta, normalized Gibbs mu=volume.tilted(-V), unreflected R_y=mu.tilted(-norm(x-y)^2/(2eta)). Finite Hilbert/Borel including0 is disclosed representation extension.\nNo partition, covariance, moment, derivative or PI certificate on this source theorem. Actual probability, posterior vectorL2, C2, U=V_eta+logZV, both true Hessian bounds and global Lipschitz are produced internally. No joint measurable posterior kernel selector, higher derivative, numerical kernel, cost or main claim.\nFor the actual source Gaussian-smoothed unnormalized potential and true RGO posterior, produce probability and vectorL2, covariance upper norma^2/(kappa^-1+eta^-1), C2 regularity and (kappa+eta)^-1*norma^2<=D2V_eta(y)[a,a]<=(1+eta)^-1*norma^2, and true1-Lipschitz gradient. This is the analytic Lemma4.1, not an algorithm/main theorem.\nCanonical BOTH-curvature Gibbs linear covariance upper with genuine vectorL2, actual positive partition and probability normalization; not full anisotropic Brascamp-Lieb. Actual source beta=1 alpha=kappa^-1, 1<=kappa, 0<eta<=1; genuine posterior law R_y, internally produced probability/vectorL2/positive partitions/C2 and normalized-U versus unnormalized-V_eta constant shift. Derive true covariance upper and both Hessian bounds (kappa+eta)^-1 and (1+eta)^-1, then true 1-Lipschitz gradient. Finite real Hilbert/Borel including zero dimension is disclosed representation extension. No input covariance/PI/oracle/moment/normalizer certificate on source Anchor. No joint measurable posterior kernel selector, higher smoothing derivatives, algorithm/Wp/proxy-warmness/main/querycost/composition. PBPS reflected quarter law and source-score remain separate. TV never transfers unbounded expected cost.",
+    "text_sha256": "161d55c46dfc272ccbe91a3875736118dc3cda0cf60b6078c1e2d74dc37982cc"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds.smoothed_hessian_bounds",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/SmoothedHessianBounds.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]\n    {V : E → ℝ} {κ η : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E, κ⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧\n      fderiv ℝ (fderiv ℝ V) x a a ≤ ‖a‖^2)\n    (hη : 0 < η) (hη1 : η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧\n      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧\n        (∀ a, ProbabilityTheory.covarianceBilin (R y) a a ≤ ‖a‖^2/(κ⁻¹+η⁻¹)) ∧\n        ∀ a, (1/(κ+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧\n          fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2) ∧\n      LipschitzWith (1 : ℝ≥0) (gradient Vη)",
+    "statement_sha256": "2231be45294441c4f0be3b703665e36b5bfddb9d13a7f92dbb41fd89a4603df6",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "Measure.tilted mu f = mu.withDensity (fun x => ENNReal.ofReal(exp(f x)/(integral exp(f) dmu))); normalization is totalized if exponential integrability fails. IsProbabilityMeasure nu means nu(univ)=1.",
+      "ProbabilityTheory.covarianceBilin mu = ContinuousLinearMap.bilinearComp (covarianceBilinDual mu) (toDualMap R E).toContinuousLinearMap (toDualMap R E).toContinuousLinearMap. With genuine MemLp id2mu and finite probability it equals integral inner(a,x-meanX)*inner(b,x-meanX)dmu. Outside vectorL2 the covariance bilinear is zero, not a covariance estimate.",
+      "MemLp id2nu denotes genuine AE strong measurability and finite L2 norm of the position vector. ContDiff R2 denotes actual twice continuously differentiable function, fderiv is genuine Frechet derivative.",
+      "gradient f x = (InnerProductSpace.toDual R E).symm(fderiv R f x); true Riesz gradient in the given real Hilbert metric. LipschitzWith1 gradient is the actual global metric inequality.",
+      "The conclusion potentials/laws are literal let bodies in the signatures. Finite-dimensional real Hilbert/Borel carrier includes zero dimension, no Nontrivial premise. No nested project-owned estimate-certificate aliases occur in either signature."
+    ],
+    "compiler_evidence": "Focused3877/standard3; independent statement/source-topology accepted before proof search. Wholemath/blind/source/exact/integration/exposition pending."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Fresh primary v1 Section1/2/3.1/4.1 read before current candidate/reconstruction; independent original scoped contract cbc5a6a73e61ed04f89e4e23e47df56428a9810f45f06ca295b7cd53d9d9d0fd. Entire both production modules,113Test and13readersteps/APIs inspected; exact sealed signatures, primary semantics and both separate decoder reconstructions compared in all seven slots. Genuine variance/moments, literal law/normalization/U shift, exact Hessian constants and1Lipschitz verified by proof inspection, not inferred from green Lean or mathematical reviewer. Four truthful provenance metadata repairs plus decoder-only two audit bindings independently reconciled; all current raw/LF inputs frozen. No full anisotropicBL, higher regularity or sampler/main/cost/composition credit.",
+    "review_run_sha256": "de06492203272ac3eb7f774ab62f2ea345f7ec98cd5a381b073b0fd3d3115e6a",
+    "reviewer_packet_sha256": "780cf225882172bae840599f9f7614b5df392ceaa1aea4fa5c29679f62f9d9e2",
+    "run_artifact": "runs/20261006-companion-priority/smoothed-hessian-lower/source.1.review.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "fac7d80b9f140f4c8d465ffe5f12d2fb6ff7d15eb706414ed6036cfe7649496e",
+  "publication_context": {
+    "file": "21fb86ff7d3e3a2d31ccc202afc2489fae90f52c17b322a4ef4e21c80c4ad172",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper\nimport AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper\n\n/-! SPHMC arXiv:2609.06906v1 Lemma4.1, source beta=1 and alpha=kappa^-1.\nConstruct actual posterior covariance upper from proved original-gradient\nPoincare, keeping the unreflected quadratic law and its true vectorL2 moments.\nThe Gaussian Hessian identity applies to normalized U; the actual source\nunnormalized V_eta differs by the produced log partition constant. Reuse the\nactual reverse-Cramer-Rao upper half, then derive the true global 1-Lipschitz\ngradient. No moment/partition/covariance/PI certificate is supplied on this\nsource Anchor. Source eta cap is retained. Higher regularity, joint measurable\nkernel, algorithms/main/Wp/warmness/expected cost/composition remain open. -/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds\nopen Set MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped NNReal\nnoncomputable section\nset_option autoImplicit false\nset_option backward.isDefEq.respectTransparency false\n\ntheorem smoothed_hessian_bounds\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]\n    {V : E → ℝ} {κ η : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E, κ⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧\n      fderiv ℝ (fderiv ℝ V) x a a ≤ ‖a‖^2)\n    (hη : 0 < η) (hη1 : η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧\n      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧\n        (∀ a, ProbabilityTheory.covarianceBilin (R y) a a ≤ ‖a‖^2/(κ⁻¹+η⁻¹)) ∧\n        ∀ a, (1/(κ+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧\n          fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2) ∧\n      LipschitzWith (1 : ℝ≥0) (gradient Vη) := by\n  have hk : 0<κ := lt_of_lt_of_le zero_lt_one hκ\n  have ha : 0<κ⁻¹ := inv_pos.mpr hk\n  let α : ℝ≥0 := ⟨κ⁻¹,ha.le⟩\n  have hα : 0<α := ha\n  have hα1 : α≤1 := (inv_le_one₀ hk).2 hκ\n  have hHV : ∀ x a : E, (α:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧\n      fderiv ℝ (fderiv ℝ V) x a a ≤ ((1:ℝ≥0):ℝ)*‖a‖^2 := by\n    intro x a\n    change κ⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧\n      fderiv ℝ (fderiv ℝ V) x a a ≤ 1*‖a‖^2\n    simpa only [one_mul] using hH x a\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n  let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n  let Vη := fun y => -Real.log (A y)\n  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n  let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)\n  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)\n  obtain ⟨_hZ,hμ,_hlaw,_hI,_hInt,_hTilt,_hA,hC2,hshift⟩ :=\n    SmoothedGibbsPotential.smoothed_gibbs_potential ha hV (fun x a => (hH x a).1) hη\n  have : IsProbabilityMeasure μ := hμ\n  have hC : 0<C := by dsimp only [C]; positivity\n  obtain ⟨hRm,_hD,hDD⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC\n  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n    ha (hV.differentiable (by norm_num))\n    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x a => (hH x a).1))\n  have hcov (y : E) : ∀ a : E, covarianceBilin (R y) a a ≤ ‖a‖^2/(κ⁻¹+η⁻¹) := by\n    let W := fun x => V x+η⁻¹/2*‖x-y‖^2\n    have hW : ContDiff ℝ 2 W := hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))\n    have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)\n    have hVdd : Differentiable ℝ (fderiv ℝ V) := (hV.fderiv_right (m:=1) (by norm_num)).differentiable_one\n    have hq (x : E) : HasFDerivAt (fun z => η⁻¹/2*‖z-y‖^2)\n        (η⁻¹ • innerSL ℝ (x-y)) x := by\n      convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul (η⁻¹/2)\n        using 1 <;> first | rfl | (ext a; simp;ring)\n    have hWfd (x : E) : fderiv ℝ W x = fderiv ℝ V x+η⁻¹ • innerSL ℝ (x-y) :=\n      ((hVd x).hasFDerivAt.add (hq x)).fderiv\n    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=\n      {toFun := fun a => innerSL ℝ a\n       map_add' := by intros;ext;simp\n       map_smul' := by intros;ext;simp\n       cont := (innerSL ℝ (E:=E)).continuous}\n    have hWdd (x : E) : HasFDerivAt (fderiv ℝ W)\n        (fderiv ℝ (fderiv ℝ V) x+η⁻¹ • J) x := by\n      rw [show fderiv ℝ W=(fun z => fderiv ℝ V z+η⁻¹ • innerSL ℝ (z-y)) from funext hWfd]\n      convert (hVdd x).hasFDerivAt.add ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const y)).const_smul η⁻¹) using 1 <;> rfl\n    have hb (x a : E) : (κ⁻¹+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a ∧\n        fderiv ℝ (fderiv ℝ W) x a a ≤ (1+η⁻¹)*‖a‖^2 := by\n      rw [(hWdd x).fderiv]\n      change (κ⁻¹+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ∧\n        fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ≤ (1+η⁻¹)*‖a‖^2\n      rw [real_inner_self_eq_norm_sq]\n      constructor <;> nlinarith [(hH x a).1,(hH x a).2]\n    have hm : 0<κ⁻¹+η⁻¹ := add_pos ha (inv_pos.mpr hη)\n    have hmM : κ⁻¹+η⁻¹≤1+η⁻¹ := by\n      simpa only [add_comm] using (add_le_add_right ((inv_le_one₀ hk).2 hκ) η⁻¹)\n    have hiW := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn\n      hm (hW.differentiable (by norm_num))\n      (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hW (fun x a => (hb x a).1))\n    have hRW : R y=(volume : Measure E).tilted (fun x => -W x) := by\n      dsimp only [R,μ]\n      rw [tilted_tilted hi]\n      congr 1\n      funext x\n      simp only [Pi.add_apply,W]\n      field_simp [hη.ne']\n      ring\n    have hX : MemLp id 2 ((volume : Measure E).tilted (fun x => -W x)) := hRW ▸ (hRm y).2\n    rw [hRW]\n    exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper\n      W hW hiW (integral_exp_pos hiW) (κ⁻¹+η⁻¹) (1+η⁻¹) hm hmM\n      (fun x a => (hb x a).1) (fun x a => (hb x a).2) hX\n  have he : U=(fun y => Vη y+Real.log ZV) := funext hshift\n  have hd : fderiv ℝ U=fderiv ℝ Vη := by\n    rw [he]\n    funext y\n    exact fderiv_add_const _\n  change ∀ y a b, fderiv ℝ (fderiv ℝ U) y a b = _ at hDD\n  rw [hd] at hDD\n  have hlower (y a : E) : (1/(κ+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a := by\n    rw [hDD y a a,real_inner_self_eq_norm_sq]\n    have hm : 0<κ⁻¹+η⁻¹ := add_pos ha (inv_pos.mpr hη)\n    have hke : 0<κ+η := add_pos hk hη\n    calc\n      (1/(κ+η))*‖a‖^2 = ‖a‖^2/η-(‖a‖^2/(κ⁻¹+η⁻¹))/η^2 := by\n        field_simp [hk.ne',hη.ne',hm.ne',hke.ne']\n        ring\n      _ ≤ ‖a‖^2/η-covarianceBilin (R y) a a/η^2 :=\n        sub_le_sub_left (div_le_div_of_nonneg_right (hcov y a) (sq_nonneg η)) _\n  have hupper : ∀ y a : E, fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2 := by\n    have hu := (SmoothedHessianUpper.smoothed_hessian_upper hα hα1 hV hHV hη).2\n    simpa only [NNReal.coe_one,one_mul] using hu\n  have hHVη : ∀ y a : E, ((0:ℝ≥0):ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧\n      fderiv ℝ (fderiv ℝ Vη) y a a ≤ ((1:ℝ≥0):ℝ)*‖a‖^2 := by\n    intro y a\n    have hp : 0≤(1/(κ+η))*‖a‖^2 := by positivity\n    have hu : 1/(1+η)≤1 := by\n      apply (div_le_iff₀ (by positivity : 0<1+η)).2\n      linarith\n    simpa only [NNReal.coe_zero,zero_mul,NNReal.coe_one,one_mul] using\n      And.intro (hp.trans (hlower y a)) ((hupper y a).trans (mul_le_mul_of_nonneg_right hu (sq_nonneg ‖a‖)))\n  have hLip := (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n    (m:=0) (L:=1) (r:=0) hC2 hHVη (0:E)).2\n  simp only [NNReal.coe_zero,zero_div,zero_mul,add_zero] at hLip\n  exact ⟨hμ,hC2,fun y => ⟨(hRm y).1,(hRm y).2,hcov y,fun a => ⟨hlower y a,hupper y a⟩⟩,hLip⟩\n\nend\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem1",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "SPHMC arXiv:2609.06906v1 Sections1-3 standing beta=1/alpha=kappa^-1/RGO/smoothing and Section4.1 S4.E1, Lemma4.1 S4.Thmtheorem1, S4.Ex4-6; actual unreflected posterior covariance and source unnormalized V_eta. Primary-first Smoothed_Hessian_lower_source_preread.md.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; actual analytic Lemma4.1, source beta1/kappa/eta cap."
+    },
+    "statement": "For the actual source Gaussian-smoothed unnormalized potential and true RGO posterior, produce probability and vectorL2, covariance upper norma^2/(kappa^-1+eta^-1), C2 regularity and (kappa+eta)^-1*norma^2<=D2V_eta(y)[a,a]<=(1+eta)^-1*norma^2, and true1-Lipschitz gradient. This is the analytic Lemma4.1, not an algorithm/main theorem.",
+    "formulae": [
+      {
+        "label": "Actual SPHMC smoothed Hessian bounds",
+        "tex": "R_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad (\\kappa+\\eta)^{-1}I\\preceq D^2V_\\eta\\preceq(1+\\eta)^{-1}I,\\quad \\operatorname{Lip}(\\nabla V_\\eta)\\le1."
+      }
+    ],
+    "assumptions": [
+      "Source C2 V with beta=1 and alpha=kappa^-1; kappa>=1; actual allpoint/allvector curvature kappa^-1*norma^2<=D2V[a,a]<=norma^2; source0<eta<=1 retained.",
+      "Actual source UNNORMALIZED exp(-V_eta)=exp(-V)*Gaussian_eta, normalized Gibbs mu=volume.tilted(-V), unreflected R_y=mu.tilted(-norm(x-y)^2/(2eta)). Finite Hilbert/Borel including0 is disclosed representation extension.",
+      "No partition, covariance, moment, derivative or PI certificate on this source theorem. Actual probability, posterior vectorL2, C2, U=V_eta+logZV, both true Hessian bounds and global Lipschitz are produced internally. No joint measurable posterior kernel selector, higher derivative, numerical kernel, cost or main claim."
+    ],
+    "obligations": [
+      {
+        "id": "actual-hessian",
+        "label": "Actual Lemma4.1 analytic bounds"
+      },
+      {
+        "id": "full-bl",
+        "label": "Full anisotropic BL remaining"
+      },
+      {
+        "id": "full-papers",
+        "label": "Both main results and actual-input expectedcost composition remaining"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds.smoothed_hessian_bounds",
+      "title": "Actual SPHMC smoothed Hessian bounds",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.Thmtheorem1",
+          "label": "SPHMC actual Lemma4.1 and explicit covariance prerequisite",
+          "scope": "Canonical BOTH-curvature Gibbs linear covariance upper with genuine vectorL2, actual positive partition and probability normalization; not full anisotropic Brascamp-Lieb. Actual source beta=1 alpha=kappa^-1, 1<=kappa, 0<eta<=1; genuine posterior law R_y, internally produced probability/vectorL2/positive partitions/C2 and normalized-U versus unnormalized-V_eta constant shift. Derive true covariance upper and both Hessian bounds (kappa+eta)^-1 and (1+eta)^-1, then true 1-Lipschitz gradient. Finite real Hilbert/Borel including zero dimension is disclosed representation extension. No input covariance/PI/oracle/moment/normalizer certificate on source Anchor. No joint measurable posterior kernel selector, higher smoothing derivatives, algorithm/Wp/proxy-warmness/main/querycost/composition. PBPS reflected quarter law and source-score remain separate. TV never transfers unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedHessianBounds"
+      ],
+      "assumptions": [
+        "Source C2 V with beta=1 and alpha=kappa^-1; kappa>=1; actual allpoint/allvector curvature kappa^-1*norma^2<=D2V[a,a]<=norma^2; source0<eta<=1 retained.",
+        "Actual source UNNORMALIZED exp(-V_eta)=exp(-V)*Gaussian_eta, normalized Gibbs mu=volume.tilted(-V), unreflected R_y=mu.tilted(-norm(x-y)^2/(2eta)). Finite Hilbert/Borel including0 is disclosed representation extension.",
+        "No partition, covariance, moment, derivative or PI certificate on this source theorem. Actual probability, posterior vectorL2, C2, U=V_eta+logZV, both true Hessian bounds and global Lipschitz are produced internally. No joint measurable posterior kernel selector, higher derivative, numerical kernel, cost or main claim."
+      ],
+      "statement": "For the actual source Gaussian-smoothed unnormalized potential and true RGO posterior, produce probability and vectorL2, covariance upper norma^2/(kappa^-1+eta^-1), C2 regularity and (kappa+eta)^-1*norma^2<=D2V_eta(y)[a,a]<=(1+eta)^-1*norma^2, and true1-Lipschitz gradient. This is the analytic Lemma4.1, not an algorithm/main theorem.",
+      "formula": "R_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad (\\kappa+\\eta)^{-1}I\\preceq D^2V_\\eta\\preceq(1+\\eta)^{-1}I,\\quad \\operatorname{Lip}(\\nabla V_\\eta)\\le1.",
+      "steps": [
+        {
+          "title": "Construct the actual source smoothing",
+          "text": "Positive source curvature gives the true partition and probability. The accepted convolution producer gives C2 V_eta and the literal normalized-U constant shift, with no input normalizer.",
+          "formula": "e^{-V_\\eta}=e^{-V}*\\gamma_\\eta,\\quad U=V_\\eta+\\log Z_V.",
+          "lean": "SmoothedGibbsPotential.smoothed_gibbs_potential"
+        },
+        {
+          "title": "Produce true posterior moments and derivative identity",
+          "text": "The Gaussian convolution producer gives R_y probability and vectorL2 for every actualy, and true Hessian of U. The produced constant shift identifies both Hessians.",
+          "formula": "D^2V_\\eta(y)[a,a]=\\|a\\|^2/\\eta-\\operatorname{Cov}_{R_y}(a,a)/\\eta^2.",
+          "lean": "GaussianConvolutionRegularity.gaussian_convolution_derivatives; fderiv_add_const"
+        },
+        {
+          "title": "Keep the unreflected quadratic law",
+          "text": "Set W_y=V+norm(x-y)^2/(2eta). Derive its C2 Hessian shift and both positive curvature bounds. True strong convexity gives its exponential integrability/positive partition; tilted_tilted proves literal R_y equality.",
+          "formula": "(\\kappa^{-1}+\\eta^{-1})I\\preceq D^2W_y\\preceq(1+\\eta^{-1})I,\\quad R_y=Z_y^{-1}e^{-W_y}dx.",
+          "lean": "HasFDerivAt.norm_sq; tilted_tilted; StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn"
+        },
+        {
+          "title": "Apply the canonical covariance producer",
+          "text": "Transport the internally produced posterior vectorL2 through the actual law equality, then apply the new Poincare-derived covariance theorem. This suffices for the source isotropic bound; full anisotropic BL remains open.",
+          "formula": "\\operatorname{Cov}_{R_y}(a,a)\\le\\|a\\|^2/(\\kappa^{-1}+\\eta^{-1}).",
+          "lean": "GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper"
+        },
+        {
+          "title": "Derive the exact lower Hessian constant",
+          "text": "Subtract the covariance upper bound in the true identity. kappa/eta and both sum denominators are positive, so algebra preserves inequality and yields the exact source lower constant.",
+          "formula": "\\frac{\\|a\\|^2}{\\eta}-\\frac{\\|a\\|^2}{\\eta^2(\\kappa^{-1}+\\eta^{-1})}=\\frac{\\|a\\|^2}{\\kappa+\\eta}.",
+          "lean": "div_le_div_of_nonneg_right; sub_le_sub_left; field_simp"
+        },
+        {
+          "title": "Reuse the actual reverse-Cramer-Rao half",
+          "text": "The independently checked actual posterior covariance lower and source smoothed Hessian upper theorem is specialized to beta1. No duplicated abstract Hessian field or assumed upper bound.",
+          "formula": "D^2V_\\eta(y)[a,a]\\le\\|a\\|^2/(1+\\eta).",
+          "lean": "SmoothedHessianUpper.smoothed_hessian_upper"
+        },
+        {
+          "title": "Prove true global gradient Lipschitz",
+          "text": "The produced C2 potential has nonnegative Hessian and upper quadratic bound bynorma^2. Existing Riesz/selfadjoint Rayleigh norm and global mean-value producer yields1-Lipschitz gradient with zero extra regularization. The source eta cap remains an explicit premise.",
+          "formula": "0\\preceq D^2V_\\eta\\preceq I\\Longrightarrow\\operatorname{Lip}(\\nabla V_\\eta)\\le1.",
+          "lean": "QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic"
+        }
+      ],
+      "lean_statement": "For the actual source Gaussian-smoothed unnormalized potential and true RGO posterior, produce probability and vectorL2, covariance upper norma^2/(kappa^-1+eta^-1), C2 regularity and (kappa+eta)^-1*norma^2<=D2V_eta(y)[a,a]<=(1+eta)^-1*norma^2, and true1-Lipschitz gradient. This is the analytic Lemma4.1, not an algorithm/main theorem.",
+      "lean_proof": "Construct the actual source smoothing; Produce true posterior moments and derivative identity; Keep the unreflected quadratic law; Apply the canonical covariance producer; Derive the exact lower Hessian constant; Reuse the actual reverse-Cramer-Rao half; Prove true global gradient Lipschitz",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential.smoothed_gibbs_potential",
+        "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper.smoothed_hessian_upper",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower"
+      ],
+      "mathlib_dependencies": [
+        "tilted_tilted",
+        "integral_exp_pos",
+        "HasFDerivAt.norm_sq",
+        "fderiv_add_const",
+        "div_le_div_of_nonneg_right",
+        "sub_le_sub_left",
+        "field_simp"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds.smoothed_hessian_bounds",
+      "role": "proof-edge",
+      "supports": [
+        "actual-hessian"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Isotropic covariance estimate invoked through Brascamp-Lieb; source standing curvature beta1/alpha=kappa^-1.",
+        "lean": "Source C2 V with beta=1 and alpha=kappa^-1; kappa>=1; actual allpoint/allvector curvature kappa^-1*norma^2<=D2V[a,a]<=norma^2; source0<eta<=1 retained.\nActual source UNNORMALIZED exp(-V_eta)=exp(-V)*Gaussian_eta, normalized Gibbs mu=volume.tilted(-V), unreflected R_y=mu.tilted(-norm(x-y)^2/(2eta)). Finite Hilbert/Borel including0 is disclosed representation extension.\nNo partition, covariance, moment, derivative or PI certificate on this source theorem. Actual probability, posterior vectorL2, C2, U=V_eta+logZV, both true Hessian bounds and global Lipschitz are produced internally. No joint measurable posterior kernel selector, higher derivative, numerical kernel, cost or main claim."
+      },
+      {
+        "source": "Printed covariance upper invocation and reverse-Cramer-Rao lower yield both Hessian bounds.",
+        "lean": "For the actual source Gaussian-smoothed unnormalized potential and true RGO posterior, produce probability and vectorL2, covariance upper norma^2/(kappa^-1+eta^-1), C2 regularity and (kappa+eta)^-1*norma^2<=D2V_eta(y)[a,a]<=(1+eta)^-1*norma^2, and true1-Lipschitz gradient. This is the analytic Lemma4.1, not an algorithm/main theorem."
+      },
+      {
+        "source": "Higher regularity, algorithms and both main/cost composition.",
+        "lean": "Canonical BOTH-curvature Gibbs linear covariance upper with genuine vectorL2, actual positive partition and probability normalization; not full anisotropic Brascamp-Lieb. Actual source beta=1 alpha=kappa^-1, 1<=kappa, 0<eta<=1; genuine posterior law R_y, internally produced probability/vectorL2/positive partitions/C2 and normalized-U versus unnormalized-V_eta constant shift. Derive true covariance upper and both Hessian bounds (kappa+eta)^-1 and (1+eta)^-1, then true 1-Lipschitz gradient. Finite real Hilbert/Borel including zero dimension is disclosed representation extension. No input covariance/PI/oracle/moment/normalizer certificate on source Anchor. No joint measurable posterior kernel selector, higher smoothing derivatives, algorithm/Wp/proxy-warmness/main/querycost/composition. PBPS reflected quarter law and source-score remain separate. TV never transfers unbounded expected cost."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be a finite-dimensional real inner-product space with NormedAddCommGroup,InnerProductSpace R,FiniteDimensional R,MeasurableSpace,BorelSpace and CompleteSpace instances,with canonical full-space volume;dimension zero is allowed and no Nontrivial premise is present. Let V:E->R and kappa,eta:R. Assume kappa>=1,V C2,and for EVERY x,a:E BOTH actual bounds\n  kappa^(-1)*||a||^2 <= (fderiv R (fderiv R V) x a) a,\n  (fderiv R (fderiv R V) x a) a <= ||a||^2.\nAssume 0<eta<=1. Define the following literal measures,normalizing prefactor and potential:\n  mu=volume.tilted(x->-V(x)),\n  d=Module.finrank R E,\n  C=((sqrt(2*pi*eta))^(-1))^d,\n  A(y)=C*integral exp(-V(x)-||y-x||^2/(2*eta)) dx,\n  V_eta(y)=-Real.log(A(y)),\n  R(y)=mu.tilted(x->-||x-y||^2/(2*eta)).\nA uses actual Lebesgue volume and NO division by the original Gibbs partition;V_eta is precisely the negative literal real log of that A,not a replaced normalized-mu convolution potential.R is the literal E->Measure E family of tilts against mu,not an existential or asserted Markov/disintegration kernel.\nThen ALL the following conjuncts hold:\n(1) IsProbabilityMeasure mu.\n(2) V_eta is C2.\n(3) For EVERY y:E,R(y) is an actual probability measure and MemLp id 2 (R(y)) holds:the true position vector is AE strongly measurable with finite L2 norm.\n(4) For EVERY y:E and EVERY a:E,\n  ProbabilityTheory.covarianceBilin(R(y))(a,a) <= ||a||^2/(kappa^(-1)+eta^(-1)).\nWith the genuine probability and moment outputs this is the actual integral <a,x-mean_{R(y)}>^2 dR(y),not the covariance API's outside-vector-L2 zero fallback.\n(5) For EVERY y:E and EVERY a:E,BOTH actual Hessian bounds of the literal V_eta hold:\n  (1/(kappa+eta))*||a||^2 <= (fderiv R (fderiv R V_eta) y a) a,\n  (fderiv R (fderiv R V_eta) y a) a <= (1/(1+eta))*||a||^2.\n(6) LipschitzWith (1:NNReal) (gradient V_eta):the genuine Riesz gradient globally satisfies\n  ||gradient(V_eta)(y)-gradient(V_eta)(z)|| <= ||y-z|| for all y,z:E.\nThe gradient is exactly (InnerProductSpace.toDual R E).symm(fderiv R V_eta),with actual derivatives ensured by C2.The declared global Lipschitz constant is exactly1;it is not rewritten as a stronger eta-dependent constant.\nMeasure.tilted uses withDensity ENNReal.ofReal(exp(h)/integral exp(h)),a totalized construction outside normalizable cases;denominator0 gives zero density.The explicit probability outputs are actual laws rather than reliance on that fallback.The log in the let is literal totalized Real.log;there is no separately displayed positive-A conjunct or partial-log-domain premise added to the signature.C2/Hessian statements concern this exact function.For d=0 the prefactor C is1,and all measure/moment/all-vector/global-metric conclusions remain in scope.No input exponential-integrability or position-moment certificate is added:these law/moment facts are outputs here.No source kernel identity,conditional disintegration,y-measurability assertion for R,score differentiation or entire-paper/main/composition claim is concluded.",
+    "text_sha256": "b54635a7a5fc7d464da18de4c80c1a50900b5e9d69d646297186e3dd01426934",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_run_sha256": "081cc8863e30d5ebce91379e26c9e07109fb78abf847c94aebc57fa17ff51e8c",
+    "decoder_packet_sha256": "e9eb8accac90fed1dfb1fdcf366e0f7676ad347dd38e610b90921fcc3340b78c",
+    "source_text_visible": false,
+    "lean_statement_sha256": "2231be45294441c4f0be3b703665e36b5bfddb9d13a7f92dbb41fd89a4603df6",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261006-companion-priority/smoothed-hessian-lower/decoder.1.result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual source unnormalized Gaussian convolution A and Veta=-logA; true unreflected RGO posterior; source gradient/Hessian.",
+      "reconstructed": "Literal A includes Gaussian prefactor but no division byZV; R(y)=mu.tilted(-norm(x-y)^2/(2eta)); actual Riesz gradient.",
+      "relation": "equivalent",
+      "evidence": "Source Section3.1 unnormalized convention and Section2 RGO matched. SmoothedGibbsPotential supplies positiveZV/A and U=Veta+logZV; fderiv_add_const transfers the actual Gaussian Hessian identity. No reflected quarter law or arbitrary conditional version."
+    },
+    "domains": {
+      "original": "Source finite Euclidean full-space C2 potential; disclosed finite real Hilbert/Borel/CompleteSpace extension includes0, all y,a.",
+      "reconstructed": "Same full finite real Hilbert including0, ordinary volume forA and actual posterior measure forL2/covariance.",
+      "relation": "explicit-elaboration",
+      "evidence": "All-vector Frechet Hessian plus true C2 symmetry represent source matrix order. Source0<eta<=1 retained. Test verifies zero-dimensional genuine probability/L2, not merely a vacuous supplied Hessian."
+    },
+    "quantifiers": {
+      "original": "Standing source kappa>=1/C2/global all-vector curvature; every positiveeta<=1; all y and all directions, global1Lipschitz.",
+      "reconstructed": "Same order and universal y/a, probability/moments/C2/covariance and Hessian conjunctions; actual global gradient metric inequality.",
+      "relation": "equivalent",
+      "evidence": "Exact current signature equals preproof seal a6f3c78a2c3916a564039517337f5f88f9c6e70dbb805fda7ec3f7be267957a1. No reference point, joint posterior selector, disintegration, or future sampler state in the theorem."
+    },
+    "assumptions": {
+      "original": "Only source V C2, beta1/alpha=kappainv global bounds, kappa>=1 and0<eta<=1; representation structures.",
+      "reconstructed": "Same; no partition/position moment/covariance/Poincare/regularity certificate premise.",
+      "relation": "same",
+      "evidence": "Positivekappa andalpha, strong convexity and genuine Gibbs integrability/positive partition derive internally. Gaussian producer gives Rprob+MemLp id2. Actual W_y C2 and shifted BOTH m/M derive before invoking canonical B. UpperM is available from source beta1, not a new premise."
+    },
+    "conclusion": {
+      "original": "Complete analytic Lemma4.1: exact lower1/(kappa+eta), upper1/(1+eta), gradient1Lipschitz; exposed derived law/L2/C2/scalar covariance facts.",
+      "reconstructed": "All actual conjunctions present, literal Veta C2 and both Hessian bounds plus exact1Lipschitz.",
+      "relation": "equivalent",
+      "evidence": "Local hcov uses real moments and literal tilted_tilted law. hDD transfers fromU toVeta; lower exact rational algebra, upper actual reverse-CR parent specializedbeta1; Lipschitz produced from C2/Riesz/selfadjoint Rayleigh/global mean value, not assumed."
+    },
+    "scopes": {
+      "original": "Analytic Lemma4.1 alone using an authored sufficient scalar OR route; higher derivatives/BL/algorithms/main/composition/work outside.",
+      "reconstructed": "Same analytic result without Markov or y-measurability or normalized conditional-score/marginal claims.",
+      "relation": "equivalent",
+      "evidence": "Source author BL+reverseCR proof topology retained as source-only graph. C1-Poincare scalar covariance route is an explicit authored alternative, not full anisotropic BL. Proof-produced positivity/normalization/moments do not add source assumptions."
+    },
+    "constant_dependencies": {
+      "original": "m=kappainv+etainv,M=1+etainv, exact Hessian constants1/(kappa+eta),1/(1+eta) and globalLip1; no reflected1/4.",
+      "reconstructed": "Same constants; source eta1 endpoint and0D included, eta0 excluded.",
+      "relation": "same",
+      "evidence": "Positive denominators establish eta^-1-eta^-2/m=1/(kappa+eta), eta^-1-eta^-2/M=1/(1+eta). Nonquadratic Test kappa2 eta1/2 gives2/5 and2/3; eta1 gives1/3 and1/2. No dimension-dependent trace shortcut."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration"
+}

@@ -1,0 +1,177 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcMoment
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+
+/-! Actual smooth gradient-arc clipping excess, from arXiv:2602.01338v1 D.1
+Claim 2 (smooth s=1), consumed by SPHMC Appendix A.4(2).
+The same actual estimator and independent input law feed the moment bound.
+All-real time is a disclosed extension. Reference-point construction, target
+mean identification, normalized accuracy and query costs remain separate. -/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcClipping
+
+open MeasureTheory ProbabilityTheory
+noncomputable section
+
+private theorem clipping_exp_domination (w B ell lam : ℝ)
+    (hell : 0 ≤ ell) (hlam : 2*ell ≤ lam) :
+    0 ≤ Real.exp (2*ell*max (|w|-B) 0)-1 ∧
+    Real.exp (2*ell*max (|w|-B) 0)-1 ≤
+      Real.exp (-lam*B)*Real.exp (lam*|w|) := by
+  have ht : 0 ≤ max (|w|-B) 0 := le_max_right _ _
+  constructor
+  · exact sub_nonneg.mpr (Real.one_le_exp (mul_nonneg (by positivity) ht))
+  · by_cases hw : |w| ≤ B
+    · rw [max_eq_right (sub_nonpos.mpr hw), mul_zero, Real.exp_zero, sub_self]
+      positivity
+    · have hp : 0 ≤ |w|-B := sub_nonneg.mpr (le_of_not_ge hw)
+      rw [max_eq_left hp]
+      calc
+        Real.exp (2*ell*(|w|-B))-1 ≤ Real.exp (2*ell*(|w|-B)) := by linarith
+        _ ≤ Real.exp (lam*(|w|-B)) :=
+          Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_right hlam hp)
+        _ = Real.exp (-lam*B)*Real.exp (lam*|w|) := by
+          rw [← Real.exp_add]
+          congr 1
+          ring
+
+
+private theorem clipping_integral_domination {X : Type*} [MeasurableSpace X]
+    (mu : Measure X) (W : X → ℝ) (hW : Measurable W)
+    (B ell lam : ℝ) (hell : 0 ≤ ell) (hlam : 2*ell ≤ lam)
+    (hi : Integrable (fun x => Real.exp (lam*|W x|)) mu) :
+    Integrable (fun x => Real.exp (2*ell*max (|W x|-B) 0)-1) mu ∧
+    (∫ x, Real.exp (2*ell*max (|W x|-B) 0)-1 ∂mu) ≤
+      Real.exp (-lam*B)*(∫ x, Real.exp (lam*|W x|) ∂mu) := by
+  have hm : Measurable (fun x => Real.exp (2*ell*max (|W x|-B) 0)-1) := by fun_prop
+  have hd := hi.const_mul (Real.exp (-lam*B))
+  have hI : Integrable (fun x => Real.exp (2*ell*max (|W x|-B) 0)-1) mu := by
+    apply hd.mono' hm.aestronglyMeasurable
+    filter_upwards [] with x
+    rw [Real.norm_eq_abs, abs_of_nonneg (clipping_exp_domination (W x) B ell lam hell hlam).1]
+    exact (clipping_exp_domination (W x) B ell lam hell hlam).2
+  refine ⟨hI, ?_⟩
+  rw [← integral_const_mul]
+  exact integral_mono hI hd (fun x => (clipping_exp_domination (W x) B ell lam hell hlam).2)
+
+
+private theorem clipping_parameter_lower (eta beta B ell d : ℝ)
+    (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B) (hell : 0 ≤ ell) (hd : 0 < d)
+    (hstep : 64*beta^2*(ell*d/B+ell^2) ≤ 1/eta^2) :
+    2*ell ≤ min (1/(4*beta*eta)) (B/(20*beta^2*d*eta^2)) := by
+  have ht := (le_div_iff₀ (sq_pos_of_pos heta)).mp hstep
+  have hterm : 0 ≤ 64*beta^2*(ell*d/B)*eta^2 := by positivity
+  have hs : (8*beta*eta*ell)^2 ≤ 1 := by nlinarith [ht]
+  have ha : 8*beta*eta*ell ≤ 1 := by nlinarith [sq_nonneg (8*beta*eta*ell-1)]
+  have hfirst : 2*ell ≤ 1/(4*beta*eta) := by
+    apply (le_div_iff₀ (by positivity : 0 < 4*beta*eta)).mpr
+    nlinarith [ha]
+  have htB := mul_le_mul_of_nonneg_right ht hB.le
+  have heq : (64*beta^2*(ell*d/B+ell^2)*eta^2)*B =
+      64*beta^2*ell*d*eta^2+64*beta^2*ell^2*eta^2*B := by
+    field_simp
+  rw [heq] at htB
+  have hsecond : 2*ell ≤ B/(20*beta^2*d*eta^2) := by
+    apply (le_div_iff₀ (by positivity : 0 < 20*beta^2*d*eta^2)).mpr
+    have hp : 0 ≤ beta^2*ell^2*eta^2*B := by positivity
+    have hp' : 0 ≤ beta^2*ell*d*eta^2 := by positivity
+    nlinarith [htB]
+  exact le_min hfirst hsecond
+
+
+private theorem clipping_parameter_bounds (eta beta B ell d : ℝ)
+    (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B) (hell : 0 ≤ ell) (hd : 0 < d)
+    (hstep : 64*beta^2*(ell*d/B+ell^2) ≤ 1/eta^2) :
+    let lam := min (1/(4*beta*eta)) (B/(20*beta^2*d*eta^2))
+    0 ≤ lam ∧ 2*ell ≤ lam ∧ 12*beta^2*eta^2*lam^2 ≤ 1 ∧
+    10*d*eta^2*lam^2*beta^2-B*lam ≤
+      -min (B^2/(40*beta^2*d*eta^2)) (B/(8*beta*eta)) := by
+  let lam := min (1/(4*beta*eta)) (B/(20*beta^2*d*eta^2))
+  have hlower := clipping_parameter_lower eta beta B ell d heta hbeta hB hell hd hstep
+  have hl : 0 ≤ lam := (by positivity : (0 : ℝ) ≤ 2*ell).trans hlower
+  have hc1 : lam ≤ 1/(4*beta*eta) := min_le_left _ _
+  have hc2 : lam ≤ B/(20*beta^2*d*eta^2) := min_le_right _ _
+  have hp1 := (le_div_iff₀ (by positivity : 0 < 4*beta*eta)).mp hc1
+  have hp2 := (le_div_iff₀ (by positivity : 0 < 20*beta^2*d*eta^2)).mp hc2
+  have hs : (lam*(4*beta*eta))^2 ≤ 1^2 :=
+    (sq_le_sq₀ (by positivity) (by norm_num)).mpr hp1
+  have hr : 12*beta^2*eta^2*lam^2 ≤ 1 := by
+    have hn : 0 ≤ beta^2*eta^2*lam^2 := by positivity
+    nlinarith [hs]
+  have he : 10*d*eta^2*lam^2*beta^2-B*lam ≤ -B*lam/2 := by
+    have hh := mul_le_mul_of_nonneg_right hp2 hl
+    nlinarith [hh]
+  have hmin : B*lam/2 = min (B^2/(40*beta^2*d*eta^2)) (B/(8*beta*eta)) := by
+    change B*min (1/(4*beta*eta)) (B/(20*beta^2*d*eta^2))/2 = _
+    rw [mul_min_of_nonneg _ _ hB.le]
+    rw [← min_div_div_right (by norm_num : (0 : ℝ) ≤ 2)]
+    rw [min_comm]
+    congr 1 <;> field_simp <;> ring
+  refine ⟨hl, hlower, hr, ?_⟩
+  calc
+    _ ≤ -B*lam/2 := he
+    _ = _ := by rw [neg_mul, neg_div, hmin]
+
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private def clipArc (h : E) (r : ℝ) (p : E × E) : E :=
+  h + Real.sin (Real.pi/2*r) • (p.1-h) + Real.cos (Real.pi/2*r) • p.2
+
+private def clipVelocity (h : E) (r : ℝ) (p : E × E) : E :=
+  (Real.pi/2) • (Real.cos (Real.pi/2*r) • (p.1-h) - Real.sin (Real.pi/2*r) • p.2)
+
+/-- Measurability, integrability and the explicit two-scale exponential bound
+for the actual gradient estimator clipping excess under the source step range. -/
+theorem smooth_gradient_arc_clipping (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B ell : ℝ) (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B)
+    (hell : 2 ≤ ell) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (hlip : LipschitzWith ⟨beta,hbeta.le⟩ (gradient f)) (h xp : E) (r : ℝ)
+    (hcenter : ‖h-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hstep : 64*beta^2*(ell*(Module.finrank ℝ E : ℝ)/B+ell^2) ≤ 1/eta^2) :
+    let mu := ((stdGaussian E).map (fun z : E => h+Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => Real.sqrt eta • z))
+    let W := fun p : E × E => inner ℝ (clipVelocity h r p)
+      (gradient f xp-gradient f (clipArc h r p))
+    let F := fun p : E × E => Real.exp (2*ell*max (|W p|-B) 0)-1
+    Measurable W ∧ Measurable F ∧ Integrable F mu ∧
+    (∫ p, F p ∂mu) ≤ 2*Real.exp (-min
+      (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))) := by
+  let d := (Module.finrank ℝ E : ℝ)
+  let lam := min (1/(4*beta*eta)) (B/(20*beta^2*d*eta^2))
+  let mu := ((stdGaussian E).map (fun z : E => h+Real.sqrt eta • z)).prod
+      ((stdGaussian E).map (fun z : E => Real.sqrt eta • z))
+  let W := fun p : E × E => inner ℝ (clipVelocity h r p)
+      (gradient f xp-gradient f (clipArc h r p))
+  have hell0 : 0 ≤ ell := by linarith
+  obtain ⟨hl,hll,hrange,he⟩ := clipping_parameter_bounds eta beta B ell d heta hbeta hB hell0 hd hstep
+  change 0 ≤ lam at hl
+  change 2*ell ≤ lam at hll
+  change 12*beta^2*eta^2*lam^2 ≤ 1 at hrange
+  have hW : Measurable W := by
+    have hg := hlip.continuous.measurable
+    dsimp [W,clipVelocity,clipArc]
+    fun_prop
+  obtain ⟨_,_,hi,hv,_⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcMoment.smooth_gradient_arc_moment
+      f hf eta beta lam heta hbeta.le hl hlip h xp r hcenter hrange
+  change Integrable (fun p => Real.exp (lam*|W p|)) mu at hi
+  change (∫ p, Real.exp (lam*|W p|) ∂mu) ≤ 2*Real.exp (10*d*eta^2*lam^2*beta^2) at hv
+  obtain ⟨hI,hv'⟩ := clipping_integral_domination mu W hW B ell lam hell0 hll hi
+  refine ⟨hW, ?_, hI, hv'.trans ?_⟩
+  · change Measurable (fun p => Real.exp (2*ell*max (|W p|-B) 0)-1)
+    fun_prop
+  · calc
+      _ ≤ Real.exp (-lam*B)*(2*Real.exp (10*d*eta^2*lam^2*beta^2)) :=
+        mul_le_mul_of_nonneg_left hv (Real.exp_nonneg _)
+      _ = 2*Real.exp (10*d*eta^2*lam^2*beta^2-B*lam) := by
+        rw [← mul_assoc, mul_comm (Real.exp (-lam*B)) 2, mul_assoc, ← Real.exp_add]
+        congr 2
+        ring
+      _ ≤ _ := by
+        apply mul_le_mul_of_nonneg_left _ (by norm_num : (0 : ℝ) ≤ 2)
+        exact Real.exp_le_exp.mpr he
+
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcClipping

@@ -1,0 +1,306 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization
+import Mathlib.Topology.MetricSpace.Contracting
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
+import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.Tactic
+
+/-!
+# The actual proximal Gaussian gradient estimator
+
+Source: Chen, Chewi, Lu and Zhang, arXiv:2609.06906v1, equation (3.2)
+and both estimator evaluations of Algorithm 3.1. The normalized beta=1,
+C2 and genuine Hessian bounds match the source. Kappa>=1 remains a public
+hypothesis even though this proof does not need that inequality.
+
+A uniformly contracting iteration, started at zero, constructs the same
+proximal point for every measurable parameter. Its pointwise limit proves
+measurability. The actual regularized gradient vanishes at that point;
+strong convexity gives global quadratic growth and unique minimality.
+The actual gradient evaluated at the proximal point plus Gaussian noise
+is jointly measurable, and its exact Gaussian pushforward is a Markov kernel.
+
+The square deviations below are centered at gradient V(p), not at the
+estimator mean or the smoothed score. Gaussian square integrability and
+pointwise Lipschitz domination precede all integral comparisons and the
+transfer to the output kernel. Every moment assertion is fiberwise.
+
+Arbitrary measurable parameter spaces and zero-dimensional inner-product
+spaces are explicit extensions. The exact proximal oracle is constructed
+mathematically; no finite gradient-query implementation or evaluator trace
+is supplied. Global state-integrated moments, smoothed-score bias, Picard
+updates and accuracy, initialization and total costs remain separate.
+Neither complete sampling paper is claimed here.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator
+
+section
+open Filter Topology
+open scoped NNReal
+
+variable {E S : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E] [MeasurableSpace S]
+
+private theorem parameterized_contraction_point {g : E → E} (hg : LipschitzWith 1 g)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1/2) :
+    ∃ p : S → E, Measurable p ∧ ∀ s, p s + eta s • g (p s) = y s := by
+  let f : S → E → E := fun s x => y s - eta s • g x
+  have hc (s : S) : ContractingWith (1/2) (f s) := by
+    refine ⟨by norm_num, LipschitzWith.of_dist_le_mul fun x z => ?_⟩
+    have h := hg.dist_le_mul z x
+    simp only [NNReal.coe_one, one_mul, dist_eq_norm] at h
+    have hid : (y s - eta s • g x) - (y s - eta s • g z) =
+        eta s • (g z - g x) := by rw [smul_sub]; abel
+    rw [dist_eq_norm]
+    change ‖(y s - eta s • g x) - (y s - eta s • g z)‖ ≤ _
+    rw [hid, norm_smul, Real.norm_eq_abs, abs_of_pos (hpos s)]
+    have hmul := mul_le_mul_of_nonneg_left h (hpos s).le
+    rw [norm_sub_rev z x] at hmul
+    simp only [NNReal.coe_div, NNReal.coe_one, NNReal.coe_ofNat, dist_eq_norm]
+    nlinarith [norm_nonneg (x-z), hsmall s]
+  let p : S → E := fun s => (hc s).fixedPoint (f s)
+  have hit (n : ℕ) : Measurable (fun s => (f s)^[n] (0 : E)) := by
+    induction n with
+    | zero => simpa only [Function.iterate_zero, id_eq] using
+        (measurable_const : Measurable (fun _ : S => (0 : E)))
+    | succ n ih =>
+      simp only [Function.iterate_succ_apply']
+      exact hy.sub (heta.smul (hg.continuous.measurable.comp ih))
+  have hp : Measurable p := measurable_of_tendsto_metrizable hit
+    (tendsto_pi_nhds.mpr (fun s => (hc s).tendsto_iterate_fixedPoint 0))
+  refine ⟨p,hp,fun s => ?_⟩
+  have heq : y s - eta s • g (p s) = p s := (hc s).fixedPoint_isFixedPt
+  exact (sub_eq_iff_eq_add.mp heq).symm
+
+end
+
+section
+open InnerProductSpace
+open scoped RealInnerProductSpace NNReal
+
+private theorem actual_proximal_minimizer
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {m : ℝ≥0}
+    (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (m:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (1:ℝ≥0)*‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1/2) :
+    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s + eta s • gradient V (p s) = y s) ∧
+      ∀ s z, F s (p s) + ((m:ℝ)+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧
+        (F s z ≤ F s (p s) ↔ z=p s) := by
+  let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2
+  have hLip : LipschitzWith 1 (gradient V) := by
+    have hb := AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic (r := 0) hV hH (0:E)
+    simpa using hb.2
+  obtain ⟨p,hp,heq⟩ := parameterized_contraction_point hLip heta hy hpos hsmall
+  refine ⟨p,hp,heq,?_⟩
+  intro s z
+  have hd : Differentiable ℝ V := hV.differentiable (by norm_num)
+  have hq (x : E) : HasFDerivAt (fun w => (eta s)⁻¹/2*‖w-y s‖^2)
+      ((eta s)⁻¹ • innerSL ℝ (x-y s)) x := by
+    convert (((hasFDerivAt_id x).sub_const (y s)).norm_sq).const_mul ((eta s)⁻¹/2)
+      using 1 <;> first | rfl | (ext v; simp; ring)
+  have hFd (x : E) : DifferentiableAt ℝ (F s) x :=
+    (hd x).add (hq x).differentiableAt
+  have hg (x : E) : gradient (F s) x = gradient V x+(eta s)⁻¹ • (x-y s) := by
+    apply HasGradientAt.gradient
+    rw [hasGradientAt_iff_hasFDerivAt]
+    change HasFDerivAt (fun w => V w+(eta s)⁻¹/2*‖w-y s‖^2)
+      ((toDual ℝ E) (gradient V x+(eta s)⁻¹ • (x-y s))) x
+    convert! (hd x).hasGradientAt.hasFDerivAt.add (hq x) using 1
+    simp only [map_add,map_smul]
+    rfl
+  have hz : gradient (F s) (p s) = 0 := by
+    rw [hg]
+    have hs : p s-y s = -(eta s • gradient V (p s)) := by rw [← heq s]; abel
+    rw [hs,smul_neg,smul_smul,inv_mul_cancel₀ (ne_of_gt (hpos s)),one_smul,add_neg_cancel]
+  have hsc : StrongConvexOn Set.univ ((m:ℝ)+(eta s)⁻¹) (F s) := by
+    have hb := AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+        (r := Real.toNNReal ((eta s)⁻¹)) hV hH (y s)
+    simpa [F,Real.coe_toNNReal _ (inv_nonneg.mpr (hpos s).le)] using hb.1
+  have hbound := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn hsc
+      (fun x _ => (hFd x).hasGradientAt) (x := p s) (y := z) (Set.mem_univ _) (Set.mem_univ _)
+  rw [hz,inner_zero_left,add_zero] at hbound
+  refine ⟨hbound,⟨fun hle => ?_,fun he => by rw [he]⟩⟩
+  change F s z ≤ F s (p s) at hle
+  have ha : 0 < ((m:ℝ)+(eta s)⁻¹)/2 := div_pos (add_pos_of_nonneg_of_pos m.coe_nonneg (inv_pos.mpr (hpos s))) (by norm_num)
+  have hnonpos : ((m:ℝ)+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ 0 := by linarith
+  have hn : ‖z-p s‖^2 = 0 := le_antisymm (nonpos_of_mul_nonpos_right hnonpos ha) (sq_nonneg _)
+  exact sub_eq_zero.mp (norm_eq_zero.mp (sq_eq_zero_iff.mp hn))
+
+
+
+
+end
+
+section
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ENNReal RealInnerProductSpace
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem gaussian_square :
+    Integrable (fun x : E => ‖x‖^2) (stdGaussian E) ∧
+      (∫ x : E, ‖x‖^2 ∂stdGaussian E) = Module.finrank ℝ E := by
+  classical
+  have hi : Integrable (fun x : E => ‖x‖^2) (stdGaussian E) :=
+    (memLp_two_iff_integrable_sq_norm (by fun_prop)).1 IsGaussian.memLp_two_id
+  let b := stdOrthonormalBasis ℝ E
+  have hdir (i) : (∫ x : E, (inner ℝ (b i) x)^2 ∂stdGaussian E) = 1 := by
+    have hh := covarianceBilin_apply (μ := stdGaussian E) IsGaussian.memLp_two_id (b i) (b i)
+    rw [covarianceBilin_stdGaussian] at hh
+    change inner ℝ (b i) (b i) = _ at hh
+    simpa [integral_id_stdGaussian, real_inner_self_eq_norm_sq,
+      b.orthonormal.norm_eq_one, pow_two] using hh.symm
+  have hL1 (i) : Integrable (fun x : E => (inner ℝ (b i) x)^2) (stdGaussian E) := by
+    apply hi.mono' (by fun_prop)
+    filter_upwards with x
+    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+    have hb := norm_inner_le_norm (𝕜 := ℝ) (b i) x
+    rw [b.orthonormal.norm_eq_one, one_mul] at hb
+    have hsq := sq_le_sq₀ (norm_nonneg (inner ℝ (b i) x)) (norm_nonneg x) |>.2 hb
+    simpa [Real.norm_eq_abs, sq_abs] using hsq
+  refine ⟨hi, ?_⟩
+  calc
+    (∫ x : E, ‖x‖^2 ∂stdGaussian E) =
+        ∫ x : E, ∑ i, (inner ℝ (b i) x)^2 ∂stdGaussian E := by
+      apply integral_congr_ae
+      filter_upwards with x
+      simpa [Real.norm_eq_abs, sq_abs] using (b.sum_sq_norm_inner_right x).symm
+    _ = ∑ i, ∫ x : E, (inner ℝ (b i) x)^2 ∂stdGaussian E :=
+      integral_finsetSum _ (fun i _ => hL1 i)
+    _ = Module.finrank ℝ E := by simp [hdir]
+
+private theorem actual_gaussian_gradient_moments {g : E → E} (hg : LipschitzWith 1 g)
+    (p : E) {eta : ℝ} (heta : 0 < eta) :
+    let G := fun z => g (p+Real.sqrt eta • z)
+    Integrable (fun z => ‖G z-g p‖^2) (stdGaussian E) ∧
+      (∫ z, ‖G z-g p‖^2 ∂stdGaussian E) ≤ eta*Module.finrank ℝ E ∧
+      Integrable (fun z => ‖G z‖^2) (stdGaussian E) ∧
+      (∫ z, ‖G z‖^2 ∂stdGaussian E) ≤ 2*‖g p‖^2+2*eta*Module.finrank ℝ E := by
+  let G := fun z => g (p+Real.sqrt eta • z)
+  have hG : Continuous G := hg.continuous.comp (by fun_prop)
+  have hb (z : E) : ‖G z-g p‖ ≤ Real.sqrt eta*‖z‖ := by
+    have h := hg.dist_le_mul (p+Real.sqrt eta • z) p
+    simpa [G,dist_eq_norm,norm_smul,Real.norm_eq_abs,abs_of_nonneg (Real.sqrt_nonneg eta)] using h
+  have hs (z : E) : ‖G z-g p‖^2 ≤ eta*‖z‖^2 := by
+    calc
+      ‖G z-g p‖^2 ≤ (Real.sqrt eta*‖z‖)^2 :=
+        (sq_le_sq₀ (norm_nonneg _) (mul_nonneg (Real.sqrt_nonneg _) (norm_nonneg _))).2 (hb z)
+      _ = eta*‖z‖^2 := by rw [mul_pow,Real.sq_sqrt heta.le]
+  have hdom : Integrable (fun z : E => eta*‖z‖^2) (stdGaussian E) :=
+    (gaussian_square (E := E)).1.const_mul eta
+  have hi : Integrable (fun z => ‖G z-g p‖^2) (stdGaussian E) := by
+    apply hdom.mono' (by fun_prop)
+    filter_upwards with z
+    simpa only [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg ‖G z-g p‖)] using hs z
+  have hint : (∫ z, ‖G z-g p‖^2 ∂stdGaussian E) ≤ eta*Module.finrank ℝ E := by
+    calc
+      (∫ z, ‖G z-g p‖^2 ∂stdGaussian E) ≤ ∫ z, eta*‖z‖^2 ∂stdGaussian E :=
+        integral_mono hi hdom hs
+      _ = eta*Module.finrank ℝ E := by rw [integral_const_mul,(gaussian_square (E := E)).2]
+  have ht (z : E) : ‖G z‖^2 ≤ 2*‖g p‖^2+2*eta*‖z‖^2 := by
+    have htri : ‖G z‖ ≤ ‖G z-g p‖+‖g p‖ := by
+      simpa using norm_add_le (G z-g p) (g p)
+    nlinarith [hs z,norm_nonneg (G z),norm_nonneg (G z-g p),norm_nonneg (g p),
+      sq_nonneg (‖G z-g p‖-‖g p‖)]
+  have hdom2 : Integrable (fun z : E => 2*‖g p‖^2+2*eta*‖z‖^2) (stdGaussian E) :=
+    integrable_const _ |>.add ((gaussian_square (E := E)).1.const_mul (2*eta))
+  have hi2 : Integrable (fun z => ‖G z‖^2) (stdGaussian E) := by
+    apply hdom2.mono' (by fun_prop)
+    filter_upwards with z
+    simpa only [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg ‖G z‖)] using ht z
+  refine ⟨hi,hint,hi2,?_⟩
+  calc
+    (∫ z, ‖G z‖^2 ∂stdGaussian E) ≤ ∫ z, (2*‖g p‖^2+2*eta*‖z‖^2) ∂stdGaussian E :=
+      integral_mono hi2 hdom2 ht
+    _ = 2*‖g p‖^2+2*eta*Module.finrank ℝ E := by
+      rw [integral_add (integrable_const _) ((gaussian_square (E := E)).1.const_mul (2*eta))]
+      simp [integral_const_mul,(gaussian_square (E := E)).2]
+
+
+
+
+end
+
+section
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ENNReal RealInnerProductSpace
+
+set_option maxHeartbeats 800000 in
+theorem proximal_gaussian_estimator
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ≥0} (_hκ : 1 ≤ κ)
+    (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (κ:ℝ)⁻¹*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) (hsmall : ∀ s, eta s ≤ 1/2) :
+    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s + eta s • gradient V (p s) = y s) ∧
+      (∀ s z, F s (p s) + ((κ:ℝ)⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧
+        (F s z ≤ F s (p s) ↔ z=p s)) ∧
+      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)
+      Measurable G ∧ ∃ K : Kernel S E, IsMarkovKernel K ∧
+        (∀ s, K s = (stdGaussian E).map (fun z => G (s,z))) ∧
+        ∀ s, MemLp (fun z => G (s,z)) 2 (stdGaussian E) ∧
+          MemLp (fun z => G (s,z)-gradient V (p s)) 2 (stdGaussian E) ∧
+          (∫ z, ‖G (s,z)-gradient V (p s)‖^2 ∂stdGaussian E) ≤ eta s*Module.finrank ℝ E ∧
+          (∫ z, ‖G (s,z)‖^2 ∂stdGaussian E) ≤ 2*‖gradient V (p s)‖^2+2*eta s*Module.finrank ℝ E ∧
+          Integrable (fun w : E => ‖w‖^2) (K s) ∧
+          (∫ w : E, ‖w‖^2 ∂K s) ≤ 2*‖gradient V (p s)‖^2+2*eta s*Module.finrank ℝ E := by
+  let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2
+  have hH' : ∀ x v : E, ((κ⁻¹:ℝ≥0):ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (1:ℝ≥0)*‖v‖^2 := by
+    simpa only [NNReal.coe_inv,NNReal.coe_one,one_mul] using hH
+  obtain ⟨p,hp,heq,hmin⟩ := actual_proximal_minimizer hV hH' heta hy hpos hsmall
+  have hLip : LipschitzWith 1 (gradient V) := by
+    have hb := AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic (r := 0) hV hH' (0:E)
+    simpa using hb.2
+  refine ⟨p,hp,heq,?_,?_⟩
+  · simpa only [NNReal.coe_inv] using hmin
+  let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)
+  have hG : Measurable G := hLip.continuous.measurable.comp
+    ((hp.comp measurable_fst).add ((heta.comp measurable_fst).sqrt.smul measurable_snd))
+  let K := (Kernel.id ×ₖ Kernel.const S (stdGaussian E)).map G
+  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hG
+  have hKs (s : S) : K s = (stdGaussian E).map (fun z => G (s,z)) := by
+    dsimp only [K]
+    rw [Kernel.map_apply _ hG,Kernel.prod_apply,Kernel.id_apply,Kernel.const_apply,
+      Measure.dirac_prod,Measure.map_map hG (by fun_prop)]
+    rfl
+  refine ⟨hG,K,hK,hKs,fun s => ?_⟩
+  have hm := actual_gaussian_gradient_moments hLip (p s) (hpos s)
+  change Integrable (fun z => ‖G (s,z)-gradient V (p s)‖^2) (stdGaussian E) ∧
+    (∫ z, ‖G (s,z)-gradient V (p s)‖^2 ∂stdGaussian E) ≤ eta s*Module.finrank ℝ E ∧
+    Integrable (fun z => ‖G (s,z)‖^2) (stdGaussian E) ∧
+    (∫ z, ‖G (s,z)‖^2 ∂stdGaussian E) ≤ 2*‖gradient V (p s)‖^2+2*eta s*Module.finrank ℝ E at hm
+  have hGs : Measurable (fun z => G (s,z)) := hG.comp (measurable_const.prodMk measurable_id)
+  have hdev : Measurable (fun z => G (s,z)-gradient V (p s)) := hGs.sub measurable_const
+  have hiK : Integrable (fun w : E => ‖w‖^2) (K s) := by
+    rw [hKs]
+    exact (integrable_map_measure (by fun_prop) hGs.aemeasurable).2 hm.2.2.1
+  have hintK : (∫ w : E, ‖w‖^2 ∂K s) = ∫ z, ‖G (s,z)‖^2 ∂stdGaussian E := by
+    rw [hKs]
+    exact integral_map hGs.aemeasurable (by fun_prop)
+  refine ⟨(memLp_two_iff_integrable_sq_norm hGs.aestronglyMeasurable).2 hm.2.2.1,
+    (memLp_two_iff_integrable_sq_norm hdev.aestronglyMeasurable).2 hm.1,
+    hm.2.1,hm.2.2.2,hiK,?_⟩
+  rw [hintK]
+  exact hm.2.2.2
+
+
+
+end
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalGaussianEstimator

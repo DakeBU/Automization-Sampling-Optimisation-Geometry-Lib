@@ -1,0 +1,148 @@
+{
+  "status": "PASS",
+  "actual_full_payload": {
+    "file": "18938ff05929157cd561302eb5f034aeee0097a444dbe16a97c5dbe3c5d8fa13",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean\nimport AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient\nimport AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain\n\n/-!\n# The literal PBPS source mean in the actual closed-gradient domain\n\nSource-specific analytic integration for PBPS arXiv:2609.06905v1 Appendix C.1,\nits smooth compact reduction and C.2 estimate toward B.13. The original C2\npotential, two-sided Hessian bounds, capped positive step and signed smooth\ncompact observer are retained. Finite real Hilbert spaces and rank zero are\nexplicit background extensions. The operator is the actual compact-gradient\ncore on the second marginal of the same independent Gaussian augmentation.\n\nThe source mean need not have compact support. Genuine L2 mean and gradient\nbounds, whole-function C1 regularity and the uniform closable core are produced\ninternally. This closes its canonical graph pair only; equivalence to a separate\nweak H1 definition, the all-L2 limit, B.13, Gamma, dynamics, main results,\nimplementation errors and query costs remain separate obligations.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain\n\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped RealInnerProductSpace ContDiff NNReal Topology\n\nnoncomputable section\nset_option autoImplicit false\n\ntheorem literal_source_mean_in_closed_gradient\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let S := fun y : E => (volume : Measure E).tilted\n      (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))\n    IsProbabilityMeasure ν ∧\n      ∃ G : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν,\n        Dense (G.domain : Set (Lp ℝ 2 ν)) ∧ G.IsClosable ∧ G.closure.IsClosed ∧\n        (∀ (u : Lp ℝ 2 ν) (v : Lp E 2 ν), (u,v) ∈ G.graph ↔\n          ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n            u =ᵐ[ν] φ ∧ v =ᵐ[ν] gradient φ) ∧\n        ∀ f : E → ℝ, ContDiff ℝ ∞ f → HasCompactSupport f →\n          let Tf := fun y : E => ∫ u, f u ∂S y\n          ∃ hTf : MemLp Tf 2 ν, ∃ hGrad : MemLp (gradient Tf) 2 ν,\n            (hTf.toLp Tf,hGrad.toLp (gradient Tf)) ∈ G.closure.graph := by\n  classical\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  let S := fun y : E => (volume : Measure E).tilted\n    (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))\n  obtain ⟨hμ,hJ,hν,R,S₀,hR,hS₀,hcond,hSR,hSd,hΛcond,hfst,\n    U,hU,hUi,hUs,hBB,hBD,hblock,henergy⟩ :=\n    MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks hα hαβ hV hH hη hβη\n  letI : IsProbabilityMeasure μ := hμ\n  letI : IsProbabilityMeasure ν := hν\n  obtain ⟨G,hDense,hClosable,hClosed,hGraph⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable μ hη\n  refine ⟨hν,G,hDense,hClosable,hClosed,hGraph,?_⟩\n  intro f hf hfc\n  let Tf := fun y : E => ∫ u, f u ∂S y\n  have hsame : (fun y : E => ∫ u, f u ∂S₀ y) = Tf := by\n    funext y\n    exact congrArg (fun m : Measure E => ∫ u, f u ∂m) (hSd y)\n  obtain ⟨_,_,hTf₀,hGrad₀,_,_⟩ := henergy f hf hfc\n  have hTf : MemLp Tf 2 ν := by simpa only [hsame] using hTf₀\n  have hGrad : MemLp (gradient Tf) 2 ν := by simpa only [hsame] using hGrad₀\n  have hf1 : ContDiff ℝ 1 f := hf.of_le (by simp)\n  obtain ⟨_,hC1⟩ := LiteralReflectedMean.reflected_gibbs_mean_c1\n    hα hV (fun x v => (hH x v).1) hη hf1 hfc\n  change ContDiff ℝ 1 Tf at hC1\n  refine ⟨hTf,hGrad,?_⟩\n  exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain.c1_in_closed_gradient ν G hClosable hGraph hC1 hTf hGrad\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "PBPS arXiv2609.06905v1; pinned Mathlib; Lean4.33.0",
+      "anchor": "Pinned PBPS2609.06905v1 C.1 smoothcompact reduction physical4573–4576, literal S density4581–4587 and actual mean4597–4604, C.2 integrated actual gradient4654–4664 toward B.13 physical3777–3786. This is source-specific analytic integration of the compact branch, not printed full rough B.13.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS-authored source-specific compact-branch domain integration for Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Original two-sided curvature/C2/capped step/signed smooth compact setting is retained. Finite Hilbert/rank0 is an explicit extension; closure of the canonical compact-gradient core is explicit authored background, without claiming equivalence to a separate weak H1 or full rough B.13."
+    },
+    "statement": "Let E be a finite-dimensional real Hilbert space with its Borel structure and canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v. Let η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), ν=J.snd, and S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then ν is a probability and there is one dense closable compact-gradient operator G:L²(ν;ℝ)⇀L²(ν;E), chosen before f, with closed closure and exact graph consisting of the pairs represented by φ and ∇φ for φ∈C∞_c(E). For every signed f∈C∞_c(E), let Tf(y)=∫f(u)S_y(du). Both Tf and ∇Tf belong to L²(ν), and their canonical classes satisfy ([Tf],[∇Tf])∈graph(closure G). No compact support of Tf or caller normalization, regularity, Lp or closure certificate is assumed. This is attributed analytic integration of the compact source branch, not the full rough B.13 statement.",
+    "formulae": [
+      {
+        "label": "The actual PBPS source mean belongs to the closed-gradient domain",
+        "tex": "\\nu=\\operatorname{law}(X+\\sqrt\\eta Z),\\quad Tf(y)=\\int f(u)S_y(du),\\qquad \\exists G\\ \\forall f\\in C_c^\\infty(E):\\quad Tf,\\nabla Tf\\in L^2(\\nu),\\quad ([Tf],[\\nabla Tf])\\in\\operatorname{graph}(\\overline G)."
+      }
+    ],
+    "assumptions": [
+      "Finite real Hilbert/Borel E and canonical volume; rank zero is an explicit background extension of the source Euclidean presentation.",
+      "V is C2; α,β are nonnegative, α>0, α≤β and both global directional Hessian bounds hold. η>0 and βη≤1.",
+      "Every observer is signed smooth compact f; neither centering nor compact support of its mean Tf is required.",
+      "All laws and the mean are the literal displayed ones. G is constructed uniformly before all f; its entire smooth compact AE graph is characterized. Probability, Lp, C1 and graph membership are produced internally."
+    ],
+    "obligations": [
+      {
+        "id": "source-mean-domain",
+        "label": "Actual compact-observer source-mean canonical closed-gradient pair"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "All-L2/weakH1/full B13/Gamma/main/error/cost/composition remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain.literal_source_mean_in_closed_gradient",
+      "title": "The actual PBPS source mean belongs to the closed-gradient domain",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "Pinned PBPS2609.06905v1 C.1 smoothcompact reduction physical4573–4576, literal S density4581–4587 and actual mean4597–4604, C.2 integrated actual gradient4654–4664 toward B.13 physical3777–3786. This is source-specific analytic integration of the compact branch, not printed full rough B.13.",
+          "scope": "The literal source mean of each signed smooth compact observer has a canonical function/gradient L2 pair in the closure of one uniform genuine dense compact-gradient core on the SAME actual outer Gaussian law. Original C2 potential, two-sided Hessian and capped positive step are retained; finite Hilbert/rank0 is an explicit extension. The mean itself need not be compact. Full rough all-L2 B13, identification with separately defined weak H1, Gamma, dynamics, main results, errors, unbounded expected costs and actual-input composition remain separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSSourceMeanGradientDomain"
+      ],
+      "assumptions": [
+        "Finite real Hilbert/Borel E and canonical volume; rank zero is an explicit background extension of the source Euclidean presentation.",
+        "V is C2; α,β are nonnegative, α>0, α≤β and both global directional Hessian bounds hold. η>0 and βη≤1.",
+        "Every observer is signed smooth compact f; neither centering nor compact support of its mean Tf is required.",
+        "All laws and the mean are the literal displayed ones. G is constructed uniformly before all f; its entire smooth compact AE graph is characterized. Probability, Lp, C1 and graph membership are produced internally."
+      ],
+      "statement": "Let E be a finite-dimensional real Hilbert space with its Borel structure and canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v. Let η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), ν=J.snd, and S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then ν is a probability and there is one dense closable compact-gradient operator G:L²(ν;ℝ)⇀L²(ν;E), chosen before f, with closed closure and exact graph consisting of the pairs represented by φ and ∇φ for φ∈C∞_c(E). For every signed f∈C∞_c(E), let Tf(y)=∫f(u)S_y(du). Both Tf and ∇Tf belong to L²(ν), and their canonical classes satisfy ([Tf],[∇Tf])∈graph(closure G). No compact support of Tf or caller normalization, regularity, Lp or closure certificate is assumed. This is attributed analytic integration of the compact source branch, not the full rough B.13 statement.",
+      "formula": "\\nu=\\operatorname{law}(X+\\sqrt\\eta Z),\\quad Tf(y)=\\int f(u)S_y(du),\\qquad \\exists G\\ \\forall f\\in C_c^\\infty(E):\\quad Tf,\\nabla Tf\\in L^2(\\nu),\\quad ([Tf],[\\nabla Tf])\\in\\operatorname{graph}(\\overline G).",
+      "boundary": "The literal source mean of each signed smooth compact observer has a canonical function/gradient L2 pair in the closure of one uniform genuine dense compact-gradient core on the SAME actual outer Gaussian law. Original C2 potential, two-sided Hessian and capped positive step are retained; finite Hilbert/rank0 is an explicit extension. The mean itself need not be compact. Full rough all-L2 B13, identification with separately defined weak H1, Gamma, dynamics, main results, errors, unbounded expected costs and actual-input composition remain separate.",
+      "steps": [
+        {
+          "title": "Keep the actual augmentation and produce the two L2 witnesses",
+          "text": "The existing macroscopic-energy producer uses the original curvature and step regime on the genuine Gibbs law. It gives probability of μ and the actual outer ν, a reflected Markov kernel S₀ for the same augmentation, the EVERY-y literal identity S₀(y)=S_y, and square-integrability of its smooth-observer mean and true gradient. Rewrite the whole mean function, not an AE conditional version, to obtain the two witnesses on the literal source mean.",
+          "formula": "\\mu=dx.\\operatorname{tilted}(-V),\\quad J=\\operatorname{law}(X,X+\\sqrt\\eta Z),\\quad\\nu=J_2;\\qquad S_0(y)=S_y\\ (\\forall y),\\quad Tf,\\nabla Tf\\in L^2(\\nu).",
+          "lean": "MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks; hμ; hν; hSd; henergy; hsame; hTf; hGrad"
+        },
+        {
+          "title": "Choose the genuine gradient core uniformly",
+          "text": "The actual outer Gaussian law feeds the existing Gaussian-marginal-gradient theorem. It constructs one partial operator with dense domain, closability and closed closure. Its full graph is precisely the canonical pairs represented by smooth compact φ and its actual gradient. The operator is chosen before the observer f and is distinct from the lower-right reflection block D.",
+          "formula": "\\operatorname{graph}(G)=\\{([\\varphi],[\\nabla\\varphi]):\\varphi\\in C_c^\\infty(E)\\},\\quad\\overline{\\operatorname{dom}G}=L^2(\\nu),\\quad G\\text{ closable},\\quad\\operatorname{graph}(\\overline G)\\text{ closed}.",
+          "lean": "GaussianMarginalGradient.gaussian_marginal_gradient_closable μ hη; G; hDense; hClosable; hClosed; hGraph"
+        },
+        {
+          "title": "Use C1 of the whole literal source mean",
+          "text": "Smooth f is C1. The source-specific reflected-Gibbs-mean theorem applies to the literal source law at every y; its probability, normalization and dominated differentiation ingredients remain genuine internal background. This gives C1 of exactly Tf. Equality of AE conditional versions alone would not provide this pointwise regularity.",
+          "formula": "Tf(y)=\\int f(u)S_y(du)\\quad(\\forall y),\\qquad Tf\\in C^1(E).",
+          "lean": "hf1; LiteralReflectedMean.reflected_gibbs_mean_c1; hC1"
+        },
+        {
+          "title": "Admit the actual pair through the C1 domain theorem",
+          "text": "The outer law is a finite probability. The public C1 domain theorem applies to this SAME ν and the exact G graph, using actual C1, function-L2 and gradient-L2 evidence. Its existing smooth cutoff/approximation proof puts the canonical pair in the closed graph without assuming Tf compact. This closes the domain prerequisite; a separate all-L2 limit and source weak-H1 identification are still needed.",
+          "formula": "\\nu(E)=1,\\quad Tf\\in C^1,\\quad Tf,\\nabla Tf\\in L^2(\\nu)\\quad\\Longrightarrow\\quad([Tf],[\\nabla Tf])\\in\\operatorname{graph}(\\overline G).",
+          "lean": "WeightedC1GradientDomain.c1_in_closed_gradient ν G hClosable hGraph hC1 hTf hGrad"
+        },
+        {
+          "title": "Connect the real macroscopic representative and preserve constants",
+          "text": "The genuine Test uses the actual reflection U and conditional projection P on L²(J). For each original smooth compact f it joins g=f∘snd, Pg=g and Ag=(Tf)∘snd for A=PUP to the new canonical gradient pair. The zero-dimensional Test consumes the actual source-volume mean1 and gradient0 and transports canonical Lp objects using MemLp.toLp_congr. Direct dependent rewrites were retired and their compiler negatives retained.",
+          "formula": "A=PUP,\\quad g=f\\circ\\mathrm{snd},\\quad Pg=g,\\quad Ag=Tf\\circ\\mathrm{snd};\\qquad d=0,\\ f=1:\\quad Tf\\equiv1,\\quad\\nabla Tf=0,\\quad([1],[0])\\in\\operatorname{graph}(\\overline G).",
+          "lean": "Tests.ProximalBPSSourceMeanGradientDomain.actual_macroscopic_mean_closed_gradient; rank_zero_noncentered_source_mean_graph; MemLp.toLp_congr (Test only)"
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real Hilbert space with its Borel structure and canonical volume, including rank zero. Let V:E→ℝ be C2, 0<α≤β, and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v. Let η>0 and βη≤1. Define μ=volume.tilted(−V), J=law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), ν=J.snd, and S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then ν is a probability and there is one dense closable compact-gradient operator G:L²(ν;ℝ)⇀L²(ν;E), chosen before f, with closed closure and exact graph consisting of the pairs represented by φ and ∇φ for φ∈C∞_c(E). For every signed f∈C∞_c(E), let Tf(y)=∫f(u)S_y(du). Both Tf and ∇Tf belong to L²(ν), and their canonical classes satisfy ([Tf],[∇Tf])∈graph(closure G). No compact support of Tf or caller normalization, regularity, Lp or closure certificate is assumed. This is attributed analytic integration of the compact source branch, not the full rough B.13 statement.",
+      "lean_proof": "Keep the actual augmentation and produce the two L2 witnesses; Choose the genuine gradient core uniformly; Use C1 of the whole literal source mean; Admit the actual pair through the C1 domain theorem; Connect the real macroscopic representative and preserve constants",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain.c1_in_closed_gradient"
+      ],
+      "mathlib_dependencies": [
+        "MemLp.toLp",
+        "MemLp.toLp_congr",
+        "gradient_fun_const'",
+        "contDiff_infty",
+        "Filter.Eventually.of_forall"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain.literal_source_mean_in_closed_gradient",
+      "cell": "ASTIS-SW-PBPS-source-mean-gradient-domain",
+      "role": "proof-edge",
+      "supports": [
+        "source-mean-domain"
+      ],
+      "boundary": "The literal source mean of each signed smooth compact observer has a canonical function/gradient L2 pair in the closure of one uniform genuine dense compact-gradient core on the SAME actual outer Gaussian law. Original C2 potential, two-sided Hessian and capped positive step are retained; finite Hilbert/rank0 is an explicit extension. The mean itself need not be compact. Full rough all-L2 B13, identification with separately defined weak H1, Gamma, dynamics, main results, errors, unbounded expected costs and actual-input composition remain separate.",
+      "assumption_deltas": [
+        {
+          "source": "Original C2 V, two-sided positive α≤β curvature and positive η with βη≤1; signed smooth compact observer.",
+          "lean": "All original hypotheses are theorem binders and observer quantifiers; finite Hilbert/rank0 is explicit.",
+          "classification": "same",
+          "reason": "No hidden higher derivative, centering, compact mean, density, Lp or closure certificate premise."
+        },
+        {
+          "source": "C.1 uses density and closedness to pass from compact tests toward rough H1 in B.13.",
+          "lean": "Uniform actual smooth compact gradient graph and canonical mean/gradient pair in its closed extension.",
+          "classification": "unresolved",
+          "reason": "Source omitted analytic domain details are filled for this compact mean only; identification with separately defined weak H1 and all-L2 limit remain obligations."
+        },
+        {
+          "source": "C.1 literal reflected normalized source density and C.2 actual mean-gradient integrability.",
+          "lean": "Exact μ=volume.tilted(-V), SAME J=law(X,X+sqrt(eta)G), actual ν=J.snd, literal source S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)), Tf(y)=actual source S_y mean. Uniform G chosen BEFORE all smoothcompact f; produced hTf/hGrad toLp are canonical classes in the SAME ν and true G.closure.graph. G is distinct from50 lower-right blockD.",
+          "classification": "same",
+          "reason": "SAME actual laws and entire EVERY-y function equality precede differentiation; true uniform core is distinct from macroscopic lower-right blockD."
+        },
+        {
+          "source": "Full rough B.13, Gamma, sampling main results and query costs.",
+          "lean": "The literal source mean of each signed smooth compact observer has a canonical function/gradient L2 pair in the closure of one uniform genuine dense compact-gradient core on the SAME actual outer Gaussian law. Original C2 potential, two-sided Hessian and capped positive step are retained; finite Hilbert/rank0 is an explicit extension. The mean itself need not be compact. Full rough all-L2 B13, identification with separately defined weak H1, Gamma, dynamics, main results, errors, unbounded expected costs and actual-input composition remain separate.",
+          "classification": "unresolved",
+          "reason": "No whole-paper, dynamics or unbounded expected-cost result is exported."
+        }
+      ]
+    }
+  },
+  "actual_full_binding_sha256": "d3a360b37b967ace97266b63ea9fab2aaea2fd1ce4a68e6255be1065ea42b8d3",
+  "real_check_advance_reviewed": true,
+  "scope": "Native full binding, not a projected review_context."
+}

@@ -1,0 +1,105 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PartialMomentumRefresh
+import Mathlib.MeasureTheory.Integral.Pi
+import Mathlib.Tactic
+
+/-!
+# The Gaussian input law for the first Picard layer
+
+Algorithm 3.1 of Chen--Chewi--Lu--Zhang, arXiv:2609.06906v1, samples the
+first momentum-refresh Gaussian and the first array of Picard innovations
+independently.  This file constructs that actual product law and exposes the
+measurability and second-moment facts consumed by the layerwise estimate in
+`PicardCenterMoment`.
+
+The incoming phase-state moment remains an explicit input.  In particular,
+this result does not construct the repeated Algorithm 3.1 history or derive
+the run-wide estimate used at line 2179 of the paper.  It also does not sample
+the second innovation array, perform the second refresh, instantiate the
+Chebyshev--Lobatto weights, or claim (D.7).
+-/
+
+noncomputable section
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ENNReal RealInnerProductSpace
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw
+
+open AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
+
+variable {E ι : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [Fintype ι]
+
+/-- Adjoining the independent first Picard Gaussian array to the actual first
+OU half-refresh gives all measurable and `L²` inputs required by the existing
+two-layer Picard moment theorem. -/
+theorem partial_refresh_with_picard_innovations
+    (ν : Measure (E × E)) [IsProbabilityMeasure ν]
+    (xstar : E) {h M : ℝ} (hh : 0 ≤ h) (hM : 0 ≤ M)
+    (hstateI : Integrable (fun s : E × E => ‖s.1 - xstar‖ ^ 2 + ‖s.2‖ ^ 2) ν)
+    (hstate : (∫ s : E × E, ‖s.1 - xstar‖ ^ 2 + ‖s.2‖ ^ 2 ∂ν) ≤ M) :
+    let a := Real.exp (-h / 2)
+    let sigma := Real.sqrt (1 - Real.exp (-h))
+    let μRefresh := ν.prod (stdGaussian E)
+    let γι := Measure.pi (fun _ : ι => stdGaussian E)
+    let μ := μRefresh.prod γι
+    let X : (((E × E) × E) × (ι → E)) → E := fun w => w.1.1.1
+    let P0 : (((E × E) × E) × (ι → E)) → E :=
+      fun w => a • w.1.1.2 + sigma • w.1.2
+    let G : ι → (((E × E) × E) × (ι → E)) → E := fun j w => w.2 j
+    let BRefresh := M + (1 - Real.exp (-h)) * (Module.finrank ℝ E : ℝ)
+    0 ≤ BRefresh ∧
+      Measurable X ∧ Measurable P0 ∧
+      Integrable (fun w => ‖X w - xstar‖ ^ 2 + ‖P0 w‖ ^ 2) μ ∧
+      (∫ w, ‖X w - xstar‖ ^ 2 + ‖P0 w‖ ^ 2 ∂μ) ≤ BRefresh ∧
+      (∀ j, Measurable (G j)) ∧
+      (∀ j, Integrable (fun w => ‖G j w‖ ^ 2) μ) ∧
+      (∀ j, (∫ w, ‖G j w‖ ^ 2 ∂μ) = (Module.finrank ℝ E : ℝ)) := by
+  classical
+  dsimp only
+  obtain ⟨hX, hP0, hrefreshI, hrefreshEq, hrefresh⟩ :=
+    PartialMomentumRefresh.partial_momentum_refresh_second_moment
+      ν xstar hh hstateI hstate
+  let μRefresh := ν.prod (stdGaussian E)
+  let γι := Measure.pi (fun _ : ι => stdGaussian E)
+  have hvar : 0 ≤ 1 - Real.exp (-h) :=
+    sub_nonneg.mpr (Real.exp_le_one_iff.mpr (by linarith))
+  have hB : 0 ≤ M + (1 - Real.exp (-h)) * (Module.finrank ℝ E : ℝ) :=
+    add_nonneg hM (mul_nonneg hvar (Nat.cast_nonneg _))
+  have hrefreshOuter : Integrable
+      (fun w : ((E × E) × E) × (ι → E) =>
+        ‖w.1.1.1 - xstar‖ ^ 2 +
+          ‖Real.exp (-h / 2) • w.1.1.2 +
+            Real.sqrt (1 - Real.exp (-h)) • w.1.2‖ ^ 2)
+      (μRefresh.prod γι) := hrefreshI.comp_fst γι
+  have hrefreshOuterInt :
+      (∫ w : ((E × E) × E) × (ι → E),
+          ‖w.1.1.1 - xstar‖ ^ 2 +
+            ‖Real.exp (-h / 2) • w.1.1.2 +
+              Real.sqrt (1 - Real.exp (-h)) • w.1.2‖ ^ 2
+          ∂μRefresh.prod γι) ≤
+        M + (1 - Real.exp (-h)) * (Module.finrank ℝ E : ℝ) := by
+    rw [integral_prod _ hrefreshOuter]
+    simpa [γι, μRefresh] using hrefresh
+  obtain ⟨hgaussI, hgauss⟩ :=
+    integrable_norm_sq_and_integral_stdGaussian (E := E)
+  have hcoordI (j : ι) : Integrable (fun z : ι → E => ‖z j‖ ^ 2) γι :=
+    by
+      simpa [γι] using
+        (integrable_comp_eval (X := fun _ : ι => E)
+          (μ := fun _ : ι => stdGaussian E) (i := j) hgaussI)
+  have hcoordOuterI (j : ι) : Integrable
+      (fun w : ((E × E) × E) × (ι → E) => ‖w.2 j‖ ^ 2)
+      (μRefresh.prod γι) := (hcoordI j).comp_snd μRefresh
+  have hcoordOuter (j : ι) :
+      (∫ w : ((E × E) × E) × (ι → E), ‖w.2 j‖ ^ 2
+          ∂μRefresh.prod γι) = (Module.finrank ℝ E : ℝ) := by
+    rw [integral_prod _ (hcoordOuterI j)]
+    simp [μRefresh, γι,
+      integral_comp_eval (X := fun _ : ι => E) (μ := fun _ : ι => stdGaussian E)
+        (i := j) hgaussI.aestronglyMeasurable,
+      hgauss]
+  exact ⟨hB, by fun_prop, by fun_prop, hrefreshOuter, hrefreshOuterInt,
+    fun _ => by fun_prop, hcoordOuterI, hcoordOuter⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PicardInputLaw

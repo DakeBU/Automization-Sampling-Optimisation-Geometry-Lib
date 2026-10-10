@@ -1,0 +1,25 @@
+    rw [isSelfAdjoint_iff]
+    nth_rw 2 [← cfcₙ_id ℂ a]
+    rw [← cfcₙ_star_id a (R := ℂ)]
+    refine cfcₙ_congr fun x hx ↦ ?_
+    obtain ⟨x, -, rfl⟩ := ha₂.algebraMap_image.symm ▸ hx
+    exact Complex.conj_ofReal _
+
+lemma IsSelfAdjoint.quasispectrumRestricts {a : A} (ha : IsSelfAdjoint a) :
+    QuasispectrumRestricts a Complex.reCLM :=
+  isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts |>.mp ha |>.2
+
+/-- A normal element whose `ℂ`-quasispectrum is contained in `ℝ` is selfadjoint. -/
+lemma QuasispectrumRestricts.isSelfAdjoint (a : A) (ha : QuasispectrumRestricts a Complex.reCLM)
+    [IsStarNormal a] : IsSelfAdjoint a :=
+  isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts.mpr ⟨‹_›, ha⟩
+
+instance IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus :
+    NonUnitalContinuousFunctionalCalculus ℝ A IsSelfAdjoint :=
+  QuasispectrumRestricts.cfc (q := IsStarNormal) (p := IsSelfAdjoint) Complex.reCLM
+    Complex.isometry_ofReal.isClosedEmbedding (.zero _)
+    (fun _ ↦ isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts)
+
+end SelfAdjointNonUnital
+
+section SelfAdjointUnital

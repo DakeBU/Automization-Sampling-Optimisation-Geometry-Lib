@@ -1,0 +1,162 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingItoTerminal
+import Mathlib.MeasureTheory.Function.LpSpace.Indicator
+
+/-!
+# Random stopping is an `L²` contraction
+
+Once a stopped representative has already been constructed, the analytic
+extension from elementary processes to the completed progressive `L²` domain
+needs only one fact: multiplication by a stopping indicator cannot increase an
+`L²` distance.
+
+This module deliberately separates that Hilbert-space fact from stopping-time
+measurability.  The theorem accepts stopped representatives whose process-space
+functions agree almost everywhere with Chewi's closed stopped integrands.  The
+norm estimate itself is then the ordinary indicator contraction
+`eLpNorm_indicator_le`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingL2Contraction
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open ElementaryItoEmbedding ElementaryItoIntegral ProgressiveL2
+  ProgressiveL2Algebra ProgressiveL2Density RandomStoppingProgressiveL2
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Product-space event on which a closed stopped integrand is active. -/
+def stoppingSet (tau : Omega → WithTop ℝ≥0) : Set (Omega × ℝ≥0) :=
+  {z | (z.2 : WithTop ℝ≥0) ≤ tau z.1}
+
+/-- Chewi's closed stopped integrand is literally multiplication by the
+product-space stopping indicator. -/
+theorem processFunction_stoppedIntegrand_eq_indicator
+    (eta : ℝ≥0 → Omega → ℝ) (tau : Omega → WithTop ℝ≥0) :
+    processFunction (stoppedIntegrand eta tau) =
+      (stoppingSet tau).indicator (processFunction eta) := by
+  funext z
+  by_cases h : (z.2 : WithTop ℝ≥0) ≤ tau z.1
+  · have hz : z ∈ stoppingSet tau := by
+      simpa only [stoppingSet, Set.mem_ofPred_eq] using h
+    rw [Set.indicator_of_mem hz]
+    simp only [processFunction, stoppedIntegrand, if_pos h]
+  · have hz : z ∉ stoppingSet tau := by
+      simpa only [stoppingSet, Set.mem_ofPred_eq] using h
+    rw [show (stoppingSet tau).indicator (processFunction eta) z = 0 by
+      simp [Set.indicator, hz]]
+    change (if (z.2 : WithTop ℝ≥0) ≤ tau z.1 then eta z.2 z.1 else 0) = 0
+    rw [if_neg h]
+
+/-- **Stopping contraction.**  Any two already-constructed closed stopped
+representatives are no farther apart in product-space `L²` than their original
+integrands. -/
+theorem norm_stopped_sub_le
+    (eta xi etaStop xiStop : ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (hetaStop :
+      processFunction etaStop.process =ᵐ[processTimeMeasure mu T]
+        processFunction (stoppedIntegrand eta.process tau))
+    (hxiStop :
+      processFunction xiStop.process =ᵐ[processTimeMeasure mu T]
+        processFunction (stoppedIntegrand xi.process tau)) :
+    ‖etaStop.toLp - xiStop.toLp‖ ≤ ‖eta.toLp - xi.toLp‖ := by
+  rw [← toLp_sub etaStop xiStop, ← toLp_sub eta xi]
+  simp only [ProgressiveL2Integrand.toLp, Lp.norm_toLp]
+  apply ENNReal.toReal_mono (sub eta xi).memLp.2.ne
+  have hEq :
+      processFunction (sub etaStop xiStop).process =ᵐ[processTimeMeasure mu T]
+        (stoppingSet tau).indicator (processFunction (sub eta xi).process) := by
+    filter_upwards [hetaStop, hxiStop] with z heta hxi
+    have heta' : etaStop.process z.2 z.1 =
+        stoppedIntegrand eta.process tau z.2 z.1 := heta
+    have hxi' : xiStop.process z.2 z.1 =
+        stoppedIntegrand xi.process tau z.2 z.1 := hxi
+    simp only [sub_process, Pi.sub_apply, processFunction]
+    rw [heta', hxi']
+    by_cases hactive : (z.2 : WithTop ℝ≥0) ≤ tau z.1
+    · have hz : z ∈ stoppingSet tau := by
+        simpa only [stoppingSet, Set.mem_ofPred_eq] using hactive
+      rw [Set.indicator_of_mem hz]
+      simp only [stoppedIntegrand, if_pos hactive, processFunction, Pi.sub_apply]
+    · have hz : z ∉ stoppingSet tau := by
+        simpa only [stoppingSet, Set.mem_ofPred_eq] using hactive
+      rw [show (stoppingSet tau).indicator
+          (processFunction (eta.process - xi.process)) z = 0 by
+        simp [Set.indicator, hz]]
+      change
+        (if (z.2 : WithTop ℝ≥0) ≤ tau z.1 then eta.process z.2 z.1 else 0) -
+            (if (z.2 : WithTop ℝ≥0) ≤ tau z.1 then xi.process z.2 z.1 else 0) = 0
+      rw [if_neg hactive, if_neg hactive]
+      exact sub_self 0
+  rw [eLpNorm_congr_ae hEq]
+  exact eLpNorm_indicator_le _
+
+/-- Specialization of the contraction to a dyadic elementary approximant and
+its legal closed random stop. -/
+theorem norm_stoppedElementary_sub_target_le [IsFiniteMeasure mu]
+    (eta target : ProgressiveL2Integrand filtration mu T)
+    (q : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : StoppingTime.IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (htarget :
+      processFunction target.process =ᵐ[processTimeMeasure mu T]
+        processFunction (stoppedIntegrand eta.process
+          (fun w => (tau w : WithTop ℝ≥0)))) :
+    ‖(stoppedProgressiveL2 (mu := mu) q tau htau htauT).toLp - target.toLp‖ ≤
+      ‖q.toLp mu - eta.toLp‖ := by
+  let qL2 := toProgressiveL2 q.process mu T
+  let qStop := stoppedProgressiveL2 (mu := mu) q tau htau htauT
+  have hqStop :
+      processFunction qStop.process =ᵐ[processTimeMeasure mu T]
+        processFunction (stoppedIntegrand qL2.process
+          (fun w => (tau w : WithTop ℝ≥0))) := by
+    filter_upwards [] with z
+    simp [qStop, qL2, processFunction]
+  have hcontract := norm_stopped_sub_le qL2 eta qStop target
+    (fun w => (tau w : WithTop ℝ≥0)) hqStop htarget
+  simpa only [qL2, qStop, DyadicElementaryProcess.toLp,
+    ProgressiveL2Integrand.toLp] using hcontract
+
+/-- Closed stopping preserves convergence of the canonical elementary density
+sequence.  This is the analytic extension step needed before stochastic
+integration can be commuted with a bounded random stopping time for an arbitrary
+progressive `L²` integrand. -/
+theorem tendsto_stoppedCanonicalApprox_toLp [IsFiniteMeasure mu]
+    (eta target : ProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (tau : Omega → ℝ≥0)
+    (htau : StoppingTime.IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (htarget :
+      processFunction target.process =ᵐ[processTimeMeasure mu T]
+        processFunction (stoppedIntegrand eta.process
+          (fun w => (tau w : WithTop ℝ≥0)))) :
+    Tendsto
+      (fun n =>
+        (stoppedProgressiveL2 (mu := mu)
+          (canonicalElementaryApprox eta hT n) tau htau htauT).toLp)
+      atTop (𝓝 target.toLp) := by
+  apply tendsto_iff_norm_sub_tendsto_zero.mpr
+  apply squeeze_zero
+    (fun n => norm_nonneg
+      ((stoppedProgressiveL2 (mu := mu)
+        (canonicalElementaryApprox eta hT n) tau htau htauT).toLp - target.toLp))
+    (fun n => norm_stoppedElementary_sub_target_le eta target
+      (canonicalElementaryApprox eta hT n) tau htau htauT htarget)
+  exact tendsto_iff_norm_sub_tendsto_zero.mp
+    (tendsto_canonicalElementaryApprox_toLp eta hT)
+
+end RandomStoppingL2Contraction
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

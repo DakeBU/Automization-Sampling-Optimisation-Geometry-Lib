@@ -1,0 +1,82 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangle
+import Mathlib.Tactic
+
+/-!
+# Exact Wasserstein triangle inequality
+
+`WassersteinTriangle` contains the transport-theoretic content: gluing two
+strictly near-optimal plans and applying the `L²` Minkowski inequality.  This
+module performs only the final order closure in `ℝ≥0∞`.
+
+The closure is done one threshold at a time.  This avoids splitting an
+`ENNReal` epsilon in half and makes the proof work uniformly with the `∞`
+branch handled by `ENNReal.le_of_forall_pos_le_add`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace WassersteinTriangleExact
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+  [StandardBorelSpace E] [Nonempty E]
+
+/-- Close the second strict threshold while keeping the first one fixed. -/
+theorem wassersteinDistance_le_add_of_lt_left
+    (μ₁ μ₂ μ₃ : Measure E)
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂] [IsProbabilityMeasure μ₃]
+    {r₁₂ : ℝ≥0∞}
+    (hr₁₂ : WassersteinSpace.wassersteinDistance μ₁ μ₂ < r₁₂) :
+    WassersteinSpace.wassersteinDistance μ₁ μ₃ ≤
+      r₁₂ + WassersteinSpace.wassersteinDistance μ₂ μ₃ := by
+  apply ENNReal.le_of_forall_pos_le_add
+  intro ε hε hfinite
+  have h23finite : WassersteinSpace.wassersteinDistance μ₂ μ₃ < ∞ :=
+    (ENNReal.add_lt_top.mp hfinite).2
+  have hεne : (ε : ℝ≥0∞) ≠ 0 := by
+    exact_mod_cast (ne_of_gt hε)
+  have h23lt :
+      WassersteinSpace.wassersteinDistance μ₂ μ₃ <
+        WassersteinSpace.wassersteinDistance μ₂ μ₃ + (ε : ℝ≥0∞) :=
+    ENNReal.lt_add_right h23finite.ne hεne
+  have hstrict :=
+    WassersteinTriangle.wassersteinDistance_lt_add_of_lt
+      μ₁ μ₂ μ₃ hr₁₂ h23lt
+  exact (by
+    simpa [add_assoc] using hstrict.le)
+
+/-- Chewi's `W₂` triangle inequality, obtained by closing the remaining strict
+threshold after the transport/gluing/Minkowski join. -/
+theorem wassersteinDistance_triangle
+    (μ₁ μ₂ μ₃ : Measure E)
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂] [IsProbabilityMeasure μ₃] :
+    WassersteinSpace.wassersteinDistance μ₁ μ₃ ≤
+      WassersteinSpace.wassersteinDistance μ₁ μ₂ +
+        WassersteinSpace.wassersteinDistance μ₂ μ₃ := by
+  apply ENNReal.le_of_forall_pos_le_add
+  intro ε hε hfinite
+  have h12finite : WassersteinSpace.wassersteinDistance μ₁ μ₂ < ∞ :=
+    (ENNReal.add_lt_top.mp hfinite).1
+  have hεne : (ε : ℝ≥0∞) ≠ 0 := by
+    exact_mod_cast (ne_of_gt hε)
+  have h12lt :
+      WassersteinSpace.wassersteinDistance μ₁ μ₂ <
+        WassersteinSpace.wassersteinDistance μ₁ μ₂ + (ε : ℝ≥0∞) :=
+    ENNReal.lt_add_right h12finite.ne hεne
+  have hclosedSecond :=
+    wassersteinDistance_le_add_of_lt_left μ₁ μ₂ μ₃ h12lt
+  exact (by
+    simpa [add_assoc, add_left_comm, add_comm] using hclosedSecond)
+
+end
+
+end WassersteinTriangleExact
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

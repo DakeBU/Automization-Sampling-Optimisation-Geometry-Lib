@@ -1,0 +1,22 @@
+theorem reflected_conditional_covariance {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2) (hη : 0 < η) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    let s := fun y u : E => -(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -
+      (1/(4*η)) • innerSL ℝ (y-u)
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧
+      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →
+        ∀ y, Integrable (s y) (S y) ∧ Integrable (fun u => f u • s y u) (S y) ∧
+          HasFDerivAt (fun z => ∫ u, f u ∂S z)
+            ((∫ u, f u • s y u ∂S y) -
+              (∫ u, f u ∂S y) • (∫ u, s y u ∂S y)) y 

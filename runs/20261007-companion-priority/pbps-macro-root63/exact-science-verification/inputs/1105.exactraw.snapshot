@@ -1,0 +1,114 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedIntegrand
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+/-!
+# Boundary bridge for canonical energy stopping
+
+Canonical energy truncation uses the strict convention
+`completedEnergy t < level`, hence it switches off at the first hitting time.
+Chewi's generic stopped-integrand notation uses the closed convention
+`t ≤ tau`.  The two conventions differ only on the graph of the stopping time.
+
+This module isolates that boundary issue before any `L²` or stochastic-integral
+argument.  First we prove exact pointwise equality away from the hitting time;
+then we remove the hitting-time and terminal singletons under finite Lebesgue
+time measure.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EnergyStoppingBoundaryBridge
+
+open MeasureTheory Set
+open scoped NNReal
+
+open CanonicalEnergyLocalizer CompletedEnergy EnergyStoppedIntegrand
+  LocalProgressiveL2 ProgressiveL2
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Away from the smaller hitting-time boundary and before the terminal
+horizon, stopping a larger energy truncation at the smaller canonical hitting
+time is exactly the smaller energy truncation. -/
+theorem energyStoppedIntegrand_eq_closedStop_larger_of_ne_boundary
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {c d : ℝ} (hc : 0 ≤ c) (hcd : c ≤ d)
+    (omega : Omega) {s : ℝ≥0} (hsT : s < T)
+    (hsne : s ≠ canonicalEnergyLocalizer hUsual eta c omega) :
+    energyStoppedIntegrand hUsual eta c s omega =
+      stoppedIntegrand
+        (energyStoppedIntegrand hUsual eta d)
+        (fun w =>
+          (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))
+        s omega := by
+  have hiff := completedEnergy_lt_iff_lt_canonicalEnergyLocalizer
+    hUsual eta hc omega hsT
+  by_cases hsτ : s < canonicalEnergyLocalizer hUsual eta c omega
+  · have hEc : completedEnergy hUsual eta s omega < c := hiff.mpr hsτ
+    have hEd : completedEnergy hUsual eta s omega < d := hEc.trans_le hcd
+    have hsle :
+        (s : WithTop ℝ≥0) ≤
+          (canonicalEnergyLocalizer hUsual eta c omega : WithTop ℝ≥0) := by
+      exact_mod_cast hsτ.le
+    rw [energyStoppedIntegrand, if_pos hEc]
+    change CompletedIntegrand.completedIntegrand hUsual eta s omega =
+      if (s : WithTop ℝ≥0) ≤
+          (canonicalEnergyLocalizer hUsual eta c omega : WithTop ℝ≥0) then
+        energyStoppedIntegrand hUsual eta d s omega
+      else 0
+    rw [if_pos hsle, energyStoppedIntegrand, if_pos hEd]
+  · have hEc : ¬ completedEnergy hUsual eta s omega < c := by
+      intro hbelow
+      exact hsτ (hiff.mp hbelow)
+    have hτs : canonicalEnergyLocalizer hUsual eta c omega < s := by
+      exact lt_of_le_of_ne (le_of_not_gt hsτ) (Ne.symm hsne)
+    have hnle :
+        ¬ (s : WithTop ℝ≥0) ≤
+          (canonicalEnergyLocalizer hUsual eta c omega : WithTop ℝ≥0) := by
+      exact_mod_cast (not_le_of_gt hτs)
+    rw [energyStoppedIntegrand, if_neg hEc]
+    change 0 =
+      if (s : WithTop ℝ≥0) ≤
+          (canonicalEnergyLocalizer hUsual eta c omega : WithTop ℝ≥0) then
+        energyStoppedIntegrand hUsual eta d s omega
+      else 0
+    rw [if_neg hnle]
+
+/-- For every fixed sample path, the strict canonical truncation and the closed
+stopping of any larger truncation agree for almost every time in `[0,T]`.
+Only the hitting-time singleton and the terminal singleton are discarded. -/
+theorem energyStoppedIntegrand_ae_eq_closedStop_larger
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {c d : ℝ} (hc : 0 ≤ c) (hcd : c ≤ d)
+    (omega : Omega) :
+    (fun s => energyStoppedIntegrand hUsual eta c s omega) =ᵐ[TimeMeasure.upTo T]
+      (fun s =>
+        stoppedIntegrand
+          (energyStoppedIntegrand hUsual eta d)
+          (fun w =>
+            (canonicalEnergyLocalizer hUsual eta c w : WithTop ℝ≥0))
+          s omega) := by
+  have hneTau :
+      ∀ᵐ s ∂(TimeMeasure.upTo T),
+        s ≠ canonicalEnergyLocalizer hUsual eta c omega := by
+    rw [ae_iff]
+    simpa using TimeMeasure.upTo_singleton T
+      (canonicalEnergyLocalizer hUsual eta c omega)
+  have hneT : ∀ᵐ s ∂(TimeMeasure.upTo T), s ≠ T := by
+    rw [ae_iff]
+    simpa using TimeMeasure.upTo_singleton T T
+  filter_upwards [TimeMeasure.ae_le_terminal T, hneTau, hneT]
+    with s hsT hsne hsneT
+  have hsTlt : s < T := lt_of_le_of_ne hsT hsneT
+  exact energyStoppedIntegrand_eq_closedStop_larger_of_ne_boundary
+    hUsual eta hc hcd omega hsTlt hsne
+
+end EnergyStoppingBoundaryBridge
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,161 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LangevinCarreDuChamp
+import Mathlib.Tactic
+
+/-!
+# Concrete Langevin Gamma edge for canonical relative Fisher
+
+This file discharges the concrete diffusion half of the Chapter 1.2
+Dirichlet--Fisher bridge without pretending that the displayed Langevin
+differential expression is a globally defined linear generator on arbitrary
+functions.
+
+The actual generator stays abstract.  We ask only that it agrees with
+
+`L_V f = Delta f - <grad V, grad f>`
+
+on the three observables used by the canonical density/log-ratio pair:
+
+* `rho = d mu / d pi`;
+* `r = log (d mu / d pi)`;
+* `rho * r`.
+
+Together with `C^2` regularity and the score chain rule
+
+`grad rho = rho * grad r`,
+
+Chewi Example 1.2.17 then gives
+
+`Gamma_L(rho,r) = rho * ||grad r||^2`
+
+`pi`-almost everywhere.  This is exactly the concrete contract consumed by
+`CanonicalDirichletFisher`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace LangevinCanonicalFisherGamma
+
+open MeasureTheory
+open scoped RealInnerProductSpace
+
+noncomputable section
+
+/-- Local generator-domain agreement needed for the canonical density/log-ratio
+pair.  No assertion is made about arbitrary observables or about a closed
+operator domain. -/
+structure SmoothCanonicalPairDomain
+    {n : ℕ}
+    (V : EuclideanSpace ℝ (Fin (n + 1)) → ℝ)
+    (mu pi : Measure (EuclideanSpace ℝ (Fin (n + 1))))
+    (generator :
+      (EuclideanSpace ℝ (Fin (n + 1)) → ℝ) →ₗ[ℝ]
+        (EuclideanSpace ℝ (Fin (n + 1)) → ℝ)) : Prop where
+  density_contDiff :
+    ContDiff ℝ 2
+      (InformationTheory.RNLogRatio.density mu pi)
+  logRatio_contDiff :
+    ContDiff ℝ 2
+      (InformationTheory.RNLogRatio.logRatio mu pi)
+  generator_density :
+    generator (InformationTheory.RNLogRatio.density mu pi) =
+      LangevinGenerator.operator V
+        (InformationTheory.RNLogRatio.density mu pi)
+  generator_logRatio :
+    generator (InformationTheory.RNLogRatio.logRatio mu pi) =
+      LangevinGenerator.operator V
+        (InformationTheory.RNLogRatio.logRatio mu pi)
+  generator_density_mul_logRatio :
+    generator
+        (InformationTheory.RNLogRatio.density mu pi *
+          InformationTheory.RNLogRatio.logRatio mu pi) =
+      LangevinGenerator.operator V
+        (InformationTheory.RNLogRatio.density mu pi *
+          InformationTheory.RNLogRatio.logRatio mu pi)
+  score_chain_ae :
+    ∀ᵐ x ∂pi,
+      gradient (InformationTheory.RNLogRatio.density mu pi) x =
+        InformationTheory.RNLogRatio.density mu pi x •
+          gradient (InformationTheory.RNLogRatio.logRatio mu pi) x
+
+/-- Abstract carré du champ of the actual generator agrees almost everywhere
+with the concrete Langevin gradient inner product on the canonical pair. -/
+theorem carreDuChamp_density_logRatio_eq_inner_ae
+    {n : ℕ}
+    (V : EuclideanSpace ℝ (Fin (n + 1)) → ℝ)
+    (mu pi : Measure (EuclideanSpace ℝ (Fin (n + 1))))
+    (generator :
+      (EuclideanSpace ℝ (Fin (n + 1)) → ℝ) →ₗ[ℝ]
+        (EuclideanSpace ℝ (Fin (n + 1)) → ℝ))
+    (h : SmoothCanonicalPairDomain V mu pi generator) :
+    ∀ᵐ x ∂pi,
+      CarreDuChamp.carreDuChamp generator
+          (InformationTheory.RNLogRatio.density mu pi)
+          (InformationTheory.RNLogRatio.logRatio mu pi) x =
+        inner ℝ
+          (gradient (InformationTheory.RNLogRatio.density mu pi) x)
+          (gradient (InformationTheory.RNLogRatio.logRatio mu pi) x) := by
+  filter_upwards with x
+  rw [CarreDuChamp.carreDuChamp,
+    h.generator_density_mul_logRatio,
+    h.generator_logRatio,
+    h.generator_density]
+  exact LangevinCarreDuChamp.langevinCarreDuChamp_eq_inner
+    V
+    (InformationTheory.RNLogRatio.density mu pi)
+    (InformationTheory.RNLogRatio.logRatio mu pi)
+    h.density_contDiff h.logRatio_contDiff x
+
+/-- The local operator agreement plus the score chain rule discharges the
+canonical Fisher-Gamma contract used by the abstract Dirichlet layer. -/
+theorem hasCanonicalFisherGamma
+    {n : ℕ}
+    (V : EuclideanSpace ℝ (Fin (n + 1)) → ℝ)
+    (mu pi : Measure (EuclideanSpace ℝ (Fin (n + 1))))
+    (generator :
+      (EuclideanSpace ℝ (Fin (n + 1)) → ℝ) →ₗ[ℝ]
+        (EuclideanSpace ℝ (Fin (n + 1)) → ℝ))
+    (h : SmoothCanonicalPairDomain V mu pi generator) :
+    InformationTheory.CanonicalDirichletFisher.HasCanonicalFisherGamma
+      mu pi generator := by
+  filter_upwards
+      [carreDuChamp_density_logRatio_eq_inner_ae V mu pi generator h,
+        h.score_chain_ae] with x hgamma hchain
+  rw [hgamma, hchain]
+  unfold InformationTheory.CanonicalRelativeFisher.scoreSq
+  rw [real_inner_smul_left, real_inner_self_eq_norm_sq]
+
+/-- Concrete Langevin specialization of the canonical Dirichlet--Fisher edge.
+All remaining obligations are now visibly split between the smooth local
+operator-domain contract and the abstract pairwise stationarity/symmetry
+contract. -/
+theorem dirichletForm_density_logRatio_eq_information
+    {n : ℕ}
+    (V : EuclideanSpace ℝ (Fin (n + 1)) → ℝ)
+    (mu pi : Measure (EuclideanSpace ℝ (Fin (n + 1))))
+    [SigmaFinite mu] [Measure.HaveLebesgueDecomposition mu pi]
+    (generator :
+      (EuclideanSpace ℝ (Fin (n + 1)) → ℝ) →ₗ[ℝ]
+        (EuclideanSpace ℝ (Fin (n + 1)) → ℝ))
+    (hscore :
+      InformationTheory.CanonicalRelativeFisher.SmoothFiniteScoreDomain mu pi)
+    (hpair :
+      InformationTheory.CanonicalDirichletFisher.DirichletPairDomain
+        mu pi generator)
+    (hlangevin : SmoothCanonicalPairDomain V mu pi generator) :
+    FunctionalInequalities.Generator.dirichletForm pi generator
+        (InformationTheory.RNLogRatio.density mu pi)
+        (InformationTheory.RNLogRatio.logRatio mu pi) =
+      InformationTheory.CanonicalRelativeFisher.information mu pi hscore := by
+  exact
+    InformationTheory.CanonicalDirichletFisher.dirichletForm_density_logRatio_eq_information
+      mu pi generator hscore hpair
+        (hasCanonicalFisherGamma V mu pi generator hlangevin)
+
+end
+
+end LangevinCanonicalFisherGamma
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

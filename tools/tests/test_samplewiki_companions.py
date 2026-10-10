@@ -18,14 +18,18 @@ class CompanionTests(unittest.TestCase):
         companion.validate_data()
         cross_domain.validate_data()
 
-    def test_three_sources_keep_the_two_paper_composition_separate(self):
+    def test_four_sources_keep_the_two_paper_composition_separate(self):
         m=companion.load()
-        self.assertEqual(len(m['sources']),3)
-        self.assertEqual(len(m['cases']),3)
+        self.assertEqual(len(m['sources']),4)
+        self.assertEqual(len(m['cases']),4)
         self.assertEqual(set(m['composition']['source_ids']),{'sphmc-2026','pbps-2026'})
         cloud=next(row for row in m['cases'] if row['id']=='ASTIS-SW-GAUSSIAN-CLOUD-2026')
         self.assertEqual(cloud['source_ids'],['gaussian-cloud-2026'])
         self.assertIn('bookkeeping',cloud)
+        midpoint=next(row for row in m['cases'] if row['id']=='ASTIS-SW-MIDPOINT-2026')
+        self.assertEqual(midpoint['source_ids'],['midpoint-2026'])
+        self.assertEqual(midpoint['status'],'planned')
+        self.assertEqual(m['sources']['midpoint-2026']['version'],'2610.06308v1')
         snapshot=json.loads((ROOT/'research-wiki/source-index/SampleWiki_cases.json').read_text(encoding='utf8'))
         self.assertEqual(len(snapshot['cases']),34)
         active=json.loads((ROOT/'website/content/samplewiki_reader.json').read_text(encoding='utf8'))
@@ -71,8 +75,8 @@ class CompanionTests(unittest.TestCase):
 
     def test_overlay_does_not_create_compiler_edges(self):
         b=GraphBuilder(); counts=companion.add_to_graph(b)
-        self.assertEqual(counts,{'source_cases':3,'composition_views':1,'technology_candidates':12})
-        self.assertEqual(len(b.nodes),19)
+        self.assertEqual(counts,{'source_cases':4,'composition_views':1,'technology_candidates':12})
+        self.assertEqual(len(b.nodes),20)
         self.assertFalse(any(n.get('status')=='compiled' for n in b.nodes.values()))
         formal={'imports','declares','depends-on','closes leaf'}
         self.assertFalse(any(e['relation'] in formal for e in b.edges.values()))

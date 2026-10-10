@@ -1,0 +1,146 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingClosedChainMonotonicity
+import Mathlib.Order.ConditionallyCompleteLattice.Basic
+import Mathlib.Topology.Order.WithTop
+
+/-!
+# List-based proper Rockafellar potential
+
+This module starts the convex-potential side of the Brenier frontier from the
+canonical ASTIS list interface.  A rooted nonempty chain of pair points in
+`Gamma` contributes its affine `PairingClosedChain.chainValue`; the potential is
+the supremum of all such real values inside `WithTop ℝ`.
+
+The first theorem boundary is deliberately small.  Under closed-chain
+nonpositivity, the chosen root has potential exactly zero, hence the extended
+potential is proper in the minimal sense that its finite domain is nonempty.
+Convexity, lower semicontinuity, and subgradient containment are downstream
+nodes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingRockafellarPotential
+
+open PairingClosedChain PairingClosedChainMonotonicity
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Real values generated at `x` by nonempty chains rooted at `base` whose pair
+points all belong to `Gamma`. -/
+def rockafellarValueSet
+    (base : E × E) (Gamma : Set (E × E)) (x : E) : Set ℝ :=
+  {r | ∃ l : List (E × E),
+      l ≠ [] ∧ l.head? = some base ∧
+        List.Forall (fun p => p ∈ Gamma) l ∧
+        r = chainValue l x}
+
+/-- The same rooted finite-chain values embedded in `WithTop ℝ`. -/
+def properRockafellarValueSet
+    (base : E × E) (Gamma : Set (E × E)) (x : E) : Set (WithTop ℝ) :=
+  ((↑) : ℝ → WithTop ℝ) '' rockafellarValueSet base Gamma x
+
+/-- Extended-real Rockafellar candidate.  `⊤` records target points at which the
+rooted affine chain values are unbounded above. -/
+noncomputable def properRockafellarPotential
+    (base : E × E) (Gamma : Set (E × E)) (x : E) : WithTop ℝ :=
+  sSup (properRockafellarValueSet base Gamma x)
+
+/-- Finite/effective domain of an extended real potential. -/
+def EffectiveDomain (Phi : E → WithTop ℝ) : Set E :=
+  {x | Phi x < ⊤}
+
+/-- The singleton root chain contributes its supporting affine functional. -/
+theorem singleton_mem_rockafellarValueSet
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma) (x : E) :
+    inner ℝ base.2 (x - base.1) ∈ rockafellarValueSet base Gamma x := by
+  refine ⟨[base], by simp, by simp, ?_, ?_⟩
+  · simp [hbase]
+  · simp [chainValue]
+
+/-- Hence every rooted real value set is nonempty once the root belongs to the
+relation. -/
+theorem rockafellarValueSet_nonempty
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma) (x : E) :
+    (rockafellarValueSet base Gamma x).Nonempty :=
+  ⟨_, singleton_mem_rockafellarValueSet hbase x⟩
+
+/-- The extended value set is nonempty for the same reason. -/
+theorem properRockafellarValueSet_nonempty
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma) (x : E) :
+    (properRockafellarValueSet base Gamma x).Nonempty := by
+  rcases rockafellarValueSet_nonempty hbase x with ⟨r, hr⟩
+  exact ⟨(r : WithTop ℝ), ⟨r, hr, rfl⟩⟩
+
+/-- Closed-chain nonpositivity bounds every real rooted chain value at the root
+by zero. -/
+theorem rockafellarValueSet_at_root_nonpos
+    {base : E × E} {Gamma : Set (E × E)}
+    (hclosed : PairingClosedChainMonotone Gamma)
+    {r : ℝ} (hr : r ∈ rockafellarValueSet base Gamma base.1) :
+    r ≤ 0 := by
+  rcases hr with ⟨l, hlne, hhead, hforall, rfl⟩
+  exact hclosed hlne hhead hforall
+
+/-- At the root, zero is the greatest extended rooted-chain value: the singleton
+chain attains zero and every closed chain is nonpositive. -/
+theorem isGreatest_zero_properRockafellarValueSet_at_root
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChainMonotone Gamma) :
+    IsGreatest (properRockafellarValueSet base Gamma base.1) (0 : WithTop ℝ) := by
+  constructor
+  · refine ⟨(0 : ℝ), ?_, by simp⟩
+    simpa using singleton_mem_rockafellarValueSet hbase base.1
+  · intro u hu
+    rcases hu with ⟨r, hr, rfl⟩
+    exact WithTop.coe_le_coe.mpr (rockafellarValueSet_at_root_nonpos hclosed hr)
+
+/-- The proper Rockafellar candidate is normalized to zero at its chosen root. -/
+theorem properRockafellarPotential_at_root_eq_zero
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChainMonotone Gamma) :
+    properRockafellarPotential base Gamma base.1 = 0 := by
+  have hgreatest :=
+    isGreatest_zero_properRockafellarValueSet_at_root hbase hclosed
+  simpa [properRockafellarPotential] using hgreatest.csSup_eq
+
+/-- Therefore the root belongs to the finite domain of the extended potential. -/
+theorem root_mem_effectiveDomain
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChainMonotone Gamma) :
+    base.1 ∈ EffectiveDomain (properRockafellarPotential base Gamma) := by
+  change properRockafellarPotential base Gamma base.1 < ⊤
+  rw [properRockafellarPotential_at_root_eq_zero hbase hclosed]
+  simp
+
+/-- In particular, the finite domain is nonempty. -/
+theorem effectiveDomain_nonempty
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChainMonotone Gamma) :
+    (EffectiveDomain (properRockafellarPotential base Gamma)).Nonempty :=
+  ⟨base.1, root_mem_effectiveDomain hbase hclosed⟩
+
+/-- Direct composition from the transport-produced distinct-cycle condition. -/
+theorem properRockafellarPotential_at_root_eq_zero_of_distinct
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hmono : PairingDistinctCycleMonotone Gamma) :
+    properRockafellarPotential base Gamma base.1 = 0 :=
+  properRockafellarPotential_at_root_eq_zero hbase
+    (pairingClosedChainMonotone_of_distinct hmono)
+
+end
+
+end PairingRockafellarPotential
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

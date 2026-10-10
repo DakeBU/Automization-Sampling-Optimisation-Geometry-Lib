@@ -1,0 +1,9 @@
+Recommendation: one genuine pointwise reflected Gibbs-law + literal source mean C1 integration node. Reuse exported VERIFIED AffineGibbs.map_affine_gibbs; no copied transport/Jacobian proof. Existing true Gibbs positive-partition output supplies exp(-V)L1 and mu probability; tilted_tilted + affine s=2,p=-y + exact quadratic exponent algebra establish S_y=R_y.map(2x-y) for EVERY y. Exact public52 then gives source mean C1 after52 independent admission.
+
+Jacobian j=2^-finrank; Z_R=j Z_S and original Gibbs ZV cancels in posterior composition. Rank0 has j=1 and literal mean constant. No AE conditional-version substitution for derivatives.
+
+Minimal sufficient background binders: finite real Hilbert/Borel E, positive lower Hessian alpha, C2 V, eta>0, signed C1compact f. Source upperHessian beta/eta cap remain standing paper assumptions; this analytic edge does not use them. No partition/probability/L1/map/Jacobian/law/C1/closure certificate is added. Exact prospective shape is text only, not a claim or Lean implementation.
+
+Public producer status: affine historical VERIFIED36bdaa8404ff4b716dd0bf8e8844f2f02f43f2e4 and current LF blob match; new52 only exact497 public header read, independent exactcommit verification ongoing according root, so no VERIFIED52 credit. Actual50 EVERY-y source density output remains downstream same-witness consumer. Rough H1/B13/Gamma/main/cost excluded.
+
+source-contract.json gives six-step route, exact source/API anchors, hidden domains and honest existing-parent/local proof exposure. public-API-bindings.json/input-bindings.json bind raw/LF current headers and selected old status, without52body. run.json uses sorted compact JSON whole object minus run_sha256; lease.json is actual own closure, historical52 originals/errata immutable. No compiler/proof/claim/canonical edit/self-admission.

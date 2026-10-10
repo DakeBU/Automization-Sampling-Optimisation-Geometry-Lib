@@ -1,0 +1,108 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonSlicePermutationReplacement
+import AutoSamplingTheory.TechnicalLemmas.Measure.FiniteRemainder
+import AutoSamplingTheory.TechnicalLemmas.Measure.FiniteSumDomination
+import AutoSamplingTheory.TechnicalLemmas.Measure.ReplacementCompetitor
+
+/-!
+# Canonical global finite-measure replacement competitor
+
+This is the first full measure-algebra composition node in the direct Brenier
+perturbation.
+
+Given finitely many positive local joint blocks whose total mass is dominated
+by an ambient joint finite measure, we:
+
+1. slice every local block down to their common positive mass;
+2. sum those slices into the removed block;
+3. re-pair their target marginals by an arbitrary permutation;
+4. subtract the removed block from the ambient measure to obtain a remainder;
+5. add the re-paired replacement to that remainder.
+
+The resulting competitor has exactly the same first and second marginals as the
+ambient joint measure.
+
+No transport-cost comparison or optimality is used here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CanonicalGlobalCompetitor
+
+open MeasureTheory
+open CommonMassSliceFamily CommonSlicePermutationReplacement
+open FiniteRemainder FiniteSumDomination ReplacementCompetitor
+open scoped BigOperators
+
+noncomputable section
+
+variable {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+
+/-- The canonical ambient competitor associated with positive local blocks and
+a target-marginal permutation. -/
+noncomputable def canonicalGlobalCompetitor {n : ℕ}
+    (ambient : FiniteMeasure (X × Y))
+    (localBlock : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) : FiniteMeasure (X × Y) :=
+  replacementCompetitor
+    (finiteRemainder ambient (commonSliceRemoved localBlock))
+    (commonSlicePermutationReplacement localBlock σ)
+
+/-- The canonical common-mass removed sum is dominated by the ambient measure
+whenever the original local-block sum is dominated by the ambient measure. -/
+theorem commonSliceRemoved_toMeasure_le_ambient {n : ℕ}
+    (ambient : FiniteMeasure (X × Y))
+    (localBlock : Fin (n + 1) → FiniteMeasure (X × Y))
+    (hpos : ∀ i, 0 < (localBlock i).mass)
+    (hlocal : ((∑ i, localBlock i : FiniteMeasure (X × Y)) : Measure (X × Y)) ≤
+      (ambient : Measure (X × Y))) :
+    (commonSliceRemoved localBlock : Measure (X × Y)) ≤
+      (ambient : Measure (X × Y)) := by
+  unfold commonSliceRemoved
+  exact toMeasure_fintypeSum_le_ambient
+    (fun i => commonMassSliceFamily localBlock i) localBlock ambient
+    (fun i => commonMassSliceFamily_toMeasure_le localBlock hpos i) hlocal
+
+/-- The ambient measure decomposes into the canonical remainder plus the
+canonical removed common-mass slice sum. -/
+theorem ambient_eq_remainder_add_commonSliceRemoved {n : ℕ}
+    (ambient : FiniteMeasure (X × Y))
+    (localBlock : Fin (n + 1) → FiniteMeasure (X × Y))
+    (hpos : ∀ i, 0 < (localBlock i).mass)
+    (hlocal : ((∑ i, localBlock i : FiniteMeasure (X × Y)) : Measure (X × Y)) ≤
+      (ambient : Measure (X × Y))) :
+    ambient = finiteRemainder ambient (commonSliceRemoved localBlock) +
+      commonSliceRemoved localBlock := by
+  exact ambient_eq_finiteRemainder_add_removed ambient (commonSliceRemoved localBlock)
+    (commonSliceRemoved_toMeasure_le_ambient ambient localBlock hpos hlocal)
+
+/-- The canonical global competitor preserves both marginals of the ambient
+joint finite measure. -/
+theorem canonicalGlobalCompetitor_preserves_marginals {n : ℕ}
+    (ambient : FiniteMeasure (X × Y))
+    (localBlock : Fin (n + 1) → FiniteMeasure (X × Y))
+    (hpos : ∀ i, 0 < (localBlock i).mass)
+    (hlocal : ((∑ i, localBlock i : FiniteMeasure (X × Y)) : Measure (X × Y)) ≤
+      (ambient : Measure (X × Y)))
+    (σ : Equiv.Perm (Fin (n + 1))) :
+    (canonicalGlobalCompetitor ambient localBlock σ).map Prod.fst =
+        ambient.map Prod.fst ∧
+      (canonicalGlobalCompetitor ambient localBlock σ).map Prod.snd =
+        ambient.map Prod.snd := by
+  have hdecomp := ambient_eq_remainder_add_commonSliceRemoved
+    ambient localBlock hpos hlocal
+  have hmarg :=
+    commonSlicePermutationReplacement_preserves_removed_marginals localBlock hpos σ
+  exact replacementCompetitor_preserves_marginals
+    ambient
+    (finiteRemainder ambient (commonSliceRemoved localBlock))
+    (commonSliceRemoved localBlock)
+    (commonSlicePermutationReplacement localBlock σ)
+    hdecomp hmarg.1 hmarg.2
+
+end
+
+end CanonicalGlobalCompetitor
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

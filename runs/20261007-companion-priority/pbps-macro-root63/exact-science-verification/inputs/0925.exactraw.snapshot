@@ -1,0 +1,116 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.MeasurableGradient
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalRelativeFisher
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementRealQuadraticCost
+import Mathlib.MeasureTheory.Function.L2Space
+
+/-!
+# Canonical relative score paired with a transport coupling
+
+This is the analytic Cauchy--Schwarz substep used in Chewi's Theorem 8.4.1
+proof (August 9, 2026 edition, printed p.221 / PDF p.233). It joins the
+existing canonical RN score, coupling marginals and quadratic Wasserstein
+cost. Pairing integrability is produced from the score domain and moments.
+
+No KL first variation, displacement convexity, optimal-coupling existence or
+heat-flow regularity is proved here. The existing smooth finite score domain
+is retained; this is not a Sobolev or extended-valued Fisher definition.
+The pure L2 estimate needs no probability or sigma-finiteness assumptions.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalFisherTransportPairing
+
+open MeasureTheory
+open scoped RealInnerProductSpace
+open TechnicalLemmas.Measure CanonicalRelativeFisher
+
+noncomputable section
+
+variable {ι : Type*} [Fintype ι]
+  {mu pi nu : Measure (State (ι := ι))}
+  {gamma : Measure (State (ι := ι) × State (ι := ι))}
+
+private theorem memLp_score_and_displacement
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hscore : SmoothFiniteScoreDomain mu pi)
+    (hmu : Integrable (fun x : State (ι := ι) => ‖x‖ ^ 2) mu)
+    (hnu : Integrable (fun x : State (ι := ι) => ‖x‖ ^ 2) nu) :
+    MemLp (fun z => gradient (RNLogRatio.logRatio mu pi) z.1) 2 gamma ∧
+      MemLp (fun z => z.2 - z.1) 2 gamma := by
+  have hscoreM : AEStronglyMeasurable
+      (fun z => gradient (RNLogRatio.logRatio mu pi) z.1) gamma :=
+    ((Analysis.MeasurableGradient.measurable_gradient _).comp measurable_fst).aestronglyMeasurable
+  have hfst := CouplingQuadraticIntegrability.measurePreserving_fst_of_isCoupling hgamma
+  constructor
+  · exact (memLp_two_iff_integrable_sq_norm hscoreM).mpr
+      (hfst.integrable_comp_of_integrable hscore.scoreSq_integrable)
+  · apply (memLp_two_iff_integrable_sq_norm (by fun_prop)).mpr
+    simpa only [norm_sub_rev] using
+      CouplingQuadraticIntegrability.integrable_norm_sub_sq_of_isCoupling hgamma hmu hnu
+
+/-- The canonical relative score paired with displacement is integrable under
+any coupling of finite-second-moment marginals. Optimality is not needed. -/
+theorem integrable_pairing_of_isCoupling
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hscore : SmoothFiniteScoreDomain mu pi)
+    (hmu : Integrable (fun x : State (ι := ι) => ‖x‖ ^ 2) mu)
+    (hnu : Integrable (fun x : State (ι := ι) => ‖x‖ ^ 2) nu) :
+    Integrable (fun z =>
+      ⟪gradient (RNLogRatio.logRatio mu pi) z.1, z.2 - z.1⟫) gamma := by
+  obtain ⟨hs, hd⟩ := memLp_score_and_displacement hgamma hscore hmu hnu
+  exact (hs.norm.integrable_mul hd.norm).mono' (hs.1.inner hd.1)
+    (Filter.Eventually.of_forall fun _ => norm_inner_le_norm _ _)
+
+/-- For an optimal coupling, the absolute canonical score/displacement pairing
+is bounded by the square root of canonical Fisher information times the
+actual Wasserstein distance. The moment hypotheses give integrable cost;
+the optimal real/ENNReal cost identity rules out an infinite W2 cost before
+its real representation is used. -/
+theorem abs_integral_pairing_le_sqrt_information_mul_wasserstein
+    (hgamma : DisplacementInterpolation.IsQuadraticOptimalCoupling gamma mu nu)
+    (hscore : SmoothFiniteScoreDomain mu pi)
+    (hmu : Integrable (fun x : State (ι := ι) => ‖x‖ ^ 2) mu)
+    (hnu : Integrable (fun x : State (ι := ι) => ‖x‖ ^ 2) nu) :
+    |∫ z, ⟪gradient (RNLogRatio.logRatio mu pi) z.1, z.2 - z.1⟫ ∂gamma| ≤
+      Real.sqrt (information mu pi hscore) *
+        (WassersteinSpace.wassersteinDistance mu nu).toReal := by
+  let score := fun z : State (ι := ι) × State (ι := ι) =>
+    gradient (RNLogRatio.logRatio mu pi) z.1
+  let disp := fun z : State (ι := ι) × State (ι := ι) => z.2 - z.1
+  obtain ⟨hscoreL, hdispL⟩ := memLp_score_and_displacement hgamma.1 hscore hmu hnu
+  have hprod : Integrable (fun z => ‖score z‖ * ‖disp z‖) gamma :=
+    hscoreL.norm.integrable_mul hdispL.norm
+  have hpair := integrable_pairing_of_isCoupling hgamma.1 hscore hmu hnu
+  have hcs := integral_mul_norm_le_Lp_mul_Lq (f := score) (g := disp)
+    Real.HolderConjugate.two_two
+    (by simpa using hscoreL) (by simpa using hdispL)
+  have hscoreEq : (∫ z, ‖score z‖ ^ 2 ∂gamma) = information mu pi hscore := by
+    rw [information_eq_integral_scoreSq]
+    have hm : Measurable (scoreSq mu pi) :=
+      (Analysis.MeasurableGradient.measurable_gradient _).norm.pow_const 2
+    have hmap : gamma.map Prod.fst = mu := hgamma.1.1
+    simpa only [hmap, score, scoreSq] using
+      (integral_map (μ := gamma) measurable_fst.aemeasurable hm.aestronglyMeasurable).symm
+  have hcost := CouplingQuadraticIntegrability.integrable_norm_sub_sq_of_isCoupling
+    hgamma.1 hmu hnu
+  have hdispEq : (∫ z, ‖disp z‖ ^ 2 ∂gamma) =
+      (WassersteinSpace.wassersteinDistance mu nu).toReal ^ 2 := by
+    simpa only [disp, norm_sub_rev, ENNReal.toReal_pow] using
+      DisplacementRealQuadraticCost.integral_norm_sq_eq_wassersteinDistance_sq_toReal_of_optimal
+        hgamma hcost
+  change |∫ z, ⟪score z, disp z⟫ ∂gamma| ≤ _
+  calc
+    |∫ z, ⟪score z, disp z⟫ ∂gamma| ≤ ∫ z, ‖⟪score z, disp z⟫‖ ∂gamma := by
+      simpa only [Real.norm_eq_abs] using
+        (norm_integral_le_integral_norm (fun z => ⟪score z, disp z⟫) (μ := gamma))
+    _ ≤ ∫ z, ‖score z‖ * ‖disp z‖ ∂gamma :=
+      integral_mono hpair.norm hprod (fun _ => norm_inner_le_norm _ _)
+    _ ≤ Real.sqrt (∫ z, ‖score z‖ ^ 2 ∂gamma) *
+        Real.sqrt (∫ z, ‖disp z‖ ^ 2 ∂gamma) := by
+      simpa only [Real.sqrt_eq_rpow, Real.rpow_two] using hcs
+    _ = _ := by
+      rw [hscoreEq, hdispEq, Real.sqrt_sq ENNReal.toReal_nonneg]
+
+end
+
+end AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalFisherTransportPairing

@@ -1,0 +1,22 @@
+from pathlib import Path
+import hashlib,json
+root=Path.cwd();b=Path('runs/20261007-companion-priority/pbps-real-defect-root-preproof61');d=b/'independent-preproof61';load=lambda p:json.loads(Path(p).read_bytes());sha=lambda x:hashlib.sha256(x).hexdigest();can=lambda x:json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+def pin(p):
+ p=Path(p);raw=p.read_bytes();lf=raw.replace(b'\r\n',b'\n');return dict(path=p.as_posix(),bytes=len(raw),lf_bytes=len(lf),raw_sha256=sha(raw),lf_sha256=sha(lf))
+seen={}
+def walk(x):
+ if isinstance(x,dict):
+  if {'path','raw_sha256','lf_sha256'}<=x.keys():
+   p=Path(x['path'].replace('\\','/'));actual=pin(p);k=(p.resolve().as_posix().lower(),x['raw_sha256'],x['lf_sha256']);assert all(actual[z]==x[z] for z in ['raw_sha256','lf_sha256','bytes','lf_bytes'] if z in x),x;seen[k]=actual
+  for v in x.values():walk(v)
+ elif isinstance(x,list):
+  for v in x:walk(v)
+run=load(d/'run.json');lease=load(d/'lease.json');review=load(d/'statement-binder.review.json');assert lease['status']=='CLOSED' and lease['closed_last'] and lease['actual_foreground_readback_exit_code']==0
+assert sha(can({k:v for k,v in run.items() if k!='run_sha256'}))==run['run_sha256']==lease['native_run_sha256']=='399fb5058d6312bdd502f1d862a01ef11293c88bc1539184c146f2f7da0a33b8'
+assert pin(d/'named-preproof61.payload.json')['raw_sha256']==run['named_payload_sha256']==lease['named_payload_sha256']=='48c2ff2e48b4a8e2c16b3fc7513881930dd5e24e994327470c599fa798c65cd3'
+assert review['verdict']=='accepted-preproof-source-contract' and review['excess_count']==0 and not review['blocking_deltas'] and not review['repairs']
+for x in [run,lease,review,load(d/'input.manifest.json'),load(d/'source.boundary.before-candidate.json'),load(d/'source.coverage.before-candidate.json')]:walk(x)
+for i in range(2):
+ assert pin(b/f'header{i}.lean')['raw_sha256']==run['exact_headers_sha256'][i];q=load(b/f'type-header{i}/receipt.json');assert q['exit_code']==0 and q['terminal_closed']
+seal=dict(status='STATEMENT61_SEALED_NOT_PROVED',headers=[pin(b/f'header{i}.lean') for i in range(2)],native_run=pin(d/'run.json'),native_lease=pin(d/'lease.json'),named_payload=pin(d/'named-preproof61.payload.json'),review=pin(d/'statement-binder.review.json'),source_graph=pin(d/'source.graph.before-candidate.json'),coverage=pin(d/'source.coverage.before-candidate.json'),unique_qualified_readbacks=len(seen),historical_resolution_count=0,type_elaboration_only=pin(b/'type-only.acceptance.json'),proof_search_preceded_by_this_seal=True,no_proof_credit=True)
+(b/'root.statement-seal61.json').write_text(json.dumps(seal,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n');print('Independent source61 native whole/payload/lease and',len(seen),'exact input-output pins accepted; statement sealed, no proof yet.')

@@ -1,0 +1,167 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2
+
+/-!
+# Algebra of progressive L2 integrands
+
+The source domain for stochastic integration is closed under the real vector
+space operations.  This file keeps those operations at the representative
+process level and proves compatibility with the canonical product-space `Lp`
+representative.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ProgressiveL2Algebra
+
+open MeasureTheory
+open scoped NNReal
+
+open ElementaryItoIntegral ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+def zero : ProgressiveL2Integrand filtration mu T where
+  process := fun _ _ => 0
+  progressive := isStronglyProgressive_const filtration 0
+  memLp := MemLp.zero
+
+def add (eta xi : ProgressiveL2Integrand filtration mu T) :
+    ProgressiveL2Integrand filtration mu T where
+  process := fun t omega => eta.process t omega + xi.process t omega
+  progressive := eta.progressive.add xi.progressive
+  memLp := eta.memLp.add xi.memLp
+
+def neg (eta : ProgressiveL2Integrand filtration mu T) :
+    ProgressiveL2Integrand filtration mu T where
+  process := fun t omega => -eta.process t omega
+  progressive := eta.progressive.neg
+  memLp := eta.memLp.neg
+
+def sub (eta xi : ProgressiveL2Integrand filtration mu T) :
+    ProgressiveL2Integrand filtration mu T where
+  process := fun t omega => eta.process t omega - xi.process t omega
+  progressive := eta.progressive.sub xi.progressive
+  memLp := eta.memLp.sub xi.memLp
+
+def smul (c : ℝ) (eta : ProgressiveL2Integrand filtration mu T) :
+    ProgressiveL2Integrand filtration mu T where
+  process := fun t omega => c * eta.process t omega
+  progressive := fun i => (eta.progressive i).const_smul c
+  memLp := eta.memLp.const_smul c
+
+@[simp] theorem zero_process :
+    (zero : ProgressiveL2Integrand filtration mu T).process = 0 :=
+  rfl
+
+@[simp] theorem add_process (eta xi : ProgressiveL2Integrand filtration mu T) :
+    (add eta xi).process = eta.process + xi.process :=
+  rfl
+
+@[simp] theorem neg_process (eta : ProgressiveL2Integrand filtration mu T) :
+    (neg eta).process = -eta.process :=
+  rfl
+
+@[simp] theorem sub_process (eta xi : ProgressiveL2Integrand filtration mu T) :
+    (sub eta xi).process = eta.process - xi.process :=
+  rfl
+
+@[simp] theorem smul_process (c : ℝ)
+    (eta : ProgressiveL2Integrand filtration mu T) :
+    (smul c eta).process = c • eta.process :=
+  rfl
+
+@[simp] theorem toLp_zero :
+    (zero : ProgressiveL2Integrand filtration mu T).toLp = 0 :=
+  rfl
+
+theorem toLp_add (eta xi : ProgressiveL2Integrand filtration mu T) :
+    (add eta xi).toLp = eta.toLp + xi.toLp :=
+  rfl
+
+theorem toLp_neg (eta : ProgressiveL2Integrand filtration mu T) :
+    (neg eta).toLp = -eta.toLp :=
+  rfl
+
+theorem toLp_sub (eta xi : ProgressiveL2Integrand filtration mu T) :
+    (sub eta xi).toLp = eta.toLp - xi.toLp :=
+  rfl
+
+theorem toLp_smul (c : ℝ) (eta : ProgressiveL2Integrand filtration mu T) :
+    (smul c eta).toLp = c • eta.toLp :=
+  rfl
+
+/-- Restriction commutes with subtraction in product-space `L2`. -/
+theorem toLp_restrictAt_sub (eta xi : ProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) :
+    ((sub eta xi).restrictAt t).toLp =
+      (eta.restrictAt t).toLp - (xi.restrictAt t).toLp := by
+  simp only [ProgressiveL2Integrand.toLp]
+  rw [← MemLp.toLp_sub]
+  apply MemLp.toLp_congr
+  filter_upwards [] with z
+  by_cases hzt : z.2 < t
+  · simp [processFunction, ProgressiveL2Integrand.restrictProcess, hzt, sub]
+  · simp [processFunction, ProgressiveL2Integrand.restrictProcess, hzt, sub]
+
+theorem toLp_restrictAt_add (eta xi : ProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) :
+    ((add eta xi).restrictAt t).toLp =
+      (eta.restrictAt t).toLp + (xi.restrictAt t).toLp := by
+  simp only [ProgressiveL2Integrand.toLp]
+  rw [← MemLp.toLp_add]
+  apply MemLp.toLp_congr
+  filter_upwards [] with z
+  by_cases hzt : z.2 < t
+  · simp [processFunction, ProgressiveL2Integrand.restrictProcess, hzt, add]
+  · simp [processFunction, ProgressiveL2Integrand.restrictProcess, hzt, add]
+
+theorem toLp_restrictAt_smul (c : ℝ)
+    (eta : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    ((smul c eta).restrictAt t).toLp = c • (eta.restrictAt t).toLp := by
+  simp only [ProgressiveL2Integrand.toLp]
+  rw [← MemLp.toLp_const_smul]
+  apply MemLp.toLp_congr
+  filter_upwards [] with z
+  by_cases hzt : z.2 < t
+  · simp [processFunction, ProgressiveL2Integrand.restrictProcess, hzt, smul]
+  · simp [processFunction, ProgressiveL2Integrand.restrictProcess, hzt, smul]
+
+@[simp] theorem toLp_restrictAt_zero (t : ℝ≥0) :
+    ((zero : ProgressiveL2Integrand filtration mu T).restrictAt t).toLp = 0 := by
+  apply norm_eq_zero.mp
+  have h :=
+    (zero : ProgressiveL2Integrand filtration mu T).norm_restrictAt_le t
+  exact le_antisymm (by simpa only [toLp_zero, norm_zero] using h) (norm_nonneg _)
+
+/-- Restricting both integrands cannot increase their product-space `L2`
+distance. -/
+theorem norm_restrictAt_sub_le
+    (eta xi : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    ‖(eta.restrictAt t).toLp - (xi.restrictAt t).toLp‖ ≤
+      ‖eta.toLp - xi.toLp‖ := by
+  rw [← toLp_restrictAt_sub, ← toLp_sub]
+  exact (sub eta xi).norm_restrictAt_le t
+
+/-- Equality in product-space `L2` is preserved by every deterministic time
+restriction.  This is the congruence principle used to turn completed
+integrand identities into process-level Itô identities. -/
+theorem restrictAt_toLp_eq_of_toLp_eq
+    (eta xi : ProgressiveL2Integrand filtration mu T)
+    (hEq : eta.toLp = xi.toLp) (t : ℝ≥0) :
+    (eta.restrictAt t).toLp = (xi.restrictAt t).toLp := by
+  have hle := norm_restrictAt_sub_le eta xi t
+  have hzero : ‖eta.toLp - xi.toLp‖ = 0 := by
+    rw [hEq]
+    simp
+  have hnorm : ‖(eta.restrictAt t).toLp - (xi.restrictAt t).toLp‖ = 0 := by
+    apply le_antisymm
+    · simpa only [hzero] using hle
+    · exact norm_nonneg _
+  exact sub_eq_zero.mp (norm_eq_zero.mp hnorm)
+
+end ProgressiveL2Algebra
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

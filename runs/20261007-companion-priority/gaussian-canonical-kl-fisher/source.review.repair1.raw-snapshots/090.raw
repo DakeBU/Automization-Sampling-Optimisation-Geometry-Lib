@@ -1,0 +1,19 @@
+# Independent source graph43 capsule
+
+Status: source reconstruction complete, awaiting distinct topology review. This packet is not theorem admission, compilation or verification. Root is the future43 mathematical writer; Gauss is the distinct topology reviewer. The creator has not reviewed its own topology.
+
+The sealed target is exact1368 LF bytes, SHA256 `6560113333ab09326b0d02e0e3f4bf628457fa92bb21756fbc8b27d65d5d8000`. Choose public33's measurable unique stationary witness. Public32's stationary witness equals it by33 uniqueness, pointwise then by function extensionality. Transport every literal dependent definition: rho, Z, q, f and the affine pushforward r. Mu, R and gamma do not depend on the witness.
+
+Public32 then supplies C²f, fL², true-gradient fL², qlogq integrability, f²=q, unit mass, actual probability and rho-gradient L². These are outputs, not paper assumptions or supplied certificates. Integrable congruence gives the Phi(f²) domain required by opaque42. Public42's signed C² Gaussian inequality has coefficient2. Integral congruence and mass1 remove the homogeneous masslogmass term. Public33 gives finite canonical KL and its exact qlogq identity; public32 gives the exact quarter-energy identity for the same r/rho. Real arithmetic2×¼=½ gives the target, including zero energy.
+
+The graph deliberately keeps42 as an opaque verified public parent, exact691 signature. Root reports VERIFIED13556ea; no42 proof, DCT graph, reviewer, blind packet or Test was read here. Public32/33 headers terminate before `:= by`; their proof bodies are excluded. No43 implementation, Lean compiler, proof search, claim or canonical edit occurred.
+
+Selected source scope is the paper's normalized standing assumptions, prox/RGO/KL definitions, standardized rho/law and FIRST Gaussian LSI/Talagrand invocation; exact public32/33/42 contracts; exact43 signature; five narrow Mathlib contracts; and the authored route. Every selected physical line has a NODE/EXCLUDED row. Mixed KL/W2 and FIRST physical lines have explicit semantic exclusions. Metadata lines are provenance exclusions. Public parent projections and generated typing/structure syntax are not counted as mathematical calls. Caller records distinguish authored planned uses, public contract projections, source correspondence and specification references.
+
+The paper omits the standalone canonical-KL leaf and formal witness combination. The graph marks these as internal authored obligations rather than adding public premises. Canonical llr is only AE under r and is never differentiated; the actual smooth logq score identity is an interpretation clause. Measurable families and rank0 finite Hilbert carriers are reviewed authored extensions; Unit recovers fixed paper parameters. No eta≤1 restriction or admissible reference point is added.
+
+One sufficient AND route is recorded; no materially distinct alternative is claimed. Gaussian T2/W2, remaining FIRST4.6, parent31's moment/Fisher bound, algorithm/error/cost composition and human-facing PURIFIED status remain separate. Parent31 was not read.
+
+Source-before-candidate43 preread originals stay immutable and CLOSED. Earlier accidental41 metadata/decoder-binding originaltext and32 earlybody exposure remains disclosed; this is not a fresh blind role. A local consistency check caught an initially misbound `Integrable.congr` excerpt containing neighboring `congr'_enorm`; that excerpt and the original capture manifest are preserved. The current source-inputs manifest pins the actual public contract at physical123.
+
+`structural-check.json` checks only coverage uniqueness, references and dependency acyclicity. `sourcegraph-run.json` binds exact inputs, outputs, exposure and CLOSED actual lease evidence. Distinct topology admission is the next gate before43 proof.

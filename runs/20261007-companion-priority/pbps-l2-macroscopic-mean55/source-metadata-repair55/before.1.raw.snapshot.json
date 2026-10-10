@@ -1,0 +1,369 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-l2-macroscopic-mean",
+  "route": "samplewiki-route",
+  "title": "Actual all-L2 PBPS source macroscopic mean",
+  "mode": "faithfulPaper",
+  "source_anchor": "PBPS2609.06905v1 Appendix B.1 real conditional projection/reflection blocks and B.9 variance identity; actual all-L2 mean bridge needed before full rough B.13. Source C2 potential, both Hessian bounds and capped positive step retained.",
+  "target_statement": "theorem actual_macroscopic_l2_mean\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        ∃ M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ u : Lp ℝ 2 ν, (M u : E × E → ℝ) =ᵐ[J] u ∘ Prod.snd) ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            let A := P * U.toContinuousLinearMap * P\n            let B := (1-P) * U.toContinuousLinearMap * P\n            ∀ u : Lp ℝ 2 ν,\n              P (M u) = M u ∧ M (T u) = A (M u) ∧ ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∀ᵐ y ∂ν, Integrable (u : E → ℝ) (S y) ∧\n                Integrable (fun x => (u x)^2) (S y)) ∧\n              Integrable (fun y =>\n                AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n                  (S y) (u : E → ℝ)) ν ∧\n              (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n                (S y) (u : E → ℝ) ∂ν) = ‖B (M u)‖^2 ∧\n              ‖B (M u)‖^2 = ‖u‖^2-‖T u‖^2\n",
+  "status": "claimed",
+  "parents": [
+    "ASTIS-SW-PBPS-macroscopic-energy",
+    "ASTIS-SHARED-gaussian-marginal-gradient",
+    "ASTIS-SW-PBPS-reflection-l2-blocks",
+    "ASTIS-SW-PBPS-gaussian-augmentation-reflection",
+    "ASTIS-SHARED-gaussian-rgo-conditional-kernel"
+  ],
+  "consumers": [
+    "Future actual rough-gradient B13 consumes T on differences, with compact core approximation and true closed graph from54; all-L2 mean semantics have no54 mathematical proof dependency."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib: exact five independently admitted public parents; pinned55 primary/provider/ambient/caller/lexical source topology. Actual50 compact PUP source-mean coherence, actual51 dense smoothcompact core, actual ReflectionL2 U/P/R, Gaussian reflection invariance, actual GaussianConditionalKernel posterior disintegration. Mathlib canonical pullback isometry, closed range, conditional kernel uniqueness, Lp/Fubini/integrals. No duplicate analytic producer or library absence claim."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean",
+    "canonical_shared_cell": "ASTIS-SW-PBPS-l2-macroscopic-mean",
+    "reason": "Construct actual same-law M/T and all-L2 conditional mean/variance from existing true producers; no caller probability/Markov/operator/normalizer/coherence certificate."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib: exact five independently admitted public parents; pinned55 primary/provider/ambient/caller/lexical source topology. Actual50 compact PUP source-mean coherence, actual51 dense smoothcompact core, actual ReflectionL2 U/P/R, Gaussian reflection invariance, actual GaussianConditionalKernel posterior disintegration. Mathlib canonical pullback isometry, closed range, conditional kernel uniqueness, Lp/Fubini/integrals. No duplicate analytic producer or library absence claim."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection.reflection_preserves_augmentation",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "Future actual rough-gradient B13 consumes T on differences, with compact core approximation and true closed graph from54; all-L2 mean semantics have no54 mathematical proof dependency."
+    ],
+    "planned_consumers": [
+      "Actual all-L2 B13 approximation on differences consumes actual T and54 closed gradient graph."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "No parent provides one uniform M/T with actual conditional mean for all rough L2 inputs and true fiber variance defect. Their verified interfaces and compact density supply that new bridge."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean"
+    ],
+    "visual_review": "Pending actual all-L2 M/T source mean and variance; gradient/H1/main remains separate."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261008-PBPSL2MacroscopicMean",
+    "execution_boundary": "One actual canonical snd pullback M and bounded conditional mean T are chosen before every rough L2 input under the SAME Gibbs/Gaussian laws. PM=M, MT=AM, true AE source-S mean, contraction, AE fiber L1/squareL1 and integrated variance=||BMu||²=||u||²-||Tu||² are proved internally. Original C2/two-sided Hessian/capped step retained; finite Hilbert/Borel/rank0 explicitly extends the source Euclidean setting. No every-y rough integrability/C1, gradient/H1/B13, Gamma/dynamics/main/errors/unbounded-cost or actual-input composition claim.",
+    "focused_checks": [
+      {
+        "command": "lake build Tests.ProximalBPSL2MacroscopicMean",
+        "result": "PASS3894 focused.Tests.1; actual rough L2 differences and noncentered rank0 constant1/variance0; main+two Tests standard3"
+      }
+    ],
+    "statement_seal": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-preproof55/statement-seals.accepted.json",
+    "source_topology_review": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-topology-review55/repair-review55/source-topology-review.repaired.json"
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Independent exact2526 StatementSeal and source-only topology with distinct T55-1/2 repair admitted before claim/proof."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "PBPS arXiv2609.06905v1 / pinned Mathlib",
+    "primary_anchor": "PBPS2609.06905v1 Appendix B.1 real conditional projection/reflection blocks and B.9 variance identity; actual all-L2 mean bridge needed before full rough B.13. Source C2 potential, both Hessian bounds and capped positive step retained.",
+    "fidelity_boundary": "PBPS2609.06905v1 Appendix B.1 real conditional projection/reflection blocks and B.9 variance identity; actual all-L2 mean bridge needed before full rough B.13. Source C2 potential, both Hessian bounds and capped positive step retained. Finite real Hilbert/Borel E including rank0 explicitly extends source finite Euclidean setting. Actual probability, Markov kernel, whole source-density equality, U/M/T coherence, contraction, AE-fiber integrability and variance identity are all conclusions produced internally. Only actual all-L2 M/T pullback, conditional mean, AE integrability and variance defect; rough-gradient/H1/B13, Gamma/dynamics/main/errors/cost/composition remain separate.",
+    "detail_status": "cites_external",
+    "gap": "Source omits density/closure background. This integration targets the genuine all-L2 mean/variance bridge; rough-gradient/H1 estimate remains separate.",
+    "consulted": [
+      {
+        "source": "Independent primary55/StatementSeal and independently reviewed source-only graph55 with exact representation overlay",
+        "anchor": "PBPS2609.06905v1 Appendix B.1 real conditional projection/reflection blocks and B.9 variance identity; actual all-L2 mean bridge needed before full rough B.13. Source C2 potential, both Hessian bounds and capped positive step retained.",
+        "hypothesis_adapter": "Finite real Hilbert/Borel E including rank0 explicitly extends source finite Euclidean setting. Actual probability, Markov kernel, whole source-density equality, U/M/T coherence, contraction, AE-fiber integrability and variance identity are all conclusions produced internally."
+      }
+    ],
+    "source_preread": "runs/20261007-companion-priority/phase-pbps-primary-preread55/primary.contract.json"
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No54 implementation started.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-pbps-l2-macroscopic-mean"
+      ],
+      "expected_information_gain": "Root sole proof writer; independent wholemath/fresh blind/source/exact verification after focused compile.",
+      "shared_verified_context_digest": "3bb1df14f17647c3b2b2400d976fd03b62e2237e9693f144ac3ae00f90f4a1bc"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "actual-pbps-l2-macroscopic-mean",
+      "selection_reason": "Dependency-ready actual PBPS consumer; unrelated mathematical lanes defer."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "S55.standing",
+        "S55.actual-law",
+        "S55.projection",
+        "S55.block-definition",
+        "S55.reflection",
+        "S55.rough-mean-variance",
+        "S55.rough-consumer",
+        "S55.compact-density",
+        "S55.smooth-energy-consumer",
+        "T55",
+        "D55.MeasureTheory_Lp_coeFn_compMeasurePreserving",
+        "D55.MeasureTheory_Lp_norm_compMeasurePreserving",
+        "D55.MeasureTheory_Lp_toLp_compMeasurePreserving",
+        "D55.MeasureTheory_norm_condExpL2_coe_le",
+        "D55.Isometry_isClosedEmbedding",
+        "D55.MeasureTheory_Integrable_condKernel_ae",
+        "D55.MeasureTheory_Integrable_integral_condKernel",
+        "D55.MeasureTheory_Measure_snd",
+        "D55.LinearIsometry_equivRange",
+        "D55.MeasureTheory_Lp_instCompleteSpace",
+        "D55.MeasureTheory_L2_inner_def",
+        "D55.AutoSamplingTheory_ExampleCases_ProximalBPS_GaussianReflection_reflection_preserves_augmentation",
+        "D55.AutoSamplingTheory_ExampleCases_ProximalBPS_ReflectionL2_actual_reflection_block_identities",
+        "D55.AutoSamplingTheory_ExampleCases_ProximalBPS_MacroscopicEnergy_actual_macroscopic_gradient_energy_blocks",
+        "D55.AutoSamplingTheory_TechnicalLemmas_FunctionalInequalities_GaussianMarginalGradient_gaussian_marginal_gradient_closable",
+        "D55.MeasureTheory_Lp_compMeasurePreservingₗᵢ",
+        "D55.MeasureTheory_condExpL2",
+        "D55.AutoSamplingTheory_TechnicalLemmas_FunctionalInequalities_Poincare_variance",
+        "D55.MeasureTheory_Measure_IsCondKernel",
+        "D55.MeasureTheory_Measure_disintegrate",
+        "D55.MeasureTheory_MemLp_integrable_sq",
+        "D55.ProbabilityTheory_eq_condKernel_of_measure_eq_compProd",
+        "D55.ProbabilityTheory_stdGaussian",
+        "D55.MeasureTheory_lpMeas",
+        "D55.MeasureTheory_Integrable",
+        "D55.MeasureTheory_MemLp_mono_exponent",
+        "D55.Submodule_orthogonalProjectionOnto",
+        "D55.MeasureTheory_Measure_condKernel",
+        "D55.MeasureTheory_Lp_memLp",
+        "D55.MeasureTheory_memLp_one_iff_integrable",
+        "D55.real_inner_self_eq_norm_sq",
+        "D55.MeasureTheory_MeasurePreserving",
+        "D55.Isometry",
+        "D55.IsClosedEmbedding",
+        "D55.MeasureTheory_Lp_compMeasurePreserving",
+        "D55.MeasureTheory_MemLp_comp_measurePreserving",
+        "D55.LinearPMap_domain",
+        "D55.AutoSamplingTheory_TechnicalLemmas_Probability_GaussianConditionalKernel_exists_tilted_isCondKernel",
+        "D55.Prod",
+        "D55.Prod_fst",
+        "D55.Prod_snd",
+        "A55.laws",
+        "A55.posterior",
+        "A55.marginals",
+        "A55.M",
+        "A55.dense",
+        "A55.invariant",
+        "A55.T",
+        "A55.mean",
+        "A55.fibers",
+        "A55.variance",
+        "A55.defect",
+        "A55.ambient",
+        "X55.rough",
+        "X55.Gamma",
+        "X55.href._bib_bib20",
+        "X55.href._S2_E7",
+        "X55.href._bib_bib18",
+        "X55.href._bib_bib19",
+        "X55.href._S2_E14",
+        "X55.href._A3",
+        "X55.href._A2_E13",
+        "X55.href._A2_E9",
+        "D55.NormedAddCommGroup",
+        "D55.InnerProductSpace",
+        "D55.FiniteDimensional",
+        "D55.MeasurableSpace",
+        "D55.BorelSpace",
+        "D55.ContDiff",
+        "D55.fderiv",
+        "D55.MeasureTheory_MeasureSpace_volume",
+        "D55.MeasureTheory_Measure",
+        "D55.MeasureTheory_Measure_tilted",
+        "D55.MeasureTheory_Measure_prod",
+        "D55.MeasureTheory_Measure_map",
+        "D55.Real_sqrt",
+        "D55.MeasureTheory_Lp",
+        "D55.MeasurableSpace_comap",
+        "D55.Submodule_subtypeL",
+        "D55.Measurable_comap_le",
+        "D55.measurable_iff_comap_le",
+        "D55.measurable_snd",
+        "D55.MeasureTheory_IsProbabilityMeasure",
+        "D55.ProbabilityTheory_Kernel",
+        "D55.ProbabilityTheory_IsMarkovKernel",
+        "D55.MeasureTheory_Measure_fst",
+        "D55.Function_Involutive",
+        "D55.IsSelfAdjoint",
+        "D55.LinearIsometry_toContinuousLinearMap",
+        "D55.MeasureTheory_MemLp",
+        "D55.MeasureTheory_MemLp_toLp",
+        "D55.CompleteSpace",
+        "D55.EMetricSpace",
+        "D55.Semiring",
+        "D55.Ring",
+        "D55.Module",
+        "D55.RingHomInvPair",
+        "D55.LinearMap_range",
+        "D55.LinearIsometry_toLinearMap",
+        "D55.Fact",
+        "D55.Star_star",
+        "D55.Prod_swap",
+        "D55.HasCompactSupport",
+        "D55.HasCompactMulSupport",
+        "D55.Differentiable",
+        "D55.gradient",
+        "D55.Dense",
+        "D55.Set",
+        "D55.LinearPMap_IsClosable",
+        "D55.LinearPMap_IsClosed",
+        "D55.LinearPMap_graph",
+        "D55.IsFiniteKernel",
+        "D55.NormedRing",
+        "D55.IsBoundedSMul",
+        "D55.RCLike",
+        "D55.StandardBorelSpace",
+        "D55.Nonempty",
+        "D55.NormedSpace",
+        "D55.MeasureTheory_IsFiniteMeasure",
+        "D55.SeminormedAddGroup",
+        "D55.PseudoEMetricSpace",
+        "D55.RingHomCompTriple",
+        "D55.SeminormedAddCommGroup",
+        "D55.TopologicalSpace",
+        "D55.ContinuousENorm",
+        "D55.ENorm",
+        "D55.ESeminormedAddMonoid",
+        "D55.Submodule",
+        "D55.Submodule_HasOrthogonalProjection",
+        "D55.Measurable",
+        "D55.IsEmbedding",
+        "D55.MeasurableSpace_CountablyGenerated",
+        "D55.Norm",
+        "D55.AddCommGroup",
+        "D55.MetricSpace",
+        "D55.Inner",
+        "D55.DivisionRing",
+        "D55.OuterMeasure",
+        "D55.AddSubgroup",
+        "D55.AddCommMonoid",
+        "D55.Star",
+        "D55.UniformSpace",
+        "D55.MonoidWithZero",
+        "D55.NonUnitalSemiring",
+        "D55.NonAssocSemiring",
+        "D55.AddGroupWithOne",
+        "D55.DistribMulAction",
+        "D55.One",
+        "D55.CommRing",
+        "D55.ContinuousAdd",
+        "D55.ContinuousSMul",
+        "D55.DenselyNormedField",
+        "D55.StarRing",
+        "D55.NormedAlgebra",
+        "D55.NormedField",
+        "D55.PseudoMetricSpace",
+        "D55.AddSubmonoid",
+        "D55.SubMulAction",
+        "D55.AddGroup",
+        "D55.DivInvMonoid",
+        "D55.Nontrivial",
+        "D55.NNRatCast",
+        "D55.RatCast",
+        "D55.AddMonoid",
+        "D55.AddCommSemigroup",
+        "D55.Monoid",
+        "D55.MulAction",
+        "D55.CommMonoid",
+        "D55.Add",
+        "D55.SMul",
+        "D55.Dist",
+        "D55.LinearPMap"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection.reflection_preserves_augmentation",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel"
+    ],
+    "bookkeeping": [
+      "Actual every-y source S law is distinct from AE rough fiber integrability. Internal posterior disintegration is produced, not assumed."
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual mu/J/nu and U/P/sourceS -> canonical snd pullback M -> compact density and continuity -> PM=M and closed M-range invariance -> bounded T -> actual posterior/disintegration/sourceS mean -> AE L1/squareL1/Fubini -> integrated variance and exact orthogonal norm defect."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-preproof55/statement-seals.accepted.json",
+    "source_revision": "PBPSv1; Lean4.33.0 pinned Mathlib",
+    "statement_version": 1,
+    "signature_digest": "0c4a69c99eb2dc8572af054133619442ccaf8e2e91ca19e130f4b1b5fc4cee3f",
+    "binder_audit": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-preproof-review55/statement.typed-admission.review.json",
+    "definition_kind": "SAME mu/J/nu/Lambda/source S/U/actual conditional P; one M isometry and bounded T chosen before forall L2 input. U genuine reflection; M actual snd pullback; T actual source S conditional mean AE nu."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-sourcegraph55/repair-overlay55/source-proof-graph.after.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-sourcegraph55/repair-overlay55/caller-inventory.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-l2-macroscopic-mean-topology-review55/repair-review55/source-topology-review.repaired.json",
+    "coverage_status": "Independent selected source/public provider/ambient context/caller coverage; not whole-paper or full rough H1 coverage."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Existing conditional projection/reflection, canonical pullback, dense closed range and stationary-kernel variance mechanisms are composed on the same law. No new cross-metric, energy, oracle or discrepancy bridge/equivalence/certified functor is proposed."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One public exact2526 declaration with no private provider. All five admitted producer contracts are actually consumed. Canonical M/T and every-y source-law identities precede all rough inputs; independent reachability review remains separate.",
+    "duplicate_semantics_audit": "Five public parents reused; no copy of probability/density/posterior producers.",
+    "canonicalization": "Source-specific ExampleCases.ProximalBPS integration consumes canonical shared Lp/kernel APIs.",
+    "compressed_spine_delta": "Actual mu/J/nu and U/P/sourceS -> canonical snd pullback M -> compact density and continuity -> PM=M and closed M-range invariance -> bounded T -> actual posterior/disintegration/sourceS mean -> AE L1/squareL1/Fubini -> integrated variance and exact orthogonal norm defect.",
+    "reader_default_view": "Existing PBPS companion adjacent formulas/proof/folded Lean/source/tests/remaining domains.",
+    "scope": "One actual canonical snd pullback M and bounded conditional mean T are chosen before every rough L2 input under the SAME Gibbs/Gaussian laws. PM=M, MT=AM, true AE source-S mean, contraction, AE fiber L1/squareL1 and integrated variance=||BMu||²=||u||²-||Tu||² are proved internally. Original C2/two-sided Hessian/capped step retained; finite Hilbert/Borel/rank0 explicitly extends the source Euclidean setting. No every-y rough integrability/C1, gradient/H1/B13, Gamma/dynamics/main/errors/unbounded-cost or actual-input composition claim."
+  }
+}

@@ -1,0 +1,396 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection
+
+/-!
+Actual full-batch query tails for bounded Poisson rejection.
+
+Supporting derivation for SPHMC arXiv:2609.06906v1 Appendix A.1/A.4(2).
+This is not the unrestricted printed threshold in external arXiv:2608.05022v1
+Theorem 2.3. The ceiling and explicit K(B) retain the small-B regime.
+Uniform terminal-state complexity still requires a universal bound on B and a
+separate account of actual gradient queries per estimator call.
+-/
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal BigOperators
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonQueryTail
+
+private theorem poisson_power_integral (r : ℝ≥0) (t : ℝ) :
+    ∫ n, t ^ n ∂poissonMeasure r = Real.exp ((r : ℝ) * (t - 1)) := by
+  rw [integral_poissonMeasure]
+  have hs := (NormedSpace.expSeries_div_hasSum_exp ((r : ℝ) * t)).mul_left
+    (Real.exp (-(r : ℝ)))
+  have he : Real.exp (-(r : ℝ)) * NormedSpace.exp ((r : ℝ) * t) =
+      Real.exp ((r : ℝ) * (t - 1)) := by
+    rw [← Real.exp_eq_exp_ℝ, ← Real.exp_add]
+    congr 1
+    ring
+  rw [he] at hs
+  convert hs.tsum_eq using 1
+  congr 1
+  funext n
+  simp only [smul_eq_mul, mul_pow]
+  ring
+
+private theorem iid_prefix_law {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ => ν)).map
+      (fun z (i : Fin n) => z i.val) = Measure.pi (fun _ : Fin n => ν) := by
+  rw [Measure.map_infinitePi_infinitePi_of_inj Fin.val_injective,
+    Measure.infinitePi_eq_pi]
+
+private noncomputable def unitUniform : Measure ℝ := volume.restrict (Set.Icc 0 1)
+
+private instance unitUniform_probability : IsProbabilityMeasure unitUniform := by
+  constructor
+  simp [unitUniform, Real.volume_Icc]
+
+private noncomputable def totalCost {Y : Type*} (A : Set Y) (c : Y → ℝ≥0∞)
+    (ω : ℕ → Y) : ℝ≥0∞ := by
+  classical
+  exact ∑' n : ℕ, if ∀ i < n, ω i ∉ A then c (ω n) else 0
+
+private theorem failure_prefix_probability {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ => ν))
+      {ω | ∀ i < n, ω i ∉ A} = (ν Aᶜ)^n := by
+  have he : {ω : ℕ → Y | ∀ i < n, ω i ∉ A} =
+      Set.pi (Finset.range n) (fun _ => Aᶜ) := by
+    ext ω
+    simp
+  rw [he, Measure.infinitePi_pi _ (fun _ _ => hA.compl)]
+  simp
+
+private theorem totalCost_le_prefix {Y : Type*} (E : Set Y) (c : Y → ℝ≥0∞)
+    (ω : ℕ → Y) (m : ℕ) (hhit : ∃ j < m, ω j ∈ E) :
+    totalCost E c ω ≤ ∑ n ∈ Finset.range m, c (ω n) := by
+  classical
+  unfold totalCost
+  rw [tsum_eq_sum (s := Finset.range m)]
+  · apply Finset.sum_le_sum
+    intro n _
+    split
+    · exact le_rfl
+    · exact bot_le
+  · intro n hn
+    obtain ⟨j, hjm, hj⟩ := hhit
+    have hmn : m ≤ n := Nat.le_of_not_gt (by simpa using hn)
+    have hnot : ¬ ∀ i < n, ω i ∉ E := fun h => h j (lt_of_lt_of_le hjm hmn) hj
+    simp [hnot]
+
+private theorem cost_tail_subset {Y : Type*} (E : Set Y) (c : Y → ℝ≥0∞)
+    (m : ℕ) (t : ℝ≥0∞) :
+    {ω | t < totalCost E c ω} ⊆
+      {ω | ∀ i < m, ω i ∉ E} ∪ {ω | t < ∑ n ∈ Finset.range m, c (ω n)} := by
+  classical
+  intro ω hω
+  by_cases hf : ∀ i < m, ω i ∉ E
+  · exact Or.inl hf
+  · right
+    push Not at hf
+    exact lt_of_lt_of_le hω (totalCost_le_prefix E c ω m hf)
+
+private theorem poisson_exponential_integrable (r : ℝ≥0) :
+    Integrable (fun n : ℕ => Real.exp (n : ℝ)) (poissonMeasure r) := by
+  apply integrable_poissonMeasure_iff.mpr
+  have hs := (NormedSpace.expSeries_div_hasSum_exp ((r : ℝ) * Real.exp 1)).mul_left
+    (Real.exp (-(r : ℝ)))
+  convert! hs.summable using 1
+  funext n
+  have he : Real.exp (n : ℝ) = (Real.exp 1)^n := by
+    simp [← Real.exp_nat_mul]
+  rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos (n : ℝ)), he]
+  simp only [mul_pow]
+  ring
+
+private theorem poisson_exponential_moment (r : ℝ≥0) :
+    ∫⁻ n : ℕ, ENNReal.ofReal (Real.exp (n : ℝ)) ∂poissonMeasure r =
+      ENNReal.ofReal (Real.exp ((r : ℝ) * (Real.exp 1 - 1))) := by
+  rw [← ofReal_integral_eq_lintegral_ofReal (poisson_exponential_integrable r)
+    (Filter.Eventually.of_forall fun n => (Real.exp_pos (n : ℝ)).le)]
+  congr 1
+  have he : (fun n : ℕ => Real.exp (n : ℝ)) = (fun n => (Real.exp 1)^n) := by
+    funext n
+    simp [← Real.exp_nat_mul]
+  rw [he, poisson_power_integral]
+
+private theorem fixed_prefix_exponential_moment {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (N : Y → ℕ) (hN : Measurable N)
+    (r : ℝ≥0) (hlaw : ν.map N = poissonMeasure r) (m : ℕ) :
+    ∫⁻ ω : ℕ → Y, ENNReal.ofReal (∏ i : Fin m, Real.exp (N (ω i.val) : ℝ))
+      ∂Measure.infinitePi (fun _ : ℕ => ν) =
+      ENNReal.ofReal ((Real.exp ((r : ℝ) * (Real.exp 1 - 1)))^m) := by
+  let g : Y → ℝ := fun y => Real.exp (N y : ℝ)
+  have hg : Measurable g := by fun_prop
+  have hi : Integrable g ν := by
+    have h := poisson_exponential_integrable r
+    rw [← hlaw] at h
+    exact h.comp_aemeasurable hN.aemeasurable
+  have hmean : ∫ y, g y ∂ν = Real.exp ((r : ℝ) * (Real.exp 1 - 1)) := by
+    change (∫ y, Real.exp (N y : ℝ) ∂ν) = _
+    rw [← integral_map hN.aemeasurable
+      (show AEStronglyMeasurable (fun n : ℕ => Real.exp (n : ℝ)) (ν.map N) from
+        Measurable.of_discrete.aestronglyMeasurable), hlaw]
+    have he : (fun n : ℕ => Real.exp (n : ℝ)) = (fun n => (Real.exp 1)^n) := by
+      funext n
+      simp [← Real.exp_nat_mul]
+    rw [he, poisson_power_integral]
+  let f : (Fin m → Y) → ℝ := fun z => ∏ i, g (z i)
+  have hf : Measurable f := by dsimp [f]; fun_prop
+  have hfi : Integrable f (Measure.pi (fun _ : Fin m => ν)) := Integrable.fintype_prod (fun _ => hi)
+  have hp : Measurable (fun ω : ℕ → Y => fun i : Fin m => ω i.val) := by fun_prop
+  rw [← lintegral_map hf.ennreal_ofReal hp, iid_prefix_law]
+  rw [← ofReal_integral_eq_lintegral_ofReal hfi
+    (Filter.Eventually.of_forall (fun z => Finset.prod_nonneg (fun i _ => (Real.exp_pos _).le)))]
+  congr 1
+  rw [integral_fintype_prod_eq_pow (ι := Fin m) (μ := ν) g, hmean]
+  simp
+
+private theorem fixed_prefix_chernoff {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (N : Y → ℕ) (hN : Measurable N)
+    (r : ℝ≥0) (hlaw : ν.map N = poissonMeasure r) (m : ℕ) (t : ℝ) :
+    Measure.infinitePi (fun _ : ℕ => ν)
+      {ω | t < ∑ i : Fin m, (N (ω i.val) : ℝ)} ≤
+      ENNReal.ofReal ((Real.exp ((r : ℝ) * (Real.exp 1 - 1)))^m) /
+        ENNReal.ofReal (Real.exp t) := by
+  let f : (ℕ → Y) → ℝ≥0∞ := fun ω =>
+    ENNReal.ofReal (∏ i : Fin m, Real.exp (N (ω i.val) : ℝ))
+  have hf : Measurable f := by dsimp [f]; fun_prop
+  have hsub : {ω | t < ∑ i : Fin m, (N (ω i.val) : ℝ)} ⊆
+      {ω | ENNReal.ofReal (Real.exp t) ≤ f ω} := by
+    intro ω hω
+    dsimp [f]
+    apply ENNReal.ofReal_le_ofReal
+    rw [← Real.exp_sum]
+    exact (Real.exp_le_exp.mpr hω.le)
+  exact (measure_mono hsub).trans (by
+    have h := meas_ge_le_lintegral_div (μ := Measure.infinitePi (fun _ : ℕ => ν)) hf.aemeasurable
+      (show ENNReal.ofReal (Real.exp t) ≠ 0 by positivity) ENNReal.ofReal_ne_top
+    dsimp [f] at h
+    rw [fixed_prefix_exponential_moment ν N hN r hlaw m] at h
+    exact h)
+
+private theorem fixed_prefix_chernoff_shift {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (N : Y → ℕ) (hN : Measurable N)
+    (r : ℝ≥0) (hlaw : ν.map N = poissonMeasure r) (m : ℕ) (L : ℝ) :
+    Measure.infinitePi (fun _ : ℕ => ν)
+      {ω | (r : ℝ) * (Real.exp 1 - 1) * m + L <
+        ∑ i : Fin m, (N (ω i.val) : ℝ)} ≤ ENNReal.ofReal (Real.exp (-L)) := by
+  have h := fixed_prefix_chernoff ν N hN r hlaw m
+    ((r : ℝ) * (Real.exp 1 - 1) * m + L)
+  convert h using 1
+  rw [← Real.exp_nat_mul, ← ENNReal.ofReal_div_of_pos (Real.exp_pos _), ← Real.exp_sub]
+  congr 2
+  ring
+
+private theorem full_batch_cost_tail {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (E : Set Y) (hE : MeasurableSet E)
+    (N : Y → ℕ) (hN : Measurable N) (r : ℝ≥0)
+    (hlaw : ν.map N = poissonMeasure r) (m : ℕ) (L : ℝ)
+    (ht : 0 ≤ (r : ℝ) * (Real.exp 1 - 1) * m + L) :
+    Measure.infinitePi (fun _ : ℕ => ν)
+      {ω | ENNReal.ofReal ((r : ℝ) * (Real.exp 1 - 1) * m + L) <
+        totalCost E (fun y => (N y : ℝ≥0∞)) ω} ≤
+      (ν Eᶜ)^m + ENNReal.ofReal (Real.exp (-L)) := by
+  have hs := cost_tail_subset E (fun y => (N y : ℝ≥0∞)) m
+    (ENNReal.ofReal ((r : ℝ) * (Real.exp 1 - 1) * m + L))
+  refine (measure_mono hs).trans ((measure_union_le _ _).trans ?_)
+  rw [failure_prefix_probability ν E hE m]
+  apply add_le_add le_rfl
+  have he : {ω : ℕ → Y | ENNReal.ofReal ((r : ℝ) * (Real.exp 1 - 1) * m + L) <
+      ∑ n ∈ Finset.range m, (N (ω n) : ℝ≥0∞)} =
+      {ω | (r : ℝ) * (Real.exp 1 - 1) * m + L < ∑ i : Fin m, (N (ω i.val) : ℝ)} := by
+    ext ω
+    have hc : (∑ n ∈ Finset.range m, (N (ω n) : ℝ≥0∞)) =
+        ENNReal.ofReal (∑ i : Fin m, (N (ω i.val) : ℝ)) := by
+      rw [← Fin.sum_univ_eq_sum_range (fun n => (N (ω n) : ℝ≥0∞)) m]
+      rw [ENNReal.ofReal_sum_of_nonneg (fun _ _ => Nat.cast_nonneg _)]
+      simp
+    simp only [Set.mem_ofPred_eq, hc, ENNReal.ofReal_lt_ofReal_iff_of_nonneg ht]
+  rw [he]
+  exact fixed_prefix_chernoff_shift ν N hN r hlaw m L
+
+private theorem failure_power_exponential_bound {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (E : Set Y) (hE : MeasurableSet E)
+    (a : ℝ) (ha : a ≤ (ν E).toReal) (m : ℕ) :
+    (ν Eᶜ)^m ≤ ENNReal.ofReal (Real.exp (-a * m)) := by
+  have hq : ν Eᶜ ≤ ENNReal.ofReal (Real.exp (-a)) := by
+    rw [← ENNReal.ofReal_toReal (measure_ne_top ν Eᶜ)]
+    apply ENNReal.ofReal_le_ofReal
+    have he : (ν Eᶜ).toReal = 1 - (ν E).toReal := by
+      rw [prob_compl_eq_one_sub hE, ENNReal.toReal_sub_of_le (prob_le_one) (by simp)]
+      simp
+    rw [he]
+    have hex := Real.add_one_le_exp (-a)
+    linarith
+  have hp := pow_le_pow_left' hq m
+  simpa only [← ENNReal.ofReal_pow (Real.exp_nonneg _), ← Real.exp_nat_mul,
+    mul_comm (m : ℝ) (-a)] using hp
+
+private theorem actual_attempt_count_law {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) [IsProbabilityMeasure μ] (ν : Measure A) [IsProbabilityMeasure ν]
+    (r : ℝ≥0) :
+    (μ.prod ((poissonMeasure r).prod
+      ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform))).map
+        (fun p : X × (ℕ × ((ℕ → A) × ℝ)) => p.2.1) = poissonMeasure r := by
+  change Measure.map (Prod.fst ∘ Prod.snd) _ = _
+  rw [← Measure.map_map measurable_fst measurable_snd]
+  simp
+
+private theorem full_batch_cost_tail_of_budget {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (E : Set Y) (hE : MeasurableSet E)
+    (N : Y → ℕ) (hN : Measurable N) (r : ℝ≥0)
+    (hlaw : ν.map N = poissonMeasure r) (m : ℕ) (L a : ℝ)
+    (hL : 0 ≤ L) (ha : a ≤ (ν E).toReal) (hm : L ≤ a * m) :
+    Measure.infinitePi (fun _ : ℕ => ν)
+      {ω | ENNReal.ofReal ((r : ℝ) * (Real.exp 1 - 1) * m + L) <
+        totalCost E (fun y => (N y : ℝ≥0∞)) ω} ≤
+      ENNReal.ofReal (2 * Real.exp (-L)) := by
+  have hpos : 0 ≤ Real.exp 1 - 1 := by
+    have h := Real.add_one_le_exp 1
+    linarith
+  have ht : 0 ≤ (r : ℝ) * (Real.exp 1 - 1) * m + L := by positivity
+  have hp : (ν Eᶜ)^m ≤ ENNReal.ofReal (Real.exp (-L)) :=
+    (failure_power_exponential_bound ν E hE a ha m).trans
+      (ENNReal.ofReal_le_ofReal (Real.exp_le_exp.mpr (by linarith)))
+  refine (full_batch_cost_tail ν E hE N hN r hlaw m L ht).trans ?_
+  calc
+    (ν Eᶜ)^m + ENNReal.ofReal (Real.exp (-L)) ≤
+        ENNReal.ofReal (Real.exp (-L)) + ENNReal.ofReal (Real.exp (-L)) := add_le_add hp le_rfl
+    _ = ENNReal.ofReal (2 * Real.exp (-L)) := by
+      rw [← ENNReal.ofReal_add (Real.exp_nonneg _) (Real.exp_nonneg _)]
+      congr 1
+      ring
+
+private theorem poisson_tail_budget (B L : ℝ) :
+    L ≤ Real.exp (-2 * B) * (⌈Real.exp (2 * B) * L⌉₊ : ℝ) := by
+  have he : Real.exp (-2 * B) * Real.exp (2 * B) = 1 := by
+    rw [← Real.exp_add]
+    ring_nf
+    exact Real.exp_zero
+  calc
+    L = Real.exp (-2 * B) * (Real.exp (2 * B) * L) := by rw [← mul_assoc, he, one_mul]
+    _ ≤ Real.exp (-2 * B) * (⌈Real.exp (2 * B) * L⌉₊ : ℝ) :=
+      mul_le_mul_of_nonneg_left (Nat.le_ceil _) (Real.exp_nonneg _)
+
+private theorem delta_log_budget (δ : ℝ) (hδ : 0 < δ) (hδ1 : δ < 1) :
+    0 ≤ Real.log (2 / δ) ∧ 2 * Real.exp (-Real.log (2 / δ)) = δ := by
+  constructor
+  · apply Real.log_nonneg
+    apply (le_div_iff₀ hδ).2
+    linarith
+  · rw [Real.exp_neg, Real.exp_log (by positivity : 0 < 2 / δ)]
+    field_simp
+
+private theorem full_batch_cost_delta_tail {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (E : Set Y) (hE : MeasurableSet E)
+    (N : Y → ℕ) (hN : Measurable N) (B : ℝ) (hB : 0 < B)
+    (hlaw : ν.map N = poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0))
+    (haccept : ENNReal.ofReal (Real.exp (-2 * B)) ≤ ν E)
+    (δ : ℝ) (hδ : 0 < δ) (hδ1 : δ < 1) :
+    let L := Real.log (2 / δ)
+    let m := ⌈Real.exp (2 * B) * L⌉₊
+    Measure.infinitePi (fun _ : ℕ => ν)
+      {ω | ENNReal.ofReal (2 * B * (Real.exp 1 - 1) * m + L) <
+        totalCost E (fun y => (N y : ℝ≥0∞)) ω} ≤ ENNReal.ofReal δ := by
+  dsimp only
+  have ha : Real.exp (-2 * B) ≤ (ν E).toReal := by
+    have h := ENNReal.toReal_mono (measure_ne_top ν E) haccept
+    simpa only [ENNReal.toReal_ofReal (Real.exp_nonneg _)] using h
+  have h := full_batch_cost_tail_of_budget ν E hE N hN
+    (⟨2 * B, by positivity⟩ : ℝ≥0) hlaw
+    ⌈Real.exp (2 * B) * Real.log (2 / δ)⌉₊ (Real.log (2 / δ))
+    (Real.exp (-2 * B)) (delta_log_budget δ hδ hδ1).1 ha
+    (poisson_tail_budget B (Real.log (2 / δ)))
+  rw [(delta_log_budget δ hδ hδ1).2] at h
+  exact h
+
+private theorem ceil_threshold_le_single_log (B L : ℝ) (hB : 0 ≤ B)
+    (hL : Real.log 2 ≤ L) :
+    2 * B * (Real.exp 1 - 1) * (⌈Real.exp (2 * B) * L⌉₊ : ℝ) + L ≤
+      (2 * B * (Real.exp 1 - 1) * (Real.exp (2 * B) + 1 / Real.log 2) + 1) * L := by
+  have hl2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  have hl : 0 ≤ L := le_trans hl2.le hL
+  have hc : (⌈Real.exp (2 * B) * L⌉₊ : ℝ) ≤ Real.exp (2 * B) * L + 1 :=
+    (Nat.ceil_lt_add_one (by positivity)).le
+  have h1 : 1 ≤ L / Real.log 2 := (le_div_iff₀ hl2).2 (by simpa using hL)
+  have hp : 0 ≤ 2 * B * (Real.exp 1 - 1) := by
+    have he := Real.add_one_le_exp 1
+    have : 0 ≤ Real.exp 1 - 1 := by linarith
+    positivity
+  calc
+    _ ≤ 2 * B * (Real.exp 1 - 1) * (Real.exp (2 * B) * L + L / Real.log 2) + L :=
+      add_le_add (mul_le_mul_of_nonneg_left (hc.trans (add_le_add le_rfl h1)) hp) le_rfl
+    _ = _ := by ring
+
+private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))
+
+private noncomputable def attemptLaw {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) (ν : Measure A) [IsProbabilityMeasure ν] (r : ℝ≥0) :
+    Measure (Attempt X A) :=
+  μ.prod ((poissonMeasure r).prod
+    ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform))
+
+private instance attemptLaw_probability {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) [IsProbabilityMeasure μ] (ν : Measure A) [IsProbabilityMeasure ν]
+    (r : ℝ≥0) : IsProbabilityMeasure (attemptLaw μ ν r) := by
+  unfold attemptLaw
+  infer_instance
+
+private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)}
+
+private theorem measurable_accepted {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (W : X × A → ℝ) (hW : Measurable W) (B : ℝ) : MeasurableSet (accepted W B) := by
+  have hf : Measurable (fun p : ℕ × (X × ((ℕ → A) × ℝ)) =>
+      ∏ i : Fin p.1, (B + W (p.2.1,p.2.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : X × ((ℕ → A) × ℝ) =>
+      ∏ i : Fin n, (B + W (p.1,p.2.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  exact measurableSet_le (by fun_prop) (hf.comp
+    (show Measurable (fun p : Attempt X A => (p.2.1, (p.1,p.2.2))) by fun_prop))
+
+theorem poisson_query_tail {S X A : Type*}
+    [MeasurableSpace S] [MeasurableSpace X] [MeasurableSpace A]
+    (Q : Kernel S X) [IsMarkovKernel Q] (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : (S × X) × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hB : 0 < B) (hb : ∀ s x z, |W ((s,x),z)| ≤ B) (x₀ : X)
+    (s : S) (δ : ℝ) (hδ : 0 < δ) (hδ1 : δ < 1) :
+    let Λ := attemptLaw (Q s) ν (⟨2 * B, by positivity⟩ : ℝ≥0)
+    let E := accepted (fun p : X × A => W ((s,p.1),p.2)) B
+    let ρ := Measure.infinitePi (fun _ : ℕ => Λ)
+    let C := totalCost E (fun p => (p.2.1 : ℝ≥0∞))
+    let L := Real.log (2 / δ)
+    let m := ⌈Real.exp (2 * B) * L⌉₊
+    ρ {ω | ENNReal.ofReal (2 * B * (Real.exp 1 - 1) * m + L) < C ω} ≤ ENNReal.ofReal δ ∧
+    ρ {ω | ENNReal.ofReal
+      ((2 * B * (Real.exp 1 - 1) * (Real.exp (2 * B) + 1 / Real.log 2) + 1) * L) < C ω}
+        ≤ ENNReal.ofReal δ := by
+  dsimp only
+  let r : ℝ≥0 := ⟨2 * B, by positivity⟩
+  let Λ := attemptLaw (Q s) ν r
+  let E := accepted (fun p : X × A => W ((s,p.1),p.2)) B
+  have hE : MeasurableSet E := measurable_accepted _ (hW.comp (by fun_prop)) B
+  have hlaw : Λ.map (fun p => p.2.1) = poissonMeasure r :=
+    actual_attempt_count_law (Q s) ν r
+  obtain ⟨R, hR, hs⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_rejection_output
+      Q ν W hW B hB hb x₀
+  obtain ⟨_, _, _, _, _, _, _, _, haccept, _, _⟩ := hs s
+  change ENNReal.ofReal (Real.exp (-2 * B)) ≤ Λ E at haccept
+  have ht := full_batch_cost_delta_tail Λ E hE
+    (fun p => p.2.1) (by fun_prop) B hB hlaw haccept δ hδ hδ1
+  refine ⟨ht, ?_⟩
+  have hlog : Real.log 2 ≤ Real.log (2 / δ) := by
+    apply Real.log_le_log (by norm_num)
+    apply (le_div_iff₀ hδ).2
+    linarith
+  have hc := ceil_threshold_le_single_log B (Real.log (2 / δ)) hB.le hlog
+  refine (measure_mono (fun ω hω => ?_)).trans ht
+  exact lt_of_le_of_lt (ENNReal.ofReal_le_ofReal hc) hω
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonQueryTail

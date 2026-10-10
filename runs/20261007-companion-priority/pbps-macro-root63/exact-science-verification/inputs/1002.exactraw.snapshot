@@ -1,0 +1,170 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+
+/-!
+# Permuted equal-mass marginal replacement
+
+Starting from finitely many joint finite measures with one common positive
+mass, this module keeps every source marginal fixed while permuting the target
+marginals and joins each new source/target pair using
+`CommonMass.commonMassProduct`.  After summing the replacement blocks, both
+total marginals are exactly unchanged.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace PermutedMarginalReplacement
+
+open MeasureTheory
+open CommonMass
+open scoped BigOperators NNReal
+
+noncomputable section
+
+variable {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+
+theorem mass_map_of_measurable
+    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]
+    (rho : FiniteMeasure A) (f : A → B) (hf : Measurable f) :
+    (rho.map f).mass = rho.mass := by
+  unfold FiniteMeasure.mass
+  rw [FiniteMeasure.map_apply rho hf MeasurableSet.univ]
+  simp
+
+noncomputable def sourceMarginal (rho : FiniteMeasure (X × Y)) : FiniteMeasure X :=
+  rho.map Prod.fst
+
+noncomputable def targetMarginal (rho : FiniteMeasure (X × Y)) : FiniteMeasure Y :=
+  rho.map Prod.snd
+
+@[simp]
+theorem sourceMarginal_mass (rho : FiniteMeasure (X × Y)) :
+    (sourceMarginal rho).mass = rho.mass := by
+  exact mass_map_of_measurable rho Prod.fst measurable_fst
+
+@[simp]
+theorem targetMarginal_mass (rho : FiniteMeasure (X × Y)) :
+    (targetMarginal rho).mass = rho.mass := by
+  exact mass_map_of_measurable rho Prod.snd measurable_snd
+
+/-- Pushforward commutes with a finite sum of finite measures. -/
+theorem finiteMeasure_map_finset_sum
+    {A B I : Type*} [MeasurableSpace A] [MeasurableSpace B]
+    (s : Finset I) (rho : I → FiniteMeasure A) (f : A → B)
+    (hf : Measurable f) :
+    (s.sum rho).map f = s.sum (fun i => (rho i).map f) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty =>
+      simp only [Finset.sum_empty]
+      apply FiniteMeasure.eq_of_forall_apply_eq
+      intro t ht
+      rw [FiniteMeasure.map_apply (0 : FiniteMeasure A) hf ht]
+      simp
+  | @insert a s ha ih =>
+      rw [Finset.sum_insert ha, FiniteMeasure.map_add hf, ih, Finset.sum_insert ha]
+
+theorem finiteMeasure_map_fintype_sum
+    {A B I : Type*} [MeasurableSpace A] [MeasurableSpace B] [Fintype I]
+    (rho : I → FiniteMeasure A) (f : A → B) (hf : Measurable f) :
+    (∑ i, rho i).map f = ∑ i, (rho i).map f := by
+  classical
+  exact finiteMeasure_map_finset_sum Finset.univ rho f hf
+
+noncomputable def permutedMarginalJoint {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) (i : Fin (n + 1)) :
+    FiniteMeasure (X × Y) :=
+  commonMassProduct (sourceMarginal (rho i)) (targetMarginal (rho (σ i)))
+
+theorem permutedMarginalJoint_map_fst {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) (m : ℝ≥0)
+    (hmass : ∀ i, (rho i).mass = m) (hpos : 0 < m)
+    (i : Fin (n + 1)) :
+    (permutedMarginalJoint rho σ i).map Prod.fst = sourceMarginal (rho i) := by
+  apply commonMassProduct_map_fst
+  · simp [hmass]
+  · simpa [hmass] using hpos
+
+theorem permutedMarginalJoint_map_snd {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) (m : ℝ≥0)
+    (hmass : ∀ i, (rho i).mass = m) (hpos : 0 < m)
+    (i : Fin (n + 1)) :
+    (permutedMarginalJoint rho σ i).map Prod.snd = targetMarginal (rho (σ i)) := by
+  apply commonMassProduct_map_snd
+  · simp [hmass]
+  · simpa [hmass] using hpos
+
+theorem permutedMarginalJoint_mass {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) (m : ℝ≥0)
+    (hmass : ∀ i, (rho i).mass = m) (hpos : 0 < m)
+    (i : Fin (n + 1)) :
+    (permutedMarginalJoint rho σ i).mass = m := by
+  calc
+    (permutedMarginalJoint rho σ i).mass
+        = (sourceMarginal (rho i)).mass := by
+          apply commonMassProduct_mass
+          · simp [hmass]
+          · simpa [hmass] using hpos
+    _ = (rho i).mass := sourceMarginal_mass (rho i)
+    _ = m := hmass i
+
+noncomputable def permutedMarginalReplacement {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) : FiniteMeasure (X × Y) :=
+  ∑ i, permutedMarginalJoint rho σ i
+
+theorem permutedMarginalReplacement_map_fst {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) (m : ℝ≥0)
+    (hmass : ∀ i, (rho i).mass = m) (hpos : 0 < m) :
+    (permutedMarginalReplacement rho σ).map Prod.fst =
+      (∑ i, rho i).map Prod.fst := by
+  classical
+  calc
+    (permutedMarginalReplacement rho σ).map Prod.fst
+        = ∑ i, (permutedMarginalJoint rho σ i).map Prod.fst := by
+          simpa [permutedMarginalReplacement] using
+            (finiteMeasure_map_fintype_sum
+              (fun i => permutedMarginalJoint rho σ i) Prod.fst measurable_fst)
+    _ = ∑ i, sourceMarginal (rho i) := by
+          apply Finset.sum_congr rfl
+          intro i _hi
+          exact permutedMarginalJoint_map_fst rho σ m hmass hpos i
+    _ = ∑ i, (rho i).map Prod.fst := by rfl
+    _ = (∑ i, rho i).map Prod.fst := by
+          exact (finiteMeasure_map_fintype_sum rho Prod.fst measurable_fst).symm
+
+theorem permutedMarginalReplacement_map_snd {n : ℕ}
+    (rho : Fin (n + 1) → FiniteMeasure (X × Y))
+    (σ : Equiv.Perm (Fin (n + 1))) (m : ℝ≥0)
+    (hmass : ∀ i, (rho i).mass = m) (hpos : 0 < m) :
+    (permutedMarginalReplacement rho σ).map Prod.snd =
+      (∑ i, rho i).map Prod.snd := by
+  classical
+  calc
+    (permutedMarginalReplacement rho σ).map Prod.snd
+        = ∑ i, (permutedMarginalJoint rho σ i).map Prod.snd := by
+          simpa [permutedMarginalReplacement] using
+            (finiteMeasure_map_fintype_sum
+              (fun i => permutedMarginalJoint rho σ i) Prod.snd measurable_snd)
+    _ = ∑ i, targetMarginal (rho (σ i)) := by
+          apply Finset.sum_congr rfl
+          intro i _hi
+          exact permutedMarginalJoint_map_snd rho σ m hmass hpos i
+    _ = ∑ i, targetMarginal (rho i) :=
+          Equiv.sum_comp σ (fun i => targetMarginal (rho i))
+    _ = ∑ i, (rho i).map Prod.snd := by rfl
+    _ = (∑ i, rho i).map Prod.snd := by
+          exact (finiteMeasure_map_fintype_sum rho Prod.snd measurable_snd).symm
+
+end
+
+end PermutedMarginalReplacement
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

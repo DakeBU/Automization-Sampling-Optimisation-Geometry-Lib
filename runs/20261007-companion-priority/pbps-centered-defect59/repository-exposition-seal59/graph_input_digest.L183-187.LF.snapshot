@@ -1,0 +1,5 @@
+def graph_input_digest() -> str:
+    """Cheap rebuild freshness, independent of semantic-review admission."""
+    data = publication.inputs()
+    return publication.digest({'lean': astis_site.source_digest(), 'items': publication.load(),
+        'cells': {b['cell']: data['cells'].get(b['cell']) for i in publication.load() for b in i['bindings']}})

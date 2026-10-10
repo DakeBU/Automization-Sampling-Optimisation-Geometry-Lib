@@ -1,0 +1,151 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral
+import Mathlib.MeasureTheory.Function.LpSpace.Indicator
+import Mathlib.MeasureTheory.Measure.NullMeasurable
+import Mathlib.Probability.Process.Adapted
+
+/-!
+# Progressive square-integrable processes
+
+This file fixes the domain used by the general Ito integral.  The process is
+kept as a time-indexed representative together with progressive measurability;
+its `Lp` representative uses the repository's probability-time orientation.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ProgressiveL2
+
+open MeasureTheory Set
+open scoped ENNReal NNReal
+
+open ElementaryItoIntegral
+
+/-- The usual conditions needed in Chewi's stochastic-calculus setup.
+
+`completeAt` says that every ambient `mu`-null set belongs to every time
+sigma-algebra.  Right continuity uses Mathlib's right-continuation interface. -/
+structure SatisfiesUsualConditions
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) : Prop where
+  completeAt : ∀ t s, mu s = 0 → MeasurableSet[filtration t] s
+  rightContinuous : filtration.IsRightContinuous
+
+/-- The product-space representative, with sample point first and time
+second, matching `processTimeMeasure`. -/
+def processFunction {Omega : Type*} (eta : ℝ≥0 → Omega → ℝ) : Omega × ℝ≥0 → ℝ :=
+  fun z => eta z.2 z.1
+
+/-- A progressively measurable process with finite global `L2` energy on
+`[0,T]`.  Keeping `process` as data preserves filtration information that an
+abstract `Lp` element alone would erase. -/
+structure ProgressiveL2Integrand
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) (T : ℝ≥0) where
+  process : ℝ≥0 → Omega → ℝ
+  progressive : IsStronglyProgressive filtration process
+  memLp : MemLp (processFunction process) 2 (processTimeMeasure mu T)
+
+namespace ProgressiveL2Integrand
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- The canonical product-space `Lp` representative. -/
+noncomputable def toLp (eta : ProgressiveL2Integrand filtration mu T) :
+    Lp ℝ 2 (processTimeMeasure mu T) :=
+  eta.memLp.toLp (processFunction eta.process)
+
+/-- Restrict a process to times strictly before `t`.  This representative
+differs from the closed interval convention only at one Lebesgue-null time. -/
+noncomputable def restrictProcess (t : ℝ≥0) (eta : ℝ≥0 → Omega → ℝ) :
+    ℝ≥0 → Omega → ℝ :=
+  fun s omega => if s < t then eta s omega else 0
+
+theorem restrictProcess_zero (eta : ℝ≥0 → Omega → ℝ) :
+    restrictProcess 0 eta = 0 := by
+  funext s omega
+  simp [restrictProcess]
+
+theorem restrictProcess_nested {s t : ℝ≥0} (hst : s ≤ t)
+    (eta : ℝ≥0 → Omega → ℝ) :
+    restrictProcess s (restrictProcess t eta) = restrictProcess s eta := by
+  funext u omega
+  by_cases hus : u < s
+  · have hut : u < t := hus.trans_le hst
+    simp [restrictProcess, hus, hut]
+  · simp [restrictProcess, hus]
+
+theorem restrictProcess_progressive
+    (eta : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    IsStronglyProgressive filtration (restrictProcess t eta.process) := by
+  intro i
+  have htime : Measurable[Subtype.instMeasurableSpace.prod (filtration i)]
+      fun p : Set.Iic i × Omega => (p.1 : ℝ≥0) :=
+    measurable_subtype_coe.comp measurable_fst
+  have hset : @MeasurableSet (Set.Iic i × Omega)
+      (Subtype.instMeasurableSpace.prod (filtration i))
+      {p | (p.1 : ℝ≥0) < t} :=
+    (measurableSet_Iio : MeasurableSet (Set.Iio t)).preimage htime
+  exact StronglyMeasurable.ite hset (eta.progressive i) stronglyMeasurable_const
+
+private theorem processFunction_restrictProcess
+    (eta : ℝ≥0 → Omega → ℝ) (t : ℝ≥0) :
+    processFunction (restrictProcess t eta) =
+      {z : Omega × ℝ≥0 | z.2 < t}.indicator (processFunction eta) := by
+  funext z
+  by_cases hzt : z.2 < t <;> simp [processFunction, restrictProcess, hzt]
+
+theorem restrictProcess_memLp
+    (eta : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    MemLp (processFunction (restrictProcess t eta.process)) 2
+      (processTimeMeasure mu T) := by
+  rw [processFunction_restrictProcess]
+  exact eta.memLp.indicator
+    ((measurableSet_Iio : MeasurableSet (Set.Iio t)).preimage
+      (measurable_snd : Measurable (fun z : Omega × ℝ≥0 => z.2)))
+
+/-- Restriction preserves the progressive `L2` domain. -/
+noncomputable def restrictAt
+    (eta : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    ProgressiveL2Integrand filtration mu T where
+  process := restrictProcess t eta.process
+  progressive := restrictProcess_progressive eta t
+  memLp := restrictProcess_memLp eta t
+
+@[simp] theorem restrictAt_process
+    (eta : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    (eta.restrictAt t).process = restrictProcess t eta.process :=
+  rfl
+
+theorem restrictAt_zero_process
+    (eta : ProgressiveL2Integrand filtration mu T) :
+    (eta.restrictAt 0).process = 0 :=
+  restrictProcess_zero eta.process
+
+@[simp] theorem restrictAt_zero_toLp
+    (eta : ProgressiveL2Integrand filtration mu T) :
+    (eta.restrictAt 0).toLp = 0 := by
+  simp only [toLp, restrictAt_zero_process]
+  exact MemLp.toLp_zero _
+
+theorem restrictAt_nested_process
+    (eta : ProgressiveL2Integrand filtration mu T) {s t : ℝ≥0} (hst : s ≤ t) :
+    ((eta.restrictAt t).restrictAt s).process = (eta.restrictAt s).process :=
+  restrictProcess_nested hst eta.process
+
+/-- Time restriction cannot increase the product-space `L2` norm. -/
+theorem norm_restrictAt_le
+    (eta : ProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    ‖(eta.restrictAt t).toLp‖ ≤ ‖eta.toLp‖ := by
+  rw [toLp, toLp, Lp.norm_toLp, Lp.norm_toLp]
+  apply ENNReal.toReal_mono eta.memLp.2.ne
+  simp only [restrictAt_process]
+  rw [processFunction_restrictProcess]
+  exact eLpNorm_indicator_le _
+
+end ProgressiveL2Integrand
+end ProgressiveL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

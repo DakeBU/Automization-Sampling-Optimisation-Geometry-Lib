@@ -1,0 +1,23 @@
+theorem LinearMap.norm_map_iff_inner_map_map {F : Type*} [FunLike F E E'] [LinearMapClass F 𝕜 E E']
+    (f : F) : (∀ x, ‖f x‖ = ‖x‖) ↔ (∀ x y, ⟪f x, f y⟫_𝕜 = ⟪x, y⟫_𝕜) :=
+  ⟨({ toLinearMap := LinearMapClass.linearMap f, norm_map' := · : E →ₗᵢ[𝕜] E' }.inner_map_map),
+    (LinearMapClass.linearMap f |>.isometryOfInner · |>.norm_map)⟩
+
+end
+
+variable (𝕜)
+
+/-- The inner product as a continuous sesquilinear map. Note that `toDualMap` (resp. `toDual`)
+in `InnerProductSpace.Dual` is a version of this given as a linear isometry (resp. linear
+isometric equivalence). -/
+def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+  LinearMap.mkContinuous₂ (innerₛₗ 𝕜) 1 fun x y => by
+    simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply_apply]
+
+@[simp]
+theorem coe_innerSL_apply (v : E) : ⇑(innerSL 𝕜 v) = fun w => ⟪v, w⟫ :=
+  rfl
+
+theorem innerSL_apply_apply (v w : E) : innerSL 𝕜 v w = ⟪v, w⟫ :=
+  rfl
+

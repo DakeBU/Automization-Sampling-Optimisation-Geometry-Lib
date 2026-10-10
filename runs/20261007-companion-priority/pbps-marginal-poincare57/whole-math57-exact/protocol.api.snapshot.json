@@ -1,0 +1,78 @@
+{
+  "status": "READ_ONLY_API_INSPECTION",
+  "snapshots": [
+    {
+      "whole": {
+        "path": "tools/astis_advance.py",
+        "bytes": 41924,
+        "lf_bytes": 40927,
+        "raw_sha256": "c10652a6cf617640806cc4ba8cbc0a032338fde862574f998a20200dc3d38991",
+        "lf_sha256": "6281ff332258ebc3603f5169baece7774882b1d931dfa108b97ca7ae75202c19"
+      },
+      "first_line": 441,
+      "last_line": 452,
+      "selected_lf_bytes": 452,
+      "selected_lf_sha256": "c65c84a254380aceb812053dc976c1c6c91e7084faa4aa9cc31a4500e5b0b214",
+      "selected_utf8": "    elif to_state == \"VERIFIED\":\n        required = (\"gate\",)\n        if schema_version >= 2:\n            required += (\n                \"verifier_id\",\n                \"verified_commit\",\n                \"source_audit\",\n                \"fake_closure_scan\",\n            )\n        missing = [key for key in required if not _meaningful(evidence.get(key))]\n        if missing:\n            raise HarnessError(\"VERIFIED lacks evidence: \" + \", \".join(missing))\n"
+    },
+    {
+      "whole": {
+        "path": "tools/astis_advance.py",
+        "bytes": 41924,
+        "lf_bytes": 40927,
+        "raw_sha256": "c10652a6cf617640806cc4ba8cbc0a032338fde862574f998a20200dc3d38991",
+        "lf_sha256": "6281ff332258ebc3603f5169baece7774882b1d931dfa108b97ca7ae75202c19"
+      },
+      "first_line": 523,
+      "last_line": 605,
+      "selected_lf_bytes": 4082,
+      "selected_lf_sha256": "21bec24f4f137a8e56c3c125eb99df630a36df47e0b5367e48daf4e9c2865094",
+      "selected_utf8": "def transition_advance(\n    advance_id: str,\n    to_state: str,\n    *,\n    worker_id: str,\n    modes: Sequence[str] = (),\n    evidence: dict[str, Any] | None = None,\n    path: Path = DEFAULT_ADVANCE_LEDGER,\n    discovery_path: Path = DEFAULT_DISCOVERY_LEDGER,\n) -> None:\n    _require_text(\"advance_id\", advance_id)\n    _require_text(\"worker_id\", worker_id)\n    if to_state not in ADVANCE_STATES:\n        raise HarnessError(f\"unsupported substantive-advance state: {to_state}\")\n    evidence = dict(evidence or {})\n    path = path.resolve()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    with durable.file_lock(path):\n        records = _recover_unlocked(path)\n        state = _replay_advances(records)\n        if advance_id not in state:\n            raise HarnessError(f\"unknown substantive advance: {advance_id}\")\n        item = state[advance_id]\n        current = str(item.get(\"state\", \"\"))\n        if to_state not in ALLOWED_ADVANCE_TRANSITIONS.get(current, frozenset()):\n            raise HarnessError(f\"illegal substantive-advance transition: {current} -> {to_state}\")\n        schema_version = int(item.get(\"schema_version\", 1))\n        _validate_transition_evidence(to_state, evidence, schema_version=schema_version)\n        if schema_version >= 4 and to_state in {'PROVED_LOCAL', 'VERIFIED', 'STABILIZING'}:\n            # Carry the exact target set through transitions; no prose \"site OK\" bypass.\n            declarations = evidence.get('publication_declarations') or item.get('publication_declarations')\n            if not declarations:\n                raise HarnessError('publication_declarations required for reader/round-trip gate')\n            if to_state != 'PROVED_LOCAL' and set(declarations) != set(item.get('publication_declarations', [])):\n                raise HarnessError('Cannot change the publication target set after PROVED_LOCAL')\n            try:\n                from tools.astis_publication import check_advance\n            except ImportError:\n                from astis_publication import check_advance\n            try:\n                check_advance(list(declarations), reviewed=to_state != 'PROVED_LOCAL')\n            except ValueError as exc:\n                raise HarnessError(str(exc)) from exc\n        if to_state == \"PROVED_LOCAL\" and schema_version >= 3:\n            _validate_conceptual_mirror_audit_links(\n                advance_id,\n                evidence[\"conceptual_mirror_audit\"],\n                discovery_path,\n            )\n        _assert_worker_lane_owner(item, current=current, to_state=to_state, worker_id=worker_id)\n\n        if schema_version >= 2 and current == \"BLOCKED\" and to_state == \"EXPLORING\":\n            raise HarnessError(\n                \"a BLOCKED v2+ advance must be re-CLAIMED before EXPLORING\"\n            )\n\n        if schema_version >= 2 and current == \"VERIFIED\" and to_state == \"EXPLORING\":\n            owner_id = str(item.get(\"owner_id\", \"\"))\n            if owner_id and worker_id != owner_id:\n                raise HarnessError(\n                    \"a VERIFIED advance may return to EXPLORING only through its owning Worker\"\n                )\n\n        if to_state == \"VERIFIED\" and schema_version >= 2:\n            verifier_id = str(evidence.get(\"verifier_id\", \"\"))\n            if verifier_id != worker_id:\n                raise HarnessError(\"VERIFIED worker_id must equal evidence.verifier_id\")\n            owner_id = str(item.get(\"owner_id\", \"\"))\n            if owner_id and verifier_id == owner_id:\n                raise HarnessError(\"VERIFIED must be published by an independent verifier\")\n\n        if schema_version >= 2 and current == \"STABILIZING\" and to_state == \"MERGED\":\n            integration_owner = str(\n                item.get(\"latest_evidence\", {}).get(\"integration_owner\", \"\")\n            )\n            if integration_owner and worker_id != integration_owner:\n                raise HarnessError(\n                    \"MERGED must be published by the current stabilization owner\"\n                )\n\n        if to_state == \"STABILIZING\":\n            stabilizing = [\n                other\n"
+    },
+    {
+      "whole": {
+        "path": "tools/astis_publication.py",
+        "bytes": 25431,
+        "lf_bytes": 24984,
+        "raw_sha256": "75bb959271cd40195180f9e8c5380a0b22ce708397a063df6edf9d02832a80b9",
+        "lf_sha256": "cf1ad23838e6fcac2df8eacc7f44b098eb3ce71242cfa21ece84aad9d06192c5"
+      },
+      "first_line": 387,
+      "last_line": 399,
+      "selected_lf_bytes": 614,
+      "selected_lf_sha256": "37114f9e26b97997e1595c933b19f09eeb687a2ac2458a970e8b11aad3975c80",
+      "selected_utf8": "def check_advance(declarations: list[str], *, reviewed: bool) -> None:\n    inputs.cache_clear()\n    load.cache_clear()\n    errors = roundtrip.validate_registry(roundtrip.load_registry())\n    errors += validate(strict_names=set(declarations) if reviewed else None)\n    known = {b['declaration'] for i in load() for b in i['bindings']}\n    errors += [f'{n}: publication record missing' for n in declarations if n not in known]\n    if errors:\n        raise ValueError('Reader/round-trip publication gate:\\n' + '\\n'.join(errors))\n\n\ndef main(argv=None) -> int:\n    parser = argparse.ArgumentParser(description=__doc__)\n"
+    },
+    {
+      "whole": {
+        "path": "tools/astis_frontier_cells.py",
+        "bytes": 23802,
+        "lf_bytes": 23367,
+        "raw_sha256": "38728a65f182324f4aba3c49bcf114b54f389e421f35d1e499b92f2f3ebc25f4",
+        "lf_sha256": "db02cb0abb9501310a00b2c61dca4b9ec4236e5ca1cc2a1528e68244bd6974b0"
+      },
+      "first_line": 83,
+      "last_line": 84,
+      "selected_lf_bytes": 93,
+      "selected_lf_sha256": "62b35385912f4b64becd0eafec9156f15ee1b059bd9a441c806d8ccb0c8e2beb",
+      "selected_utf8": "def _nonempty(value: Any) -> bool:\n    return isinstance(value, str) and bool(value.strip())\n"
+    },
+    {
+      "whole": {
+        "path": "tools/astis_frontier_cells.py",
+        "bytes": 23802,
+        "lf_bytes": 23367,
+        "raw_sha256": "38728a65f182324f4aba3c49bcf114b54f389e421f35d1e499b92f2f3ebc25f4",
+        "lf_sha256": "db02cb0abb9501310a00b2c61dca4b9ec4236e5ca1cc2a1528e68244bd6974b0"
+      },
+      "first_line": 373,
+      "last_line": 378,
+      "selected_lf_bytes": 478,
+      "selected_lf_sha256": "ccecae612ddc4cc044e163a50bbb7383dd965c4917c0c04af737a22cba092fb7",
+      "selected_utf8": "        if status in {\"proved_locally\", \"independently_verified\", \"stabilized\", \"merged\"}:\n            if not isinstance(checks, list) or not checks:\n                errors.append(f\"{path}: status {status} requires focused_checks evidence\")\n        if status in {\"independently_verified\", \"stabilized\", \"merged\"}:\n            if not _nonempty(evidence.get(\"independent_verification\")):\n                errors.append(f\"{path}: status {status} requires independent_verification\")\n"
+    }
+  ],
+  "commands_or_imported_gates_executed": false,
+  "source_review_verdict_read": false,
+  "lookup_observation": "Guessed research-wiki/frontier-cells/schema.json path absent; actual tools/astis_frontier_cells.py _nonempty explicitly requires string. No schema inference used."
+}

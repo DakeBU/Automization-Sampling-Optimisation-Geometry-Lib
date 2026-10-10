@@ -1,0 +1,10 @@
+/-- **Strong law of large numbers**, almost sure version: if `X n` is a sequence of independent
+identically distributed integrable real-valued random variables, then `∑ i ∈ range n, X i / n`
+converges almost surely to `𝔼[X 0]`. We give here the strong version, due to Etemadi, that only
+requires pairwise independence. Superseded by `strong_law_ae`, which works for random variables
+taking values in any Banach space. -/
+theorem strong_law_ae_real {Ω : Type*} {m : MeasurableSpace Ω} {μ : Measure Ω}
+    (X : ℕ → Ω → ℝ) (hint : Integrable (X 0) μ)
+    (hindep : Pairwise ((· ⟂ᵢ[μ] ·) on X))
+    (hident : ∀ i, IdentDistrib (X i) (X 0) μ μ) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n : ℕ => (∑ i ∈ range n, X i ω) / n) atTop (𝓝 μ[X 0]) := by

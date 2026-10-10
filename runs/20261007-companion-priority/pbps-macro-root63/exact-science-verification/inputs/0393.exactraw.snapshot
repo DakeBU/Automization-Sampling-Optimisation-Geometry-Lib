@@ -1,0 +1,46 @@
+from pathlib import Path
+import hashlib,json,subprocess,os
+root=Path.cwd();r=root/'runs/20261007-companion-priority/pbps-real-defect-root61';d=r/'repository-exposition-seal61'
+load=lambda p:json.loads(Path(p).read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest();can=lambda x:json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+def path(s):
+ p=Path(str(s).replace('\\','/'));return p if p.is_absolute() else root/p
+def key(q):return (str(path(q['path']).resolve()).lower(),q['raw_sha256'],q.get('lf_sha256'))
+run,lease,receipt,inputs,outputs,readback=[load(d/n) for n in ['run.json','lease.json','receipt.json','inputs.final.json','outputs.final.json','readback.json']]
+maps={key(m['original']):m['exact_raw_snapshot'] for m in inputs['finite_history']};assert len(maps)==7
+seen=set();history=[]
+def check(q):
+ p=path(q['path']);b=p.read_bytes()
+ if sha(b)!=q['raw_sha256']:
+  assert key(q) in maps,('Unmapped exact input drift',q);p=path(maps[key(q)]['path']);b=p.read_bytes();history.append(dict(original=q,exact_raw_snapshot=maps[key(q)]))
+ assert sha(b)==q['raw_sha256'],p
+ if 'lf_sha256' in q:assert sha(b.replace(b'\r\n',b'\n'))==q['lf_sha256'],p
+ for n in ['bytes','raw_bytes']:
+  if n in q:assert len(b)==q[n],p
+ if 'lf_bytes' in q:assert len(b.replace(b'\r\n',b'\n'))==q['lf_bytes'],p
+ seen.add(key(q))
+def walk(x):
+ if isinstance(x,dict):
+  if {'path','raw_sha256'}<=x.keys():check(x)
+  for v in x.values():walk(v)
+ elif isinstance(x,list):
+  for v in x:walk(v)
+assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==receipt['checked_integration_commit']=='d1b150d6e59b3a9c398cc41e75a3330ef1915790'
+assert lease['status']=='CLOSED_LAST' and lease['actual_readback']['exit_code']==0 and lease['actual_readback']['terminal_closed']
+assert sha(can({k:v for k,v in run.items() if k!='run_sha256'}))==run['run_sha256']==readback['whole_run_sha256']=='4fe51572ae227c503aaa97c60e4c196b262f441e4f828a5d7b85e2ae2b4496ce'
+assert sha(can(run['named_repository_exposition_payload']))==run['named_repository_exposition_payload_sha256']=='fb64fed2a43f63e02ce81bff3a5a2f4f791474cf9581673130aa58c8781f614a'
+assert load(d/'payload.json')==run['named_repository_exposition_payload']
+assert sha(can({k:v for k,v in lease.items() if k!='lease_sha256'}))==lease['lease_sha256']=='2ab046c4bf45635085eb934ac0819aacb772a4b93294014e408e6786fcb3e564'
+assert receipt['verdict']=='ACCEPT_SCOPED_REPOSITORY_AND_EXPOSITION61_NO_BLOCKER'
+assert readback['status']=='PASS_FINAL_FOREGROUND_READBACK'
+assert len(outputs['artifacts'])==outputs['count']==193
+for x in [run,lease,receipt,inputs,outputs,readback,load(r/'math-freeze.json')]:walk(x)
+entries=load(path(inputs['exact_integration_entries']['path']));assert len(entries['entries'])==1386
+for e in entries['entries']:
+ check(e['current']);assert e['current']['lf_sha256']==e['git_lf_sha256']
+science=load(path(inputs['exact_science_blobs']['path']));assert science['count']==691
+for gate in load(d/'phase2.review.json')['gates']:
+ walk(gate);q=load(path(gate['receipt']['path']));assert q['exit_code']==0 and q['terminal_closed']
+assert sha(can(load(d/'graph.native-WindowsPath-order.payload.json')))==readback['complete_official_graph_digest']=='355be4509ada7719918dcfc9084d92d4557934dde4c9e8d364228300736d3c6f'
+out=r/'root.repository-exposition61.adoption.json';assert not out.exists()
+out.write_text(json.dumps(dict(status='INDEPENDENT_SCOPED_REPOSITORY_EXPOSITION61_ACCEPTED',actual_adopter_pid=os.getpid(),integration_commit=receipt['checked_integration_commit'],science_commit=receipt['checked_science_commit'],native_actor=lease['actor'],native_run_sha256=run['run_sha256'],native_named_CANONICAL_payload_sha256=run['named_repository_exposition_payload_sha256'],unique_qualified_readbacks=len(seen),finite_history_maps=inputs['finite_history'],effective_historical_resolutions=history,counts=receipt['counts'],scope=receipt['scope'],remaining=receipt['remaining'],canonical_math_mutations=False,new_verified_transition=False,main_live_purified=False),ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+print('Accepted scoped independent repository/exposition61;',len(seen),'qualified readbacks; seven finite history maps; no new mathematics or main/live/PURIFIED claim.')

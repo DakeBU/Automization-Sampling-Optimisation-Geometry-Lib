@@ -1,0 +1,59 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementRealQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
+
+/-!
+# Real quadratic-cost minimality of an optimal coupling
+
+This module isolates the final optimality inequality used by the direct Brenier
+perturbation.  Once a coupling is known to attain the Kantorovich quadratic
+infimum, every other coupling with the same marginals has no smaller real
+squared-displacement integral, provided the two real costs are integrable.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace QuadraticOptimalRealMinimality
+
+open MeasureTheory
+open DisplacementInterpolation DisplacementRealQuadraticCost
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- A quadratic-optimal coupling minimizes the ordinary real
+squared-displacement integral among all couplings with the same marginals,
+whenever the compared real costs are integrable. -/
+theorem integral_norm_sq_le_of_quadraticOptimal
+    {gamma xi : Measure (E × E)} {mu0 mu1 : Measure E}
+    (hgamma : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hxi : Transport.IsCoupling xi mu0 mu1)
+    (hgammaInt : Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) gamma)
+    (hxiInt : Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) xi) :
+    (∫ z, ‖z.1 - z.2‖ ^ 2 ∂gamma) ≤
+      ∫ z, ‖z.1 - z.2‖ ^ 2 ∂xi := by
+  have hENN :
+      (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂gamma) ≤
+        ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂xi := by
+    rw [hgamma.2]
+    exact Transport.transportCost_le_lintegral_of_isCoupling
+      (WassersteinSpace.quadraticCost (E := E)) mu0 mu1 xi hxi
+  have hOfReal :
+      ENNReal.ofReal (∫ z, ‖z.1 - z.2‖ ^ 2 ∂gamma) ≤
+        ENNReal.ofReal (∫ z, ‖z.1 - z.2‖ ^ 2 ∂xi) := by
+    rw [ofReal_integral_norm_sq_eq_lintegral_quadraticCost gamma hgammaInt,
+      ofReal_integral_norm_sq_eq_lintegral_quadraticCost xi hxiInt]
+    exact hENN
+  have hxiNonneg : 0 ≤ ∫ z, ‖z.1 - z.2‖ ^ 2 ∂xi :=
+    integral_nonneg fun z => sq_nonneg ‖z.1 - z.2‖
+  exact (ENNReal.ofReal_le_ofReal_iff hxiNonneg).mp hOfReal
+
+end
+
+end QuadraticOptimalRealMinimality
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

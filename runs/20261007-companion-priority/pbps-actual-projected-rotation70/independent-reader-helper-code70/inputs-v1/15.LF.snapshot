@@ -1,0 +1,27 @@
+"""Reader spelling compatibility must not upgrade definitions to proofs."""
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
+from declaration_lessons import declaration_kind_matches
+
+
+class DeclarationLessonKindTests(unittest.TestCase):
+    def test_definition_alias(self):
+        self.assertTrue(declaration_kind_matches('definition', 'def'))
+        self.assertTrue(declaration_kind_matches('def', 'def'))
+
+    def test_no_proof_kind_promotion(self):
+        for authored, actual in [('theorem', 'def'), ('definition', 'theorem'),
+                                 ('definition', 'lemma'), ('lemma', 'def')]:
+            self.assertFalse(declaration_kind_matches(authored, actual))
+
+    def test_existing_kinds_unchanged(self):
+        for kind in ['theorem', 'lemma', 'instance', 'structure']:
+            self.assertTrue(declaration_kind_matches(kind, kind))
+
+
+if __name__ == '__main__':
+    unittest.main()

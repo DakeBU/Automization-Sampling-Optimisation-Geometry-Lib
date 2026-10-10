@@ -1,0 +1,82 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ChewiItoProcess
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcessProgressive
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+
+/-!
+# Progressiveness of Chewi's source-facing finite-dimensional Itô process
+
+The scalar coordinate ABI has already been proved progressive.  This module
+reassembles those coordinate facts into the actual `R^d`-valued source
+process.  The measurable structure on `EuclideanSpace` is the `PiLp`/`WithLp`
+Borel structure from Mathlib, so finite-coordinate measurability transports
+through `WithLp.toLp` without adding any source assumption.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ChewiItoProcessProgressive
+
+open MeasureTheory Set
+open scoped NNReal RealInnerProductSpace
+
+open BrownianMotion ChewiItoProcess EuclideanBrownianCoordinates
+  FiniteDimensionalItoProcess FiniteDimensionalItoProcessProgressive ProgressiveL2
+
+variable {Omega iota kappa : Type*}
+  [Fintype iota] [DecidableEq iota]
+  [Fintype kappa] [DecidableEq kappa]
+  {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- The `R^d`-valued process constructed from Chewi Definition 1.1.17 source
+data is strongly progressive.  This is the missing process-level regularity
+claim in the textbook definition, not merely a coordinate display. -/
+theorem process_stronglyProgressive
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) :
+    IsStronglyProgressive filtration (process hUsual data hB) := by
+  intro T
+  -- Progressiveness on the horizon `T` is measurability for the restricted
+  -- sigma-algebra `filtration T`.  Keep that same sigma-algebra as the local
+  -- instance while assembling scalar coordinates into `EuclideanSpace`;
+  -- otherwise Lean can infer the ambient `m` for one product and
+  -- `filtration T` for another, although the mathematical map is identical.
+  letI : MeasurableSpace Omega := filtration T
+  let coordData := data.toCoordinateItoData
+  let brownian := coordinateFamily hB
+  have hcoord : ∀ i : iota,
+      StronglyMeasurable[Subtype.instMeasurableSpace.prod (filtration T)]
+        (fun p : Set.Iic T × Omega =>
+          coordinateItoProcess hUsual coordData brownian p.1 p.2 i) := by
+    intro i
+    exact
+      (coordinateItoProcess_coordinate_stronglyProgressive
+        hUsual coordData brownian i) T
+  have hpi :
+      Measurable[Subtype.instMeasurableSpace.prod (filtration T)]
+        (fun p : Set.Iic T × Omega =>
+          coordinateItoProcess hUsual coordData brownian p.1 p.2) := by
+    exact measurable_pi_lambda _ (fun i => (hcoord i).measurable)
+  have htoLp :
+      Measurable[Subtype.instMeasurableSpace.prod (filtration T)]
+        (fun p : Set.Iic T × Omega =>
+          (WithLp.toLp 2
+            (coordinateItoProcess hUsual coordData brownian p.1 p.2) :
+              EuclideanSpace ℝ iota)) := by
+    exact (WithLp.measurable_toLp 2 (iota → ℝ)).comp hpi
+  change StronglyMeasurable[Subtype.instMeasurableSpace.prod (filtration T)]
+    (fun p : Set.Iic T × Omega =>
+      (WithLp.toLp 2
+        (coordinateItoProcess hUsual coordData brownian p.1 p.2) :
+          EuclideanSpace ℝ iota))
+  exact htoLp.stronglyMeasurable
+
+end ChewiItoProcessProgressive
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

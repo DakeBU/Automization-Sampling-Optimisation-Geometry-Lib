@@ -1,0 +1,184 @@
+
+1 Introduction
+
+We study the problem of sampling from the probability measure
+
+MATH S1.p1.m1 RAW[47252,48071) \mu(\mathrm{d}x)=Z^{-1}e^{-V(x)}\,\mathrm{d}x
+ on 
+MATH S1.p1.m2 RAW[48075,48305) \mathbb{R}^{d}
+, where
+
+MATH S1.p1.m3 RAW[48313,48753) V\in C^{2}(\mathbb{R}^{d})
+ satisfies, for 
+MATH S1.p1.m4 RAW[48769,49046) 0<\alpha\leq\beta
+,
+
+MATH S1.E1.m1 RAW[49267,50402) \alpha I\preceq\nabla^{2}V(x)\preceq\beta I\,,\hskip 20.00003ptx\in\mathbb{R}^{d}\,,\hskip 20.00003pt\kappa\coloneqq\tfrac{\beta}{\alpha}\,.
+
+(1.1)
+
+The main result of this paper is the following.
+
+Theorem (Main theorem; informal).
+
+Assume (1.1), and suppose that the initial law 
+MATH Thmunnumberedtheoremx1.p1.m1 RAW[51611,51846) \mu_{0}
+
+satisfies the warm start condition in order-
+MATH Thmunnumberedtheoremx1.p1.m2 RAW[51891,52090) 2
+ Rényi divergence: 
+MATH Thmunnumberedtheoremx1.p1.m3 RAW[52110,52651) D_{2}(\mu_{0}\|\mu)=O(1)
+. For every
+
+MATH Thmunnumberedtheoremx1.p1.m4 RAW[52663,52999) 0<\varepsilon<1/4
+, there is a randomized algorithm that, given
+
+MATH Thmunnumberedtheoremx1.p1.m5 RAW[53045,53356) X_{0}\sim\mu_{0}
+ and query access to 
+MATH Thmunnumberedtheoremx1.p1.m6 RAW[53377,53632) \nabla V
+, returns
+
+MATH Thmunnumberedtheoremx1.p1.m7 RAW[53642,54047) \widehat{X}\sim\widehat{\mu}
+ satisfying
+
+MATH S1.Ex1.m1 RAW[54286,54830) \operatorname{TV}(\widehat{\mu},\mu)\leq\varepsilon\,,
+
+and whose expected number of queries to 
+MATH Thmunnumberedtheoremx1.p1.m8 RAW[55077,55332) \nabla V
+ is at most
+
+MATH S1.Ex2.m1 RAW[55571,56249) \widetilde{O}\bigl(\sqrt{\kappa}\,d^{1/4}\bigr)\,.
+
+Here 
+MATH Thmunnumberedtheoremx1.p1.m9 RAW[56461,56742) \widetilde{O}
+ hides universal powers of logarithms in
+
+MATH Thmunnumberedtheoremx1.p1.m10 RAW[56783,56983) d
+, 
+MATH Thmunnumberedtheoremx1.p1.m11 RAW[56985,57196) \kappa
+, and 
+MATH Thmunnumberedtheoremx1.p1.m12 RAW[57202,57460) 1/\varepsilon
+.
+
+The precise statement and parameter choices appear in
+Theorems 4.3 and 4.4.
+
+We compare our result with high-accuracy samplers, that is,
+samplers whose complexity depends polylogarithmically on
+
+MATH S1.p3.m1 RAW[58668,58905) 1/\varepsilon
+. Under (1.1), the state of the art
+until recently was the Metropolis-adjusted Langevin algorithm
+(MALA) [1, 10, 27]
+and the proximal sampler [6, 15], which achieved
+
+MATH S1.p3.m2 RAW[59634,60173) \widetilde{O}(\kappa d^{1/2})
+ complexity.
+Very recently, Chen et al. [8] used the first-order
+rejection sampling (FORS) mechanism to develop a method for exact
+simulation of diffusions. Together with accelerated entropic
+hypocoercivity [19, 22], this yielded
+a high-accuracy sampler with complexity
+
+MATH S1.p3.m3 RAW[60690,61295) \widetilde{O}(\kappa^{2/3}d^{1/3})
+.
+Also, Lu and Luo [20] introduced windowed thinning,
+an exact simulation method for the bouncy particle sampler (BPS) and the zigzag sampler.
+Their estimates give
+expected complexities of 
+MATH S1.p3.m4 RAW[61584,62121) \widetilde{O}(\kappa^{1/2}d)
+ gradient queries
+for BPS and 
+MATH S1.p3.m5 RAW[62151,62690) \widetilde{O}(\kappa d^{5/4})
+ partial derivative queries
+for zigzag, from a warm start.
+These results were significant in part because they constituted progress
+toward acceleration for log-concave sampling.
+
+From a warm start, our
+main theorem achieves complexity
+
+MATH S1.p4.m1 RAW[62999,63604) \widetilde{O}(\kappa^{1/2}d^{1/4})
+. It matches the condition number
+dependence of BPS while improving its dimension
+dependence, and always improves upon the computational cost of the zigzag sampler (even if we consider one gradient query to be 
+MATH S1.p4.m2 RAW[63814,63993) d
+ times as expensive as a partial derivative query).
+It also improves over all other prior results in both parameters. In particular, it achieves full
+acceleration together with 
+MATH S1.p4.m3 RAW[64170,64417) d^{1/4}
+ dependence on dimension.
+
+In a companion work [7], we will show how to obtain a warm start using
+
+MATH S1.p5.m1 RAW[64688,65293) \widetilde{O}(\kappa^{7/6}d^{1/6})
+ gradient queries. We do not discuss the warm start
+question further in this paper.
+
+Proximal Bouncy Particle Sampler.
+
+Our algorithm, the Proximal Bouncy Particle Sampler (Proximal
+BPS), combines two ideas. The proximal sampler [17]
+breaks the sampling problem into a sequence of easier local problems
+by introducing a Gaussian perturbation of the current position.
+The bouncy particle sampler [5] explores a distribution
+by moving a particle along straight lines, with random changes of direction
+chosen to preserve the desired distribution. We bring these ideas
+together by designing local particle motions that retain a memory of
+previous steps. This memory acts as momentum, allowing the algorithm
+to make sustained progress across successive local problems and giving
+the accelerated convergence rate in our main theorem. The local motions
+follow explicitly computable curved paths, with occasional “bounces”
+that correct for the shape of the target distribution. A gradient
+evaluation at a nearby reference point makes these corrections inexpensive:
+since the gradient varies little over a small region, only a small
+number of bounces is needed. Balancing the size of the local problems
+against the cost of these corrections yields the
+
+MATH S1.SS0.SSS0.Px1.p1.m1 RAW[67010,67628) \widetilde{O}(\kappa^{1/2}d^{1/4})
+ query bound. We feel that the construction of the sampler (with the help of GPT-5.6 Sol) contains some surprising ingredients.
+We describe the construction and its geometry in
+Section 3.1, and give the implementation and complexity
+analysis in Section 4.
+
+Related work.
+
+This work makes progress on the complexity of log-concave sampling, for which the textbook [11] provides an introduction and overview.
+
+The proximal sampling framework is from Lee, Shen, and
+Tian [17], with subsequent analyses and implementations
+in [6, 9, 15]. These methods
+alternate independent draws of the position and the auxiliary variable
+from their conditional distributions. Our update reflects the auxiliary
+point through the current position, a step related to the Gaussian
+overrelaxation method of Neal [25]. We combine
+this reflection with a local piecewise deterministic particle motion run for half of its
+oscillation period. As we shall explain, this helps useful information to persist across iterations.
+
+The rule for the bounces builds on the BPS of Bouchard-Côté,
+Vollmer, and Doucet [5]. The use of a quadratic
+reference potential to generate curved paths, with bounces correcting
+for the remaining force, is adapted from the boomerang sampler of
+Bierkens, Grazzi, Kamatani, and Roberts [4]. This separation
+of the force also fits the general framework for Hamiltonian piecewise
+deterministic Markov processes of Andrieu, Durmus, Nüsken, and
+Roussel [2].
+
+Existing convergence analyses of these processes
+[2, 13, 21] concern continuous-time dynamics
+with repeated random refreshment of the velocity. Our local motion has
+no such refreshment: it stops after a half-period, and convergence
+comes from combining it with the auxiliary reflection step with occasional
+resampling. In particular, the local motion alone need not converge to
+its conditional equilibrium. Thus, the continuous-time results do not
+directly give a convergence guarantee for our discrete chain.
+Our analysis instead adapts the modified 
+MATH S1.SS0.SSS0.Px2.p4.m1 RAW[71710,71933) L^{2}
+ hypocoercivity method of
+Dolbeault, Mouhot, and Schmeiser [14], in the sharpened formulation
+of Fan, Li, and Lu [16], to this discrete setting. The technical details of the hypocoercivity mechanism in Appendices B and C should be of interest to specialists.
+
+AI usage.
+
+The algorithm and its original analysis were found by interactions with GPT-5.6 Sol. The authors recast the arguments into a more standard hypocoercive framework, prepared the manuscript, and take full responsibility for its contents.
+

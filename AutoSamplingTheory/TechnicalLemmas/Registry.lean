@@ -42,6 +42,14 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
+import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability
+import AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -86,6 +94,146 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualOuterBoundedL2Continuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity"
+    upstreamDecl := "Actual PBPS bounded-test outer square-integral prerequisite"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex22 p6.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "bounded-test", "dominated-convergence"]
+    saldUse := "Source Ex22 bounded-test outer square-integral ingredient; no SALD claim"
+    note := "Independently verified science dd3a23011b91569acbcd591ccd7b06301147d339. Under the original six analytic hypotheses, retain the entire actual83 phase and derive exact q_y=volume.tilted(-V-quadratic) and nu_y=q_y.prod(stdGaussian) probability. For every continuous real f with |f|<=M and M>=0, its actual independent-clock expectation A_t f is state measurable, its square discrepancy is nu_y-integrable and <=4M\u00b2, and the outer square integral tends0 at ordinary NNReal0. C_b/4M\u00b2 are ASTIS elaborations of source C_c bounded-test ingredient; no phase-invariance premise. Full all-L2 AE operator/invariance/Jensen/contraction/density/Markov/restart/semigroup/hypocoercivity/implementation/main/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN."
+  },
+  {
+    key := "pbps.actualBoundedTestContinuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity.actual_bounded_test_expectation_continuity"
+    upstreamDecl := "Actual PBPS bounded-test clock expectation prerequisite"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "bounded-test", "integrability"]
+    saldUse := "Source Ex22 pointwise clock-expectation ingredient; no SALD claim"
+    note := "Independently verified science 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. For the actual physical phase, every continuous real test f with global |f|<=M and M>=0 has measurable integrable clock pullbacks, |E f(Z_t)-f(Phi_t z0)|<=2M(1-exp(-Lambda_t)), and E f(Z_t)->f(z0) at ordinary NNReal0 for each fixed initial tuple. Original six analytic hypotheses, literal actual definitions and all prior physical/stochastic clauses retained. C_b and explicit2M are ASTIS elaboration of source C_c small-time step. Outer L2/invariant law/Jensen/contraction/density/Markov/restart/semigroup/hypocoercivity/implementation/main/error/cost/composition and actual browser/main/PURIFIED/live remain OPEN."
+  },
+  {
+    key := "pbps.actualSmallTimeContinuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"
+    upstreamDecl := "Actual PBPS first-event defect and zero-time stochastic continuity prerequisite"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "first-event", "stochastic-continuity"]
+    saldUse := "Source Ex22 pointwise small-time ingredient; no SALD claim"
+    note := "Independently verified science 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. The actual jointly measurable phase satisfies measurable phase-flow defect <=1-exp(-Lambda_t), via the actual firstwait survival law and initial live arc. Each fixed y,xRef,z0 and positive real delta has measurable norm-tail probability tending to0 as NNReal t tends to0, including value0 by actual AE initialization. Original six conditions and full physical representative clauses retained. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and visual/main/PURIFIED/live remain OPEN."
+  },
+  {
+    key := "pbps.idealHalfTurnKernel"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel.ideal_half_turn_returned_position_kernel"
+    upstreamDecl := "Ideal PBPS H_y half-turn returned-position kernel and actual product initialization"
+    upstreamFile := "arXiv2609.06905v1 Algorithm1, Eq2.8, AppendixA1 SS2 p3.1-p4.1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "ideal-reference", "kernel", "physical-time", "initialization"]
+    saldUse := "Source ideal H_y invariance/mixing prerequisite; no SALD claim"
+    note := "Independently verified science 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. Original six analytic conditions and literal actual recurrence give ideal exact-reference H_y at pi as a jointly measurable probability kernel. Exact q_y normalization is derived from Gibbs/conditional-kernel parents. Its independent reference x standard Gaussian x actual exponential product supports actual terminal arc and phase0 law dirac(x) x Gaussian. Full random all-time path law, version uniqueness, phase Markov/semigroup/invariance/mixing, reference implementation/errors/cost and actual PBPS-SPHMC composition remain OPEN. Local gates/visual/main/PURIFIED/live and whole-paper/Goal completion are distinct."
+  },
+  {
+    key := "pbps.actualPhysicalTimeMeasurability"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase"
+    upstreamDecl := "Actual PBPS joint physical-time phase measurability and AE initialization"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "measurable", "initialization"]
+    saldUse := "PBPS actual physical-time law/kernel construction prerequisite; no SALD claim"
+    note := "Independently verified science ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. Original six analytic source conditions and literal actual recursion yield a total phase representative jointly Borel in deterministic parameters, finite physical time and actual input stream. It agrees with every covering live harmonic arc; uncovered exceptional inputs use explicitly attributed initial-phase fallback. For each fixed deterministic parameter tuple, on one actual-product AE event it agrees with a live arc for every finite time and starts at z0. No uniform parameter AE event or correlated random-parameter substitution follows. Path regularity/adaptedness/Markov/invariance/kernel/hypocoercivity/main/error/expected-cost/composition remain open. Aggregate/visual/main/PURIFIED/live and whole-paper/Goal completion remain separate."
+  },
+  {
+    key := "pbps.actualPhysicalTimeCover"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover"
+    upstreamDecl := "Actual PBPS finite physical-time interval coverage"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "interval", "stopped"]
+    saldUse := "PBPS measurable physical-time interpolation prerequisite; no SALD claim"
+    note := "Independently verified science 56e4b7e101a1016e03df2971018b1f018f03e6c1. With the original six analytic binders and canonical actual input, every finite physical time almost surely lies in a unique actual half-open event interval and selects a unique actual live record with stored time<=t and finite elapsed offset<actual next wait. No positive-wait/index/live-record/clock/nonaccumulation provider premise. Last live arc remains available when next wait is infinity. No global interpolation/measurability/origin/Markov/invariance/kernel/hypocoercivity/main/error/expected-cost/composition or whole-paper/Goal completion. Aggregate/visual/main/PURIFIED/live remain separate."
+  },
+  {
+    key := "pbps.actualNonaccumulation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+    upstreamDecl := "Actual PBPS event-time nonaccumulation"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex8-Ex9 and SLLN/nonaccumulation"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "nonaccumulation", "exponential", "stopped"]
+    saldUse := "PBPS global-path prerequisite; no SALD claim"
+    note := "Independently verified science bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. Actual fixed-reference PBPS A2 event times under the canonical Exp1 product escape every finite horizon almost surely and have finite bounded-horizon index sets, including index0. Original six source analytic binders; no supplied iid/cap/recurrence/divergence provider. Zero cap stops and absorbs; positive cap controls clocks by actual divergent partial sums. No global physical-time path/Markov/invariance/kernel/hypocoercivity/main/error/expected-cost/composition or whole-paper/Goal completion. Aggregate/visual/main/PURIFIED/live remain distinct."
+  },
+  {
+    key := "probability.unitExponentialProduct"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    upstreamDecl := "Countable unit-exponential input law and divergent threshold sums"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 independent Exp1 inputs and Ex9/SLLN"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["probability", "exponential", "infinite-product", "independence", "SLLN"]
+    saldUse := "PBPS clock consumer; no SALD claim"
+    note := "Independently verified at 4f88383540a865aea304c63c40de5a699ea61611 by /root/exact_verify77. Actual countable Exp(1) product, measurable coordinates/clamps, exact coordinate marginals and mutual independence, simultaneous almost-sure positivity/clamp equality and divergent threshold sums. No public probability/iid/integrability/convergence provider premises. ASTIS bounded-indicator SLLN route is separate from the author's open direct Exp mean-one expansion. PBPS finite-recursion spacing is the next consumer; nonaccumulation/global path/Markov/invariance/main/error/cost/actual-input composition and whole-paper/Goal completion remain open. Aggregate/reader, purification/main/live states remain separately evidence-bound."
+  },
+  {
+    key := "pbps.actualFiniteJumpRecursion"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion"
+    upstreamDecl := "Actual finite PBPS jump recursion and original-energy spacing"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 equation(A2) and Ex8"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "recursion", "Borel", "energy", "waiting-time", "stopped"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI76 e1f1d85d34426954829a97a46b563ea8e1dab8f1. Original six analytic callers, eleven literal definitions and ten conclusion groups: actual finite stopped postjump recursion(A.2) using actual73 flow, actual74 bounce/rate and actual75 first clock; joint Borel update/records/event times; monotone and absorbing stopping; original initial energy on records and pre-jump arcs; original-energy uniform waiting increment including stopped records; zero-cap/zero-threshold and strictly increasing finite-successor guards. No phase at infinity or global physical-time path for arbitrary zero thresholds. iid Exp1 realization, a.s. positivity/divergence and nonaccumulation remain next independent boundaries; full PDMP/Markov/invariance/kernel/hypocoercivity/main/errors/expected-cost/composition, Exposition/PURIFIED/main/live/Goal remain open."
+  },
+  {
+    key := "pbps.actualHazardClock"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+    upstreamDecl := "Actual PBPS integrated hazard and first exponential clock"
+    upstreamFile := "arXiv2609.06905v1 Algorithm1 and AppendixA1 equation(A1)"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "hazard", "first-clock", "exponential", "Borel", "energy"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI75 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. Original six analytic callers, eight literal actual definitions and ten conclusions: continuous/Borel integrated actual hazard, finite-interval integrability/nonnegative monotonicity, continuous-time closed first crossing with finite-value and infinity/e=0 guards, joint Borel clock, actual Exp(1) pushforward probability law and exact strict survival including infinity, original-state energy cap and extended waiting lower/zero-cap branches. No arbitrary cap/law provider or almost-sure finite wait premise. Recursive actual PDMP paths/iid nonaccumulation/Markov/invariance/terminal kernel/hypocoercivity/main/errors/expected costs/composition and full Exposition/PURIFIED/main/live/Goal remain open."
+  },
+  {
+    key := "pbps.actualBounceRate"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    upstreamDecl := "Actual PBPS zero-safe bounce, rate and energy-layer bound"
+    upstreamFile := "arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "reflection", "bounce", "rate", "energy", "Borel"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI74 d556a7550f0395d149720da6478bfdfff98368a7. All original six analytic callers, no new premise; actual zero-safe Borel bounce, continuous nonnegative rate, norm/involution/pairing and exact weighted SUM energy preservation, flipped-rate difference and pointwise same-energy-layer Lambda majorant. Internal beta-Lipschitz producer, rank0/alphaeta1/zero-energy/zero-normal legal. Actual clocks/path/nonexplosion/invariance/Markov/terminal kernel/main/errors/expected-query cost/composition and full Exposition/PURIFIED/main/live/Goal remain open."
+  },
+  {
+    key := "pbps.actualHarmonicFlow"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
+    upstreamDecl := "Actual PBPS harmonic flow, derivative and conserved energy"
+    upstreamFile := "arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "harmonic-flow", "energy", "Borel"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI73 d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. All original six analytic callers, no new premise; joint continuity/Borel, zero/group/inverse, actual two-equation derivative, nonnegative conserved weighted SUM energy, and exact pi endpoint on finite-dimensional real E. Rank0/alphaeta1/zero-energy legal. No random path/clock/bounce/Markov law, invariance/nonexplosion/main/errors/cost/composition or full Exposition/PURIFIED/main/live/Goal credit."
+  },
+  {
+    key := "pbps.hilbertCorrectorPerturbation"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation"
+    upstreamDecl := "Hilbert corrector perturbation algebra with actual PBPS consumer"
+    upstreamFile := "arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Hilbert", "corrector", "perturbation"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI72 18183c58eee62145b6059ded11c7be05a4cb82de. Explicit auxiliary structural assumptions on one complete real Hilbert space; exact C(u+Gr,v-Ar)-C(u,v)=inner(u,Inv r)+norm(r)^2/2. Actual72 supplies all conditions internally. No probabilistic or actual-r_rho producer. Rank0/alphaeta1 legal; no extra caller, onto or higher regularity. Full Exposition/PURIFIED/main/live/Goal not inferred."
+  },
+  {
+    key := "analysis.hilbertSharpQuadraticCorrectorBound"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound.quadratic_corrector_bound_of_square_identity"
+    upstreamDecl := "Sharp quadratic corrector bound from a selfadjoint square identity"
+    upstreamFile := "arXiv2609.06905v1 Appendix B3 (B23); ASTIS auxiliary Hilbert-space estimate"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Hilbert", "selfadjoint", "quadratic-form", "sharp-corrector"]
+    saldUse := "PBPS actual consumer; no SALD admission"
+    note := "Independently exact-science68 VERIFIED 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. Arbitrary complete real Hilbert space including zero: selfadjoint K,D, I+K\u00b2=D\u00b2 and norm(D)<=c with c>=0 yield the exact c/2 two-component bound. Uses the sum of squared component norms. No c>=1, finite dimension, nontriviality, operator positivity or K,D commutation premise. Actual PBPS supplies D=Inv and K=A0 Inv. Not a separately printed paper theorem."
+  },
   {
     key := "gibbs.gradient.actual-zero-mean"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMean.integrable_gradient_and_integral_eq_zero"
@@ -2099,6 +2247,276 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualCorrectorPerturbation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
+    upstreamDecl := "Actual PBPS corrector perturbation on the same centered space"
+    upstreamFile := "arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "conditional-expectation", "corrector", "perturbation"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI72 18183c58eee62145b6059ded11c7be05a4cb82de. Same original six analytic callers/twelve witnesses/all actual71 clauses; same C/A0/Gamma0/Inv exact perturbation for every u,v,r in HP0. Generic conditions produced internally. Arbitrary r is not actual r_rho; actual H/K/B27/B28, dynamics/nonexplosion/main/errors/cost/composition remain open. Rank0/alphaeta1 legal; no extra caller, onto or higher regularity. Full Exposition/PURIFIED/main/live/Goal not inferred."
+  },
+  {
+    key := "pbps.actualCorrectorChange"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange.actual_corrector_change"
+    upstreamDecl := "Actual PBPS exact corrector change under the reflected step"
+    upstreamFile := "arXiv2609.06905v1 Appendix B3 B20/B21; Lemma B4/B28 ingredient"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "reflection", "conditional-expectation", "corrector"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independently exact-science71 VERIFIED 4e7ce5d2996ffe1d1b0ab570778e02425c6be34e. Same six original analytic callers and twelve witnesses, actual g=U(P-Pperp)f and its actual conditional gP/polar gV satisfy C(gP,gV)-C(fP,fV)=-norm(fP)^2+norm(fV)^2, with C(u,v)=(norm(u)^2-norm(v)^2)/2-inner(A0(Inv u),v). Exact half, signs and same inverse. No extra smoothness/domain, onto-V0, mean premise or sharp-energy68 dependency. Rank0/alphaeta1 remain legal. B4/B27/B28 actual-update perturbation, H1/B2 dynamics, invariance/nonexplosion, mains, implementation errors/caps, actual-input expected-query costs/composition and full Exposition/PURIFIED remain open."
+  },
+  {
+    key := "pbps.actualProjectedRotation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation"
+    upstreamDecl := "Actual PBPS projected reflection rotation and two-component energy"
+    upstreamFile := "arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "reflection", "conditional-expectation", "projected-rotation"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independently exact-science70 VERIFIED c46af8a55e89419109f654c4553cf527993cbeed. Same six original analytic callers and twelve witnesses yield actual g=U(P-Pperp)f, internally mean(g)=0, actual conditional gP and polar gV, gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, with exact pair-energy conservation. No right-hand-side-defined output, mean premise, extra regularity or sharp-energy68 premise. Rank0/alphaeta1 remain legal. B21 corrector change, B4 dynamics, main, invariance/nonexplosion, errors/caps, expected-query costs/composition and full Exposition/PURIFIED remain open."
+  },
+  {
+    key := "pbps.actualReflectionIntertwining"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining.actual_reflection_intertwining"
+    upstreamDecl := "Actual PBPS reflection intertwining on the full conditional complement"
+    upstreamFile := "arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "reflection", "adjoint", "full-micro-space"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independently exact-science69 VERIFIED 2d286c283a6fb5dfc13180204bb0da54531a5c67. Same six original analytic callers and twelve witnesses yield D=R U inclusion and V0*D=-A0V0* on ALL ker P. Equality of actual AE reflection actions identifies U2=U before consuming the ambient block theorem. No range-V0 restriction, surjectivity, extra regularity or sharp-energy68 premise. Rank0/alphaeta1 remain legal. Next actual projected rotation/mean preservation, B21 corrector change and B4 dynamics remain unproved; main, invariance/nonexplosion, errors/caps, expected-query costs/composition and full Exposition/PURIFIED remain open."
+  },
+  {
+    key := "pbps.actualSharpCorrectorEnergy"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy.actual_sharp_corrector_bound"
+    upstreamDecl := "Sharp corrector bound and actual PBPS modified energy equivalence"
+    upstreamFile := "arXiv2609.06905v1 Appendix B3 Lemma B3; B19,B20,B22,B23,B24"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "same-root", "corrector", "modified-energy"]
+    saldUse := "PBPS actual consumer; no SALD admission"
+    note := "Independently exact-science68 VERIFIED 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. Original finite real Hilbert/Borel/C2/two Hessians/positive capped eta inputs produce SAME actual root/inverse/coefficient and sharp |C(u,v)|<=(norm(u)\u00b2+norm(v)\u00b2)/(2gamma). Every globally centered actual f has SAME fP/fV, the actual norm budget and |C(fP,fV)|<=norm(f)\u00b2/(2gamma). Genuine original-input Test proves half/three-halves energy equivalence and exact perturbation bounds for every0<omegaWeight<=gamma. Rank0/alphaeta1 retained; literal private Props are representations only. B21 reflection rotation, H1/B2, B4 dynamics, main results, implementation errors, costs and composition remain open."
+  },
+  {
+    key := "measure.realL2PositiveSquareCommutation"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation"
+    upstreamDecl := "Positive-square commutation on arbitrary real L2"
+    upstreamFile := "arXiv2609.06905v1 Appendix D1 functional calculus background; ASTIS auxiliary corollary for B23/B21"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["L2", "positive", "CFC", "square-root", "commutation"]
+    saldUse := "PBPS real consumer; no SALD admission"
+    note := "Independently exact-science67 VERIFIED 3da29415011a971a65f749502a625e416213f487. Arbitrary measure and positive real-L2 G,D: Commute(G\u00b2,D) implies Commute(G,D), by canonical complexification and the same unique positive square root. No probability/finiteness/nontriviality/caller CFC premise. Actual PBPS internally produces positive D=I+T. Not a separately printed paper theorem."
+  },
+  {
+    key := "pbps.actualRootInverseCommutation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation"
+    upstreamDecl := "Same actual PBPS root and centered inverse commutation"
+    upstreamFile := "arXiv2609.06905v1 Appendix B3 proof ingredient for Lemma B3/B23 and B21"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "same-root", "centered-inverse", "corrector"]
+    saldUse := "PBPS real consumer; no SALD admission"
+    note := "Independently exact-science67 VERIFIED 3da29415011a971a65f749502a625e416213f487. Original C2/two Hessians/positive capped eta produce SAME actual Gamma/T/A/HP0/Inv. Internal I+T positivity yields root commutation; exact A0 restriction is selfadjoint, commutes with Gamma0 and Inv, and A0\u00b2+Gamma0\u00b2=I. The SAME inverse is selfadjoint. Genuine original-input Test gives K=A0Inv selfadjoint and I+K\u00b2=Inv\u00b2. Rank0/alphaeta1 retained. Two literal private Props are representations, never providers/premises. Sharp B23/LemmaB3 energy/B21/H1/dynamics/main/errors/cost/composition remain open."
+  },
+  {
+    key := "pbps.ambientAdjointCorrector"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition"
+    upstreamDecl := "Actual PBPS ambient adjoint and globally centered corrector"
+    upstreamFile := "arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "ambient-adjoint", "centering", "corrector"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science66 VERIFIED a115115d42b3fa2b67885d87fe4d5300af36fcd1. SAME original C2/two Hessians/positive capped eta inputs produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg and all-vector Bambient*=i0 B0*R. Every actual globally centered input produces fP in HP0,fperp=Rf,fV=V0*fperp with B* fperp=i0 Gamma0 fV=GammaP i0 fV, exact Pythagoras and contraction. Genuine Test gives original-input reconstruction,B*f=GammaP i0 fV and squared norm budget. Rank0/alphaeta1 retained. Two literal private Prop expansions are representations only; no extra premise/provider. Full B20/B21,halfturn/H1/dynamics/main/errors/expected costs/composition remain open."
+  },
+  {
+    key := "pbps.actualPolarIsometry"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry.actual_centered_polar_isometry"
+    upstreamDecl := "Actual PBPS typed polar isometry and adjoint corrector"
+    upstreamFile := "arXiv2609.06905v1 B16 and B3 first corrector"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "polar", "isometry", "adjoint-corrector"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science65 VERIFIED ecd9d1f10ad0241312492cefacd5fe48c317e9c2. Original C2/two Hessians/positive capped eta produce SAME actual laws/e/U/T/root/centered inverse. Exact B0:HP0->kerP and V0=B0 Inv satisfy B0=V0 Gamma0,V0.adjoint composed V0=I and all-vector norm equality. Genuine original-input Test gives B0.adjoint=Gamma0 V0.adjoint, adjoint contraction and residual annihilation. No onto/reverse product. Rank0/alphaeta1 retained. B21 root commutation/rotation, B17/H1/operator inequalities,dynamics/main/errors/expected costs/composition remain open."
+  },
+  {
+    key := "measure.realL2PositiveSquareOrder"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder.positive_square_order"
+    upstreamDecl := "Arbitrary real L2 positive square order"
+    upstreamFile := "PBPS arXiv2609.06905v1 D1 order/root background; ASTIS internal complexification completion"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["L2", "positive", "operator", "square-order"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science64 verified 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Arbitrary measure and real scalar-valued L2: positive A,B with positive B squared-A squared internally yield positive B-A, using three canonical complex lifts and internal complex CFC. No caller CFC/nontriviality/finite-L2 premise; zero/trivial case included. Genuine consumer is actual PBPS B15 centered root order."
+  },
+  {
+    key := "pbps.actualCenteredRootOrderInverse"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse.actual_centered_root_order_inverse"
+    upstreamDecl := "Actual PBPS centered root order and bounded inverse"
+    upstreamFile := "arXiv2609.06905v1 B15; C2/C3/C4; B16 actual input"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "centered", "root-order", "bounded-inverse"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science64 verified 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Original C2/two global Hessian bounds,0<alpha<=beta,eta>0,betaeta<=1. SAME actual laws/e/U/T/GammaP, compact-gradient closure and literal conditional action internally give C4 sharp contraction, GammaP0 >= gamma I with gamma=2sqrt(alphaeta)/(1+alphaeta), exact HP0=ker inner(e1,.), unit, both inverse cancellations and norm inverse<=1/gamma. Rank0/alphaeta=1 retained. Full-space inverse excluded; completed polar, H1/B13/B14, dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "pbps.actualUniquePositiveMacroscopicDefectRoot"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root"
+    upstreamDecl := "PBPS actual unique positive macroscopic defect root and typed Gram"
+    upstreamFile := "arXiv2609.06905v1 AppendixB1-B5 first Gram/B10-B11; attributed ASTIS completion"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "macroscopic", "square-root", "Gram", "uniqueness"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science63 verified 4d02622332d02d0bd6c977d3cee48fd535ebf203. Original C2/two global Hessian bounds,0<alpha<=beta,eta>0,betaeta<=1 internally produce SAME stationary reflected S/T/U, canonical M onto complete HP=lpMeas=ran(P), and scalar positive root transported by SAME e. A=e T e^-1, typed leakage B:HP-to-joint, GammaP^2=I_HP-A^2=B.adjoint composed B, norm/energy for EVERY macro class and ALL positive same-square macro uniqueness without alternative energy. Rank0 and alphaeta=1 retained. Fulljoint Gram remains P-AJ^2. Other B5, centered root order/inverse/polar,H1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "measure.positiveRealL2SquareRootUnique"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique.positive_square_roots_unique"
+    upstreamDecl := "ASTIS positive real L2 square-root uniqueness"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["L2", "positive", "square-root", "uniqueness"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science62 verified 9d7f7b640c7cb18fea133ccbd300de129af40b83. On arbitrary-measure real L2, bounded positive A/B with equal squares are equal. Canonical complex lifts and actual complex positive-root uniqueness descend through the isometric real embedding. No finite/probability measure, finite L2, nontriviality or caller CFC certificate. Printed joint GammaP/ontoM/typed B*B, centered order/inverse/polar,H1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "pbps.actualUniquePositiveRealDefectRoot"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRootUnique.actual_unique_positive_real_defect_root"
+    upstreamDecl := "PBPS actual unique positive real scalar defect root"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "positive", "square-root", "uniqueness"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science62 verified 9d7f7b640c7cb18fea133ccbd300de129af40b83. Original C2/two global Hessian bounds,0<alpha<=beta,eta>0,betaeta<=1 internally produce SAME stationary reflected S/T/D and positive REAL root Gamma. ALL positive alternative roots with same square equal Gamma; their energy is not a premise. Quantifier lies outside every-u energy. Genuine actual-input Test checks alternative-root contractivity. Rank zero and alphaeta=1 retained. Printed joint GammaP/ontoM/typed B*B, centered order/inverse/polar,H1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "measure.positiveRealL2SquareRoot"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot.exists_positive_real_square_root"
+    upstreamDecl := "ASTIS genuine positive real L2 square root"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["L2", "positive", "square-root", "real-descent"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science61 verified bcd245d90b21b899acb9937fc54dffcea20e86ee. Arbitrary measure and bounded positive real D; actual complex CFC root, conjugated-root positivity and uniqueness establish pointwise conjugation preservation; full fixed-space descent produces bounded positive REAL Gamma, Gamma squared equals D and full-domain quadratic energy. No finite/probability measure, finite L2, nontriviality or caller CFC/root certificate. Exported real uniqueness, joint GammaP/ontoM/typed B*B, centered root order/inverse/polar, weakH1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "pbps.actualPositiveRealDefectRoot"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot.actual_positive_real_defect_root"
+    upstreamDecl := "PBPS actual positive real scalar defect root"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "positive", "square-root"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science61 verified bcd245d90b21b899acb9937fc54dffcea20e86ee. Original C2, both global Hessian bounds, 0<alpha<=beta, eta>0, beta*eta<=1; genuine every-state normalized reflected Gaussian S, conditional law, stationary marginals and SAME scalar selfadjoint contraction T internally produced. Positive REAL Gamma squared equals I-T*T and every-u normGamma squared equals normu squared minus normTu squared; actual-input Test checks contractivity. Rank zero and alpha*eta=1 retained. Exported real uniqueness, joint GammaP/ontoM/typed B*B, centered root order/inverse/polar, weakH1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "measure.positiveRealL2ComplexLift"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+    upstreamDecl := "ASTIS positive real L2 operator complexification"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["L2", "positive", "complexification", "fixed-range"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science60 verified 0a77416f5ec38702c46ec1358966b9dd4846c8d3. Arbitrary measure real positive bounded D; actual compLpL scalar maps, norm-preserving embedding, full pointwise-conjugation fixed range, actual positive bounded complex lift with literal formula/intertwining/conjugation. Reused by actual PBPS consumer. Complex-root API test only; real-root preservation/descent/Gamma/B11/polar/fullH1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "pbps.actualPositiveDefectComplexLift"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift"
+    upstreamDecl := "PBPS actual positive squared-defect complex lift"
+    upstreamFile := "arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "positive", "complexification"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Independently exact-science60 verified 0a77416f5ec38702c46ec1358966b9dd4846c8d3. Original C2, both global Hessian bounds, 0<alpha<=beta, eta>0, beta*eta<=1; actual normalized Gaussian reflected kernel produces same verified59 T and D=1-T*T internally. No caller D/positivity/embedding/CFC certificate. Rank zero extension and alpha*eta=1 retained. Complex-root API test only; real-root preservation/descent/Gamma/B11/polar/fullH1/dynamics/main/error/cost/composition remain open."
+  },
+  {
+    key := "pbps.actualCenteredSelfadjointDefect"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect"
+    upstreamDecl := "PBPS actual centered selfadjoint squared defect"
+    upstreamFile := "arXiv2609.06905v1 AppendixB B1-B5/D1-D2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "centered", "selfadjoint", "squared-defect"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Original C2/global two Hessian/positive capped eta. Actual stationary reflected Gaussian kernel produces real L2 selfadjoint mean operator and canonical AE constant; its whole closed centered restriction and actual full/centered positive squared defects are proved. Real Test consumes exact58 macro contraction for rho/delta and IsUnit of the squared defect only on the centered domain. Rank-zero extension and alpha*eta=1 retained; no finite-dimensional L2 or caller regularity/root certificate. Gamma/root/polar/fullH1/dynamics/main/error/cost/composition remain open. Independently verified 2d6cd0167adc4fae1d8d166068a2eda51cd3c3ad."
+  },
+  {
+    key := "l2Pullback.rangeEqLpMeas"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange.l2_pullback_range_eq_lpMeas"
+    upstreamDecl := "Canonical arbitrary-measure real L2 pullback range"
+    upstreamFile := "arXiv2609.06905v1 AppendixB B1-B5/C3-C4"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["measure-preserving", "L2", "comap", "factorization"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Arbitrary measurable spaces/measures; genuine measure-preserving map. Exact range equals comap AE strongly measurable L2 submodule, with internally constructed factor and MemLp transfer; no probability/finite-measure/StandardBorel premise. Actual PBPS consumer. Independently verified 8c8847715c1d4c3033224b069d8dd694f2a4bd30."
+  },
+  {
+    key := "pbps.actualMacroscopicCenteredRange"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange.actual_macroscopic_centered_range"
+    upstreamDecl := "PBPS B1-B5 actual macro range and centered image"
+    upstreamFile := "arXiv2609.06905v1 AppendixB B1-B5/C3-C4"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "conditional-expectation", "centered-range"]
+    saldUse := "Actual PBPS consumer; no SALD admission"
+    note := "Original C2, both Hessian bounds, positive capped eta. Actual Gibbs/Gaussian J and nu; canonical snd pullback range equals true conditional projection range; mean transport and full centered image. Finite real Hilbert/Borel/rank0 extension explicit. Real Test joins same55 reflection/mean with57 contraction to give allmacro sharp contraction and squared defect gap. No Gamma/root/inverse/weakH1/dynamics/cost/composition closure. Independently verified 8c8847715c1d4c3033224b069d8dd694f2a4bd30."
+  },
+  {
+    key := "gaussianMarginal.centeredDomainPoincare"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare"
+    upstreamDecl := "Authored actual Gaussian marginal centered closure Poincare and PBPS C.3 consumer"
+    upstreamFile := "arXiv2609.06905v1; arXiv2609.06906v1 smoothing background"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian-marginal", "Poincare", "centered-domain", "PBPS"]
+    saldUse := "Reusable Gaussian smoothing PI with PBPS consumer; no SALD admission"
+    note := "Actual normalized Gibbs/Gaussian marginal nu, one genuine dense closable compact-gradient G and closed closure BEFORE every centered domain z; exact alpha/(1+alpha eta) PI. Original C2/two Hessian/positive capped eta retained; finite Hilbert/Borel/rank0 extension explicit. Internal normalization, posteriorL2 and exact alpha/(1+alphaeta),beta/(1+betaeta) Hessian bounds use six real admitted parents; no caller law/moment/curvature/PI/domain certificate or private provider. SAME56 closed pair and actual55 stationary mean consumer derive centering, C3 and sharp rho=(1-alphaeta)/(1+alphaeta) contraction including endpoint. WeakH1/macro-range/fullB13/Gamma/dynamics/main/errors/cost/composition OPEN. Independently verified e8a9044ba5a945eaa4b4aecd110b63494fe6c68e."
+  },
+  {
+    key := "pbps.actualL2.roughMeanGradient"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient.actual_rough_mean_gradient"
+    upstreamDecl := "Authored actual all-L2 PBPS closed mean gradient and C.2 sharp defect"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "all-L2", "closed-gradient", "sharp-defect"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "SAME Gibbs/Gaussian mu/J/nu and literal S give one genuine dense closable compact-gradient G and bounded T/K BEFOREallrough L2 inputs. Actual closed graph membership, sharp c=(1-alpha*eta)²/[4(1+alpha*eta)] and source4eta norm defects hold; AE source mean/fiber integrability only. Original C2/two Hessian/capped eta retained; finite Hilbert/Borel/rank0 extension disclosed. Three actual admitted parents, no private/background copy or caller law/domain/convergence premise. Actual SAME-T joint BMu rough-difference and alphaeta1 full K=0 consumers tested. Separate weak-H1/full B13/Gamma/dynamics/main/errors/cost/composition open. Independently verified db2c1237cd56698ae560a8121abfcbf374ff8838."
+  },
+  {
+    key := "pbps.actualL2.macroscopicMean"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean"
+    upstreamDecl := "Authored actual all-L2 PBPS conditional mean and B.9 variance defect"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "all-L2", "conditional-mean", "variance-defect"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "Actual SAME Gibbs/Gaussian mu/J/nu and every-y literal reflected source S internally produce canonical snd isometry M and bounded T BEFORE all rough L2 inputs. PM=M, MT=AM, source conditional mean and fiber L1/squareL1 only AE; actual integrated variance is the joint reflection block/norm defect. Original C2/two Hessian/capped eta retained; finite Hilbert/rank0 extension disclosed. Actual rough same-T difference and noncentered rank0 class1 fixed/variance0 tested. Five real existing parents, no new private/background copy/caller law/domain/cost premise. Rough gradient/weakH1/B13/Gamma/dynamics/main/errors/cost/composition remain open. Independently verified 4f71a36d56500fda7f86e8080f695a514913950a."
+  },
+  {
+    key := "pbps.literalSourceMean.closedGradientDomain"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain.literal_source_mean_in_closed_gradient"
+    upstreamDecl := "Authored actual PBPS compact source mean canonical gradient-domain integration for C.1/C.2"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-source-mean", "L2", "closed-gradient"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "Actual literal source S on SAME mu/J/nu produces compact-observer whole mean Tf and gradientTf L2 witnesses; true whole C1 and the uniform genuine compact-gradient core yield canonical closed-gradient graph membership via the existing C1 cutoff/mollifier adapter. Source C2/two-sided Hessian/capped eta retained; finite Hilbert/rank0 and explicit core closure interpretation disclosed. PUP source mean and noncentered rank0 canonical1/0 tested; no Tf compactness or caller law/analytic certificate. Full rough B13, separately defined weak-H1 equivalence, Gamma/dynamics/main/errors/cost/composition remain separate. Four real existing parents reused; no new generic-background copy. Independently verified 16797326f3e06a853e2d047f67fde924ac8c1647."
+  },
+  {
+    key := "pbps.literalReflectedSource.compactMeanC1"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1"
+    upstreamDecl := "Authored actual PBPS reflected source law and compact mean integration for C.1"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "reflected-source-law", "conditional-mean", "C1"]
+    saldUse := "Source-specific PBPS integration; no SALD admission"
+    note := "Actual source mu=volume.tilted(-V), R_y=mu quadratic tilt and S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)). Genuine Gibbs partition/L1/probability, posterior tilt composition, inverse half and normalized affine map produce EVERY-y S_y=(2x-y)#R_y; the whole compact signed-observer mean is C1. C2 lower curvature/allpositive eta/compact C1/finite Hilbert/rank0 are explicit sufficient-background extensions; original-source Test retains upper Hessian/capped eta/smoothcompact f and SAME mu/J Markov conditional, source-S probability, rank0 mean1/derivative0. Source-specific integration consumes existing reusable parents; no new generic-background copy or caller analytic/law certificates. Actual Tf closed-gradient membership, full rough B13/Gamma/dynamics/main/errors/cost/composition remain separate. Independently verified 9f0305db380966529eb3b0fc17a62aa9bcd47a85."
+  },
+  {
+    key := "gaussian.reflectedPosterior.compactMeanC1"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianReflectedMean.gaussian_reflected_mean_c1"
+    upstreamDecl := "Authored literal Gaussian posterior-reflection compact-observer regularity for PBPS C.1"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gaussian", "conditional-mean", "C1"]
+    saldUse := "Shared Gaussian posterior compact-observer regularity; no SALD admission"
+    note := "Any probability mu on finite real Hilbert/Borel E, eta>0 and signed compact C1 observer f, including rank0. Literal R_y=mu.tilted(-norm(x-y)^2/(2eta)), S_y=R_y.map(2x-y): its exact every-y mean is C1. Compact observer/fderiv bounds, genuine dominated Frechet numerator derivative and its continuity, likelihood/posterior/map L1, positive C2 normalizer and actual N/Z identity are produced internally. No moment/density/domination/normalizer/derivative-continuity/closed-gradient certificate. Actual PBPS same mu/J conditional-kernel consumer retains source curvature/step assumptions; noncentered rank0 constant has real mean1 and actual derivative0. Authored analytic background generalization for C.1. Source-volume SAME-S identity, Tf closure/full rough B13/Gamma/main/errors/expected costs/composition remain separate. Independently verified a18cd1cf8e8310f228391d4c53a2ac8f1a8900ec."
+  },
+  {
     key := "entropy.two-point.signed-squared"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.TwoPointEntropy.two_point_squared_entropy_le_half_sq_sub"
     upstreamDecl := "Pinned SLT TwoPoint.rothaus_lemma / BernoulliLSI.bernoulli_logSobolev; ASTIS authored signed extension / RMS induction"
@@ -2653,6 +3071,66 @@ def measureMemory : List LemmaMemoryEntry := [
 
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
+  {
+    key := "gaussian.outerMarginal.closableGradient"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable"
+    upstreamDecl := "Authored actual Gaussian outer-gradient background for PBPS Appendix C.1 toward B.13"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gaussian", "gradient-domain", "closed-gradient"]
+    saldUse := "Shared Gaussian outer-marginal gradient; no SALD admission"
+    note := "Any probability mu on a finite real Hilbert/Borel space, eta>0, including rank0. For literal J=law(X,X+sqrt(eta)G), nu=J.snd, produce one dense genuine smooth-compact scalar/vector L2 gradient graph, closability and closed closure. Positive C2 Gaussian density, density L1, real normalizer1 and exact normalized tilted-law equality are internally derived. No caller moment/density/potential/integrability/normalization/closed-gradient certificate. Actual PBPS consumer retains original curvature and step assumptions; noncentered rank0 constant has mean1 and zero gradient. Authored background elaboration of C.1 density/closedness prerequisite. Literal Tf closure membership, full rough B13, Gamma/half-turn/main/errors/expected costs/composition remain separate. Independently verified 19f7e6bed7975fac9b7e1ea0b0b95d0c084083f6."
+  },
+  {
+    key := "pbps.reflectedConditional.macroscopicBlockEnergy"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy.actual_macroscopic_gradient_energy_blocks"
+    upstreamDecl := "PBPS Appendix B.1-B.9 genuine joint blocks and C.1 C.2 smooth energy"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "macroscopic-energy", "joint-blocks", "variance-defect"]
+    saldUse := "PBPS actual macroscopic block energy; no SALD admission"
+    note := "Actual same J/nu/Lambda/R/S and joint L2 conditional projection P and selfadjoint involution U. Produce actual A=PUP, B=(I-P)UP, D=(I-P)U(I-P), block adjoint identities and norm defect. For every signed smooth compact f, produce true differentiability/all L2/L1 domains, g=[f o snd], Pg=g, Ag=[Tf o snd], genuine second moments and integrated conditional variance=normBg squared. Sharp eta integral gradientTf squared <= (1-alpha eta)^2/[4(1+alpha eta)] normBg squared. AE S=S0 only transports means/classes, no derivative version transport. Positive alpha<=beta, global C2 Hessian bounds, eta>0 and beta eta<=1; finite Hilbert/rank0 extension explicit. No supplied law/operator/domain/bound or centering certificate. Full rough H1/closed-gradient/Gamma/half-turn/mains/errors/cost/composition remain separate. Independently verified 864ff305b78030d9e1c840938e82fefcf4185515."
+  },
+  {
+    key := "pbps.reflectedConditional.outerGradientEnergy"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy"
+    upstreamDecl := "PBPS Appendix C.1 formula C.2 smooth compact outer energy; B.9 variance defect"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "conditional-gradient", "outer-energy", "variance-defect"]
+    saldUse := "PBPS actual outer gradient energy; no SALD admission"
+    note := "Actual same reflected R/S with genuine probability laws and every-y density. For every signed smooth compact f, produce true differentiability, f/Tf/gradient L2, conditional variance L1 and exact variance defect. Genuine disintegration, reflection invariance and finite-domain Fubini give integrated variance=integral f squared minus integral Tf squared. Integrate true pointwise gradient domination to exact eta coefficient (1-alpha eta)^2/[4(1+alpha eta)]. Positive alpha<=beta, global C2 Hessian bounds, eta>0 and beta eta<=1; finite Hilbert/rank0 extension explicit. No supplied law, domain or desired-bound certificate. Full rough L2-to-H1/closed-gradient and literal block/Gamma adapters, mains/errors/cost/composition remain separate. Independently verified 5ba91a1c9a553b13a38d48f02f0725a69af146a4."
+  },
+  {
+    key := "pbps.reflectedConditional.gradientVariance"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance"
+    upstreamDecl := "PBPS Appendix C.1 A3.Ex7 pointwise gradient variance ingredient"
+    upstreamFile := "arXiv2609.06905v1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "conditional-gradient", "variance", "Poincare"]
+    saldUse := "PBPS actual reflected conditional mean; no SALD admission"
+    note := "Actual reflected conditional kernel and every-y density; true differentiability and exact pointwise gradient variance bound for every smooth compact observable. Identify both parent S internally from density, produce centered L2 domains, evaluate derivative at actual gradient and cancel zero-aware. Positive alpha<=beta, eta>0, beta*eta<=1; finite Hilbert/rank0 extension explicit. Actual Gaussian precision/rank0 Tests. No supplied law/coherence/domain/desired inequality certificate. Outer C.2/B.13/full L2-H1 and mains/error/cost separate. Independently verified 8d950c37e41bd5d816c4132c6a5cdde0e30dcbee."
+  },
+  {
+    key := "sphmc.standardizedRGO.canonicalKLDimension"
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLDimension.standardized_rgo_unique_prox_and_kl_le_dimension"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI and moment component"
+    upstreamFile := "arXiv2609.06906v1 normalized C2/Hessian source; actual31/43"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "relative-entropy", "dimension", "RGO", "SPHMC"]
+    saldUse := "SPHMC actual standardized posterior; no SALD admission"
+    note := "Actual same-prox canonical finite KL<=eta^2 real finrank/2. Actual43 unique proximal witness internally identifies actual31 stationary witness, transporting entire rho/Q/r/Fisher output. Retain true posterior probability/AC/finiteKL/gradientL2; compose actual halfFisher and actual numerical Fisher. Every positive eta, measurable family and rank0; no supplied law/coherence/domain/bound certificate. Actual eta2/unboundedfamily/rank0 Tests. GaussianT2/W2/FIRST/main/work/cost separate. Independently verified 76373366787499ebbc9e778fe568d0332233aef0."
+  },
+  {
+    key := "sphmc.standardizedRGO.canonicalKLFisher"
+    localDecl := "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher.standardized_rgo_unique_prox_and_kl_le_fisher"
+    upstreamDecl := "SPHMC FIRST4.6 omitted Gaussian LSI component and actual S2 RGO"
+    upstreamFile := "arXiv2609.06906v1 normalized C2/Hessian source; actual32/33/42"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["Gaussian", "relative-entropy", "Fisher", "RGO", "SPHMC"]
+    saldUse := "SPHMC actual standardized posterior; no SALD admission"
+    note := "Actual same-prox canonical finite KL<=half smooth rho Fisher. Internally reconcile actual32/33 proximal witnesses by uniqueness, transport all rho/Z/q/f/r, use actual42 noncompact GaussianLSI2 and actual32 quarter energy/mass1. True posterior probability/AC/finiteKL/scoreL2 outputs; no supplied law/coherence/domain/inequality certificate or pointwise canonicalRN derivative. Actual eta2/unboundedfamily/rank0 Tests. GaussianT2/FIRST/main/work/cost separate. Independently verified 19b569ae0fe37c97da0f98b4d1f4933ebabc7052."
+  },
   {
     key := "gaussian.noncompact-logSobolev"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev.gaussian_logSobolev_of_contDiff"

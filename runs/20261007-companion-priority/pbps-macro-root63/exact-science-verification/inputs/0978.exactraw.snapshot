@@ -1,0 +1,83 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapDerivative
+import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.Tactic
+
+/-!
+# Injectivity of the interior displacement map
+
+The higher-dimensional change-of-variables theorem in Mathlib requires the
+interpolation map to be injective on the source set. This condition is
+independent of the Jacobian-positivity calculation.
+
+If the endpoint map `T` is monotone in the Hilbert-space sense
+
+`0 <= ⟪T x - T y, x - y⟫`,
+
+then for `0 <= t < 1` the displacement map
+
+`S_t(x) = (1-t) x + t T(x)`
+
+is strongly monotone with modulus `1-t`, hence injective. A Brenier map is
+later expected to provide the monotonicity hypothesis through convexity of its
+potential; that source-specific bridge is intentionally not assumed here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementMapInjectivity
+
+open DisplacementMapDerivative
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Hilbert-space monotonicity of a point map. -/
+def IsMonotoneMap (T : E → E) : Prop :=
+  ∀ x y, 0 ≤ ⟪T x - T y, x - y⟫
+
+/-- Exact inner-product expansion for the affine displacement map. -/
+theorem inner_affineDisplacementMap_sub
+    (T : E → E) (t : ℝ) (x y : E) :
+    ⟪affineDisplacementMap T t x - affineDisplacementMap T t y, x - y⟫ =
+      (1 - t) * ⟪x - y, x - y⟫ +
+        t * ⟪T x - T y, x - y⟫ := by
+  simp only [affineDisplacementMap, inner_sub_left, inner_add_left,
+    real_inner_smul_left]
+  ring
+
+/-- Monotonicity of `T` gives a strong-monotonicity lower bound for the
+interior displacement map. -/
+theorem affineDisplacementMap_inner_lower_bound
+    {T : E → E} (hT : IsMonotoneMap T) (t : ℝ) (ht0 : 0 ≤ t)
+    (x y : E) :
+    (1 - t) * ‖x - y‖ ^ 2 ≤
+      ⟪affineDisplacementMap T t x - affineDisplacementMap T t y, x - y⟫ := by
+  rw [inner_affineDisplacementMap_sub]
+  rw [inner_self_eq_norm_sq_to_K]
+  exact le_add_of_nonneg_right (mul_nonneg ht0 (hT x y))
+
+/-- For every `0 <= t < 1`, a monotone endpoint map produces an injective
+interior displacement map. -/
+theorem injective_affineDisplacementMap_of_monotone
+    {T : E → E} (hT : IsMonotoneMap T) (t : ℝ)
+    (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    Function.Injective (affineDisplacementMap T t) := by
+  intro x y hxy
+  have hbound := affineDisplacementMap_inner_lower_bound hT t ht0 x y
+  have hright :
+      ⟪affineDisplacementMap T t x - affineDisplacementMap T t y, x - y⟫ = 0 := by
+    rw [hxy]
+    simp
+  rw [hright] at hbound
+  have hcoef : 0 < 1 - t := sub_pos.mpr ht1
+  have hnorm_sq : ‖x - y‖ ^ 2 = 0 := by
+    nlinarith [sq_nonneg ‖x - y‖]
+  have hnorm : ‖x - y‖ = 0 := by
+    nlinarith [norm_nonneg (x - y)]
+  exact sub_eq_zero.mp (norm_eq_zero.mp hnorm)
+
+end DisplacementMapInjectivity
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

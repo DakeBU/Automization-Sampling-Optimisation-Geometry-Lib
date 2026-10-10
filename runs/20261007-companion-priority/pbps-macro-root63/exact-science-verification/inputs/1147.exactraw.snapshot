@@ -1,0 +1,38 @@
+import Mathlib.Probability.Martingale.Basic
+
+/-!
+# Continuous-time martingales
+
+This module connects Chewi's Definition 1.1.4 to Mathlib's conditional-
+expectation formulation of martingales.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace Martingale
+
+open MeasureTheory
+open scoped NNReal
+
+/-- Chewi Definition 1.1.4 for a real process indexed by nonnegative time.
+Mathlib's predicate includes strong adaptedness and the conditional-
+expectation identity; integrability follows from that identity. -/
+def IsChewiMartingale
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    (process : ℝ≥0 → Ω → ℝ) (filtration : Filtration ℝ≥0 m)
+    (μ : Measure Ω) : Prop :=
+  MeasureTheory.Martingale process filtration μ
+
+/-- A constant real process is a martingale under a finite measure. -/
+theorem isChewiMartingale_const
+    {Ω : Type*} {m : MeasurableSpace Ω}
+    (filtration : Filtration ℝ≥0 m) (μ : Measure Ω) [IsFiniteMeasure μ]
+    (value : ℝ) :
+    IsChewiMartingale (fun _ : ℝ≥0 => fun _ : Ω => value) filtration μ :=
+  MeasureTheory.martingale_const filtration μ value
+
+end Martingale
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

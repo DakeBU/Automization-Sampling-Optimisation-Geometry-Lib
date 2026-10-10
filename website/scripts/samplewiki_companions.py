@@ -217,7 +217,7 @@ def write(output, rel, title, body):
 
 
 def topology_svg(m):
-    """Two readable source routes; shared technology retains one identity."""
+    """Three source routes for four papers; planned interfaces are not Lean edges."""
     rows = [
         ("producer", 30, 100, 340, "SPHMC", "Transport sampler + recursion"),
         ("consumer", 410, 100, 340, "Proximal BPS", "Warm-start engine"),
@@ -229,23 +229,35 @@ def topology_svg(m):
         ("forest", 860, 250, 360, "Adaptive request forest", "Queue, children, caps, queries"),
         ("ledger", 860, 400, 360, "Conditional-kernel ledger", "One delta per slot + one cap error"),
         ("cloud-result", 860, 550, 360, "High-accuracy sampler", "Source theorem; Lean open"),
+        ("midpoint", 30, 740, 340, "Midpoint Langevin", "C2 Hessian bounds"),
+        ("midpoint-kernel", 410, 740, 340, "Actual method kernels", "Initialization + query contract"),
+        ("midpoint-upper", 860, 740, 360, "Deterministic upper bounds", "Heun + exponential midpoint"),
+        ("midpoint-lower", 860, 890, 360, "Separate lower bounds", "Deterministic + randomized"),
     ]
     positions = {key: (x, y, width) for key, x, y, width, _, _ in rows}
     edges = [
         ("producer", "proxy"), ("consumer", "kernel"), ("proxy", "join"),
         ("kernel", "join"), ("join", "result"), ("cloud", "forest"),
         ("forest", "ledger"), ("ledger", "cloud-result"),
+        ("midpoint", "midpoint-kernel"), ("midpoint-kernel", "midpoint-upper"),
+        ("midpoint-kernel", "midpoint-lower"),
     ]
-    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 720" role="img" aria-labelledby="title desc">',
-           '<title id="title">Three companion papers in two source-proof routes</title>',
-           '<desc id="desc">Red boxes are local proof obligations. Dashed arrows are planned source interfaces, not Lean dependencies. The left route composes SPHMC with Proximal BPS; the right route tracks Gaussian-cloud recursive calls and errors.</desc>',
-           '<rect width="1260" height="720" fill="#fff"/>',
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 1040" role="img" aria-labelledby="title desc">',
+           '<title id="title">Four fixed-version papers in three source-proof routes</title>',
+           '<desc id="desc">Red boxes are local proof obligations. Dashed arrows are planned source interfaces, not Lean dependencies. The left route composes SPHMC with Proximal BPS; the right route tracks Gaussian-cloud recursive calls and errors. The separate lower lane keeps midpoint method kernels, upper bounds and lower bounds distinct.</desc>',
+           '<rect width="1260" height="1040" fill="#fff"/>',
            '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#9c3434"/></marker></defs>',
-           '<text x="30" y="35" font-family="sans-serif" font-size="24" fill="#18212f">Three papers → two auditable proof routes</text>',
+           '<text x="30" y="35" font-family="sans-serif" font-size="24" fill="#18212f">Four papers → three auditable source routes</text>',
            '<text x="30" y="62" font-family="sans-serif" font-size="16" fill="#6c3434">RED: local proof open. Dashed: planned interface, not compiler dependency.</text>']
     for a, b in edges:
         x, y, width = positions[a]; u, v, target_width = positions[b]
-        out.append(f'<path d="M{x+width/2},{y+100} C{x+width/2},{y+126} {u+target_width/2},{v-26} {u+target_width/2},{v}" fill="none" stroke="#9c3434" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>')
+        if y == v:
+            path = f"M{x+width},{y+50} H{u}"
+        elif a == "midpoint-kernel":
+            path = f"M{x+width/2},{y+100} C{x+width/2},{v+50} {u-30},{v+50} {u},{v+50}"
+        else:
+            path = f"M{x+width/2},{y+100} C{x+width/2},{y+126} {u+target_width/2},{v-26} {u+target_width/2},{v}"
+        out.append(f'<path d="{path}" fill="none" stroke="#9c3434" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>')
     for key, x, y, width, title, subtitle in rows:
         out.append(f'<g id="{key}"><rect x="{x}" y="{y}" width="{width}" height="100" rx="10" fill="#fff4f3" stroke="#ba3535" stroke-width="2"/>')
         out.append(f'<text x="{x+18}" y="{y+39}" font-family="sans-serif" font-size="21" fill="#652020">{escape(title)}</text>')

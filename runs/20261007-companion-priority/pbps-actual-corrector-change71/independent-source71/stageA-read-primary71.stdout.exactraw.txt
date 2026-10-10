@@ -1,0 +1,959 @@
+
+REGION global-assumptions RAWbytes 26387
+
+
+1 Introduction
+
+We study the problem of sampling from the probability measure
+
+[MATH S1.p1.m1] \mu(\mathrm{d}x)=Z^{-1}e^{-V(x)}\,\mathrm{d}x
+ on 
+[MATH S1.p1.m2] \mathbb{R}^{d}
+, where
+
+[MATH S1.p1.m3] V\in C^{2}(\mathbb{R}^{d})
+ satisfies, for 
+[MATH S1.p1.m4] 0<\alpha\leq\beta
+,
+
+[MATH S1.E1.m1] \alpha I\preceq\nabla^{2}V(x)\preceq\beta I\,,\hskip 20.00003ptx\in\mathbb{R}^{d}\,,\hskip 20.00003pt\kappa\coloneqq\tfrac{\beta}{\alpha}\,.
+
+(1.1)
+
+The main result of this paper is the following.
+
+Theorem (Main theorem; informal).
+
+Assume (1.1), and suppose that the initial law 
+[MATH Thmunnumberedtheoremx1.p1.m1] \mu_{0}
+
+satisfies the warm start condition in order-
+[MATH Thmunnumberedtheoremx1.p1.m2] 2
+ Rényi divergence: 
+[MATH Thmunnumberedtheoremx1.p1.m3] D_{2}(\mu_{0}\|\mu)=O(1)
+. For every
+
+[MATH Thmunnumberedtheoremx1.p1.m4] 0<\varepsilon<1/4
+, there is a randomized algorithm that, given
+
+[MATH Thmunnumberedtheoremx1.p1.m5] X_{0}\sim\mu_{0}
+ and query access to 
+[MATH Thmunnumberedtheoremx1.p1.m6] \nabla V
+, returns
+
+[MATH Thmunnumberedtheoremx1.p1.m7] \widehat{X}\sim\widehat{\mu}
+ satisfying
+
+[MATH S1.Ex1.m1] \operatorname{TV}(\widehat{\mu},\mu)\leq\varepsilon\,,
+
+and whose expected number of queries to 
+[MATH Thmunnumberedtheoremx1.p1.m8] \nabla V
+ is at most
+
+[MATH S1.Ex2.m1] \widetilde{O}\bigl(\sqrt{\kappa}\,d^{1/4}\bigr)\,.
+
+Here 
+[MATH Thmunnumberedtheoremx1.p1.m9] \widetilde{O}
+ hides universal powers of logarithms in
+
+[MATH Thmunnumberedtheoremx1.p1.m10] d
+, 
+[MATH Thmunnumberedtheoremx1.p1.m11] \kappa
+, and 
+[MATH Thmunnumberedtheoremx1.p1.m12] 1/\varepsilon
+.
+
+The precise statement and parameter choices appear in
+Theorems 4.3 and 4.4.
+
+We compare our result with high-accuracy samplers, that is,
+samplers whose complexity depends polylogarithmically on
+
+[MATH S1.p3.m1] 1/\varepsilon
+. Under (1.1), the state of the art
+until recently was the Metropolis-adjusted Langevin algorithm
+(MALA) [1, 10, 27]
+and the proximal sampler [6, 15], which achieved
+
+[MATH S1.p3.m2] \widetilde{O}(\kappa d^{1/2})
+ complexity.
+Very recently, Chen et al. [8] used the first-order
+rejection sampling (FORS) mechanism to develop a method for exact
+simulation of diffusions. Together with accelerated entropic
+hypocoercivity [19, 22], this yielded
+a high-accuracy sampler with complexity
+
+[MATH S1.p3.m3] \widetilde{O}(\kappa^{2/3}d^{1/3})
+.
+Also, Lu and Luo [20] introduced windowed thinning,
+an exact simulation method for the bouncy particle sampler (BPS) and the zigzag sampler.
+Their estimates give
+expected complexities of 
+[MATH S1.p3.m4] \widetilde{O}(\kappa^{1/2}d)
+ gradient queries
+for BPS and 
+[MATH S1.p3.m5] \widetilde{O}(\kappa d^{5/4})
+ partial derivative queries
+for zigzag, from a warm start.
+These results were significant in part because they constituted progress
+toward acceleration for log-concave sampling.
+
+From a warm start, our
+main theorem achieves complexity
+
+[MATH S1.p4.m1] \widetilde{O}(\kappa^{1/2}d^{1/4})
+. It matches the condition number
+dependence of BPS while improving its dimension
+dependence, and always improves upon the computational cost of the zigzag sampler (even if we consider one gradient query to be 
+[MATH S1.p4.m2] d
+ times as expensive as a partial derivative query).
+It also improves over all other prior results in both parameters. In particular, it achieves full
+acceleration together with 
+[MATH S1.p4.m3] d^{1/4}
+ dependence on dimension.
+
+In a companion work [7], we will show how to obtain a warm start using
+
+[MATH S1.p5.m1] \widetilde{O}(\kappa^{7/6}d^{1/6})
+ gradient queries. We do not discuss the warm start
+question further in this paper.
+
+Proximal Bouncy Particle Sampler.
+
+Our algorithm, the Proximal Bouncy Particle Sampler (Proximal
+BPS), combines two ideas. The proximal sampler [17]
+breaks the sampling problem into a sequence of easier local problems
+by introducing a Gaussian perturbation of the current position.
+The bouncy particle sampler [5] explores a distribution
+by moving a particle along straight lines, with random changes of direction
+chosen to preserve the desired distribution. We bring these ideas
+together by designing local particle motions that retain a memory of
+previous steps. This memory acts as momentum, allowing the algorithm
+to make sustained progress across successive local problems and giving
+the accelerated convergence rate in our main theorem. The local motions
+follow explicitly computable curved paths, with occasional “bounces”
+that correct for the shape of the target distribution. A gradient
+evaluation at a nearby reference point makes these corrections inexpensive:
+since the gradient varies little over a small region, only a small
+number of bounces is needed. Balancing the size of the local problems
+against the cost of these corrections yields the
+
+[MATH S1.SS0.SSS0.Px1.p1.m1] \widetilde{O}(\kappa^{1/2}d^{1/4})
+ query bound. We feel that the construction of the sampler (with the help of GPT-5.6 Sol) contains some surprising ingredients.
+We describe the construction and its geometry in
+Section 3.1, and give the implementation and complexity
+analysis in Section 4.
+
+Related work.
+
+This work makes progress on the complexity of log-concave sampling, for which the textbook [11] provides an introduction and overview.
+
+The proximal sampling framework is from Lee, Shen, and
+Tian [17], with subsequent analyses and implementations
+in [6, 9, 15]. These methods
+alternate independent draws of the position and the auxiliary variable
+from their conditional distributions. Our update reflects the auxiliary
+point through the current position, a step related to the Gaussian
+overrelaxation method of Neal [25]. We combine
+this reflection with a local piecewise deterministic particle motion run for half of its
+oscillation period. As we shall explain, this helps useful information to persist across iterations.
+
+The rule for the bounces builds on the BPS of Bouchard-Côté,
+Vollmer, and Doucet [5]. The use of a quadratic
+reference potential to generate curved paths, with bounces correcting
+for the remaining force, is adapted from the boomerang sampler of
+Bierkens, Grazzi, Kamatani, and Roberts [4]. This separation
+of the force also fits the general framework for Hamiltonian piecewise
+deterministic Markov processes of Andrieu, Durmus, Nüsken, and
+Roussel [2].
+
+Existing convergence analyses of these processes
+[2, 13, 21] concern continuous-time dynamics
+with repeated random refreshment of the velocity. Our local motion has
+no such refreshment: it stops after a half-period, and convergence
+comes from combining it with the auxiliary reflection step with occasional
+resampling. In particular, the local motion alone need not converge to
+its conditional equilibrium. Thus, the continuous-time results do not
+directly give a convergence guarantee for our discrete chain.
+Our analysis instead adapts the modified 
+[MATH S1.SS0.SSS0.Px2.p4.m1] L^{2}
+ hypocoercivity method of
+Dolbeault, Mouhot, and Schmeiser [14], in the sharpened formulation
+of Fan, Li, and Lu [16], to this discrete setting. The technical details of the hypocoercivity mechanism in Appendices B and C should be of interest to specialists.
+
+AI usage.
+
+The algorithm and its original analysis were found by interactions with GPT-5.6 Sol. The authors recast the arguments into a more standard hypocoercive framework, prepared the manuscript, and take full responsibility for its contents.
+
+
+
+REGION corrector-sharp-energy-and-consumers-B3 RAWbytes 87518
+
+
+B.3 Modified 
+[MATH A2.SS3.m1] L^{2}
+ contraction and proof of the main theorem
+
+We now prove Theorem 3.5 using a discrete modified 
+[MATH A2.SS3.p1.m1] L^{2}
+
+argument. For 
+[MATH A2.SS3.p1.m2] f\in L_{0}^{2}(\pi_{\eta})
+, write
+
+[MATH A2.Ex6.m1] f_{\mathsf{P}}\coloneqq\mathsf{P}f\,,\hskip 20.00003ptf_{\perp}\coloneqq\mathsf{P}^{\perp}f\,.
+
+Here 
+[MATH A2.SS3.p1.m3] f_{\mathsf{P}}
+ and 
+[MATH A2.SS3.p1.m4] f_{\perp}
+ are, respectively, the macroscopic
+and microscopic parts of 
+[MATH A2.SS3.p1.m5] f
+.
+
+Fix 
+[MATH A2.SS3.p2.m1] 0<\rho\leq 1/2
+. The ordinary 
+[MATH A2.SS3.p2.m2] L^{2}
+ energy does not by itself give
+the required one-step contraction. Indeed, since 
+[MATH A2.SS3.p2.m3] \mathsf{U}
+ is unitary and
+
+[MATH A2.SS3.p2.m4] \mathsf{H}_{\perp\perp}
+ is a contraction,
+
+[MATH A2.Ex7.m1] \displaystyle\|\mathsf{K}f\|^{2}-\|f\|^{2}
+
+[MATH A2.Ex7.m2] \displaystyle=(1-\rho)^{2}\,\|\mathsf{H}_{\perp\perp}f_{\perp}\|^{2}-\|f_{\perp}\|^{2}
+
+[MATH A2.E18.m1] \displaystyle\leq-\rho\,(2-\rho)\,\|f_{\perp}\|^{2}\leq-\rho\,\|f_{\perp}\|^{2}\,.
+
+(B.18)
+
+This estimate controls 
+[MATH A2.SS3.p2.m5] f_{\perp}
+ but gives nothing when
+
+[MATH A2.SS3.p2.m6] f=f_{\mathsf{P}}
+.
+Reflection moves part of 
+[MATH A2.SS3.p2.m7] f_{\mathsf{P}}
+ into the
+microscopic subspace, but this transfer is not captured by the 
+[MATH A2.SS3.p2.m8] L^{2}
+ norm,
+which is a standard difficulty in hypocoercivity. The modified 
+[MATH A2.SS3.p2.m9] L^{2}
+
+method addresses this difficulty by adding a corrector to the Lyapunov
+function. The corrector records the transfer from 
+[MATH A2.SS3.p2.m10] f_{\mathsf{P}}
+ to
+
+[MATH A2.SS3.p2.m11] f_{\perp}
+, allowing the contraction in
+(B.18) to also control 
+[MATH A2.SS3.p2.m12] f_{\mathsf{P}}
+.
+This idea goes back to Dolbeault, Mouhot, and Schmeiser [14]; here we
+follow the refinement of Fan, Li, and
+Lu [16].
+
+To construct the corrector, we first isolate the part of 
+[MATH A2.SS3.p3.m1] f_{\perp}
+ that
+couples to 
+[MATH A2.SS3.p3.m2] f_{\mathsf{P}}
+ under reflection. Define
+
+[MATH A2.Ex8.m1] f_{\mathsf{V}}\coloneqq\mathsf{V}_{\perp\mathsf{P}}^{*}f_{\perp}\,.
+
+By (B.16),
+
+[MATH A2.SS3.p3.m3] \mathsf{U}_{\perp\mathsf{P}}^{*}f_{\perp}=\mathsf{\Gamma}_{\mathsf{P}}f_{\mathsf{V}}
+, while the component of
+
+[MATH A2.SS3.p3.m4] f_{\perp}
+ orthogonal to 
+[MATH A2.SS3.p3.m5] \operatorname{ran}(\mathsf{V}_{\perp\mathsf{P}})
+ is annihilated by
+
+[MATH A2.SS3.p3.m6] \mathsf{U}_{\perp\mathsf{P}}^{*}
+. Since 
+[MATH A2.SS3.p3.m7] \mathsf{V}_{\perp\mathsf{P}}
+ is an isometry,
+
+[MATH A2.SS3.p3.m8] \mathsf{V}_{\perp\mathsf{P}}f_{\mathsf{V}}=\mathsf{V}_{\perp\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}f_{\perp}
+ is the orthogonal
+projection of 
+[MATH A2.SS3.p3.m9] f_{\perp}
+ onto 
+[MATH A2.SS3.p3.m10] \operatorname{ran}(\mathsf{V}_{\perp\mathsf{P}})
+, and hence
+
+[MATH A2.SS3.p3.m11] \|f_{\mathsf{V}}\|\leq\|f_{\perp}\|
+. We work with 
+[MATH A2.SS3.p3.m12] f_{\mathsf{V}}
+, rather
+than with this projection itself, because 
+[MATH A2.SS3.p3.m13] f_{\mathsf{V}}
+ and
+
+[MATH A2.SS3.p3.m14] f_{\mathsf{P}}
+ both belong to 
+[MATH A2.SS3.p3.m15] \mathfrak{H}_{\mathsf{P},0}
+ and can therefore be
+paired in the corrector.
+
+With this notation, let 
+[MATH A2.SS3.p4.m1] \omega>0
+ be a weight to be chosen below and
+define the modified Lyapunov function
+
+[MATH A2.E19.m1] \mathscr{L}_{\omega}(f)\coloneqq\|f\|^{2}+\omega\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})\,,
+
+(B.19)
+
+where the corrector is
+
+[MATH A2.E20.m1] \mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})\coloneqq\frac{1}{2}\,\bigl(\|f_{\mathsf{P}}\|^{2}-\|f_{\mathsf{V}}\|^{2}\bigr)-\bigl\langle\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}f_{\mathsf{P}},f_{\mathsf{V}}\bigr\rangle\,.
+
+(B.20)
+
+Here 
+[MATH A2.SS3.p4.m2] \mathsf{\Gamma}_{\mathsf{P}}^{-1}
+ is applied only on 
+[MATH A2.SS3.p4.m3] \mathfrak{H}_{\mathsf{P},0}
+, where
+
+[MATH A2.SS3.p4.m4] \mathsf{\Gamma}_{\mathsf{P}}\succeq\gamma_{\rm gap}I
+, so the corrector is well-defined.
+
+To motivate this choice, recall from (B.7) that
+
+[MATH A2.SS3.p5.m1] \mathsf{K}
+ acts in two stages: it first maps
+
+[MATH A2.Ex9.m1] f_{\mathsf{P}}+f_{\perp}\longmapsto f_{\mathsf{P}}+(1-\rho)\mathsf{H}_{\perp\perp}f_{\perp}
+
+and then applies 
+[MATH A2.SS3.p5.m2] \mathsf{U}
+. For the moment, set 
+[MATH A2.SS3.p5.m3] \rho=0
+ and replace
+
+[MATH A2.SS3.p5.m4] \mathsf{H}_{\perp\perp}
+ by 
+[MATH A2.SS3.p5.m5] -I_{\mathfrak{H}_{\perp}}
+. The error
+
+[MATH A2.SS3.p5.m6] I+\mathsf{H}_{\perp\perp}
+ introduced by this replacement is controlled by
+Proposition B.2. Denote the resulting idealized operator
+by
+
+[MATH A2.Ex10.m1] \mathsf{K}_{\rm id}\coloneqq\mathsf{U}(\mathsf{P}-\mathsf{P}^{\perp})\,.
+
+Set 
+[MATH A2.SS3.p5.m7] g\coloneqq\mathsf{K}_{\rm id}f
+, and define the corresponding components by
+
+[MATH A2.Ex11.m1] g_{\mathsf{P}}\coloneqq\mathsf{P}g\,,\hskip 20.00003ptg_{\mathsf{V}}\coloneqq\mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{P}^{\perp}g\,.
+
+In terms of these components, 
+[MATH A2.SS3.p5.m8] \mathsf{K}_{\rm id}
+ is represented by the
+operator-valued rotation matrix
+
+[MATH A2.Ex12.m1] \begin{pmatrix}g_{\mathsf{P}}\\
+g_{\mathsf{V}}\end{pmatrix}=\begin{pmatrix}\mathsf{U}_{\mathsf{P}\mathsf{P}}&-\mathsf{\Gamma}_{\mathsf{P}}\\
+\mathsf{\Gamma}_{\mathsf{P}}&\mathsf{U}_{\mathsf{P}\mathsf{P}}\end{pmatrix}\begin{pmatrix}f_{\mathsf{P}}\\
+f_{\mathsf{V}}\end{pmatrix}\,.
+
+Indeed, the first component follows immediately from the block representation
+of 
+[MATH A2.SS3.p5.m9] \mathsf{U}
+ and the polar decomposition
+(B.16):
+
+[MATH A2.Ex13.m1] \displaystyle g_{\mathsf{P}}
+
+[MATH A2.Ex13.m2] \displaystyle=\mathsf{P}\mathsf{U}(f_{\mathsf{P}}-f_{\perp})=\mathsf{U}_{\mathsf{P}\mathsf{P}}f_{\mathsf{P}}-\mathsf{U}_{\perp\mathsf{P}}^{*}f_{\perp}=\mathsf{U}_{\mathsf{P}\mathsf{P}}f_{\mathsf{P}}-\mathsf{\Gamma}_{\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}f_{\perp}=\mathsf{U}_{\mathsf{P}\mathsf{P}}f_{\mathsf{P}}-\mathsf{\Gamma}_{\mathsf{P}}f_{\mathsf{V}}\,.
+
+For the second component, substitute
+
+[MATH A2.SS3.p5.m10] \mathsf{U}_{\perp\mathsf{P}}^{*}=\mathsf{\Gamma}_{\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}
+ into
+
+[MATH A2.SS3.p5.m11] \mathsf{U}_{\perp\mathsf{P}}^{*}\mathsf{U}_{\perp\perp}=-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{U}_{\perp\mathsf{P}}^{*}
+ from
+(B.5). Since 
+[MATH A2.SS3.p5.m12] \mathsf{U}_{\mathsf{P}\mathsf{P}}
+ commutes with
+
+[MATH A2.SS3.p5.m13] \mathsf{\Gamma}_{\mathsf{P}}
+, this gives
+
+[MATH A2.Ex14.m1] \mathsf{\Gamma}_{\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{U}_{\perp\perp}=-\mathsf{\Gamma}_{\mathsf{P}}\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}\,.
+
+The ranges of 
+[MATH A2.SS3.p5.m14] \mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{U}_{\perp\perp}
+ and
+
+[MATH A2.SS3.p5.m15] \mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}
+ lie in 
+[MATH A2.SS3.p5.m16] \mathfrak{H}_{\mathsf{P},0}
+, where
+
+[MATH A2.SS3.p5.m17] \mathsf{\Gamma}_{\mathsf{P}}^{-1}
+ is bounded. Applying 
+[MATH A2.SS3.p5.m18] \mathsf{\Gamma}_{\mathsf{P}}^{-1}
+ to the
+displayed identity therefore gives
+
+[MATH A2.SS3.p5.m19] \mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{U}_{\perp\perp}=-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}
+. Hence
+
+[MATH A2.Ex15.m1] \displaystyle g_{\mathsf{V}}
+
+[MATH A2.Ex15.m2] \displaystyle=\mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{P}^{\perp}\mathsf{U}(f_{\mathsf{P}}-f_{\perp})=\mathsf{V}_{\perp\mathsf{P}}^{*}(\mathsf{U}_{\perp\mathsf{P}}f_{\mathsf{P}}-\mathsf{U}_{\perp\perp}f_{\perp})=\mathsf{\Gamma}_{\mathsf{P}}f_{\mathsf{P}}+\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}f_{\perp}=\mathsf{\Gamma}_{\mathsf{P}}f_{\mathsf{P}}+\mathsf{U}_{\mathsf{P}\mathsf{P}}f_{\mathsf{V}}\,.
+
+This proves the claimed matrix formula. Since
+
+[MATH A2.SS3.p5.m20] \mathsf{U}_{\mathsf{P}\mathsf{P}}^{2}+\mathsf{\Gamma}_{\mathsf{P}}^{2}=I
+, the block matrix acts as a rotation on
+
+[MATH A2.SS3.p5.m21] \mathfrak{H}_{\mathsf{P},0}\oplus\mathfrak{H}_{\mathsf{P},0}
+. Under this rotation,
+direct substitution into (B.20) gives
+
+[MATH A2.Ex16.m1] \displaystyle\mathscr{C}(g_{\mathsf{P}},g_{\mathsf{V}})-\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})
+
+[MATH A2.Ex17.m1] \displaystyle\hskip 10.00002pt=\mathscr{C}(\mathsf{U}_{\mathsf{P}\mathsf{P}}f_{\mathsf{P}}-\mathsf{\Gamma}_{\mathsf{P}}f_{\mathsf{V}}\,,\mathsf{\Gamma}_{\mathsf{P}}f_{\mathsf{P}}+\mathsf{U}_{\mathsf{P}\mathsf{P}}f_{\mathsf{V}})-\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})
+
+[MATH A2.E21.m1] \displaystyle\hskip 10.00002pt=-\|f_{\mathsf{P}}\|^{2}+\|f_{\mathsf{V}}\|^{2}\,.
+
+(B.21)
+
+For 
+[MATH A2.SS3.p5.m22] 0<\omega<\rho
+, combining the leading terms from
+(B.18) and
+(B.21), and using
+
+[MATH A2.SS3.p5.m23] \|f_{\mathsf{V}}\|\leq\|f_{\perp}\|
+, gives
+
+[MATH A2.Ex18.m1] \displaystyle-\rho\,\|f_{\perp}\|^{2}+\omega\,\bigl(-\|f_{\mathsf{P}}\|^{2}+\|f_{\mathsf{V}}\|^{2}\bigr)\leq-\omega\,\|f_{\mathsf{P}}\|^{2}-(\rho-\omega)\,\|f_{\perp}\|^{2}\,.
+
+Thus the leading terms control both components. This calculation makes
+explicit the role of the corrector in the modified 
+[MATH A2.SS3.p5.m24] L^{2}
+ hypocoercivity
+argument; see also Fan, Li, and Lu [16].
+
+We now turn from the idealized calculation to the contraction proof. The
+modified 
+[MATH A2.SS3.p6.m1] L^{2}
+ argument has two steps: we first show that the Lyapunov
+function is equivalent to the squared 
+[MATH A2.SS3.p6.m2] L^{2}
+ norm and then establish its
+one-step decay.
+
+Lemma B.3 (Equivalence with the squared 
+[MATH A2.Thmtheorem3.m1] L^{2}
+ norm).
+
+If 
+[MATH A2.Thmtheorem3.p1.m1] 0<\omega\leq\gamma_{\rm gap}
+, then every
+
+[MATH A2.Thmtheorem3.p1.m2] f\in L_{0}^{2}(\pi_{\eta})
+ satisfies
+
+[MATH A2.E22.m1] \frac{1}{2}\,\|f\|^{2}\leq\mathscr{L}_{\omega}(f)\leq\frac{3}{2}\,\|f\|^{2}\,.
+
+(B.22)
+
+Proof.
+
+The operators 
+[MATH A2.SS3.p7.m1] \mathsf{U}_{\mathsf{P}\mathsf{P}}
+ and 
+[MATH A2.SS3.p7.m2] \mathsf{\Gamma}_{\mathsf{P}}
+ commute, so
+
+[MATH A2.SS3.p7.m3] \mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}
+ is self-adjoint on
+
+[MATH A2.SS3.p7.m4] \mathfrak{H}_{\mathsf{P},0}
+. Moreover,
+
+[MATH A2.Ex19.m1] I+(\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1})^{2}=I+\mathsf{U}_{\mathsf{P}\mathsf{P}}^{2}\mathsf{\Gamma}_{\mathsf{P}}^{-2}=\mathsf{\Gamma}_{\mathsf{P}}^{-2}\,,
+
+where the last identity uses 
+[MATH A2.SS3.p7.m5] \mathsf{U}_{\mathsf{P}\mathsf{P}}^{2}+\mathsf{\Gamma}_{\mathsf{P}}^{2}=I
+.
+By (B.20),
+
+[MATH A2.Ex20.m1] \displaystyle 2\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})
+
+[MATH A2.Ex20.m2] \displaystyle=\Bigl\langle\begin{pmatrix}f_{\mathsf{P}}\\
+f_{\mathsf{V}}\end{pmatrix}\,,\begin{pmatrix}I&-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}\\
+-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}&-I\end{pmatrix}\begin{pmatrix}f_{\mathsf{P}}\\
+f_{\mathsf{V}}\end{pmatrix}\Bigr\rangle\,.
+
+The square of the block operator in this display is
+
+[MATH A2.Ex21.m1] \begin{pmatrix}I&-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}\\
+-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}&-I\end{pmatrix}^{\!2}=\begin{pmatrix}\mathsf{\Gamma}_{\mathsf{P}}^{-2}&0\\
+0&\mathsf{\Gamma}_{\mathsf{P}}^{-2}\end{pmatrix}\,.
+
+Since the block operator is self-adjoint and
+
+[MATH A2.SS3.p7.m6] \mathsf{\Gamma}_{\mathsf{P}}\succeq\gamma_{\rm gap}I
+,
+
+[MATH A2.Ex22.m1] \Bigl\|\begin{pmatrix}I&-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}\\
+-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}&-I\end{pmatrix}\Bigr\|=\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}\|\leq\frac{1}{\gamma_{\rm gap}}\,.
+
+Applying this operator norm bound to the preceding quadratic form gives
+
+[MATH A2.E23.m1] |\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})|\leq\frac{1}{2\gamma_{\rm gap}}\,\bigl(\|f_{\mathsf{P}}\|^{2}+\|f_{\mathsf{V}}\|^{2}\bigr)\leq\frac{1}{2\gamma_{\rm gap}}\,\|f\|^{2}\,.
+
+(B.23)
+
+Here the second inequality uses 
+[MATH A2.SS3.p7.m7] \|f_{\mathsf{P}}\|^{2}+\|f_{\mathsf{V}}\|^{2}\leq\|f_{\mathsf{P}}\|^{2}+\|f_{\perp}\|^{2}=\|f\|^{2}
+.
+Finally, (B.19),
+(B.23), and 
+[MATH A2.SS3.p7.m8] \omega\leq\gamma_{\rm gap}
+ imply
+
+[MATH A2.E24.m1] \displaystyle\bigl|\mathscr{L}_{\omega}(f)-\|f\|^{2}\bigr|
+
+[MATH A2.E24.m2] \displaystyle=\omega\,|\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})|\leq\frac{\omega}{2\gamma_{\rm gap}}\,\|f\|^{2}\leq\frac{1}{2}\,\|f\|^{2}\,.\qed
+
+(B.24)
+
+Lemma B.4 (One-step decay of the Lyapunov function).
+
+There exist universal constants 
+[MATH A2.Thmtheorem4.p1.m1] c_{\rm hyp},c_{0},c>0
+ such that the
+following holds. Set
+
+[MATH A2.E25.m1] \Lambda_{\rho}\coloneqq\log(1/\gamma_{\rm gap})+\Bigl(\frac{\rho}{\gamma_{\rm gap}}\Bigr)^{2}\,,\hskip 20.00003pt\omega\coloneqq\frac{c_{\rm hyp}\rho}{\Lambda_{\rho}}\,.
+
+(B.25)
+
+If 
+[MATH A2.Thmtheorem4.p1.m2] \beta\eta\leq c_{0}
+, then every
+
+[MATH A2.Thmtheorem4.p1.m3] f\in L_{0}^{2}(\pi_{\eta})
+ satisfies
+
+[MATH A2.E26.m1] \mathscr{L}_{\omega}(\mathsf{K}f)\leq\Bigl(1-\frac{c\rho}{\Lambda_{\rho}}\Bigr)\,\mathscr{L}_{\omega}(f)\,.
+
+(B.26)
+
+Proof.
+
+
+REGION real-L2-spectral-conventions-D1 RAWbytes 23472
+
+
+D.1 Hilbert space and Markov operator conventions
+
+Definition D.1 (Hilbert space notation).
+
+Let 
+[MATH A4.Thmtheorem1.p1.m1] \zeta
+ be a probability measure. The real Hilbert space
+
+[MATH A4.Thmtheorem1.p1.m2] L^{2}(\zeta)
+ consists of equivalence classes of measurable functions
+
+[MATH A4.Thmtheorem1.p1.m3] f
+ such that 
+[MATH A4.Thmtheorem1.p1.m4] \int f^{2}\,\mathrm{d}\zeta<\infty
+. Its inner product and
+norm are
+
+[MATH A4.E1.m1] \langle f,g\rangle_{L^{2}(\zeta)}\coloneqq\int fg\,\mathrm{d}\zeta\,,\hskip 20.00003pt\|f\|_{L^{2}(\zeta)}\coloneqq\langle f,f\rangle_{L^{2}(\zeta)}^{1/2}\,.
+
+(D.1)
+
+We write
+
+[MATH A4.E2.m1] L_{0}^{2}(\zeta)\coloneqq\Bigl\{f\in L^{2}(\zeta):\int f\,\mathrm{d}\zeta=0\Bigr\}\,.
+
+(D.2)
+
+When 
+[MATH A4.Thmtheorem1.p1.m5] \zeta=\pi_{\eta}
+, we abbreviate the inner product and norm by
+
+[MATH A4.Thmtheorem1.p1.m6] \langle f,g\rangle
+ and 
+[MATH A4.Thmtheorem1.p1.m7] \|f\|
+.
+
+Two functions equal 
+[MATH A4.SS1.p1.m1] \zeta
+-almost everywhere represent the same
+vector. A closed linear subspace 
+[MATH A4.SS1.p1.m2] \mathcal{M}\subseteq L^{2}(\zeta)
+
+has orthogonal complement
+
+[MATH A4.SS1.p1.m3] \mathcal{M}^{\perp}\coloneqq\{g:\langle f,g\rangle=0\text{ for all }f\in\mathcal{M}\}
+.
+Its orthogonal projection is the unique bounded operator
+
+[MATH A4.SS1.p1.m4] \mathsf{P}_{\mathcal{M}}
+ for which 
+[MATH A4.SS1.p1.m5] \mathsf{P}_{\mathcal{M}}f\in\mathcal{M}
+ and
+
+[MATH A4.SS1.p1.m6] f-\mathsf{P}_{\mathcal{M}}f\in\mathcal{M}^{\perp}
+.
+
+All operators in the convergence analysis are bounded linear operators
+on the indicated Hilbert spaces unless explicitly stated otherwise.
+The adjoint 
+[MATH A4.SS1.p2.m1] \mathsf{L}^{*}
+ is characterized by
+
+[MATH A4.SS1.p2.m2] \langle\mathsf{L}f,g\rangle=\langle f,\mathsf{L}^{*}g\rangle
+.
+An operator is self-adjoint if 
+[MATH A4.SS1.p2.m3] \mathsf{L}=\mathsf{L}^{*}
+, a contraction
+if 
+[MATH A4.SS1.p2.m4] \|\mathsf{L}f\|\leq\|f\|
+, and unitary if it is onto and preserves
+norms. A self-adjoint involution, meaning 
+[MATH A4.SS1.p2.m5] \mathsf{L}^{2}=I
+, is
+unitary. For self-adjoint operators 
+[MATH A4.SS1.p2.m6] \mathsf{L}_{1},\mathsf{L}_{2}
+,
+
+[MATH A4.E3.m1] \mathsf{L}_{1}\preceq\mathsf{L}_{2}\hskip 10.00002pt\Longleftrightarrow\hskip 10.00002pt\langle f,(\mathsf{L}_{2}-\mathsf{L}_{1})f\rangle\geq 0\hskip 10.00002pt\text{for every }f
+
+(D.3)
+
+is the Loewner order. If 
+[MATH A4.SS1.p2.m7] \mathsf{L}
+ is self-adjoint, the
+spectral theorem defines 
+[MATH A4.SS1.p2.m8] \psi(\mathsf{L})
+ for bounded Borel functions
+
+[MATH A4.SS1.p2.m9] \psi
+; in particular 
+[MATH A4.SS1.p2.m10] \mathbf{1}_{E}(\mathsf{L})
+ is the orthogonal
+projection onto the spectral set 
+[MATH A4.SS1.p2.m11] E
+, and a non-negative operator has
+a unique non-negative square root.
+
+Definition D.2 (Markov operators and density evolution).
+
+Let 
+[MATH A4.Thmtheorem2.p1.m1] \mathcal{K}(z,\mathrm{d}z^{\prime})
+ be a Markov kernel preserving 
+[MATH A4.Thmtheorem2.p1.m2] \zeta
+. Its
+Markov operator on observables is
+
+[MATH A4.E4.m1] (\mathsf{K}f)(z)\coloneqq\int f(z^{\prime})\,\mathcal{K}(z,\mathrm{d}z^{\prime})\,.
+
+(D.4)
+
+It is a contraction on 
+[MATH A4.Thmtheorem2.p1.m3] L^{2}(\zeta)
+. Its adjoint
+
+[MATH A4.Thmtheorem2.p1.m4] \mathsf{K}^{*}
+ governs density evolution: if a law has density 
+[MATH A4.Thmtheorem2.p1.m5] h
+ with
+respect to 
+[MATH A4.Thmtheorem2.p1.m6] \zeta
+, then its density after one step is 
+[MATH A4.Thmtheorem2.p1.m7] \mathsf{K}^{*}h
+.
+Constants are fixed by both operators.
+
+If 
+[MATH A4.SS1.p3.m1] P\ll\zeta
+ has density 
+[MATH A4.SS1.p3.m2] h
+, then
+
+[MATH A4.E5.m1] \chi^{2}(P\|\zeta)=\|h-1\|_{\zeta}^{2}\,.
+
+(D.5)
+
+Consequently, an operator norm bound for 
+[MATH A4.SS1.p3.m3] \mathsf{K}
+ on
+
+[MATH A4.SS1.p3.m4] L_{0}^{2}(\zeta)
+ gives the same bound for its adjoint
+
+[MATH A4.SS1.p3.m5] \mathsf{K}^{*}
+, and hence gives 
+[MATH A4.SS1.p3.m6] \chi^{2}
+ contraction.
+
+
+
+REGION corrector-change-B4-consumer-proof RAWbytes 81450
+
+
+Take 
+[MATH A2.SS3.p8.m1] c_{0}\leq 1/16
+. Then
+
+[MATH A2.SS3.p8.m2] \gamma_{\rm gap}\leq 2\sqrt{\alpha\eta}\leq 1/2
+, and consequently
+
+[MATH A2.SS3.p8.m3] \Lambda_{\rho}\geq\log 2
+.
+We compare the actual update with the idealized operator analyzed above.
+Let 
+[MATH A2.SS3.p8.m4] g\coloneqq\mathsf{K}_{\rm id}f
+,
+
+[MATH A2.SS3.p8.m5] g_{\mathsf{P}}\coloneqq\mathsf{P}g
+, and
+
+[MATH A2.SS3.p8.m6] g_{\mathsf{V}}\coloneqq\mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{P}^{\perp}g
+.
+By the definitions of 
+[MATH A2.SS3.p8.m7] \mathsf{K}
+ and 
+[MATH A2.SS3.p8.m8] \mathsf{K}_{\rm id}
+,
+
+[MATH A2.Ex23.m1] \displaystyle\mathsf{K}f-\mathsf{K}_{\rm id}f
+
+[MATH A2.Ex23.m2] \displaystyle=\mathsf{U}\bigl[I+(1-\rho)\mathsf{H}_{\perp\perp}\bigr]f_{\perp}
+
+[MATH A2.Ex24.m1] \displaystyle=\mathsf{U}\bigl[\rho f_{\perp}+(1-\rho)(I+\mathsf{H}_{\perp\perp})f_{\perp}\bigr]\,.
+
+Using 
+[MATH A2.SS3.p8.m9] \mathsf{U}_{\perp\mathsf{P}}^{*}=\mathsf{\Gamma}_{\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}
+ and
+
+[MATH A2.SS3.p8.m10] \mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{U}_{\perp\perp}=-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}
+, the two components of
+this difference are
+
+[MATH A2.Ex25.m1] \displaystyle\mathsf{P}(\mathsf{K}f-\mathsf{K}_{\rm id}f)
+
+[MATH A2.Ex25.m2] \displaystyle=\mathsf{\Gamma}_{\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}\bigl[I+(1-\rho)\mathsf{H}_{\perp\perp}\bigr]f_{\perp}\,,
+
+[MATH A2.Ex26.m1] \displaystyle\mathsf{V}_{\perp\mathsf{P}}^{*}\mathsf{P}^{\perp}(\mathsf{K}f-\mathsf{K}_{\rm id}f)
+
+[MATH A2.Ex26.m2] \displaystyle=-\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{V}_{\perp\mathsf{P}}^{*}\bigl[I+(1-\rho)\mathsf{H}_{\perp\perp}\bigr]f_{\perp}\,.
+
+The same vector therefore determines both components of the error. Denote
+it by
+
+[MATH A2.Ex27.m1] r_{\rho}\coloneqq\mathsf{V}_{\perp\mathsf{P}}^{*}\bigl[I+(1-\rho)\mathsf{H}_{\perp\perp}\bigr]f_{\perp}=\rho f_{\mathsf{V}}+(1-\rho)r\,,\hskip 20.00003ptr\coloneqq\mathsf{V}_{\perp\mathsf{P}}^{*}(I+\mathsf{H}_{\perp\perp})f_{\perp}\,.
+
+Both 
+[MATH A2.SS3.p8.m11] r
+ and 
+[MATH A2.SS3.p8.m12] r_{\rho}
+ belong to 
+[MATH A2.SS3.p8.m13] \mathfrak{H}_{\mathsf{P},0}
+. In
+
+[MATH A2.SS3.p8.m14] r_{\rho}
+, the first
+term comes from refreshment, while the second measures the departure of
+the half turn from 
+[MATH A2.SS3.p8.m15] -I_{\mathfrak{H}_{\perp}}
+.
+Consequently,
+
+[MATH A2.E27.m1] (\mathsf{K}f)_{\mathsf{P}}=g_{\mathsf{P}}+\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\,,\hskip 20.00003pt(\mathsf{K}f)_{\mathsf{V}}=g_{\mathsf{V}}-\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\,.
+
+(B.27)
+
+Substituting (B.27) into the definition
+(B.20) of the corrector 
+[MATH A2.SS3.p8.m16] \mathscr{C}
+ and expanding
+gives
+
+[MATH A2.Ex28.m1] \displaystyle\mathscr{C}\bigl((\mathsf{K}f)_{\mathsf{P}},(\mathsf{K}f)_{\mathsf{V}}\bigr)-\mathscr{C}(g_{\mathsf{P}},g_{\mathsf{V}})
+
+[MATH A2.Ex29.m1] \displaystyle\hskip 20.00003pt=\bigl\langle g_{\mathsf{P}},\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\bigr\rangle+\bigl\langle g_{\mathsf{V}},\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\bigr\rangle+\frac{1}{2}\,\bigl(\|\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\|^{2}-\|\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\|^{2}\bigr)
+
+[MATH A2.Ex30.m1] \displaystyle\hskip 20.00003pt\hskip 20.00003pt+{}\bigl\langle\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}g_{\mathsf{P}},\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\bigr\rangle-\bigl\langle\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho},g_{\mathsf{V}}\bigr\rangle+\|\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\|^{2}
+
+[MATH A2.Ex31.m1] \displaystyle\hskip 20.00003pt=\bigl\langle g_{\mathsf{P}},\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\bigr\rangle+\bigl\langle\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}g_{\mathsf{P}},\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\bigr\rangle+\frac{1}{2}\,\bigl(\|\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\|^{2}+\|\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\|^{2}\bigr)\,.
+
+In the last equality, the two terms containing 
+[MATH A2.SS3.p8.m17] g_{\mathsf{V}}
+ cancel.
+For the terms linear in 
+[MATH A2.SS3.p8.m18] g_{\mathsf{P}}
+, the commutation of
+
+[MATH A2.SS3.p8.m19] \mathsf{U}_{\mathsf{P}\mathsf{P}}
+ with 
+[MATH A2.SS3.p8.m20] \mathsf{\Gamma}_{\mathsf{P}}
+ and the identity
+
+[MATH A2.SS3.p8.m21] \mathsf{U}_{\mathsf{P}\mathsf{P}}^{2}+\mathsf{\Gamma}_{\mathsf{P}}^{2}=I
+ give
+
+[MATH A2.Ex32.m1] \displaystyle\bigl\langle g_{\mathsf{P}},\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\bigr\rangle+\bigl\langle\mathsf{U}_{\mathsf{P}\mathsf{P}}\mathsf{\Gamma}_{\mathsf{P}}^{-1}g_{\mathsf{P}},\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\bigr\rangle
+
+[MATH A2.Ex33.m1] \displaystyle\hskip 20.00003pt=\bigl\langle g_{\mathsf{P}},(\mathsf{\Gamma}_{\mathsf{P}}+\mathsf{\Gamma}_{\mathsf{P}}^{-1}\mathsf{U}_{\mathsf{P}\mathsf{P}}^{2})r_{\rho}\bigr\rangle=\bigl\langle g_{\mathsf{P}},\mathsf{\Gamma}_{\mathsf{P}}^{-1}r_{\rho}\bigr\rangle\,.
+
+The same identity reduces the quadratic terms to
+
+[MATH A2.Ex34.m1] \frac{1}{2}\,\bigl(\|\mathsf{\Gamma}_{\mathsf{P}}r_{\rho}\|^{2}+\|\mathsf{U}_{\mathsf{P}\mathsf{P}}r_{\rho}\|^{2}\bigr)=\frac{1}{2}\,\|r_{\rho}\|^{2}\,.
+
+Consequently, combined with (B.21),
+
+[MATH A2.Ex35.m1] \displaystyle\mathscr{C}\bigl((\mathsf{K}f)_{\mathsf{P}},(\mathsf{K}f)_{\mathsf{V}}\bigr)-\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})
+
+[MATH A2.Ex36.m1] \displaystyle\hskip 10.00002pt=\bigl[\mathscr{C}\bigl((\mathsf{K}f)_{\mathsf{P}},(\mathsf{K}f)_{\mathsf{V}}\bigr)-\mathscr{C}(g_{\mathsf{P}},g_{\mathsf{V}})\bigr]+\bigl[\mathscr{C}(g_{\mathsf{P}},g_{\mathsf{V}})-\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})\bigr]
+
+[MATH A2.E28.m1] \displaystyle\hskip 10.00002pt=-\|f_{\mathsf{P}}\|^{2}+\|f_{\mathsf{V}}\|^{2}+\bigl\langle g_{\mathsf{P}},\mathsf{\Gamma}_{\mathsf{P}}^{-1}r_{\rho}\bigr\rangle+\frac{1}{2}\,\|r_{\rho}\|^{2}\,.
+
+(B.28)
+
+Thus, it remains to estimate 
+[MATH A2.SS3.p8.m22] r_{\rho}
+. Let
+
+[MATH A2.Ex37.m1] \mathsf{L}\coloneqq(I+\mathsf{H}_{\perp\perp})\mathsf{V}_{\perp\mathsf{P}}\,.
+
+Since 
+[MATH A2.SS3.p8.m23] r=\mathsf{L}^{*}f_{\perp}
+, applying
+(B.17) to 
+[MATH A2.SS3.p8.m24] \mathsf{\Gamma}_{\mathsf{P}}^{-1}v
+ and then taking
+adjoints gives
+
+[MATH A2.E29.m1] \displaystyle\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}r\|^{2}=\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}\mathsf{V}_{\perp\mathsf{P}}^{*}(I+\mathsf{H}_{\perp\perp})f_{\perp}\|^{2}
+
+[MATH A2.E29.m2] \displaystyle\leq C\log(1/\gamma_{\rm gap})\,\|f_{\perp}\|^{2}\,.
+
+(B.29)
+
+Together with 
+[MATH A2.SS3.p8.m25] \mathsf{\Gamma}_{\mathsf{P}}\succeq\gamma_{\rm gap}I
+ and
+
+[MATH A2.SS3.p8.m26] \|f_{\mathsf{V}}\|\leq\|f_{\perp}\|
+, this gives
+
+[MATH A2.E30.m1] \displaystyle\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}r_{\rho}\|^{2}
+
+[MATH A2.E30.m2] \displaystyle\leq 2\rho^{2}\,\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}f_{\mathsf{V}}\|^{2}+2(1-\rho)^{2}\,\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}r\|^{2}\leq C\Lambda_{\rho}\,\|f_{\perp}\|^{2}\,.
+
+(B.30)
+
+Moreover, since 
+[MATH A2.SS3.p8.m27] \mathsf{V}_{\perp\mathsf{P}}^{*}
+ and 
+[MATH A2.SS3.p8.m28] \mathsf{H}_{\perp\perp}
+ are contractions, 
+[MATH A2.SS3.p8.m29] \|r_{\rho}\|\leq\rho\,\|f_{\mathsf{V}}\|+(1-\rho)\,\|r\|\leq 2\,\|f_{\perp}\|
+.
+
+The rotation formula for 
+[MATH A2.SS3.p9.m1] \mathsf{K}_{\rm id}
+ gives 
+[MATH A2.SS3.p9.m2] \|g_{\mathsf{P}}\|^{2}\leq\|g_{\mathsf{P}}\|^{2}+\|g_{\mathsf{V}}\|^{2}=\|f_{\mathsf{P}}\|^{2}+\|f_{\mathsf{V}}\|^{2}
+.
+Hence, Young’s inequality and
+(B.30) give
+
+[MATH A2.Ex38.m1] \displaystyle\bigl|\bigl\langle g_{\mathsf{P}},\mathsf{\Gamma}_{\mathsf{P}}^{-1}r_{\rho}\bigr\rangle\bigr|
+
+[MATH A2.Ex38.m2] \displaystyle\leq\frac{1}{4}\,\|g_{\mathsf{P}}\|^{2}+C\,\|\mathsf{\Gamma}_{\mathsf{P}}^{-1}r_{\rho}\|^{2}
+
+[MATH A2.Ex39.m1] \displaystyle\leq\frac{1}{4}\,\|f_{\mathsf{P}}\|^{2}+\frac{1}{4}\,\|f_{\mathsf{V}}\|^{2}+C\Lambda_{\rho}\,\|f_{\perp}\|^{2}\,.
+
+Inserting these estimates into
+(B.28), and using
+
+[MATH A2.SS3.p9.m3] \|f_{\mathsf{V}}\|\leq\|f_{\perp}\|
+ and
+
+[MATH A2.SS3.p9.m4] \Lambda_{\rho}\geq\log 2
+, gives
+
+[MATH A2.E31X.m2] \displaystyle\mathscr{C}\bigl((\mathsf{K}f)_{\mathsf{P}},(\mathsf{K}f)_{\mathsf{V}}\bigr)-\mathscr{C}(f_{\mathsf{P}},f_{\mathsf{V}})\leq-\frac{1}{2}\,\|f_{\mathsf{P}}\|^{2}+C\Lambda_{\rho}\,\|f_{\perp}\|^{2}\,.
+
+(B.31)
+
+Finally, (B.18) and
+(B.31) give
+
+[MATH A2.Ex40.m1] \displaystyle\mathscr{L}_{\omega}(\mathsf{K}f)-\mathscr{L}_{\omega}(f)
+
+[MATH A2.Ex40.m2] \displaystyle\leq-\rho\,\|f_{\perp}\|^{2}+\frac{c_{\rm hyp}\rho}{\Lambda_{\rho}}\,\Bigl(-\frac{1}{2}\,\|f_{\mathsf{P}}\|^{2}+C\Lambda_{\rho}\,\|f_{\perp}\|^{2}\Bigr)
+
+[MATH A2.Ex41.m1] \displaystyle=-\frac{c_{\rm hyp}\rho}{2\Lambda_{\rho}}\,\|f_{\mathsf{P}}\|^{2}-(1-Cc_{\rm hyp})\,\rho\,\|f_{\perp}\|^{2}\,.
+
+Choose 
+[MATH A2.SS3.p10.m1] c_{\rm hyp}\leq 1
+ sufficiently small so that
+
+[MATH A2.SS3.p10.m2] Cc_{\rm hyp}\leq 1/2
+. Since 
+[MATH A2.SS3.p10.m3] \Lambda_{\rho}\geq\log 2
+, the last display is
+then bounded above by
+
+[MATH A2.Ex42.m1] -\frac{c\rho}{\Lambda_{\rho}}\,\bigl(\|f_{\mathsf{P}}\|^{2}+\|f_{\perp}\|^{2}\bigr)=-\frac{c\rho}{\Lambda_{\rho}}\,\|f\|^{2}\,.
+
+It remains to compare the last norm with the Lyapunov function. The
+elementary inequality 
+[MATH A2.SS3.p10.m4] x/(a+x^{2})\leq 1/(2\sqrt{a})
+, for 
+[MATH A2.SS3.p10.m5] a>0
+ and
+
+[MATH A2.SS3.p10.m6] x\geq 0
+, gives
+
+[MATH A2.Ex43.m1] \frac{\omega}{\gamma_{\rm gap}}=c_{\rm hyp}\,\frac{\rho/\gamma_{\rm gap}}{\log(1/\gamma_{\rm gap})+(\rho/\gamma_{\rm gap})^{2}}\leq\frac{c_{\rm hyp}}{2\sqrt{\log(1/\gamma_{\rm gap})}}\leq\frac{c_{\rm hyp}}{2\sqrt{\log 2}}\leq 1\,.
+
+Thus 
+[MATH A2.SS3.p10.m7] \omega\leq\gamma_{\rm gap}
+, and the upper bound in
+Lemma B.3 gives
+
+[MATH A2.Ex44.m1] \|f\|^{2}\geq\frac{2}{3}\,\mathscr{L}_{\omega}(f)\,.
+
+Consequently,
+
+[MATH A2.Ex45.m1] \mathscr{L}_{\omega}(\mathsf{K}f)\leq\Bigl(1-\frac{2c\rho}{3\Lambda_{\rho}}\Bigr)\,\mathscr{L}_{\omega}(f)\,,
+
+which is (B.26) after renaming the universal
+constant.
+∎
+
+
+actual_PID 27308 PASS full primary and four RAW regions255 math exact; no current71 BODY

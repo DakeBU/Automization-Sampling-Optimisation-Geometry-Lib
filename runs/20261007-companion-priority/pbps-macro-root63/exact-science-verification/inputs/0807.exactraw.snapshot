@@ -1,0 +1,61 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexOpenAEDifferentiable
+import AutoSamplingTheory.TechnicalLemmas.Measure.ConvexInteriorAE
+
+/-!
+# A.e. differentiability for absolutely continuous mass on convex domains
+
+This theorem packages the reusable combination needed by proper convex
+potentials: an absolutely continuous measure concentrated on a convex finite
+domain ignores the convex frontier, while the real-valued convex function is
+Frechet differentiable almost everywhere on the open interior.
+
+The boundary-null and open-domain differentiability steps remain separate
+upstream nodes; this module is their consumer-facing join.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace ConvexDomainACAEDifferentiable
+
+open MeasureTheory Set Topology
+open ConvexOpenAEDifferentiable
+open AutoSamplingTheory.TechnicalLemmas.Measure.ConvexInteriorAE
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  {m μ : Measure E} [Measure.IsAddHaarMeasure m]
+
+/-- A real-valued convex function is `μ`-a.e. Frechet differentiable whenever
+`μ` is absolutely continuous with respect to additive Haar measure and is
+almost everywhere concentrated on the convex domain on which convexity is
+known. -/
+theorem ae_differentiableAt_of_convexOn_of_absolutelyContinuous
+    {phi : E → ℝ} {s : Set E}
+    (hs : Convex ℝ s)
+    (hconv : ConvexOn ℝ s phi)
+    (hμm : Measure.AbsolutelyContinuous μ m)
+    (hmem : ∀ᵐ x ∂μ, x ∈ s) :
+    ∀ᵐ x ∂μ, DifferentiableAt ℝ phi x := by
+  have hsInterior : Convex ℝ (interior s) := hs.interior
+  have hconvInterior : ConvexOn ℝ (interior s) phi :=
+    hconv.subset interior_subset hsInterior
+  have hdiff_m : ∀ᵐ x ∂m,
+      x ∈ interior s → DifferentiableAt ℝ phi x :=
+    ae_differentiableAt_of_convexOn_isOpen isOpen_interior hconvInterior
+  have hdiff_μ : ∀ᵐ x ∂μ,
+      x ∈ interior s → DifferentiableAt ℝ phi x :=
+    hμm.ae_le hdiff_m
+  have hinterior_μ : ∀ᵐ x ∂μ, x ∈ interior s :=
+    ae_mem_interior_of_convex_of_absolutelyContinuous hs hμm hmem
+  filter_upwards [hinterior_μ, hdiff_μ] with x hx hdiff
+  exact hdiff hx
+
+end
+
+end ConvexDomainACAEDifferentiable
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

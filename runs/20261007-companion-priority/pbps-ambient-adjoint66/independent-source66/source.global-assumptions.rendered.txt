@@ -1,0 +1,106 @@
+
+1 Introduction
+We study the problem of sampling from the probability measure
+ $\mu(\mathrm{d}x)=Z^{-1}e^{-V(x)}\,\mathrm{d}x$ on $\mathbb{R}^{d}$ , where
+ $V\in C^{2}(\mathbb{R}^{d})$ satisfies, for $0<\alpha\leq\beta$ ,
+ $\alpha I\preceq\nabla^{2}V(x)\preceq\beta I\,,\hskip 20.00003ptx\in\mathbb{R}^{d}\,,\hskip 20.00003pt\kappa\coloneqq\tfrac{\beta}{\alpha}\,.$ 
+(1.1)
+The main result of this paper is the following.
+Theorem (Main theorem; informal).
+Assume (1.1), and suppose that the initial law $\mu_{0}$ 
+satisfies the warm start condition in order- $2$ Rényi divergence: $D_{2}(\mu_{0}\|\mu)=O(1)$ . For every
+ $0<\varepsilon<1/4$ , there is a randomized algorithm that, given
+ $X_{0}\sim\mu_{0}$ and query access to $\nabla V$ , returns
+ $\widehat{X}\sim\widehat{\mu}$ satisfying
+ $\operatorname{TV}(\widehat{\mu},\mu)\leq\varepsilon\,,$ 
+and whose expected number of queries to $\nabla V$ is at most
+ $\widetilde{O}\bigl(\sqrt{\kappa}\,d^{1/4}\bigr)\,.$ 
+Here $\widetilde{O}$ hides universal powers of logarithms in
+ $d$ , $\kappa$ , and $1/\varepsilon$ .
+The precise statement and parameter choices appear in
+Theorems 4.3 and 4.4.
+We compare our result with high-accuracy samplers, that is,
+samplers whose complexity depends polylogarithmically on
+ $1/\varepsilon$ . Under (1.1), the state of the art
+until recently was the Metropolis-adjusted Langevin algorithm
+(MALA) [1, 10, 27]
+and the proximal sampler [6, 15], which achieved
+ $\widetilde{O}(\kappa d^{1/2})$ complexity.
+Very recently, Chen et al. [8] used the first-order
+rejection sampling (FORS) mechanism to develop a method for exact
+simulation of diffusions. Together with accelerated entropic
+hypocoercivity [19, 22], this yielded
+a high-accuracy sampler with complexity
+ $\widetilde{O}(\kappa^{2/3}d^{1/3})$ .
+Also, Lu and Luo [20] introduced windowed thinning,
+an exact simulation method for the bouncy particle sampler (BPS) and the zigzag sampler.
+Their estimates give
+expected complexities of $\widetilde{O}(\kappa^{1/2}d)$ gradient queries
+for BPS and $\widetilde{O}(\kappa d^{5/4})$ partial derivative queries
+for zigzag, from a warm start.
+These results were significant in part because they constituted progress
+toward acceleration for log-concave sampling.
+From a warm start, our
+main theorem achieves complexity
+ $\widetilde{O}(\kappa^{1/2}d^{1/4})$ . It matches the condition number
+dependence of BPS while improving its dimension
+dependence, and always improves upon the computational cost of the zigzag sampler (even if we consider one gradient query to be $d$ times as expensive as a partial derivative query).
+It also improves over all other prior results in both parameters. In particular, it achieves full
+acceleration together with $d^{1/4}$ dependence on dimension.
+In a companion work [7], we will show how to obtain a warm start using
+ $\widetilde{O}(\kappa^{7/6}d^{1/6})$ gradient queries. We do not discuss the warm start
+question further in this paper.
+Proximal Bouncy Particle Sampler.
+Our algorithm, the Proximal Bouncy Particle Sampler (Proximal
+BPS), combines two ideas. The proximal sampler [17]
+breaks the sampling problem into a sequence of easier local problems
+by introducing a Gaussian perturbation of the current position.
+The bouncy particle sampler [5] explores a distribution
+by moving a particle along straight lines, with random changes of direction
+chosen to preserve the desired distribution. We bring these ideas
+together by designing local particle motions that retain a memory of
+previous steps. This memory acts as momentum, allowing the algorithm
+to make sustained progress across successive local problems and giving
+the accelerated convergence rate in our main theorem. The local motions
+follow explicitly computable curved paths, with occasional “bounces”
+that correct for the shape of the target distribution. A gradient
+evaluation at a nearby reference point makes these corrections inexpensive:
+since the gradient varies little over a small region, only a small
+number of bounces is needed. Balancing the size of the local problems
+against the cost of these corrections yields the
+ $\widetilde{O}(\kappa^{1/2}d^{1/4})$ query bound. We feel that the construction of the sampler (with the help of GPT-5.6 Sol) contains some surprising ingredients.
+We describe the construction and its geometry in
+Section 3.1, and give the implementation and complexity
+analysis in Section 4.
+Related work.
+This work makes progress on the complexity of log-concave sampling, for which the textbook [11] provides an introduction and overview.
+The proximal sampling framework is from Lee, Shen, and
+Tian [17], with subsequent analyses and implementations
+in [6, 9, 15]. These methods
+alternate independent draws of the position and the auxiliary variable
+from their conditional distributions. Our update reflects the auxiliary
+point through the current position, a step related to the Gaussian
+overrelaxation method of Neal [25]. We combine
+this reflection with a local piecewise deterministic particle motion run for half of its
+oscillation period. As we shall explain, this helps useful information to persist across iterations.
+The rule for the bounces builds on the BPS of Bouchard-Côté,
+Vollmer, and Doucet [5]. The use of a quadratic
+reference potential to generate curved paths, with bounces correcting
+for the remaining force, is adapted from the boomerang sampler of
+Bierkens, Grazzi, Kamatani, and Roberts [4]. This separation
+of the force also fits the general framework for Hamiltonian piecewise
+deterministic Markov processes of Andrieu, Durmus, Nüsken, and
+Roussel [2].
+Existing convergence analyses of these processes
+[2, 13, 21] concern continuous-time dynamics
+with repeated random refreshment of the velocity. Our local motion has
+no such refreshment: it stops after a half-period, and convergence
+comes from combining it with the auxiliary reflection step with occasional
+resampling. In particular, the local motion alone need not converge to
+its conditional equilibrium. Thus, the continuous-time results do not
+directly give a convergence guarantee for our discrete chain.
+Our analysis instead adapts the modified $L^{2}$ hypocoercivity method of
+Dolbeault, Mouhot, and Schmeiser [14], in the sharpened formulation
+of Fan, Li, and Lu [16], to this discrete setting. The technical details of the hypocoercivity mechanism in Appendices B and C should be of interest to specialists.
+AI usage.
+The algorithm and its original analysis were found by interactions with GPT-5.6 Sol. The authors recast the arguments into a more standard hypocoercive framework, prepared the manuscript, and take full responsibility for its contents.

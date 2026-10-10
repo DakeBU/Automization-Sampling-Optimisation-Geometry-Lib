@@ -1,5 +1,185 @@
 # Proximal BPS · formalization result window
 
+## Actual bounded-test outer square-integral84 (2026-10-11)
+
+Independent science dd3a23011b91569acbcd591ccd7b06301147d339. Exact conditional Gibbs and Gaussian product probabilities are derived from the six original hypotheses. The same actual83 phase gives state-measurable clock expectations;4M² dominates their squared discrepancy, and finite-probability filter DCT yields the outer integral limit0 at NNReal0. Eight exact adjacent formula/BODY regions; source C_c to C_b extension explicitly attributed. Full all-L2/invariance/contraction/density/process/main/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
+## Actual bounded-test expectation83 (2026-10-10)
+
+Independent science 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. Every globally bounded continuous real test of the actual physical phase is measurable and integrable under the actual clocks. The explicit2M phase-defect integral estimate yields pointwise clock-expectation continuity at NNReal0. Original six conditions and complete prior physical semantics retained. Eight formula/BODY regions authored once with adjacent folded Lean. C_b/2M are ASTIS elaborations of source C_c. Outer L2/invariance/Markov/semigroup/main/error/cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
+## Actual small-time stochastic continuity82 (2026-10-10)
+
+Independent science 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. Actual phase-flow defect <=1-exp(-Lambda_t) and every positive-threshold norm-tail probability tend to0 at NNReal0, under actual clocks for each fixed initial tuple. Original six hypotheses and complete actual phase semantics retained. Nine formula/BODY regions authored once beside exact folded Lean. Source Ex22 fullL2/invariance/Markov/semigroup/main/error/cost/composition remain OPEN; local aggregate, actual reader visual, main/PURIFIED/live distinct.
+
+
+## Ideal initialized half-turn probability kernel81 (2026-10-10)
+
+Independent science 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. Exact conditional q_y normalization and jointly Borel ideal H_y at pi are internally constructed. The actual independent reference/Gaussian/clock product supports physical origin and terminal live arc; phase0 law is dirac(x) x Gaussian. Original six conditions, all actual definitions and previous phase semantics retained. Ten formula/BODY regions are authored once beside exact folded Lean. This is ideal exact-reference semantics, not reference implementation, phase Markov/invariance, mixing, error/cost/composition or full-paper completion. Aggregate, reader visual, main/live and purification remain separate.
+
+
+## Actual jointly measurable physical-time phase80 (2026-10-10)
+
+Independent science ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. The actual finite recursion, harmonic flow and interval cover now produce a total jointly Borel phase, exact on every covering live interval, with explicit ASTIS fallback on uncovered exceptional inputs. For each fixed deterministic parameter tuple, one common-AE event gives all-time actual arc agreement and initialization at z0. No uniform parameter AE or arbitrary correlated random initialization is inferred. Complete original six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-measurability lesson/publication beside folded exact Lean. Process regularity/adaptedness/Markov/kernel/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.
+
+
+## Actual physical-time interval coverage79 (2026-10-10)
+
+Independent science 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion plus actual nonaccumulation now give a common-AE unique half-open interval, unique live stored record and finite elapsed<nextwait for every finite physical time. The complete six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-cover lesson/publication, beside initially folded exact Lean. Next is an actual jointly measurable phase representative with all-time AE arc agreement and input-derived initialization; global process regularity/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.
+
+
+## Actual event-time nonaccumulation78 (2026-10-10)
+
+Independent science bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. Actual finite recursion plus canonical Exp1 inputs now give almost-sure finite-horizon escape and finite event-index sets. The complete six-condition statement and seven formula/BODY steps are authored once in pbps-actual-event-time-nonaccumulation lesson/publication, with adjacent initially folded exact Lean. Next is actual physical-time state construction/measurability; global process/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification remain independently evidence-bound.
+
+
+## Countable exponential input law77 (2026-10-10)
+
+Independent science commit 4f88383540a865aea304c63c40de5a699ea61611. The actual product/coordinate laws, mutual independence, simultaneous a.s. positivity and divergent clamped sums are verified. Statement and seven formula/BODY steps remain authored once in unit-exponential-product declaration lesson/publication, with exact adjacent folded Lean. The next actual consumer is recursion76 event-time nonaccumulation; process/invariance/main/cost/composition remain open. Aggregate/site/graph/visual/purification/main/live evidence are recorded separately in SAU77 integration notes.
+
+
+## Exact actual finite stopped recursion76 (2026-10-10)
+
+Independent science commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The complete attributed statement and ten
+formula/BODY steps are authored once in declaration_lessons/pbps-actual-finite-jump-recursion.json,
+with exact initially folded adjacent Lean. Actual73/74/75 provide the flow,
+bounce/rate and first clock; no phase at infinity. Joint Borel recursion,
+original initial energy, monotone/stopped times, uniform waiting increments
+and zero/strict-growth guards are proved. iid Exp1 thresholds, partial-sum
+divergence/nonaccumulation, global PDMP/Markov/invariance/kernel/main/errors/
+expected-query cost/composition remain open. Integration76 records aggregate,
+reader and graph gates separately; no Exposition/PURIFIED/main/live/Goal credit.
+
+
+## Exact actual first-clock checkpoint75 (2026-10-10)
+
+Independent science commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. Complete attributed statement and nine-step
+formula proof are authored once in declaration_lessons/pbps-actual-hazard-clock.json;
+exact full Lean (literal specification and proved internal primitive included)
+is adjacent and initially folded. The actual Exp(1) pushforward is normalized,
+with strict survival exp(-Lambda_z(t)) including infinite waits. Finite threshold
+attainment, joint Borel measurability and original-state energy waiting bounds
+retain all original six callers and rank0/zero-energy/e0/alphaeta1 cases.
+Actual recursive PDMP/iid nonaccumulation/global path/Markov/invariance/main/errors/
+expected-query cost/composition remain open. Integration75 records aggregate and
+reader checks separately; no Exposition/PURIFIED/main/live/whole-paper/Goal credit.
+
+
+## Exact bounce-rate checkpoint74 (2026-10-10)
+
+Independent science commit d556a7550f0395d149720da6478bfdfff98368a7. Complete attributed statement and seven-step
+formula proof are authored once in declaration_lessons/pbps-actual-bounce-rate.json;
+exact full Lean including its complete private literal specification is adjacent
+and initially folded. Actual S is zero-safe Borel and preserves the weighted SUM H.
+Actual lambda is continuous, has the exact flipped-rate difference, and obeys the
+printed SAME-H-layer Lambda bound with internal beta-Lipschitz producer. Original
+six callers and legal zero-energy/rank0/zero-normal/alphaeta1 cases persist.
+Actual integrated hazard/clock/recursive PDMP/nonexplosion/invariance/main/errors/
+expected-querycost/actual-input composition remain open. Integration74 records
+aggregate and current-reader checks separately; no Exposition/PURIFIED/main/live
+or whole-paper/Goal completion follows.
+
+
+## Exact harmonic-flow checkpoint73 (2026-10-10)
+
+Independent science commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. The complete attributed statement and
+six-step formula proof are authored once in declaration_lessons/
+pbps-actual-harmonic-flow.json; the exact full Lean, including its private
+literal proposition specification, is adjacent and initially folded.
+For c=y-eta gradientV(xRef), the exact deterministic flow conserves
+(eta^-1 norm(x-c)^2+norm(p)^2)/2 and sends (x,p) to (2c-x,-p) at pi.
+All nine clauses and original six callers are retained with no extra premise.
+Actual bounce/rate/clocks/PDMP/nonexplosion/invariance/main/errors/expected
+cost and actual-input composition remain open. Integration73 records reader
+and aggregate checks separately; no full Exposition/PURIFIED/main/live or
+whole-paper/Goal badge is inferred.
+
+
+## Exact perturbation checkpoint72 (2026-10-10)
+
+Independent science commit 18183c58eee62145b6059ded11c7be05a4cb82de; canonical full statements and six/four-step
+formula proofs are authored once in declaration_lessons/pbps-hilbert-corrector-
+perturbation.json and declaration_lessons/pbps-actual-corrector-perturbation.json.
+Their complete exact Lean is adjacent and initially folded on the original
+companion page. One SAU joins the auxiliary Hilbert lemma to actual PBPS inputs.
+
+For the SAME C(u,v)=(norm(u)^2-norm(v)^2)/2-inner(A0(Invu),v),
+C(u+Gamma0 r,v-A0 r)-C(u,v)=inner(u,Inv r)+norm(r)^2/2.
+All original actual71 clauses persist. Arbitrary r is not actual r_rho;
+Algorithm1 H/K/B27/B28, full dynamics/main/errors/cost/composition remain open.
+Serialized reader/aggregate admission is recorded separately in integration72;
+this is not a full Exposition Seal, PURIFIED, main/live or whole-paper completion.
+
+
+## Current verified corrector checkpoint (2026-10-10)
+
+The historical source packets and earlier checkpoint paragraphs below are
+preserved. Current status is supplied by the handoff, live Frontier Cells and
+Harness capsule. `ASTIS-SW-PBPS-actual-corrector-change` has independent
+commit-bound verification at `4e7ce5d2996ffe1d1b0ab570778e02425c6be34e` for the discrete B21
+corrector change under the actual reflected observable.
+
+The complete attributed statement and eight-step formula proof are authored
+once in `website/content/declaration_lessons/pbps-actual-corrector-change.json`.
+The matching publication binds exact source obligations and assumption
+differences. `ActualCorrectorChange.actual_corrector_change`, its complete
+private literal proposition and all proof spans remain adjacent folded Lean
+on the original companion page.
+
+| Source ingredient | Exact current Lean meaning |
+|---|---|
+| Reflected observable and actual coordinates | Same `g = U (P f - (f - P f))`, actual conditional `gP`, and `gV = V0.adjoint (R g)` |
+| Corrector B20 | `C u v = (norm(u)^2-norm(v)^2)/2-inner(A0(Inv u),v)` on the SAME `HP0` |
+| Discrete corrector change B21 | `C gP gV-C fP fV = -norm(fP)^2+norm(fV)^2` |
+| Actual-update comparison B27/B28 | Subsequent obligation: half-turn/refreshment error components and perturbation |
+
+All six original analytic callers, twelve common witnesses and previous
+clauses persist. Exact half and signs, legal rank0/alphaeta1 and the same
+centered inverse are preserved. The local algebra supplies no extra
+regularity, onto-map, mean or sharp-bound premise.
+
+Full B4/H1/B2 dynamics, invariance/nonexplosion, PBPS/SPHMC mains,
+implementation errors/caps, initialization and actual-input expected-query
+costs/composition remain independent. TV proximity does not transfer
+unbounded cost. Aggregate/reader/remote CI, full Exposition/PURIFIED,
+main/live and whole-paper/Goal completion are separate admissions.
+
+## Current verified companion checkpoint (2026-10-10)
+
+The historical source packets below are preserved. Current theorem status and
+remaining dependencies come from `docs/companion-papers-handoff.md`, the live
+Frontier Cells and the Harness capsule, rather than the older dated paragraphs.
+
+`ASTIS-SW-PBPS-actual-projected-rotation` now has independent commit-bound
+verification at `c46af8a55e89419109f654c4553cf527993cbeed`. Its source anchor is Appendix B.3,
+the actual projected rotation used by (B.21) and Lemma B.4. The complete source
+conditions, notation and eight-step formula proof are authored once in
+`website/content/declaration_lessons/pbps-actual-projected-rotation.json`, with
+exact obligations and assumption differences in the matching publication file.
+The production declaration is
+`ActualProjectedRotation.actual_projected_rotation`; its full literal statement
+and exact proof remain adjacent folded Lean in the original companion page.
+
+| Source object or ingredient | Exact current Lean meaning |
+|---|---|
+| Actual reflected observable | `g = U (P f - (f - P f))` on the same joint law |
+| Global centering of the output | Proved internally from the actual reflection law and conditional expectation |
+| Output macroscopic coordinate | `gP` is the same conditional expectation in `HP0` |
+| Output polar coordinate | `gV = V0.adjoint (R g)` |
+| Rotation and energy | Exact formulas and pair-energy identity in the linked declaration lesson |
+| Printed corrector change (B.21) | Next sealed source target; not proved by pair-energy conservation |
+
+All six original analytic callers and twelve common witnesses persist. No new
+mean, regularity, onto-map or sharp-energy premise is added. Dimension zero and
+the endpoint alpha*eta=1 remain admitted. Shared aggregate/reader checks and
+remote CI are separate from this science verification. Full B4 dynamics,
+invariance/nonexplosion, PBPS/SPHMC main results, errors/caps, initialization and
+actual-input expected-query costs/composition remain separate obligations.
+TV proximity does not transfer unbounded costs. This is not a whole-paper,
+Exposition Seal, PURIFIED, main or live-deployment completion claim.
+
 Primary: [arXiv:2609.06905v1](https://arxiv.org/html/2609.06905v1).
 Public result entry: `example-cases/samplewiki/companions/proximal-bouncy-particle.html`.
 The canonical source/main-theorem contracts remain in

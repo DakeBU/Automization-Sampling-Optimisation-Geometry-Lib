@@ -1,0 +1,34 @@
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.Tactic.Abel
+import Mathlib.Tactic.Linarith
+
+/-!
+# Shared gradient-step descent
+
+Chewi arXiv:2605.07006v1 Lemma 3.1, with the necessary nonnegative step
+explicit. This extracts the previously private GradientDescentValue calculation.
+The global quadratic upper model is the exact input; no convexity or supplied
+recurrence is assumed. No separate differentiability hypothesis is needed for
+this algebraic consequence of the model using the actual totalized gradient.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic
+
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+/-- Actual gradient-step descent from a global quadratic upper model.
+Includes a zero step and signed upper-model coefficient. -/
+theorem gradient_step_descent_of_quadratic_upper_bound {f : E → ℝ} {β h : ℝ}
+    (hh : 0 ≤ h) (hstep : β * h ≤ 1)
+    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)
+    (x : E) : f (x - h • gradient f x) - f x ≤ -(h / 2) * ‖gradient f x‖ ^ 2 := by
+  have hu' := hu x (x - h • gradient f x)
+  have he : x - h • gradient f x - x = -(h • gradient f x) := by abel
+  rw [he, inner_neg_right, inner_smul_right, real_inner_self_eq_norm_sq,
+    norm_neg, norm_smul, Real.norm_eq_abs, mul_pow, sq_abs] at hu'
+  have hs := mul_le_mul_of_nonneg_right hstep (mul_nonneg hh (sq_nonneg ‖gradient f x‖))
+  nlinarith
+
+end AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic

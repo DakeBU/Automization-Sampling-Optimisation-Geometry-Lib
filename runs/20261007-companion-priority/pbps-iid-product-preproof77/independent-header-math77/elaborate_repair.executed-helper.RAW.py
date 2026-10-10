@@ -1,0 +1,114 @@
+from pathlib import Path
+from datetime import datetime,timezone
+import hashlib,json,os,subprocess,sys,re,traceback
+ROOT=Path('E:/Samplinglib');R=ROOT/'runs/20261007-companion-priority/pbps-iid-product-preproof77';OWN=R/'independent-header-math77';PRE=ROOT/'runs/20261007-companion-priority/pbps-iid-nonaccumulation-preread77'
+ACTOR='/root/exact_science63';PY='C:/Users/admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe';HEADER=R/'header77.proposed.lean'
+LEAN=ROOT/'.astis/toolchain/lean-4.33.0-windows/bin/lean.exe';LAKE=ROOT/'.astis/toolchain/lean-4.33.0-windows/bin/lake.exe'
+RECIPE='Replace CRLF byte pairs with LF only; preserve bare CR and every other byte.'
+def now():return datetime.now(timezone.utc).isoformat()
+
+def sha(b):return hashlib.sha256(b).hexdigest()
+
+def canon(x):return json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+
+def load(p):return json.loads(p.read_bytes())
+
+def write(n,x):
+ p=OWN/n;p.write_bytes(json.dumps(x,ensure_ascii=False,sort_keys=True,indent=2).encode()+b'\n')
+
+def pin(p):
+ b=p.read_bytes();lf=b.replace(b'\r\n',b'\n');return dict(path=p.relative_to(ROOT).as_posix(),RAW_bytes=len(b),RAW_sha256=sha(b),LF_bytes=len(lf),LF_sha256=sha(lf))
+
+def check(row):
+ q=pin(ROOT/row['path']);assert q==row;return q
+
+def launch(action):
+ assert not (OWN/'lease.final.json').exists();(OWN/(action+'.executed-helper.RAW.py')).write_bytes(Path(__file__).read_bytes());argv=[PY,'-B','-X','utf8',str(Path(__file__)),'_child',action]
+ with (OWN/(action+'.stdout.RAW')).open('wb') as out,(OWN/(action+'.stderr.RAW')).open('wb') as err:
+  p=subprocess.Popen(argv,cwd=ROOT,stdout=out,stderr=err);print(json.dumps(dict(status='FOREGROUND_RUNNING',action=action,actual_PID=p.pid,runner_PID=os.getpid())),flush=True);code=p.wait()
+ write(action+'.receipt.json',dict(action=action,actual_PID=p.pid,runner_PID=os.getpid(),exit_code=code,terminal_closed=True,stdout=pin(OWN/(action+'.stdout.RAW')),stderr=pin(OWN/(action+'.stderr.RAW')),executed_helper=pin(OWN/(action+'.executed-helper.RAW.py'))));print(json.dumps(dict(status='TERMINAL',action=action,actual_PID=p.pid,exit_code=code)),flush=True);return code
+
+def close():
+ assert not (OWN/'lease.final.json').exists();readback();assert launch('readback')==0
+ rows=[pin(p) for p in sorted(OWN.rglob('*')) if p.is_file()];run=load(OWN/'run.json');write('lease.final.json',dict(status='CLOSED_LAST',actor=ACTOR,actual_last_writer_PID=os.getpid(),closed_utc=now(),owned_count=len(rows)+1,all_owned_outputs_except_only_self=rows,closure_logical_sha256=sha(canon(rows)),whole_logical_run_sha256=run['run_sha256'],complete_named_RAW_payload=run['complete_named_RAW_payload'],all_child_sessions_closed=True,closing_process_exit='Must be observed by external foreground terminal; no postclose owned receipt write.',postclose_owned_writes=False,canonical_Git_ledger_writes=False,new_VERIFIED=False))
+ print(json.dumps(dict(status='CLOSED_LAST',actual_PID=os.getpid(),owned_count=len(rows)+1,lease=pin(OWN/'lease.final.json'))),flush=True)
+
+def postclose():
+ l=load(OWN/'lease.final.json');rows=[pin(p) for p in sorted(OWN.rglob('*')) if p.is_file() and p.name!='lease.final.json'];assert rows==l['all_owned_outputs_except_only_self'] and sha(canon(rows))==l['closure_logical_sha256'];readback();print(json.dumps(dict(status='READONLY_POSTCLOSE_PASS',actual_PID=os.getpid(),owned_count=len(rows)+1,lease=pin(OWN/'lease.final.json'),closure_logical_sha256=l['closure_logical_sha256'],owned_writes=False)),flush=True)
+
+def process(label,argv,env=None):
+ out=OWN/(label+'.stdout.RAW');err=OWN/(label+'.stderr.RAW');pre=pin(HEADER);start=now()
+ with out.open('wb') as o,err.open('wb') as e:
+  p=subprocess.Popen([str(x) for x in argv],cwd=ROOT,env=env,stdout=o,stderr=e);print(json.dumps(dict(status='FOREGROUND_RUNNING',label=label,actual_PID=p.pid)),flush=True);code=p.wait()
+ rec=dict(label=label,actual_PID=p.pid,command=[str(x) for x in argv],started_utc=start,ended_utc=now(),exit_code=code,terminal_closed=True,stdout=pin(out),stderr=pin(err),header_pre=pre,header_post=pin(HEADER));write(label+'.receipt.json',rec);assert code==0 and pre==rec['header_post'],(label,code);return rec
+
+def freeze():
+ write('lease.open.json',dict(status='OPEN_HEADER_ONLY_MATH77',actor=ACTOR,actual_PID=os.getpid(),theorem_proved=False,source_verdict=False,new_SAU=False,VERIFIED=False))
+ selected=load(PRE/'selected.contract.json');cat=load(PRE/'api.catalog.json');le=load(PRE/'CLOSED_LAST.json');assert le['status']=='CLOSED_LAST' and le['owned_files']==55 and le['theorem_proved'] is False
+ names=['selected.contract.json','api.catalog.json','named-preread77.md','CLOSED_LAST.json','run.json','native.manifest.json'];paths=[HEADER,R/'header77.preparation.json',ROOT/'lean-toolchain',ROOT/'lake-manifest.json',ROOT/'.agents/skills/astis-substantive-advance/SKILL.md',ROOT/'runs/20261007-companion-priority/pbps-actual-finite-jump-recursion76/root.preread77.adoption.json',LEAN,LAKE]+[PRE/n for n in names]
+ chosen=cat['entries'][:19];apis=[]
+ for row in chosen:
+  p=Path(row['input']['path']);raw=p.read_bytes();lf=raw.replace(b'\r\n',b'\n');assert len(raw)==row['input']['RAW_bytes'] and sha(raw)==row['input']['RAW_sha256'] and sha(lf)==row['input']['LF_sha256']
+  region=b''.join(raw.splitlines(keepends=True)[row['start_line']-1:row['end_line']]);assert region==row['exact_RAW_UTF8'].encode() and sha(region)==row['exact_region_RAW_sha256'];apis.append(dict(names=row['names'],whole_file=pin(p),start_line=row['start_line'],end_line=row['end_line'],literal_region_RAW_sha256=sha(region),source_vs_region_hash_distinct=True,hypotheses_and_use=row['hypotheses_and_use']));paths.append(p)
+ for rel in ['Mathlib/MeasureTheory/Constructions/BorelSpace/Real.lean','Mathlib/Probability/CDF.lean']:paths.append(ROOT/'.lake/packages/mathlib'/rel)
+ paths=list(dict.fromkeys(paths));rows=[pin(p) for p in paths];write('inputs.manifest.json',dict(input_count=len(rows),inputs=rows,LF_recipe=RECIPE,header_unsealed_unproved=True,source_preread_reused_closed_count=55,new_source77_actor_contents_read=False,storage='Finite exact RAW/LF references and one exact candidate snapshot only; no historical package copies.'))
+ (OWN/'header77.proposed.exactraw.lean').write_bytes(HEADER.read_bytes());write('API-region-review.json',dict(actual_PID=os.getpid(),entries=apis,entry_count=len(apis),all_pinned_regions_literal=True,direct_additional_API_files=[pin(ROOT/'.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Real.lean'),pin(ROOT/'.lake/packages/mathlib/Mathlib/Probability/CDF.lean')]))
+ b=HEADER.read_bytes();assert len(b)==1351 and sha(b)=='891a539a3a0b312b00eccb3b6491bc5ba546ae1d2aa75013ff276af00ac0528f'
+ assert not re.search(r'\b(sorry|admit|axiom)\b',b.decode()) and b'def unit_exponential_product_statement : Prop :=' in b and b':= by' not in b and b'theorem ' not in b.replace(b'completed theorem.',b'')
+ prep=load(R/'header77.preparation.json');assert prep['header']['RAW_sha256']==sha(b)
+ write('frozen.json',dict(status='FROZEN_PROSPECTIVE_HEADER77',actual_PID=os.getpid(),created_utc=now(),header=pin(HEADER),exact_header_snapshot=pin(OWN/'header77.proposed.exactraw.lean'),input_count=len(rows),public_premises=0,defs=['P','X','epsilon'],proof_body_present=False,checked_HEAD_at_freeze=subprocess.run(['git','rev-parse','HEAD'],cwd=ROOT,capture_output=True,check=True).stdout.decode().strip(),exact_science_verification=False))
+ print(json.dumps(dict(status='FROZEN',actual_PID=os.getpid(),input_count=len(rows),header_RAW_sha256=sha(b))),flush=True)
+
+def recheck():
+ for row in load(OWN/'inputs.manifest.json')['inputs']:check(row)
+ assert HEADER.read_bytes()==(OWN/'header77.proposed.exactraw.lean').read_bytes()
+
+def elaborate():
+ recheck();version=process('fixed-Lean-version',[LEAN,'--version']);v=(OWN/'fixed-Lean-version.stdout.RAW').read_text(encoding='utf-8');assert '4.33.0' in v
+ code="import os,json;print(json.dumps({'actual_environment_reader_PID':os.getpid(),'LEAN_PATH':os.environ.get('LEAN_PATH'),'LEAN_SRC_PATH':os.environ.get('LEAN_SRC_PATH')}))"
+ er=process('fixed-Lake-environment',[LAKE,'env',PY,'-B','-X','utf8','-c',code]);obj=load(OWN/'fixed-Lake-environment.stdout.RAW');assert obj['LEAN_PATH']
+ env=dict(os.environ);env.update({k:obj[k] for k in ['LEAN_PATH','LEAN_SRC_PATH'] if obj[k] is not None})
+ checks=['MeasureTheory.Measure.infinitePi','MeasureTheory.Measure.infinitePi_map_eval','ProbabilityTheory.iIndepFun_infinitePi','ProbabilityTheory.iIndepFun.indepFun','ProbabilityTheory.iIndepFun.comp','ProbabilityTheory.isProbabilityMeasure_expMeasure','ProbabilityTheory.cdf_expMeasure_eq','ProbabilityTheory.cdf_eq_real','ProbabilityTheory.HasLaw.identDistrib','ProbabilityTheory.IdentDistrib.comp','ProbabilityTheory.IdentDistrib.integrable_iff','ProbabilityTheory.strong_law_ae_real','MeasureTheory.ae_all_iff','MeasureTheory.integrable_const','MeasureTheory.Integrable.indicator','MeasureTheory.integral_indicator_one','MeasureTheory.measurable_real_toNNReal','Real.coe_toNNReal','Real.GammaIntegral_convergent','Real.integral_rpow_mul_exp_neg_mul_Ioi','MeasureTheory.integrable_withDensity_iff_integrable_smul\'','MeasureTheory.integral_withDensity_eq_integral_toReal_smul','Filter.tendsto_atTop_mono']
+ suffix='\n/- Header/type/API formation only; no proof of the target proposition. -/\n'+'\n'.join('#check '+x for x in checks)+'\n'
+ probe=OWN/'HeaderOnlyCheck77.lean';probe.write_bytes(HEADER.read_bytes()+suffix.encode());rec=process('fresh-header-and-API-elaboration',[LEAN,probe],env)
+ out=(OWN/'fresh-header-and-API-elaboration.stdout.RAW').read_text(encoding='utf-8');assert 'unit_exponential_product_statement : Prop' in out and 'error:' not in out
+ write('elaboration.json',dict(status='PASS_HEADER_PROP_AND_API_TYPES_ONLY',actual_observer_PID=os.getpid(),actual_Lean_PID=rec['actual_PID'],exit_code=0,compiler_receipt=pin(OWN/'fresh-header-and-API-elaboration.receipt.json'),source_prefix_exact=True,probe=pin(probe),only_appended_checks=suffix,checks=checks,version_receipt=pin(OWN/'fixed-Lean-version.receipt.json'),environment_receipt=pin(OWN/'fixed-Lake-environment.receipt.json'),real_Lean_executable=pin(LEAN),fresh_source_elaboration=True,Lake_target_cache_replay=False,canonical_olean_written=False,theorem_proved=False))
+ print(json.dumps(dict(status='HEADER_TYPE_ELABORATION_PASS',actual_Lean_PID=rec['actual_PID'],exit_code=0,API_checks=len(checks),theorem_proved=False)),flush=True)
+
+def decision():
+ recheck();el=load(OWN/'elaboration.json');assert el['status']=='PASS_OWNED_MINIMAL_SCOPE_REPAIR_ORIGINAL_BLOCKED'
+ review=[dict(id='M01',topic='Closed concrete probability space',finding='The proposition has no data or analytic callers. Omega is exactly Nat->Real with its native product measurable structure. P is the literal infinitePi of expMeasure1. IsProbabilityMeasure(P) is a conclusion, not an instance premise; the future proof must internally derive each factor probability from 0<1 before using infinitePi probability/marginal APIs. No V,Hessian,dimension,cap,independence or integrability certificate is supplied.'),dict(id='M02',topic='Definitions and exact marginal scope',finding='X_k is actual evaluation; epsilon_k is its total Real.toNNReal clamp. The explicit law conjunct is map X_k P=expMeasure1. Measurability of both maps is explicit. The NNReal pushforward law map epsilon_k P=map toNNReal expMeasure1 and independence of epsilon are derivable by measurable composition, but are not separate exported conjuncts; no stronger claim is credited.'),dict(id='M03',topic='Mutual independence and common AE event',finding='iIndepFun X P is mutual independence of the actual coordinate family, rather than only pairwise independence. The AE quantifier precedes forall k:Nat; countability permits intersection of coordinate full-probability positivity events. CDF_Exp1(0)=0 proves each coordinate strictly positive AE; all real samples, including zero or negative coordinates, remain in Omega.'),dict(id='M04',topic='Total completion versus probability-one facts',finding='Clamping is total for negative/zero samples. On the one AE all-positive event, coe(toNNReal(X_k))=X_k for every k. The proposition does not assert positivity or divergence for every sample. The all-zero sequence is a concrete pointwise counterexample to a universal divergence strengthening; it is a null event, not an excluded carrier element.'),dict(id='M05',topic='Real partial sums and quantifiers',finding='The limit is AE Tendsto of real sums over range n atTop atTop. This correctly expresses divergence to positive infinity in Real, not eventual infinity in WithTop. The statement concerns one literal law, all coordinates, and a full-probability set of entire sequences. It does not state a mean-normalized limit, any event-time bound or an actual finite-recursion conclusion.'),dict(id='M06',topic='Original-source first-moment route',finding='The actual Exp1 distribution has finite first absolute moment and mean1. The pinned Gamma s=2 convergence/integral and withDensity APIs support the mathematical route, followed by coordinate IdentDistrib/integrability transfer and real SLLN. Exact PDF/support/endpoint and expectation simplification adapters remain implementation obligations; no compiled direct Exp-mean adapter was found or granted by this review.'),dict(id='M07',topic='ASTIS bounded-indicator sufficient route',finding='For b(x)=1_{x>1}, B_k=b(X_k) is measurable, independent and identically distributed. B_0 is integrable because it is bounded by1 under a probability measure. The exact CDF and complement yield E[B_0]=exp(-1)>0. Real SLLN gives positive asymptotic frequency; hence sum B_k diverges. Pointwise 0<=B_k<=coe(epsilon_k) holds even at negative/zero x, so sum epsilon_k diverges. Every ingredient is derived from the literal P; no new premise or model substitution is needed. This is an ASTIS sufficient argument, not a claim that the source printed the indicator argument.'),dict(id='M08',topic='Degeneracy and downstream boundary',finding='This generic probability leaf has no physical state, V,alpha,beta,eta or dimension binder. It remains compatible with rank0, zero initial energy/cap and alphaeta=1 in later actual consumers. Genuine nonaccumulation still requires exact76 finite/stopped recursion increment and separate zero-cap/positive-cap treatment. Global path/PDMP/Markov/invariance/kernel/main/cost/composition conclusions remain outside this header.')]
+ write('mathematical-review.json',dict(status='PROSPECTIVE_HEADER_MATHEMATICALLY_SOUND',actor=ACTOR,segments=review,header=pin(HEADER),required_statement_repairs=[load(OWN/'minimal-repair.proposal.json')],route_feasibility=dict(source_Exp_mean_SLLN='Mathematically feasible; moment/density adapters remain unimplemented.',ASTIS_bounded_indicator='Mathematically feasible with pinned APIs; no implementation performed.'),theorem_proved=False,source_verdict=False,header_sealed=False))
+ d=dict(schema='independent-header-math77/decision-v1',status='BLOCKED_AS_SUBMITTED_NOTATION_SCOPE_PROSPECTIVE_MATH_SOUND',accepted_as_submitted=False,accepted_prospective_header_math=True,actual_PID=os.getpid(),actor=ACTOR,header=pin(HEADER),public_premises=0,hidden_provider_premises=0,Lean_type_elaboration_PASS=False,owned_minimal_repair_type_elaboration_PASS=True,original_Lean_PID=42920,original_Lean_EXIT=1,actual_Lean_PID=el['actual_Lean_PID'],terminal_EXIT=0,explicit_law_scope='Real X coordinates; NNReal clamp law and clamp independence are derived consequences, not extra conjuncts.',required_repairs=[pin(OWN/'minimal-repair.proposal.json')],mathematical_review=pin(OWN/'mathematical-review.json'),elaboration=pin(OWN/'elaboration.json'),source_API_preread=pin(PRE/'CLOSED_LAST.json'),old_preread_standing_notes='Historical preread calls76 future/open at its earlier time. Reused only for source/API planning, not as current status. This review does not reapprove its source graph.',new_source77_actor_contents_read=False,proof_search_performed=False,theorem_proved=False,header_sealed=False,SAU_claimed=False,VERIFIED=False,source_verdict=False,canonical_Git_ledger_writes=False,full_paper=False,PURIFIED=False,Goal_complete=False,remaining_boundary='77 theorem proof/axioms, separate independent source/decoder review and exact verification remain pending. No actual nonaccumulation, all-time PDMP, Markov/invariance, terminal kernel, main or costs.')
+ write('decision.json',d);payload=dict(payload_name='COMPLETE_PROSPECTIVE_HEADER77_MATH_TYPE_REVIEW',decision=d,mathematical_review=load(OWN/'mathematical-review.json'),input_manifest=load(OWN/'inputs.manifest.json'),frozen=load(OWN/'frozen.json'),API_region_review=load(OWN/'API-region-review.json'),elaboration=el,full_candidate_header_RAW_UTF8=HEADER.read_bytes().decode(),minimal_repair_proposal=load(OWN/'minimal-repair.proposal.json'),original_negative=load(OWN/'negative.elaborate.34272.json'))
+ write('complete-named-review.payload.json',payload);run=dict(schema='independent-header-math77/run-v1',status=d['status'],actor=ACTOR,decision=pin(OWN/'decision.json'),inputs_manifest=pin(OWN/'inputs.manifest.json'),complete_named_RAW_payload=pin(OWN/'complete-named-review.payload.json'),wholelogical_recipe='Canonical UTF8 JSON ensure_ascii=false sort_keys=true separators comma/colon; remove ONLY top-level run_sha256.',theorem_proved=False,source_verdict=False,header_sealed=False,SAU_claimed=False,VERIFIED=False,canonical_Git_ledger_writes=False);run['run_sha256']=sha(canon(run));write('run.json',run)
+ print(json.dumps(dict(status=d['status'],actual_PID=os.getpid(),whole_logical_run_sha256=run['run_sha256'],complete_named_RAW_sha256=run['complete_named_RAW_payload']['RAW_sha256'])),flush=True)
+
+def readback():
+ recheck();run=load(OWN/'run.json');h=run.pop('run_sha256');assert sha(canon(run))==h
+ for k in ['decision','inputs_manifest','complete_named_RAW_payload']:check(run[k])
+ assert load(OWN/'decision.json')['theorem_proved'] is False
+ print(json.dumps(dict(status='READONLY_READBACK_PASS',actual_PID=os.getpid(),whole_logical_run_sha256=h)),flush=True)
+
+
+def elaborate_repair():
+ recheck();old=HEADER.read_bytes();needle=b'open scoped Topology BigOperators\n';assert old.count(needle)==1;new=old.replace(needle,b'open scoped Topology BigOperators NNReal\n',1)
+ repaired=OWN/'header77.minimal-scope-repair.proposed.lean';repaired.write_bytes(new)
+ failed=load(OWN/'fresh-header-and-API-elaboration.receipt.json');assert failed['actual_PID']==42920 and failed['exit_code']==1
+ obj=load(OWN/'fixed-Lake-environment.stdout.RAW');env=dict(os.environ);env.update({k:obj[k] for k in ['LEAN_PATH','LEAN_SRC_PATH'] if obj[k] is not None})
+ checks=['MeasureTheory.Measure.infinitePi','MeasureTheory.Measure.infinitePi_map_eval','ProbabilityTheory.iIndepFun_infinitePi','ProbabilityTheory.iIndepFun.indepFun','ProbabilityTheory.iIndepFun.comp','ProbabilityTheory.isProbabilityMeasure_expMeasure','ProbabilityTheory.cdf_expMeasure_eq','ProbabilityTheory.cdf_eq_real','ProbabilityTheory.HasLaw.identDistrib','ProbabilityTheory.IdentDistrib.comp','ProbabilityTheory.IdentDistrib.integrable_iff','ProbabilityTheory.strong_law_ae_real','MeasureTheory.ae_all_iff','MeasureTheory.integrable_const','MeasureTheory.Integrable.indicator','MeasureTheory.integral_indicator_one','measurable_real_toNNReal','Real.coe_toNNReal','Real.GammaIntegral_convergent','Real.integral_rpow_mul_exp_neg_mul_Ioi',"MeasureTheory.integrable_withDensity_iff_integrable_smul'",'Filter.tendsto_atTop_mono']
+ suffix='\n/- Proposed scope repair and API formation only; no target theorem proof. -/\n'+'\n'.join('#check '+x for x in checks)+'\n';probe=OWN/'HeaderMinimalScopeRepairCheck77.lean';probe.write_bytes(new+suffix.encode());rec=process('fresh-minimal-header-scope-repair',[LEAN,probe],env)
+ text=(OWN/'fresh-minimal-header-scope-repair.stdout.RAW').read_text(encoding='utf-8');assert 'unit_exponential_product_statement : Prop' in text and 'error:' not in text
+ write('minimal-repair.proposal.json',dict(status='PROPOSED_ONLY_ROOT_HEADER_UNCHANGED',actor=ACTOR,original=pin(HEADER),proposed=pin(repaired),exact_change=dict(old='open scoped Topology BigOperators',new='open scoped Topology BigOperators NNReal',reason='Enable NNReal notation so Real nonnegative carrier is parsed as NNReal, rather than LE Type/OfNat Type0.'),original_Lean_PID=42920,original_Lean_EXIT=1,original_failure=pin(OWN/'fresh-header-and-API-elaboration.receipt.json'),proposal_only_typecheck=dict(actual_Lean_PID=rec['actual_PID'],EXIT=0,receipt=pin(OWN/'fresh-minimal-header-scope-repair.receipt.json')),mathematical_binders_definitions_quantifiers_unchanged=True,proof_added=False,canonical_applied=False))
+ write('elaboration.json',dict(status='PASS_OWNED_MINIMAL_SCOPE_REPAIR_ORIGINAL_BLOCKED',actual_observer_PID=os.getpid(),actual_Lean_PID=rec['actual_PID'],exit_code=0,compiler_receipt=pin(OWN/'fresh-minimal-header-scope-repair.receipt.json'),original_header_type_PASS=False,original_Lean_PID=42920,original_Lean_EXIT=1,original_failed_receipt=pin(OWN/'fresh-header-and-API-elaboration.receipt.json'),proposed_header=pin(repaired),source_prefix_exact_to_proposed_only=True,probe=pin(probe),only_appended_checks=suffix,checks=checks,real_Lean_executable=pin(LEAN),fresh_source_elaboration=True,Lake_target_cache_replay=False,canonical_olean_written=False,theorem_proved=False,observer_API_errors_retained=['MeasureTheory.measurable_real_toNNReal was an incorrect qualification: actual name is global measurable_real_toNNReal.','integral_withDensity_eq_integral_toReal_smul exists in separately pinned Bochner/ContinuousLinearMap module, which the candidate minimal imports do not load; an optional direct-moment proof would need that additional import or another adapter. No missing-library claim.']))
+ print(json.dumps(dict(status='OWNED_MINIMAL_SCOPE_REPAIR_TYPE_PASS_ORIGINAL_BLOCKED',actual_Lean_PID=rec['actual_PID'],EXIT=0,API_checks=len(checks),original_Lean_PID=42920,original_EXIT=1)),flush=True)
+
+if __name__=='__main__':
+ try:
+  action=sys.argv[-1]
+  if sys.argv[1]=='_child':sys.exit(globals()[action]() or 0)
+  if action in ['close','postclose']:globals()[action]()
+  else:sys.exit(launch(action))
+ except BaseException as e:
+  if not isinstance(e,SystemExit) and not (OWN/'lease.final.json').exists():write('negative.'+sys.argv[-1]+'.'+str(os.getpid())+'.json',dict(actual_PID=os.getpid(),error=repr(e),traceback=traceback.format_exc(),canonical_mutation=False))
+  raise

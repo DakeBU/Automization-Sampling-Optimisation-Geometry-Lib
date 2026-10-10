@@ -1,0 +1,157 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.AdaptiveCenterRGO
+
+/-!
+# State-dependent RGO posterior recovery
+
+The source recursive sampler updates its target center and precision. Construct
+the ideal kernels jointly in measurable current-state parameters, without an
+assumed deterministic variance schedule or an assumed measurable selection.
+The retained state can encode history but must precede the fresh noise draw.
+The source interface selects its smoothing level for each fixed call input;
+measurable state dependence does not mean a fixed schedule across all calls.
+Actual sampler kernels, recursion, stopping, FORS, accuracy and cost remain
+separate obligations of SPHMC v1 Algorithm 3.3 and Theorem 6.5.
+-/
+
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal NNReal
+
+variable {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [MeasurableSpace S]
+
+open AutoSamplingTheory.TechnicalLemmas.Probability
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StateDependentRGO
+
+/-- Construct measurable state-dependent target, Gaussian observation and retained-state
+posterior kernels, with exact recovery of every ideal joint state-target law.
+This supplies kernel semantics for an RGO stage, not an approximate sampler or its costs. -/
+theorem state_dependent_recovery (μ : Measure E) [IsProbabilityMeasure μ]
+    (b a : S → ℝ) (u : S → E) (hb : Measurable b) (ha : Measurable a)
+    (hu : Measurable u) (hb0 : ∀ s, 0 ≤ b s) (ha0 : ∀ s, 0 < a s) :
+    ∃ (T H : Kernel S E) (B : Kernel (S × E) (S × E)),
+      IsMarkovKernel T ∧ IsMarkovKernel H ∧ IsMarkovKernel B ∧
+      (∀ s, T s = μ.tilted (fun x => -(b s/2)*‖x-u s‖^2)) ∧
+      (∀ s, H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s))) ∧
+      (∀ s y, B (s,y) = Measure.map (Prod.mk s)
+        ((T s).tilted (fun x => -‖x-y‖^2/(2*a s)))) ∧
+      (∀ s y, B (s,y) = Measure.map (Prod.mk s)
+        (μ.tilted (fun x => -((b s+(a s)⁻¹)/2)*
+          ‖x-(b s+(a s)⁻¹)⁻¹ • (b s • u s+(a s)⁻¹ • y)‖^2))) ∧
+      ∀ (ν : Measure S), IsProbabilityMeasure ν → B ∘ₘ (ν ⊗ₘ H) = ν ⊗ₘ T := by
+  have universalTilt : ∃ R : Kernel (ℝ≥0 × E) E, IsMarkovKernel R ∧
+      ∀ s, R s = μ.tilted (fun x => -((s.1 : ℝ)/2)*‖x-s.2‖^2) := by
+    let w : (ℝ≥0 × E) → E → ℝ := fun s x => Real.exp (-((s.1 : ℝ) / 2) * ‖x-s.2‖^2)
+    have hw : Measurable (Function.uncurry w) := by
+      dsimp [w, Function.uncurry]
+      fun_prop
+    have hI (s : (ℝ≥0 × E)) : Integrable (w s) μ := by
+      refine (integrable_const (1 : ℝ)).mono' (by fun_prop) ?_
+      filter_upwards with x
+      rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+      exact Real.exp_le_one_iff.mpr (mul_nonpos_of_nonpos_of_nonneg
+        (neg_nonpos.mpr (div_nonneg s.1.coe_nonneg (by positivity))) (sq_nonneg _))
+    let Z : (ℝ≥0 × E) → ℝ := fun s => ∫ x, w s x ∂μ
+    have hZpos (s : (ℝ≥0 × E)) : 0 < Z s := integral_exp_pos (hI s)
+    have hZ : Measurable Z := hw.stronglyMeasurable.integral_prod_right.measurable
+    let d : (ℝ≥0 × E) → E → ℝ≥0∞ := fun s x => ENNReal.ofReal (w s x / Z s)
+    have hd : Measurable (Function.uncurry d) :=
+      (hw.div (hZ.comp measurable_fst)).ennreal_ofReal
+    let T : Kernel (ℝ≥0 × E) E := (Kernel.const (ℝ≥0 × E) μ).withDensity d
+    have hf (s : (ℝ≥0 × E)) : T s = μ.tilted (fun x => -((s.1 : ℝ) / 2) * ‖x-s.2‖^2) := by
+      rw [show T = (Kernel.const (ℝ≥0 × E) μ).withDensity d from rfl,
+        Kernel.withDensity_apply _ hd]
+      rfl
+    refine ⟨T, ⟨fun s => ?_⟩, hf⟩
+    rw [hf]
+    exact isProbabilityMeasure_tilted (hI s)
+  obtain ⟨R,hR,hRf⟩ := universalTilt
+  let := hR
+  let t : S → ℝ≥0 × E := fun s => (⟨b s, hb0 s⟩, u s)
+  have ht : Measurable t := (hb.subtype_mk).prodMk hu
+  let T := R.comap t ht
+  have hT : IsMarkovKernel T := inferInstance
+  have hTf (s : S) : T s = μ.tilted (fun x => -(b s/2)*‖x-u s‖^2) := hRf (t s)
+  let := hT
+  let q : S × E → ℝ := fun p => b p.1 + (a p.1)⁻¹
+  let c : S × E → E := fun p => (b p.1+(a p.1)⁻¹)⁻¹ •
+    (b p.1 • u p.1+(a p.1)⁻¹ • p.2)
+  have hq : Measurable q := by dsimp [q]; fun_prop
+  have hc : Measurable c := by dsimp [c]; fun_prop
+  have hq0 (p : S × E) : 0 ≤ q p :=
+    le_of_lt (add_pos_of_nonneg_of_pos (hb0 p.1) (inv_pos.mpr (ha0 p.1)))
+  let r : S × E → ℝ≥0 × E := fun p => (⟨q p, hq0 p⟩, c p)
+  have hr : Measurable r := (hq.subtype_mk).prodMk hc
+  let K := R.comap r hr
+  have hK : IsMarkovKernel K := inferInstance
+  have hKupdated (p : S × E) : K p = μ.tilted (fun x => -(q p/2)*‖x-c p‖^2) := hRf (r p)
+  let := hK
+  let N : Kernel S E :=
+    ((Kernel.deterministic (id : S → S) measurable_id) ×ₖ Kernel.const S (stdGaussian E)).map
+      (fun p : S × E => Real.sqrt (a p.1) • p.2)
+  have hN : IsMarkovKernel N := by
+    dsimp only [N]
+    exact Kernel.IsMarkovKernel.map _ (by fun_prop)
+  let := hN
+  have hNf (s : S) : N s = GaussianSmoothing.scaledStdGaussian (E := E) (Real.sqrt (a s)) := by
+    dsimp only [N]
+    rw [Kernel.map_apply _ (by fun_prop), Kernel.prod_apply, Kernel.deterministic_apply,
+      Kernel.const_apply, Measure.dirac_prod, Measure.map_map (by fun_prop) (by fun_prop)]
+    rfl
+  let H := (T ×ₖ N).map (fun p : E × E => p.1+p.2)
+  have hH : IsMarkovKernel H := by
+    dsimp only [H]
+    exact Kernel.IsMarkovKernel.map _ (by fun_prop)
+  let := hH
+  have hHf (s : S) : H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s)) := by
+    dsimp only [H]
+    rw [Kernel.map_apply _ (by fun_prop), Kernel.prod_apply, hNf]
+    rfl
+  have hKf (s : S) (y : E) : K (s,y) =
+      (T s).tilted (fun x => -‖x-y‖^2/(2*a s)) := by
+    rw [hKupdated,hTf]
+    have heq : (fun x : E => -‖x-y‖^2/(2*a s)) =
+        (fun x => -((a s)⁻¹/2)*‖x-y‖^2) := by
+      funext x
+      field_simp
+    rw [heq]
+    exact (RGOClosure.quadratic_tilt_tilt μ (hb0 s) (inv_pos.mpr (ha0 s)) (u s) y).symm
+  let B := (Kernel.deterministic (Prod.fst : S × E → S) measurable_fst) ×ₖ K
+  have hB : IsMarkovKernel B := inferInstance
+  let := hB
+  have hBf (s : S) (y : E) : B (s,y) = Measure.map (Prod.mk s) (K (s,y)) := by
+    dsimp only [B]
+    rw [Kernel.prod_apply, Kernel.deterministic_apply, Measure.dirac_prod]
+  have hrec (s : S) : (K.comap (Prod.mk s) measurable_prodMk_left) ∘ₘ H s = T s := by
+    obtain ⟨_,R,hR,hRf,_,hrecover,_⟩ :=
+      RGOBackward.rgo_backward_recovery μ (b s) (a s) (hb0 s) (ha0 s) (u s)
+    have heq : K.comap (Prod.mk s) measurable_prodMk_left = R := by
+      ext y : 1
+      change K (s,y) = R y
+      rw [hKf,hTf,hRf]
+    rw [heq,hHf,hTf]
+    exact hrecover
+  refine ⟨T,H,B,hT,hH,hB,hTf,hHf,?_,?_,?_⟩
+  · intro s y
+    rw [hBf,hKf]
+  · intro s y
+    rw [hBf,hKupdated]
+  · intro ν hν
+    let := hν
+    ext t ht
+    rw [Measure.bind_apply ht B.aemeasurable, Measure.lintegral_compProd (B.measurable_coe ht),
+      Measure.compProd_apply ht]
+    apply lintegral_congr
+    intro s
+    have ht' := ht.preimage (measurable_prodMk_left (x := s))
+    have heq := congrArg (fun m : Measure E => m ((Prod.mk s) ⁻¹' t)) (hrec s)
+    rw [Measure.bind_apply ht' (K.comap (Prod.mk s) measurable_prodMk_left).aemeasurable] at heq
+    rw [← heq]
+    apply lintegral_congr
+    intro y
+    rw [hBf,Measure.map_apply measurable_prodMk_left ht]
+    rfl
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StateDependentRGO

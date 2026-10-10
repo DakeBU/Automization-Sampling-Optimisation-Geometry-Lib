@@ -1,0 +1,99 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+import Mathlib.Topology.MetricSpace.Pseudo.Defs
+
+/-!
+# Quantitative bounded neighborhoods of a strict pairing-cycle violation
+
+A strict positive cycle violation can be localized not only qualitatively, but
+with one uniform positive margin on pairwise-disjoint bounded open rectangles.
+This is the geometry needed by the later integrated cost comparison.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingCycleQuantitativeNeighborhood
+
+open Filter Set
+open PairingCycleNeighborhood
+open scoped BigOperators Topology
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+theorem exists_pairwiseDisjoint_bounded_open_rectangles_of_cycleValue_pos
+    {n : ℕ} {p : Fin (n + 1) → E × E}
+    (hp : Function.Injective p)
+    (hpos : 0 < cycleValue p)
+    {r : ℝ} (hr : 0 < r) :
+    ∃ ε : ℝ, 0 < ε ∧
+      ∃ U : Fin (n + 1) → Set E, ∃ V : Fin (n + 1) → Set E,
+        (∀ i, IsOpen (U i) ∧ (p i).1 ∈ U i ∧ U i ⊆ Metric.ball (p i).1 r) ∧
+        (∀ i, IsOpen (V i) ∧ (p i).2 ∈ V i ∧ V i ⊆ Metric.ball (p i).2 r) ∧
+        Set.Pairwise (Set.univ : Set (Fin (n + 1)))
+          (Function.onFun Disjoint fun i => U i ×ˢ V i) ∧
+        ∀ q : Fin (n + 1) → E × E,
+          (∀ i, q i ∈ U i ×ˢ V i) → ε < cycleValue q := by
+  let ε : ℝ := cycleValue p / 2
+  have hεpos : 0 < ε := by
+    dsimp [ε]
+    linarith
+  have hεp : ε < cycleValue p := by
+    dsimp [ε]
+    linarith
+
+  let good : Set (Fin (n + 1) → E × E) := {q | ε < cycleValue q}
+  have hgoodOpen : IsOpen good := isOpen_lt continuous_const continuous_cycleValue
+  have hpGood : p ∈ good := hεp
+  obtain ⟨C, hC, hCgood⟩ :=
+    (isOpen_pi_iff' (s := good)).mp hgoodOpen p hpGood
+
+  let R : Set (E × E) := Set.range p
+  have hR : R.Finite := Set.finite_range p
+  obtain ⟨W, hW, hWpair⟩ := hR.t2_separation
+
+  have hcoordNhds : ∀ i, C i ∩ W (p i) ∈ 𝓝 (p i) := by
+    intro i
+    apply inter_mem
+    · exact IsOpen.mem_nhds (hC i).1 (hC i).2
+    · exact IsOpen.mem_nhds (hW (p i)).2 (hW (p i)).1
+
+  choose U₀ V₀ hUopen hpU hVopen hpV hrect using
+    fun i => mem_nhds_prod_iff'.mp (hcoordNhds i)
+
+  let U : Fin (n + 1) → Set E := fun i => U₀ i ∩ Metric.ball (p i).1 r
+  let V : Fin (n + 1) → Set E := fun i => V₀ i ∩ Metric.ball (p i).2 r
+
+  refine ⟨ε, hεpos, U, V, ?_, ?_, ?_, ?_⟩
+  · intro i
+    refine ⟨(hUopen i).inter Metric.isOpen_ball, ?_, ?_⟩
+    · exact ⟨hpU i, Metric.mem_ball_self hr⟩
+    · exact inter_subset_right
+  · intro i
+    refine ⟨(hVopen i).inter Metric.isOpen_ball, ?_, ?_⟩
+    · exact ⟨hpV i, Metric.mem_ball_self hr⟩
+    · exact inter_subset_right
+  · intro i _hi j _hj hij
+    have hpi : p i ∈ R := ⟨i, rfl⟩
+    have hpj : p j ∈ R := ⟨j, rfl⟩
+    have hpneq : p i ≠ p j := fun h => hij (hp h)
+    have hUi : U i ×ˢ V i ⊆ U₀ i ×ˢ V₀ i :=
+      Set.prod_mono inter_subset_left inter_subset_left
+    have hUj : U j ×ˢ V j ⊆ U₀ j ×ˢ V₀ j :=
+      Set.prod_mono inter_subset_left inter_subset_left
+    exact (hWpair hpi hpj hpneq).mono
+      (hUi.trans ((hrect i).trans inter_subset_right))
+      (hUj.trans ((hrect j).trans inter_subset_right))
+  · intro q hq
+    apply hCgood
+    intro i _hi
+    have hq0 : q i ∈ U₀ i ×ˢ V₀ i := ⟨(hq i).1.1, (hq i).2.1⟩
+    exact ((hrect i) hq0).1
+
+end
+
+end PairingCycleQuantitativeNeighborhood
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

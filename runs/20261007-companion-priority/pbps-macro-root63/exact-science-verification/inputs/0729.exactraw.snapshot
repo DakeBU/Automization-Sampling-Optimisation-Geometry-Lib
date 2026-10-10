@@ -1,0 +1,250 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import Mathlib.Analysis.Calculus.MeanValue
+import Mathlib.Tactic
+
+/-! Actual unclipped gradient-arc mean used before D.1 Eq18 of arXiv:2602.01338v1,
+consumed by SPHMC arXiv:2609.06906v1 A.4(2). The same actual path and gradient
+are integrated under independent uniform time and auxiliary Gaussian input.
+Potential and joint estimator integrability are proved before Fubini.
+Coordinate-free spaces, beta0/zero dimension and arbitrary h are disclosed
+extensions. Source center substitution, target normalization, clipped law,
+Renyi accuracy and actual costs remain separate; no full sampler claim. -/
+
+open MeasureTheory ProbabilityTheory
+open scoped RealInnerProductSpace
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E]
+
+private def arc (h x z : E) (r : ℝ) : E :=
+  h + Real.sin (Real.pi / 2 * r) • (x-h) + Real.cos (Real.pi / 2 * r) • z
+private def velocity (h x z : E) (r : ℝ) : E :=
+  (Real.pi / 2) • (Real.cos (Real.pi / 2 * r) • (x-h) -
+    Real.sin (Real.pi / 2 * r) • z)
+private def estimator (f : E → ℝ) (h xp x z : E) (r : ℝ) : ℝ :=
+  inner ℝ (velocity h x z r) (gradient f xp - gradient f (arc h x z r))
+
+private theorem path_integral (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h xp x z : E) :
+    ∫ r in (0 : ℝ)..1, estimator f h xp x z r =
+      inner ℝ (gradient f xp) (x - (h+z)) - f x + f (h+z) := by
+  obtain ⟨_, _, _, hd, he⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw.gaussian_arc_law
+      (E := E) 1 (by norm_num) h
+  have hpath (r : ℝ) : HasDerivAt (arc h x z) (velocity h x z r) r := by
+    exact hd (x,z) r
+  have hderiv (r : ℝ) : HasDerivAt
+      (fun t => inner ℝ (gradient f xp) (arc h x z t) - f (arc h x z t))
+      (estimator f h xp x z r) r := by
+    have hg := (hf (arc h x z r)).hasGradientAt
+    have hc := hg.hasFDerivAt.comp_hasDerivAt r (hpath r)
+    have hi := (hasDerivAt_const r (gradient f xp)).inner ℝ (hpath r)
+    simpa [Pi.sub_def, Function.comp_def, estimator, inner_sub_right, real_inner_comm]
+      using hi.sub hc
+  have hcont : Continuous (estimator f h xp x z) := by
+    unfold estimator arc velocity
+    exact ((by fun_prop : Continuous (fun r : ℝ =>
+      (Real.pi / 2) • (Real.cos (Real.pi / 2 * r) • (x-h) -
+        Real.sin (Real.pi / 2 * r) • z)))).inner
+      (continuous_const.sub (hlip.continuous.comp (by fun_prop)))
+  have hint := intervalIntegral.integral_eq_sub_of_hasDerivAt
+    (fun r _ => hderiv r) (hcont.intervalIntegrable (0 : ℝ) 1)
+  have he := he (x,z)
+  change arc h x z 0 = h+z ∧ arc h x z 1 = x ∧ _ at he
+  rw [he.2.1, he.1] at hint
+  rw [hint, inner_sub_right]
+  ring
+
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in
+private theorem potential_growth (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h z : E) :
+    ‖f (h+z)‖ ≤ ‖f h‖ + ‖gradient f h‖ * ‖z‖ + (beta : ℝ) * ‖z‖ ^ 2 := by
+  have hd (t : ℝ) : HasDerivAt (fun s : ℝ => f (h+s • z))
+      (inner ℝ (gradient f (h+t • z)) z) t := by
+    have hp : HasDerivAt (fun s : ℝ => h+s • z) z t := by
+      simpa using ((hasDerivAt_id t).smul_const z).const_add h
+    simpa [Function.comp_def] using
+      (hf (h+t • z)).hasGradientAt.hasFDerivAt.comp_hasDerivAt t hp
+  have hg (t : ℝ) (ht : t ∈ Set.Ico (0 : ℝ) 1) :
+      ‖gradient f (h+t • z)‖ ≤ ‖gradient f h‖ + (beta : ℝ) * ‖z‖ := by
+    have hn := norm_le_norm_sub_add (gradient f (h+t • z)) (gradient f h)
+    have hl := hlip.norm_sub_le (h+t • z) h
+    simp only [add_sub_cancel_left, norm_smul, Real.norm_eq_abs, abs_of_nonneg ht.1] at hl
+    have hb := mul_le_mul_of_nonneg_left
+      (mul_le_of_le_one_left (norm_nonneg z) ht.2.le) beta.coe_nonneg
+    linarith
+  have hm := norm_image_sub_le_of_norm_deriv_le_segment_01'
+    (fun t _ => (hd t).hasDerivWithinAt)
+    (fun t ht => (norm_inner_le_norm (gradient f (h+t • z)) z).trans
+      (mul_le_mul_of_nonneg_right (hg t ht) (norm_nonneg z)))
+  simp only [one_smul, zero_smul, add_zero] at hm
+  have hn := norm_le_norm_sub_add (f (h+z)) (f h)
+  nlinarith
+
+private theorem potential_integrable (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h : E) (sigma : ℝ) :
+    Integrable (fun z => f (h+z)) ((stdGaussian E).map (fun z => sigma • z)) := by
+  have hs : MemLp (fun z : E => sigma • z) 2 (stdGaussian E) :=
+    (IsGaussian.memLp_two_id (μ := stdGaussian E)).const_smul sigma
+  have hi : Integrable (fun z : E => ‖sigma • z‖) (stdGaussian E) :=
+    hs.integrable (by norm_num) |>.norm
+  have hsq : Integrable (fun z : E => ‖sigma • z‖ ^ 2) (stdGaussian E) :=
+    hs.norm.integrable_sq
+  have hm := ((integrable_const ‖f h‖).add (hi.const_mul ‖gradient f h‖)).add
+    (hsq.const_mul (beta : ℝ))
+  apply (integrable_map_measure
+    (hf.continuous.comp (continuous_const.add continuous_id)).aestronglyMeasurable
+    (by fun_prop : Measurable (fun z : E => sigma • z)).aemeasurable).mpr
+  exact hm.mono' (hf.continuous.comp (by fun_prop)).aestronglyMeasurable
+    (Filter.Eventually.of_forall (fun z => potential_growth f hf beta hlip h (sigma • z)))
+
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in
+private theorem estimator_bound (f : E → ℝ)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f)) (h xp x z : E) (r : ℝ) :
+    ‖estimator f h xp x z r‖ ≤ (Real.pi / 2) * (beta : ℝ) *
+      (‖x-h‖ + ‖z‖) * (‖xp-h‖ + ‖x-h‖ + ‖z‖) := by
+  have hsin (v : E) : ‖Real.sin (Real.pi / 2 * r) • v‖ ≤ ‖v‖ := by
+    rw [norm_smul, Real.norm_eq_abs]
+    exact mul_le_of_le_one_left (norm_nonneg v) (Real.abs_sin_le_one _)
+  have hcos (v : E) : ‖Real.cos (Real.pi / 2 * r) • v‖ ≤ ‖v‖ := by
+    rw [norm_smul, Real.norm_eq_abs]
+    exact mul_le_of_le_one_left (norm_nonneg v) (Real.abs_cos_le_one _)
+  have hpi : 0 ≤ Real.pi / 2 := (div_pos Real.pi_pos (by norm_num)).le
+  have hv : ‖velocity h x z r‖ ≤ (Real.pi / 2) * (‖x-h‖ + ‖z‖) := by
+    simp only [velocity, norm_smul, Real.norm_eq_abs, abs_of_nonneg hpi]
+    apply mul_le_mul_of_nonneg_left _ hpi
+    exact (norm_sub_le _ _).trans (add_le_add (hcos (x-h)) (hsin z))
+  have ha : ‖xp - arc h x z r‖ ≤ ‖xp-h‖ + ‖x-h‖ + ‖z‖ := by
+    have he : arc h x z r - xp = (h-xp) +
+        Real.sin (Real.pi / 2*r) • (x-h) + Real.cos (Real.pi / 2*r) • z := by
+      unfold arc
+      abel
+    rw [norm_sub_rev, he]
+    calc
+      _ ≤ ‖(h-xp) + Real.sin (Real.pi / 2*r) • (x-h)‖ +
+          ‖Real.cos (Real.pi / 2*r) • z‖ := norm_add_le _ _
+      _ ≤ (‖h-xp‖ + ‖Real.sin (Real.pi / 2*r) • (x-h)‖) + ‖z‖ :=
+        add_le_add (norm_add_le _ _) (hcos z)
+      _ ≤ (‖h-xp‖ + ‖x-h‖) + ‖z‖ := by linarith [hsin (x-h)]
+      _ = _ := by rw [norm_sub_rev h xp]
+  have hg : ‖gradient f xp - gradient f (arc h x z r)‖ ≤
+      (beta : ℝ) * (‖xp-h‖ + ‖x-h‖ + ‖z‖) :=
+    (hlip.norm_sub_le _ _).trans (mul_le_mul_of_nonneg_left ha beta.coe_nonneg)
+  calc
+    _ ≤ ‖velocity h x z r‖ * ‖gradient f xp - gradient f (arc h x z r)‖ :=
+      norm_inner_le_norm _ _
+    _ ≤ ((Real.pi / 2) * (‖x-h‖ + ‖z‖)) *
+        ((beta : ℝ) * (‖xp-h‖ + ‖x-h‖ + ‖z‖)) :=
+      mul_le_mul hv hg (norm_nonneg _) (mul_nonneg hpi (add_nonneg (norm_nonneg _) (norm_nonneg _)))
+    _ = _ := by ring
+
+private theorem estimator_integrable (f : E → ℝ)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f))
+    (h xp x : E) (sigma : ℝ) (T : Measure ℝ) [IsFiniteMeasure T] :
+    Integrable (fun q : ℝ × E => estimator f h xp x q.2 q.1)
+      (T.prod ((stdGaussian E).map (fun z => sigma • z))) := by
+  let P := (stdGaussian E).map (fun z => sigma • z)
+  have hp : MemLp (fun z : E => z) 2 P := by
+    apply (memLp_map_measure_iff (by fun_prop)
+      (by fun_prop : AEMeasurable (fun z : E => sigma • z) (stdGaussian E))).mpr
+    exact (IsGaussian.memLp_two_id (μ := stdGaussian E)).const_smul sigma
+  have hn : Integrable (fun z : E => ‖z‖) P := (hp.integrable (by norm_num)).norm
+  have hs : Integrable (fun z : E => ‖z‖ ^ 2) P := hp.norm.integrable_sq
+  have hm : Integrable (fun z : E => (Real.pi / 2) * (beta : ℝ) *
+      (‖x-h‖+‖z‖) * (‖xp-h‖+‖x-h‖+‖z‖)) P := by
+    have hpoly := ((integrable_const (‖x-h‖*(‖xp-h‖+‖x-h‖))).add
+      (hn.const_mul (‖xp-h‖+2*‖x-h‖))).add hs
+    convert hpoly.const_mul ((Real.pi / 2)*(beta : ℝ)) using 1
+    funext z
+    simp only [Pi.add_apply]
+    ring
+  have hg := hlip.continuous
+  have hc : Continuous (fun q : ℝ × E => estimator f h xp x q.2 q.1) := by
+    unfold estimator arc velocity
+    fun_prop
+  exact (hm.comp_snd T).mono' hc.aestronglyMeasurable
+    (Filter.Eventually.of_forall (fun q => estimator_bound f beta hlip h xp x q.2 q.1))
+
+private theorem auxiliary_mean (f : E → ℝ) (hf : Differentiable ℝ f)
+    (beta : NNReal) (hlip : LipschitzWith beta (gradient f))
+    (h xp x : E) (sigma : ℝ) :
+    ∫ q : ℝ × E, estimator f h xp x q.2 q.1
+        ∂((volume.restrict (Set.Ioc (0 : ℝ) 1)).prod
+          ((stdGaussian E).map (fun z => sigma • z))) =
+      inner ℝ (gradient f xp) x - f x +
+        ((∫ z, f (h+z) ∂((stdGaussian E).map (fun z => sigma • z))) -
+          inner ℝ (gradient f xp) h) := by
+  let P := (stdGaussian E).map (fun z => sigma • z)
+  have : IsProbabilityMeasure P := by
+    dsimp [P]
+    exact Measure.isProbabilityMeasure_map (by fun_prop)
+  have hz : Integrable (fun z : E => z) P := by
+    apply (integrable_map_measure (by fun_prop)
+      (by fun_prop : AEMeasurable (fun z : E => sigma • z) (stdGaussian E))).mpr
+    exact (IsGaussian.integrable_id (μ := stdGaussian E)).smul sigma
+  have hzero : ∫ z : E, z ∂P = 0 := by
+    dsimp [P]
+    rw [integral_map (by fun_prop) (by fun_prop), integral_smul,
+      integral_id_stdGaussian, smul_zero]
+  have hvec : Integrable (fun z : E => x - (h+z)) P :=
+    (integrable_const x).sub ((integrable_const h).add hz)
+  have hplus : Integrable (fun z : E => h+z) P := (integrable_const h).add hz
+  have hlin : Integrable (fun z : E => inner ℝ (gradient f xp) (x-(h+z))) P :=
+    hvec.const_inner (gradient f xp)
+  have hlinear : ∫ z : E, inner ℝ (gradient f xp) (x-(h+z)) ∂P =
+      inner ℝ (gradient f xp) (x-h) := by
+    rw [integral_inner hvec, integral_sub (integrable_const x)
+      hplus, integral_add (integrable_const h) hz,
+      integral_const, integral_const, hzero, add_zero]
+    simp
+  have hw := estimator_integrable f beta hlip h xp x sigma
+    (volume.restrict (Set.Ioc (0 : ℝ) 1))
+  rw [integral_prod_symm _ hw]
+  have he (z : E) : ∫ r in Set.Ioc (0 : ℝ) 1, estimator f h xp x z r =
+      inner ℝ (gradient f xp) (x-(h+z)) - f x + f (h+z) := by
+    have ht := path_integral f hf beta hlip h xp x z
+    rwa [intervalIntegral.integral_of_le (by norm_num : (0 : ℝ) ≤ 1)] at ht
+  simp_rw [he]
+  change (∫ z, (inner ℝ (gradient f xp) (x-(h+z)) - f x + f (h+z)) ∂P) = _
+  have hsub : Integrable (fun z : E => inner ℝ (gradient f xp) (x-(h+z)) - f x) P :=
+    hlin.sub (integrable_const _)
+  rw [integral_add hsub (potential_integrable f hf beta hlip h sigma),
+    integral_sub hlin (integrable_const _), hlinear, integral_const, inner_sub_right]
+  simp only [probReal_univ, one_smul]
+  change _ = inner ℝ (gradient f xp) x - f x +
+    ((∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h)
+  ring
+
+/-- The actual unclipped path estimator has a common log-weight mean under
+the independent uniform-time and auxiliary Gaussian input. -/
+theorem gradient_arc_mean (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (h xp : E) :
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let C := (∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h
+    (Real.sqrt eta)^2 = eta ∧ IsProbabilityMeasure U ∧
+      Integrable (fun z => f (h+z)) P ∧
+      ∀ x : E, Measurable (fun q : ℝ × E => estimator f h xp x q.2 q.1) ∧
+        Integrable (fun q : ℝ × E => estimator f h xp x q.2 q.1) (U.prod P) ∧
+        (∀ z : E, (∫ r in (0 : ℝ)..1, estimator f h xp x z r) =
+          inner ℝ (gradient f xp) (x-(h+z)) - f x + f (h+z)) ∧
+        (∫ q : ℝ × E, estimator f h xp x q.2 q.1 ∂(U.prod P)) =
+          inner ℝ (gradient f xp) x - f x + C := by
+  dsimp only
+  refine ⟨Real.sq_sqrt heta.le, ⟨by simp⟩,
+    potential_integrable f hf ⟨beta,hbeta⟩ hlip h (Real.sqrt eta), ?_⟩
+  intro x
+  have hg := hlip.continuous
+  have hm : Measurable (fun q : ℝ × E => estimator f h xp x q.2 q.1) := by
+    unfold estimator arc velocity
+    fun_prop
+  exact ⟨hm, estimator_integrable f ⟨beta,hbeta⟩ hlip h xp x (Real.sqrt eta) _,
+    fun z => path_integral f hf ⟨beta,hbeta⟩ hlip h xp x z,
+    auxiliary_mean f hf ⟨beta,hbeta⟩ hlip h xp x (Real.sqrt eta)⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean

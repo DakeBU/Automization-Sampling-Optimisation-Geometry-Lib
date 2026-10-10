@@ -1,0 +1,487 @@
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+import Mathlib.Probability.Independence.Basic
+import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+import Mathlib.MeasureTheory.Integral.Pi
+import Mathlib.MeasureTheory.Measure.WithDensity
+import AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym
+
+/-!
+# ASTIS-native Gaussian technical lemmas
+
+This module stores the local ASTIS versions of Gaussian facts that are useful
+for SDE/Sampling proof backends.  Some statements were selected after auditing
+nearby results in `YuanheZ/lean-stat-learning-theory`, but the declarations
+below are ASTIS-owned Lean code and do not import that project.
+
+New code should prefer the Mathlib-style re-export path
+`AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian`.  This
+file remains the compatibility source for the compiled declarations.
+-/
+
+noncomputable section
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Gaussian
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal
+
+/-- Product standard Gaussian measure on coordinate functions. -/
+noncomputable def stdGaussianPi (n : ℕ) : Measure (Fin n → ℝ) :=
+  Measure.pi fun _ : Fin n => gaussianReal 0 1
+
+instance stdGaussianPi_isProbabilityMeasure (n : ℕ) :
+    IsProbabilityMeasure (stdGaussianPi n) := by
+  unfold stdGaussianPi
+  infer_instance
+
+instance stdGaussianPi_isFiniteMeasure (n : ℕ) :
+    IsFiniteMeasure (stdGaussianPi n) :=
+  inferInstance
+
+/-- Coordinate projections under the ASTIS product Gaussian are standard normal. -/
+theorem map_eval_stdGaussianPi {n : ℕ} (i : Fin n) :
+    Measure.map (fun w : Fin n → ℝ => w i) (stdGaussianPi n) =
+      gaussianReal 0 1 := by
+  unfold stdGaussianPi
+  exact (measurePreserving_eval (fun _ : Fin n => gaussianReal 0 1) i).map_eq
+
+/-- The centered real Gaussian has zero mean. -/
+theorem integral_id_gaussianReal_zero (v : NNReal) :
+    ∫ x : ℝ, x ∂(gaussianReal 0 v) = 0 := by
+  simp
+
+/-- The one-dimensional Gaussian moment-generating function as a plain integral. -/
+theorem integral_exp_mul_gaussianReal (μ : ℝ) (v : NNReal) (t : ℝ) :
+    ∫ x : ℝ, Real.exp (t * x) ∂(gaussianReal μ v) =
+      Real.exp (μ * t + (v : ℝ) * t ^ 2 / 2) := by
+  have hmap : Measure.map (id : ℝ → ℝ) (gaussianReal μ v) = gaussianReal μ v := by
+    simp [Measure.map_id]
+  have hmgf := ProbabilityTheory.mgf_gaussianReal (μ := μ) (v := v) hmap t
+  simpa [ProbabilityTheory.mgf, id] using hmgf
+
+/-- The standard real Gaussian moment-generating function. -/
+theorem integral_exp_mul_gaussianReal_zero_one (t : ℝ) :
+    ∫ x : ℝ, Real.exp (t * x) ∂(gaussianReal 0 (1 : NNReal)) =
+      Real.exp (t ^ 2 / 2) := by
+  simpa using integral_exp_mul_gaussianReal (0 : ℝ) (1 : NNReal) t
+
+/-- Coordinate projections under the ASTIS product Gaussian are integrable. -/
+theorem integrable_eval_stdGaussianPi {n : ℕ} (i : Fin n) :
+    Integrable (fun w : Fin n → ℝ => w i) (stdGaussianPi n) := by
+  have hExpPos :
+      Integrable (fun z : ℝ => Real.exp ((1 : ℝ) * z))
+        (gaussianReal 0 (1 : NNReal)) := by
+    simpa using
+      ProbabilityTheory.integrable_exp_mul_gaussianReal
+        (μ := (0 : ℝ)) (v := (1 : NNReal)) (t := (1 : ℝ))
+  have hExpNeg :
+      Integrable (fun z : ℝ => Real.exp (-(1 : ℝ) * z))
+        (gaussianReal 0 (1 : NNReal)) := by
+    simpa using
+      ProbabilityTheory.integrable_exp_mul_gaussianReal
+        (μ := (0 : ℝ)) (v := (1 : NNReal)) (t := (-(1 : ℝ)))
+  have hId :
+      Integrable (fun z : ℝ => z) (gaussianReal 0 (1 : NNReal)) := by
+    simpa using
+      ProbabilityTheory.integrable_pow_of_integrable_exp_mul
+        (X := fun z : ℝ => z)
+        (μ := gaussianReal 0 (1 : NNReal))
+        (t := (1 : ℝ)) (by norm_num) hExpPos hExpNeg 1
+  have hStrong :
+      AEStronglyMeasurable (fun z : ℝ => z)
+        (Measure.map (fun w : Fin n → ℝ => w i) (stdGaussianPi n)) := by
+    rw [map_eval_stdGaussianPi i]
+    exact measurable_id.aestronglyMeasurable
+  have hEval :
+      AEMeasurable (fun w : Fin n → ℝ => w i) (stdGaussianPi n) :=
+    (measurable_pi_apply i).aemeasurable
+  have hMap :
+      Integrable (fun z : ℝ => z)
+        (Measure.map (fun w : Fin n → ℝ => w i) (stdGaussianPi n)) := by
+    simpa [map_eval_stdGaussianPi i] using hId
+  simpa [Function.comp_def] using
+    (integrable_map_measure hStrong hEval).mp hMap
+
+/-- Scalar multiples of product-Gaussian coordinate projections are integrable. -/
+theorem integrable_const_mul_eval_stdGaussianPi {n : ℕ} (i : Fin n) (c : ℝ) :
+    Integrable (fun w : Fin n → ℝ => c * w i) (stdGaussianPi n) :=
+  (integrable_eval_stdGaussianPi i).const_mul c
+
+/-- Finite linear forms in product-Gaussian coordinates are integrable. -/
+theorem integrable_linearForm_stdGaussianPi {n : ℕ} (c : Fin n → ℝ) :
+    Integrable (fun w : Fin n → ℝ => ∑ i : Fin n, c i * w i)
+      (stdGaussianPi n) := by
+  classical
+  simpa using
+    (MeasureTheory.integrable_finsetSum (μ := stdGaussianPi n) (s := Finset.univ)
+      (f := fun i w => c i * w i)
+      (fun i _ => integrable_const_mul_eval_stdGaussianPi i (c i)))
+
+/-- A centered real Gaussian integrates every scalar quadratic bound.
+
+This is the reusable Gaussian integrability fact needed by the SALD normalized
+remainder bound `fun z => C * z ^ 2`.
+-/
+theorem integrable_const_mul_sq_gaussianReal_zero (v : NNReal) (C : ℝ) :
+    Integrable (fun z : ℝ => C * z ^ 2) (gaussianReal 0 v) := by
+  have hExpPos :
+      Integrable (fun z : ℝ => Real.exp ((1 : ℝ) * z)) (gaussianReal 0 v) := by
+    simpa using
+      ProbabilityTheory.integrable_exp_mul_gaussianReal
+        (μ := (0 : ℝ)) (v := v) (t := (1 : ℝ))
+  have hExpNeg :
+      Integrable (fun z : ℝ => Real.exp (-(1 : ℝ) * z)) (gaussianReal 0 v) := by
+    simpa using
+      ProbabilityTheory.integrable_exp_mul_gaussianReal
+        (μ := (0 : ℝ)) (v := v) (t := (-(1 : ℝ)))
+  have hSq :
+      Integrable (fun z : ℝ => z ^ 2) (gaussianReal 0 v) := by
+    exact
+      ProbabilityTheory.integrable_pow_of_integrable_exp_mul
+        (X := fun z : ℝ => z)
+        (μ := gaussianReal 0 v)
+        (t := (1 : ℝ)) (by norm_num) hExpPos hExpNeg 2
+  exact hSq.const_mul C
+
+/-- Coordinate squares under the ASTIS product Gaussian are integrable. -/
+theorem integrable_sq_eval_stdGaussianPi {n : ℕ} (i : Fin n) :
+    Integrable (fun w : Fin n → ℝ => (w i) ^ 2) (stdGaussianPi n) := by
+  have hSq :
+      Integrable (fun z : ℝ => z ^ 2) (gaussianReal 0 (1 : NNReal)) := by
+    simpa using
+      integrable_const_mul_sq_gaussianReal_zero (v := (1 : NNReal)) (C := (1 : ℝ))
+  have hStrong :
+      AEStronglyMeasurable (fun z : ℝ => z ^ 2)
+        (Measure.map (fun w : Fin n → ℝ => w i) (stdGaussianPi n)) := by
+    rw [map_eval_stdGaussianPi i]
+    exact Measurable.aestronglyMeasurable (measurable_id.pow_const 2)
+  have hEval :
+      AEMeasurable (fun w : Fin n → ℝ => w i) (stdGaussianPi n) :=
+    (measurable_pi_apply i).aemeasurable
+  have hMap :
+      Integrable (fun z : ℝ => z ^ 2)
+        (Measure.map (fun w : Fin n → ℝ => w i) (stdGaussianPi n)) := by
+    simpa [map_eval_stdGaussianPi i] using hSq
+  simpa [Function.comp_def] using
+    (integrable_map_measure hStrong hEval).mp hMap
+
+/-- Coordinate projections under the ASTIS product Gaussian have zero mean. -/
+theorem integral_eval_stdGaussianPi {n : ℕ} (i : Fin n) :
+    ∫ w : Fin n → ℝ, w i ∂(stdGaussianPi n) = 0 := by
+  have hStrong :
+      AEStronglyMeasurable (fun z : ℝ => z)
+        (Measure.map (fun w : Fin n → ℝ => w i) (stdGaussianPi n)) := by
+    rw [map_eval_stdGaussianPi i]
+    exact measurable_id.aestronglyMeasurable
+  have hEval :
+      AEMeasurable (fun w : Fin n → ℝ => w i) (stdGaussianPi n) :=
+    (measurable_pi_apply i).aemeasurable
+  calc
+    ∫ w : Fin n → ℝ, w i ∂(stdGaussianPi n)
+        = ∫ z : ℝ, z ∂(Measure.map (fun w : Fin n → ℝ => w i)
+            (stdGaussianPi n)) := by
+          rw [integral_map hEval hStrong]
+    _ = ∫ z : ℝ, z ∂(gaussianReal 0 (1 : NNReal)) := by
+          rw [map_eval_stdGaussianPi i]
+    _ = 0 := integral_id_gaussianReal_zero (1 : NNReal)
+
+/-- Scalar multiples of product-Gaussian coordinate projections have zero mean. -/
+theorem integral_const_mul_eval_stdGaussianPi {n : ℕ} (i : Fin n) (c : ℝ) :
+    ∫ w : Fin n → ℝ, c * w i ∂(stdGaussianPi n) = 0 := by
+  rw [MeasureTheory.integral_const_mul, integral_eval_stdGaussianPi i, mul_zero]
+
+/-- Finite linear forms in product-Gaussian coordinates have zero mean. -/
+theorem integral_linearForm_stdGaussianPi {n : ℕ} (c : Fin n → ℝ) :
+    ∫ w : Fin n → ℝ, (∑ i : Fin n, c i * w i) ∂(stdGaussianPi n) = 0 := by
+  classical
+  calc
+    ∫ w : Fin n → ℝ, (∑ i : Fin n, c i * w i) ∂(stdGaussianPi n)
+        = ∑ i : Fin n, ∫ w : Fin n → ℝ, c i * w i ∂(stdGaussianPi n) := by
+          simpa using
+            (MeasureTheory.integral_finsetSum (μ := stdGaussianPi n) (s := Finset.univ)
+              (f := fun i w => c i * w i)
+              (fun i _ => integrable_const_mul_eval_stdGaussianPi i (c i)))
+    _ = 0 := by
+          simp [integral_const_mul_eval_stdGaussianPi]
+
+/-- Moment-generating function of a finite product standard Gaussian linear form. -/
+theorem integral_exp_linearForm_stdGaussianPi {n : ℕ} (c : Fin n → ℝ) :
+    ∫ w : Fin n → ℝ, Real.exp (∑ i : Fin n, c i * w i) ∂(stdGaussianPi n) =
+      Real.exp ((∑ i : Fin n, c i ^ 2) / 2) := by
+  classical
+  have hprod : ∀ w : Fin n → ℝ,
+      Real.exp (∑ i : Fin n, c i * w i) =
+        ∏ i : Fin n, Real.exp (c i * w i) := by
+    intro w
+    rw [← Real.exp_sum]
+  simp_rw [hprod]
+  unfold stdGaussianPi
+  rw [MeasureTheory.integral_fintype_prod_eq_prod
+    (f := fun i x => Real.exp (c i * x))]
+  simp_rw [integral_exp_mul_gaussianReal (0 : ℝ) (1 : NNReal)]
+  simp_rw [NNReal.coe_one, one_mul, zero_mul, zero_add]
+  rw [← Real.exp_sum]
+  congr 1
+  rw [Finset.sum_div]
+
+/-- Centered Esscher normalizer for a finite product standard Gaussian linear form. -/
+theorem integral_exp_centered_linearForm_stdGaussianPi {n : ℕ} (c : Fin n → ℝ) :
+    ∫ w : Fin n → ℝ,
+        Real.exp ((∑ i : Fin n, c i * w i) - (∑ i : Fin n, c i ^ 2) / 2)
+          ∂(stdGaussianPi n) = 1 := by
+  classical
+  set C : ℝ := (∑ i : Fin n, c i ^ 2) / 2
+  calc
+    ∫ w : Fin n → ℝ, Real.exp ((∑ i : Fin n, c i * w i) - C)
+          ∂(stdGaussianPi n)
+        = ∫ w : Fin n → ℝ, Real.exp (∑ i : Fin n, c i * w i) * Real.exp (-C)
+          ∂(stdGaussianPi n) := by
+          simp_rw [sub_eq_add_neg, Real.exp_add]
+    _ = (∫ w : Fin n → ℝ, Real.exp (∑ i : Fin n, c i * w i)
+          ∂(stdGaussianPi n)) * Real.exp (-C) := by
+          rw [MeasureTheory.integral_mul_const]
+    _ = Real.exp C * Real.exp (-C) := by
+          rw [integral_exp_linearForm_stdGaussianPi]
+    _ = 1 := by
+          rw [← Real.exp_add]
+          ring_nf
+          exact Real.exp_zero
+
+/-- One-dimensional standard Gaussian Esscher density shift. -/
+theorem gaussianReal_withDensity_exp_shift (a : ℝ) :
+    (gaussianReal 0 (1 : NNReal)).withDensity
+        (fun x : ℝ => ENNReal.ofReal (Real.exp (a * x - a ^ 2 / 2))) =
+      gaussianReal a (1 : NNReal) := by
+  rw [gaussianReal_of_var_ne_zero (0 : ℝ) (by norm_num : (1 : NNReal) ≠ 0),
+    gaussianReal_of_var_ne_zero a (by norm_num : (1 : NNReal) ≠ 0)]
+  have hTiltMeas :
+      Measurable (fun x : ℝ => ENNReal.ofReal (Real.exp (a * x - a ^ 2 / 2))) := by
+    fun_prop
+  rw [← MeasureTheory.withDensity_mul volume (measurable_gaussianPDF 0 1) hTiltMeas]
+  congr 1
+  ext x
+  simp only [Pi.mul_apply, gaussianPDF_def]
+  rw [← ENNReal.ofReal_mul (gaussianPDFReal_nonneg 0 1 x)]
+  congr 1
+  simp only [gaussianPDFReal, NNReal.coe_one, mul_one, sub_zero]
+  rw [mul_assoc, ← Real.exp_add]
+  congr 2
+  ring
+
+/-- Finite product standard Gaussian Esscher density shift. -/
+theorem pi_gaussianReal_withDensity_exp_shift
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) :
+    (Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal))).withDensity
+        (fun y : ι → ℝ =>
+          ENNReal.ofReal (Real.exp ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2))) =
+      Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal)) := by
+  classical
+  have h1d : ∀ i,
+      (gaussianReal 0 (1 : NNReal)).withDensity
+          (fun x : ℝ => ENNReal.ofReal (Real.exp (h i * x - (h i) ^ 2 / 2))) =
+        gaussianReal (h i) (1 : NNReal) :=
+    fun i => gaussianReal_withDensity_exp_shift (h i)
+  have : ∀ i,
+      IsProbabilityMeasure
+        ((gaussianReal 0 (1 : NNReal)).withDensity
+          (fun x : ℝ => ENNReal.ofReal (Real.exp (h i * x - (h i) ^ 2 / 2)))) := by
+    intro i
+    rw [h1d i]
+    infer_instance
+  have hDensity :
+      (fun y : ι → ℝ =>
+          ENNReal.ofReal (Real.exp ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2))) =
+        fun y : ι → ℝ =>
+          ∏ i, ENNReal.ofReal (Real.exp (h i * y i - (h i) ^ 2 / 2)) := by
+    funext y
+    rw [show ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2) =
+        ∑ i, (h i * y i - (h i) ^ 2 / 2) by
+          rw [Finset.sum_sub_distrib, Finset.sum_div],
+      Real.exp_sum, ENNReal.ofReal_prod_of_nonneg
+        (fun _ _ => Real.exp_nonneg _)]
+  rw [hDensity,
+    AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym.pi_withDensity_prod
+      (f := fun i x => ENNReal.ofReal (Real.exp (h i * x - (h i) ^ 2 / 2)))
+      (fun _ => by fun_prop)]
+  congr 1
+  funext i
+  exact h1d i
+
+/-- Finite product Gaussian Esscher change of measure. -/
+theorem pi_gaussianReal_shift_integral
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) (f : (ι → ℝ) → ℝ) :
+    ∫ X : ι → ℝ, f X ∂Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal)) =
+      ∫ X : ι → ℝ,
+        Real.exp ((∑ i, h i * X i) - (∑ i, (h i) ^ 2) / 2) * f X
+          ∂Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal)) := by
+  classical
+  have hDensity :
+      Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal)) =
+        (Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal))).withDensity
+          (fun y : ι → ℝ =>
+            ENNReal.ofReal (Real.exp ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2))) :=
+    (pi_gaussianReal_withDensity_exp_shift h).symm
+  rw [hDensity]
+  have hMeas :
+      Measurable (fun y : ι → ℝ =>
+        ENNReal.ofReal (Real.exp ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2))) := by
+    fun_prop
+  have hLtTop : ∀ᵐ y ∂Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal)),
+      ENNReal.ofReal (Real.exp ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2)) < ∞ :=
+    Filter.Eventually.of_forall fun _ => ENNReal.ofReal_lt_top
+  rw [integral_withDensity_eq_integral_toReal_smul hMeas hLtTop]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun X => ?_)
+  simp only [ENNReal.toReal_ofReal (Real.exp_nonneg _), smul_eq_mul]
+
+/-- `stdGaussianPi` spelling of the finite product Gaussian Esscher density shift. -/
+theorem stdGaussianPi_withDensity_exp_shift {n : ℕ} (h : Fin n → ℝ) :
+    (stdGaussianPi n).withDensity
+        (fun y : Fin n → ℝ =>
+          ENNReal.ofReal (Real.exp ((∑ i, h i * y i) - (∑ i, (h i) ^ 2) / 2))) =
+      Measure.pi (fun i : Fin n => gaussianReal (h i) (1 : NNReal)) := by
+  simpa [stdGaussianPi] using pi_gaussianReal_withDensity_exp_shift h
+
+/-- `stdGaussianPi` spelling of finite product Gaussian Esscher change of measure. -/
+theorem stdGaussianPi_shift_integral {n : ℕ} (h : Fin n → ℝ)
+    (f : (Fin n → ℝ) → ℝ) :
+    ∫ X : Fin n → ℝ, f X ∂Measure.pi (fun i : Fin n => gaussianReal (h i) (1 : NNReal)) =
+      ∫ X : Fin n → ℝ,
+        Real.exp ((∑ i, h i * X i) - (∑ i, (h i) ^ 2) / 2) * f X
+          ∂stdGaussianPi n := by
+  simpa [stdGaussianPi] using pi_gaussianReal_shift_integral (ι := Fin n) h f
+
+/-- Pushforward-to-`EuclideanSpace` spelling of finite product Gaussian Esscher
+change of measure.
+
+This is the bridge from coordinate-product Gaussian statements to Mathlib's
+finite-dimensional Hilbert-space Gaussian interface.  The exponent is kept in
+coordinate form here; the canonical inner-product/norm spelling is a separate
+leaf.
+-/
+theorem pi_gaussianReal_shift_integral_map_toLp
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) {f : EuclideanSpace ℝ ι → ℝ}
+    (hf : Measurable f) :
+    ∫ Z : EuclideanSpace ℝ ι, f Z
+        ∂(Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal))).map
+          (WithLp.toLp 2) =
+      ∫ X : ι → ℝ,
+        Real.exp ((∑ i, h i * X i) - (∑ i, (h i) ^ 2) / 2) *
+          f (WithLp.toLp 2 X)
+          ∂Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal)) := by
+  rw [integral_map (by fun_prop) hf.aestronglyMeasurable]
+  exact pi_gaussianReal_shift_integral h (fun X => f (WithLp.toLp 2 X))
+
+/-- `stdGaussianPi` spelling of the pushforward-to-`EuclideanSpace` finite
+product Gaussian Esscher change of measure. -/
+theorem stdGaussianPi_shift_integral_map_toLp {n : ℕ} (h : Fin n → ℝ)
+    {f : EuclideanSpace ℝ (Fin n) → ℝ} (hf : Measurable f) :
+    ∫ Z : EuclideanSpace ℝ (Fin n), f Z
+        ∂(Measure.pi (fun i : Fin n => gaussianReal (h i) (1 : NNReal))).map
+          (WithLp.toLp 2) =
+      ∫ X : Fin n → ℝ,
+        Real.exp ((∑ i, h i * X i) - (∑ i, (h i) ^ 2) / 2) *
+          f (WithLp.toLp 2 X)
+          ∂stdGaussianPi n := by
+  simpa [stdGaussianPi] using
+    pi_gaussianReal_shift_integral_map_toLp (ι := Fin n) h hf
+
+/-- Inner product of two coordinate functions after the `EuclideanSpace`
+`WithLp.toLp 2` embedding. -/
+theorem inner_toLp_toLp_eq_sum_mul {ι : Type*} [Fintype ι] (h X : ι → ℝ) :
+    inner ℝ (WithLp.toLp 2 h : EuclideanSpace ℝ ι)
+        (WithLp.toLp 2 X : EuclideanSpace ℝ ι) =
+      ∑ i, h i * X i := by
+  rw [PiLp.inner_apply]
+  refine Finset.sum_congr rfl ?_
+  intro i _
+  change X i * h i = h i * X i
+  ring
+
+/-- Squared norm after the `EuclideanSpace` `WithLp.toLp 2` embedding. -/
+theorem norm_sq_toLp_eq_sum_sq {ι : Type*} [Fintype ι] (h : ι → ℝ) :
+    ‖(WithLp.toLp 2 h : EuclideanSpace ℝ ι)‖ ^ 2 = ∑ i, (h i) ^ 2 := by
+  rw [EuclideanSpace.real_norm_sq_eq]
+
+/-- `stdGaussian` inner-product spelling of the finite-dimensional Gaussian
+Esscher change of measure after pushing product coordinates to
+`EuclideanSpace`. -/
+theorem stdGaussian_shift_integral_map_toLp
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) {f : EuclideanSpace ℝ ι → ℝ}
+    (hf : Measurable f) :
+    ∫ Z : EuclideanSpace ℝ ι, f Z
+        ∂(Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal))).map
+          (WithLp.toLp 2) =
+      ∫ Z : EuclideanSpace ℝ ι,
+        Real.exp (inner ℝ (WithLp.toLp 2 h : EuclideanSpace ℝ ι) Z -
+          ‖(WithLp.toLp 2 h : EuclideanSpace ℝ ι)‖ ^ 2 / 2) * f Z
+          ∂stdGaussian (EuclideanSpace ℝ ι) := by
+  calc
+    ∫ Z : EuclideanSpace ℝ ι, f Z
+        ∂(Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal))).map
+          (WithLp.toLp 2)
+        = ∫ X : ι → ℝ,
+          Real.exp ((∑ i, h i * X i) - (∑ i, (h i) ^ 2) / 2) *
+            f (WithLp.toLp 2 X)
+            ∂Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal)) :=
+          pi_gaussianReal_shift_integral_map_toLp h hf
+    _ = ∫ Z : EuclideanSpace ℝ ι,
+        Real.exp (inner ℝ (WithLp.toLp 2 h : EuclideanSpace ℝ ι) Z -
+          ‖(WithLp.toLp 2 h : EuclideanSpace ℝ ι)‖ ^ 2 / 2) * f Z
+          ∂stdGaussian (EuclideanSpace ℝ ι) := by
+          rw [← ProbabilityTheory.map_pi_eq_stdGaussian (ι := ι)]
+          rw [integral_map (by fun_prop) (by fun_prop)]
+          refine integral_congr_ae (Filter.Eventually.of_forall fun X => ?_)
+          change Real.exp ((∑ i, h i * X i) - (∑ i, (h i) ^ 2) / 2) *
+              f (WithLp.toLp 2 X) =
+            Real.exp (inner ℝ (WithLp.toLp 2 h : EuclideanSpace ℝ ι)
+                (WithLp.toLp 2 X : EuclideanSpace ℝ ι) -
+              ‖(WithLp.toLp 2 h : EuclideanSpace ℝ ι)‖ ^ 2 / 2) *
+              f (WithLp.toLp 2 X)
+          rw [inner_toLp_toLp_eq_sum_mul h X, norm_sq_toLp_eq_sum_sq h]
+
+/-- The unit real Gaussian has unit variance in the real-valued Mathlib variance convention. -/
+theorem variance_id_gaussianReal_zero_one :
+    ProbabilityTheory.variance (id : ℝ → ℝ) (gaussianReal 0 (1 : NNReal)) =
+      (1 : ℝ) := by
+  simp
+
+/-- Package a scalar-coordinate Gaussian law and a variance-field definition
+into the `NNReal` unit-variance field used by Brownian/Ito normalizations. -/
+theorem nnrealVarianceOneOfGaussianRealUnitLaw
+    {α : Type*} (varianceField : α → NNReal)
+    (coordinateLaw : α → Measure ℝ)
+    (hVarianceDef :
+      ∀ a,
+        (varianceField a : ℝ) =
+          ProbabilityTheory.variance (id : ℝ → ℝ) (coordinateLaw a))
+    (hCoordinateLaw :
+      ∀ a, coordinateLaw a = gaussianReal 0 (1 : NNReal)) :
+    ∀ a, varianceField a = (1 : NNReal) := by
+  intro a
+  exact NNReal.coe_injective (by
+    calc
+      (varianceField a : ℝ) =
+          ProbabilityTheory.variance (id : ℝ → ℝ) (coordinateLaw a) :=
+        hVarianceDef a
+      _ =
+          ProbabilityTheory.variance (id : ℝ → ℝ)
+            (gaussianReal 0 (1 : NNReal)) := by
+        rw [hCoordinateLaw a]
+      _ = (1 : ℝ) := variance_id_gaussianReal_zero_one)
+
+/-- Convert an `NNReal` unit-variance field into the real-valued unit field
+that often appears after algebraic normalization. -/
+theorem realVarianceOneOfNNRealVarianceOne
+    {α : Type*} (varianceField : α → NNReal)
+    (hVarianceOne : ∀ a, varianceField a = (1 : NNReal)) :
+    ∀ a, (varianceField a : ℝ) = 1 := by
+  intro a
+  rw [hVarianceOne a]
+  norm_num
+
+end Gaussian
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,54 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_MATH_SOURCE_AND_TOPOLOGY_REVIEW",
+  "sealed_utc": "2026-10-10T15:16:50.258664+00:00",
+  "statement_version": 1,
+  "header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounded-test-continuity83/header83.proposed.lean",
+    "RAW_bytes": 6446,
+    "RAW_sha256": "1bf2b24f0ba521449aba10ac3559a27c4db7f2eab0df89c98587f623695b07ff"
+  },
+  "expanded_literal_Prop": "actual_bounded_test_expectation_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        (∀ t : ℝ≥0,\n          MeasurableSet {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ∧\n          P.real {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤\n              1 - Real.exp (-Λ y xRef z₀ t)) ∧\n        (∀ δ : ℝ, 0 < δ →\n          (∀ t : ℝ≥0, MeasurableSet {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) ∧\n          Tendsto (fun t : ℝ≥0 => P.real {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) (𝓝 0) (𝓝 0)))\n\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        ∀ f : (E × E) → ℝ, Continuous f →\n        ∀ M : ℝ, 0 ≤ M → (∀ z : E × E, |f z| ≤ M) →\n          (∀ t : ℝ≥0,\n            Measurable (fun sample : ℕ → ℝ => f (Z y xRef z₀ t sample)) ∧\n            Integrable (fun sample : ℕ → ℝ => f (Z y xRef z₀ t sample)) P ∧\n            |(∫ sample, f (Z y xRef z₀ t sample) ∂P) -\n                f (Φ y xRef (t : ℝ) z₀)| ≤\n              2 * M * (1 - Real.exp (-Λ y xRef z₀ t))) ∧\n          Tendsto (fun t : ℝ≥0 => ∫ sample, f (Z y xRef z₀ t sample) ∂P)\n            (𝓝 0) (𝓝 (f z₀)))\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity.actual_bounded_test_expectation_continuity",
+  "source_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-bounded-test-preread83/source_freeze83.closed-raw-manifest.json",
+    "RAW_bytes": 2639,
+    "RAW_sha256": "6f0e838a8c3ada6dec3d3e842be55252885f0ba49f861256309963d5e8b6201d"
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-bounded-test-preread83/source_proof_graph83.reviewed-effective.json",
+    "RAW_bytes": 14779,
+    "RAW_sha256": "1c051926157579e6a62d2984868340504a9b4708890fc61da4cdea34409a80c3"
+  },
+  "source_inventory": {
+    "path": "runs/20261007-companion-priority/pbps-bounded-test-preread83/source_inventory83.json",
+    "RAW_bytes": 14169,
+    "RAW_sha256": "0e72397647465d05f73c3ed432c07a1921a6d174489c37e03fb2ca22064e7b9a"
+  },
+  "reviewed_topology_overlay": {
+    "path": "runs/20261007-companion-priority/pbps-bounded-test-preread83/root.topology-adoption83.json",
+    "RAW_bytes": 1323,
+    "RAW_sha256": "ccadb563b63607ca5e9f759dfe966d3b69bcd41c21e92f066f31033a0a4e6a54"
+  },
+  "independent_header_adoption": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounded-test-continuity83/independent-review-adoption83.json",
+    "RAW_bytes": 980,
+    "RAW_sha256": "876a6f989a90d8c3f13435c07341c014d9a466c0906ece38da33bfc235dae640"
+  },
+  "reuse_search": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounded-test-continuity83/retrieval83/reuse-decision83.json",
+    "RAW_bytes": 5585,
+    "RAW_sha256": "9a7972305f397751edaa9950a7f1825338887f05a538ec7e7efa63d26a300b48"
+  },
+  "toolchain": {
+    "path": "lean-toolchain",
+    "RAW_bytes": 26,
+    "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "RAW_bytes": 3234,
+    "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "truth_boundary": "Retains actual82 full joint measurability/covered/fallback/fixed-parameter commonAE/init/defect/smalltime clauses and literal eleven definitions. Quantifies all continuous real f and all global nonnegative bounds M. No unbounded-test expectation, arbitrary correlated input substitution, uniform parameter event/limit, AS path convergence, outer-state L2, invariance/Jensen/density, process Markov/restart/semigroup/hypocoercivity/implementation/error/cost/composition/main or actual reader visual/main/PURIFIED/live credit.",
+  "proof_BODY_created": false
+}

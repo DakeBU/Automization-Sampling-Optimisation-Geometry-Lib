@@ -1,0 +1,34 @@
+open MeasureTheory Matrix WithLp Module Complex
+open scoped RealInnerProductSpace MatrixOrder
+
+namespace ProbabilityTheory
+
+variable {ι : Type*} [Fintype ι]
+
+section stdGaussian
+
+/-! ### Standard Gaussian measure over a Euclidean space -/
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E]
+
+variable (E) in
+/-- Standard Gaussian distribution on a finite-dimensional real inner product space `E`.
+This is the random vector whose coordinates in an orthonormal basis are independent standard
+Gaussian.
+
+The definition uses `stdOrthonormalBasis ℝ E` but does not actually depend on the
+basis, see `stdGaussian_eq_map_pi_orthonormalBasis`. -/
+noncomputable
+def stdGaussian : Measure E :=
+  (Measure.pi (fun _ : Fin (Module.finrank ℝ E) ↦ gaussianReal 0 1)).map
+    (fun x ↦ ∑ i, x i • stdOrthonormalBasis ℝ E i)
+
+variable [BorelSpace E]
+
+instance isProbabilityMeasure_stdGaussian : IsProbabilityMeasure (stdGaussian E) :=
+  Measure.isProbabilityMeasure_map (Measurable.aemeasurable (by fun_prop))
+
+lemma variance_dual_stdGaussian (L : StrongDual ℝ E) :
+    Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
+instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by

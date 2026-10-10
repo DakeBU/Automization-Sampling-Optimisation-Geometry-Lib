@@ -1,0 +1,194 @@
+import Mathlib.Analysis.Distribution.Sobolev
+import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
+
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory InnerProductSpace FourierTransform TemperedDistribution
+open scoped ContDiff Topology SchwartzMap Laplacian
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem outer_cutoff (K : Set E) (hK : IsCompact K) :
+    ∃ θ : E → ℝ, ContDiff ℝ ∞ θ ∧ HasCompactSupport θ ∧
+      ∀ x ∈ K, θ =ᶠ[𝓝 x] (fun _ => 1) := by
+  obtain ⟨R,hR,hKR⟩ := hK.isBounded.subset_ball_lt 0 (0:E)
+  let θ : ContDiffBump (0:E) :=
+    {rIn:=R,rOut:=R+1,rIn_pos:=hR,rIn_lt_rOut:=by linarith}
+  refine ⟨θ,θ.contDiff,θ.hasCompactSupport,?_⟩
+  intro x hx
+  exact θ.eventuallyEq_one_of_mem_ball (hKR hx)
+
+/- A finite-dimensional ordinary-volume adapter. The real source consumer derives
+these hypotheses from the same actual localized resolvent. No Schwartz validity,
+TD equation, Sobolev membership or weighted operator core is assumed. -/
+private theorem real_schwartz_component (v F : E → ℝ) (K : Set E)
+    (hK : IsCompact K) (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K)
+    (hweak : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * (Δ φ) x) volume ∧
+      Integrable (fun x => F x * φ x) volume ∧
+      (∫ x, v x * (Δ φ) x) = ∫ x, F x * φ x)
+    (ψ : SchwartzMap E ℂ) (l : ℂ →L[ℝ] ℝ) :
+    Integrable (fun x => v x * l ((Δ ψ) x)) volume ∧
+    Integrable (fun x => F x * l (ψ x)) volume ∧
+    (∫ x, v x * l ((Δ ψ) x)) = ∫ x, F x * l (ψ x) := by
+  obtain ⟨θ,hθ,hθc,hθone⟩ := outer_cutoff K hK
+  let φ : E → ℝ := fun x => θ x * l (ψ x)
+  have hφ : ContDiff ℝ 2 φ :=
+    (contDiff_infty.mp hθ 2).mul
+      ((ψ.smooth 2).continuousLinearMap_comp l)
+  have hφc : HasCompactSupport φ := hθc.mul_right
+  have hleft : (fun x => v x * (Δ φ) x) = fun x => v x * l ((Δ ψ) x) := by
+    funext x
+    by_cases hx : x ∈ K
+    · have hnear : φ =ᶠ[𝓝 x] (fun y => l (ψ y)) := by
+        filter_upwards [hθone x hx] with y hy
+        simp [φ,hy]
+      rw [(laplacian_congr_nhds hnear).eq_of_nhds]
+      apply congrArg (fun t => v x * t)
+      rw [show (fun y:E => l (ψ y)) = (l ∘ (ψ:E→ℂ)) from rfl]
+      simpa only [Function.comp_apply,SchwartzMap.laplacian_apply] using
+        (ψ.contDiffAt 2).laplacian_CLM_comp_left (l:=l)
+    · have hvx : v x = 0 := image_eq_zero_of_notMem_tsupport (fun hh => hx (hv hh))
+      simp [hvx]
+  have hright : (fun x => F x * φ x) = fun x => F x * l (ψ x) := by
+    funext x
+    by_cases hx : x ∈ K
+    · simp [φ,(hθone x hx).eq_of_nhds]
+    · have hFx : F x = 0 := image_eq_zero_of_notMem_tsupport (fun hh => hx (hF hh))
+      simp [hFx]
+  simpa only [hleft,hright] using hweak φ hφ hφc
+
+private theorem complex_schwartz_pde (v F : E → ℝ) (K : Set E)
+    (hK : IsCompact K) (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K)
+    (hv2 : MemLp v 2 volume) (hF2 : MemLp F 2 volume)
+    (hweak : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * (Δ φ) x) volume ∧
+      Integrable (fun x => F x * φ x) volume ∧
+      (∫ x, v x * (Δ φ) x) = ∫ x, F x * φ x)
+    (ψ : SchwartzMap E ℂ) :
+    (∫ x, (Δ ψ) x * (v x : ℂ)) = ∫ x, ψ x * (F x : ℂ) := by
+  have hre := (real_schwartz_component v F K hK hv hF hweak ψ Complex.reCLM).2.2
+  have him := (real_schwartz_component v F K hK hv hF hweak ψ Complex.imCLM).2.2
+  have hi : Integrable (fun x => (Δ ψ) x * (v x : ℂ)) volume :=
+    ((Δ ψ).memLp 2 volume).integrable_mul hv2.ofReal
+  have hj : Integrable (fun x => ψ x * (F x : ℂ)) volume :=
+    (ψ.memLp 2 volume).integrable_mul hF2.ofReal
+  apply Complex.ext
+  · calc
+      _ = ∫ x, ((Δ ψ) x * (v x : ℂ)).re := by
+        simpa only [RCLike.re_to_complex] using (integral_re hi).symm
+      _ = ∫ x, (ψ x * (F x : ℂ)).re := by
+        simpa only [Complex.mul_re,Complex.ofReal_re,Complex.ofReal_im,
+          mul_zero,zero_mul,sub_zero,mul_comm,Complex.reCLM_apply] using hre
+      _ = _ := by simpa only [RCLike.re_to_complex] using integral_re hj
+  · calc
+      _ = ∫ x, ((Δ ψ) x * (v x : ℂ)).im := by
+        simpa only [RCLike.im_to_complex] using (integral_im hi).symm
+      _ = ∫ x, (ψ x * (F x : ℂ)).im := by
+        simpa only [Complex.mul_im,Complex.ofReal_re,Complex.ofReal_im,
+          mul_zero,zero_mul,zero_add,add_zero,mul_comm,Complex.imCLM_apply] using him
+      _ = _ := by simpa only [RCLike.im_to_complex] using integral_im hj
+
+private theorem actual_tempered_laplacian (v F : E → ℝ) (K : Set E)
+    (hK : IsCompact K) (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K)
+    (hv2 : MemLp v 2 volume) (hF2 : MemLp F 2 volume)
+    (hweak : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * (Δ φ) x) volume ∧
+      Integrable (fun x => F x * φ x) volume ∧
+      (∫ x, v x * (Δ φ) x) = ∫ x, F x * φ x) :
+    Δ (Lp.toTemperedDistribution ((hv2.ofReal (K := ℂ)).toLp (fun x => (v x : ℂ)))) =
+      Lp.toTemperedDistribution ((hF2.ofReal (K := ℂ)).toLp (fun x => (F x : ℂ))) := by
+  let vc : Lp ℂ 2 (volume : Measure E) := (hv2.ofReal (K := ℂ)).toLp (fun x => (v x : ℂ))
+  let Fc : Lp ℂ 2 (volume : Measure E) := (hF2.ofReal (K := ℂ)).toLp (fun x => (F x : ℂ))
+  have hvc : vc =ᵐ[volume] (fun x => (v x : ℂ)) := (hv2.ofReal (K := ℂ)).coeFn_toLp
+  have hFc : Fc =ᵐ[volume] (fun x => (F x : ℂ)) := (hF2.ofReal (K := ℂ)).coeFn_toLp
+  change Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc
+  ext ψ
+  rw [TemperedDistribution.laplacian_apply_apply,Lp.toTemperedDistribution_apply,
+    Lp.toTemperedDistribution_apply]
+  calc
+    (∫ x, (Δ ψ) x • vc x) = ∫ x, (Δ ψ) x * (v x : ℂ) := by
+      apply integral_congr_ae
+      filter_upwards [hvc] with x hx
+      simpa only [smul_eq_mul] using congrArg (fun z => (Δ ψ) x * z) hx
+    _ = ∫ x, ψ x * (F x : ℂ) :=
+      complex_schwartz_pde v F K hK hv hF hv2 hF2 hweak ψ
+    _ = ∫ x, ψ x • Fc x := by
+      apply integral_congr_ae
+      filter_upwards [hFc] with x hx
+      simpa only [smul_eq_mul] using (congrArg (fun z => ψ x * z) hx).symm
+
+private theorem bessel_two_identity (u : 𝓢'(E, ℂ)) :
+    besselPotential E ℂ 2 u = u - (((2*Real.pi)^2 : ℝ)⁻¹ : ℂ) • Δ u := by
+  let g : E → ℂ := fun x => (‖x‖^2 : ℝ)
+  have hp : besselPotential E ℂ 2 u = u + fourierMultiplierCLM ℂ g u := by
+    simp only [besselPotential, show (2:ℝ)/2=1 by norm_num, Real.rpow_one]
+    have hs : (fun x : E => ((1+‖x‖^2 : ℝ) : ℂ)) = (fun _ => (1:ℂ)) + g := by
+      funext x; simp [g]
+    rw [hs, fourierMultiplierCLM_apply, smulLeftCLM_add (by fun_prop) (by fun_prop)]
+    simp [fourierMultiplierCLM_apply]
+  rw [hp, laplacian_eq_fourierMultiplierCLM]
+  change u + fourierMultiplierCLM ℂ g u =
+    u - (((2*Real.pi)^2 : ℝ)⁻¹ : ℂ) • (-(2*Real.pi)^2 : ℝ) • fourierMultiplierCLM ℂ g u
+  rw [← Complex.coe_smul, smul_smul]
+  have hcoeff : (((2*Real.pi)^2 : ℝ)⁻¹ : ℂ) * ((-(2*Real.pi)^2 : ℝ) : ℂ) = -1 := by
+    norm_cast
+    field_simp
+    norm_num
+  rw [hcoeff, neg_one_smul, sub_neg_eq_add]
+
+private theorem sobolev_of_compact_pde (v F : E → ℝ) (K : Set E)
+    (hK : IsCompact K) (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K)
+    (hv2 : MemLp v 2 volume) (hF2 : MemLp F 2 volume)
+    (hweak : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * (Δ φ) x) volume ∧
+      Integrable (fun x => F x * φ x) volume ∧
+      (∫ x, v x * (Δ φ) x) = ∫ x, F x * φ x) :
+    MemSobolev 2 2 (Lp.toTemperedDistribution
+      ((hv2.ofReal (K := ℂ)).toLp (fun x => (v x : ℂ)))) := by
+  let vc : Lp ℂ 2 (volume : Measure E) :=
+    (hv2.ofReal (K := ℂ)).toLp (fun x => (v x : ℂ))
+  let Fc : Lp ℂ 2 (volume : Measure E) :=
+    (hF2.ofReal (K := ℂ)).toLp (fun x => (F x : ℂ))
+  have hlap : Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc :=
+    actual_tempered_laplacian v F K hK hv hF hv2 hF2 hweak
+  have h0 : MemSobolev 0 2 (Lp.toTemperedDistribution vc) :=
+    memSobolev_zero_iff.mpr ⟨vc,rfl⟩
+  have hF0 : MemSobolev 0 2 (Lp.toTemperedDistribution Fc) :=
+    memSobolev_zero_iff.mpr ⟨Fc,rfl⟩
+  have hB : MemSobolev 0 2 (besselPotential E ℂ 2 (Lp.toTemperedDistribution vc)) := by
+    rw [bessel_two_identity,hlap]
+    exact h0.sub (hF0.smul _)
+  simpa using hB
+
+theorem compact_weak_poisson_sobolev (v F : E → ℝ) (K : Set E)
+    (hK : IsCompact K) (hv : tsupport v ⊆ K) (hF : tsupport F ⊆ K)
+    (hv2 : MemLp v 2 volume) (hF2 : MemLp F 2 volume)
+    (hweak : ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * (Δ φ) x) volume ∧
+      Integrable (fun x => F x * φ x) volume ∧
+      (∫ x, v x * (Δ φ) x) = ∫ x, F x * φ x) :
+    ∃ vc Fc : Lp ℂ 2 (volume : Measure E),
+      vc =ᵐ[volume] (fun x => (v x : ℂ)) ∧
+      Fc =ᵐ[volume] (fun x => (F x : ℂ)) ∧
+      (∀ ψ : SchwartzMap E ℂ,
+        Integrable (fun x => (Δ ψ) x * (v x : ℂ)) volume ∧
+        Integrable (fun x => ψ x * (F x : ℂ)) volume ∧
+        (∫ x, (Δ ψ) x * (v x : ℂ)) = ∫ x, ψ x * (F x : ℂ)) ∧
+      Δ (Lp.toTemperedDistribution vc) = Lp.toTemperedDistribution Fc ∧
+      MemSobolev 2 2 (Lp.toTemperedDistribution vc) := by
+  let vc : Lp ℂ 2 (volume : Measure E) :=
+    (hv2.ofReal (K := ℂ)).toLp (fun x => (v x : ℂ))
+  let Fc : Lp ℂ 2 (volume : Measure E) :=
+    (hF2.ofReal (K := ℂ)).toLp (fun x => (F x : ℂ))
+  refine ⟨vc,Fc,(hv2.ofReal (K := ℂ)).coeFn_toLp,
+    (hF2.ofReal (K := ℂ)).coeFn_toLp,?_,
+    actual_tempered_laplacian v F K hK hv hF hv2 hF2 hweak,
+    sobolev_of_compact_pde v F K hK hv hF hv2 hF2 hweak⟩
+  intro ψ
+  exact ⟨((Δ ψ).memLp 2 volume).integrable_mul hv2.ofReal,
+    (ψ.memLp 2 volume).integrable_mul hF2.ofReal,
+    complex_schwartz_pde v F K hK hv hF hv2 hF2 hweak ψ⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev

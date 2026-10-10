@@ -1,0 +1,12 @@
+namespace InformationTheory
+
+variable {α : Type*} {mα : MeasurableSpace α} {μ ν : Measure α}
+
+open scoped Classical in
+/-- Kullback-Leibler divergence between two measures. -/
+noncomputable irreducible_def klDiv (μ ν : Measure α) : ℝ≥0∞ :=
+  if μ ≪ ν ∧ Integrable (llr μ ν) μ
+    then ENNReal.ofReal (∫ x, llr μ ν x ∂μ + ν.real univ - μ.real univ)
+    else ∞
+
+lemma klDiv_ne_top_iff : klDiv μ ν ≠ ∞ ↔ μ ≪ ν ∧ Integrable (llr μ ν) μ := by

@@ -1,0 +1,78 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CoefficientTruncation
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2
+
+/-!
+# Truncation in the progressive L2 domain
+
+Pointwise clipping preserves strong progressiveness and square integrability.
+The resulting bounded progressive processes converge to the original process
+in the product-space `L2` norm.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ProgressiveL2Truncation
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open CoefficientTruncation ElementaryItoIntegral ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Pointwise clipping of a stochastic process. -/
+def clipProcess (n : ℕ) (eta : ℝ≥0 → Omega → ℝ) : ℝ≥0 → Omega → ℝ :=
+  fun t omega => clipNat n (eta t omega)
+
+theorem clipProcess_stronglyProgressive
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ) :
+    IsStronglyProgressive filtration (clipProcess n eta.process) := by
+  intro t
+  exact stronglyMeasurable_clipNat (eta.progressive t) n
+
+theorem processFunction_clipProcess
+    (eta : ℝ≥0 → Omega → ℝ) (n : ℕ) :
+    processFunction (clipProcess n eta) =
+      fun z => clipNat n (processFunction eta z) :=
+  rfl
+
+theorem clipProcess_memLp
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ) :
+    MemLp (processFunction (clipProcess n eta.process)) 2
+      (processTimeMeasure mu T) := by
+  rw [processFunction_clipProcess]
+  exact clipNat_memLp eta.memLp n
+
+/-- Clipping as an endomorphism of the progressive `L2` integrand domain. -/
+noncomputable def clipped
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ) :
+    ProgressiveL2Integrand filtration mu T where
+  process := clipProcess n eta.process
+  progressive := clipProcess_stronglyProgressive eta n
+  memLp := clipProcess_memLp eta n
+
+@[simp] theorem clipped_process
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ) :
+    (clipped eta n).process = clipProcess n eta.process :=
+  rfl
+
+theorem clipped_abs_le
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ)
+    (t : ℝ≥0) (omega : Omega) :
+    |(clipped eta n).process t omega| ≤ (n : ℝ) :=
+  abs_clipNat_le n _
+
+/-- Bounded progressive truncations converge to the original integrand in
+the actual product-space `Lp` object. -/
+theorem tendsto_clipped_toLp
+    (eta : ProgressiveL2Integrand filtration mu T) :
+    Tendsto (fun n => (clipped eta n).toLp) atTop (𝓝 eta.toLp) := by
+  simpa [ProgressiveL2Integrand.toLp, clipped, processFunction_clipProcess] using
+    (tendsto_clipNat_toLp eta.memLp)
+
+end ProgressiveL2Truncation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

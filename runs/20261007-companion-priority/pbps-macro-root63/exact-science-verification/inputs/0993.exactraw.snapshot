@@ -1,0 +1,127 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs
+import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
+
+/-!
+# Gibbs density log-concavity bridge
+
+This file connects the measure-facing `ℝ≥0∞` Gibbs density API back to the
+real-valued log-concavity API used for Chewi-style density geometry.  It does
+not prove that the normalizer `Z` is finite or nonzero; those facts must be
+supplied by an explicit normalization leaf.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace GibbsLogConcavity
+
+open scoped ENNReal NNReal
+
+open MeasureTheory
+
+/-- A finite nonzero `ℝ≥0∞` normalizer preserves log-concavity when an
+unnormalized Gibbs density is viewed as a real-valued normalized density shape.
+
+The hypotheses `Z ≠ 0` and `Z ≠ ∞` are explicit because otherwise `.toReal`
+collapses the scalar and cannot provide the positivity required by
+`LogConcaveOn`. -/
+theorem logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_convexOn
+    {E : Type*} [AddCommMonoid E] [Module ℝ E]
+    {s : Set E} {V : E → ℝ} {Z : ℝ≥0∞}
+    (hV : ConvexOn ℝ s V) (hZ0 : Z ≠ 0) (hZtop : Z ≠ ∞) :
+    Geometry.LogConcavity.LogConcaveOn s
+      (fun x : E => (Z⁻¹ * Measure.Gibbs.gibbsDensityENNReal V x).toReal) := by
+  have hZreal_pos : 0 < Z.toReal := ENNReal.toReal_pos hZ0 hZtop
+  have hshape :
+      Geometry.LogConcavity.LogConcaveOn s
+        (fun x : E => Z.toReal⁻¹ * Real.exp (-V x)) :=
+    Geometry.LogConcavity.logConcaveOn_const_mul_exp_neg_of_convexOn hV
+      (inv_pos.mpr hZreal_pos)
+  simpa [Measure.Gibbs.gibbsDensityENNReal, ENNReal.toReal_mul, ENNReal.toReal_inv,
+    ENNReal.toReal_ofReal (Real.exp_nonneg _)] using hshape
+
+/-- Strong-convexity wrapper for the real-valued normalized Gibbs-density shape
+associated with an `ℝ≥0∞` density and a finite nonzero normalizer. -/
+theorem logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_strongConvexOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {s : Set E} {V : E → ℝ} {k : ℝ} {Z : ℝ≥0∞}
+    (hV : StrongConvexOn s k V) (hk : 0 ≤ k) (hZ0 : Z ≠ 0) (hZtop : Z ≠ ∞) :
+    Geometry.LogConcavity.LogConcaveOn s
+      (fun x : E => (Z⁻¹ * Measure.Gibbs.gibbsDensityENNReal V x).toReal) :=
+  logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_convexOn
+    (Geometry.StrongConvexity.convexOn_of_strongConvexOn_nonneg hV hk) hZ0 hZtop
+
+/-- Source-facing specialization of
+`logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_convexOn` where the
+normalizing scalar is the supplied finite nonzero Gibbs integral. -/
+theorem logConcaveOn_lintegral_normalized_gibbsDensityENNReal_toReal_of_convexOn
+    {E : Type*} [AddCommMonoid E] [Module ℝ E] [MeasurableSpace E]
+    (μ : Measure E) {s : Set E} {V : E → ℝ}
+    (hV : ConvexOn ℝ s V)
+    (hZ0 : ∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂μ ≠ 0)
+    (hZtop : ∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂μ ≠ ∞) :
+    Geometry.LogConcavity.LogConcaveOn s
+      (fun x : E =>
+        ((∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂μ)⁻¹ *
+          Measure.Gibbs.gibbsDensityENNReal V x).toReal) :=
+  logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_convexOn hV hZ0 hZtop
+
+/-- Strong-convex source-facing specialization where the normalizing scalar is
+the supplied finite nonzero Gibbs integral. -/
+theorem logConcaveOn_lintegral_normalized_gibbsDensityENNReal_toReal_of_strongConvexOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E]
+    (μ : Measure E) {s : Set E} {V : E → ℝ} {k : ℝ}
+    (hV : StrongConvexOn s k V) (hk : 0 ≤ k)
+    (hZ0 : ∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂μ ≠ 0)
+    (hZtop : ∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂μ ≠ ∞) :
+    Geometry.LogConcavity.LogConcaveOn s
+      (fun x : E =>
+        ((∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂μ)⁻¹ *
+          Measure.Gibbs.gibbsDensityENNReal V x).toReal) :=
+  logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_strongConvexOn
+    hV hk hZ0 hZtop
+
+/-- A measurable strongly convex potential with an exposed global minimizer has
+a real-valued normalized Gibbs-density shape that is log-concave on all of
+space.
+
+This combines the strong-convexity shape lemma with the already compiled
+finite-dimensional centered-quadratic envelope.  It does not prove a general
+coercivity theorem and it does not construct a sampler or invariant law. -/
+theorem logConcaveOn_lintegral_normalized_gibbsDensityENNReal_toReal_of_strongConvexOn_minimizer
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {k : ℝ}
+    (hV_meas : AEMeasurable V (volume : Measure E))
+    (hk : 0 < k) (x₀ : E)
+    (hV : StrongConvexOn (Set.univ : Set E) k V)
+    (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :
+    Geometry.LogConcavity.LogConcaveOn (Set.univ : Set E)
+      (fun x : E =>
+        ((∫⁻ y, Measure.Gibbs.gibbsDensityENNReal V y ∂(volume : Measure E))⁻¹ *
+          Measure.Gibbs.gibbsDensityENNReal V x).toReal) :=
+  logConcaveOn_lintegral_normalized_gibbsDensityENNReal_toReal_of_strongConvexOn
+    (volume : Measure E) hV hk.le
+    (Measure.Gibbs.lintegral_gibbsDensityENNReal_ne_zero
+      (volume : Measure E) hV_meas)
+    (Analysis.Integrability.lintegral_gibbsDensityENNReal_ne_top_of_strongConvexOn_minimizer
+      (E := E) hk x₀ hV hx₀)
+
+/-- The explicitly normalized one-dimensional absolute-linear Laplace Gibbs
+`ℝ≥0∞` density becomes a real-valued log-concave density shape after `.toReal`. -/
+theorem logConcaveOn_normalized_laplace_gibbsDensityENNReal_toReal
+    {a b : ℝ} (ha : 0 < a) :
+    Geometry.LogConcavity.LogConcaveOn (Set.univ : Set ℝ)
+      (fun x : ℝ =>
+        ((ENNReal.ofReal (2 * Real.exp (-b) / a))⁻¹ *
+          Measure.Gibbs.gibbsDensityENNReal (fun y : ℝ => a * |y| + b) x).toReal) := by
+  refine logConcaveOn_normalized_gibbsDensityENNReal_toReal_of_convexOn
+    (Geometry.LogConcavity.convexOn_univ_const_mul_abs_add (a := a) (b := b) ha.le) ?_ ?_
+  · exact ne_of_gt (by rw [ENNReal.ofReal_pos]; positivity)
+  · exact ENNReal.ofReal_ne_top
+
+end GibbsLogConcavity
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

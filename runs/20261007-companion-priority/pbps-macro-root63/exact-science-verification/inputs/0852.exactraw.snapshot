@@ -1,0 +1,203 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarPotential
+import Mathlib.Tactic
+
+/-!
+# Relation-point finiteness and Rockafellar subgradient support
+
+The list-based Rockafellar candidate may legitimately take the value `⊤` away
+from its effective domain.  The Brenier frontier therefore must not silently
+replace it by an everywhere real-valued function.
+
+This module proves exactly what cyclic monotonicity gives at points of the
+relation:
+
+* every rooted chain value at a source coordinate `x` of `(x,y) ∈ Gamma` has a
+  finite affine upper bound;
+* the proper Rockafellar potential is finite at that `x`;
+* appending `(x,y)` to any rooted chain produces the subgradient inequality
+  from `x` to every target `z`, with `⊤` handled honestly when it occurs.
+
+The result is an extended-real supporting-vector relation.  Conversion to an
+everywhere real convex representative and a.e. gradient identification remain
+separate downstream analytic nodes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingRockafellarSubgradient
+
+open PairingCyclicMonotonicity PairingClosedChain
+open PairingClosedChainMonotonicity PairingRockafellarPotential
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Appending one pair point to a finite chain adds exactly the final affine
+increment. -/
+theorem chainValue_concat_singleton
+    (l : List (E × E)) (p : E × E) (z : E) :
+    chainValue (l ++ [p]) z =
+      chainValue l p.1 + inner ℝ p.2 (z - p.1) := by
+  simpa [chainValue] using chainValue_append_cons l p [] z
+
+/-- A chain value at `x` can be extended by any relation point `(x,y)`. -/
+theorem add_inner_mem_rockafellarValueSet
+    {base : E × E} {Gamma : Set (E × E)}
+    {x y z : E} {r : ℝ}
+    (hxy : (x, y) ∈ Gamma)
+    (hr : r ∈ rockafellarValueSet base Gamma x) :
+    r + inner ℝ y (z - x) ∈ rockafellarValueSet base Gamma z := by
+  rcases hr with ⟨l, hlne, hhead, hforall, rfl⟩
+  refine ⟨l ++ [(x, y)], by simp [hlne], ?_, ?_, ?_⟩
+  · rw [List.head?_append_of_ne_nil l hlne]
+    exact hhead
+  · rw [List.forall_iff_forall_mem] at hforall ⊢
+    intro p hp
+    rw [List.mem_append] at hp
+    rcases hp with hp | hp
+    · exact hforall p hp
+    · simp at hp
+      simpa [hp] using hxy
+  · simpa [chainValue_concat_singleton]
+
+/-- Closed-chain nonpositivity supplies an explicit finite upper bound for every
+rooted chain value at the source coordinate of a relation point. -/
+theorem rockafellarValueSet_le_inner_of_mem
+    {base : E × E} {Gamma : Set (E × E)}
+    (hclosed : PairingClosedChainMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma)
+    {r : ℝ} (hr : r ∈ rockafellarValueSet base Gamma x) :
+    r ≤ inner ℝ y (x - base.1) := by
+  rcases hr with ⟨l, hlne, hhead, hforall, rfl⟩
+  have hforallAppend :
+      List.Forall (fun p => p ∈ Gamma) (l ++ [(x, y)]) := by
+    rw [List.forall_iff_forall_mem] at hforall ⊢
+    intro p hp
+    rw [List.mem_append] at hp
+    rcases hp with hp | hp
+    · exact hforall p hp
+    · simp at hp
+      simpa [hp] using hxy
+  have hclosedAppend :
+      chainValue (l ++ [(x, y)]) base.1 ≤ 0 :=
+    hclosed (l := l ++ [(x, y)]) (base := base)
+      (by simp [hlne])
+      (by
+        rw [List.head?_append_of_ne_nil l hlne]
+        exact hhead)
+      hforallAppend
+  rw [chainValue_concat_singleton] at hclosedAppend
+  have hreverse :
+      inner ℝ y (base.1 - x) = -inner ℝ y (x - base.1) := by
+    rw [show base.1 - x = -(x - base.1) by abel, inner_neg_right]
+  rw [hreverse] at hclosedAppend
+  linarith
+
+/-- The extended value set is always bounded above by `⊤`. -/
+theorem bddAbove_properRockafellarValueSet
+    (base : E × E) (Gamma : Set (E × E)) (x : E) :
+    BddAbove (properRockafellarValueSet base Gamma x) :=
+  ⟨⊤, fun _ _ => le_top⟩
+
+/-- Every explicit rooted-chain value lies below the extended Rockafellar
+supremum. -/
+theorem coe_le_properRockafellarPotential_of_mem
+    {base : E × E} {Gamma : Set (E × E)} {x : E} {r : ℝ}
+    (hr : r ∈ rockafellarValueSet base Gamma x) :
+    ((r : ℝ) : WithTop ℝ) ≤ properRockafellarPotential base Gamma x := by
+  rw [properRockafellarPotential]
+  exact le_csSup (bddAbove_properRockafellarValueSet base Gamma x)
+    (Set.mem_image_of_mem ((↑) : ℝ → WithTop ℝ) hr)
+
+/-- At every source coordinate appearing in `Gamma`, the proper Rockafellar
+potential is finite. -/
+theorem properRockafellarPotential_lt_top_of_mem
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChainMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma) :
+    properRockafellarPotential base Gamma x < ⊤ := by
+  have hupper :
+      properRockafellarPotential base Gamma x ≤
+        ((inner ℝ y (x - base.1) : ℝ) : WithTop ℝ) := by
+    rw [properRockafellarPotential]
+    refine csSup_le (properRockafellarValueSet_nonempty hbase x) ?_
+    intro u hu
+    rcases hu with ⟨r, hr, rfl⟩
+    exact WithTop.coe_le_coe.mpr
+      (rockafellarValueSet_le_inner_of_mem hclosed hxy hr)
+  exact lt_of_le_of_lt hupper (WithTop.coe_lt_top _)
+
+/-- Extended-real supporting-vector relation.  The existential real value makes
+finiteness at the contact point part of the proposition instead of a hidden
+precondition. -/
+def ProperSupportsAt
+    (Phi : E → WithTop ℝ) (x y : E) : Prop :=
+  ∃ rx : ℝ,
+    Phi x = ((rx : ℝ) : WithTop ℝ) ∧
+      ∀ z : E,
+        (((rx + inner ℝ y (z - x) : ℝ) : ℝ) : WithTop ℝ) ≤ Phi z
+
+/-- Every point of a closed-chain-monotone relation supports the proper
+Rockafellar potential at its source coordinate. -/
+theorem properSupportsAt_of_mem
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChainMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma) :
+    ProperSupportsAt (properRockafellarPotential base Gamma) x y := by
+  have hxfin := properRockafellarPotential_lt_top_of_mem hbase hclosed hxy
+  have hxne : properRockafellarPotential base Gamma x ≠ ⊤ := ne_of_lt hxfin
+  let rx : ℝ :=
+    (properRockafellarPotential base Gamma x).untop hxne
+  have hxcoe :
+      properRockafellarPotential base Gamma x = ((rx : ℝ) : WithTop ℝ) := by
+    exact (WithTop.coe_untop _ hxne).symm
+  refine ⟨rx, hxcoe, ?_⟩
+  intro z
+  by_cases hz : properRockafellarPotential base Gamma z = ⊤
+  · rw [hz]
+    exact le_top
+  · let rz : ℝ :=
+      (properRockafellarPotential base Gamma z).untop hz
+    have hzcoe :
+        properRockafellarPotential base Gamma z = ((rz : ℝ) : WithTop ℝ) := by
+      exact (WithTop.coe_untop _ hz).symm
+    have hupper :
+        properRockafellarPotential base Gamma x ≤
+          (((rz - inner ℝ y (z - x) : ℝ) : ℝ) : WithTop ℝ) := by
+      rw [properRockafellarPotential]
+      refine csSup_le (properRockafellarValueSet_nonempty hbase x) ?_
+      intro u hu
+      rcases hu with ⟨r, hr, rfl⟩
+      have hrext :
+          r + inner ℝ y (z - x) ∈ rockafellarValueSet base Gamma z :=
+        add_inner_mem_rockafellarValueSet hxy hr
+      have hle := coe_le_properRockafellarPotential_of_mem hrext
+      rw [hzcoe] at hle
+      exact WithTop.coe_le_coe.mpr (by
+        have hreal := WithTop.coe_le_coe.mp hle
+        linarith)
+    rw [hxcoe] at hupper
+    have hupperReal := WithTop.coe_le_coe.mp hupper
+    rw [hzcoe]
+    exact WithTop.coe_le_coe.mpr (by linarith)
+
+/-- Direct bridge from the transport-produced distinct-cycle condition. -/
+theorem properSupportsAt_of_mem_of_distinct
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hmono : PairingDistinctCycleMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma) :
+    ProperSupportsAt (properRockafellarPotential base Gamma) x y :=
+  properSupportsAt_of_mem hbase
+    (pairingClosedChainMonotone_of_distinct hmono) hxy
+
+end
+
+end PairingRockafellarSubgradient
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

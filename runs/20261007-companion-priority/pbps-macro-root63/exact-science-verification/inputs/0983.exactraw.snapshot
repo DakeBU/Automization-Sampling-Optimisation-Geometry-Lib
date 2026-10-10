@@ -1,0 +1,73 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapInjectivity
+
+/-!
+# Supporting-potential inequalities imply transport monotonicity
+
+For a Brenier map one ultimately wants to obtain the monotonicity hypothesis
+used by `DisplacementMapInjectivity` from convexity of a transport potential.
+This file isolates the algebraic middle edge.
+
+Rather than hiding the convex-analysis theorem inside the injectivity proof, we
+record exactly the first-order supporting-hyperplane property that is needed:
+
+`phi(x) + <T(x), y-x> <= phi(y)`.
+
+If the same field `T` supports `phi` at every point, applying the inequality in
+both directions and adding shows
+
+`0 <= <T(x)-T(y), x-y>`.
+
+Thus the later Brenier-specific obligation is reduced to deriving this support
+inequality from the convex potential and its derivative/subgradient. No
+optimal-transport or differentiability claim is made here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementSupportingPotential
+
+open DisplacementMapInjectivity
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- A vector field `T` is a global first-order supporting field for a real
+potential `phi` when its affine tangent expression at every `x` lies below
+`phi` at every `y`. -/
+def IsSupportingField (phi : E → ℝ) (T : E → E) : Prop :=
+  ∀ x y, phi x + ⟪T x, y - x⟫ ≤ phi y
+
+/-- A global supporting field is monotone in the Hilbert-space sense used by
+the interior displacement injectivity theorem. -/
+theorem isMonotoneMap_of_isSupportingField
+    {phi : E → ℝ} {T : E → E} (h : IsSupportingField phi T) :
+    IsMonotoneMap T := by
+  intro x y
+  have hxy := h x y
+  have hyx := h y x
+  have hflip : ⟪T x, y - x⟫ = -⟪T x, x - y⟫ := by
+    have hsub : y - x = -(x - y) := by abel
+    rw [hsub, inner_neg_right]
+  rw [hflip] at hxy
+  have hscalar :
+      0 ≤ ⟪T x, x - y⟫ - ⟪T y, x - y⟫ := by
+    linarith
+  simpa [inner_sub_left] using hscalar
+
+/-- Direct composition of the support inequality with the previously isolated
+interior-injectivity leaf. This theorem still does not assume or prove that
+`phi` is convex; it only exposes the exact support contract a future Brenier
+bridge must construct. -/
+theorem injective_affineDisplacementMap_of_supportingField
+    {phi : E → ℝ} {T : E → E} (h : IsSupportingField phi T)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    Function.Injective
+      (DisplacementMapDerivative.affineDisplacementMap T t) :=
+  injective_affineDisplacementMap_of_monotone
+    (isMonotoneMap_of_isSupportingField h) t ht0 ht1
+
+end DisplacementSupportingPotential
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,5 +1,43 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite physical-time interval coverage (2026-10-10)
+
+Independent exact-science commit 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion76 and
+actual nonaccumulation78 are genuine parents. With the original six analytic
+source conditions and actual countable Exp1 inputs, almost surely every finite
+physical time t belongs to one unique half-open event interval T[n]<=t<T[n+1].
+Its unique actual live record a has a.time<=t and finite nonnegative elapsed
+t-a.time strictly below its own actual next wait, including wait=infinity.
+Zero-length intervals are empty; no strict positive-wait premise is added.
+A stopped next record does not remove the last live harmonic arc.
+
+Nine complete formula/BODY steps and the exact sealed literal statement passed
+independent mathematics, source-blind reconstruction and fresh source-first
+review. Every source inventory node/edge was compared; initialization and
+physical interpolation residuals remain PARTIAL/OPEN. Next bounded boundary is
+a jointly measurable actual phase representative with common-AE all-time arc
+agreement and initialization derived from actual positive inputs. A total
+exceptional extension must be explicit; no global off-null-set uniqueness or
+measurable-selector/clock/nonexplosion certificate may be assumed.
+
+No global physical-time interpolation/measurability/origin, path regularity,
+Markov/invariance/kernel, hypocoercivity/main/error/expected query cost or
+PBPS-SPHMC composition completion follows from interval coverage alone.
+PBPS/SPHMC and actual-input composition remain first, then Gaussian Cloud,
+then midpoint with no extra higher derivative bound. Do not transfer unbounded
+cost by TV. Preserve all older sources, routes, cycles and collaborator work.
+
+The single existing stabilization lane carries this VERIFIED child. Serialized
+local aggregate79 passed (root9190, Tests9490, Registry528), including
+canonical tools/astis.py check, ATLAS and fake-closure scans; py_compile passed.
+Publication/site/graph checks are recorded in79 integration.notes.json. Static
+module SVG was actually viewed; browser page/interactive branch visual
+acceptance remains pending because the available browser surface has no
+inspectable tab. Main merge, PURIFIED/Exposition, live deployment and
+whole-paper/Goal completion remain separate. The explicit direct product import
+is optional purification debt, not a mathematical blocker.
+
+
 ## Actual PBPS event-time nonaccumulation (2026-10-10)
 
 Independent exact-science commit bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. The actual finite stopped

@@ -44,6 +44,7 @@ import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
 import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -88,6 +89,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPhysicalTimeCover"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover"
+    upstreamDecl := "Actual PBPS finite physical-time interval coverage"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "interval", "stopped"]
+    saldUse := "PBPS measurable physical-time interpolation prerequisite; no SALD claim"
+    note := "Independently verified science 56e4b7e101a1016e03df2971018b1f018f03e6c1. With the original six analytic binders and canonical actual input, every finite physical time almost surely lies in a unique actual half-open event interval and selects a unique actual live record with stored time<=t and finite elapsed offset<actual next wait. No positive-wait/index/live-record/clock/nonaccumulation provider premise. Last live arc remains available when next wait is infinity. No global interpolation/measurability/origin/Markov/invariance/kernel/hypocoercivity/main/error/expected-cost/composition or whole-paper/Goal completion. Aggregate/visual/main/PURIFIED/live remain separate."
+  },
   {
     key := "pbps.actualNonaccumulation"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"

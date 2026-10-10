@@ -31,6 +31,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
 import AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy
 import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
 import AutoSamplingTheory.ExampleCases.SampleWiki

@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual physical-time interval coverage79 (2026-10-10)
+
+Independent science 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion plus actual nonaccumulation now give a common-AE unique half-open interval, unique live stored record and finite elapsed<nextwait for every finite physical time. The complete six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-cover lesson/publication, beside initially folded exact Lean. Next is an actual jointly measurable phase representative with all-time AE arc agreement and input-derived initialization; global process regularity/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.
+
+
 ## Actual event-time nonaccumulation78 (2026-10-10)
 
 Independent science bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. Actual finite recursion plus canonical Exp1 inputs now give almost-sure finite-horizon escape and finite event-index sets. The complete six-condition statement and seven formula/BODY steps are authored once in pbps-actual-event-time-nonaccumulation lesson/publication, with adjacent initially folded exact Lean. Next is actual physical-time state construction/measurability; global process/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification remain independently evidence-bound.

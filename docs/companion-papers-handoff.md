@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Exact PBPS first hazard clock (2026-10-10)
+
+Independent exact science75 VERIFIED commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. The actual harmonic flow73
+and actual bounce/rate74 are true formal parents. For the actual rate along Phi,
+Lambda_z(t)=integral_0^t lambda(Phi_s z) ds is jointly continuous/Borel and has
+finite-interval integrability, Lambda(0)=0 and nonnegative monotonicity.
+The continuous-time first crossing tau_z(e)=inf{t>=0:Lambda_z(t)>=e} takes
+values in [0,infinity], with inf(empty)=infinity. Its finite sublevels are
+exactly {e<=Lambda_z(t)}; finite tau attains Lambda(tau)=e, e>0 gives tau>0,
+and tau(0)=0. Joint Borel measurability is proved, not supplied.
+
+The ACTUAL pushforward of Exp(1) under e->tau_z(max(e,0)) is a probability
+measure W_z, with exact strict survival W_z((t,infinity])=exp(-Lambda_z(t)).
+The tail includes infinity. Its actual initial-energy C_z is nonnegative,
+Lambda_z(t)<=C_z*t, C_z>0 implies tau_z(e)>=e/C_z, and C_z=0,e>0 implies
+tau=infinity. No almost-sure finite wait, arbitrary hazard/cap/law provider,
+positive energy/dimension or higher derivative premise is introduced. Original
+six analytic callers and legal rank0/zero-energy/e0/alphaeta1 cases persist.
+Exact396-line module and nine formula/BODY blocks are independently reviewed.
+
+This closes one first-clock law only. Next dependency-ready edge is the actual
+finite stopped postjump recursion(A.2), its joint Borel dependence and inherited
+H(z0) invariant, following source-only preread76. No phase at infinity and no
+global physical-time phase is assigned to arbitrary zero thresholds. iid Exp
+realization, moments/SLLN and nonaccumulation precede global path/Markov proofs.
+Invariance/reversal, terminal kernel, hypocoercivity/main/errors/caps, expected
+query cost and actual-input composition remain open. TV proximity does not
+transfer unbounded costs. Reuse Q_y/same-J and existing reflected-law facts.
+
+Serialized local aggregate75: root9186, Tests9486, Registry524;245 publication units.
+One statement and nine formula/BODY steps plus the actual branch were inspected;
+four isolated copy callbacks and four RAW downloads were exact.
+Final current graph/gates are recorded in75 integration.notes.json. Source review input
+contamination was retained as supplemental evidence and repaired by an exact
+metadata overlay plus a fresh anti-anchored review; it was never source admission.
+ExactSCI, aggregate, remoteCI/main/live, Exposition/PURIFIED and full-paper/Goal
+completion remain distinct. PBPS/SPHMC composition precedes GaussianCloud and
+midpoint; preserve older Chewi/frontiers/cycles/memory.
+
 ## Exact PBPS bounce rate (2026-10-10)
 
 Independent exact science74 VERIFIED commit d556a7550f0395d149720da6478bfdfff98368a7. The actual residual is

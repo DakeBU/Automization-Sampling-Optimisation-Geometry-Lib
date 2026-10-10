@@ -1,5 +1,19 @@
 # Proximal BPS · formalization result window
 
+## Exact actual first-clock checkpoint75 (2026-10-10)
+
+Independent science commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. Complete attributed statement and nine-step
+formula proof are authored once in declaration_lessons/pbps-actual-hazard-clock.json;
+exact full Lean (literal specification and proved internal primitive included)
+is adjacent and initially folded. The actual Exp(1) pushforward is normalized,
+with strict survival exp(-Lambda_z(t)) including infinite waits. Finite threshold
+attainment, joint Borel measurability and original-state energy waiting bounds
+retain all original six callers and rank0/zero-energy/e0/alphaeta1 cases.
+Actual recursive PDMP/iid nonaccumulation/global path/Markov/invariance/main/errors/
+expected-query cost/composition remain open. Integration75 records aggregate and
+reader checks separately; no Exposition/PURIFIED/main/live/whole-paper/Goal credit.
+
+
 ## Exact bounce-rate checkpoint74 (2026-10-10)
 
 Independent science commit d556a7550f0395d149720da6478bfdfff98368a7. Complete attributed statement and seven-step

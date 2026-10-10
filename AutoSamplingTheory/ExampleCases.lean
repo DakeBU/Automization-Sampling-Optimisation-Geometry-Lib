@@ -28,6 +28,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock
 import AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy
 import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
 import AutoSamplingTheory.ExampleCases.SampleWiki

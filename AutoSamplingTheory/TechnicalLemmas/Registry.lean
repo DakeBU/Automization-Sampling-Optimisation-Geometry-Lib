@@ -87,6 +87,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "pbps.actualHazardClock"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+    upstreamDecl := "Actual PBPS integrated hazard and first exponential clock"
+    upstreamFile := "arXiv2609.06905v1 Algorithm1 and AppendixA1 equation(A1)"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "hazard", "first-clock", "exponential", "Borel", "energy"]
+    saldUse := "PBPS consumer; no SALD admission"
+    note := "Independent exactSCI75 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. Original six analytic callers, eight literal actual definitions and ten conclusions: continuous/Borel integrated actual hazard, finite-interval integrability/nonnegative monotonicity, continuous-time closed first crossing with finite-value and infinity/e=0 guards, joint Borel clock, actual Exp(1) pushforward probability law and exact strict survival including infinity, original-state energy cap and extended waiting lower/zero-cap branches. No arbitrary cap/law provider or almost-sure finite wait premise. Recursive actual PDMP paths/iid nonaccumulation/Markov/invariance/terminal kernel/hypocoercivity/main/errors/expected costs/composition and full Exposition/PURIFIED/main/live/Goal remain open."
+  },
+  {
     key := "pbps.actualBounceRate"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
     upstreamDecl := "Actual PBPS zero-safe bounce, rate and energy-layer bound"

@@ -1,0 +1,286 @@
+{
+  "region_count": 20,
+  "region_hash_is_not_whole_file_hash": true,
+  "regions": [
+    {
+      "RAW_region_bytes": 1946,
+      "RAW_region_sha256": "3307f328b2c3b8b9372f9a2d57917517b2ea796c11efecc0848182987cd2ad44",
+      "end_line": 389,
+      "literal_RAW_UTF8": "/-- The product measure of an arbitrary family of probability measures. It is defined as the unique\r\nextension of the function which gives to cylinders the measure given by the associated product\r\nmeasure.\r\n\r\nIt is defined via an `if ... then ... else` so that it can be manipulated without carrying\r\na proof that the measures are probability measures. -/\r\nnoncomputable def infinitePi : Measure (Π i, X i) :=\r\n  if h : ∀ i, IsProbabilityMeasure (μ i) then\r\n    (piContent μ).measure isSetSemiring_measurableCylinders\r\n      generateFrom_measurableCylinders.ge (isSigmaSubadditive_piContent (hμ := h) μ)\r\n    else 0\r\n\r\n/-- The product measure is the projective limit of the partial product measures. This ensures\r\nuniqueness and expresses the value of the product measure applied to cylinders. -/\r\ntheorem isProjectiveLimit_infinitePi :\r\n    IsProjectiveLimit (infinitePi μ) (fun I : Finset ι ↦ (Measure.pi (fun i : I ↦ μ i))) := by\r\n  intro I\r\n  ext s hs\r\n  rw [map_apply (measurable_restrict I) hs, infinitePi, dif_pos hμ, AddContent.measure_eq,\r\n    ← cylinder, piContent_cylinder μ hs]\r\n  · exact generateFrom_measurableCylinders.symm\r\n  · exact cylinder_mem_measurableCylinders _ _ hs\r\n\r\n/-- Restricting the product measure to a product indexed by a finset yields the usual\r\nproduct measure. -/\r\ntheorem infinitePi_map_restrict {I : Finset ι} :\r\n    (Measure.infinitePi μ).map I.restrict = Measure.pi fun i : I ↦ μ i :=\r\n  isProjectiveLimit_infinitePi μ I\r\n\r\ninstance : IsProbabilityMeasure (infinitePi μ) := by\r\n  constructor\r\n  rw [← cylinder_univ ∅, cylinder, ← map_apply (measurable_restrict _) .univ,\r\n    infinitePi_map_restrict, measure_univ]\r\n\r\n/-- To prove that a measure is equal to the product measure it is enough to check that it\r\nit gives the same measure to measurable boxes. -/\r\ntheorem eq_infinitePi {ν : Measure (Π i, X i)}\r\n    (hν : ∀ s : Finset ι, ∀ t : (i : ι) → Set (X i),\r\n",
+      "source": {
+        "LF_bytes": 30640,
+        "LF_sha256": "2078e4482433a9806df4d48e7b5d95d14bf10fc14491411d9c326a5f8af0e585",
+        "RAW_bytes": 31252,
+        "RAW_sha256": "177cf997d8e9b061046f411bf77fb5a39c972190b7c65eb1d0dc25f3f71ebeeb",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/ProductMeasure.lean"
+      },
+      "start_line": 352
+    },
+    {
+      "RAW_region_bytes": 610,
+      "RAW_region_sha256": "b7ceff627d3b05b2a95aa68d33a64d90109bb21a2ff1498ae0f4f6e7da4d7126",
+      "end_line": 484,
+      "literal_RAW_UTF8": "lemma _root_.measurePreserving_eval_infinitePi (i : ι) :\r\n    MeasurePreserving (Function.eval i) (infinitePi μ) (μ i) where\r\n  measurable := by fun_prop\r\n  map_eq := by\r\n    ext s hs\r\n    have : @Function.eval ι X i =\r\n        (@Function.eval ({i} : Finset ι) (fun j ↦ X j) ⟨i, by simp⟩) ∘\r\n        (Finset.restrict {i}) := by ext; simp\r\n    rw [this, ← map_map, infinitePi_map_restrict, (measurePreserving_eval _ _).map_eq]\r\n    all_goals fun_prop\r\n\r\nlemma infinitePi_map_eval (i : ι) :\r\n    (infinitePi μ).map (fun x ↦ x i) = μ i :=\r\n  (measurePreserving_eval_infinitePi μ i).map_eq\r\n\r\n",
+      "source": {
+        "LF_bytes": 30640,
+        "LF_sha256": "2078e4482433a9806df4d48e7b5d95d14bf10fc14491411d9c326a5f8af0e585",
+        "RAW_bytes": 31252,
+        "RAW_sha256": "177cf997d8e9b061046f411bf77fb5a39c972190b7c65eb1d0dc25f3f71ebeeb",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/ProductMeasure.lean"
+      },
+      "start_line": 470
+    },
+    {
+      "RAW_region_bytes": 967,
+      "RAW_region_sha256": "6f2fb692637fbdc9b260476fb02b625917371739168bdf8f05ee3f4f69b5f8c7",
+      "end_line": 136,
+      "literal_RAW_UTF8": "  mp h := h.hasLaw_infinitePi hX hm\r\n  mpr h := by\r\n    rw [iIndepFun_iff_map_fun_eq_infinitePi_map₀ hm, h.map_eq]\r\n    simp_rw [fun i ↦ (hX i).map_eq]\r\n\r\n/-- Given random variables `X i : Ω i → 𝓧 i`, they are independent when viewed as random\r\nvariables defined on the product space `Π i, Ω i`. -/\r\nlemma iIndepFun_infinitePi {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}\r\n    {P : (i : ι) → Measure (Ω i)} [∀ i, IsProbabilityMeasure (P i)] {X : (i : ι) → Ω i → 𝓧 i}\r\n    (mX : ∀ i, Measurable (X i)) :\r\n    iIndepFun (fun i ω ↦ X i (ω i)) (infinitePi P) := by\r\n  rw [iIndepFun_iff_map_fun_eq_infinitePi_map (by fun_prop), infinitePi_map_pi _ mX]\r\n  congrm infinitePi fun i ↦ ?_\r\n  rw [← infinitePi_map_eval P i, map_map (mX i) (by fun_prop), Function.comp_def]\r\n\r\nlemma _root_.MeasureTheory.Measure.infinitePi_map_eval_prod {Ω : ι → Type*}\r\n    {mΩ : ∀ i, MeasurableSpace (Ω i)} {P : ∀ i, Measure (Ω i)}\r\n",
+      "source": {
+        "LF_bytes": 12936,
+        "LF_sha256": "72f5b2e034755a2b46c0afdf36f4f8659b2e5ad89e76398fa2feb17a9a6678e7",
+        "RAW_bytes": 13180,
+        "RAW_sha256": "f2e3201031c9dbf80f03d078989d29175a681e9ff48ad6a726e903057cf0a766",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/Independence/InfinitePi.lean"
+      },
+      "start_line": 120
+    },
+    {
+      "RAW_region_bytes": 393,
+      "RAW_region_sha256": "53bcee368ff9a5842fdbe83ea854a10114367b9c3d5a78fb54bf911b5e6b257e",
+      "end_line": 461,
+      "literal_RAW_UTF8": "theorem iIndepFun.indepFun {β : ι → Type*}\r\n    {m : ∀ x, MeasurableSpace (β x)} {f : ∀ i, Ω → β i} (hf_Indep : iIndepFun f μ) {i j : ι}\r\n    (hij : i ≠ j) :\r\n    f i ⟂ᵢ[μ] f j :=\r\n  Kernel.iIndepFun.indepFun hf_Indep hij\r\n\r\nend FromIndepToIndep\r\n\r\n/-!\r\n## π-system lemma\r\n\r\nIndependence of measurable spaces is equivalent to independence of generating π-systems.\r\n-/\r\n",
+      "source": {
+        "LF_bytes": 55669,
+        "LF_sha256": "85c6c98a306c1b10952181fcb9cc777c0ed06e91246428690a88d7821d24f9d2",
+        "RAW_bytes": 56807,
+        "RAW_sha256": "63be8ab6cc866be5594ab3602eec2c4a12d19f8f456846de0613b8ec689b6840",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/Independence/Basic.lean"
+      },
+      "start_line": 449
+    },
+    {
+      "RAW_region_bytes": 976,
+      "RAW_region_sha256": "dbe60fb6f1d9bbc96c36b164271f57fb063ddb6c1840bef493977a80fe761012",
+      "end_line": 679,
+      "literal_RAW_UTF8": "theorem iIndepFun_congr {β : ι → Type*} {mβ : ∀ i, MeasurableSpace (β i)}\r\n    {f g : Π i, Ω → β i} (h : ∀ i, f i =ᵐ[μ] g i) :\r\n    iIndepFun f μ ↔ iIndepFun g μ := Kernel.iIndepFun_congr' (by simp [h])\r\n\r\nalias ⟨iIndepFun.congr, _⟩ := iIndepFun_congr\r\n\r\nnonrec lemma iIndepFun.comp {β γ : ι → Type*} {mβ : ∀ i, MeasurableSpace (β i)}\r\n    {mγ : ∀ i, MeasurableSpace (γ i)} {f : ∀ i, Ω → β i}\r\n    (h : iIndepFun f μ) (g : ∀ i, β i → γ i) (hg : ∀ i, Measurable (g i)) :\r\n    iIndepFun (fun i ↦ g i ∘ f i) μ := h.comp _ hg\r\n\r\nnonrec lemma iIndepFun.comp₀ {β γ : ι → Type*} {mβ : ∀ i, MeasurableSpace (β i)}\r\n    {mγ : ∀ i, MeasurableSpace (γ i)} {f : ∀ i, Ω → β i}\r\n    (h : iIndepFun f μ) (g : ∀ i, β i → γ i)\r\n    (hf : ∀ i, AEMeasurable (f i) μ) (hg : ∀ i, AEMeasurable (g i) (μ.map (f i))) :\r\n    iIndepFun (fun i ↦ g i ∘ f i) μ := h.comp₀ _ (by simp [hf]) (by simp [hg])\r\n",
+      "source": {
+        "LF_bytes": 55669,
+        "LF_sha256": "85c6c98a306c1b10952181fcb9cc777c0ed06e91246428690a88d7821d24f9d2",
+        "RAW_bytes": 56807,
+        "RAW_sha256": "63be8ab6cc866be5594ab3602eec2c4a12d19f8f456846de0613b8ec689b6840",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/Independence/Basic.lean"
+      },
+      "start_line": 664
+    },
+    {
+      "RAW_region_bytes": 381,
+      "RAW_region_sha256": "5f2ea9cfb52c276a011ae55d4b686dc48723e0d4370e4763a8380df114ea42a0",
+      "end_line": 101,
+      "literal_RAW_UTF8": "end ExponentialPDF\r\n\r\nopen MeasureTheory\r\n\r\n/-- Measure defined by the exponential distribution -/\r\n@[wikidata Q237193]\r\nnoncomputable\r\ndef expMeasure (r : ℝ) : Measure ℝ := gammaMeasure 1 r\r\n\r\nlemma isProbabilityMeasure_expMeasure {r : ℝ} (hr : 0 < r) :\r\n    IsProbabilityMeasure (expMeasure r) := isProbabilityMeasure_gammaMeasure zero_lt_one hr\r\n\r\nsection ExponentialCDF\r\n",
+      "source": {
+        "LF_bytes": 7388,
+        "LF_sha256": "965af33617f3d13fb85d56e9febc600b3fc02fb565a8da3c1dfdef91658518a4",
+        "RAW_bytes": 7564,
+        "RAW_sha256": "4d222a32f7ef03be6484a811890c8dd4dcc3a895c89593f56b3db746b7dd97e6",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Exponential.lean"
+      },
+      "start_line": 89
+    },
+    {
+      "RAW_region_bytes": 573,
+      "RAW_region_sha256": "e1c8f9d328b30391b14405bdbd76715474feb2fc673701c112d22e4778cc897a",
+      "end_line": 169,
+      "literal_RAW_UTF8": "      exact exp_neg_integrableOn_Ioc hr\r\n    · refine ne_of_lt (IntegrableOn.setLIntegral_lt_top ?_)\r\n      rw [integrableOn_Icc_iff_integrableOn_Ioc]\r\n      exact Integrable.const_mul (exp_neg_integrableOn_Ioc hr) _\r\n\r\n/-- The CDF of the exponential distribution equals ``1 - exp (-(r * x))`` -/\r\nlemma cdf_expMeasure_eq {r : ℝ} (hr : 0 < r) (x : ℝ) :\r\n    cdf (expMeasure r) x = if 0 ≤ x then 1 - exp (-(r * x)) else 0 := by\r\n  rw [cdf_expMeasure_eq_lintegral hr, lintegral_exponentialPDF_eq_antiDeriv hr x,\r\n    ENNReal.toReal_ofReal_eq_iff]\r\n  split_ifs with h\r\n",
+      "source": {
+        "LF_bytes": 7388,
+        "LF_sha256": "965af33617f3d13fb85d56e9febc600b3fc02fb565a8da3c1dfdef91658518a4",
+        "RAW_bytes": 7564,
+        "RAW_sha256": "4d222a32f7ef03be6484a811890c8dd4dcc3a895c89593f56b3db746b7dd97e6",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Exponential.lean"
+      },
+      "start_line": 159
+    },
+    {
+      "RAW_region_bytes": 630,
+      "RAW_region_sha256": "fb7fb0d474c0c8b740d018f7d2ff3421e74a1da29676c6f86f92c7dfec29bbc8",
+      "end_line": 87,
+      "literal_RAW_UTF8": "lemma ofReal_cdf [IsProbabilityMeasure μ] (x : ℝ) : ENNReal.ofReal (cdf μ x) = μ (Iic x) := by\r\n  have h := lintegral_condCDF ((dirac Unit.unit).prod μ) x\r\n  simpa only [fst_prod, prod_prod, measure_univ, one_mul, lintegral_dirac] using! h\r\n\r\nlemma cdf_eq_real [IsProbabilityMeasure μ] (x : ℝ) : cdf μ x = μ.real (Iic x) := by\r\n  rw [measureReal_def, ← ofReal_cdf μ x, ENNReal.toReal_ofReal (cdf_nonneg μ x)]\r\n\r\ninstance instIsProbabilityMeasurecdf : IsProbabilityMeasure (cdf μ).measure := by\r\n  constructor\r\n  simp only [StieltjesFunction.measure_univ _ (tendsto_cdf_atBot μ) (tendsto_cdf_atTop μ), sub_zero,\r\n",
+      "source": {
+        "LF_bytes": 5133,
+        "LF_sha256": "fbbc6ce71de46643b6e2e0eeb7253863ae554f208611a5eb0b38d9b424f80ea0",
+        "RAW_bytes": 5257,
+        "RAW_sha256": "d85768a4382efea34a35ee3dfbd162101df3923e811be56834678ebf2a0555d2",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/CDF.lean"
+      },
+      "start_line": 78
+    },
+    {
+      "RAW_region_bytes": 399,
+      "RAW_region_sha256": "a55449267bf258bbded4bc7f77089a6a28c479908e5eeacfadf58991d9b2a0b0",
+      "end_line": 45,
+      "literal_RAW_UTF8": "\r\nnamespace MeasureTheory\r\n\r\nvariable {α β ι : Type*} {_ : MeasurableSpace α} {μ : Measure α} {s s₁ s₂ s₃ t t₁ t₂ u : Set α}\r\n\r\ntheorem measureReal_eq_zero_iff (h : μ s ≠ ∞ := by finiteness) :\r\n    μ.real s = 0 ↔ μ s = 0 := by\r\n  rw [Measure.real, ENNReal.toReal_eq_zero_iff]\r\n  exact or_iff_left h\r\n\r\ntheorem measureReal_ne_zero_iff (h : μ s ≠ ∞ := by finiteness) :\r\n",
+      "source": {
+        "LF_bytes": 24363,
+        "LF_sha256": "7d06d0c77149faa765d606313411b90123606131e436acdaa4eeed1cdc9ebb59",
+        "RAW_bytes": 24863,
+        "RAW_sha256": "6f46e7cab087d5ef2354e3a5801364193c57f3a0dce4cba28b7013480ff593c4",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Real.lean"
+      },
+      "start_line": 35
+    },
+    {
+      "RAW_region_bytes": 627,
+      "RAW_region_sha256": "ff02c72c267e96f5690af5fc0fcd974581e402d159c7d2d8ce84cbae3a3cc829",
+      "end_line": 418,
+      "literal_RAW_UTF8": "@[deprecated (since := \"2026-06-03\")]\r\nalias measureReal_eq_measureReal_larger_of_between_null_diff :=\r\n  measureReal_eq_measureReal_larger_of_between_null_sdiff\r\n\r\ntheorem measureReal_compl [IsFiniteMeasure μ] (h₁ : MeasurableSet s) :\r\n    μ.real sᶜ = μ.real univ - μ.real s := by\r\n  rw [compl_eq_univ_sdiff]\r\n  exact measureReal_sdiff (subset_univ s) h₁\r\n\r\ntheorem measureReal_compl₀ [IsFiniteMeasure μ] (h₁ : NullMeasurableSet s μ) :\r\n    μ.real sᶜ = μ.real univ - μ.real s := by\r\n  linarith [measureReal_add_measureReal_compl₀ h₁]\r\n\r\ntheorem measureReal_union_congr_of_subset (hs : s₁ ⊆ s₂)\r\n",
+      "source": {
+        "LF_bytes": 24363,
+        "LF_sha256": "7d06d0c77149faa765d606313411b90123606131e436acdaa4eeed1cdc9ebb59",
+        "RAW_bytes": 24863,
+        "RAW_sha256": "6f46e7cab087d5ef2354e3a5801364193c57f3a0dce4cba28b7013480ff593c4",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Real.lean"
+      },
+      "start_line": 405
+    },
+    {
+      "RAW_region_bytes": 477,
+      "RAW_region_sha256": "49d7b2be16ebd0669fc91c31b1676111ccbc5a74cb4e7f3ea2ab2d20f512cbbd",
+      "end_line": 103,
+      "literal_RAW_UTF8": "\r\ntheorem ae_of_all {p : α → Prop} (μ : F) : (∀ a, p a) → ∀ᵐ a ∂μ, p a :=\r\n  Eventually.of_forall\r\n\r\ntheorem ae_all_iff {ι : Sort*} [Countable ι] {p : α → ι → Prop} :\r\n    (∀ᵐ a ∂μ, ∀ i, p a i) ↔ ∀ i, ∀ᵐ a ∂μ, p a i :=\r\n  eventually_countable_forall\r\n\r\ntheorem all_ae_of {ι : Sort*} {p : α → ι → Prop} (hp : ∀ᵐ a ∂μ, ∀ i, p a i) (i : ι) :\r\n    ∀ᵐ a ∂μ, p a i := by\r\n  filter_upwards [hp] with a ha using ha i\r\n",
+      "source": {
+        "LF_bytes": 11583,
+        "LF_sha256": "e0d76f9471d6189f17b518316b62d3c8c0c4b637bb5e8eec8a6aaac153700e11",
+        "RAW_bytes": 11869,
+        "RAW_sha256": "2f153a191584e65868668b9bd99e2d2099c0c203ac23c0e6480aa5da0af2005e",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/OuterMeasure/AE.lean"
+      },
+      "start_line": 93
+    },
+    {
+      "RAW_region_bytes": 503,
+      "RAW_region_sha256": "04514e619c32c6519ecfd3c2a7344fe6505b84911dec1d54a6cef74da3ad6ed9",
+      "end_line": 254,
+      "literal_RAW_UTF8": "    (hp : MeasurableSet { x | p x }) : (∀ᵐ y ∂μ.map f, p y) ↔ ∀ᵐ x ∂μ, p (f x) :=\r\n  mem_ae_map_iff hf hp\r\n\r\ntheorem ae_of_ae_map {f : α → β} (hf : AEMeasurable f μ) {p : β → Prop} (h : ∀ᵐ y ∂μ.map f, p y) :\r\n    ∀ᵐ x ∂μ, p (f x) :=\r\n  mem_ae_of_mem_ae_map hf h\r\n\r\ntheorem ae_map_mem_range {m0 : MeasurableSpace α} (f : α → β) (hf : MeasurableSet (range f))\r\n    (μ : Measure α) : ∀ᵐ x ∂μ.map f, x ∈ range f := by\r\n  by_cases h : AEMeasurable f μ\r\n",
+      "source": {
+        "LF_bytes": 13962,
+        "LF_sha256": "e9c245b054b5a897dba730cdefd02e89f94e9d7c54835bf149b6c952ad589a08",
+        "RAW_bytes": 14288,
+        "RAW_sha256": "51beda5ef7bb574d07a97884bcf90564df64c1fe1a22e055e1e3fbdb49fe47b0",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Map.lean"
+      },
+      "start_line": 245
+    },
+    {
+      "RAW_region_bytes": 778,
+      "RAW_region_sha256": "20c560b5e0c1441c76a205963672b15c2845fcc08bc123af0a406c3fb488b198",
+      "end_line": 168,
+      "literal_RAW_UTF8": "    (∃ x : ℝ≥0, p x) ↔ ∃ (x : ℝ) (hx : 0 ≤ x), p (.mk x hx) :=\r\n  Subtype.exists\r\n\r\n/-- Reinterpret a real number `r` as a non-negative real number. Returns `0` if `r < 0`. -/\r\ndef _root_.Real.toNNReal (r : ℝ) : ℝ≥0 :=\r\n  .mk (max r 0) (le_max_right _ _)\r\n\r\ntheorem _root_.Real.coe_toNNReal (r : ℝ) (hr : 0 ≤ r) : (Real.toNNReal r : ℝ) = r :=\r\n  max_eq_left hr\r\n\r\ntheorem _root_.Real.toNNReal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.toNNReal = .mk r hr := by\r\n  simp_rw [Real.toNNReal, max_eq_left hr]\r\n\r\ntheorem _root_.Real.le_coe_toNNReal (r : ℝ) : r ≤ Real.toNNReal r :=\r\n  le_max_left r 0\r\n\r\n@[bound] theorem coe_nonneg (r : ℝ≥0) : (0 : ℝ) ≤ r := r.2\r\n@[simp] lemma not_toReal_neg {r : ℝ≥0} : ¬ r.toReal < 0 := r.coe_nonneg.not_gt\r\n",
+      "source": {
+        "LF_bytes": 40202,
+        "LF_sha256": "3ccfc31016fc1670c6bd30eba23b198b08d057992b523c4cdcee9386f640007f",
+        "RAW_bytes": 41247,
+        "RAW_sha256": "5a625da67acd36b21e8378cf447d349f265c1efe52f30db90904f24162079ee6",
+        "path": ".lake/packages/mathlib/Mathlib/Data/NNReal/Defs.lean"
+      },
+      "start_line": 151
+    },
+    {
+      "RAW_region_bytes": 548,
+      "RAW_region_sha256": "8ce1a88a1c9382366c454ce69bdafc014a6a6000fd16de05137efe9e5bcedeb9",
+      "end_line": 155,
+      "literal_RAW_UTF8": "\r\nvariable {mα : MeasurableSpace α}\r\n\r\n@[fun_prop]\r\ntheorem measurable_real_toNNReal : Measurable Real.toNNReal :=\r\n  continuous_real_toNNReal.measurable\r\n\r\n@[fun_prop]\r\ntheorem Measurable.real_toNNReal {f : α → ℝ} (hf : Measurable f) :\r\n    Measurable fun x => Real.toNNReal (f x) :=\r\n  measurable_real_toNNReal.comp hf\r\n\r\n@[fun_prop]\r\ntheorem AEMeasurable.real_toNNReal {f : α → ℝ} {μ : Measure α} (hf : AEMeasurable f μ) :\r\n    AEMeasurable (fun x => Real.toNNReal (f x)) μ :=\r\n  measurable_real_toNNReal.comp_aemeasurable hf\r\n\r\n",
+      "source": {
+        "LF_bytes": 27221,
+        "LF_sha256": "b78c1a9884cd902272455db6ed2d27609b73b40cf833fdd77453885ef592b43f",
+        "RAW_bytes": 27804,
+        "RAW_sha256": "900565c5d94d29825d65db78d8b937061d5525da7f1de852e38b13f538511d10",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Real.lean"
+      },
+      "start_line": 139
+    },
+    {
+      "RAW_region_bytes": 461,
+      "RAW_region_sha256": "4f8a57bccf1a7b1ebdb7924eb3a5065475c67a128fb6312584059d43cf2b6223",
+      "end_line": 539,
+      "literal_RAW_UTF8": "@[simp]\r\ntheorem integral_indicator_const [CompleteSpace E] (e : E) ⦃s : Set X⦄ (s_meas : MeasurableSet s) :\r\n    ∫ x : X, s.indicator (fun _ : X => e) x ∂μ = μ.real s • e := by\r\n  rw [integral_indicator s_meas, ← setIntegral_const]\r\n\r\n@[simp]\r\ntheorem integral_indicator_one ⦃s : Set X⦄ (hs : MeasurableSet s) :\r\n    ∫ x, s.indicator 1 x ∂μ = μ.real s :=\r\n  (integral_indicator_const 1 hs).trans ((smul_eq_mul ..).trans (mul_one _))\r\n\r\n",
+      "source": {
+        "LF_bytes": 61855,
+        "LF_sha256": "119710a23a0a09d22f770ca36844ddc3ca1d72cb479e231fe9ec06cea20629f9",
+        "RAW_bytes": 63080,
+        "RAW_sha256": "27d33c7efc0145dbd20cb50b04208d1eb2f0573d04be1a0e86bbb862d66fbd8a",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Set.lean"
+      },
+      "start_line": 530
+    },
+    {
+      "RAW_region_bytes": 1112,
+      "RAW_region_sha256": "ef7ebc7120c08072c6618e88b86bb500ad02c5eb22415d75c0d834a48f0ee3fd",
+      "end_line": 1057,
+      "literal_RAW_UTF8": "  intro s x hs\r\n  simp [weightedSMul_apply, map_measureReal_apply, hs, hφ]\r\n\r\ntheorem integral_map {β} [MeasurableSpace β] {φ : α → β} (hφ : AEMeasurable φ μ) {f : β → G}\r\n    (hfm : AEStronglyMeasurable f (Measure.map φ μ)) :\r\n    ∫ y, f y ∂Measure.map φ μ = ∫ x, f (φ x) ∂μ :=\r\n  let g := hfm.mk f\r\n  calc\r\n    ∫ y, f y ∂Measure.map φ μ = ∫ y, g y ∂Measure.map φ μ := integral_congr_ae hfm.ae_eq_mk\r\n    _ = ∫ y, g y ∂Measure.map (hφ.mk φ) μ := by congr 1; exact Measure.map_congr hφ.ae_eq_mk\r\n    _ = ∫ x, g (hφ.mk φ x) ∂μ :=\r\n      (integral_map_of_stronglyMeasurable hφ.measurable_mk hfm.stronglyMeasurable_mk)\r\n    _ = ∫ x, g (φ x) ∂μ := integral_congr_ae (hφ.ae_eq_mk.symm.fun_comp _)\r\n    _ = ∫ x, f (φ x) ∂μ := integral_congr_ae <| ae_eq_comp hφ hfm.ae_eq_mk.symm\r\n\r\ntheorem _root_.MeasurableEmbedding.integral_map {β} {_ : MeasurableSpace β} {f : α → β}\r\n    (hf : MeasurableEmbedding f) (g : β → G) : ∫ y, g y ∂Measure.map f μ = ∫ x, g (f x) ∂μ := by\r\n  by_cases hgm : AEStronglyMeasurable g (Measure.map f μ)\r\n",
+      "source": {
+        "LF_bytes": 70432,
+        "LF_sha256": "f81a06eab17faccbc4b671a93e7af73332f5fd3946f7690e7c2a3cfee77d28c8",
+        "RAW_bytes": 71811,
+        "RAW_sha256": "38acb9930511f4fda15584cc7be30bb37d0d8ab0406a6cc2b32229c730440463",
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Basic.lean"
+      },
+      "start_line": 1040
+    },
+    {
+      "RAW_region_bytes": 2264,
+      "RAW_region_sha256": "ad72541f0e51173cd0171b9e5c438724d081fec9cf0db2588696792056bae101",
+      "end_line": 115,
+      "literal_RAW_UTF8": "namespace ProbabilityTheory\r\n\r\n/-- Two functions defined on two (possibly different) measure spaces are identically distributed if\r\ntheir image measures coincide. This only makes sense when the functions are ae measurable\r\n(as otherwise the image measures are not defined), so we require this as well in the definition. -/\r\nstructure IdentDistrib (f : α → γ) (g : β → γ)\r\n    (μ : Measure α := by volume_tac)\r\n    (ν : Measure β := by volume_tac) : Prop where\r\n  aemeasurable_fst : AEMeasurable f μ\r\n  aemeasurable_snd : AEMeasurable g ν\r\n  map_eq : Measure.map f μ = Measure.map g ν\r\n\r\nnamespace IdentDistrib\r\n\r\nopen TopologicalSpace\r\n\r\nvariable {μ : Measure α} {ν : Measure β} {f : α → γ} {g : β → γ}\r\n\r\nprotected theorem refl (hf : AEMeasurable f μ) : IdentDistrib f f μ μ :=\r\n  { aemeasurable_fst := hf\r\n    aemeasurable_snd := hf\r\n    map_eq := rfl }\r\n\r\nprotected theorem symm (h : IdentDistrib f g μ ν) : IdentDistrib g f ν μ :=\r\n  { aemeasurable_fst := h.aemeasurable_snd\r\n    aemeasurable_snd := h.aemeasurable_fst\r\n    map_eq := h.map_eq.symm }\r\n\r\nprotected theorem trans {ρ : Measure δ} {h : δ → γ} (h₁ : IdentDistrib f g μ ν)\r\n    (h₂ : IdentDistrib g h ν ρ) : IdentDistrib f h μ ρ :=\r\n  { aemeasurable_fst := h₁.aemeasurable_fst\r\n    aemeasurable_snd := h₂.aemeasurable_snd\r\n    map_eq := h₁.map_eq.trans h₂.map_eq }\r\n\r\nprotected theorem comp_of_aemeasurable {u : γ → δ} (h : IdentDistrib f g μ ν)\r\n    (hu : AEMeasurable u (Measure.map f μ)) : IdentDistrib (u ∘ f) (u ∘ g) μ ν :=\r\n  { aemeasurable_fst := hu.comp_aemeasurable h.aemeasurable_fst\r\n    aemeasurable_snd := by rw [h.map_eq] at hu; exact hu.comp_aemeasurable h.aemeasurable_snd\r\n    map_eq := by\r\n      rw [← AEMeasurable.map_map_of_aemeasurable hu h.aemeasurable_fst, ←\r\n        AEMeasurable.map_map_of_aemeasurable _ h.aemeasurable_snd, h.map_eq]\r\n      rwa [← h.map_eq] }\r\n\r\nprotected theorem comp {u : γ → δ} (h : IdentDistrib f g μ ν) (hu : Measurable u) :\r\n    IdentDistrib (u ∘ f) (u ∘ g) μ ν :=\r\n  h.comp_of_aemeasurable hu.aemeasurable\r\n\r\nprotected theorem of_ae_eq {g : α → γ} (hf : AEMeasurable f μ) (heq : f =ᵐ[μ] g) :\r\n    IdentDistrib f g μ μ :=\r\n  { aemeasurable_fst := hf\r\n",
+      "source": {
+        "LF_bytes": 17692,
+        "LF_sha256": "44dcb5b7f8c597d7bab3e93bf505dfa0b1f418f6702cdfe88e18638b1a272508",
+        "RAW_bytes": 18051,
+        "RAW_sha256": "778a6f25cfeca58b72d17a2faa277d8367f534aba6de478dd748c29e8e9a85ea",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/IdentDistrib.lean"
+      },
+      "start_line": 66
+    },
+    {
+      "RAW_region_bytes": 1349,
+      "RAW_region_sha256": "8622fb5be1df78b60531b682d337486cb3d495c837c5f9c8b2cd3ec1862d4475",
+      "end_line": 613,
+      "literal_RAW_UTF8": "\r\nend StrongLawNonneg\r\n\r\n/-- **Strong law of large numbers**, almost sure version: if `X n` is a sequence of independent\r\nidentically distributed integrable real-valued random variables, then `∑ i ∈ range n, X i / n`\r\nconverges almost surely to `𝔼[X 0]`. We give here the strong version, due to Etemadi, that only\r\nrequires pairwise independence. Superseded by `strong_law_ae`, which works for random variables\r\ntaking values in any Banach space. -/\r\ntheorem strong_law_ae_real {Ω : Type*} {m : MeasurableSpace Ω} {μ : Measure Ω}\r\n    (X : ℕ → Ω → ℝ) (hint : Integrable (X 0) μ)\r\n    (hindep : Pairwise ((· ⟂ᵢ[μ] ·) on X))\r\n    (hident : ∀ i, IdentDistrib (X i) (X 0) μ μ) :\r\n    ∀ᵐ ω ∂μ, Tendsto (fun n : ℕ => (∑ i ∈ range n, X i ω) / n) atTop (𝓝 μ[X 0]) := by\r\n  let mΩ : MeasureSpace Ω := ⟨μ⟩\r\n  -- first get rid of the trivial case where the space is not a probability space\r\n  by_cases h : ∀ᵐ ω, X 0 ω = 0\r\n  · have I : ∀ᵐ ω, ∀ i, X i ω = 0 := by\r\n      rw [ae_all_iff]\r\n      intro i\r\n      exact (hident i).symm.ae_snd (p := fun x ↦ x = 0) measurableSet_eq h\r\n    filter_upwards [I] with ω hω\r\n    simpa [hω] using! (integral_eq_zero_of_ae h).symm\r\n  have : IsProbabilityMeasure μ :=\r\n    hint.isProbabilityMeasure_of_indepFun (X 0) (X 1) h (hindep zero_ne_one)\r\n",
+      "source": {
+        "LF_bytes": 46851,
+        "LF_sha256": "e28a1812cbf15ac0f3e47126d6e2c34287c7d842a2d191819349019441cb9a75",
+        "RAW_bytes": 47720,
+        "RAW_sha256": "53f4eeb6f18c6160a02c1fc37264bdb57dad1bc575018abd7912b70c9ec8546a",
+        "path": ".lake/packages/mathlib/Mathlib/Probability/StrongLaw.lean"
+      },
+      "start_line": 590
+    },
+    {
+      "RAW_region_bytes": 1339,
+      "RAW_region_sha256": "c539c6d04786851e5fdafb993e3c78f1232d5e9ac2c3916c1d7333b6f33193c0",
+      "end_line": 52,
+      "literal_RAW_UTF8": "\r\nsection Semifield\r\n\r\nvariable {𝕜 α : Type*} [Semifield 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]\r\n  [TopologicalSpace 𝕜] [OrderTopology 𝕜]\r\n  {l : Filter α} {f g : α → 𝕜}\r\n\r\n/-- In a linearly ordered semifield with the order topology, if `f` tends to `Filter.atTop` and `g`\r\ntends to a positive constant `C` then `f * g` tends to `Filter.atTop`. -/\r\ntheorem Filter.Tendsto.atTop_mul_pos {C : 𝕜} (hC : 0 < C) (hf : Tendsto f l atTop)\r\n    (hg : Tendsto g l (𝓝 C)) : Tendsto (fun x => f x * g x) l atTop := by\r\n  refine tendsto_atTop_mono' _ ?_ (hf.atTop_mul_const (half_pos hC))\r\n  filter_upwards [hg.eventually (lt_mem_nhds (half_lt_self hC)), hf.eventually_ge_atTop 0] with x hg\r\n    hf using mul_le_mul_of_nonneg_left hg.le hf\r\n\r\n-- TODO: after removing this deprecated alias,\r\n-- rename `Filter.Tendsto.atTop_mul'` to `Filter.Tendsto.atTop_mul`.\r\n-- Same for the other 3 similar aliases below.\r\n/-- In a linearly ordered semifield with the order topology, if `f` tends to a positive constant `C`\r\nand `g` tends to `Filter.atTop` then `f * g` tends to `Filter.atTop`. -/\r\ntheorem Filter.Tendsto.pos_mul_atTop {C : 𝕜} (hC : 0 < C) (hf : Tendsto f l (𝓝 C))\r\n    (hg : Tendsto g l atTop) : Tendsto (fun x => f x * g x) l atTop := by\r\n  simpa only [mul_comm] using hg.atTop_mul_pos hC hf\r\n\r\n@[simp]\r\n",
+      "source": {
+        "LF_bytes": 16020,
+        "LF_sha256": "fde7a439a38ed1ef00bd6eb0c46ac53953380c3c528dbf9505e4fb7d3fa7fb8b",
+        "RAW_bytes": 16337,
+        "RAW_sha256": "9672f4928e399eb9428a1aca0272d159aa92d18343b7fd0bae54823fae87142d",
+        "path": ".lake/packages/mathlib/Mathlib/Topology/Algebra/Order/Field.lean"
+      },
+      "start_line": 28
+    },
+    {
+      "RAW_region_bytes": 644,
+      "RAW_region_sha256": "0f51a2298b84eb1602a37c923d398eec7a8a3eb2d53a089a73d6594d19e401c3",
+      "end_line": 77,
+      "literal_RAW_UTF8": "    Tendsto m f atTop ↔ ∀ b, ∀ᶠ a in f, b ≤ m a := by\r\n  simp only [atTop, tendsto_iInf, tendsto_principal, mem_Ici]\r\n\r\n@[to_dual]\r\ntheorem tendsto_atTop_mono' [Preorder β] (l : Filter α) ⦃f₁ f₂ : α → β⦄ (h : f₁ ≤ᶠ[l] f₂)\r\n    (h₁ : Tendsto f₁ l atTop) : Tendsto f₂ l atTop :=\r\n  tendsto_atTop.2 fun b => by filter_upwards [tendsto_atTop.1 h₁ b, h] with x using le_trans\r\n\r\n@[to_dual]\r\ntheorem tendsto_atTop_mono [Preorder β] {l : Filter α} {f g : α → β} (h : ∀ n, f n ≤ g n) :\r\n    Tendsto f l atTop → Tendsto g l atTop :=\r\n  tendsto_atTop_mono' l <| Eventually.of_forall h\r\n\r\nend Filter\r\n\r\n",
+      "source": {
+        "LF_bytes": 7866,
+        "LF_sha256": "0ec2f390f3a7c9648018b095b58735895d75f7895635ffaedd02baa5e6db5301",
+        "RAW_bytes": 8044,
+        "RAW_sha256": "d433483e4372f0e2d695ad248f606b9dbf7effd48f13ab45d17c86b51354f45b",
+        "path": ".lake/packages/mathlib/Mathlib/Order/Filter/AtTopBot/Tendsto.lean"
+      },
+      "start_line": 63
+    }
+  ]
+}

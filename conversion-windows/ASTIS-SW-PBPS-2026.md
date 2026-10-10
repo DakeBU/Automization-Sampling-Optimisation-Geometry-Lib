@@ -1,5 +1,18 @@
 # Proximal BPS · formalization result window
 
+## Exact actual finite stopped recursion76 (2026-10-10)
+
+Independent science commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The complete attributed statement and ten
+formula/BODY steps are authored once in declaration_lessons/pbps-actual-finite-jump-recursion.json,
+with exact initially folded adjacent Lean. Actual73/74/75 provide the flow,
+bounce/rate and first clock; no phase at infinity. Joint Borel recursion,
+original initial energy, monotone/stopped times, uniform waiting increments
+and zero/strict-growth guards are proved. iid Exp1 thresholds, partial-sum
+divergence/nonaccumulation, global PDMP/Markov/invariance/kernel/main/errors/
+expected-query cost/composition remain open. Integration76 records aggregate,
+reader and graph gates separately; no Exposition/PURIFIED/main/live/Goal credit.
+
+
 ## Exact actual first-clock checkpoint75 (2026-10-10)
 
 Independent science commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. Complete attributed statement and nine-step

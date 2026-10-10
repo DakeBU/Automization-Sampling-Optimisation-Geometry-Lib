@@ -1,5 +1,40 @@
 # Companion-paper formalization handoff
 
+## Exact finite PBPS jump recursion (2026-10-10)
+
+Independent exact science76 VERIFIED commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The actual73 flow, actual74
+bounce/rate and actual75 first hazard clock are genuine formal parents. The
+postjump recursion uses finite(time,phase) or stopped, with event time infinity
+for stopped and no assigned phase there. It follows AppendixA1(A2), retaining
+the original six analytic callers, eleven literal definitions, rank0, alphaeta1,
+zero energy and arbitrary zero thresholds. Joint Borel measurability holds for
+updates, every finite record and event time. Event times are monotone; stopping
+is absorbing. Original energy H(z0) is retained on active states and pre-jump
+arcs, so the same original-energy C0 bounds every outgoing actual rate.
+For C0>0, T[n+1]>=T[n]+e[n]/C0 includes already stopped infinity records.
+For C0=0 and e[n]>0, an active record stops. Zero thresholds give an immediate
+bounce; positive thresholds and active finite successors give strict growth.
+Arbitrary zero thresholds do not yet define a global physical-time phase.
+
+The exact412-line theorem and ten formula/BODY steps passed independent math,
+strict blind reconstruction and fresh source-first anti-anchored review.
+The stale prospective module comment and historical neutral-binder coordinates
+remain explicit nonmathematical debts, with reviewer relocation as evidence.
+Next dependency-ready leaf77 is the actual countable Exp1 product, its a.s.
+positive coordinates and divergent partial sums. Its real consumer is this
+recursion's uniform spacing, then event-time nonaccumulation. No assumed iid
+sequence/provider, nonexplosion, global path/Markov/invariance/kernel, full
+hypocoercivity/main/error/expected-query cost/composition is admitted here.
+TV proximity does not transfer unbounded costs. PBPS/SPHMC and composition
+precede Gaussian Cloud and midpoint. Preserve Chewi/frontiers/cycles/memory.
+
+Serialized local aggregate76: root9187, Tests9487, Registry525;246 publication units.
+One statement and ten formula/BODY steps plus the actual branch were inspected;
+three isolated copy callbacks and three RAW downloads were exact.
+Final current graph/gates are recorded in76 integration.notes.json.
+ExactSCI, aggregate, remoteCI/main/live, Exposition/PURIFIED and full-paper/Goal
+completion remain distinct.
+
 ## Exact PBPS first hazard clock (2026-10-10)
 
 Independent exact science75 VERIFIED commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. The actual harmonic flow73

@@ -177,6 +177,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate` | `pbps.actualBounceRate` | `actual_bounce_rate_energy_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange` | `pbps.actualCorrectorChange` | `actual_corrector_change` | arXiv2609.06905v1 Appendix B3 B20/B21; Lemma B4/B28 ingredient |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation` | `pbps.actualCorrectorPerturbation` | `actual_corrector_perturbation` | arXiv2609.06905v1 B20 and LemmaB4 Ex28-Ex34 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion` | `pbps.actualFiniteJumpRecursion` | `actual_fixed_reference_finite_jump_recursion` | arXiv2609.06905v1 AppendixA1 equation(A2) and Ex8 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow` | `pbps.actualHarmonicFlow` | `actual_harmonic_flow_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock` | `pbps.actualHazardClock` | `actual_integrated_hazard_clock_laws` | arXiv2609.06905v1 Algorithm1 and AppendixA1 equation(A1) |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation` | `pbps.actualProjectedRotation` | `actual_projected_rotation` | arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites |

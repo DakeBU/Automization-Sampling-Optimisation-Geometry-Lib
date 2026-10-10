@@ -55,5 +55,7 @@ elif sys.argv[1] == "publication":
     ]:
         gate(label, [py, "-X", "utf8", *args])
     gate("diff-check", ["git", "-c", "core.whitespace=cr-at-eol", "diff", "--check"])
+elif sys.argv[1] == "ci-base":
+    gate("ci-full-base-publication", [py, "-X", "utf8", "tools/astis_publication.py", "check", "--base", "c05de12e6a8ca7af8ce2df8608836f8d4e90f617"])
 else:
     raise ValueError(sys.argv[1])

@@ -22,6 +22,8 @@ for p in r.rglob('*'):
  name=p.as_posix()
  if not p.is_file() or name in exclude or '__pycache__' in p.parts or p.suffix in {'.log','.html','.pyc'} or name.endswith('.text.txt'):continue
  owned.append(name)
+source_preread=Path('runs/20261007-companion-priority/pbps-physical-time-law-preread81')
+owned += [p.as_posix() for p in source_preread.rglob('*') if p.is_file() and p.suffix in {'.json','.md','.py'} and '__pycache__' not in p.parts]
 subprocess.run(['git','-c','core.autocrlf=false','add','--',*sorted(set(owned))],check=True)
 check=subprocess.run(['git','-c','core.whitespace=cr-at-eol','diff','--cached','--check'],capture_output=True)
 if check.returncode:

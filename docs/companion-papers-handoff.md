@@ -1,5 +1,52 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS jointly measurable physical-time phase (2026-10-10)
+
+Independent exact-science commit ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. Actual finite recursion, harmonic
+flow, positive actual inputs and interval coverage are genuine parents. Under
+the original six analytic conditions, the actual phase has a total representative
+jointly Borel in deterministic parameters, finite time and the input stream.
+Every actual covering live interval selects its exact harmonic arc. When no
+interval covers t, the initial-phase fallback is an explicit ASTIS representative
+convention. A last live interval with infinite next wait remains an actual arc.
+
+For every fixed deterministic parameter tuple, one actual-product almost-sure
+event supports all finite times simultaneously and the representative starts
+at z0. The proof derives positive first waiting time from actual positive inputs;
+it does not add a positive-wait, clock, selector or nonexplosion provider premise.
+Joint measurability does not turn these separate fixed-parameter AE statements
+into a uniform event or justify arbitrary correlated random initialization.
+
+Nine complete formula/BODY steps and the exact sealed statement passed independent
+mathematics, source-blind reconstruction and fresh source-first review. Actual
+interval assembly, measurability and fixed-parameter AE initialization are now
+closed within this precise boundary. Path regularity, adaptedness, Markov and
+probability-kernel semantics, invariant law, hypocoercivity, main error and expected
+query cost, and actual-input PBPS-SPHMC composition remain OPEN. These results do
+not complete PBPS or the four-paper Goal; no unbounded cost is transferred by TV.
+
+Next bounded source-only candidate: construct the ideal Algorithm1 returned
+position law H_y from the exact normalized conditional Gibbs reference (2.8),
+Gaussian momentum and independent actual exponential stream, with derived
+initialization law. The independent source-only81 inventory/graph is frozen in
+runs/20261007-companion-priority/pbps-physical-time-law-preread81/. Existing
+conditional/Gaussian APIs still require exact source correspondence checking
+and a frozen Statement Seal before implementation. No81 proof, reference-sampler
+execution, Markov/semigroup/invariance or cost credit is claimed by this preread.
+
+PBPS/SPHMC and their actual-input composition remain first, then Gaussian Cloud,
+then midpoint with no added higher derivative bound. Preserve all older sources,
+routes, cycles and collaborator work. The single existing stabilization lane
+carries this VERIFIED child. Local aggregate80 passed (root9191,
+Tests9491, Registry529), including canonical tools/astis.py check, ATLAS and
+fake-closure scans; py_compile passed. Publication/site/graph checks are bound
+in80 integration.notes.json. Static SVG was actually viewed; generated HTML
+content/folding is checked separately. Actual page/interactive branch visual
+acceptance remains pending because the bound browser surface has no inspectable
+tab. Main merge,
+PURIFIED/Exposition, live deployment and whole-paper/Goal completion remain separate.
+
+
 ## Actual PBPS finite physical-time interval coverage (2026-10-10)
 
 Independent exact-science commit 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion76 and

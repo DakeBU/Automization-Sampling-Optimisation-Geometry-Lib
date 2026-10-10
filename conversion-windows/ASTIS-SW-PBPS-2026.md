@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual jointly measurable physical-time phase80 (2026-10-10)
+
+Independent science ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. The actual finite recursion, harmonic flow and interval cover now produce a total jointly Borel phase, exact on every covering live interval, with explicit ASTIS fallback on uncovered exceptional inputs. For each fixed deterministic parameter tuple, one common-AE event gives all-time actual arc agreement and initialization at z0. No uniform parameter AE or arbitrary correlated random initialization is inferred. Complete original six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-measurability lesson/publication beside folded exact Lean. Process regularity/adaptedness/Markov/kernel/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.
+
+
 ## Actual physical-time interval coverage79 (2026-10-10)
 
 Independent science 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion plus actual nonaccumulation now give a common-AE unique half-open interval, unique live stored record and finite elapsed<nextwait for every finite physical time. The complete six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-cover lesson/publication, beside initially folded exact Lean. Next is an actual jointly measurable phase representative with all-time AE arc agreement and input-derived initialization; global process regularity/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.

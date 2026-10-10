@@ -45,6 +45,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
 import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -89,6 +90,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPhysicalTimeMeasurability"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase"
+    upstreamDecl := "Actual PBPS joint physical-time phase measurability and AE initialization"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "measurable", "initialization"]
+    saldUse := "PBPS actual physical-time law/kernel construction prerequisite; no SALD claim"
+    note := "Independently verified science ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. Original six analytic source conditions and literal actual recursion yield a total phase representative jointly Borel in deterministic parameters, finite physical time and actual input stream. It agrees with every covering live harmonic arc; uncovered exceptional inputs use explicitly attributed initial-phase fallback. For each fixed deterministic parameter tuple, on one actual-product AE event it agrees with a live arc for every finite time and starts at z0. No uniform parameter AE event or correlated random-parameter substitution follows. Path regularity/adaptedness/Markov/invariance/kernel/hypocoercivity/main/error/expected-cost/composition remain open. Aggregate/visual/main/PURIFIED/live and whole-paper/Goal completion remain separate."
+  },
   {
     key := "pbps.actualPhysicalTimeCover"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover"

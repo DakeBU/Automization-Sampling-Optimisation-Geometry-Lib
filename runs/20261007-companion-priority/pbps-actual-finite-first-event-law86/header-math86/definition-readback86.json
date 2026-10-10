@@ -1,0 +1,96 @@
+{
+  "created_utc": "2026-10-10T18:36:44.845659+00:00",
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-actual-finite-first-event-law86/header86.proposed.lean",
+    "raw_sha256": "51e925d7a7874083c0802682e7157fcaa2adf6961c2f1ba711d1646ab35e32d8",
+    "bytes": 5294
+  },
+  "parent85": {
+    "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseTransitionKernel.lean",
+    "raw_sha256": "14df46eb96095b6b4cf3e454f7794382c2ba1e09812bd8ab15b7ea6b11842a22",
+    "bytes": 9685
+  },
+  "eight_definitions_exact_byte_text_after_newline_normalization": {
+    "P": true,
+    "ε": true,
+    "c": true,
+    "Φ": true,
+    "S": true,
+    "rate": true,
+    "Λ": true,
+    "τ": true
+  },
+  "all_eight_identical": true,
+  "literal_blocks": {
+    "P": "    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))",
+    "ε": "    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)",
+    "c": "    let c : E → E → E := fun y xRef => y - η • gradient V xRef",
+    "Φ": "    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)",
+    "S": "    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))",
+    "rate": "    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))",
+    "Λ": "    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)",
+    "τ": "    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)",
+    "U": "    let U : E → E → (E × E) → (ℕ → ℝ) → WithTop ℝ≥0 :=\n      fun y xRef z sample => τ y xRef z (ε sample 0)",
+    "F": "    let F : E → E → (E × E) → (ℕ → ℝ) → ℝ :=\n      fun y xRef z sample => ((U y xRef z sample).untopD 0 : ℝ≥0)",
+    "A": "    let A : E → E → (E × E) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z T => {sample | (0 : WithTop ℝ≥0) < U y xRef z sample ∧\n        U y xRef z sample ≤ (T : WithTop ℝ≥0)}",
+    "d": "    let d : E → E → (E × E) → ℝ → ℝ := fun y xRef z s =>\n      rate xRef (Φ y xRef s z) * Real.exp (-Λ y xRef z (Real.toNNReal s))",
+    "ρ": "    let ρ : E → E → (E × E) → ℝ≥0 → Measure ℝ := fun y xRef z T =>\n      (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))).withDensity\n        (fun s => ENNReal.ofReal (d y xRef z s))",
+    "J": "    let J : E → E → (E × E) → ℝ → (ℝ≥0 × (E × E)) :=\n      fun y xRef z s => (Real.toNNReal s, S xRef (Φ y xRef s z))"
+  },
+  "parent_statement_readbacks": [
+    {
+      "file": {
+        "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseTransitionKernel.lean",
+        "raw_sha256": "14df46eb96095b6b4cf3e454f7794382c2ba1e09812bd8ab15b7ea6b11842a22",
+        "bytes": 9685
+      },
+      "private_prop": "private def actual_phase_transition_kernel_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n      ∧ (∃ K : Kernel (((E × E) × (E × E)) × ℝ≥0) (E × E),\n        IsMarkovKernel K ∧\n        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,\n          K (((y, xRef), z₀), t) = Measure.map (Z y xRef z₀ t) P) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,\n          ∀ B : Set (E × E), MeasurableSet B →\n            K (((y, xRef), z₀), t) B = P ((Z y xRef z₀ t) ⁻¹' B)) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E,\n          K (((y, xRef), z₀), 0) = Measure.dirac z₀) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,\n          ∀ g : (E × E) → ℝ, Measurable g →\n            ∀ M : ℝ, 0 ≤ M → (∀ z : E × E, |g z| ≤ M) →\n              Integrable g (K (((y, xRef), z₀), t)) ∧\n              Integrable (fun sample => g (Z y xRef z₀ t sample)) P ∧\n              (∫ z, g z ∂K (((y, xRef), z₀), t)) =\n                ∫ sample, g (Z y xRef z₀ t sample) ∂P))",
+      "implementation_BODY_not_displayed": true
+    },
+    {
+      "file": {
+        "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean",
+        "raw_sha256": "fd93d01583eec206285573c1f1631b94739f95471c50e1ff940e66080238e23d",
+        "bytes": 21771
+      },
+      "private_prop": "private def actual_integrated_hazard_clock_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    let C : E → E → (E × E) → ℝ := fun y xRef z =>\n      Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n        (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let W : E → E → (E × E) → Measure (WithTop ℝ≥0) := fun y xRef z =>\n      Measure.map (fun e : ℝ => τ y xRef z (Real.toNNReal e))\n        (ProbabilityTheory.expMeasure (1 : ℝ))\n    Continuous (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) ∧\n    Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ t : ℝ≥0,\n      IntervalIntegrable (fun s : ℝ => rate xRef (Φ y xRef s z)) volume 0 (t : ℝ)) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Λ y xRef z 0 = 0 ∧ (∀ t : ℝ≥0, 0 ≤ Λ y xRef z t) ∧\n      Monotone (Λ y xRef z)) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e t : ℝ≥0,\n      τ y xRef z e ≤ (t : WithTop ℝ≥0) ↔ (e : ℝ) ≤ Λ y xRef z t) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e : ℝ≥0,\n      (τ y xRef z e = ⊤ ↔ ∀ t : ℝ≥0, Λ y xRef z t < (e : ℝ)) ∧\n      (τ y xRef z e ≠ ⊤ → Λ y xRef z (τ y xRef z e).untopA = (e : ℝ)) ∧\n      (0 < e → (0 : WithTop ℝ≥0) < τ y xRef z e) ∧ τ y xRef z 0 = 0) ∧\n    Measurable (fun a : (E × E) × (E × E) × ℝ≥0 =>\n      τ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, IsProbabilityMeasure (W y xRef z) ∧\n      ∀ t : ℝ≥0, (W y xRef z).real (Set.Ioi (t : WithTop ℝ≥0)) =\n        Real.exp (-Λ y xRef z t)) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ C y xRef z ∧\n      ∀ t : ℝ≥0, Λ y xRef z t ≤ C y xRef z * (t : ℝ)) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e : ℝ≥0,\n      (0 < C y xRef z →\n        (Real.toNNReal ((e : ℝ) / C y xRef z) : WithTop ℝ≥0) ≤ τ y xRef z e) ∧\n      (C y xRef z = 0 → 0 < e → τ y xRef z e = ⊤))",
+      "implementation_BODY_not_displayed": true
+    },
+    {
+      "file": {
+        "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+        "raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+        "bytes": 10565
+      },
+      "private_prop": "private def actual_bounce_rate_energy_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n    let R : E → E → E := fun n p =>\n      p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, R (h xRef z.1) z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))",
+      "implementation_BODY_not_displayed": true
+    },
+    {
+      "file": {
+        "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+        "raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+        "bytes": 8519
+      },
+      "private_prop": "private def actual_harmonic_flow_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))",
+      "implementation_BODY_not_displayed": true
+    },
+    {
+      "file": {
+        "path": "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean",
+        "raw_sha256": "c4a93999f287008d9ddb3f3624f52f302df122e5e007a54fd427a9985edc5ec0",
+        "bytes": 6411
+      },
+      "private_prop": "private def unit_exponential_product_statement : Prop :=\n  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n  let X : ℕ → (ℕ → ℝ) → ℝ := fun k ω => ω k\n  let ε : ℕ → (ℕ → ℝ) → ℝ≥0 := fun k ω => Real.toNNReal (X k ω)\n  IsProbabilityMeasure P ∧\n  (∀ k : ℕ, Measurable (X k) ∧ Measurable (ε k) ∧\n    Measure.map (X k) P = expMeasure (1 : ℝ)) ∧\n  iIndepFun X P ∧\n  (∀ᵐ ω ∂P, ∀ k : ℕ, 0 < X k ω ∧ (ε k ω : ℝ) = X k ω) ∧\n  (∀ᵐ ω ∂P, Tendsto (fun n : ℕ => ∑ k ∈ Finset.range n, (ε k ω : ℝ))\n    atTop atTop)",
+      "implementation_BODY_not_displayed": true
+    }
+  ],
+  "binder_names": [
+    "hα",
+    "hαβ",
+    "hV",
+    "hH",
+    "hη",
+    "hβη"
+  ],
+  "scope": "Whole header and exact parent private Props only; no86BODY exists. Previous separate source-only review visibility deviation remains disclosed there."
+}

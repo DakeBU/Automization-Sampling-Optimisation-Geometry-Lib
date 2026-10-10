@@ -1,0 +1,272 @@
+{
+  "schema": "astis.source-only-statement-api-retrieval86.v1",
+  "status": "SOURCE_ONLY_POST_FREEZE",
+  "created_utc": "2026-10-10T18:14:08.342507+00:00",
+  "source_first_seal": {
+    "path": "runs/20261007-companion-priority/pbps-path-law-preread86/source-first-seal86.json",
+    "raw_sha256": "3a74e62d608d6dd9600466126f6d9991a64f64b4682c70e0e14f7e438ca279d7",
+    "bytes": 1427
+  },
+  "independence": {
+    "source_topology_frozen_before_existing_API_retrieval": true,
+    "no_PBPS_implementation_BODIES_used": true,
+    "no_final_review_verdicts_used": true,
+    "no_proof_search_or_compilation": true
+  },
+  "retrieval_method": "Bounded rg filenames/declaration names, then Python regex extraction of private Prop and theorem signatures only; full-file bytes are hashed, not interpreted as proofs.",
+  "native_observations": [
+    "Existing ActualHazardClock sealed Prop supplies joint continuity/measurability of Lambda, monotonicity, wait threshold equivalence, probability W, W.real(Ioi t)=exp(-Lambda t), finite-hitting equality, zero/positive cap cases.",
+    "Existing private hazard helper does not export HasDerivAt. Derivative of the explicit integral must be derived from continuous actual rate with generic FTC, not treated as a parent output.",
+    "UnitExponentialProduct sealed Prop supplies literal countable product P, coordinate marginal expMeasure1, positivity AE and independence.",
+    "ActualSmallTimeContinuity supplies actual no-first-event defect/tail convergence, not a first-event density.",
+    "Declaration-name scan found no first-event density/path-law producer among current PBPS exports. This is a bounded duplicate check, not a library-wide nonexistence theorem."
+  ],
+  "query_failures_retained": [
+    {
+      "kind": "retrieval-regex",
+      "detail": "First helper signature regex required theorem at column0 and missed private theorem; corrected to optional private. No mathematical failure."
+    },
+    {
+      "kind": "PowerShell-rg-path-glob",
+      "detail": "Literal wildcard argument caused rg filename syntax error; corrected using -g patterns. No mathematical failure."
+    }
+  ],
+  "incidental_background_output": "One bounded ext_of_Iic/FTC line-range query displayed several Mathlib proof lines after signatures; those lines were not used as source, as a PBPS proof, or to select topology. Final extracted receipts contain signatures only.",
+  "sealed_statement_text": {
+    "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean": "private def actual_integrated_hazard_clock_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    let C : E → E → (E × E) → ℝ := fun y xRef z =>\n      Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n        (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let W : E → E → (E × E) → Measure (WithTop ℝ≥0) := fun y xRef z =>\n      Measure.map (fun e : ℝ => τ y xRef z (Real.toNNReal e))\n        (ProbabilityTheory.expMeasure (1 : ℝ))\n    Continuous (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) ∧\n    Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ t : ℝ≥0,\n      IntervalIntegrable (fun s : ℝ => rate xRef (Φ y xRef s z)) volume 0 (t : ℝ)) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Λ y xRef z 0 = 0 ∧ (∀ t : ℝ≥0, 0 ≤ Λ y xRef z t) ∧\n      Monotone (Λ y xRef z)) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e t : ℝ≥0,\n      τ y xRef z e ≤ (t : WithTop ℝ≥0) ↔ (e : ℝ) ≤ Λ y xRef z t) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e : ℝ≥0,\n      (τ y xRef z e = ⊤ ↔ ∀ t : ℝ≥0, Λ y xRef z t < (e : ℝ)) ∧\n      (τ y xRef z e ≠ ⊤ → Λ y xRef z (τ y xRef z e).untopA = (e : ℝ)) ∧\n      (0 < e → (0 : WithTop ℝ≥0) < τ y xRef z e) ∧ τ y xRef z 0 = 0) ∧\n    Measurable (fun a : (E × E) × (E × E) × ℝ≥0 =>\n      τ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, IsProbabilityMeasure (W y xRef z) ∧\n      ∀ t : ℝ≥0, (W y xRef z).real (Set.Ioi (t : WithTop ℝ≥0)) =\n        Real.exp (-Λ y xRef z t)) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ C y xRef z ∧\n      ∀ t : ℝ≥0, Λ y xRef z t ≤ C y xRef z * (t : ℝ)) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e : ℝ≥0,\n      (0 < C y xRef z →\n        (Real.toNNReal ((e : ℝ) / C y xRef z) : WithTop ℝ≥0) ≤ τ y xRef z e) ∧\n      (C y xRef z = 0 → 0 < e → τ y xRef z e = ⊤))\n\nset_option maxHeartbeats 800000 in",
+    "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualSmallTimeContinuity.lean": "private def actual_small_time_stochastic_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        (∀ t : ℝ≥0,\n          MeasurableSet {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ∧\n          P.real {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤\n              1 - Real.exp (-Λ y xRef z₀ t)) ∧\n        (∀ δ : ℝ, 0 < δ →\n          (∀ t : ℝ≥0, MeasurableSet {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) ∧\n          Tendsto (fun t : ℝ≥0 => P.real {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) (𝓝 0) (𝓝 0)))\n\n\nset_option maxHeartbeats 1600000 in",
+    "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean": "private def unit_exponential_product_statement : Prop :=\n  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n  let X : ℕ → (ℕ → ℝ) → ℝ := fun k ω => ω k\n  let ε : ℕ → (ℕ → ℝ) → ℝ≥0 := fun k ω => Real.toNNReal (X k ω)\n  IsProbabilityMeasure P ∧\n  (∀ k : ℕ, Measurable (X k) ∧ Measurable (ε k) ∧\n    Measure.map (X k) P = expMeasure (1 : ℝ)) ∧\n  iIndepFun X P ∧\n  (∀ᵐ ω ∂P, ∀ k : ℕ, 0 < X k ω ∧ (ε k ω : ℝ) = X k ω) ∧\n  (∀ᵐ ω ∂P, Tendsto (fun n : ℕ => ∑ k ∈ Finset.range n, (ε k ω : ℝ))\n    atTop atTop)"
+  },
+  "background_contracts": {
+    "MeasureTheory.Measure.ext_of_Iic": "theorem ext_of_Iic {α : Type*} [TopologicalSpace α] {m : MeasurableSpace α}\n    [SecondCountableTopology α] [LinearOrder α] [OrderTopology α] [BorelSpace α] (μ ν : Measure α)\n    [IsFiniteMeasure μ] (h : ∀ a, μ (Iic a) = ν (Iic a)) : μ = ν",
+    "intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le": "theorem integral_eq_sub_of_hasDerivAt_of_le (hab : a ≤ b) (hcont : ContinuousOn f (Icc a b))\n    (hderiv : ∀ x ∈ Ioo a b, HasDerivAt f (f' x) x) (hint : IntervalIntegrable f' volume a b) :\n    ∫ y in a..b, f' y = f b - f a",
+    "intervalIntegral.integral_hasDerivAt_right": "theorem integral_hasDerivAt_right (hf : IntervalIntegrable f volume a b)\n    (hmeas : StronglyMeasurableAtFilter f (𝓝 b)) (hb : ContinuousAt f b) :\n    HasDerivAt (fun u => ∫ x in a..u, f x) (f b) b",
+    "actual_hazard_primitive_laws_private": "private theorem actual_hazard_primitive_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E"
+  },
+  "source_only85_context": {
+    "raw_input": {
+      "path": "runs/20261007-companion-priority/pbps-transition-kernel-preread85/source-proof-graph85.reviewed-effective.json",
+      "raw_sha256": "2e075d018bd310a9ecb0068e5d98bdaf01d5cf8e623e986a9b071e82b59f1f04",
+      "bytes": 13855
+    },
+    "six_future_open_source_nodes": [
+      {
+        "id": "G85-15",
+        "title": "Actual n-jump path law, summability, reverse change of variables and survival/jump identity",
+        "status": "FUTURE_OPEN",
+        "source_ids": [
+          "A1.SS1.SSS0.Px1.p4.2",
+          "A1.SS1.SSS0.Px1.p4.3",
+          "A1.SS1.SSS0.Px1.p5.2",
+          "A1.E7",
+          "A1.E8",
+          "A1.SS1.SSS0.Px1.p4.4",
+          "A1.SS1.SSS0.Px1.p5.1"
+        ]
+      },
+      {
+        "id": "G85-16",
+        "title": "Actual nu invariance from bounded reversal identity with F=1",
+        "status": "FUTURE_OPEN",
+        "source_ids": [
+          "A1.SS1.SSS0.Px1.p5.3"
+        ]
+      },
+      {
+        "id": "G85-17",
+        "title": "AE-safe L2 operator and Jensen contraction",
+        "status": "FUTURE_OPEN",
+        "source_ids": [
+          "A1.SS1.SSS0.Px1.p6.1"
+        ]
+      },
+      {
+        "id": "G85-18",
+        "title": "Independent compact-continuous density in L2(nu)",
+        "status": "FUTURE_OPEN",
+        "source_ids": [
+          "A1.SS1.SSS0.Px1.p6.2"
+        ]
+      },
+      {
+        "id": "G85-20",
+        "title": "Full all-L2 strong continuity",
+        "status": "FUTURE_OPEN",
+        "source_ids": [
+          "A1.SS1.SSS0.Px1.p6.2"
+        ]
+      },
+      {
+        "id": "G85-21",
+        "title": "Process Markov/restart/Chapman-Kolmogorov, global invariance/cost/main claims",
+        "status": "EXCLUDED_OPEN_BOUNDARY",
+        "source_ids": [
+          "A1.SS1.p3.7",
+          "S3.Thmtheorem1",
+          "A1.Thmtheorem1"
+        ]
+      }
+    ]
+  },
+  "chronology_only": {
+    "capsule": {
+      "path": "runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/capsule.after-science85.json",
+      "raw_sha256": "473c9f5cb8c245883f028983375ad037cd7d50eccad7c9d31f7eb7d93e6f784a",
+      "bytes": 18926
+    },
+    "generated_at": "2026-10-10T17:59:30+00:00",
+    "handoff": {
+      "path": "docs/companion-papers-handoff.md",
+      "raw_sha256": "6572436392d1aa12e9afdb2aeea64ec2cdcfc24e71233c93deb990dd648d2c83",
+      "bytes": 289213
+    },
+    "bounded_headings": [
+      "## Actual PBPS jointly indexed full-phase law (2026-10-11)",
+      "## Actual PBPS bounded-test outer square-integral continuity (2026-10-11)"
+    ],
+    "note": "Handoff top checkpoint may advance concurrently. It and capsule are chronology, never source mathematics or an independent verdict."
+  },
+  "priority": {
+    "updated": "2026-10-11",
+    "current_checkpoint": "docs/companion-papers-handoff.md#actual-pbps-jointly-indexed-full-phase-law-2026-10-11",
+    "current_state_authority": "Read tools/astis_advance.py capsule and current research-wiki/frontier-cells records. first_cell and result_cells below preserve the historical September10 checkpoint; they are not the current count or scheduling frontier.",
+    "priority": "first-mathematical-priority",
+    "authorization": "The existing unbudgeted Goal in this thread was expanded on2026-10-08 to four complete faithful papers, without reset or parallel Goal. Phase1 PBPS/SPHMC and their actual-input composition; Phase2 Gaussian Cloud; Phase3 midpoint. These are scheduling priorities, not invented mathematical dependencies or completion badges.",
+    "targets": [
+      "ASTIS-SW-PBPS-2026",
+      "ASTIS-SW-SPHMC-2026",
+      "ASTIS-SW-GAUSSIAN-CLOUD-2026",
+      "ASTIS-SW-MIDPOINT-2026"
+    ],
+    "selection": "One dependency-ready substantive packet at a time; shortest verified path to actual paper theorems, not leaf-count maximization.",
+    "first_cell": "ASTIS-SW-SPHMC-recursive-condition-contraction",
+    "result_cells": [
+      "ASTIS-SW-SPHMC-recursive-condition-contraction",
+      "ASTIS-SW-PBPS-gaussian-augmentation-reflection",
+      "ASTIS-SW-SPHMC-rgo-closure",
+      "ASTIS-SHARED-isotropic-gaussian-density",
+      "ASTIS-SW-PBPS-joint-gaussian-density",
+      "ASTIS-SHARED-strong-convex-gibbs-integrability",
+      "ASTIS-SHARED-hessian-strong-convexity",
+      "ASTIS-SW-PBPS-gibbs-augmentation",
+      "ASTIS-SHARED-quadratic-regularization",
+      "ASTIS-SHARED-markov-kernel-tv-contraction",
+      "ASTIS-SHARED-gaussian-rgo-conditional-kernel",
+      "ASTIS-SW-SPHMC-rgo-calculus",
+      "ASTIS-SW-SPHMC-recursive-variance-contraction"
+    ],
+    "preserved_frontier": "Chewi 8.4.1 representative/score-Fisher identification and all previous cell/cycle evidence are preserved, not completed or reset.",
+    "delivery": "Each fixed paper has an independent stable page and conversion window. Reader: problem/contribution -> full main statement and all conditions -> small proof route -> layered key lemmas -> stepwise formula proof. Accurate Lean statement/proof/explanation are initially folded beside each mathematical item. Chapter1.3 is the standard. Original author proof, ASTIS completion, verified Lean and unformalized mathematics stay distinct. Full mains/true kernels/existence/domains/initialization/constants/error/oracle costs/composition/source fidelity/reader acceptance are required before whole Goal completion.",
+    "deferred_product_work": [
+      "Stable page and version-pinned citation/BibTeX entry",
+      "Copy associated Lean and download a reproducible paper/book/chapter Lean bundle with manifest, imports, toolchain and licenses",
+      "Theorem-local graph location and audited topology contribution"
+    ],
+    "cost_rule": "Do not schedule decorative graph or website work ahead of a reachable paper proof. The Gaussian-cloud Section 6 ledger is not decorative: it is the reader and theorem interface for tracking the same recursive calls, caps and accumulated errors that Lean must certify. Reuse metadata and prior audit evidence; retain normal truth/source gates at stabilization.",
+    "phase_order": [
+      {
+        "phase": 1,
+        "source_versions": [
+          "2609.06905v1",
+          "2609.06906v1"
+        ],
+        "scope": "PBPS/SPHMC actual verified dependencies and original actual-input expected-cost composition"
+      },
+      {
+        "phase": 2,
+        "source_versions": [
+          "2609.38710v1"
+        ],
+        "scope": "Gaussian Cloud Section6 recursive forest/request counts/conditional errors/local-global stopping/caps/cumulative TV/actual-input expected queries"
+      },
+      {
+        "phase": 3,
+        "source_versions": [
+          "2610.06308v1"
+        ],
+        "scope": "Midpoint deterministic upper bounds/deterministic-randomized lower bounds/finite-step initialization; no added third-or-higher derivative assumptions"
+      }
+    ],
+    "dependency_exception": "A shared result from a later paper may be extracted earlier only when it truly removes a current blocker, with an exact current consumer and reason. Do not spread proofs across four papers or duplicate verified mathematics.",
+    "source_versions_and_licenses": [
+      {
+        "version": "2609.06905v1",
+        "url": "https://arxiv.org/abs/2609.06905v1",
+        "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+      },
+      {
+        "version": "2609.06906v1",
+        "url": "https://arxiv.org/abs/2609.06906v1",
+        "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+      },
+      {
+        "version": "2609.38710v1",
+        "url": "https://arxiv.org/abs/2609.38710v1",
+        "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+      },
+      {
+        "version": "2610.06308v1",
+        "url": "https://arxiv.org/abs/2610.06308v1",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/"
+      }
+    ],
+    "status_rules": "proved_locally, independently_verified, stabilized, merged, purified and complete main results are distinct; site status is evidence-generated. TV proximity never transfers unbounded expected cost."
+  },
+  "input_pins": [
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean",
+      "raw_sha256": "fd93d01583eec206285573c1f1631b94739f95471c50e1ff940e66080238e23d",
+      "bytes": 21771
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualSmallTimeContinuity.lean",
+      "raw_sha256": "f2bbb2a495ff6af2f2d1d73f77c498ccf16406bb0b07d20b8437631afb1a7bde",
+      "bytes": 15343
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteJumpRecursion.lean",
+      "raw_sha256": "1f1ebc187676e0481247bc2f58ec0bf94b2fc6f02a563b87009a0fe7bfb4910c",
+      "bytes": 22655
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+      "raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+      "bytes": 8519
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+      "raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+      "bytes": 10565
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/GaussianReflection.lean",
+      "raw_sha256": "c24c8ce6f5191a15dae80ee2bbdab36fb568ae91d2cfafb3160ec88bec2586ba",
+      "bytes": 3276
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/GibbsAugmentation.lean",
+      "raw_sha256": "4fb6df0702b016f243dbf4ac16a72f831747aefd69831c00952d456b523294f0",
+      "bytes": 4464
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean",
+      "raw_sha256": "c4a93999f287008d9ddb3f3624f52f302df122e5e007a54fd427a9985edc5ec0",
+      "bytes": 6411
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Order.lean",
+      "raw_sha256": "ad58089a305e04bad885616fc654b2bb1b49aecbeea54105e38b9cb8cc5b5dc5",
+      "bytes": 55247
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean",
+      "raw_sha256": "2db0abeefc9b9d2bb43e2326dc6df0126e6b2032a3beda0c115b61f160bab4af",
+      "bytes": 76620
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Exponential.lean",
+      "raw_sha256": "4d222a32f7ef03be6484a811890c8dd4dcc3a895c89593f56b3db746b7dd97e6",
+      "bytes": 7564
+    }
+  ]
+}

@@ -48,6 +48,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability
 import AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -92,6 +93,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualBoundedTestContinuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity.actual_bounded_test_expectation_continuity"
+    upstreamDecl := "Actual PBPS bounded-test clock expectation prerequisite"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "bounded-test", "integrability"]
+    saldUse := "Source Ex22 pointwise clock-expectation ingredient; no SALD claim"
+    note := "Independently verified science 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. For the actual physical phase, every continuous real test f with global |f|<=M and M>=0 has measurable integrable clock pullbacks, |E f(Z_t)-f(Phi_t z0)|<=2M(1-exp(-Lambda_t)), and E f(Z_t)->f(z0) at ordinary NNReal0 for each fixed initial tuple. Original six analytic hypotheses, literal actual definitions and all prior physical/stochastic clauses retained. C_b and explicit2M are ASTIS elaboration of source C_c small-time step. Outer L2/invariant law/Jensen/contraction/density/Markov/restart/semigroup/hypocoercivity/implementation/main/error/cost/composition and actual browser/main/PURIFIED/live remain OPEN."
+  },
   {
     key := "pbps.actualSmallTimeContinuity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"

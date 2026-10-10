@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual bounded-test expectation83 (2026-10-10)
+
+Independent science 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. Every globally bounded continuous real test of the actual physical phase is measurable and integrable under the actual clocks. The explicit2M phase-defect integral estimate yields pointwise clock-expectation continuity at NNReal0. Original six conditions and complete prior physical semantics retained. Eight formula/BODY regions authored once with adjacent folded Lean. C_b/2M are ASTIS elaborations of source C_c. Outer L2/invariance/Markov/semigroup/main/error/cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
 ## Actual small-time stochastic continuity82 (2026-10-10)
 
 Independent science 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. Actual phase-flow defect <=1-exp(-Lambda_t) and every positive-threshold norm-tail probability tend to0 at NNReal0, under actual clocks for each fixed initial tuple. Original six hypotheses and complete actual phase semantics retained. Nine formula/BODY regions authored once beside exact folded Lean. Source Ex22 fullL2/invariance/Markov/semigroup/main/error/cost/composition remain OPEN; local aggregate, actual reader visual, main/PURIFIED/live distinct.

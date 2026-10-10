@@ -1,5 +1,59 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS bounded-test clock expectation (2026-10-10)
+
+Independent exact-science commit 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. For each fixed y,xRef,z0 and every
+continuous real test f on phase space with a global bound |f|<=M and M>=0, the
+actual clock pullback f(Z_t) is measurable and integrable for every finite t>=0.
+The same actual phase representative satisfies
+|E_P f(Z_t)-f(Phi_t z0)| <= 2M (1-exp(-Lambda(z0,t))).
+On the measurable phase-flow defect event, the difference is bounded by2M;
+off that event it is zero. Integrating its indicator under the actual probability
+law and applying the independently verified first-event defect bound proves the
+estimate. Continuity of Phi and Lambda at0, Lambda0=0, a squeeze and addition give
+E_P f(Z_t)->f(z0) at ordinary nonpunctured NNReal0. No samplewise almost-sure
+convergence is inferred from the preceding convergence-in-probability result.
+
+All original six dynamics hypotheses, eleven literal actual definitions and all
+prior covered/fallback/common-AE/initialization/defect clauses remain intact. A
+single existential phase precedes all f and M. Rank0, M=0, threshold-zero null
+inputs and infinite waits are included. The C_b test class and explicit2M bound
+are attributed ASTIS elaborations of AppendixA1 Ex22's C_c pointwise ingredient.
+Eight contiguous formula/BODY regions passed independent mathematics, a fresh
+source-blind decoder and anti-anchored exhaustive primary-source review. The
+independently reviewed source graph keeps the optional epsilon/delta branch's
+two ingredients conjunctive and its whole route optional; the excluded-boundary
+association is explicitly not a proved dependency.
+
+This closes a bounded clock-expectation prerequisite. Outer L2 continuity still
+requires its invariant phase law, Jensen/contraction and density arguments.
+Markov/restart/semigroup/invariance/hypocoercivity, actual implementation/error/
+unbounded expected oracle cost/main theorem and PBPS-SPHMC composition remain OPEN.
+TV does not transfer unbounded expected costs. No uniform parameter conclusion
+or arbitrary correlated clock replacement is inferred. Continue PBPS/SPHMC and
+composition, then Gaussian Cloud, then midpoint without extra higher derivatives.
+The next bounded candidate is84: measurability of the actual state-to-clock
+expectation and its outer squared-integral limit for bounded continuous tests,
+under the internally normalized exact conditional Gibbs position x standard
+Gaussian momentum law. This bounded subclass can use finite-probability4M2
+domination without presupposing process invariance. Its source-only inventory,
+graph and candidate are frozen in pbps-outer-bounded-l2-preread84 and bound by
+83 next-source84.readiness.json. Independent topology review and any separately
+reviewed exact repair remain required before header/Statement Seal/proof search.
+No84 Lean header, proof, claim or theorem credit exists at this checkpoint.
+All-L2 contraction/density/invariance remain distinct OPEN dependencies. Select
+work from the current capsule and these exact source anchors, not old counts.
+
+This VERIFIED child uses the existing sole stabilization lane. Local aggregate83
+passed (root9194, Tests9494, Registry532), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
+/graph checks are bound in83 integration.notes.json. Generated HTML contains eight
+exact adjacent step Lean regions, all initially folded. The current affected static
+SVG was rendered and actually viewed with exact RAW pins. Actual reader page and
+interactive visual acceptance, main merge/PURIFIED/live and full-paper/Goal
+completion remain separate.
+
+
 ## Actual PBPS zero-time stochastic continuity (2026-10-10)
 
 Independent exact-science commit 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. The actual physical phase now obeys

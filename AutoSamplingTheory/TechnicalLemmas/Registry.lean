@@ -43,6 +43,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
 import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -87,6 +88,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualNonaccumulation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+    upstreamDecl := "Actual PBPS event-time nonaccumulation"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex8-Ex9 and SLLN/nonaccumulation"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "nonaccumulation", "exponential", "stopped"]
+    saldUse := "PBPS global-path prerequisite; no SALD claim"
+    note := "Independently verified science bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. Actual fixed-reference PBPS A2 event times under the canonical Exp1 product escape every finite horizon almost surely and have finite bounded-horizon index sets, including index0. Original six source analytic binders; no supplied iid/cap/recurrence/divergence provider. Zero cap stops and absorbs; positive cap controls clocks by actual divergent partial sums. No global physical-time path/Markov/invariance/kernel/hypocoercivity/main/error/expected-cost/composition or whole-paper/Goal completion. Aggregate/visual/main/PURIFIED/live remain distinct."
+  },
   {
     key := "probability.unitExponentialProduct"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"

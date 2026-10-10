@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual event-time nonaccumulation78 (2026-10-10)
+
+Independent science bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. Actual finite recursion plus canonical Exp1 inputs now give almost-sure finite-horizon escape and finite event-index sets. The complete six-condition statement and seven formula/BODY steps are authored once in pbps-actual-event-time-nonaccumulation lesson/publication, with adjacent initially folded exact Lean. Next is actual physical-time state construction/measurability; global process/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification remain independently evidence-bound.
+
+
 ## Countable exponential input law77 (2026-10-10)
 
 Independent science commit 4f88383540a865aea304c63c40de5a699ea61611. The actual product/coordinate laws, mutual independence, simultaneous a.s. positivity and divergent clamped sums are verified. Statement and seven formula/BODY steps remain authored once in unit-exponential-product declaration lesson/publication, with exact adjacent folded Lean. The next actual consumer is recursion76 event-time nonaccumulation; process/invariance/main/cost/composition remain open. Aggregate/site/graph/visual/purification/main/live evidence are recorded separately in SAU77 integration notes.

@@ -1,5 +1,43 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS event-time nonaccumulation (2026-10-10)
+
+Independent exact-science commit bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. The actual finite stopped
+recursion76 and canonical countable exponential product77 are genuine parents.
+Under the original six analytic source hypotheses, for every fixed y/xRef/z0,
+almost surely the actual event times exceed every finite horizon eventually,
+and the sublevel event-index set is finite, including initialization index0.
+Zero cap forces the first positive-threshold update to stop; absorption covers
+all later indices. Positive cap gives T[n]>=sum(k<n,epsilon[k])/C0, including
+stopped infinity times. The actual divergent threshold sums then imply escape.
+No arbitrary iid/energy/cap/clock/recursion/divergence certificate is assumed.
+WithTop atTop is not used as the target: escape does not require eventual stop.
+The source direct Exp mean-one SLLN and the independently verified sufficient
+ASTIS indicator-SLLN route remain explicit alternatives.
+
+Seven complete formula/BODY steps, exact literal private statement and all
+six original conditions passed independent math, blind reconstruction and
+fresh source-first review. Next bounded mathematical boundary: construct the
+actual state at every finite physical time from these finite stopped records,
+including the last active arc on a stopped path; establish its measurability
+and exact finite-prefix agreement before Markov/invariance. No global-path,
+Markov/invariance/kernel, hypocoercivity/main/error/unbounded expected query
+cost/composition claim follows from this clock result alone. Do not transfer
+unbounded costs by TV. PBPS/SPHMC and actual-input composition remain first,
+then Gaussian Cloud, then midpoint without extra higher derivative bounds.
+
+The single existing stabilization lane carries this VERIFIED child. Serialized
+local aggregate78 passed (root9189, Tests9489, Registry527), including
+canonical tools/astis.py check, ATLAS and fake-closure scans; py_compile passed.
+Publication/site/graph checks are recorded in78 integration.notes.json. Static
+module SVG was actually viewed; browser page/interactive branch visual
+acceptance remains pending because the available browser surface has no
+inspectable tab. Main merge, PURIFIED/Exposition, live deployment and
+whole-paper/Goal completion are separate. The stale prospective module prose
+and unused local positivity fact are recorded purification debts; neither
+changes the sealed mathematical contract. Preserve all older work and memories.
+
+
 ## Actual countable exponential inputs (2026-10-10)
 
 Independently verified science commit 4f88383540a865aea304c63c40de5a699ea61611.

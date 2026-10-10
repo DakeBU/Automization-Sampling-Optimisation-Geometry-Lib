@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual finite history and unused-clock tail law87 (2026-10-11)
+
+Independent science ada2d073d04a78493555b2ac35344b9c5a264bfc. Same six source analytic hypotheses and literal actual76 stopped recursion driven by actual77 iidExp1. For every deterministic n, actual history R0..Rn consumes raw coordinates k<n: derive ambient and F_n measurability, pointwise prefix causality, unchanged full infinite raw tail starting n, history-tail independence/product law and unnormalized restricted-tail pushforward, including n0/stopped/null A. Truncation is only a measurable proof factorization. Closes only probability substrate of G86-11/S87I1-I3; conditional random-hazard next-wait survival/density/final survival/iteration S87I4-I5/fullA7, random stopping/physical-time residual memorylessness/restart/Markov/invariance/allL2/main/error/unboundedcost/composition/wholepaper/Goal remain OPEN.
+
+Six exact proof regions and adjacent folded literal Lean are published. Existing sole lane; local aggregate/browser/main/PURIFIED/live remain separate.
+
+
 ## Actual finite first-event density and marked law86 (2026-10-11)
 
 Independent science 0bb3cd64ba1235114feaeed99ba22e675b23db76. Original six analytic hypotheses and literal actual clocks/flow/reflection/hazard give the first finite waiting-time density on(0,T], its SAME post-bounce marked law, mass1-exp(-LambdaT)<=1 and three bounded Borel real-test L1 outputs plus weighted integral identity. No renormalization or added positive hazard/finite wait/regularity premise. Five keylemmas and six contiguous public BODY regions. Unused-tail conditioning/fullA7/path/reversal/invariance/Markov/allL2/main/implementation/error/unboundedcost/composition and actual browser/main/PURIFIED/live/wholepaper/Goal remain OPEN.

@@ -52,6 +52,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -96,6 +97,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualFiniteHistoryTailLaw"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law"
+    upstreamDecl := "Actual PBPS deterministic finite history and unused entire clock tail"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A1 A2 deterministic iteration implicit A7 and AppendixA2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "finite-history", "prefix-measurability", "infinite-tail", "independence"]
+    saldUse := "Actual PBPS conditional-iteration substrate; no SALD claim"
+    note := "Independent science ada2d073d04a78493555b2ac35344b9c5a264bfc. Same six source analytic hypotheses and literal actual76 stopped recursion driven by actual77 iidExp1. For every deterministic n, actual history R0..Rn consumes raw coordinates k<n: derive ambient and F_n measurability, pointwise prefix causality, unchanged full infinite raw tail starting n, history-tail independence/product law and unnormalized restricted-tail pushforward, including n0/stopped/null A. Truncation is only a measurable proof factorization. Closes only probability substrate of G86-11/S87I1-I3; conditional random-hazard next-wait survival/density/final survival/iteration S87I4-I5/fullA7, random stopping/physical-time residual memorylessness/restart/Markov/invariance/allL2/main/error/unboundedcost/composition/wholepaper/Goal remain OPEN."
+  },
   {
     key := "pbps.actualFiniteFirstEventLaw"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw.actual_finite_first_event_law"

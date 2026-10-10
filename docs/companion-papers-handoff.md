@@ -1,5 +1,45 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite history and unused-clock tail law (2026-10-11)
+
+Independent science ada2d073d04a78493555b2ac35344b9c5a264bfc. For each deterministic event depth n, retain the
+actual76 stopped recursion and the actual77 infinite iid Exp(1) product. The
+history H_n=(R_0,...,R_n) uses only raw coordinates k<n; the entire raw tail
+Y_n(w)_k=w_(n+k) starts at source E_(n+1). Under the same six source analytic
+hypotheses, derive ambient measurability, pointwise prefix causality, explicit
+F_n history measurability, unchanged tail law, history-tail independence and
+joint product law. For every Borel history event A, including null events,
+(Y_n)_*(P restricted to H_n^-1(A))=P(H_n^-1(A))*P without normalization.
+
+The truncated threshold stream is only a measurable proof factorization; it
+never changes the actual input distribution or dynamics. n=0, tagged stopped
+histories, infinite waits and rank zero are included. All measurability, iid,
+independence and law ingredients are produced internally, not source binders.
+Six contiguous exact BODY regions accompany complete attributed restatement
+and stepwise formula proofs. The independent source-blind reconstruction,
+whole-source/kernel mathematics and primary-first anti-anchored source review
+are separate evidence; three exposition-only fields were independently repaired.
+
+Only S87-I1/I2/I3, the probability substrate of global G86-11, is closed. S87-I4
+conditional random-hazard next-wait survival and S87-I5 finite density/final
+survival/iteration remain OPEN. The immediate smaller next mathematical edge is
+the unnormalized conditional next-wait survival identity under actual finite
+history, using this entire-tail product law and actual75 deterministic survival.
+Confirm it from the fresh capsule/source graph, source seal and reuse search
+before assigning it. No random stopping index or physical-time residual clock
+can be substituted into this deterministic-depth theorem.
+
+FullA7/path law/reversal/invariance/restart/Markov/semigroup/allL2/hypocoercivity,
+implementation/error/unbounded query costs/main/composition remain OPEN. Keep
+PBPS/SPHMC and actual-input composition first, Gaussian Cloud second, midpoint
+third without extra higher derivatives. No TV transfer of unbounded costs.
+This VERIFIED child enters the existing sole stabilization lane; local aggregate,
+reader visual/interactive checks, main merge, PURIFIED, live, wholepaper and Goal
+completion remain distinct. Existing renderer scan includes the next compiler-option
+wrapper as informational context in the literal-Prop disclosure; all actual
+Prop and six BODY regions remain intact. No new renderer change is credited.
+
+
 ## Actual PBPS finite first-event density and marked law (2026-10-11)
 
 Independent exact-science commit 0bb3cd64ba1235114feaeed99ba22e675b23db76. Under the six original analytic

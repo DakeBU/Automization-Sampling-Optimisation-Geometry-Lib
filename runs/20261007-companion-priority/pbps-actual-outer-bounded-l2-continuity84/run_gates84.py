@@ -50,7 +50,7 @@ elif sys.argv[1] == "publication":
         ("frontier", ["tools/astis_frontier_cells.py", "check"]),
         ("site-build", ["website/scripts/build_site.py"]),
         ("underlying-graph", ["website/scripts/underlying_lean_graph.py"]),
-        ("graph-check", ["tools/astis_publication.py", "graph-check", "--cell", "ASTIS-SW-PBPS-actual-bounded-test-continuity"]),
+        ("graph-check", ["tools/astis_publication.py", "graph-check", "--cell", "ASTIS-SW-PBPS-actual-outer-bounded-l2-continuity"]),
         ("site-check", ["website/scripts/check_site.py"]),
     ]:
         gate(label, [py, "-X", "utf8", *args])

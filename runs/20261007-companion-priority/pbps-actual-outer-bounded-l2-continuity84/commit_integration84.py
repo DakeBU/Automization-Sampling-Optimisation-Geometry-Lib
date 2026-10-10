@@ -9,7 +9,7 @@ for p in sorted(r.rglob('*.log')):
  assert gzip.decompress(a.read_bytes())==raw
  logs.append(dict(path=p.as_posix(),RAW_sha256=hashlib.sha256(raw).hexdigest(),archive=a.as_posix(),archive_RAW_sha256=hashlib.sha256(a.read_bytes()).hexdigest()))
 (out/'immutable-integration-log-archives84.json').write_text(json.dumps(logs,indent=2)+'\n',encoding='utf8',newline='\n')
-owned=load(out/'integration-scope.json')['owned']+['research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-bounded-test-continuity.json','runs/substantive_advances.jsonl','docs/module-graph.svg','docs/assets/astis_lean_arsenal_module_graph.svg','research-wiki/sampling-sde-library/lean-leaf-module-graph.md','research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json','research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.md']
+owned=load(out/'integration-scope.json')['owned']+['research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-outer-bounded-l2-continuity.json','runs/substantive_advances.jsonl','docs/module-graph.svg','docs/assets/astis_lean_arsenal_module_graph.svg','research-wiki/sampling-sde-library/lean-leaf-module-graph.md','research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json','research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.md']
 for folder in [r,pre]:
  for p in folder.rglob('*'):
   name=p.as_posix()

@@ -34,7 +34,7 @@ from the current capsule and independently reconstructed primary-source graph.
 This VERIFIED child uses the existing sole stabilization lane. Local aggregate84
 passed (root9195, Tests9495, Registry533), including tools/astis.py check,
 ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
-/graph checks are bound in84 integration.notes.json. Generated HTML contains eight
+/graph checks are bound in84 integration.corrected.notes.json. Generated HTML contains eight
 exact adjacent step Lean regions, all initially folded. The current affected static
 SVG was rendered and actually viewed with exact RAW pins. Actual reader page and
 interactive visual acceptance, main merge/PURIFIED/live and full-paper/Goal

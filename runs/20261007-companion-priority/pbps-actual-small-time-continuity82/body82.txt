@@ -1,0 +1,100 @@
+  obtain ⟨Z, hZM, hcovered, hfallback, hAE⟩ :=
+    ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase
+      hα hαβ hV hH hη hβη
+  rcases ActualHazardClock.actual_integrated_hazard_clock_laws
+    hα hαβ hV hH hη hβη with
+    ⟨hΛC, _, _, hΛbasic, _, _, hτM, hW, _, _⟩
+  have hflow := ActualHarmonicFlow.actual_harmonic_flow_laws hα hαβ hV hH hη hβη
+  have hΦC := hflow.1
+  have hΦ0 := hflow.2.2.1
+  have hinput :=
+    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws
+  letI : IsProbabilityMeasure P := hinput.1
+  refine ⟨Z, hZM, hcovered, hfallback, hAE, ?_⟩
+  intro y xRef z₀
+  have hZtM (t : ℝ≥0) : Measurable (Z y xRef z₀ t) := by
+    have hargs : Measurable (fun sample : ℕ → ℝ => (((y, xRef), z₀), t, sample)) :=
+      measurable_const.prodMk (measurable_const.prodMk measurable_id)
+    have hc := hZM.comp hargs
+    exact hc
+  have hdefectM (t : ℝ≥0) :
+      MeasurableSet {sample : ℕ → ℝ | Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} :=
+    ((hZtM t).measurableSet_eq_fun measurable_const).compl
+  let w : (ℕ → ℝ) → WithTop ℝ≥0 := fun sample => τ y xRef z₀ (ε sample 0)
+  let g : ℝ → WithTop ℝ≥0 := fun e => τ y xRef z₀ (Real.toNNReal e)
+  have hgM : Measurable g := by
+    have hargs : Measurable (fun e : ℝ => ((y, xRef), z₀, Real.toNNReal e)) :=
+      measurable_const.prodMk (measurable_const.prodMk measurable_real_toNNReal)
+    have hc := hτM.comp hargs
+    exact hc
+  have hwM : Measurable w := hgM.comp (measurable_pi_apply 0)
+  have hwlaw : P.map w = (expMeasure (1 : ℝ)).map g := by
+    calc
+      P.map w = (P.map (fun sample : ℕ → ℝ => sample 0)).map g :=
+        (Measure.map_map hgM (measurable_pi_apply 0)).symm
+      _ = (expMeasure (1 : ℝ)).map g := by rw [(hinput.2.1 0).2.2]
+  have hsurvival (t : ℝ≥0) :
+      P.real {sample : ℕ → ℝ | (t : WithTop ℝ≥0) < w sample} =
+        Real.exp (-Λ y xRef z₀ t) := by
+    calc
+      P.real {sample : ℕ → ℝ | (t : WithTop ℝ≥0) < w sample} =
+          (P.map w).real (Set.Ioi (t : WithTop ℝ≥0)) :=
+        (map_measureReal_apply hwM measurableSet_Ioi).symm
+      _ = Real.exp (-Λ y xRef z₀ t) := by
+        rw [hwlaw]
+        exact (hW y xRef z₀).2 t
+  have hfirst (sample : ℕ → ℝ) :
+      eventTime y xRef z₀ (ε sample) 1 = w sample := by
+    cases hc : τ y xRef z₀ (ε sample 0) using WithTop.recTopCoe with
+    | top => simp [eventTime, record, next, w, hc]
+    | coe s => simp [eventTime, record, next, w, hc]
+  have hnoevent (t : ℝ≥0) (sample : ℕ → ℝ)
+      (ht : (t : WithTop ℝ≥0) < w sample) :
+      Z y xRef z₀ t sample = Φ y xRef (t : ℝ) z₀ := by
+    have he := hcovered y xRef z₀ sample t 0 (0, z₀)
+      (show eventTime y xRef z₀ (ε sample) 0 ≤ (t : WithTop ℝ≥0) from
+        show (0 : WithTop ℝ≥0) ≤ (t : WithTop ℝ≥0) from bot_le)
+      (by rw [hfirst sample]; exact ht) rfl
+    simpa only [tsub_zero] using he
+  have hbound (t : ℝ≥0) :
+      P.real {sample : ℕ → ℝ | Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤
+        1 - Real.exp (-Λ y xRef z₀ t) := by
+    have hsub : {sample : ℕ → ℝ | Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ⊆
+        {sample : ℕ → ℝ | (t : WithTop ℝ≥0) < w sample}ᶜ := by
+      intro sample hs ht
+      exact hs (hnoevent t sample ht)
+    calc
+      P.real {sample : ℕ → ℝ | Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤
+          P.real {sample : ℕ → ℝ | (t : WithTop ℝ≥0) < w sample}ᶜ := measureReal_mono hsub
+      _ = 1 - Real.exp (-Λ y xRef z₀ t) := by
+        rw [measureReal_compl (measurableSet_Ioi.preimage hwM), probReal_univ, hsurvival]
+  refine ⟨fun t => ⟨hdefectM t, hbound t⟩, ?_⟩
+  intro δ hδ
+  have htailM (t : ℝ≥0) :
+      MeasurableSet {sample : ℕ → ℝ | δ ≤ ‖Z y xRef z₀ t sample - z₀‖} :=
+    measurableSet_le measurable_const (((hZtM t).sub measurable_const).norm)
+  refine ⟨htailM, ?_⟩
+  have hφ : Continuous (fun t : ℝ≥0 => Φ y xRef (t : ℝ) z₀) := by
+    have hc := hΦC.comp (continuous_const.prodMk (continuous_subtype_val.prodMk continuous_const))
+    exact hc
+  have hλ : Continuous (Λ y xRef z₀) := by
+    have hc := hΛC.comp (continuous_const.prodMk continuous_id)
+    exact hc
+  have hnorm : Tendsto (fun t : ℝ≥0 => ‖Φ y xRef (t : ℝ) z₀ - z₀‖) (𝓝 0) (𝓝 0) := by
+    simpa only [NNReal.coe_zero, hΦ0, sub_self, norm_zero] using
+      (hφ.continuousAt.sub continuousAt_const).norm.tendsto (x := (0 : ℝ≥0))
+  have hsmall : ∀ᶠ t : ℝ≥0 in 𝓝 0, ‖Φ y xRef (t : ℝ) z₀ - z₀‖ < δ :=
+    (tendsto_order.1 hnorm).2 δ hδ
+  have hbzero : Tendsto (fun t : ℝ≥0 => 1 - Real.exp (-Λ y xRef z₀ t))
+      (𝓝 0) (𝓝 0) := by
+    simpa only [(hΛbasic y xRef z₀).1, neg_zero, Real.exp_zero, sub_self] using
+      (tendsto_const_nhds.sub (hλ.continuousAt.neg.exp.tendsto (x := (0 : ℝ≥0))))
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hbzero
+  · exact Filter.Eventually.of_forall fun _ => measureReal_nonneg
+  · filter_upwards [hsmall] with t ht
+    apply (measureReal_mono (show
+      {sample : ℕ → ℝ | δ ≤ ‖Z y xRef z₀ t sample - z₀‖} ⊆
+      {sample : ℕ → ℝ | Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} from ?_)).trans (hbound t)
+    intro sample hs he
+    rw [he] at hs
+    exact (not_le.mpr ht) hs

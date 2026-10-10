@@ -1,0 +1,121 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_DISTINCT_HEADER_AND_OVERLAY_REVIEWS",
+  "sealed_utc": "2026-10-10T05:42:46.656029+00:00",
+  "actual_root_PID": 17120,
+  "statement_version": 1,
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/header-review78/header78.private-syntax-only.lean",
+    "RAW_bytes": 3853,
+    "RAW_sha256": "b94c3c35220873d034467b16d0ebd4c618cfbfc96b6ef26318a8f4e88d7b9c43"
+  },
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation",
+  "expanded_literal_Prop": "actual_fixed_reference_event_time_nonaccumulation_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n      (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n",
+  "primary": {
+    "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+    "RAW_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760"
+  },
+  "source_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/source-preread78/source-freeze78.json",
+    "RAW_bytes": 38655,
+    "RAW_sha256": "e61716072be6f95420594e513116277f4313214587d2eedab68e26a4bdc5f211"
+  },
+  "source_graph_overlay": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/reviewed-source-adapter-overlay78.json",
+    "RAW_bytes": 1949,
+    "RAW_sha256": "392a276561818f031f74833ec37d751f218eda442def35572b532de992e46bb8"
+  },
+  "header_math": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/header-review78/header-math-review78.json",
+    "RAW_bytes": 6241,
+    "RAW_sha256": "ae8dba94d873c5287263d29484ca63a2ec2c193a400fe7ccb4df7379843112b9"
+  },
+  "source_topology_review": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/header-review78/independent-source-topology-review78.json",
+    "RAW_bytes": 10624,
+    "RAW_sha256": "7a1995a58ed05d00fd00bca348ca54136dd841953d48b33bf0ea469a27da2771"
+  },
+  "syntax_overlay_review": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/syntax-overlay-review78/syntax-overlay-preservation.result.json",
+    "RAW_bytes": 5927,
+    "RAW_sha256": "5434caf65b47b807de1baa10774b32b90788d324cab1340396b417b5cb766f67"
+  },
+  "private_overlay_review": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/syntax-overlay-review78/private-visibility-preservation.result.json",
+    "RAW_bytes": 4713,
+    "RAW_sha256": "85206120c72aad669ae3bb13b35bbb086a09d1d92d70714db807a0c849c44a81"
+  },
+  "typecheck": {
+    "path": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/header-review78/private-visibility-typecheck.receipt.json",
+    "RAW_bytes": 1867,
+    "RAW_sha256": "3c4c7e8fbbfcc6bf437dc4884351d801f427548a716c277f938c4cc57b2c0a3e"
+  },
+  "binder_inventory": [
+    {
+      "binder": "d and Rd phase carrier",
+      "class": "TYPING",
+      "source": "Euclidean finite dimension, x,p,y,xref real finite vectors; no positivity of dimension is used by this edge."
+    },
+    {
+      "binder": "V C2, 0<alpha<=beta, Hessian bounds",
+      "class": "STANDING",
+      "source": "S1.p1.1;S1.E1. Strong convex lower bound and alpha are paper standing context, not analytical needs of this local nonaccumulation mechanism."
+    },
+    {
+      "binder": "0<eta<=1/beta",
+      "class": "STANDING",
+      "source": "S2.SS2.p1.1. Local mechanism uses eta>0; retain source restriction or explicitly mark a generalized leaf."
+    },
+    {
+      "binder": "fixed y,xref and arbitrary x0,p0",
+      "class": "SOURCE",
+      "source": "S3.Thmtheorem1;A1.SS1.p1.1;p2.1. No stationary/warm/Gaussian law required."
+    },
+    {
+      "binder": "iid Exp1 inputs",
+      "class": "SOURCE sampling specification",
+      "source": "A1.SS1.p2.1; construct with existing actual product rather than requiring producer conclusion as added source-facing hypothesis."
+    },
+    {
+      "binder": "finite cap/Lipschitz certificate/crossing witness/sum divergence",
+      "class": "EXCESS if public in source anchor",
+      "source": "Must be internal dependency edges derived from standing data and actual inputs; allowed as hypotheses only for honestly named generic library lemmas, not the source Anchor."
+    }
+  ],
+  "definition_audit": {
+    "center": "literal c=y-eta grad V(xref)",
+    "residual": "literal grad V(x)-grad V(xref)",
+    "flow": "literal explicit harmonic flow for all real t; actual waiting domain t>=0",
+    "bounce": "literal source reflection incl R0=I",
+    "rate": "literal sqrt eta max(inner p h,0), nonnegative",
+    "hazard": "literal integral along current post-bounce state flow, not physical global time integral across old segments",
+    "waiting_time": "characterized inf on real nonnegative u with extended infinity only for empty set; finite attainment requires continuity bridge; no choose/default witness may replace hitting-time definition",
+    "clock": "literal T0=0 and T_(n+1)=T_n+S_(n+1) only while finite",
+    "state": "literal z_(n+1)=bounce(flow_S(z_n)) only finite wait; no meaningful post-stop state is prescribed",
+    "energy_cap": "literal source Ex4/Ex6 from initial state, fixed for all finite prefixes/segments, not per-step arbitrary cap"
+  },
+  "dag_parents": [
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteJumpRecursion.lean",
+      "RAW_bytes": 22655,
+      "RAW_sha256": "1f1ebc187676e0481247bc2f58ec0bf94b2fc6f02a563b87009a0fe7bfb4910c"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean",
+      "RAW_bytes": 6411,
+      "RAW_sha256": "c4a93999f287008d9ddb3f3624f52f302df122e5e007a54fd427a9985edc5ec0"
+    }
+  ],
+  "toolchain": {
+    "path": "lean-toolchain",
+    "RAW_bytes": 26,
+    "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "RAW_bytes": 3234,
+    "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "truth_boundary": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit.",
+  "proof_BODY_created": false,
+  "VERIFIED": false
+}

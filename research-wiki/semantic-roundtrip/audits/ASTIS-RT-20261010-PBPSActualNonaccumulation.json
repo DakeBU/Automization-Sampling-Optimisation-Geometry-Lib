@@ -1,0 +1,389 @@
+{
+  "id": "ASTIS-RT-20261010-PBPSActualNonaccumulation",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion-domain:pbps-actual-event-time-nonaccumulation",
+    "anchor": "arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+    "url": "https://arxiv.org/html/2609.06905v1#A1",
+    "original_text": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and the following SLLN/nonaccumulation paragraph. The actual finite-prefix and exponential-product realization are ASTIS completions; the bounded-horizon finite-index set is an explicit ASTIS consequence, not a quotation or the full Proposition3.1.\nLet E be any finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure. Let V:E→ℝ be C². Let α,β be nonnegative reals and η a real number satisfying α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0, and βη≤1. Fix any y,xRef∈E and initial phase z0=(x0,p0)∈E×E. Set c=y−η∇V(xRef). For z=(x,p), define the actual harmonic flow Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), reflection S(z)=(x,p−[2〈p,g(x)〉/‖g(x)‖²]g(x)), residual g(x)=∇V(x)−∇V(xRef), and rate λ(z)=√η max{0,〈p,g(x)〉}. The reflection uses total real division, hence is the identity when g(x)=0. Define Λ(z,t)=∫_0^t λ(Φ_s(z)) ds for finite t≥0 and τ(z,e)=inf{t≥0:Λ(z,t)≥e}, with inf empty=∞. Let P be the actual countable product of rate-one exponential Borel measures on Ω=ℝ^ℕ; let ε_k(sample)=max{sample_k,0} viewed as a nonnegative real. Define active records (T,z) and an absorbing stopped record carrying no phase. Initialize record0=(0,z0). At index k, a stopped record stays stopped; an active record (T,z) becomes stopped if τ(z,ε_k)=∞ and otherwise becomes (T+τ(z,ε_k), S(Φ_{τ(z,ε_k)}(z))). Its event time T_k is the finite time component if active and ∞ if stopped. Then for these fixed y,xRef,z0, for P-almost every sample, simultaneously: (i) for every finite nonnegative horizon t, all sufficiently large k satisfy t<T_k; (ii) for every such t the set {k∈ℕ:T_k≤t} is finite. Initialization index0 is included, and ε_k is source E_(k+1). The result includes both eventual stopping and infinite continuing paths with unbounded event times; it does not assert eventual stopping. It is an actual-input, fixed-reference nonaccumulation conclusion of Appendix A.1 Ex9, with ASTIS total-record and finite-index adapters. The global physical-time process and its additional properties are separate obligations.\narXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+    "text_sha256": "0cc851d425e187ffdc27cafca269708faf10afb7d766766c5616315fc78244a9"
+  },
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n      (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)",
+    "statement_sha256": "5a33f8d88e7be221336767fe259922a9df642bc4e0e551a7fff0c11373105bb4",
+    "compiled": true,
+    "decoder_context": [
+      "All displayed functions and objects are literal definitions. The potential is real-valued on a finite-dimensional real inner-product space with its Borel measurable structure; dimension zero is allowed. The six analytic hypotheses are the only supplied mathematical premises. fderiv is the Frechet derivative, gradient is the real inner-product gradient, and ContDiff real 2 means twice continuously differentiable.",
+      "expMeasure 1 is the rate-one exponential measure on the real line. infinitePi is the canonical countable product on all real sequences. toNNReal is max(x,0) viewed as a nonnegative real, including exceptional nonpositive coordinates.",
+      "hittingAfter f s 0 a denotes the infimum of nonnegative times at which f(t)(a) belongs to s, with infinity for an empty hit set. WithTop NNReal includes a greatest element top. untopD 0 returns the finite value when finite, and zero at top; the guard branches before evaluating a finite-state update.",
+      "Sum.inl stores a finite accumulated time and state pair. Sum.inr Unit is the absorbing stopped record, represented by eventTime top and carrying no state at infinity. Nat.rec initializes at (0,z0) and uses coordinate k in update k to k+1.",
+      "For each fixed displayed deterministic parameter triple, the conclusion holds almost everywhere under the literal product P. Eventually n in atTop means all sufficiently large natural indices. Every tested horizon t is finite. Set.Finite refers to finitely many natural indices, including initialization index0. The conclusion does not assert that every sequence eventually stops or that finite times become equal to infinity."
+    ],
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+    "formalizer": "root-samplinglib-writer",
+    "compiler_evidence": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/focused78-attempt2/receipt.json",
+    "statement_representation": {
+      "kind": "exact-literal-private-Prop-expansion",
+      "actual_header": "theorem actual_fixed_reference_event_time_nonaccumulation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_fixed_reference_event_time_nonaccumulation_statement hα hαβ hV hH hη hβη ",
+      "private_definition": "private def actual_fixed_reference_event_time_nonaccumulation_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n      (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n",
+      "expanded_header": "theorem actual_fixed_reference_event_time_nonaccumulation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n      (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n",
+      "source_approved_overlay": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/root.statement-seal78.json",
+      "kernel_header_and_literal_expansion_checked": true
+    }
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/fresh_source78",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Independent primary-first immutable source inventory/Proof Graph preceded all candidate access. All seven semantic slots were compared against the blind reconstruction, actual full current module/private Prop and authored mathematical formula proof. Current module hash and canonical packet hash match. All seven exact authored BODY regions cover lines74-184 without gaps and formulas/prose agree with code. Full deterministic recursion/hazard/flow/bounce and concrete stochastic-parent BODY inspection confirmed actual-source energy/cap/wait dependencies and explicit indicator-SLLN sufficient alternative. No blocking mathematical/source delta found for this bounded actual nonaccumulation leaf. Original direct exponential-moment route remains open; independent Lean/aggregate/publication/site/merge/purification verification is not certified by this review.",
+    "review_run_sha256": "a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934",
+    "reviewer_packet_sha256": "5fb176d5c9dbb96a3448593de56df696d6517decc1971bf250dbdffc1007f362",
+    "run_artifact": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.run-manifest78.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "f812375b3e96e4b089af570ccd3a0f2f0852e0bd950290f77791b89974fc9069",
+  "publication_context": {
+    "file": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.Topology.Order.WithTop\n\n/-! Prospective statement only, PBPS arXiv2609.06905v1 Appendix A.1 Ex9.\nSource standing analytic conditions and exact stopped recurrence are retained.\nActual inputs use the canonical Exp(1) product. No supplied stochastic/cap/time\ncertificate and no global physical-time process, Markov or invariance claim. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_fixed_reference_event_time_nonaccumulation_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n      (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n\n\nset_option maxHeartbeats 800000 in\ntheorem actual_fixed_reference_event_time_nonaccumulation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_fixed_reference_event_time_nonaccumulation_statement hα hαβ hV hH hη hβη := by\n  classical\n  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n  let c : E → E → E := fun y xRef => y - η • gradient V xRef\n  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n    (c y xRef + Real.cos t • (z.1 - c y xRef) +\n        (Real.sqrt η * Real.sin t) • z.2,\n     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n  let S : E → (E × E) → (E × E) := fun xRef z =>\n    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n  let rate : E → (E × E) → ℝ := fun xRef z =>\n    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n  let H : E → E → (E × E) → ℝ := fun y xRef z =>\n    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n  let C : E → E → (E × E) → ℝ := fun y xRef z =>\n    Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n      (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n    MeasureTheory.hittingAfter\n      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n    match r with\n    | Sum.inr _ => Sum.inr ()\n    | Sum.inl a =>\n      if τ y xRef a.2 e = ⊤ then Sum.inr () else\n        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n  let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n    fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n      (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n  change ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n    (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n      (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n    (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n  -- Reuse the actual deterministic recurrence; no cap or recurrence is supplied.\n  rcases ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion\n      hα hαβ hV hH hη hβη with\n    ⟨hinit, _, _, _, _, htime, hstop, _, hcap, _⟩\n  -- The good event supplies all positive thresholds and divergent actual sums.\n  rcases AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws with\n    ⟨_, _, _, hgood, hdiv⟩\n  intro y xRef z₀\n  filter_upwards [hgood, hdiv] with sample hpos hsum\n  have hepos (k : ℕ) : 0 < ε sample k :=\n    Real.toNNReal_pos.mpr (hpos k).1\n  obtain ⟨hC, hinc, hzero⟩ := hcap y xRef z₀ (ε sample)\n  have hescape : ∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n      (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n := by\n    -- Zero cap forces the first positive-threshold update to stop; it absorbs.\n    by_cases hC0 : C y xRef z₀ = 0\n    · have hfirst : record y xRef z₀ (ε sample) 1 = Sum.inr () :=\n        hzero hC0 0 (0, z₀) (hinit y xRef z₀ (ε sample)) (hepos 0)\n      intro t\n      filter_upwards [eventually_ge_atTop (1 : ℕ)] with n hn\n      obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le hn\n      have hs : record y xRef z₀ (ε sample) (1 + k) = Sum.inr () :=\n        hstop y xRef z₀ (ε sample) 1 k hfirst\n      change (t : WithTop ℝ≥0) < (record y xRef z₀ (ε sample) (1 + k)).elim _ _\n      rw [hs]\n      exact WithTop.coe_lt_top t\n    -- Positive cap: inductively compare every actual clock with partial sums/C.\n    · have hCp : 0 < C y xRef z₀ := lt_of_le_of_ne hC (Ne.symm hC0)\n      let cap : ℝ≥0 := Real.toNNReal (C y xRef z₀)\n      have hcapcoe : (cap : ℝ) = C y xRef z₀ := Real.coe_toNNReal _ hC\n      have hcapPos : 0 < cap := Real.toNNReal_pos.mpr hCp\n      have hbound (n : ℕ) :\n          (((∑ k ∈ Finset.range n, ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0) ≤\n            eventTime y xRef z₀ (ε sample) n := by\n        induction n with\n        | zero => simpa using (htime y xRef z₀ (ε sample)).1.ge\n        | succ n ih =>\n          have hi := hinc hCp n\n          have hterm : Real.toNNReal ((ε sample n : ℝ) / C y xRef z₀) =\n              ε sample n / cap := by\n            rw [Real.toNNReal_div (ε sample n).coe_nonneg, Real.toNNReal_coe]\n          rw [hterm] at hi\n          calc\n            (((∑ k ∈ Finset.range (n + 1), ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0)\n                = (((∑ k ∈ Finset.range n, ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0) +\n                    ((ε sample n / cap : ℝ≥0) : WithTop ℝ≥0) := by\n                      rw [Finset.sum_range_succ, add_div, WithTop.coe_add]\n            _ ≤ eventTime y xRef z₀ (ε sample) n +\n                    ((ε sample n / cap : ℝ≥0) : WithTop ℝ≥0) := add_le_add ih le_rfl\n            _ ≤ eventTime y xRef z₀ (ε sample) (n + 1) := hi\n      intro t\n      have hs : ∀ᶠ n : ℕ in atTop,\n          (t : ℝ) * C y xRef z₀ < ∑ k ∈ Finset.range n, (ε sample k : ℝ) :=\n        hsum.eventually (eventually_gt_atTop ((t : ℝ) * C y xRef z₀))\n      filter_upwards [hs] with n hn\n      have ht : t < (∑ k ∈ Finset.range n, ε sample k) / cap := by\n        apply (NNReal.coe_lt_coe).mp\n        push_cast\n        rw [hcapcoe]\n        exact (lt_div_iff₀ hCp).mpr hn\n      exact lt_of_lt_of_le (WithTop.coe_lt_coe.mpr ht) (hbound n)\n  refine ⟨hescape, ?_⟩\n  -- The bounded-horizon index set is contained in a finite initial interval.\n  intro t\n  obtain ⟨N, hN⟩ := eventually_atTop.mp (hescape t)\n  apply (Set.finite_Iio N).subset\n  intro n hn\n  exact lt_of_not_ge (fun hge => (not_lt_of_ge hn) (hN n hge))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A1",
+      "edition": "arXiv2609.06905v1",
+      "anchor": "arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and the following SLLN/nonaccumulation paragraph. The actual finite-prefix and exponential-product realization are ASTIS completions; the bounded-horizon finite-index set is an explicit ASTIS consequence, not a quotation or the full Proposition3.1."
+    },
+    "statement": "Let E be any finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure. Let V:E→ℝ be C². Let α,β be nonnegative reals and η a real number satisfying α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0, and βη≤1. Fix any y,xRef∈E and initial phase z0=(x0,p0)∈E×E. Set c=y−η∇V(xRef). For z=(x,p), define the actual harmonic flow Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), reflection S(z)=(x,p−[2〈p,g(x)〉/‖g(x)‖²]g(x)), residual g(x)=∇V(x)−∇V(xRef), and rate λ(z)=√η max{0,〈p,g(x)〉}. The reflection uses total real division, hence is the identity when g(x)=0. Define Λ(z,t)=∫_0^t λ(Φ_s(z)) ds for finite t≥0 and τ(z,e)=inf{t≥0:Λ(z,t)≥e}, with inf empty=∞. Let P be the actual countable product of rate-one exponential Borel measures on Ω=ℝ^ℕ; let ε_k(sample)=max{sample_k,0} viewed as a nonnegative real. Define active records (T,z) and an absorbing stopped record carrying no phase. Initialize record0=(0,z0). At index k, a stopped record stays stopped; an active record (T,z) becomes stopped if τ(z,ε_k)=∞ and otherwise becomes (T+τ(z,ε_k), S(Φ_{τ(z,ε_k)}(z))). Its event time T_k is the finite time component if active and ∞ if stopped. Then for these fixed y,xRef,z0, for P-almost every sample, simultaneously: (i) for every finite nonnegative horizon t, all sufficiently large k satisfy t<T_k; (ii) for every such t the set {k∈ℕ:T_k≤t} is finite. Initialization index0 is included, and ε_k is source E_(k+1). The result includes both eventual stopping and infinite continuing paths with unbounded event times; it does not assert eventual stopping. It is an actual-input, fixed-reference nonaccumulation conclusion of Appendix A.1 Ex9, with ASTIS total-record and finite-index adapters. The global physical-time process and its additional properties are separate obligations.",
+    "formulae": [
+      {
+        "label": "Actual source objects 1",
+        "tex": "c=y-\\eta\\nabla V(x_{\\rm ref}),\\quad g(x)=\\nabla V(x)-\\nabla V(x_{\\rm ref}),\\quad\\lambda(x,p)=\\sqrt\\eta\\max\\{0,\\langle p,g(x)\\rangle\\}."
+      },
+      {
+        "label": "Actual source objects 2",
+        "tex": "\\Phi_t(x,p)=\\left(c+\\cos t(x-c)+\\sqrt\\eta\\sin t\\,p,\\ -\\frac{\\sin t}{\\sqrt\\eta}(x-c)+\\cos t\\,p\\right),\\quad S(x,p)=\\left(x,p-\\frac{2\\langle p,g(x)\\rangle}{\\|g(x)\\|^2}g(x)\\right)."
+      },
+      {
+        "label": "Actual source objects 3",
+        "tex": "\\Lambda(z,t)=\\int_0^t\\lambda(\\Phi_s z)\\,ds,\\quad\\tau(z,e)=\\inf\\{t\\ge0:\\Lambda(z,t)\\ge e\\},\\quad\\inf\\varnothing=\\infty."
+      },
+      {
+        "label": "Actual source objects 4",
+        "tex": "P=\\mathrm{Exp}(1)^{\\otimes\\mathbb N},\\quad\\varepsilon_k=\\max\\{\\omega_k,0\\},\\quad P\\text{-a.s.}:\\ \\forall t<\\infty,\\quad T_n>t\\text{ eventually},\\quad\\#\\{n:T_n\\le t\\}<\\infty."
+      }
+    ],
+    "assumptions": [
+      "E is finite-dimensional real inner-product with its Borel measurable structure; no positive-dimension restriction. V is C² and α,β≥0.",
+      "The six exact source conditions are α>0; α≤β; V∈C²; for all x,v, α‖v‖²≤D²V(x)[v,v]≤β‖v‖²; η>0; βη≤1. No third or higher derivative condition.",
+      "y,xRef,z0 are arbitrary deterministic parameters. P and ε are literal canonical definitions. No probability, iid, positivity, divergence, cap, energy, waiting-time or recurrence certificate is a public premise.",
+      "Threshold positivity and faithful clamp/raw equality hold simultaneously only almost surely. The all-finite-horizon conclusion is pathwise on the common good-input event for each fixed parameter triple; no uncountable intersection over triples is assumed.",
+      "Stopped records have eventTime=∞ with no phase at infinity. The statement counts indices including index0, not a physical bounce-count expectation. The author direct Exp mean-one strong-law route is distinct from the reused ASTIS bounded-indicator sufficient route."
+    ],
+    "obligations": [
+      {
+        "id": "actual-nonaccumulation",
+        "label": "Actual source event-time nonaccumulation and finite bounded-horizon index set"
+      },
+      {
+        "id": "author-moment-route",
+        "label": "Direct author Exp first-moment strong-law expansion"
+      },
+      {
+        "id": "global-process-properties",
+        "label": "Global physical-time path, Markov/invariance and full sampler/cost/composition"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation",
+      "title": "Actual PBPS event-time nonaccumulation",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1",
+          "label": "arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+          "scope": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation"
+      ],
+      "assumptions": [
+        "E is finite-dimensional real inner-product with its Borel measurable structure; no positive-dimension restriction. V is C² and α,β≥0.",
+        "The six exact source conditions are α>0; α≤β; V∈C²; for all x,v, α‖v‖²≤D²V(x)[v,v]≤β‖v‖²; η>0; βη≤1. No third or higher derivative condition.",
+        "y,xRef,z0 are arbitrary deterministic parameters. P and ε are literal canonical definitions. No probability, iid, positivity, divergence, cap, energy, waiting-time or recurrence certificate is a public premise.",
+        "Threshold positivity and faithful clamp/raw equality hold simultaneously only almost surely. The all-finite-horizon conclusion is pathwise on the common good-input event for each fixed parameter triple; no uncountable intersection over triples is assumed.",
+        "Stopped records have eventTime=∞ with no phase at infinity. The statement counts indices including index0, not a physical bounce-count expectation. The author direct Exp mean-one strong-law route is distinct from the reused ASTIS bounded-indicator sufficient route."
+      ],
+      "statement": "Let E be any finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure. Let V:E→ℝ be C². Let α,β be nonnegative reals and η a real number satisfying α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0, and βη≤1. Fix any y,xRef∈E and initial phase z0=(x0,p0)∈E×E. Set c=y−η∇V(xRef). For z=(x,p), define the actual harmonic flow Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), reflection S(z)=(x,p−[2〈p,g(x)〉/‖g(x)‖²]g(x)), residual g(x)=∇V(x)−∇V(xRef), and rate λ(z)=√η max{0,〈p,g(x)〉}. The reflection uses total real division, hence is the identity when g(x)=0. Define Λ(z,t)=∫_0^t λ(Φ_s(z)) ds for finite t≥0 and τ(z,e)=inf{t≥0:Λ(z,t)≥e}, with inf empty=∞. Let P be the actual countable product of rate-one exponential Borel measures on Ω=ℝ^ℕ; let ε_k(sample)=max{sample_k,0} viewed as a nonnegative real. Define active records (T,z) and an absorbing stopped record carrying no phase. Initialize record0=(0,z0). At index k, a stopped record stays stopped; an active record (T,z) becomes stopped if τ(z,ε_k)=∞ and otherwise becomes (T+τ(z,ε_k), S(Φ_{τ(z,ε_k)}(z))). Its event time T_k is the finite time component if active and ∞ if stopped. Then for these fixed y,xRef,z0, for P-almost every sample, simultaneously: (i) for every finite nonnegative horizon t, all sufficiently large k satisfy t<T_k; (ii) for every such t the set {k∈ℕ:T_k≤t} is finite. Initialization index0 is included, and ε_k is source E_(k+1). The result includes both eventual stopping and infinite continuing paths with unbounded event times; it does not assert eventual stopping. It is an actual-input, fixed-reference nonaccumulation conclusion of Appendix A.1 Ex9, with ASTIS total-record and finite-index adapters. The global physical-time process and its additional properties are separate obligations.",
+      "formula": "P=\\mathrm{Exp}(1)^{\\otimes\\mathbb N},\\quad\\varepsilon_k=\\max\\{\\omega_k,0\\},\\quad P\\text{-a.s.}:\\ \\forall t<\\infty,\\quad T_n>t\\text{ eventually},\\quad\\#\\{n:T_n\\le t\\}<\\infty.",
+      "steps": [
+        {
+          "title": "Fix the actual source objects and stopped event times",
+          "text": "Use the literal harmonic flow, zero-safe reflection, integrated rate, first hitting time and stopped recursion from the actual finite-prefix theorem. Fix the canonical Exp1 product and its total nonnegative thresholds. The energy H and finite cap C are internal formulas: H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2 and C=√η β√(2H(z0))(√(2ηH(z0))+‖c−xRef‖). They are proved recurrence invariants and bounds, not theorem assumptions.",
+          "formula": "H(z)=\\tfrac12(\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2),\\quad C=\\sqrt\\eta\\,\\beta\\sqrt{2H(z_0)}(\\sqrt{2\\eta H(z_0)}+\\|c-x_{\\rm ref}\\|).",
+          "lean": "  classical\n  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n  let c : E → E → E := fun y xRef => y - η • gradient V xRef\n  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n    (c y xRef + Real.cos t • (z.1 - c y xRef) +\n        (Real.sqrt η * Real.sin t) • z.2,\n     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n  let S : E → (E × E) → (E × E) := fun xRef z =>\n    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n  let rate : E → (E × E) → ℝ := fun xRef z =>\n    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n  let H : E → E → (E × E) → ℝ := fun y xRef z =>\n    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n  let C : E → E → (E × E) → ℝ := fun y xRef z =>\n    Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n      (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n    MeasureTheory.hittingAfter\n      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n    match r with\n    | Sum.inr _ => Sum.inr ()\n    | Sum.inl a =>\n      if τ y xRef a.2 e = ⊤ then Sum.inr () else\n        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n  let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n    fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n      (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n  change ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n    (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n      (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n    (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 74,
+            "end_line": 116,
+            "exact_code_raw_sha256": "8472ac978ac71c8dc9b958c18b6fc25ac10821d1ab0fbe7c5dc99eb5dbcd72aa"
+          }
+        },
+        {
+          "title": "Join the two actual compiled parents",
+          "text": "Apply the finite-recursion theorem to the six analytic source hypotheses. It supplies initialization, monotone times, absorbing stopping, C≥0, the positive-cap increment and zero-cap stopping. Apply the concrete product theorem to obtain a common positive-threshold event and divergent partial sums, with no supplied stochastic witness.",
+          "formula": "C\\ge0,\\quad C>0\\Longrightarrow T_n+\\varepsilon_n/C\\le T_{n+1},\\quad C=0,\\ \\varepsilon_n>0\\Longrightarrow\\text{next active record stops}.",
+          "lean": "  -- Reuse the actual deterministic recurrence; no cap or recurrence is supplied.\n  rcases ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion\n      hα hαβ hV hH hη hβη with\n    ⟨hinit, _, _, _, _, htime, hstop, _, hcap, _⟩\n  -- The good event supplies all positive thresholds and divergent actual sums.\n  rcases AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws with\n    ⟨_, _, _, hgood, hdiv⟩\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 117,
+            "end_line": 123,
+            "exact_code_raw_sha256": "85cd1db02123c7b64221467e5741091ed9422ee2bbcdd8005b452db8f6b8c0c2"
+          }
+        },
+        {
+          "title": "Intersect the two good-input events",
+          "text": "For arbitrary fixed y,xRef,z0, intersect the almost-sure all-coordinate positivity and divergent-sum events. Positivity makes every clamped ε_k strictly positive. Extract the cap laws for this actual sample; these facts remain internal to the proof.",
+          "formula": "P\\text{-a.s.}:\\quad\\forall k,\\ \\varepsilon_k>0,\\qquad S_n:=\\sum_{k<n}\\varepsilon_k\\longrightarrow+\\infty.",
+          "lean": "  intro y xRef z₀\n  filter_upwards [hgood, hdiv] with sample hpos hsum\n  have hepos (k : ℕ) : 0 < ε sample k :=\n    Real.toNNReal_pos.mpr (hpos k).1\n  obtain ⟨hC, hinc, hzero⟩ := hcap y xRef z₀ (ε sample)\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 124,
+            "end_line": 128,
+            "exact_code_raw_sha256": "1ca606f5abab82521b192f3db9ed74836da823a941f3a6827d3e9b76fe22a8a9"
+          }
+        },
+        {
+          "title": "Handle zero cap by absorbing stopping",
+          "text": "Split on C=0. The initial record is active and ε0>0, so its first update stops. Absorption proves T_(1+k)=∞ for every k. Every finite horizon is therefore exceeded at all indices n≥1. This includes zero-energy and dimension-zero cases.",
+          "formula": "C=0\\Longrightarrow\\operatorname{record}_1=\\mathrm{stopped}\\Longrightarrow\\forall n\\ge1,\\ T_n=\\infty>t.",
+          "lean": "  have hescape : ∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n      (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n := by\n    -- Zero cap forces the first positive-threshold update to stop; it absorbs.\n    by_cases hC0 : C y xRef z₀ = 0\n    · have hfirst : record y xRef z₀ (ε sample) 1 = Sum.inr () :=\n        hzero hC0 0 (0, z₀) (hinit y xRef z₀ (ε sample)) (hepos 0)\n      intro t\n      filter_upwards [eventually_ge_atTop (1 : ℕ)] with n hn\n      obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le hn\n      have hs : record y xRef z₀ (ε sample) (1 + k) = Sum.inr () :=\n        hstop y xRef z₀ (ε sample) 1 k hfirst\n      change (t : WithTop ℝ≥0) < (record y xRef z₀ (ε sample) (1 + k)).elim _ _\n      rw [hs]\n      exact WithTop.coe_lt_top t\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 129,
+            "end_line": 142,
+            "exact_code_raw_sha256": "78fc652000fb8b533f0e10be2428989ca6dccfb209174ad0d3827211d8604671"
+          }
+        },
+        {
+          "title": "Sum the actual positive-cap increments",
+          "text": "In the other branch C≥0 and C≠0 give C>0. Let cap=toNNReal(C), whose real coercion is C. Starting from S0=T0=0, apply the actual extended-valued increment inequality and induction: S_(n+1)/C=S_n/C+ε_n/C≤T_n+ε_n/C≤T_(n+1). The same inequality remains valid after stopping since times are top.",
+          "formula": "C>0\\Longrightarrow\\forall n,\\quad \\frac{S_n}{C}\\le T_n.",
+          "lean": "    -- Positive cap: inductively compare every actual clock with partial sums/C.\n    · have hCp : 0 < C y xRef z₀ := lt_of_le_of_ne hC (Ne.symm hC0)\n      let cap : ℝ≥0 := Real.toNNReal (C y xRef z₀)\n      have hcapcoe : (cap : ℝ) = C y xRef z₀ := Real.coe_toNNReal _ hC\n      have hcapPos : 0 < cap := Real.toNNReal_pos.mpr hCp\n      have hbound (n : ℕ) :\n          (((∑ k ∈ Finset.range n, ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0) ≤\n            eventTime y xRef z₀ (ε sample) n := by\n        induction n with\n        | zero => simpa using (htime y xRef z₀ (ε sample)).1.ge\n        | succ n ih =>\n          have hi := hinc hCp n\n          have hterm : Real.toNNReal ((ε sample n : ℝ) / C y xRef z₀) =\n              ε sample n / cap := by\n            rw [Real.toNNReal_div (ε sample n).coe_nonneg, Real.toNNReal_coe]\n          rw [hterm] at hi\n          calc\n            (((∑ k ∈ Finset.range (n + 1), ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0)\n                = (((∑ k ∈ Finset.range n, ε sample k) / cap : ℝ≥0) : WithTop ℝ≥0) +\n                    ((ε sample n / cap : ℝ≥0) : WithTop ℝ≥0) := by\n                      rw [Finset.sum_range_succ, add_div, WithTop.coe_add]\n            _ ≤ eventTime y xRef z₀ (ε sample) n +\n                    ((ε sample n / cap : ℝ≥0) : WithTop ℝ≥0) := add_le_add ih le_rfl\n            _ ≤ eventTime y xRef z₀ (ε sample) (n + 1) := hi\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 143,
+            "end_line": 166,
+            "exact_code_raw_sha256": "859040dda9835528764f052ecc6bac7d1e96ecdbf07baf84cbb2cda62efe8cbc"
+          }
+        },
+        {
+          "title": "Use divergent inputs to escape every finite horizon",
+          "text": "For any finite t, divergence gives S_n>tC eventually. Because C>0 this implies S_n/C>t. Combine this strict finite inequality, lifted into WithTop NNReal, with the prefix lower bound. This proves finite-horizon escape without requiring eventual equality to infinity.",
+          "formula": "S_n>tC\\Longrightarrow t<S_n/C\\le T_n.",
+          "lean": "      intro t\n      have hs : ∀ᶠ n : ℕ in atTop,\n          (t : ℝ) * C y xRef z₀ < ∑ k ∈ Finset.range n, (ε sample k : ℝ) :=\n        hsum.eventually (eventually_gt_atTop ((t : ℝ) * C y xRef z₀))\n      filter_upwards [hs] with n hn\n      have ht : t < (∑ k ∈ Finset.range n, ε sample k) / cap := by\n        apply (NNReal.coe_lt_coe).mp\n        push_cast\n        rw [hcapcoe]\n        exact (lt_div_iff₀ hCp).mpr hn\n      exact lt_of_lt_of_le (WithTop.coe_lt_coe.mpr ht) (hbound n)\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 167,
+            "end_line": 177,
+            "exact_code_raw_sha256": "1780ce9b2561348136790ae30f0decf7e7455c78e0b5d02a82710468c7d030d4"
+          }
+        },
+        {
+          "title": "Turn escape into a finite index set",
+          "text": "For each t, choose N such that n≥N implies t<T_n. Any n with T_n≤t must satisfy n<N. The sublevel index set is therefore contained in the finite natural interval [0,N); index0 is retained. Assemble both almost-sure conclusions.",
+          "formula": "\\{n:T_n\\le t\\}\\subseteq\\{0,\\ldots,N-1\\}\\quad\\Longrightarrow\\quad\\#\\{n:T_n\\le t\\}<\\infty.",
+          "lean": "  refine ⟨hescape, ?_⟩\n  -- The bounded-horizon index set is contained in a finite initial interval.\n  intro t\n  obtain ⟨N, hN⟩ := eventually_atTop.mp (hescape t)\n  apply (Set.finite_Iio N).subset\n  intro n hn\n  exact lt_of_not_ge (fun hge => (not_lt_of_ge hn) (hN n hge))\n",
+          "detail": "Exact contiguous compiled proof region; preceding local definitions and facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+            "source_raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+            "start_line": 178,
+            "end_line": 184,
+            "exact_code_raw_sha256": "093d05764bb1629ea7f6d2ef93966edf23bc72b4c274a295976b6b782d60c6af"
+          }
+        }
+      ],
+      "lean_statement": "Let E be any finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure. Let V:E→ℝ be C². Let α,β be nonnegative reals and η a real number satisfying α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0, and βη≤1. Fix any y,xRef∈E and initial phase z0=(x0,p0)∈E×E. Set c=y−η∇V(xRef). For z=(x,p), define the actual harmonic flow Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), reflection S(z)=(x,p−[2〈p,g(x)〉/‖g(x)‖²]g(x)), residual g(x)=∇V(x)−∇V(xRef), and rate λ(z)=√η max{0,〈p,g(x)〉}. The reflection uses total real division, hence is the identity when g(x)=0. Define Λ(z,t)=∫_0^t λ(Φ_s(z)) ds for finite t≥0 and τ(z,e)=inf{t≥0:Λ(z,t)≥e}, with inf empty=∞. Let P be the actual countable product of rate-one exponential Borel measures on Ω=ℝ^ℕ; let ε_k(sample)=max{sample_k,0} viewed as a nonnegative real. Define active records (T,z) and an absorbing stopped record carrying no phase. Initialize record0=(0,z0). At index k, a stopped record stays stopped; an active record (T,z) becomes stopped if τ(z,ε_k)=∞ and otherwise becomes (T+τ(z,ε_k), S(Φ_{τ(z,ε_k)}(z))). Its event time T_k is the finite time component if active and ∞ if stopped. Then for these fixed y,xRef,z0, for P-almost every sample, simultaneously: (i) for every finite nonnegative horizon t, all sufficiently large k satisfy t<T_k; (ii) for every such t the set {k∈ℕ:T_k≤t} is finite. Initialization index0 is included, and ε_k is source E_(k+1). The result includes both eventual stopping and infinite continuing paths with unbounded event times; it does not assert eventual stopping. It is an actual-input, fixed-reference nonaccumulation conclusion of Appendix A.1 Ex9, with ASTIS total-record and finite-index adapters. The global physical-time process and its additional properties are separate obligations.",
+      "lean_proof": "Fix the actual source objects and stopped event times; Join the two actual compiled parents; Intersect the two good-input events; Handle zero cap by absorbing stopping; Sum the actual positive-cap increments; Use divergent inputs to escape every finite horizon; Turn escape into a finite index set",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+      ],
+      "mathlib_dependencies": [
+        "Real.toNNReal_pos",
+        "Real.coe_toNNReal",
+        "Real.toNNReal_div",
+        "Real.toNNReal_coe",
+        "NNReal.coe_lt_coe",
+        "Finset.sum_range_succ",
+        "WithTop.coe_add",
+        "WithTop.coe_lt_coe",
+        "WithTop.coe_lt_top",
+        "Filter.eventually_ge_atTop",
+        "Filter.eventually_gt_atTop",
+        "Filter.eventually_atTop",
+        "Set.finite_Iio"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation",
+      "role": "proof-edge",
+      "supports": [
+        "actual-nonaccumulation"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing six analytic assumptions and actual AppendixA.1 recurrence.",
+        "lean": "Exactly the six source analytic binders and literal actual recurrence on finite active or stopped records."
+      },
+      {
+        "source": "Independent positive Exp1 family; source E_(n+1).",
+        "lean": "Canonical product on real sequences, total NNReal clamp at coordinate n with simultaneous almost-sure positivity and equality."
+      },
+      {
+        "source": "Continuing event times diverge by Ex9; stopped branch produces finitely many jumps.",
+        "lean": "Stopped times are top; every finite horizon is eventually exceeded, hence its event-index sublevel set is finite including initialization0."
+      },
+      {
+        "source": "Direct source Exp mean-one SLLN argument.",
+        "lean": "Use the previously independently verified sufficient indicator-SLLN divergence route in the canonical product parent."
+      },
+      {
+        "source": "Following global path/Markov and Proposition3.1 claims; full sampler/cost/composition.",
+        "lean": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space, possibly of dimension zero, with its Borel measurable structure. Let V : E → ℝ be twice continuously differentiable. Fix nonnegative real parameters α and β and a real parameter η satisfying α > 0, α ≤ β, η > 0, and βη ≤ 1. For every x,v ∈ E assume\nα‖v‖² ≤ D²V(x)[v,v] ≤ β‖v‖².\n\nFor any fixed y,xRef ∈ E and any fixed initial pair z₀=(x₀,v₀) ∈ E×E, put c=y−η∇V(xRef). Define, for every real duration s and state z=(x,v),\nΦ(s,z)=(c+cos(s)(x−c)+√η sin(s)v, −sin(s)(x−c)/√η+cos(s)v).\nWriting g(x)=∇V(x)−∇V(xRef), define the bounce\nS(x,v)=(x,v−[2⟨v,g(x)⟩/‖g(x)‖²]g(x)),\nand the nonnegative rate rate(x,v)=√η max(0,⟨v,g(x)⟩).\nFor each state z and nonnegative duration u define the cumulative hazard\nΛ(z,u)=∫₀ᵘ rate(Φ(s,z)) ds.\nFor a nonnegative threshold e define τ(z,e) as the infimum, in [0,∞], of nonnegative u for which Λ(z,u)≥e, with infinity for an empty hit set.\n\nTake sample=(sample₀,sample₁,…) under the canonical countable product of rate-one exponential measures on ℝ. Define eₖ=max(sampleₖ,0), viewed in ℝ≥0. Starting with record₀=(0,z₀), update recordₖ with threshold eₖ. A stopped record remains stopped. For a finite record (a,z), if τ(z,eₖ)=∞ the next record is stopped; otherwise the next record is (a+τ(z,eₖ), S(Φ(τ(z,eₖ),z))). Define Tₙ to be the accumulated time in a finite record and infinity in a stopped record; in particular T₀=0.\n\nFor each fixed y,xRef,z₀, almost every sample satisfies both of the following simultaneously: for every finite nonnegative horizon t, Tₙ>t for all sufficiently large natural indices n; and for every such t the set {n∈ℕ : Tₙ≤t} is finite. This is escape beyond every finite horizon in the extended nonnegative time line, allowing an absorbing infinity record. It does not assert eventual stopping or that a finite event time ever becomes infinity.",
+    "text_sha256": "739120a5dbea1168837e042ecf657ddd1a1bd2e54a07df43cade601f62da0b67",
+    "decoder": "/root/blind_decoder78",
+    "decoder_run_sha256": "b991a8eac036169588d9fad419dd6d74c7e25a5df84fc22c99dabf00c7ac6f64",
+    "decoder_packet_sha256": "846020982cd5da95782cf71ea0e6e71c732880b68d6d37b7f46db806930b6046",
+    "source_text_visible": false,
+    "lean_statement_sha256": "5a33f8d88e7be221336767fe259922a9df642bc4e0e551a7fff0c11373105bb4",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "E:\\Samplinglib\\.astis\\decoder-78\\packet.json",
+        "raw_sha256": "e62431f9cbdceaad7132e029bc52125b6f123855d0877273732cd5bc389c3879"
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/anonymous-decoder78/run-manifest.json",
+    "native_named_payload_sha256": "4c8ae475773996cd7ba8799732411baa77d8755b00653a260f531fe63dec9099",
+    "unresolved_semantics": [],
+    "run_hash_recipe": "SHA256 of immutable native run-manifest RAW bytes; response and input/output hashes checked."
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Fixed y, xtilde and phase z0; literal harmonic flow, gradient residual, reflection with R0=I, actual nonnegative bounce rate, integrated-hazard waiting times and recursively updated phases; independent Exp1 clocks indexed j>=1.",
+      "reconstructed": "Same flow, residual, rate and reflection; canonical Exp1 product coordinates clamped to NNReal; active (time,phase) or absorbing stopped records, source E_(k+1) at Lean index k.",
+      "relation": "explicit-elaboration",
+      "evidence": "Frozen D01-D06/B01/B04/B05; A1.Ex1-3/A1.E1-2, S3.E4; current private Prop lines 15-59, theorem local definitions lines 74-116. Product parent proves coordinate law and common a.s. strict positivity/raw-clamp equality. Hazard parent proves actual first threshold hit, not a surrogate increment-only clock."
+    },
+    "domains": {
+      "original": "Euclidean R^d phases and fixed references, finite nonnegative durations, extended infinity for an empty hit set; paper scale eta in (0,1/beta]. Source does not choose a probability carrier.",
+      "reconstructed": "Any finite-dimensional real inner-product space with Borel structure, including zero dimension; NNReal finite times/thresholds, WithTop NNReal infinity; canonical probability carrier R^N.",
+      "relation": "explicit-elaboration",
+      "evidence": "Finite-dimensional intrinsic formulation is coordinate-invariant and specializes to R^d; zero-dimensional rates/energy are handled by zero-cap proof. NNReal/WithTop are exact order representations. Canonical product realizes the specified iid law; transport to every arbitrary carrier is not separately asserted. Primary supplement S2.SS2.p1.1 confirms standing eta scale."
+    },
+    "quantifiers": {
+      "original": "For each arbitrary fixed y,xtilde,z0, the prescribed iid recursion has no finite accumulation almost surely; continuing recursion has T_n tending to infinity. T0=0 and E_(n+1) drives the nth update.",
+      "reconstructed": "For all fixed y,xRef,z0, almost every sample simultaneously escapes every finite NNReal horizon and has a finite set of event indices below it. Each update uses epsilon_k, so epsilon_k=source E_(k+1).",
+      "relation": "explicit-elaboration",
+      "evidence": "Statement order is forall fixed triple, then a.e. sample, then forall horizon; no uncountable a.e. intersection over triples is claimed. BODY introduces fixed triple at line124, intersects parameter-independent good events at125, then introduces arbitrary t at134/167/180. Initialization and sum_range indexing match Ex9."
+    },
+    "assumptions": {
+      "original": "Standing V in C2, 0<alpha<=beta, Hessian bounds (1.1), and eta in (0,1/beta] from Section2.2; fixed finite deterministic parameters and iid Exp(rate1) inputs. Energy, cap, hazard bound and divergent partial sums are proof ingredients.",
+      "reconstructed": "Six analytic binders hAlpha,hAlphaBeta,hV,hH,hEta,hBetaEta; finite-dimensional/Borel typing. Probability law, thresholds, flow, rate, clock and recursion are literal local definitions. No iid, cap, positivity, divergence or time certificate is supplied as a public premise.",
+      "relation": "explicit-elaboration",
+      "evidence": "Private statement and public signature checked in whole module. Alpha>0 and alpha<=beta imply beta>0. S2.SS2.p1.1 supports hBetaEta; C2/Hessian assumptions are S1.p1/E1. ActualFiniteJumpRecursion and UnitExponentialProduct discharge deterministic/stochastic ingredients internally. No third/higher derivative, nonzero residual, positive cap or nonzero dimension assumption occurs."
+    },
+    "conclusion": {
+      "original": "Zero cap gives no jumps; any finite stopping prefix has no further jumps; on continuing paths Ex8 telescopes into Ex9 and event times cannot accumulate at finite time.",
+      "reconstructed": "For a.e. canonical sample, T_n>t eventually for every finite t and {n:T_n<=t} is finite, including index0. Stops are top. No eventual stop is asserted.",
+      "relation": "explicit-elaboration",
+      "evidence": "BODY129-142 handles zero cap by first positive-clock stop and absorption;143-177 handles positive cap and partial-sum divergence with top-safe inequalities;178-184 derives finite indices. This is the source nonaccumulation conclusion plus an explicitly labelled finite-index consequence, not all Proposition3.1."
+    },
+    "scopes": {
+      "original": "Only the fixed-reference actual-time nonaccumulation part of AppendixA.1, with source mechanism energy/cap/waiting times and source direct Exp mean-one SLLN. Following all-time process/Markov and later invariance/kernel/cost/composition are outside this edge.",
+      "reconstructed": "Actual fixed-reference stopped recursion is joined to canonical product input divergence; ASTIS indicator-SLLN alternative is explicitly separated from direct author moment route, which remains open. No physical-time path or later property is claimed.",
+      "relation": "explicit-elaboration",
+      "evidence": "Candidate publication obligation support is only actual-nonaccumulation; author-moment-route and global-process-properties remain separate. Both whole module statement and authored lesson exclusions were checked. UnitExponentialProduct BODY uses bounded iid indicators 1_{X_k>1}, tail probability/mean exp(-1)>0 and SLLN, not the raw exponential first moment."
+    },
+    "constant_dependencies": {
+      "original": "One deterministic finite cap C=sqrt(eta)*beta*sqrt(2H(z0))*(sqrt(2eta H(z0))+||c-xtilde||), depending only on fixed eta,beta,y,xtilde,z0. Positive C permits division; C=0 is separate.",
+      "reconstructed": "Exactly the source H and C are internal formulas. No sample-, index-, or horizon-dependent cap and no unspecified universal constant is introduced. Threshold1/mean exp(-1) occur only in the sufficient stochastic parent route.",
+      "relation": "same",
+      "evidence": "BODY H/C definitions lines87-93 and positive-cap NNReal conversion146-150; finite recursion transports H(z)=H(z0) into cap equality. ActualBounceRate derives the precise cap with Hessian-derived gradient Lipschitz, Cauchy-Schwarz and triangle inequality. ActualHazardClock integrates it and handles C=0 without division."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Coordinate-free finite-dimensional inner-product space, including zero dimension, is an explicit intrinsic extension of source R^d; it specializes faithfully and adds no source restriction.",
+      "evidence": "Native independent source-review D78-intrinsic-space in runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.result78.json; exact current module and seven-step coverage bound by run a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934.",
+      "native_classification": "generalization"
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "Canonical product R^N realizes iid Exp1. NNReal clamp changes only a null complement of the common positive-coordinate event. This review certifies the canonical realization, not an unproved transport theorem on all probability carriers.",
+      "evidence": "Native independent source-review D78-canonical-carrier in runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.result78.json; exact current module and seven-step coverage bound by run a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934.",
+      "native_classification": "explicit-elaboration"
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "Absorbing no-phase stopped record and top eventTime make source empty-set stopping total; finite active records retain literal postbounce phase. Zero thresholds are a deterministic total extension excluded a.s. from actual inputs.",
+      "evidence": "Native independent source-review D78-stop-top in runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.result78.json; exact current module and seven-step coverage bound by run a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934.",
+      "native_classification": "explicit-elaboration"
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The finite sublevel event-index set is a proved ASTIS consequence of finite-horizon escape; index0 is counted. It is neither a physical bounce-count cost nor a source quotation.",
+      "evidence": "Native independent source-review D78-finite-index in runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.result78.json; exact current module and seven-step coverage bound by run a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934.",
+      "native_classification": "explicit-elaboration"
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "Original direct exponential first-moment/mean1 SLLN graph node is not implemented. Concrete product parent instead proves divergence using bounded iid indicators above1, mean exp(-1), and SLLN. Publication distinguishes the OR-route and retains original author route as open.",
+      "evidence": "Native independent source-review D78-indicator-or-route in runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.result78.json; exact current module and seven-step coverage bound by run a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934.",
+      "native_classification": "alternative-sufficient-proof"
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "The initial independent freeze explicitly recorded only eta>0. Supplemental direct primary reading S2.SS2.p1.1 confirms eta<=1/beta as standing algorithm context. hBetaEta therefore is not an added source premise in this scoped paper leaf; broader unrestricted-eta nonaccumulation is not claimed.",
+      "evidence": "Native independent source-review D78-scale-standing in runs/20261007-companion-priority/pbps-actual-nonaccumulation78/fresh-source78/source-review.result78.json; exact current module and seven-step coverage bound by run a839983a1ec1c1571bac7c667c9d2ce7b408f33b667522539381c0f0454d5934.",
+      "native_classification": "source-standing-elaboration"
+    }
+  ],
+  "verdict": "equivalent-after-elaboration"
+}

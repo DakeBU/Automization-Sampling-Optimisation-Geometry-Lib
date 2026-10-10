@@ -182,6 +182,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow` | `pbps.actualHarmonicFlow` | `actual_harmonic_flow_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock` | `pbps.actualHazardClock` | `actual_integrated_hazard_clock_laws` | arXiv2609.06905v1 Algorithm1 and AppendixA1 equation(A1) |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation` | `pbps.actualNonaccumulation` | `actual_fixed_reference_event_time_nonaccumulation` | arXiv2609.06905v1 AppendixA1 Ex8-Ex9 and SLLN/nonaccumulation |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity` | `pbps.actualOuterBoundedL2Continuity` | `actual_outer_bounded_l2_continuity` | arXiv2609.06905v1 AppendixA1 Ex22 p6.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover` | `pbps.actualPhysicalTimeCover` | `actual_fixed_reference_physical_time_cover` | arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability` | `pbps.actualPhysicalTimeMeasurability` | `actual_physical_time_measurable_phase` | arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation` | `pbps.actualProjectedRotation` | `actual_projected_rotation` | arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites |

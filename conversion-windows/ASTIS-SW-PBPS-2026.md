@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual bounded-test outer square-integral84 (2026-10-11)
+
+Independent science dd3a23011b91569acbcd591ccd7b06301147d339. Exact conditional Gibbs and Gaussian product probabilities are derived from the six original hypotheses. The same actual83 phase gives state-measurable clock expectations;4M² dominates their squared discrepancy, and finite-probability filter DCT yields the outer integral limit0 at NNReal0. Eight exact adjacent formula/BODY regions; source C_c to C_b extension explicitly attributed. Full all-L2/invariance/contraction/density/process/main/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
 ## Actual bounded-test expectation83 (2026-10-10)
 
 Independent science 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. Every globally bounded continuous real test of the actual physical phase is measurable and integrable under the actual clocks. The explicit2M phase-defect integral estimate yields pointwise clock-expectation continuity at NNReal0. Original six conditions and complete prior physical semantics retained. Eight formula/BODY regions authored once with adjacent folded Lean. C_b/2M are ASTIS elaborations of source C_c. Outer L2/invariance/Markov/semigroup/main/error/cost/composition and actual browser/main/PURIFIED/live remain OPEN.

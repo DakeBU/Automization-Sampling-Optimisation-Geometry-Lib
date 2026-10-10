@@ -15,6 +15,14 @@ for folder in [r,pre]:
   name=p.as_posix()
   if p.is_file() and name not in exclude and '__pycache__' not in p.parts and p.suffix not in {'.log','.diff','.html','.pyc','.olean','.ilean','.c','.o','.ir'} and not name.endswith('.text.txt'):owned.append(name)
 paths=sorted(set(owned))
+if (r/'next-source85.readiness.json').exists():
+ readiness=load(r/'next-source85.readiness.json');manifest=readiness['manifest']
+ assert hashlib.sha256(Path(manifest['path']).read_bytes()).hexdigest()==manifest['RAW_sha256']
+ paths.append(manifest['path'])
+ for x in readiness['raw_outputs']:
+  assert hashlib.sha256(Path(x['path']).read_bytes()).hexdigest()==x['raw_sha256']
+  paths.append(x['path'])
+ paths=sorted(set(paths))
 
 for offset in range(0,len(paths),25):subprocess.run(['git','-c','core.autocrlf=false','add','--',*paths[offset:offset+25]],check=True)
 q=subprocess.run(['git','-c','core.whitespace=cr-at-eol','diff','--cached','--check'],capture_output=True);assert q.returncode==0,q.stdout.decode(errors='replace')[:4000]

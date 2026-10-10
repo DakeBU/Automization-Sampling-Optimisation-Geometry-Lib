@@ -1,5 +1,46 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS bounded-test outer square-integral continuity (2026-10-11)
+
+Independent exact-science commit dd3a23011b91569acbcd591ccd7b06301147d339. Retain the full actual83 physical
+phase contract and the original six analytic hypotheses. Derive, rather than
+assume, the exact conditional Gibbs probability q_y and initial phase law
+nu_y=q_y x N(0,I). For each fixed y,xRef, every continuous real test with
+|f|<=M and M>=0 has state-measurable actual clock expectation A_t f(z).
+Its square discrepancy is integrable under nu_y and bounded everywhere by4M².
+The actual83 expectation limit holds for every initial phase. Finite-probability
+filter dominated convergence therefore gives integral (A_t f-f)² dnu_y ->0
+at ordinary nonpunctured NNReal0. No phase invariance is a premise of this
+bounded-test argument, and no samplewise AS limit is inferred.
+
+The source uses C_c; bounded real C_b and explicit4M² are attributed ASTIS
+elaborations. The same Z precedes every test and bound; rank0 and M=0 are
+included. Eight exact contiguous formula/BODY regions passed independent
+mathematics, fresh source-blind decoding and anti-anchored source review.
+The independently rebuilt/reviewed source graph has47inventory/23nodes/
+39relations:37dependency rows including5futureOPEN and2excluded associations.
+Normalization alternatives remain whole OR routes with their ingredients AND.
+The future density node is distinct from invariant-law/Jensen contraction.
+
+This closes the bounded-test outer square-integral ingredient. Full all-L2
+equivalence-class operators, phase invariance, Jensen/contraction and C_c
+density remain OPEN, along with actual restart/Markov/semigroup/hypocoercivity,
+implementation/error/unbounded expected oracle cost/main and PBPS-SPHMC
+composition. TV does not transfer unbounded expected costs. Continue the current
+PBPS/SPHMC dependencies/composition, then Gaussian Cloud, then midpoint without
+adding higher derivative assumptions. Select the next strict mathematical edge
+from the current capsule and independently reconstructed primary-source graph.
+
+This VERIFIED child uses the existing sole stabilization lane. Local aggregate84
+passed (root9195, Tests9495, Registry533), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
+/graph checks are bound in84 integration.notes.json. Generated HTML contains eight
+exact adjacent step Lean regions, all initially folded. The current affected static
+SVG was rendered and actually viewed with exact RAW pins. Actual reader page and
+interactive visual acceptance, main merge/PURIFIED/live and full-paper/Goal
+completion remain separate.
+
+
 ## Actual PBPS bounded-test clock expectation (2026-10-10)
 
 Independent exact-science commit 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. For each fixed y,xRef,z0 and every

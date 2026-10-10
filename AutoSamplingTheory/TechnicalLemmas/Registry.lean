@@ -49,6 +49,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurabili
 import AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -93,6 +94,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualOuterBoundedL2Continuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity"
+    upstreamDecl := "Actual PBPS bounded-test outer square-integral prerequisite"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex22 p6.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "bounded-test", "dominated-convergence"]
+    saldUse := "Source Ex22 bounded-test outer square-integral ingredient; no SALD claim"
+    note := "Independently verified science dd3a23011b91569acbcd591ccd7b06301147d339. Under the original six analytic hypotheses, retain the entire actual83 phase and derive exact q_y=volume.tilted(-V-quadratic) and nu_y=q_y.prod(stdGaussian) probability. For every continuous real f with |f|<=M and M>=0, its actual independent-clock expectation A_t f is state measurable, its square discrepancy is nu_y-integrable and <=4M\u00b2, and the outer square integral tends0 at ordinary NNReal0. C_b/4M\u00b2 are ASTIS elaborations of source C_c bounded-test ingredient; no phase-invariance premise. Full all-L2 AE operator/invariance/Jensen/contraction/density/Markov/restart/semigroup/hypocoercivity/implementation/main/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN."
+  },
   {
     key := "pbps.actualBoundedTestContinuity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity.actual_bounded_test_expectation_continuity"

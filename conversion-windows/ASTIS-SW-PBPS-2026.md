@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual conditional finite next-wait density89 (2026-10-11)
+
+Independent science 58ddf518b7c75537680526fa809624ac7fe0b4c7. Same six original analytic hypotheses and literal stopped actual recursion. For every deterministic event depth n, every fixed Borel finite-valued cutoff d on full histories (no global bound), derive jointly Borel strict finite next-wait density D(h,s), the genuine Mathlib withDensity kernel K(h)=D(h,s)ds on every abstract history, uniform mass<=1/IsFiniteKernel, actual joint history/time measure identity, and all jointly Borel nonnegative extended test identities on every Borel history event A. No positive event probability, normalization, finite-wait/no-atom/density provider or bounded/integrable test premise. Restrict actual86 Ioc law further by Iio; never equate endpoint masses. Stopped histories have zero finite kernel; infinite waits remain outside finite component. Actual87 history/tail product, actual86 deterministic density, actual75 hazard, actual flow/rate and actual77 product are six genuine compiled parents; adjacent survival88 is not an AND dependency. Only density component of S87-I5/G86-11 closes. Ordered-time iteration, final survival/path factor, fullA7, residual restart/Markovness, global nonexplosion/invariance/hypocoercivity, implementation/errors/unbounded costs/main/composition/wholepaper/Goal OPEN.
+
+Six exact proof regions; separately reviewed one-field exposition sequencing correction. Existing sole lane; local aggregate/actual browser/main/PURIFIED/live remain distinct.
+
+
 ## Actual conditional next-wait survival88 (2026-10-11)
 
 Independent science 456e13f9561abcf01a285133e91b3951bf2ed892. Same six original analytic hypotheses and literal actual stopped recursion. For every deterministic event depth n, Borel duration d of complete history H_n and Borel event A, derive joint next-wait event measurability, Borel weight q_d in [0,1], and P(H_n in A and live next wait>d(H_n))=integral_A q_d d(map H_n P). Stopped histories have zero weight; live infinite waits survive all finite durations. No normalization, boundedness of d or law/measurability provider premise. Actual87 joint history/tail law, actual75 hazard survival and actual77 coordinate law are compiled parents. Only S87-I4 closes. S87-I5 conditional finite-wait density, ordered-time disintegration/iteration, final factor/fullA7, random-depth and physical-time residual restart/Markov/invariance/cost/main/composition/wholepaper/Goal remain OPEN.

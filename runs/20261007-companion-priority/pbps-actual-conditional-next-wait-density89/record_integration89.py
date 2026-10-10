@@ -15,8 +15,8 @@ gate=load('.astis/site-lean-gate.json');assert gate['passed'] and gate['source_d
 graph=load('_site/data/underlying-lean-graph.json');assert graph['publication_inputs_sha256']==publication_reader.graph_input_digest()
 underlying_lean_graph.validate(Path('_site'),graph)
 claim=load(r/'claim.json');assert advance.current_advances()[claim['advance_id']]['state']=='VERIFIED'
-source=load(r/'independent-source89/source-review89.decision.native.json')
-for name,key in [(claim['proposed_files'][0],'lean_module_raw_sha256'),('website/content/declaration_lessons/pbps-actual-conditional-next-wait-density.json','lesson_raw_sha256'),('website/content/publications/pbps-actual-conditional-next-wait-density.json','publication_raw_sha256')]:assert pin(name)['RAW_sha256']==source[key],name
+source=load(r/'independent-source89/source-review89.decision.v2.native.json')
+for name,key in [(claim['proposed_files'][0],'module'),('website/content/declaration_lessons/pbps-actual-conditional-next-wait-density.json','lesson'),('website/content/publications/pbps-actual-conditional-next-wait-density.json','publication')]:assert pin(name)['RAW_sha256']==source[key]['raw_sha256'],name
 view=load(out/'static-svg/viewed-or-reused.json')
 assert view['viewed_by_root'] and pin(view['input'])['RAW_sha256']==view['input_RAW_sha256'] and pin(view['output'])['RAW_sha256']==view['output_RAW_sha256']
 assert Path('docs/module-graph.svg').read_bytes()==Path('docs/assets/astis_lean_arsenal_module_graph.svg').read_bytes()

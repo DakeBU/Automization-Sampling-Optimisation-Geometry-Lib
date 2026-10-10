@@ -1,5 +1,62 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS conditional finite next-wait density (2026-10-11)
+
+Independent science 58ddf518b7c75537680526fa809624ac7fe0b4c7. The six source analytic hypotheses and actual
+stopped independent exponential-clock recursion are unchanged. At each
+deterministic event depth n, let H_n be the full history with law mu_n. For every
+fixed Borel finite-valued cutoff d(h), possibly unbounded across histories,
+
+D_d(h,s) = 1_(0<s<d(h)) rate(Phi_s z) exp(-Lambda_z(s))
+
+on a live last record; it is zero on stopped records. D_d is jointly Borel.
+The genuine Mathlib density kernel satisfies K_d(h,ds)=D_d(h,s)ds for EVERY
+abstract history, has mass at most1, and is a finite subprobability kernel.
+For B_d={0<W_n<d(H_n)} and X_n=(H_n,finite_wait_time),
+
+(X_n)_*(P restricted to B_d) = D_d (mu_n product real Lebesgue).
+
+Every jointly Borel F:Hist_n x real -> extended nonnegative reals has a Borel
+parameter integral. For every Borel history event A,
+
+integral_(B_d and H_n in A) F(X_n) dP
+  = integral_A [integral_real F(h,s) D_d(h,s) ds] mu_n(dh).
+
+There is no boundedness/integrability premise on F, no positive mu_n(A),
+normalization, density/independence provider, or finite-wait/no-atom premise.
+Strict Ioo density follows by restricting actual86 Ioc law by Iio; no endpoint
+mass equivalence is asserted. Stopped records have zero finite kernel; live
+infinite waits remain outside this component. Includes n=0, d=0, zero hazards,
+null A, rank zero and unrealizable histories. Kernel mass<=1 does not bound its
+pointwise density.
+
+Six genuine public compiled parents: actual87 full history/unused-tail product,
+actual86 deterministic first-event density, actual75 hazard/clock, actual
+harmonic flow and bounce rate, and actual77 unit-exponential product.
+Survival88 is adjacent and is not a fabricated AND dependency. Six exhaustive
+exact BODY regions accompany a complete attributed statement and formula proof,
+with adjacent initially folded Lean. Independent whole mathematics, fresh
+source-blind decoding and primary-first anti-anchored source review remain
+separate native evidence. A distinctly reviewed one-field exposition overlay
+removed the premature duplicate mass bound from step2; its proof stays in step4.
+Lean, Statement Seal and decoder input did not change.
+
+Only the finite-density component of S87-I5/G86-11 closes. Ordered-time
+disintegration/iteration, final survival/path factor assembly, full(A.7),
+physical-time residual memorylessness/random restart/Markovness, global
+nonexplosion/invariance/semigroup/all-L2/hypocoercivity, implementation errors,
+unbounded expected oracle costs, main theorem and composition remain OPEN.
+Choose the next bounded edge from a fresh capsule and exact primary source,
+using these conditional density and survival parents without provider premises.
+
+Use the existing sole stabilization lane. Actual page/fine-branch visual
+acceptance, full Exposition Seal, main merge, postmerge PURIFIED and live
+verification remain separate. Do not infer them from DOM/SVG source checks.
+Four-paper priorities and reading requirements remain in execution metadata.
+PBPS/SPHMC and actual-input composition precede Gaussian Cloud, then midpoint;
+no higher-derivative assumptions or TV transfer of unbounded costs.
+
+
 ## Actual PBPS history-dependent next-wait survival (2026-10-11)
 
 Independent science 456e13f9561abcf01a285133e91b3951bf2ed892. Keep the original six analytic hypotheses and

@@ -13,7 +13,7 @@ def publishable(p):
 rows=[];excluded=set()
 for folder in [r,pre]:
  for p in sorted(folder.rglob('*')):
-  if not p.is_file() or not publishable(p) or p.suffix not in {'.log','.diff','.html','.lean','.snapshot'}:continue
+  if not p.is_file() or not publishable(p) or (p.suffix not in {'.log','.diff','.html','.lean','.snapshot'} and '.snapshot.' not in p.name):continue
   b=p.read_bytes();z=Path(str(p)+'.gz')
   if not z.exists():z.write_bytes(gzip.compress(b,mtime=0))
   assert gzip.decompress(z.read_bytes())==b,p

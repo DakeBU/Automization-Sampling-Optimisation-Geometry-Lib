@@ -54,6 +54,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -98,6 +99,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualConditionalNextWaitDensity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity.actual_conditional_next_wait_density"
+    upstreamDecl := "Actual PBPS conditional finite next-wait density"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A1 A2 A7 strict finite density and AppendixA2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "conditional-density", "finite-history", "subprobability-kernel"]
+    saldUse := "Actual PBPS ordered finite-event iteration substrate; no SALD claim"
+    note := "Independent science 58ddf518b7c75537680526fa809624ac7fe0b4c7. Same six original analytic hypotheses and literal stopped actual recursion. For every deterministic event depth n, every fixed Borel finite-valued cutoff d on full histories (no global bound), derive jointly Borel strict finite next-wait density D(h,s), the genuine Mathlib withDensity kernel K(h)=D(h,s)ds on every abstract history, uniform mass<=1/IsFiniteKernel, actual joint history/time measure identity, and all jointly Borel nonnegative extended test identities on every Borel history event A. No positive event probability, normalization, finite-wait/no-atom/density provider or bounded/integrable test premise. Restrict actual86 Ioc law further by Iio; never equate endpoint masses. Stopped histories have zero finite kernel; infinite waits remain outside finite component. Actual87 history/tail product, actual86 deterministic density, actual75 hazard, actual flow/rate and actual77 product are six genuine compiled parents; adjacent survival88 is not an AND dependency. Only density component of S87-I5/G86-11 closes. Ordered-time iteration, final survival/path factor, fullA7, residual restart/Markovness, global nonexplosion/invariance/hypocoercivity, implementation/errors/unbounded costs/main/composition/wholepaper/Goal OPEN."
+  },
   {
     key := "pbps.actualConditionalNextWaitSurvival"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival.actual_conditional_next_wait_survival"

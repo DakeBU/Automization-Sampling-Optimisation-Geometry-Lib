@@ -1,0 +1,9 @@
+import json,hashlib
+from pathlib import Path
+O=Path(__file__).parent;p=O/'verify89.py'
+negative={'status':'VERIFIER_COMPILED_CACHE_BINDING_CLASSIFICATION_ERROR_BEFORE_GATES','terminal_tool_chunk':'47c02b','exit_code':1,'cause':'Historical header RAW manifest also records five local compiled parent oleans. These are compiler artifacts, not source Git blobs. Exact historical RAW checks succeeded before wrong Git-binding demand.','correction':'Keep historical olean RAW observations separate from named-commit source bindings. Each corresponding source is independently git-bound; current focused build and kernel probe exercise the public declaration. No source/publication/proof change.'}
+with (O/'verifier-compiled-cache-classification89.negative.json').open('x',encoding='utf8',newline='\n') as f:json.dump(negative,f,indent=2);f.write('\n')
+s=p.read_text('utf8');old=" if r.startswith('.lake/packages/mathlib/'):"
+new=" if r in ['.astis/toolchain/lean-4.33.0-windows/bin/lake.exe','.astis/toolchain/lean-4.33.0-windows/bin/lean.exe']:\n  version=subprocess.check_output([str(p),'--version'],cwd=R).decode().strip();assert '4.33.0' in version,version\n  local[r]=dict(**info(p),binding='Pinned local Lean4.33 runtime binary; historical RAW checked, not repository source.',version=version);return\n if r.startswith('.lake/build/lib/lean/AutoSamplingTheory/') and r.endswith('.olean'):\n  source=r[len('.lake/build/lib/lean/'):-len('.olean')]+'.lean';exact(source)\n  local[r]=dict(**info(p),binding='Historical compiled parent artifact RAW observation, not source Git evidence; corresponding source independently bound and fresh focused/current kernel gates required.',source=source);return\n if r.startswith('.lake/packages/mathlib/'):"
+assert s.count(old)==1
+exec(compile(s.replace(old,new,1),str(p),'exec'),{'__file__':str(p),'__name__':'__main__'})

@@ -1,0 +1,349 @@
+{
+  "actual_literal_definitions": [
+    {
+      "formula": "c(y,xRef) = y − η • gradient V xRef",
+      "id": "center",
+      "semantics": "One actual center; fixed y and xRef throughout every finite history.",
+      "source_items": [
+        "S3.E4.m1"
+      ]
+    },
+    {
+      "formula": "h(xRef,x) = gradient V x − gradient V xRef",
+      "id": "residual",
+      "semantics": "Actual gradient difference, never a supplied arbitrary residual or Lipschitz field.",
+      "source_items": [
+        "S3.E4.m1"
+      ]
+    },
+    {
+      "formula": "R_a p = p − (2 * inner a p / ‖a‖²) • a for a ≠ 0; R_0 p = p",
+      "id": "reflection",
+      "semantics": "Piecewise zero-safe specular reflection; no continuity premise at a=0.",
+      "source_items": [
+        "S2.SS1.p1.4",
+        "S2.E4.m1",
+        "A1.Ex3.m2"
+      ]
+    },
+    {
+      "formula": "Φ_t(x,p) = (c+(cos t)•(x−c)+(sqrt η*sin t)•p, −(sin t/sqrt η)•(x−c)+(cos t)•p)",
+      "id": "flow",
+      "semantics": "Finite real t only; η>0 fixes positive square root. No Φ_∞.",
+      "source_items": [
+        "A1.Ex2.m1",
+        "A1.Ex2.m2"
+      ]
+    },
+    {
+      "formula": "S(x,p) = (x,R_(h(xRef,x)) p)",
+      "id": "bounce",
+      "semantics": "Position unchanged; actual zero-safe bounce. Borel is required internally; continuous S is unavailable.",
+      "source_items": [
+        "A1.Ex3.m1",
+        "A1.Ex3.m2"
+      ]
+    },
+    {
+      "formula": "λ(x,p) = sqrt η * max(0, inner p (h(xRef,x)))",
+      "id": "rate",
+      "semantics": "Nonnegative actual PBPS rate, not a supplied bounded rate or generic hazard.",
+      "source_items": [
+        "A1.Ex1.m1",
+        "S3.E9.m1"
+      ]
+    },
+    {
+      "formula": "H(x,p) = (η⁻¹ * ‖x−c‖² + ‖p‖²)/2; E0 = H(z0)",
+      "id": "energy",
+      "semantics": "Weighted SUM of position and momentum energies. E0 is exactly the original phase energy, not a caller-provided envelope.",
+      "source_items": [
+        "A1.Ex4.m1",
+        "A1.SS1.p3.m1"
+      ]
+    },
+    {
+      "formula": "C0 = sqrt η * β * sqrt(2*E0) * (sqrt(2*η*E0) + ‖c−xRef‖)",
+      "id": "cap",
+      "semantics": "Same original E0 for every active produced state and outgoing finite arc; C0≥0 may equal zero.",
+      "source_items": [
+        "A1.Ex6.m1"
+      ]
+    },
+    {
+      "formula": "Λ(z,u) = ∫ s in 0..u, λ(Φ_s(z))",
+      "id": "integrated_hazard",
+      "semantics": "u:NNReal, finite real-time integral. Continuous and nondecreasing are producer facts, not public assumptions.",
+      "source_items": [
+        "A1.E1.m2",
+        "A1.Ex7.m1"
+      ]
+    },
+    {
+      "formula": "τ(z,e) = inf {u:NNReal | e ≤ Λ(z,u)} : WithTop NNReal",
+      "id": "first_clock",
+      "semantics": "Closed ≥ hitting set; inf empty=∞. e=0 gives τ=0. No-hit positive threshold may give ∞. Finite endpoint equality and joint Borel must come from actual75, whose fresh independent source admission is pending.",
+      "source_items": [
+        "A1.E1.m1",
+        "A1.E1.m2",
+        "A1.SS1.p2.2"
+      ]
+    },
+    {
+      "formula": "Record = Sum (NNReal × (E × E)) Unit; time(inl(T,z))=↑T; time(inr())=∞",
+      "id": "record",
+      "semantics": "Honest total representation of finite active postjump records and stopped marker. Stopped has no phase; no phase at∞ and no hidden arbitrary-state fallback.",
+      "source_items": [
+        "A1.E2.m2",
+        "A1.SS1.p2.2"
+      ]
+    },
+    {
+      "formula": "step(inr(),e)=inr(); step(inl(T,z),e)=inr() if τ(z,e)=∞, else inl(T+s, S(Φ_s(z))) for τ(z,e)=↑s",
+      "id": "update",
+      "semantics": "Extract finite s only after guard. e=0 performs the literal zero-time S bounce and may repeat T. Marker absorption is total bookkeeping after source stop.",
+      "source_items": [
+        "A1.E2.m2",
+        "A1.SS1.p2.2"
+      ]
+    },
+    {
+      "formula": "r_0=inl(0,z0); r_(n+1)=step(r_n,e_n), with e_n = source E_(n+1)",
+      "id": "finite_history",
+      "semantics": "Each finite n depends only on threshold prefix e_0,…,e_(n−1). For deterministic e:Nat→NNReal this is an explicitly labelled extension of the source positive-iid construction, not an all-time physical path.",
+      "source_items": [
+        "A1.SS1.p2.m3",
+        "A1.SS1.p2.m4",
+        "A1.E1.m2",
+        "A1.E2.m2"
+      ]
+    },
+    {
+      "formula": "arc_n(t)=Φ_t(z_n) when r_n=inl(T_n,z_n), 0≤t<τ(z_n,e_n)",
+      "id": "outgoing_arc",
+      "semantics": "A local finite-time arc only. Claim ζ_(T_n+t)=arc_n(t) as a single physical process requires later nonaccumulation/strict-positive clocks and stitching.",
+      "source_items": [
+        "A1.SS1.p2.m7",
+        "A1.SS1.p2.m8"
+      ]
+    }
+  ],
+  "claims_not_made": [
+    "nonexplosion",
+    "time-homogeneous Markov property",
+    "stationarity/invariance",
+    "conditional half-turn kernel",
+    "returned xπ",
+    "main theorem",
+    "error bounds",
+    "expected-query costs",
+    "actual-input composition",
+    "full paper exposition",
+    "post-merge PURIFIED",
+    "live delivery",
+    "Goal completion"
+  ],
+  "data_quantifiers": {
+    "arc_variable": "t:NNReal or finite real t with t≥0; outgoing arc interpretation restricted to 0≤t<τ",
+    "fixed_analytic_data": "E,V,α,β,η with original six callers and five typing classes",
+    "joint_variables": "y,xRef:E; z0:E×E; e:Nat→NNReal; n:Nat",
+    "legal_degenerate_cases": [
+      "rank(E)=0",
+      "α*η=1",
+      "H(z0)=0",
+      "C0=0",
+      "e_n=0",
+      "τ=∞"
+    ]
+  },
+  "forbidden_extra_callers": [
+    "arbitrary flow/bounce/rate/clock provider",
+    "separate Lipschitz-gradient premise",
+    "global continuous bounce premise",
+    "arbitrary invariant family or cap",
+    "nonexplosion",
+    "iid/positive-all-thresholds premise for deterministic result",
+    "unbounded integrated hazard or a.s. finite waiting time",
+    "arbitrary stopped phase/default phase",
+    "extra derivative regularity"
+  ],
+  "future_consumer": {
+    "C0_zero": "Handle C0=0 separately; positive thresholds stop immediately. For arbitrary deterministic zeros, zero-time records can recur.",
+    "finite_growth": "For C0>0 and active predecessors, future sum of deterministic bounds yields source Ex9 lower bound. Divergence/a.s. nonaccumulation needs iid/SLLN consumer not selected now.",
+    "global_path": "Unique all-time physical phase requires positive clocks/nonaccumulation and stitching; no ζ∞ and no physical phase asserted for arbitrary zeros.",
+    "iid_thresholds": "Future canonical Ω=Nat→Real with product Exp(1) law and e_n=(ω_n).toNNReal; positivity, unit mean/integrability, independence and SLLN must be derived, never added to original six source callers.",
+    "not_accepted": [
+      "nonexplosion",
+      "time-homogeneous Markov property",
+      "stationarity/invariance",
+      "conditional half-turn kernel",
+      "returned xπ",
+      "main theorem",
+      "error bounds",
+      "expected-query costs",
+      "actual-input composition",
+      "full paper exposition",
+      "post-merge PURIFIED",
+      "live delivery",
+      "Goal completion"
+    ]
+  },
+  "internal_proof_ingredients": [
+    {
+      "id": "B01",
+      "public_extra_binder": false,
+      "requirement": "hV and hH yield continuous gradient and β-Lipschitz residual; never add them as public binders.",
+      "title": "Derivative/Lipschitz regularity"
+    },
+    {
+      "id": "B02",
+      "public_extra_binder": false,
+      "requirement": "The literal flow is jointly continuous in y,xRef,z and finite t for fixed V,η.",
+      "title": "Joint harmonic continuity"
+    },
+    {
+      "id": "B03",
+      "public_extra_binder": false,
+      "requirement": "Split residual=0 and ≠0; singleton zero set is Borel, quotient formula continuous away from zero. Do not require global continuous S.",
+      "title": "Zero-safe bounce Borel"
+    },
+    {
+      "id": "B04",
+      "public_extra_binder": false,
+      "requirement": "Joint Borel actual τ, endpoint equality, e=0 and no-hit/top facts are reused only at their exact source boundary; compilation and independent math accepted per parent, fresh anti-source pending.",
+      "title": "Actual75 hazard/clock interface"
+    },
+    {
+      "id": "B05",
+      "public_extra_binder": false,
+      "requirement": "{τ=∞} is Borel; on its complement extract finite s measurably. Never evaluate Φ or phase at∞.",
+      "title": "Finite/top guard and extraction"
+    },
+    {
+      "id": "B06",
+      "public_extra_binder": false,
+      "requirement": "Disjoint sum branches and guarded composition give a joint Borel total one-step update; stop branch stores no phase.",
+      "title": "Stopped Sum step Borel"
+    },
+    {
+      "id": "B07",
+      "public_extra_binder": false,
+      "requirement": "Evaluation e↦e_n is measurable in the product sigma algebra; base and recursively composed step give joint Borel finite r_n.",
+      "title": "Finite-index measurable induction"
+    },
+    {
+      "id": "B08",
+      "public_extra_binder": false,
+      "requirement": "Base H(z0)=E0, finite update uses exact flow and bounce preservation. Stop branch has no H to assert.",
+      "title": "Active-state energy induction"
+    },
+    {
+      "id": "B09",
+      "public_extra_binder": false,
+      "requirement": "Every finite Φ_t(z_n) from an active record has H=E0, including an infinite outgoing waiting interval.",
+      "title": "Same-energy outgoing arc"
+    },
+    {
+      "id": "B10",
+      "public_extra_binder": false,
+      "requirement": "Apply E0 radii, β-Lipschitz gradient and Cauchy–Schwarz to actual rate; integrate to Λ(z_n,u)≤C0*u. No independent cap/provider premise.",
+      "title": "Same-original uniform envelope"
+    },
+    {
+      "id": "B11",
+      "public_extra_binder": false,
+      "requirement": "For C0>0 obtain ↑(e_n/C0)≤τ in WithTop NNReal, including τ=∞ and e_n=0; for C0=0 positive threshold gives τ=∞, while e_n=0 still gives τ=0.",
+      "title": "Extended deterministic waiting bound"
+    },
+    {
+      "id": "B12",
+      "public_extra_binder": false,
+      "requirement": "Stopped marker propagates to every later finite index; active times are finite. No theorem about a stopped phase, physical all-time phase, or strictly increasing deterministic times.",
+      "title": "Inactive/absorbing semantics"
+    },
+    {
+      "id": "B13",
+      "public_extra_binder": false,
+      "requirement": "Threshold e_n is E_(n+1); same y,xRef,z0,V,η used at every step, finite-prefix dependence and actual E0 remain explicit.",
+      "title": "Exact index and original data dependence"
+    }
+  ],
+  "no_candidate76_read": true,
+  "no_review_decisions_read_for76": true,
+  "original_six_callers": [
+    {
+      "id": "hα",
+      "source_items": [
+        "S1.p1.m4"
+      ],
+      "statement": "0 < α"
+    },
+    {
+      "id": "hαβ",
+      "source_items": [
+        "S1.p1.m4"
+      ],
+      "statement": "α ≤ β"
+    },
+    {
+      "id": "hV",
+      "source_items": [
+        "S1.p1.m3"
+      ],
+      "statement": "V ∈ C² on the whole finite-dimensional real inner-product space"
+    },
+    {
+      "id": "hH",
+      "source_items": [
+        "S1.E1.m1"
+      ],
+      "statement": "For every x and v, α * ‖v‖² ≤ inner (Hess V x v) v and inner (Hess V x v) v ≤ β * ‖v‖²"
+    },
+    {
+      "id": "hη",
+      "source_items": [
+        "S2.SS2.p1.m1"
+      ],
+      "statement": "0 < η"
+    },
+    {
+      "id": "hβη",
+      "source_items": [
+        "S2.SS2.p1.m1"
+      ],
+      "statement": "β * η ≤ 1"
+    }
+  ],
+  "owned_write_directory": "runs/20261007-companion-priority/pbps-recursive-preproof76/independent-source76",
+  "parent75_current_boundary": "Per parent task only: actual75 module compiled at fd93d01583eec206285573c1f1631b94739f95471c50e1ff940e66080238e23d; independent mathematical review accepted; fresh anti-anchored source review pending. This stage does not read module75 or grant its source admission.",
+  "parent_task": "/root/independent_source75",
+  "plan_corrections": [
+    {
+      "description": "Ex8 deterministic increment selected separately from future Ex9 iid/SLLN.",
+      "kind": "scope_split",
+      "public_binder_change": false
+    },
+    {
+      "description": "Original Davis12-bibliographic snapshot is bib.bib12 CCS+22. Actual A1 citation href targets bib.bib16 Davis1984, bound separately as excluded bibliography only.",
+      "kind": "bibliographic_locator",
+      "public_binder_change": false
+    }
+  ],
+  "reviewer_role": "Independent prospective source/header reviewer, source-only stage.",
+  "schema": "independent-source-first76-boundary-v1",
+  "selected_conclusions": [
+    "Exact guarded active/stopped one-step law and absorbing stop marker.",
+    "Exact finite recursion base and source threshold shift e_n=E_(n+1).",
+    "Joint Borel dependence of each finite record and event-time projection, with phase only in active branch.",
+    "H(z_n)=H(z0) for every produced active finite record and every finite outgoing flow arc.",
+    "Same C0 based on H(z0) bounds actual outgoing rates and integrated hazards.",
+    "For C0>0, ↑(e_n/C0)≤τ(z_n,e_n), including top and zero; corresponding active next-event-time increment. For C0=0 and e_n>0, τ=∞. For e_n=0, τ=0 even if C0=0."
+  ],
+  "typing_classes": [
+    "NormedAddCommGroup E",
+    "InnerProductSpace ℝ E",
+    "FiniteDimensional ℝ E",
+    "MeasurableSpace E",
+    "BorelSpace E"
+  ]
+}

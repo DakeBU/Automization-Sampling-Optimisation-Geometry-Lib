@@ -1,0 +1,128 @@
+{
+  "utc": "2026-10-10T22:47:16.401268+00:00",
+  "observed_head": "7c108c3181cee58bb9305445f903c5f71efda9c5",
+  "compiled_parent_interfaces": [
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteFirstEventLaw.lean",
+      "raw_sha256": "d6667ccbb917d6463e96b2082a5a26089950889fd20af4859052cd7a9a1db776",
+      "bytes": 23000,
+      "latest_path_commit": "0bb3cd64ba1235114feaeed99ba22e675b23db76"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteHistoryTailLaw.lean",
+      "raw_sha256": "01fcff944f1dbd42be2af30063b9baf4e191e2cde959e008724387cadb4fc899",
+      "bytes": 13380,
+      "latest_path_commit": "ada2d073d04a78493555b2ac35344b9c5a264bfc"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualConditionalNextWaitSurvival.lean",
+      "raw_sha256": "2f509ce49343d349f7a9fb21d2f7b1697c1a6de942353f6cd8ff16d522911569",
+      "bytes": 17290,
+      "latest_path_commit": "456e13f9561abcf01a285133e91b3951bf2ed892"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean",
+      "raw_sha256": "fd93d01583eec206285573c1f1631b94739f95471c50e1ff940e66080238e23d",
+      "bytes": 21771,
+      "latest_path_commit": "51d3a65f65b189b0afaaf91a248f8c2f58162ef2"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+      "raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+      "bytes": 10565,
+      "latest_path_commit": "d556a7550f0395d149720da6478bfdfff98368a7"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+      "raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+      "bytes": 8519,
+      "latest_path_commit": "63319104ccad4e81e3a2c59da23ec0009be5e17f"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean",
+      "raw_sha256": "c4a93999f287008d9ddb3f3624f52f302df122e5e007a54fd427a9985edc5ec0",
+      "bytes": 6411
+    }
+  ],
+  "related_current_cells": [
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-conditional-next-wait-survival.json",
+      "raw_sha256": "6c7e21f3c569ae44c5999d5320b04050d566a6417cecff6163e22d40c6c7937e",
+      "bytes": 21537,
+      "id": "ASTIS-SW-PBPS-actual-conditional-next-wait-survival",
+      "status": "independently_verified",
+      "target": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock\n\n/-! Prospective header88: source-implicit live-guarded conditional survival.\nThe deterministic event depth is fixed. A Borel duration may depend on the\nactual finite history, including its last live state/time, but not unused inputs.\nStopped histories contribute zero; no fictitious next state/wait is introduced.\nThe identity is unnormalized, including null history events.\nNo random-depth restart, physical-time memorylessness or full path-law claim. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival\nopen InnerProductSpace MeasureTheory ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_conditional_next_wait_survival_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let liveSurvival : E → E → ((ℝ≥0 × (E × E)) ⊕ Unit) → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => match r with\n        | Sum.inl a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)\n        | Sum.inr _ => False\n    let survivalWeight : E → E → ((ℝ≥0 × (E × E)) ⊕ Unit) → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => match r with\n        | Sum.inl a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))\n        | Sum.inr _ => 0\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      ∀ d : (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) → ℝ≥0,\n      Measurable d →\n      MeasurableSet {p : (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) × (ℕ → ℝ) |\n        liveSurvival y xRef (p.1 ⟨n, Nat.lt_succ_self n⟩) (d p.1) (p.2 0)} ∧\n      Measurable (fun h : Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit) =>\n        survivalWeight y xRef (h ⟨n, Nat.lt_succ_self n⟩) (d h)) ∧\n      (∀ h : Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit),\n        survivalWeight y xRef (h ⟨n, Nat.lt_succ_self n⟩) (d h) ≤ 1) ∧\n      (∀ A : Set (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)), MeasurableSet A →\n        P {w : ℕ → ℝ | history y xRef z₀ n w ∈ A ∧\n          liveSurvival y xRef (record y xRef z₀ (ε w) n)\n            (d (history y xRef z₀ n w)) (w n)} =\n        ∫⁻ h in A, survivalWeight y xRef (h ⟨n, Nat.lt_succ_self n⟩) (d h)\n          ∂(Measure.map (history y xRef z₀ n) P))\n\n#check @actual_conditional_next_wait_survival_statement\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival\n"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-finite-first-event-law.json",
+      "raw_sha256": "6805a3bc57d8cccde676c9260a567e7ee73c7d22df19e7b8afccf70d487a0a6e",
+      "bytes": 23886,
+      "id": "ASTIS-SW-PBPS-actual-finite-first-event-law",
+      "status": "independently_verified",
+      "target": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\n\n/-! Prospective statement only. Actual first finite PBPS event, Appendix A.1\n(A.1),(A.2) and the first density factor implicit in (A.7), arXiv2609.06905v1.\nThe finite subprobability and marked-test packaging is attributed ASTIS completion.\nLiteral actual Exp1 coordinate0, stopped wait and zero-normal identity reflection\nare retained. F defaults to0 only outside the restricted positive finite event;\nmissing probability includes waits beyond T or infinite, without renormalization.\nFull path law, unused-tail conditioning, reversal, invariance, semigroup/allL2,\nimplementation, error, unbounded expected query cost, main/composition remain OPEN. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_finite_first_event_law_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let U : E → E → (E × E) → (ℕ → ℝ) → WithTop ℝ≥0 :=\n      fun y xRef z sample => τ y xRef z (ε sample 0)\n    let F : E → E → (E × E) → (ℕ → ℝ) → ℝ :=\n      fun y xRef z sample => ((U y xRef z sample).untopD 0 : ℝ≥0)\n    let A : E → E → (E × E) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z T => {sample | (0 : WithTop ℝ≥0) < U y xRef z sample ∧\n        U y xRef z sample ≤ (T : WithTop ℝ≥0)}\n    let d : E → E → (E × E) → ℝ → ℝ := fun y xRef z s =>\n      rate xRef (Φ y xRef s z) * Real.exp (-Λ y xRef z (Real.toNNReal s))\n    let ρ : E → E → (E × E) → ℝ≥0 → Measure ℝ := fun y xRef z T =>\n      (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))).withDensity\n        (fun s => ENNReal.ofReal (d y xRef z s))\n    let J : E → E → (E × E) → ℝ → (ℝ≥0 × (E × E)) :=\n      fun y xRef z s => (Real.toNNReal s, S xRef (Φ y xRef s z))\n    ∀ y xRef : E, ∀ z : E × E,\n      Measurable (U y xRef z) ∧ Measurable (F y xRef z) ∧\n      Measurable (J y xRef z) ∧\n      (∀ T : ℝ≥0,\n        MeasurableSet (A y xRef z T) ∧\n        Measure.map (F y xRef z) (P.restrict (A y xRef z T)) = ρ y xRef z T ∧\n        Measure.map (fun sample => J y xRef z (F y xRef z sample))\n          (P.restrict (A y xRef z T)) = Measure.map (J y xRef z) (ρ y xRef z T) ∧\n        IsFiniteMeasure (ρ y xRef z T) ∧\n        (ρ y xRef z T).real Set.univ = 1 - Real.exp (-Λ y xRef z T) ∧\n        ρ y xRef z T Set.univ ≤ 1 ∧\n        (∀ h : (ℝ≥0 × (E × E)) → ℝ, Measurable h →\n          ∀ M : ℝ, 0 ≤ M → (∀ a, |h a| ≤ M) →\n            Integrable h (Measure.map (J y xRef z) (ρ y xRef z T)) ∧\n            Integrable (fun sample => h (J y xRef z (F y xRef z sample)))\n              (P.restrict (A y xRef z T)) ∧\n            Integrable (fun s => h (J y xRef z s) * d y xRef z s)\n              (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))) ∧\n            (∫ sample, h (J y xRef z (F y xRef z sample))\n                ∂P.restrict (A y xRef z T)) =\n              ∫ s, h (J y xRef z s) * d y xRef z s\n                ∂volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw\n"
+    },
+    {
+      "path": "research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-finite-history-tail-law.json",
+      "raw_sha256": "53907c13226c3e2959efb40c33e5ee3431e47f03830c6cbd414e3a89886eccee",
+      "bytes": 21050,
+      "id": "ASTIS-SW-PBPS-actual-finite-history-tail-law",
+      "status": "independently_verified",
+      "target": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\n\n/-! Prospective header87. Source-implicit deterministic-depth probability bridge.\nThe actual stopped recursion is retained literally. History at depth n uses clocks\n0,...,n-1; the unused raw real tail starts at n. No random-depth restart,\nphysical-time residual clock, conditional event density or full path law claim. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw\nopen InnerProductSpace MeasureTheory ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_finite_history_tail_law_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let tail : ℕ → (ℕ → ℝ) → (ℕ → ℝ) := fun n w k => w (n + k)\n    let past : ℕ → MeasurableSpace (ℕ → ℝ) := fun n =>\n      ⨆ k ∈ Set.Iio n, MeasurableSpace.comap (fun w : ℕ → ℝ => w k) inferInstance\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      Measurable (history y xRef z₀ n) ∧ Measurable (tail n) ∧\n      (∀ (w w' : ℕ → ℝ), (∀ k < n, w k = w' k) →\n        history y xRef z₀ n w = history y xRef z₀ n w') ∧\n      Measurable[past n] (history y xRef z₀ n) ∧\n      Measure.map (tail n) P = P ∧\n      IndepFun (history y xRef z₀ n) (tail n) P ∧\n      Measure.map (fun w => (history y xRef z₀ n w, tail n w)) P =\n        (Measure.map (history y xRef z₀ n) P).prod P ∧\n      (∀ A : Set (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)), MeasurableSet A →\n        Measure.map (tail n) (P.restrict (history y xRef z₀ n ⁻¹' A)) =\n          (P (history y xRef z₀ n ⁻¹' A)) • P)\n\n#check @actual_finite_history_tail_law_statement\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw\n"
+    }
+  ],
+  "exact_target_search": {
+    "exit_code": 1,
+    "no_exact_named_duplicate": true
+  },
+  "fixed_mathlib": {
+    "commit": "db584cd6d46c92f209a44c0f1c829460d327499d",
+    "toolchain": {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "bytes": 26
+    },
+    "manifest": {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "bytes": 3234
+    },
+    "api_files": [
+      {
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/WithTop.lean",
+        "raw_sha256": "470ad969369c2c31e3f358ad5216d9ee5ae72a138cea4f1aa2b6984b1e0d7d29",
+        "bytes": 3182
+      },
+      {
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Prod.lean",
+        "raw_sha256": "250d04f265272159b5a0443ba1106dccc6ee368aa92d2d60dbd2c6df4f462125",
+        "bytes": 63024
+      },
+      {
+        "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/WithDensity.lean",
+        "raw_sha256": "9493b6567e2b4b647792141e1181e646d4f14331c5d5d47cb09c17bf044a1e45",
+        "bytes": 40378
+      }
+    ],
+    "retrieved_APIs": [
+      "Measurable.untopD",
+      "Measurable.lintegral_prod_right",
+      "Measure.prod_apply",
+      "lintegral_prod",
+      "Measure.withDensity_apply",
+      "Measure.withDensity_indicator",
+      "Measure.restrict_restrict"
+    ]
+  },
+  "compatible_upstream_search": "Pinned Mathlib provides all required generic product, nonnegative integration, density/restriction and measurable WithTop APIs. No external theorem/definition/proof package is selected or ported; no toolchain or dependency changes.",
+  "planned_consumer": "Conditional finite density component of source S87-I5, to feed ordered-time iteration/fullA7. Only this strict finite submeasure is the candidate; no iteration/final factor/restart/global claim.",
+  "parent_boundary": "Actual86 deterministic density + actual87 whole-tail/history product are ready. actual88 supplies the adjacent survival/final-factor ingredient; it is NOT an artificial density prerequisite. actual75 joint clock and actual harmonic/rate parents provide joint Borel dependencies internally.",
+  "endpoint_route": "Restrict the Ioc0d pointwise measure identity to Iio d, producing strict Ioo0d without asserting equality of endpoint masses. No-finite-atom/equality of endpoint conventions is excluded unless separately proved.",
+  "process_memory_checked": true,
+  "process_memory_applicable_ids": [],
+  "process_memory_registry": {
+    "path": "research-wiki/process-memory.json",
+    "raw_sha256": "48b21952889ebecd6816d30a8d7662bcba9715994084a92d0059a15d95515004",
+    "bytes": 3236
+  },
+  "no_89_statement_or_proof_yet": true
+}

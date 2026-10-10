@@ -47,6 +47,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability
 import AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -91,6 +92,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualSmallTimeContinuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"
+    upstreamDecl := "Actual PBPS first-event defect and zero-time stochastic continuity prerequisite"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "first-event", "stochastic-continuity"]
+    saldUse := "Source Ex22 pointwise small-time ingredient; no SALD claim"
+    note := "Independently verified science 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. The actual jointly measurable phase satisfies measurable phase-flow defect <=1-exp(-Lambda_t), via the actual firstwait survival law and initial live arc. Each fixed y,xRef,z0 and positive real delta has measurable norm-tail probability tending to0 as NNReal t tends to0, including value0 by actual AE initialization. Original six conditions and full physical representative clauses retained. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and visual/main/PURIFIED/live remain OPEN."
+  },
   {
     key := "pbps.idealHalfTurnKernel"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel.ideal_half_turn_returned_position_kernel"

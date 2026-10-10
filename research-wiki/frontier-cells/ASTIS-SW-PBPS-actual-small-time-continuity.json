@@ -6,7 +6,7 @@
   "mode": "faithfulPaper",
   "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 Ex22, A1.SS1.SSS0.Px1.p6.1-p6.2; A1.E1 integrated hazard and actual halfopen interpolation A1.SS1.p2.2. Bounded first-event/smalltime prerequisite only.",
   "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability\nimport Mathlib.MeasureTheory.MeasurableSpace.Constructions\n\n/-! Prospective exact statement82 only; no theorem proof or admission.\nPBPS arXiv2609.06905v1 AppendixA.1 Ex22 small-time continuity ingredient.\nThe actual phase/recurrence and all original six analytic conditions are literal.\nThe first-event defect probability and zero-time stochastic continuity are the\nnew obligations. Markov/restart/semigroup/invariance/L2 and main/cost remain open. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_small_time_stochastic_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        (∀ t : ℝ≥0,\n          MeasurableSet {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ∧\n          P.real {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤\n              1 - Real.exp (-Λ y xRef z₀ t)) ∧\n        (∀ δ : ℝ, 0 < δ →\n          (∀ t : ℝ≥0, MeasurableSet {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) ∧\n          Tendsto (fun t : ℝ≥0 => P.real {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) (𝓝 0) (𝓝 0)))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity\n",
-  "status": "proved_locally",
+  "status": "independently_verified",
   "parents": [
     "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
     "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
@@ -22,7 +22,7 @@
   "declaration_level": "source-anchor",
   "blocked": {
     "status": false,
-    "reason": "Focused compile and independent mathematics/blind/source accepted. Exact-commit verification and sole-lane aggregation pending."
+    "reason": "Actual first-event phase-flow defect and zero-time stochastic continuity independently verified and local aggregate passed. Full L2/Markov/restart/semigroup/invariance/hypocoercivity/main/implementation/error/cost/composition remain open. Reader actual visual/main/PURIFIED/live separate."
   },
   "reader_contract": {
     "reference_standard": "textbook/chapter-01/section-1-3.html",
@@ -48,7 +48,17 @@
     ],
     "truth_boundary": "Actual phase-flow defect bound and zero-time stochastic continuity for fixed V/alpha/beta/eta,y,xRef,z0 under actual exponential product, retaining all physical-phase realization clauses. No uniform parameter nullset/limit or arbitrary correlated substitution. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and actual reader visual/main/PURIFIED/live remain OPEN.",
     "proof_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/independent-math82/decision82.json",
-    "source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/fresh-source82/source-review.result82.json"
+    "source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/fresh-source82/source-review.result82.json",
+    "independent_verification": "runs/20261007-companion-priority/pbps-actual-small-time-continuity82/exact-commit-verification82/verified.json",
+    "serialized_shared_gate": {
+      "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/integration82/canonical-lean-gate/receipt.json",
+      "root_jobs": 9193,
+      "test_jobs": 9493,
+      "registry_count": 531,
+      "status": "PASS",
+      "proof_commit": "8e182aeb384e5b9edb922c02fc14ceeca6f9b090",
+      "scope": "Current local source-bound aggregate only; actual reader visual/main/PURIFIED/live separate."
+    }
   },
   "shared_floor_audit": {
     "searched": [
@@ -193,7 +203,7 @@
     "focus_targets": [
       "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity"
     ],
-    "visual_review": "Pending proof/publication/affected graph and page acceptance."
+    "visual_review": "Current affected coarse shared-root SVG rendered and actually viewed, with exact RAW input/output pins. Precise new actual small-time dependency graph generated and checked. Actual page/interactive visual acceptance still pending; no full Exposition Seal."
   },
   "conceptual_mirror_audit": {
     "status": "none-found",

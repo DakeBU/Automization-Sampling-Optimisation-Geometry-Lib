@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual small-time stochastic continuity82 (2026-10-10)
+
+Independent science 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. Actual phase-flow defect <=1-exp(-Lambda_t) and every positive-threshold norm-tail probability tend to0 at NNReal0, under actual clocks for each fixed initial tuple. Original six hypotheses and complete actual phase semantics retained. Nine formula/BODY regions authored once beside exact folded Lean. Source Ex22 fullL2/invariance/Markov/semigroup/main/error/cost/composition remain OPEN; local aggregate, actual reader visual, main/PURIFIED/live distinct.
+
+
 ## Ideal initialized half-turn probability kernel81 (2026-10-10)
 
 Independent science 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. Exact conditional q_y normalization and jointly Borel ideal H_y at pi are internally constructed. The actual independent reference/Gaussian/clock product supports physical origin and terminal live arc; phase0 law is dirac(x) x Gaussian. Original six conditions, all actual definitions and previous phase semantics retained. Ten formula/BODY regions are authored once beside exact folded Lean. This is ideal exact-reference semantics, not reference implementation, phase Markov/invariance, mixing, error/cost/composition or full-paper completion. Aggregate, reader visual, main/live and purification remain separate.

@@ -185,6 +185,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability` | `pbps.actualPhysicalTimeMeasurability` | `actual_physical_time_measurable_phase` | arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation` | `pbps.actualProjectedRotation` | `actual_projected_rotation` | arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation` | `pbps.actualRootInverseCommutation` | `actual_same_root_inverse_commutation` | arXiv2609.06905v1 Appendix B3 proof ingredient for Lemma B3/B23 and B21 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity` | `pbps.actualSmallTimeContinuity` | `actual_small_time_stochastic_continuity` | arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector` | `pbps.ambientAdjointCorrector` | `actual_ambient_adjoint_centered_decomposition` | arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator` | `pbps.actualCenteredSelfadjointDefect` | `actual_centered_selfadjoint_defect` | arXiv2609.06905v1 AppendixB B1-B5/D1-D2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse` | `pbps.actualCenteredRootOrderInverse` | `actual_centered_root_order_inverse` | arXiv2609.06905v1 B15; C2/C3/C4; B16 actual input |

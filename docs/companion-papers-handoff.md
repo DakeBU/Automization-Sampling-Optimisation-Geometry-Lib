@@ -1,5 +1,58 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS zero-time stochastic continuity (2026-10-10)
+
+Independent exact-science commit 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. The actual physical phase now obeys
+P[Z_t != Phi_t(z0)] <= 1-exp(-Lambda(z0,t)), with the event measurable, for every
+fixed y,xRef,z0 and finite t>=0. The zeroth coordinate under the actual exponential
+product has Exp(1) law, so the already proved inverse-hazard survival probability
+applies to the actual first wait. Before that wait, the initialized live interval
+gives Z_t=Phi_t(z0). The defect event is contained in the first-event event; it is
+not asserted equal, because an ineffective bounce or later return is possible.
+
+For each real delta>0, the measurable phase norm-tail probability tends to0 as
+NNReal t tends to0 in its ordinary nonpunctured neighborhood filter. Flow continuity
+at0 and Lambda0=0 prove this by an eventual inclusion and probability squeeze.
+The explicit source energy-cap Ct alternative is optional and unused. Finite/top
+waits, rank0, threshold0 null inputs, halfopen endpoints and all prior measurable
+representative/covered/fallback/common-AE clauses remain intact. All original six
+analytic hypotheses are retained; no phase or probability-law producer is a premise.
+
+Nine exact formula/BODY regions passed independent mathematical review, a fresh
+source-blind reconstruction and primary-first exhaustive source coverage. A stale
+prospective-header docstring and premature survival-step bound were corrected as
+documentation only; the mathematical statement and BODY remained byte-identical.
+This is the pointwise actual smalltime prerequisite of AppendixA1 Ex22. Full L2
+strong continuity still requires its separate invariant-law/Jensen/contractivity,
+dominated-convergence and density arguments. Process Markov/restart/semigroup,
+invariance/hypocoercivity, implementation/error/query-cost/main and actual-input
+PBPS-SPHMC composition remain OPEN. No arbitrary correlated input substitution or
+uniform parameter event/limit is inferred. TV does not transfer unbounded costs.
+
+Continue dependency-ready actual PBPS/SPHMC and composition work, then Gaussian
+Cloud, then midpoint with no added higher derivatives. Select one next bounded
+mathematical edge from the current capsule and source anchor, not old counts.
+This VERIFIED child uses the sole existing stabilization lane. Local aggregate82
+passed (root9193, Tests9493, Registry531), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Current publication/semantic/frontier/site
+/graph checks are bound in82 integration.notes.json. Generated HTML content and
+initially folded exact Lean regions passed. Current affected static SVG was rendered
+and actually viewed with exact RAW pins. Actual reader page/interactive visual acceptance, main
+merge/PURIFIED/live and full-paper/Goal completion remain separate.
+
+The next bounded source-only candidate is actual bounded-continuous-test
+integrability and expectation continuity at0, consuming this actual82 theorem
+internally. Source Ex22 uses compactly supported continuous tests; the bounded
+continuous extension is explicitly an ASTIS elaboration. Its frozen source
+inventory/graph and optional-route supplement are under
+`runs/20261007-companion-priority/pbps-bounded-test-preread83/` and mechanically
+RAW-checked by82 `next-source83.readiness.json`. Independent source-topology and
+header review are still required before a83 Statement Seal; no83 Lean proof or
+SAU admission is claimed. Convergence in probability does not supply samplewise
+almost-sure convergence for dominated convergence. Outer-state L2, invariance,
+Markov/restart/semigroup and all main/error/cost/composition edges remain OPEN.
+
+
 ## Ideal PBPS half-turn returned-position probability kernel (2026-10-10)
 
 Independent exact-science commit 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. The original six analytic conditions

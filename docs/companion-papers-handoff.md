@@ -4246,3 +4246,12 @@ Use one sole writer per bounded SAU, exact source anchors, early focused tests
 and independent source/commit admission. Reuse local dependency slices; avoid
 whole-site scans, full transcript replay, duplicate wrappers and graph-only
 agents. Keep the full two-paper objective unfinished until it is actually proved.
+
+Reader CI follow-up86: remote checks on f62dca7 exposed one stale test expecting
+Lean statements after the mathematical proof. An independently reviewed exact
+test repair restores statement adjacency coverage and adds actual86 full-Prop /
+proof-helper / folded-step regression. Local contributor regressions64, website
+regressions225, root Lean/Tests/ASTIS and current publication/semantic/frontier/
+graph/site checks pass. Native failed remote logs and exact review are retained
+in86 ci-reader-order-repair86; rerun remote CI is pending the repair push.
+This test-only repair changes no mathematics, source audit or completion status.

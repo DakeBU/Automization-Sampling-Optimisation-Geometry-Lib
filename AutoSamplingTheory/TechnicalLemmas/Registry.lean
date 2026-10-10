@@ -46,6 +46,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability
+import AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -90,6 +91,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.idealHalfTurnKernel"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel.ideal_half_turn_returned_position_kernel"
+    upstreamDecl := "Ideal PBPS H_y half-turn returned-position kernel and actual product initialization"
+    upstreamFile := "arXiv2609.06905v1 Algorithm1, Eq2.8, AppendixA1 SS2 p3.1-p4.1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "ideal-reference", "kernel", "physical-time", "initialization"]
+    saldUse := "Source ideal H_y invariance/mixing prerequisite; no SALD claim"
+    note := "Independently verified science 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. Original six analytic conditions and literal actual recurrence give ideal exact-reference H_y at pi as a jointly measurable probability kernel. Exact q_y normalization is derived from Gibbs/conditional-kernel parents. Its independent reference x standard Gaussian x actual exponential product supports actual terminal arc and phase0 law dirac(x) x Gaussian. Full random all-time path law, version uniqueness, phase Markov/semigroup/invariance/mixing, reference implementation/errors/cost and actual PBPS-SPHMC composition remain OPEN. Local gates/visual/main/PURIFIED/live and whole-paper/Goal completion are distinct."
+  },
   {
     key := "pbps.actualPhysicalTimeMeasurability"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase"

@@ -191,6 +191,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy` | `pbps.reflectedConditional.outerGradientEnergy` | `reflected_conditional_gradient_energy` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance` | `pbps.reflectedConditional.gradientVariance` | `reflected_conditional_gradient_variance` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift` | `pbps.actualPositiveDefectComplexLift` | `actual_positive_defect_complex_lift` | arXiv2609.06905v1 AppendixD1/B10-B11; attributed ASTIS background |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel` | `pbps.idealHalfTurnKernel` | `ideal_half_turn_returned_position_kernel` | arXiv2609.06905v1 Algorithm1, Eq2.8, AppendixA1 SS2 p3.1-p4.1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean` | `pbps.actualL2.macroscopicMean` | `actual_macroscopic_l2_mean` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean` | `pbps.literalReflectedSource.compactMeanC1` | `reflected_gibbs_mean_c1` | arXiv2609.06905v1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot` | `pbps.actualUniquePositiveMacroscopicDefectRoot` | `actual_unique_positive_macroscopic_defect_root` | arXiv2609.06905v1 AppendixB1-B5 first Gram/B10-B11; attributed ASTIS completion |

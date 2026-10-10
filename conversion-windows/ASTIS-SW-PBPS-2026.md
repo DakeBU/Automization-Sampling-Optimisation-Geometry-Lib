@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Ideal initialized half-turn probability kernel81 (2026-10-10)
+
+Independent science 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. Exact conditional q_y normalization and jointly Borel ideal H_y at pi are internally constructed. The actual independent reference/Gaussian/clock product supports physical origin and terminal live arc; phase0 law is dirac(x) x Gaussian. Original six conditions, all actual definitions and previous phase semantics retained. Ten formula/BODY regions are authored once beside exact folded Lean. This is ideal exact-reference semantics, not reference implementation, phase Markov/invariance, mixing, error/cost/composition or full-paper completion. Aggregate, reader visual, main/live and purification remain separate.
+
+
 ## Actual jointly measurable physical-time phase80 (2026-10-10)
 
 Independent science ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. The actual finite recursion, harmonic flow and interval cover now produce a total jointly Borel phase, exact on every covering live interval, with explicit ASTIS fallback on uncovered exceptional inputs. For each fixed deterministic parameter tuple, one common-AE event gives all-time actual arc agreement and initialization at z0. No uniform parameter AE or arbitrary correlated random initialization is inferred. Complete original six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-measurability lesson/publication beside folded exact Lean. Process regularity/adaptedness/Markov/kernel/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.

@@ -1,5 +1,44 @@
 # Companion-paper formalization handoff
 
+## Ideal PBPS half-turn returned-position probability kernel (2026-10-10)
+
+Independent exact-science commit 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. The original six analytic conditions
+and literal actual dynamics now produce the ideal exact-reference returned-position
+kernel H_y at pi, jointly Borel in (y,x), with probability fibers. The exact
+conditional reference law q_y is normalized internally via the canonical Gibbs
+and Gaussian conditional-kernel parents. It is not the implemented approximate
+reference law q-hat. Momentum is standard Gaussian, and input association is
+((reference,momentum),actual exponential clock stream), independent as displayed.
+
+The full finite-time origin/terminal live-arc event is proved Borel before product
+Fubini. Hence, for each fixed y,x, this actual product law supports physical
+initialization and a genuine live harmonic arc at pi. The phase0 pushforward is
+dirac(x) x standard Gaussian. The previously verified joint phase and fixed-input
+common-AE all-time properties remain intact, including last-live infinite waits,
+rank0 and explicitly labelled exceptional fallback conventions. No arbitrary
+correlated random-parameter substitution or uniform parameter AE event is inferred.
+
+Ten exact formula/BODY regions passed independent mathematics, source-blind
+reconstruction and source-first coverage review. This closes an ideal initialized
+probability-kernel edge, not an implemented sampler or full PBPS theorem. Full
+random all-time path law/version uniqueness, phase Markov/semigroup/invariance,
+mixing/hypocoercivity, approximate-reference implementation/errors/oracle cost,
+and actual-input PBPS-SPHMC composition remain OPEN. TV proximity never transfers
+unbounded expected cost. Current next work must be selected from the capsule and
+source-ready frontier, not old counts or this list interpreted as invented dependencies.
+
+Priority remains PBPS/SPHMC and actual-input composition, then Gaussian Cloud,
+then midpoint without extra higher derivatives. Preserve older routes/cycles and
+collaborator work. The sole existing stabilization lane carries this VERIFIED
+child. Local aggregate81 passed (root9192, Tests9492, Registry530),
+including canonical tools/astis.py check, ATLAS and fake-closure scans; py_compile
+passed. Publication/site/graph checks are bound in81 integration.notes.json.
+Static SVG was actually viewed and generated HTML content/folding checked. Actual
+page/interactive branch visual acceptance remains pending because the bound
+browser surface has no inspectable tab. Main merge, PURIFIED/Exposition, live delivery and whole Goal
+completion remain separate.
+
+
 ## Actual PBPS jointly measurable physical-time phase (2026-10-10)
 
 Independent exact-science commit ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. Actual finite recursion, harmonic

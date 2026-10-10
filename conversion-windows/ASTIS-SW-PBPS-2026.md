@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Actual jointly indexed full-phase law85 (2026-10-11)
+
+Independent science 6d7d42f996a4fbb159c518623fd35c1ac7717fe9. The retained actual80 phase and actual Exp1 clocks yield a jointly Borel full-phase probability kernel, exact pushforward/event law and Dirac0 initialization. Every bounded Borel real test has dual L1 integrability and exact expectation transfer. Six exact adjacent formula/BODY regions; probability fibers do not assert process Markovness. Source failed0 and total fallbackinitialphase remain distinct. Path-law/reversal/invariance/restart/Markov/allL2/main/implementation/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
 ## Actual bounded-test outer square-integral84 (2026-10-11)
 
 Independent science dd3a23011b91569acbcd591ccd7b06301147d339. Exact conditional Gibbs and Gaussian product probabilities are derived from the six original hypotheses. The same actual83 phase gives state-measurable clock expectations;4M² dominates their squared discrepancy, and finite-probability filter DCT yields the outer integral limit0 at NNReal0. Eight exact adjacent formula/BODY regions; source C_c to C_b extension explicitly attributed. Full all-L2/invariance/contraction/density/process/main/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.

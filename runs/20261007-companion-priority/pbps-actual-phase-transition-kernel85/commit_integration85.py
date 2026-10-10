@@ -20,7 +20,7 @@ for folder in [r,pre]:
  for p in folder.rglob('*'):
   name=p.as_posix()
   if p.is_file() and name not in exclude and '__pycache__' not in p.parts and p.suffix not in {'.log','.diff','.html','.pyc','.olean','.ilean','.c','.o','.ir'} and not name.endswith('.text.txt'):owned.append(name)
-paths=sorted(set(owned));saved=load(pre/'pre-fetch85.workspace-RAW.json')['tracked_modified']
+paths=sorted({Path(p).resolve().relative_to(Path.cwd()).as_posix() for p in owned});saved=load(pre/'pre-fetch85.workspace-RAW.json')['tracked_modified']
 assert len(saved)==21 and not set(paths).intersection(saved)
 for p,h in saved.items():assert sha(Path(p).read_bytes())==h,p
 for offset in range(0,len(paths),25):subprocess.run(['git','-c','core.autocrlf=false','add','--',*paths[offset:offset+25]],check=True)

@@ -50,6 +50,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -94,6 +95,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPhaseTransitionKernel"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel"
+    upstreamDecl := "Actual PBPS full-phase finite-time law and bounded measurable tests"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 p3.1 p5.2 p6.1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "physical-time", "probability-kernel", "bounded-Borel-test"]
+    saldUse := "Actual PBPS source transition-law interface; no SALD claim"
+    note := "Independent science 6d7d42f996a4fbb159c518623fd35c1ac7717fe9. Under the original six analytic hypotheses retain actual80 single jointly measurable physical phase with all eleven literal definitions, live-arc/fallback and fixed-parameter common-AE finite-cover/initialization contract. Construct its full-phase probability kernel jointly indexed by y,reference,initial phase and finite time using actual Exp1 clocks. Exact pushforward/event law, Dirac zero-time law and dual L1 plus integral transfer for every bounded Borel real test are derived. IsMarkovKernel means probability fibers only. Actual process Markov/restart/Chapman-Kolmogorov, path reversal/invariance, all-L2 operators/contraction/density, hypocoercivity, implemented errors/unbounded costs/main/composition remain OPEN; actual browser/main/PURIFIED/live separate."
+  },
   {
     key := "pbps.actualOuterBoundedL2Continuity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity"

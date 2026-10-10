@@ -1,5 +1,51 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS jointly indexed full-phase law (2026-10-11)
+
+Independent exact-science commit 6d7d42f996a4fbb159c518623fd35c1ac7717fe9. Retain the original six analytic
+hypotheses, eleven literal definitions and the same actual80 physical phase Z.
+Its actual Exp(1) clocks produce a full-phase probability kernel K, jointly
+Borel in y, reference point, initial phase and every finite nonnegative time.
+Every fiber is exactly P.map(Z); each Borel event has the corresponding exact
+preimage probability. Fixed-parameter AE initialization gives K(y,r,z,0)=dirac(z).
+For every Borel real test g and M>=0 with |g|<=M, both g under K and g(Z) under
+P are integrable and their Bochner integrals agree. All are derived outputs.
+The same Z and K precede all parameters and tests. Rank0 and M=0 are included.
+
+Probability-fiber IsMarkovKernel does not assert process memorylessness,
+restart or Chapman-Kolmogorov. The source failed-terminal-limit0 convention
+and all-finite uncovered-initial-phase representative remain distinct. Only
+fixed-parameter AE law compatibility is used; neither a parameter-uniform AE
+event nor correlated random-parameter substitution is inferred.
+
+Six contiguous formula/BODY regions passed independent mathematics, fresh
+source-blind decoding and anti-anchored source review. The independently
+reconstructed/reviewed source inventory16/node21/relation29 retains26 dependency
+rows including6futureOPEN and3excluded associations. The actual kernel is an
+optional representation for future invariance, not an invariance ingredient
+or proof. Public kernel producers are exactly actual80 and UnitExp; private
+specification/generated constants are retained in the complete kernel audit.
+The generated reader graph is an incomplete name-scanned reference view;
+actual proof dependencies are certified separately by that kernel audit.
+
+Actual path-law expansion/reversal/invariance, restart/Markov/semigroup,
+AE-safe all-L2/Jensen contraction/density/hypocoercivity and implemented errors,
+unbounded expected query costs/main/composition remain OPEN. TV does not transfer
+unbounded costs. Continue PBPS/SPHMC dependencies and actual-input composition,
+then Gaussian Cloud, then midpoint without extra higher derivative assumptions.
+Select one strict next edge from the current capsule and primary-source graph.
+
+This VERIFIED child uses the existing sole stabilization lane. Local aggregate85
+passed (root9196, Tests9496, Registry534), including tools/astis.py check,
+ATLAS/fake-closure scans and py_compile. Publication/semantic/frontier/site/graph
+checks are bound in85 integration.notes.json. Generated HTML contains six exact
+adjacent step Lean regions, all initially folded. The current coarse static SVG
+was rendered and actually viewed. Name-scanned graph references and independently
+certified kernel dependencies retain distinct truth boundaries. Actual reader page
+and interactive visual acceptance, main merge/PURIFIED/live and full-paper/Goal
+completion remain separate.
+
+
 ## Actual PBPS bounded-test outer square-integral continuity (2026-10-11)
 
 Independent exact-science commit dd3a23011b91569acbcd591ccd7b06301147d339. Retain the full actual83 physical

@@ -1,0 +1,227 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-physical-time-cover",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS finite physical-time interval coverage",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 AppendixA1 A.2, A1.E2 and between-jump A1.SS1.p2.2; nonaccumulation p3.7; original Algorithm1 and six analytic conditions.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.Topology.Order.WithTop\n\n/-! Prospective statement only, PBPS arXiv2609.06905v1 Appendix A.1 between-jump formula.\nSource standing analytic conditions and exact stopped recurrence are retained.\nActual inputs use the canonical Exp(1) product. No supplied stochastic/cap/time\ncertificate and no global physical-time process, Markov or invariance claim. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_fixed_reference_physical_time_cover_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∃! n : ℕ,\n        eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) ∧\n      (∀ t : ℝ≥0, ∀ n : ℕ,\n        eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n        ∃! a : ℝ≥0 × (E × E),\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n))\n\nend\n#check actual_fixed_reference_physical_time_cover_statement\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+  ],
+  "consumers": [
+    "Measurable actual active-index and finite-time harmonic interpolation; later full path/Markov/invariance consumer."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Sealed reviewed bounded target; sole writer root."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualPhysicalTimeCover",
+    "statement_seal": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/root.statement-seal79.json",
+    "focused_checks": [],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhysicalTimeCover.lean"
+    ],
+    "truth_boundary": "Only actual interval/live-record/elapsed coverage on a common AE actual-input event per fixed deterministic parameter triple. No measurable index or interpolated process, explicit index0 initialization, global path uniqueness/regularity, Markov/invariance/kernel/hypocoercivity/main/errors/cost/composition. Stopped next jump leaves last live arc; no phase at infinity. No full-paper/Goal, stabilized, merged, purified or live credit."
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "ActualFiniteJumpRecursion76 initialized monotone event clocks, live finite/top updates; ActualNonaccumulation78 actual finite-horizon escape. No existing actual finite physical-time interval-cover declaration.",
+      "Pinned Mathlib Nat.find/spec/min and natural ordering; NNReal subtraction, WithTop finite coercions. No upstream transplant needed.",
+      "Current shared cells, canonical probability product, Registry and module cards: no duplicate stochastic input foundation."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+    "canonical_shared_cell": "",
+    "reason": "Actual PBPS consumer of two verified exact parents; interval existence and actual elapsed offset are new conclusions, not supplied premises."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "ActualFiniteJumpRecursion76 initialized monotone event clocks, live finite/top updates; ActualNonaccumulation78 actual finite-horizon escape. No existing actual finite physical-time interval-cover declaration.",
+      "Pinned Mathlib Nat.find/spec/min and natural ordering; NNReal subtraction, WithTop finite coercions. No upstream transplant needed.",
+      "Current shared cells, canonical probability product, Registry and module cards: no duplicate stochastic input foundation."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Measurable actual active-index and finite-time harmonic interpolation; later full path/Markov/invariance consumer."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual PBPS consumer of two verified exact parents; interval existence and actual elapsed offset are new conclusions, not supplied premises."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/root.statement-seal79.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "4b3b12a9e83195cfca5c02466b51f838b0e175fad23a9665ab32df7553968a1a",
+    "binder_audit": [
+      {
+        "input": "Euclidean finite-dimensional phase carrier",
+        "class": "TYPING",
+        "detail": "Source Rd×Rd. Existing generalized finite-dimensional real inner product space may be a separately audited elaboration."
+      },
+      {
+        "input": "V C2, alpha>0, alpha<=beta, Hessian lower/upper bounds",
+        "class": "STANDING",
+        "anchor": "S1.p1.1;S1.E1",
+        "detail": "Retain exact source standing conditions; interval-index combinatorics itself does not need convexity or derivative facts."
+      },
+      {
+        "input": "0<eta<=1/beta",
+        "class": "STANDING",
+        "anchor": "S2.SS2.p1.1",
+        "detail": "Finite positive eta makes literal flow meaningful; no stronger derivative assumption or strictly positive energy/cap is authorized."
+      },
+      {
+        "input": "each fixed y,xref and arbitrary initial(x0,p0)",
+        "class": "SOURCE",
+        "anchor": "S3.Thmtheorem1;A1.SS1.p1.1;p2.1",
+        "detail": "No stationary/warm/Gaussian initialization needed."
+      },
+      {
+        "input": "iid unit exponential inputs",
+        "class": "SOURCE sampling specification",
+        "anchor": "A1.SS1.p2.1",
+        "detail": "Must use actual constructed input law as internal dependency; avoid public support/nonexplosion certificates in source Anchor."
+      },
+      {
+        "input": "finite physical t>=0",
+        "class": "SOURCE target quantifier",
+        "anchor": "A1.SS1.p3.7",
+        "detail": "For each fixed deterministic data, AE inputs, all finite t. Do not replace with forall t separately AE without the needed common event."
+      },
+      {
+        "input": "clock escape/finite-count/active-index witness/measurability",
+        "class": "EXCESS if added as source Anchor premise",
+        "detail": "These are proved dependencies/conclusions. Generic internal library lemmas may honestly quantify them, but cannot supply new source-facing assumptions."
+      }
+    ],
+    "definition_kind": "Private literal Prop; original six analytic binders, eleven exact actual definitions; unique interval and actual live record/elapsed conclusions."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-physical-time-preread79/source-freeze79.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-physical-time-preread79/source-freeze79.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/independent-source-topology-review79.json",
+    "reviewed_adapter_overlay": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/reviewer-source-topology-overlay79.json",
+    "coverage_status": "Complete scoped prospective source inventory; implementation coverage OPEN."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 AppendixA1 A.2, A1.E2 and between-jump A1.SS1.p2.2; nonaccumulation p3.7; original Algorithm1 and six analytic conditions.",
+    "fidelity_boundary": "Only actual interval/live-record/elapsed coverage on a common AE actual-input event per fixed deterministic parameter triple. No measurable index or interpolated process, explicit index0 initialization, global path uniqueness/regularity, Markov/invariance/kernel/hypocoercivity/main/errors/cost/composition. Stopped next jump leaves last live arc; no phase at infinity. No full-paper/Goal, stabilized, merged, purified or live credit.",
+    "detail_status": "omitted",
+    "gap": "Source suppresses active-index selection and stopped-last-arc bookkeeping; actual unique interval/live record/elapsed adapter is current bounded delta. Measurable process and full uniqueness remain later obligations.",
+    "consulted": [
+      {
+        "source": "Fixed Mathlib and actual PBPS finite recursion/Exp product local parents",
+        "anchor": "A1.Ex8-Ex9; WithTop/NNReal/Filter/Nat finite sets",
+        "hypothesis_adapter": "Six source analytic binders only; positive cap and good input event are derived internally. Stopped records have eventTime top, no phase at infinity."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+    ],
+    "bookkeeping": [
+      "Least first crossing gives covering predecessor; half-open endpoints and empty zero-length intervals.",
+      "Current finite record remains live on final infinite-wait arc."
+    ],
+    "new_reusable": [],
+    "new_topology": "For each fixed source parameter triple, almost surely every finite physical time lies in a unique half-open actual event interval and that interval has a unique actual live record with nonnegative finite elapsed time strictly below its actual next waiting time."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending proof",
+    "duplicate_semantics_audit": "Existing parents do not select an actual finite physical-time interval or live record.",
+    "canonicalization": "Actual PBPS consumer of shared canonical exponential product.",
+    "compressed_spine_delta": "For each fixed source parameter triple, almost surely every finite physical time lies in a unique half-open actual event interval and that interval has a unique actual live record with nonnegative finite elapsed time strictly below its actual next waiting time.",
+    "reader_default_view": "Full attributed statement/formula proof with adjacent folded exact Lean.",
+    "scope": "Only actual interval/live-record/elapsed coverage on a common AE actual-input event per fixed deterministic parameter triple. No measurable index or interpolated process, explicit index0 initialization, global path uniqueness/regularity, Markov/invariance/kernel/hypocoercivity/main/errors/cost/composition. Stopped next jump leaves last live arc; no phase at infinity. No full-paper/Goal, stabilized, merged, purified or live credit."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No proof attempt before independently reviewed seal. No statement repair needed.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-clock/least-first-crossing/live-record/finite-or-top-next-wait"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "73511f78e36675ded6166d837477173ea06d10f3f71936055852d8219816e38b"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "initialized-monotone-clocks",
+        "actual-finite-horizon-escape",
+        "unique-half-open-interval",
+        "actual-live-record",
+        "finite-or-infinite-next-wait"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover"
+    ],
+    "visual_review": "Pending proof/publication/local graph checks."
+  },
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": [],
+    "reason": "Required before PROVED_LOCAL; same-domain actual interval adapter is not a new conceptual transport."
+  }
+}

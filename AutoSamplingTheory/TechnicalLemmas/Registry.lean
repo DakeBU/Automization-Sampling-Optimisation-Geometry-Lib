@@ -42,6 +42,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
+import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -86,6 +87,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.unitExponentialProduct"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    upstreamDecl := "Countable unit-exponential input law and divergent threshold sums"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 independent Exp1 inputs and Ex9/SLLN"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["probability", "exponential", "infinite-product", "independence", "SLLN"]
+    saldUse := "PBPS clock consumer; no SALD claim"
+    note := "Independently verified at 4f88383540a865aea304c63c40de5a699ea61611 by /root/exact_verify77. Actual countable Exp(1) product, measurable coordinates/clamps, exact coordinate marginals and mutual independence, simultaneous almost-sure positivity/clamp equality and divergent threshold sums. No public probability/iid/integrability/convergence provider premises. ASTIS bounded-indicator SLLN route is separate from the author's open direct Exp mean-one expansion. PBPS finite-recursion spacing is the next consumer; nonaccumulation/global path/Markov/invariance/main/error/cost/actual-input composition and whole-paper/Goal completion remain open. Aggregate/reader, purification/main/live states remain separately evidence-bound."
+  },
   {
     key := "pbps.actualFiniteJumpRecursion"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion"

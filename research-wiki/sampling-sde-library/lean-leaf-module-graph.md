@@ -550,6 +550,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.Probability.LawMap` | `measure.law-map.integral` | `lawMapIntegral` | Mathlib measure/integration APIs |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.LawMap` | `measure.law-map.dominated-derivative` | `lawMapIntegralHasDerivAtOfDominated` | Mathlib.Analysis.Calculus.ParametricIntegral |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment` | `gaussian.std.norm-square-second-moment` | `integrable_norm_sq_and_integral_stdGaussian` | Mathlib.Probability.Distributions.Gaussian.Multivariate |
+| `AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct` | `probability.unitExponentialProduct` | `unit_exponential_product_laws` | arXiv2609.06905v1 AppendixA1 independent Exp1 inputs and Ex9/SLLN |
 | `AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian` | `gaussian.product.coordinate-law` | `map_eval_stdGaussianPi` | SLT/GaussianMeasure.lean |
 | `AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian` | `gaussian.product.coordinate-integrable` | `integrable_eval_stdGaussianPi` | SLT/GaussianMeasure.lean |
 | `AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian` | `gaussian.product.coordinate-square-integrable` | `integrable_sq_eval_stdGaussianPi` | SLT/GaussianMeasure.lean |

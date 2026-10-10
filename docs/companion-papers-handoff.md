@@ -1,5 +1,37 @@
 # Companion-paper formalization handoff
 
+## Actual countable exponential inputs (2026-10-10)
+
+Independently verified science commit 4f88383540a865aea304c63c40de5a699ea61611.
+The actual countable Exp(1) product is a probability measure; raw coordinate
+and clamped threshold maps are Borel, raw coordinate laws are exactly Exp(1)
+and mutually independent. On one full-measure event all coordinates are
+strictly positive and equal their nonnegative clamps. Threshold partial sums
+diverge almost surely. There are no supplied probability/iid/moment/SLLN
+premises. The sufficient ASTIS indicator-SLLN route and original author direct
+Exp mean-one route are explicitly distinct; the latter remains an open
+background expansion. Seven adjacent formula/BODY steps, independent math,
+blind reconstruction and fresh source-first review accepted the exact module.
+
+Next edge: compose these actual inputs with the verified finite recursion76
+and original-energy waiting increment to obtain event-time nonaccumulation.
+Treat C0=0/positive first threshold separately; positive cap division is used
+only for C0>0. In WithTop NNReal, convergence to infinity uses neighborhoods of
+top or eventual passage above every finite time, not the atTop filter, which
+would require eventually equal to top. No physical-time global process,
+Markov/invariance/kernel, full hypocoercivity/main/error/cap/expected-query
+cost or actual-input composition is admitted. TV proximity does not transfer
+unbounded costs. PBPS/SPHMC plus composition precede Gaussian Cloud, then
+midpoint with no extra higher derivative premise. Preserve older work.
+
+Current local aggregate77 passed: root9188, Tests9488, Registry526,
+ATLAS check and fake-closure scan; tools/astis.py py_compile also passed.
+Publication/site/graph checks are recorded in77 integration.notes.json.
+Static module SVG was viewed; browser page/interactive branch visual
+acceptance is pending because no inspectable browser tab is available. Main merge, PURIFIED/Exposition, live deployment and
+whole-paper/Goal completion remain distinct and unearned.
+
+
 ## Exact finite PBPS jump recursion (2026-10-10)
 
 Independent exact science76 VERIFIED commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The actual73 flow, actual74

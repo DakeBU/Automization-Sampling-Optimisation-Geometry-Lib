@@ -1,5 +1,10 @@
 # Proximal BPS · formalization result window
 
+## Countable exponential input law77 (2026-10-10)
+
+Independent science commit 4f88383540a865aea304c63c40de5a699ea61611. The actual product/coordinate laws, mutual independence, simultaneous a.s. positivity and divergent clamped sums are verified. Statement and seven formula/BODY steps remain authored once in unit-exponential-product declaration lesson/publication, with exact adjacent folded Lean. The next actual consumer is recursion76 event-time nonaccumulation; process/invariance/main/cost/composition remain open. Aggregate/site/graph/visual/purification/main/live evidence are recorded separately in SAU77 integration notes.
+
+
 ## Exact actual finite stopped recursion76 (2026-10-10)
 
 Independent science commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The complete attributed statement and ten

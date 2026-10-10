@@ -115,7 +115,7 @@ def adopt(report_path):
     cell = load(CELL)
     cell["source_proof_coverage"] = coverage
     cell["evidence"]["source_review"] = report_path.relative_to(ROOT).as_posix()
-    cell["source_detail_audit"]["detail_status"] = "recovered"
+    cell["source_detail_audit"]["detail_status"] = "omitted"
     cell["blocked"]["reason"] = "Independent whole-math, blind reconstruction and source review accepted; exact-commit verification and serialized integration remain pending."
     write(CELL, cell)
     pub = load(PUB)

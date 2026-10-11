@@ -64,6 +64,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -108,6 +109,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPrescribedGibbsSurvival"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance"
+    upstreamDecl := "Actual PBPS finite-path energy and Gibbs/survival balance"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A4 and its integrated Gibbs/survival identity"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "energy", "Gibbs", "survival", "finite-path"]
+    saldUse := "Actual finite PBPS target-energy and survival balance; no SALD claim"
+    note := "Independent science 530a58f7c036a67787956b20d2d390890ec2fec7. Under the original six analytic assumptions, both actual prescribed-path rate integrals are finite and U_y(A)-U_y(z)=Iplus-Iminus, hence exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus). The reverse rate uses momentum reversal along the same path. Actual flow, bounce, finite-count path and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and zero rates. No reverse-event density matching, weighted Theta preservation, invariant probability, Markovness, hypocoercivity, errors, actual expected costs, main results or composition."
+  },
   {
     key := "pbps.actualEndpointTimeReversal"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"

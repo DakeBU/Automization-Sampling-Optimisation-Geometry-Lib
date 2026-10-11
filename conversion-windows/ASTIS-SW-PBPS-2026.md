@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual prescribed Gibbs and survival balance98 (2026-10-12)
+
+Independent science 530a58f7c036a67787956b20d2d390890ec2fec7. Under the original six analytic assumptions, both actual prescribed-path rate integrals are finite and U_y(A)-U_y(z)=Iplus-Iminus, hence exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus). The reverse rate uses momentum reversal along the same path. Actual flow, bounce, finite-count path and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and zero rates. No reverse-event density matching, weighted Theta preservation, invariant probability, Markovness, hypocoercivity, errors, actual expected costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual endpoint and time reversal97 (2026-10-12)
 
 Independent science 7089dfb0698c50d3ffd0180fb58d06bb32e5d7dd. Under the original six analytic assumptions, rho(t)_i=T-t_(n-1-i) is a measurable involution preserving exact strict-simplex comap volume m. A=Gamma(T) equals the final flow after the recursive post-bounce state, is jointly Borel and preserves phase volume ell for each event tuple. A(R A(z,t),rho t)=Rz. Theta(z,t)=(R A(z,t),rho t) is jointly Borel, involutive and preserves ell tensor m. Includes n=0, T=0, rank0 and zero normals. Actual OrderedPrefix, FiniteCountPath and PhaseReversalVolume supply dependencies internally. Gibbs-weight balance, stationary averaging/invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open.

@@ -1,5 +1,35 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite-path Gibbs and survival balance (2026-10-12)
+
+Independent science 530a58f7c036a67787956b20d2d390890ec2fec7. The original six analytic assumptions and literal
+actual path definitions remain fixed. Both real-time rates along every finite
+prescribed path are interval integrable, and
+
+U_y(A)-U_y(z)=Iplus-Iminus,
+exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus).
+
+Here A=Gamma(T), U_y(x,p)=V(x)+norm(x-y)^2/(2 eta)+norm(p)^2/2,
+and Iminus integrates the rate at R(Gamma(s)) along the SAME path.
+Actual harmonic ODE, bounce norm preservation, finite-count open-arc identity
+and terminal endpoint law are the four invoked parent producers. Finite arc
+calculus, integration and energy telescoping are proved internally.
+Zero events, horizon, dimension, rates and reflection normals remain included.
+
+Independent whole mathematics, fresh sealed-header kernel witness, source-blind
+decoding and primary-first source/exposition reviews passed. All six adjacent
+formula/Lean proof regions retain their exact source-bound code.
+The next source edges are reverse-arc and incoming-rate product correspondence,
+then weighted sector substitution and Gibbs averaging. Pointwise equality of
+right-continuous paths at reversed jumps is not claimed. Invariance, Markovness,
+hypocoercivity, implementation errors, actual expected costs and composition
+remain open; full papers completed is still0/4.
+
+The existing sole SAU94 lane handles aggregate publication/graph/site gates.
+Actual paper-page/fine-branch visual acceptance, main merge and postmerge
+purification are separate; retain the existing four-paper Goal and reader contract.
+
+
 ## Actual PBPS finite endpoint and event-time reversal (2026-10-12)
 
 Independent science 7089dfb0698c50d3ffd0180fb58d06bb32e5d7dd. The original six analytic assumptions and thirteen

@@ -1,0 +1,101 @@
+theorem candidate_closed
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : candidate hα hαβ hV hH hη hβη := by
+  classical
+  unfold candidate
+  intro c Φ S Rec Hist Δ Prefix m zAt K Path Ψ Γ R rate n T
+  obtain ⟨rho, hrho, h99⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product
+      hα hαβ hV hH hη hβη n T
+  refine ⟨rho, hrho, ?_⟩
+  intro y r z t A gamma barGamma
+  let grid : Fin (n+2) → ℝ := Fin.snoc (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n+1) → ℝ) (T : ℝ)
+  let barGrid : Fin (n+2) → ℝ := Fin.snoc (Fin.cons (0 : ℝ) (rho t).val) (T : ℝ)
+  let post := zAt y r z n T t
+  let barPost := zAt y r (R A) n T (rho t)
+  have hpair : ∀ j : Fin (n+1), barPost j =
+      R (Φ y r (grid j.rev.succ-grid j.rev.castSucc) (post j.rev)) :=
+    fun j => ((h99 y r z t).1 j).1
+  have hbl (j : Fin (n+1)) : barGrid j.castSucc = (T : ℝ) - grid j.rev.succ := by
+    induction j using Fin.cases with
+    | zero => simp [grid, barGrid]
+    | succ i => simp only [grid, barGrid, Fin.rev_succ, Fin.succ_castSucc,
+        Fin.snoc_castSucc, Fin.cons_succ, hrho]
+  have hbr (j : Fin (n+1)) : barGrid j.succ = (T : ℝ) - grid j.rev.castSucc := by
+    induction j using Fin.lastCases with
+    | last => simp [grid, barGrid]
+    | cast i => simp only [grid, barGrid, Fin.rev_castSucc, Fin.succ_castSucc,
+        Fin.snoc_castSucc, Fin.cons_succ, hrho]
+  have hgrid : Monotone grid := by
+    have htT : ∀ j : Fin (n+1), (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n+1) → ℝ) j ≤ (T : ℝ) := by
+      intro j
+      refine Fin.cases ?_ (fun i => ?_) j
+      · simpa using T.coe_nonneg
+      · exact (t.property.2 i).le
+    intro i j hij
+    induction i using Fin.lastCases with
+    | last =>
+      have hj : j = Fin.last (n+1) := le_antisymm (Fin.le_last j) hij
+      subst j
+      exact le_rfl
+    | cast i =>
+      induction j using Fin.lastCases with
+      | last => simpa [grid] using htT i
+      | cast j => simpa [grid] using t.property.1.monotone (show i ≤ j from hij)
+  obtain ⟨Z, _, _, _, _, hlaw⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law
+      hα hαβ hV hH hη hβη
+  have harc (w : E × E) (u : Prefix n T) (s : ℝ) (hs0 : 0 ≤ s) (hsT : s ≤ (T : ℝ))
+      (j : Fin (n+1)) (hj : (Fin.cons (0 : ℝ) (u.val : Fin n → ℝ) : Fin (n+1) → ℝ) j ≤ s)
+      (hn : ∀ k : Fin (n+1), j < k → s < (Fin.cons (0 : ℝ) (u.val : Fin n → ℝ) : Fin (n+1) → ℝ) k) :
+      Γ y r w n T u ⟨min (Real.toNNReal s) T, min_le_right _ _⟩ =
+        Φ y r (s - (Fin.cons (0 : ℝ) (u.val : Fin n → ℝ) : Fin (n+1) → ℝ) j) (zAt y r w n T u j) := by
+    have hclip : min (Real.toNNReal s) T = Real.toNNReal s :=
+      min_eq_left (by exact_mod_cast (Real.toNNReal_le_iff_le_coe).2 hsT)
+    have hcoe : ((min (Real.toNNReal s) T : ℝ≥0) : ℝ) = s := by
+      rw [hclip, Real.coe_toNNReal s hs0]
+    have hp := ((hlaw n T).2.2.2 y r w).2.2.2.2.1
+      u ⟨min (Real.toNNReal s) T, min_le_right _ _⟩ j
+      (by simpa only [hcoe] using hj) (by simpa only [hcoe] using hn)
+    change Γ y r w n T u ⟨min (Real.toNNReal s) T, min_le_right _ _⟩ =
+      Φ y r (((min (Real.toNNReal s) T : ℝ≥0) : ℝ) - (Fin.cons (0 : ℝ) (u.val : Fin n → ℝ) : Fin (n+1) → ℝ) j)
+        (zAt y r w n T u j) at hp
+    simpa only [hcoe] using hp
+  obtain ⟨_, _, _, hgroup, _⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws
+      hα hαβ hV hH hη hβη
+  obtain ⟨_, _, _, _, _, _, _, _, hR, hrev, _⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws
+      hα hαβ hV hH hη hβη
+  have hoff : ∀ s : ℝ, 0 ≤ s → s ≤ (T : ℝ) →
+      (∀ i : Fin n, s ≠ (rho t).val i) → barGamma s = R (gamma ((T : ℝ)-s)) := by
+    have hp := PBPSArcReversal100.path_reversal n (T : ℝ) grid barGrid hgrid
+      (by simp [barGrid]) (by simp [barGrid]) hbl hbr (Φ y r) R hR
+      (hgroup y r) (hrev y r) post barPost gamma barGamma hpair
+      (fun s hs0 hsT j hj hn => by
+        simpa only [gamma, grid, post, Fin.snoc_castSucc] using
+          harc z t s hs0 hsT j (by simpa only [grid, Fin.snoc_castSucc] using hj)
+            (by simpa only [grid, Fin.snoc_castSucc] using hn))
+      (fun s hs0 hsT j hj hn => by
+        simpa only [barGamma, barGrid, barPost, Fin.snoc_castSucc] using
+          harc (R A) (rho t) s hs0 hsT j (by simpa only [barGrid, Fin.snoc_castSucc] using hj)
+            (by simpa only [barGrid, Fin.snoc_castSucc] using hn))
+    intro s hs0 hsT hn
+    exact hp s hs0 hsT (by simpa only [barGrid, Fin.snoc_castSucc, Fin.cons_succ] using hn)
+  have hi : IntervalIntegrable (fun s => rate r (barGamma s)) volume 0 (T : ℝ) :=
+    (AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite
+      hα hαβ hV hH hη hβη y r (R A) n T (rho t)).1
+  have hs := PBPSScalarReflection100.scalar_reflection (T : ℝ) T.coe_nonneg
+    (fun s => rate r (R (gamma s))) (fun s => rate r (barGamma s))
+    (Set.range (rho t).val) (Set.finite_range _) (by
+      intro s hs hn
+      exact congrArg (rate r) (hoff s hs.1 hs.2 (fun i he => hn ⟨i, he.symm⟩))) hi
+  exact ⟨hoff, hi, hs⟩
+
+#print axioms candidate_closed

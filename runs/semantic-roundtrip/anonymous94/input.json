@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-52afc33ecd20458a",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ, ∀ T : ℝ≥0, ∀ t : Prefix n T,\n      let grid : Fin (n + 2) → ℝ :=\n        Fin.snoc (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ)) (T : ℝ)\n      let γ : ℝ → E × E := fun s =>\n        Γ y xRef z₀ n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩\n      IntervalIntegrable (fun s => rate xRef (γ s)) volume 0 (T : ℝ) ∧\n      (∫ s in (0 : ℝ)..(T : ℝ), rate xRef (γ s)) =\n        ∑ j : Fin (n + 1), Λ y xRef (zAt y xRef z₀ n T t j)\n          (Real.toNNReal (grid j.succ - grid j.castSucc)) ∧\n      (∀ i : Fin n,\n        Tendsto γ (𝓝[<] (t.val i))\n          (𝓝 (Φ y xRef (t.val i - grid i.castSucc.castSucc)\n            (zAt y xRef z₀ n T t i.castSucc))) ∧\n        Tendsto (fun s => rate xRef (γ s)) (𝓝[<] (t.val i))\n          (𝓝 (rate xRef (Φ y xRef (t.val i - grid i.castSucc.castSucc)\n            (zAt y xRef z₀ n T t i.castSucc))))) ∧\n      ρ y xRef z₀ n T t = ENNReal.ofReal\n        (Real.exp (-(∫ s in (0 : ℝ)..(T : ℝ), rate xRef (γ s))) *\n          ∏ i : Fin n, rate xRef (Φ y xRef (t.val i - grid i.castSucc.castSucc)\n            (zAt y xRef z₀ n T t i.castSucc)))",
+    "statement_sha256": "52afc33ecd20458a0d2e9a52735ea05fc21bfce64d49e7f870c8a2dea6f6aceb",
+    "compiled": true,
+    "approved_definition_context": [
+      "The ambient norm and inner product are real, and the indicated sigma algebra is Borel. gradient and fderiv are the standard Hilbert gradient and Frechet derivative.",
+      "Fin n is the ordered set of integers0 through n-1. Fin.cons prepends one entry; Fin.snoc appends one entry. i.castSucc preserves the numeric index and i.succ increments it. Fin.induction is recursion on this finite index.",
+      "Fin.foldl scans finite indices in increasing order, updating its accumulator. A sum tag distinguishes the two displayed record branches; Unit has one element.",
+      "Nonnegative-real subtraction truncates at zero; Real.toNNReal(x)=max(x,0). ENNReal.ofReal embeds max(x,0) in the extended nonnegative reals. Real division by zero is zero.",
+      "volume on the real line is Lebesgue measure. IntervalIntegrable requires integrability over the unordered interval. The displayed interval integral is oriented, although all displayed time intervals here are nonnegative in order.",
+      "The left-neighborhood filter means approach strictly from below in real time. Limits of phase values use the product norm topology. No topology on a function space is implicit.",
+      "Products and sums indexed by Fin0 are respectively one and zero. StrictMono and every forall quantifier retain their ordinary pointwise meanings, including empty subtypes."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "6e784f8292195ed1b2a603438fa8f44c9c25cd6bf4dea3a53c6fece24cf2b89d"
+}

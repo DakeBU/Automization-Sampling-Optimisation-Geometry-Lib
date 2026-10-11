@@ -82,3 +82,41 @@ metadata gate do not erase that missing CI coverage. The full root gate is
 running against the current root coverage; it must be distinguished from
 integration of this new module. Generated `_site/` files are preview outputs
 and are not committed.
+
+## Gate and graph closeout for this verified checkpoint
+
+`tools/astis.py check` completed successfully on `c69b25b78`: the main library,
+root `Tests` (9425 jobs), pinned ATLAS check (36469 declarations / 26 books)
+and forbidden-closure scan passed. The new focused test had already passed
+separately, twice including the independent reviewer. **Its root import remains
+pending**; the aggregate result does not claim that the root imports it.
+
+Contributor contract (`--base origin/main`), Frontier Cell, semantic registry,
+diff-aware publication, generated site and affected `graph-check` gates passed.
+The Harness suite ran 296 tests: 284 passed, six Windows-only tests skipped,
+and six localhost-service tests initially failed only because the sandbox
+denied port binding. Those exact six were re-run with localhost permission and
+all passed. No production fix or weakened assertion was used.
+
+Actual graph inspection: searching the canonical declaration produced five
+nodes and four edges. The declaration remains `partial` with “compiled badge
+not inferred” until Registry/root integration. The audit inspector visibly
+shows `FIDELITY-MISMATCH`, the real `domain-mismatch` verdict, all seven semantic
+slots and three blockers against full-source equivalence. Module ownership is
+solid; source correspondence is not a Lean dependency. No Functor edge was
+invented. The graph's reference scan is explicitly incomplete; it is not an
+exported, elaborated proof-dependency certificate.
+
+The official source PDF checksum was captured after proof/review and is
+recorded with that honest timing in `statement-seal.json`; no earlier checksum
+is fabricated and the PDF itself is not distributed.
+
+Next mathematical candidate: use genuine affine-restriction derivatives and
+Mathlib's `HasGradientAt.congr_of_eventuallyEq` / `HasGradientAt.unique` to show
+that agreeing neighborhood extensions have identical projected gradients.
+First inspect existing interfaces and the source-independent graph for Boumal
+Proposition3.35/(3.28); claim only a bounded, source-present consumer edge,
+not full nonlinear Proposition3.61. This is a candidate, not a claimed SAU.
+
+The overall Chewi/Boumal Goal stays active. This single verified interface does
+not complete a chapter, either book, reader purification or repository integration.

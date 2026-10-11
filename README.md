@@ -21,7 +21,7 @@ ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean
 ## Samplinglib in Math 2.0
 
 **Human-understanding infrastructure for sampling, optimisation, and geometry.**
-Inspired by [Terence Tao's *Math 2.0* lecture (October 2026, slides 22 and 25–26)](https://teorth.github.io/tao-web/slides/math-2-0-caltech-2026.pdf), our foundation is a **living knowledge network (2)** and a **reusable, high-quality Lean library (3)**. We build them to make difficult mathematics easier to understand: **open exposition problems (1)** and **interactive learning (8)**.
+Our original goals—a **living knowledge network (2)** and a **reusable, high-quality Lean library (3)**—predate and resonate with [Terence Tao's *Math 2.0* lecture (October 2026, slides 22 and 25–26)](https://teorth.github.io/tao-web/slides/math-2-0-caltech-2026.pdf). We build them to make difficult mathematics easier to understand: **open exposition problems (1)** and **interactive learning (8)**.
 
 The next research layer uses the Lean graph and Functor Hypergraph for **cross-pollination of methods (4)**, the encoder–denoiser and dependency protocols to support **proof ablation (5)**, and explicit assumptions to explore **theorem neighborhoods (6)**. Our own or appropriately licensed explanation–Lean pairs can support **interpretable mathematical models (7)**; formal contracts and counterexamples can help analyze **model boundaries and failure modes (9)**. These are contribution paths, not claims that automatic discovery or safe real-world deployment is already solved.
 

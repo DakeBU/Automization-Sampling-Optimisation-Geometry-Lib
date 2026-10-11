@@ -1,6 +1,6 @@
 # Samplinglib contributions to Math 2.0
 
-Samplinglib connects readable mathematics, a living network of papers and textbooks, and reusable Lean proofs for sampling, optimisation, and geometry. Its purpose is to help people understand and extend the mathematics they can verify.
+Samplinglib connects readable mathematics, a living network of papers and textbooks, and reusable Lean proofs for sampling, optimisation, and geometry. Its purpose is to help people understand and extend the mathematics they can verify. These aims predate Tao's October 2026 lecture; his report resonates with our original programme and provides a shared reference for discussing what to improve.
 
 [Terence Tao's October 2026 Math 2.0 lecture](https://teorth.github.io/tao-web/slides/math-2-0-caltech-2026.pdf) describes a transition from scarce proofs toward abundant proofs. His central proposal is to strengthen the connections between mathematics and human understanding. Slides 22 and 25–26 give nine relevant examples; the numbering below organizes those examples for our project and does not imply an endorsement.
 
@@ -24,7 +24,7 @@ These experiments build on existing graph, source-review, proof-digestion and ev
 
 ## Public presentation
 
-Use the shared mission “human-understanding infrastructure for Math 2.0”, followed by the domain and a concrete capability. Label existing infrastructure, active work and research plans separately. Cite Tao's lecture as inspiration; attribute source authors accurately.
+Use the shared mission “human-understanding infrastructure for Math 2.0”, followed by the domain and a concrete capability. Label existing infrastructure, active work and research plans separately. Describe Tao's lecture as resonating with our original aims; attribute source authors accurately. Invite probability, geometry, education and mathematical-AI collaborators to improve explanations and test the potential of proof maps.
 
 README and home pages should introduce the library's purpose and provide three immediate routes: learn the mathematics, explore proof mechanisms, inspect Lean evidence. The nine directions belong on a dedicated page with links to current material and a specific next contribution. Mathematical pages retain the existing statement, readable proof, assumptions, source mapping and folded Lean publication contract.
 

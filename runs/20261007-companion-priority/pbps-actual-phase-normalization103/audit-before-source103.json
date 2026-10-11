@@ -1,0 +1,291 @@
+{
+  "id": "ASTIS-RT-20261012-PBPSActualPhaseNormalization",
+  "state": "draft",
+  "source": {
+    "source_id": "companion-domain:pbps-actual-phase-normalization",
+    "anchor": "Eq3.1 and conditional energy: positive finite phase partition and exact conditional-Gibbs times standard-Gaussian identification; source-implicit normalization used by Appendix A.1 averaging.",
+    "url": "https://arxiv.org/html/2609.06905v1#S3.E1",
+    "original_text": "Let E be a finite-dimensional real inner-product space equipped with its Borel sigma algebra and canonical Lebesgue measure, including dimension d=0. Let V:E->R be C2. Let alpha,beta>=0 with alpha>0 and alpha<=beta, and assume alpha||v||^2 <= D2 V(x)[v,v] <= beta||v||^2 for every x,v in E, where D2 is the genuine second Frechet derivative. Let eta>0 and beta*eta<=1.\nFor each y in E define Vy(x)=V(x)+||x-y||^2/(2 eta), U_y(x,p)=Vy(x)+||p||^2/2, w_y=exp(-U_y), and ell=volume_E times volume_E in position-momentum order. Define the real position partition Zx(y)=integral exp(-Vy(x)) dx, C_E=(sqrt(2 pi))^d using the natural-number power, and the extended nonnegative phase partition Zphase(y)=integral ofReal(w_y(z)) d ell(z). Let pi_y=volume_E.tilted(-Vy), meaning volume_E.withDensity(x -> ofReal(exp(-Vy(x))/Zx(y))). Let nu_y=ell.withDensity(z -> Zphase(y)^(-1)*ofReal(w_y(z))) and let gamma be the centered Gaussian on E with identity covariance.\nThen for every y, all seven assertions hold: exp(-Vy) is integrable; Zx(y)>0; Zphase(y)=ofReal(Zx(y)*C_E); Zphase(y)>0; Zphase(y)<infinity; nu_y is a probability measure; and nu_y=pi_y times gamma exactly as measures on E times E. The real and extended-real integrals are therefore finite before normalization is justified. This identifies the actual phase law rather than a supplied density or normalizer. In dimension zero C_E=1 and the normalized measure is the unit atom on the singleton phase space. No minimizer, critical point, Gaussian envelope, measurability, integrability or finite-mass premise is added. Upper curvature, alpha<=beta and beta*eta<=1 remain as original source assumptions even though this analytic normalization proof needs only the lower curvature, C2 and eta>0. This result does not assert a process law, stationary averaging, countable sector assembly, invariance, a Markov property, hypocoercivity, simulation error, expected oracle cost or whole-paper/composition completion.",
+    "text_sha256": "c167574d029cc0060e429753912da20e44750e21bbff6c1aad7351c2225838bd"
+  },
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let d : ℕ := Module.finrank ℝ E\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    let Zx : E → ℝ := fun y => ∫ x : E, Real.exp (-Vy y x) ∂volume\n    let C : ℝ := (Real.sqrt (2 * Real.pi)) ^ d\n    let Zphase : E → ℝ≥0∞ := fun y => ∫⁻ z, ENNReal.ofReal (w y z) ∂ell\n    let piY : E → Measure E := fun y => (volume : Measure E).tilted (fun x => -Vy y x)\n    let nu : E → Measure (E × E) := fun y =>\n      ell.withDensity (fun z => (Zphase y)⁻¹ * ENNReal.ofReal (w y z))\n    let gamma : Measure E := ProbabilityTheory.stdGaussian E\n    ∀ y : E,\n      Integrable (fun x => Real.exp (-Vy y x)) (volume : Measure E) ∧\n      0 < Zx y ∧\n      Zphase y = ENNReal.ofReal (Zx y * C) ∧\n      0 < Zphase y ∧\n      Zphase y < ⊤ ∧\n      IsProbabilityMeasure (nu y) ∧\n      nu y = (piY y).prod gamma",
+    "statement_sha256": "95983255fa6575692d215b80eb67de77899ce25acea5850ca07ef41929c0ae47",
+    "compiled": true,
+    "decoder_context": [
+      "Finite-dimensional real inner-product space with its Borel sigma algebra and canonical volume; dimension zero is included.",
+      "The second Frechet derivative is evaluated twice on the direction v. NNReal parameters are coerced to real numbers in inequalities.",
+      "ENNReal is the extended nonnegative real line; ofReal embeds the positive part. Real division by zero is totalized, but no convention by itself establishes normalization.",
+      "Measure.tilted mu h means mu.withDensity(x -> ofReal(exp(h(x))/integral exp(h) dmu)). stdGaussian E is the centered Gaussian with identity covariance. Product measures place the first coordinate first."
+    ],
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+    "formalizer": "companion_root_20261005",
+    "compiler_evidence": "runs/20261007-companion-priority/pbps-actual-phase-normalization103/focused103/production1/receipt.json",
+    "statement_representation": {
+      "kind": "exact-literal-Prop-expansion",
+      "actual_header": "theorem actual_phase_gibbs_normalization\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : actual_phase_normalization_statement hα hαβ hV hH hη hβη ",
+      "private_definition": "def actual_phase_normalization_statement{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let d : ℕ := Module.finrank ℝ E\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    let Zx : E → ℝ := fun y => ∫ x : E, Real.exp (-Vy y x) ∂volume\n    let C : ℝ := (Real.sqrt (2 * Real.pi)) ^ d\n    let Zphase : E → ℝ≥0∞ := fun y => ∫⁻ z, ENNReal.ofReal (w y z) ∂ell\n    let piY : E → Measure E := fun y => (volume : Measure E).tilted (fun x => -Vy y x)\n    let nu : E → Measure (E × E) := fun y =>\n      ell.withDensity (fun z => (Zphase y)⁻¹ * ENNReal.ofReal (w y z))\n    let gamma : Measure E := ProbabilityTheory.stdGaussian E\n    ∀ y : E,\n      Integrable (fun x => Real.exp (-Vy y x)) (volume : Measure E) ∧\n      0 < Zx y ∧\n      Zphase y = ENNReal.ofReal (Zx y * C) ∧\n      0 < Zphase y ∧\n      Zphase y < ⊤ ∧\n      IsProbabilityMeasure (nu y) ∧\n      nu y = (piY y).prod gamma",
+      "expanded_header": "theorem actual_phase_gibbs_normalization{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let d : ℕ := Module.finrank ℝ E\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    let Zx : E → ℝ := fun y => ∫ x : E, Real.exp (-Vy y x) ∂volume\n    let C : ℝ := (Real.sqrt (2 * Real.pi)) ^ d\n    let Zphase : E → ℝ≥0∞ := fun y => ∫⁻ z, ENNReal.ofReal (w y z) ∂ell\n    let piY : E → Measure E := fun y => (volume : Measure E).tilted (fun x => -Vy y x)\n    let nu : E → Measure (E × E) := fun y =>\n      ell.withDensity (fun z => (Zphase y)⁻¹ * ENNReal.ofReal (w y z))\n    let gamma : Measure E := ProbabilityTheory.stdGaussian E\n    ∀ y : E,\n      Integrable (fun x => Real.exp (-Vy y x)) (volume : Measure E) ∧\n      0 < Zx y ∧\n      Zphase y = ENNReal.ofReal (Zx y * C) ∧\n      0 < Zphase y ∧\n      Zphase y < ⊤ ∧\n      IsProbabilityMeasure (nu y) ∧\n      nu y = (piY y).prod gamma",
+      "source_approved_overlay": "runs/20261007-companion-priority/pbps-phase-normalization-preread103/root.statement-seal103.json",
+      "kernel_header_and_literal_expansion_checked": false
+    }
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "349f71636e82ddb57d97fb9e228a792f1d77f13dd232decdccff39c399cce8b7",
+  "publication_context": {
+    "file": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability\nimport AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity\nimport AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.MeasureTheory.Integral.Prod\n\n/-!\n# Actual PBPS phase Gibbs normalization\n\nAn explicit completion of the proportionality in arXiv:2609.06905v1, Eq. (3.1).\nThe six original analytic assumptions imply a positive finite phase partition\nand identify its normalized density with the conditional position Gibbs law\ntimes standard Gaussian momentum. All finite dimensions, including zero, are\ncovered. This is no process-invariance, error or oracle-cost theorem.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization\nopen MeasureTheory InnerProductSpace ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\nset_option linter.unusedVariables false in\nprivate def actual_phase_normalization_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let d : ℕ := Module.finrank ℝ E\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    let Zx : E → ℝ := fun y => ∫ x : E, Real.exp (-Vy y x) ∂volume\n    let C : ℝ := (Real.sqrt (2 * Real.pi)) ^ d\n    let Zphase : E → ℝ≥0∞ := fun y => ∫⁻ z, ENNReal.ofReal (w y z) ∂ell\n    let piY : E → Measure E := fun y => (volume : Measure E).tilted (fun x => -Vy y x)\n    let nu : E → Measure (E × E) := fun y =>\n      ell.withDensity (fun z => (Zphase y)⁻¹ * ENNReal.ofReal (w y z))\n    let gamma : Measure E := ProbabilityTheory.stdGaussian E\n    ∀ y : E,\n      Integrable (fun x => Real.exp (-Vy y x)) (volume : Measure E) ∧\n      0 < Zx y ∧\n      Zphase y = ENNReal.ofReal (Zx y * C) ∧\n      0 < Zphase y ∧\n      Zphase y < ⊤ ∧\n      IsProbabilityMeasure (nu y) ∧\n      nu y = (piY y).prod gamma\n\n\n/-- Positive finite normalization and exact product-law identification for the\nactual target phase energy. Integrability and all density identities are\nderived internally; no normalizer or minimizer is an additional hypothesis. -/\ntheorem actual_phase_gibbs_normalization\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : actual_phase_normalization_statement hα hαβ hV hH hη hβη := by\n\n  dsimp only [actual_phase_normalization_statement]\n  intro y\n  let Vy : E → ℝ := fun x => V x + ‖x - y‖ ^ 2 / (2 * η)\n  let U : E × E → ℝ := fun z => V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n  let f : E → ℝ := fun x => Real.exp (-Vy x)\n  let g : E → ℝ := fun p => Real.exp (-‖p‖ ^ 2 / 2)\n  let C : ℝ := (Real.sqrt (2 * Real.pi)) ^ Module.finrank ℝ E\n  let Z : ℝ := ∫ x, f x ∂(volume : Measure E)\n  let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n  let Zp : ℝ≥0∞ := ∫⁻ z, ENNReal.ofReal (Real.exp (-U z)) ∂ell\n  change Integrable f volume ∧ 0 < Z ∧ Zp = ENNReal.ofReal (Z * C) ∧\n    0 < Zp ∧ Zp < ⊤ ∧\n    IsProbabilityMeasure (ell.withDensity (fun z => Zp⁻¹ * ENNReal.ofReal (Real.exp (-U z)))) ∧\n    ell.withDensity (fun z => Zp⁻¹ * ENNReal.ofReal (Real.exp (-U z))) =\n      ((volume : Measure E).tilted (fun x => -Vy x)).prod (stdGaussian E)\n  have hsc := AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x v => (hH x v).1)\n  have hbase := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn hα (hV.differentiable (by norm_num)) hsc\n  have hVy : Continuous Vy := hV.continuous.add (((continuous_id.sub continuous_const).norm.pow 2).div_const (2 * η))\n  have hfc : Continuous f := Real.continuous_exp.comp hVy.neg\n  have hgc : Continuous g := Real.continuous_exp.comp ((continuous_norm.pow 2).neg.div_const 2)\n  have hf : Integrable f (volume : Measure E) := by\n    refine hbase.mono' hfc.aestronglyMeasurable ?_\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n    apply Real.exp_le_exp.mpr\n    dsimp [Vy]\n    have : 0 ≤ ‖x - y‖ ^ 2 / (2 * η) := by positivity\n    linarith\n  have hZ : 0 < Z := integral_exp_pos hf\n  have hC : 0 < C := by dsimp [C]; positivity\n  have hCg : (∫⁻ p : E, ENNReal.ofReal (g p) ∂volume) = ENNReal.ofReal C := by\n    have h := AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability.lintegral_exp_neg_mul_norm_sq_eq (E := E) (a := (1 / 2 : ℝ)) (by norm_num)\n    have hn : (Real.pi / (1 / 2 : ℝ)) ^ ((Module.finrank ℝ E : ℝ) / 2) = C := by\n      dsimp [C]\n      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul_natCast (by positivity)]\n      congr 1 <;> ring\n    rw [hn] at h\n    convert h using 1\n    congr 1\n    funext p\n    congr 2\n    dsimp [g]\n    ring\n  have hw (z : E × E) : Real.exp (-U z) = f z.1 * g z.2 := by\n    dsimp [U, f, g, Vy]\n    rw [← Real.exp_add]\n    congr 1\n    ring\n  have hphase : Zp = ENNReal.ofReal (Z * C) := by\n    calc\n      Zp = ∫⁻ z : E × E, ENNReal.ofReal (f z.1) * ENNReal.ofReal (g z.2) ∂ell := by\n        apply lintegral_congr\n        intro z\n        rw [hw, ENNReal.ofReal_mul (Real.exp_nonneg _)]\n      _ = (∫⁻ x : E, ENNReal.ofReal (f x) ∂volume) * ∫⁻ p : E, ENNReal.ofReal (g p) ∂volume :=\n        lintegral_prod_mul hfc.measurable.ennreal_ofReal.aemeasurable hgc.measurable.ennreal_ofReal.aemeasurable\n      _ = ENNReal.ofReal (Z * C) := by\n        rw [← ofReal_integral_eq_lintegral_ofReal hf (ae_of_all _ (fun x => Real.exp_nonneg _)), hCg, ← ENNReal.ofReal_mul hZ.le]\n  have hpos : 0 < Zp := by rw [hphase]; exact ENNReal.ofReal_pos.mpr (mul_pos hZ hC)\n  have hfin : Zp < ⊤ := by rw [hphase]; exact ENNReal.ofReal_lt_top\n  have hprob : IsProbabilityMeasure (ell.withDensity (fun z => Zp⁻¹ * ENNReal.ofReal (Real.exp (-U z)))) :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs.isProbabilityMeasure_withDensity_normalized_gibbs ell U hpos.ne' hfin.ne\n  refine ⟨hf, hZ, hphase, hpos, hfin, hprob, ?_⟩\n  have hgamma : stdGaussian E = (volume : Measure E).withDensity (fun p => ENNReal.ofReal (C⁻¹ * g p)) := by\n    have h := AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity (E := E) 1 (by norm_num)\n    have hid : (fun z : E => Real.sqrt 1 • z) = id := by funext z; simp\n    rw [hid, Measure.map_id] at h\n    simpa only [mul_one, inv_pow, C, g] using h\n  rw [hgamma, Measure.tilted, prod_withDensity ((hfc.measurable.div_const Z).ennreal_ofReal) ((hgc.measurable.const_mul C⁻¹).ennreal_ofReal)]\n  apply withDensity_congr_ae\n  filter_upwards with z\n  rw [hphase, hw, ENNReal.ofReal_mul hZ.le, ENNReal.ofReal_mul (Real.exp_nonneg _), ENNReal.ofReal_div_of_pos hZ, ENNReal.ofReal_mul (inv_nonneg.mpr hC.le), ENNReal.ofReal_inv_of_pos hC]\n  rw [ENNReal.mul_inv (Or.inr ENNReal.ofReal_ne_top) (Or.inl ENNReal.ofReal_ne_top)]\n  simp only [div_eq_mul_inv, f]\n  ac_rfl\n\n#print axioms actual_phase_gibbs_normalization\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#S3.E1",
+      "edition": "arXiv2609.06905v1",
+      "anchor": "Eq3.1 and conditional energy: positive finite phase partition and exact conditional-Gibbs times standard-Gaussian identification; source-implicit normalization used by Appendix A.1 averaging.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Chen, Chewi, Lu and Zhang, arXiv:2609.06905v1, conditional potential and Eq. (3.1). Complete attributed mathematical restatement of the phase-law identification. Explicit positive finite partition and exact representative proof are ASTIS completion of source proportionality notation, not a verbatim quotation or a new claimed theorem of the authors."
+    },
+    "statement": "Let E be a finite-dimensional real inner-product space equipped with its Borel sigma algebra and canonical Lebesgue measure, including dimension d=0. Let V:E->R be C2. Let alpha,beta>=0 with alpha>0 and alpha<=beta, and assume alpha||v||^2 <= D2 V(x)[v,v] <= beta||v||^2 for every x,v in E, where D2 is the genuine second Frechet derivative. Let eta>0 and beta*eta<=1.\nFor each y in E define Vy(x)=V(x)+||x-y||^2/(2 eta), U_y(x,p)=Vy(x)+||p||^2/2, w_y=exp(-U_y), and ell=volume_E times volume_E in position-momentum order. Define the real position partition Zx(y)=integral exp(-Vy(x)) dx, C_E=(sqrt(2 pi))^d using the natural-number power, and the extended nonnegative phase partition Zphase(y)=integral ofReal(w_y(z)) d ell(z). Let pi_y=volume_E.tilted(-Vy), meaning volume_E.withDensity(x -> ofReal(exp(-Vy(x))/Zx(y))). Let nu_y=ell.withDensity(z -> Zphase(y)^(-1)*ofReal(w_y(z))) and let gamma be the centered Gaussian on E with identity covariance.\nThen for every y, all seven assertions hold: exp(-Vy) is integrable; Zx(y)>0; Zphase(y)=ofReal(Zx(y)*C_E); Zphase(y)>0; Zphase(y)<infinity; nu_y is a probability measure; and nu_y=pi_y times gamma exactly as measures on E times E. The real and extended-real integrals are therefore finite before normalization is justified. This identifies the actual phase law rather than a supplied density or normalizer. In dimension zero C_E=1 and the normalized measure is the unit atom on the singleton phase space. No minimizer, critical point, Gaussian envelope, measurability, integrability or finite-mass premise is added. Upper curvature, alpha<=beta and beta*eta<=1 remain as original source assumptions even though this analytic normalization proof needs only the lower curvature, C2 and eta>0. This result does not assert a process law, stationary averaging, countable sector assembly, invariance, a Markov property, hypocoercivity, simulation error, expected oracle cost or whole-paper/composition completion.",
+    "formulae": [
+      {
+        "label": "Actual phase partition",
+        "tex": "e^{-U_y(x,p)}=e^{-V_y(x)}e^{-\\|p\\|^2/2},\\qquad Z_{\\rm phase}(y)=\\operatorname{ofReal}(Z_x(y)C_E)."
+      },
+      {
+        "label": "Exact phase probability law",
+        "tex": "\\frac{e^{-U_y(x,p)}}{Z_x(y)C_E}=\\frac{e^{-V_y(x)}}{Z_x(y)}\\frac{e^{-\\|p\\|^2/2}}{C_E},\\qquad\\nu_y=\\pi_y\\otimes\\gamma."
+      }
+    ],
+    "assumptions": [
+      "Finite-dimensional real inner-product Borel E with canonical volume, including dimension zero.",
+      "alpha,beta>=0; alpha>0; alpha<=beta; V is C2; alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v.",
+      "eta>0 and beta*eta<=1. All conclusions hold for every y in E.",
+      "Literal conditional and phase energies, real Zx, ENNReal Zphase, C_E=(sqrt(2 pi))^d, tilted position law and standard Gaussian momentum. No extra integrability, normalizer, minimizing point or regularity premise."
+    ],
+    "obligations": [
+      {
+        "id": "phase-gibbs-normalization",
+        "label": "Positive finite actual phase partition and product-law identification"
+      },
+      {
+        "id": "weighted-invariance",
+        "label": "Normalized averaging and invariant process law"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+      "title": "Actual PBPS phase Gibbs normalization",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#S3.E1",
+          "label": "Eq3.1 and conditional energy: positive finite phase partition and exact conditional-Gibbs times standard-Gaussian identification; source-implicit normalization used by Appendix A.1 averaging.",
+          "scope": "Exact phase probability normalization and product-law identity only; no process invariance, countable sector assembly, Markov property, hypocoercivity, implementation error, cost or main theorem completion."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization"
+      ],
+      "assumptions": [
+        "Finite-dimensional real inner-product Borel E with canonical volume, including dimension zero.",
+        "alpha,beta>=0; alpha>0; alpha<=beta; V is C2; alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v.",
+        "eta>0 and beta*eta<=1. All conclusions hold for every y in E.",
+        "Literal conditional and phase energies, real Zx, ENNReal Zphase, C_E=(sqrt(2 pi))^d, tilted position law and standard Gaussian momentum. No extra integrability, normalizer, minimizing point or regularity premise."
+      ],
+      "statement": "Let E be a finite-dimensional real inner-product space equipped with its Borel sigma algebra and canonical Lebesgue measure, including dimension d=0. Let V:E->R be C2. Let alpha,beta>=0 with alpha>0 and alpha<=beta, and assume alpha||v||^2 <= D2 V(x)[v,v] <= beta||v||^2 for every x,v in E, where D2 is the genuine second Frechet derivative. Let eta>0 and beta*eta<=1.\nFor each y in E define Vy(x)=V(x)+||x-y||^2/(2 eta), U_y(x,p)=Vy(x)+||p||^2/2, w_y=exp(-U_y), and ell=volume_E times volume_E in position-momentum order. Define the real position partition Zx(y)=integral exp(-Vy(x)) dx, C_E=(sqrt(2 pi))^d using the natural-number power, and the extended nonnegative phase partition Zphase(y)=integral ofReal(w_y(z)) d ell(z). Let pi_y=volume_E.tilted(-Vy), meaning volume_E.withDensity(x -> ofReal(exp(-Vy(x))/Zx(y))). Let nu_y=ell.withDensity(z -> Zphase(y)^(-1)*ofReal(w_y(z))) and let gamma be the centered Gaussian on E with identity covariance.\nThen for every y, all seven assertions hold: exp(-Vy) is integrable; Zx(y)>0; Zphase(y)=ofReal(Zx(y)*C_E); Zphase(y)>0; Zphase(y)<infinity; nu_y is a probability measure; and nu_y=pi_y times gamma exactly as measures on E times E. The real and extended-real integrals are therefore finite before normalization is justified. This identifies the actual phase law rather than a supplied density or normalizer. In dimension zero C_E=1 and the normalized measure is the unit atom on the singleton phase space. No minimizer, critical point, Gaussian envelope, measurability, integrability or finite-mass premise is added. Upper curvature, alpha<=beta and beta*eta<=1 remain as original source assumptions even though this analytic normalization proof needs only the lower curvature, C2 and eta>0. This result does not assert a process law, stationary averaging, countable sector assembly, invariance, a Markov property, hypocoercivity, simulation error, expected oracle cost or whole-paper/composition completion.",
+      "formula": "\\frac{e^{-U_y(x,p)}}{Z_x(y)C_E}=\\frac{e^{-V_y(x)}}{Z_x(y)}\\frac{e^{-\\|p\\|^2/2}}{C_E},\\qquad\\nu_y=\\pi_y\\otimes\\gamma.",
+      "steps": [
+        {
+          "title": "Obtain the integrable Gibbs tail",
+          "text": "The genuine Hessian lower bound and C2 regularity imply alpha-strong convexity. The existing positive-modulus Gibbs integrability theorem uses a quadratic envelope and requires no supplied minimizing or critical point.",
+          "formula": "D^2V\\succeq\\alpha I,\\quad\\alpha>0\\quad\\Longrightarrow\\quad e^{-V}\\in L^1(dx).",
+          "lean": "  have hsc := AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x v => (hH x v).1)\n  have hbase := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn hα (hV.differentiable (by norm_num)) hsc\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 86,
+            "end_line": 87,
+            "exact_code_raw_sha256": "4b74268b82965782d16c6acdff40d090dcedd5cb8d36c330a2eea5f8336950e1"
+          }
+        },
+        {
+          "title": "Control every conditional position partition",
+          "text": "For each y, eta>0 makes the proximal quadratic nonnegative, hence 0<exp(-Vy)<=exp(-V). Continuity yields measurability; domination proves integrability. Strict positivity of the exponential and nonzero canonical volume then give Zx>0, including dimension zero.",
+          "formula": "V_y\\ge V,\\qquad 0<e^{-V_y}\\le e^{-V},\\qquad 0<Z_x(y)=\\int e^{-V_y(x)}\\,dx<\\infty.",
+          "lean": "  have hVy : Continuous Vy := hV.continuous.add (((continuous_id.sub continuous_const).norm.pow 2).div_const (2 * η))\n  have hfc : Continuous f := Real.continuous_exp.comp hVy.neg\n  have hgc : Continuous g := Real.continuous_exp.comp ((continuous_norm.pow 2).neg.div_const 2)\n  have hf : Integrable f (volume : Measure E) := by\n    refine hbase.mono' hfc.aestronglyMeasurable ?_\n    filter_upwards with x\n    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n    apply Real.exp_le_exp.mpr\n    dsimp [Vy]\n    have : 0 ≤ ‖x - y‖ ^ 2 / (2 * η) := by positivity\n    linarith\n  have hZ : 0 < Z := integral_exp_pos hf\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 88,
+            "end_line": 99,
+            "exact_code_raw_sha256": "0d672966aae3b46f5f2c2cd866f1d764fb7fd70531c96f63c5876c1e8b469fe6"
+          }
+        },
+        {
+          "title": "Evaluate the Gaussian momentum factor",
+          "text": "Apply the canonical Gaussian integral with coefficient 1/2. Convert its real power to the natural-number power of sqrt(2 pi). The resulting positive factor is C_E; no variance eta appears in momentum.",
+          "formula": "\\int e^{-\\|p\\|^2/2}\\,dp=(2\\pi)^{d/2}=(\\sqrt{2\\pi})^d=C_E>0.",
+          "lean": "  have hC : 0 < C := by dsimp [C]; positivity\n  have hCg : (∫⁻ p : E, ENNReal.ofReal (g p) ∂volume) = ENNReal.ofReal C := by\n    have h := AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability.lintegral_exp_neg_mul_norm_sq_eq (E := E) (a := (1 / 2 : ℝ)) (by norm_num)\n    have hn : (Real.pi / (1 / 2 : ℝ)) ^ ((Module.finrank ℝ E : ℝ) / 2) = C := by\n      dsimp [C]\n      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul_natCast (by positivity)]\n      congr 1 <;> ring\n    rw [hn] at h\n    convert h using 1\n    congr 1\n    funext p\n    congr 2\n    dsimp [g]\n    ring\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 100,
+            "end_line": 113,
+            "exact_code_raw_sha256": "36f169afed20d65264188fc4083f99c8b16ee2987a6e781041d84592a20df769"
+          }
+        },
+        {
+          "title": "Factor the actual phase partition",
+          "text": "The target energy is additive in position and momentum. Exponentiation factors its weight, and nonnegative product integration separates the two factors in position-first order. Integrability of the position factor permits the real-to-ENNReal integral conversion.",
+          "formula": "e^{-U_y(x,p)}=e^{-V_y(x)}e^{-\\|p\\|^2/2},\\qquad Z_{\\rm phase}(y)=\\operatorname{ofReal}(Z_x(y)C_E).",
+          "lean": "  have hw (z : E × E) : Real.exp (-U z) = f z.1 * g z.2 := by\n    dsimp [U, f, g, Vy]\n    rw [← Real.exp_add]\n    congr 1\n    ring\n  have hphase : Zp = ENNReal.ofReal (Z * C) := by\n    calc\n      Zp = ∫⁻ z : E × E, ENNReal.ofReal (f z.1) * ENNReal.ofReal (g z.2) ∂ell := by\n        apply lintegral_congr\n        intro z\n        rw [hw, ENNReal.ofReal_mul (Real.exp_nonneg _)]\n      _ = (∫⁻ x : E, ENNReal.ofReal (f x) ∂volume) * ∫⁻ p : E, ENNReal.ofReal (g p) ∂volume :=\n        lintegral_prod_mul hfc.measurable.ennreal_ofReal.aemeasurable hgc.measurable.ennreal_ofReal.aemeasurable\n      _ = ENNReal.ofReal (Z * C) := by\n        rw [← ofReal_integral_eq_lintegral_ofReal hf (ae_of_all _ (fun x => Real.exp_nonneg _)), hCg, ← ENNReal.ofReal_mul hZ.le]\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 114,
+            "end_line": 128,
+            "exact_code_raw_sha256": "e4661675ed177cd65b687823fc98485a13993aa4700c87fc9003c0ab597abc9a"
+          }
+        },
+        {
+          "title": "Normalize only after positivity and finiteness",
+          "text": "Both real factors are positive, and ofReal of a real number is finite. The existing Gibbs withDensity theorem now proves that the reciprocal-partition density has total mass one. No finite-mass premise was supplied.",
+          "formula": "0<Z_{\\rm phase}(y)<\\infty,\\qquad \\nu_y=\\ell\\mathbin{.}\\mathrm{withDensity}(Z_{\\rm phase}(y)^{-1}e^{-U_y}),\\quad\\nu_y(E\\times E)=1.",
+          "lean": "  have hpos : 0 < Zp := by rw [hphase]; exact ENNReal.ofReal_pos.mpr (mul_pos hZ hC)\n  have hfin : Zp < ⊤ := by rw [hphase]; exact ENNReal.ofReal_lt_top\n  have hprob : IsProbabilityMeasure (ell.withDensity (fun z => Zp⁻¹ * ENNReal.ofReal (Real.exp (-U z)))) :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs.isProbabilityMeasure_withDensity_normalized_gibbs ell U hpos.ne' hfin.ne\n  refine ⟨hf, hZ, hphase, hpos, hfin, hprob, ?_⟩\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 129,
+            "end_line": 133,
+            "exact_code_raw_sha256": "c253fd8a49adabff0b46787862f38f50d89c3bde301ade2405bf9fd52728110a"
+          }
+        },
+        {
+          "title": "Identify standard Gaussian momentum",
+          "text": "Specialize the existing isotropic Gaussian density theorem to variance one. Scaling by sqrt(1) is the identity map, so the Gaussian density is C_E inverse times exp(-||p||^2/2). This also covers d=0.",
+          "formula": "\\gamma=dp\\mathbin{.}\\mathrm{withDensity}\\bigl(\\operatorname{ofReal}(C_E^{-1}e^{-\\|p\\|^2/2})\\bigr).",
+          "lean": "  have hgamma : stdGaussian E = (volume : Measure E).withDensity (fun p => ENNReal.ofReal (C⁻¹ * g p)) := by\n    have h := AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity (E := E) 1 (by norm_num)\n    have hid : (fun z : E => Real.sqrt 1 • z) = id := by funext z; simp\n    rw [hid, Measure.map_id] at h\n    simpa only [mul_one, inv_pow, C, g] using h\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 134,
+            "end_line": 138,
+            "exact_code_raw_sha256": "df5f75e07d2307f59efea1bf317c999100c777a941fe13b426ad41f37dcde1e7"
+          }
+        },
+        {
+          "title": "Match the normalized product density",
+          "text": "Expand the tilted position measure and use product-withDensity for the two measurable densities. Substitute the exact phase partition and factorized energy. Positivity and finite ofReal factors justify division and inversion; commutativity then identifies the densities pointwise and hence the measures.",
+          "formula": "\\frac{e^{-U_y(x,p)}}{Z_x(y)C_E}=\\frac{e^{-V_y(x)}}{Z_x(y)}\\frac{e^{-\\|p\\|^2/2}}{C_E},\\qquad\\nu_y=\\pi_y\\otimes\\gamma.",
+          "lean": "  rw [hgamma, Measure.tilted, prod_withDensity ((hfc.measurable.div_const Z).ennreal_ofReal) ((hgc.measurable.const_mul C⁻¹).ennreal_ofReal)]\n  apply withDensity_congr_ae\n  filter_upwards with z\n  rw [hphase, hw, ENNReal.ofReal_mul hZ.le, ENNReal.ofReal_mul (Real.exp_nonneg _), ENNReal.ofReal_div_of_pos hZ, ENNReal.ofReal_mul (inv_nonneg.mpr hC.le), ENNReal.ofReal_inv_of_pos hC]\n  rw [ENNReal.mul_inv (Or.inr ENNReal.ofReal_ne_top) (Or.inl ENNReal.ofReal_ne_top)]\n  simp only [div_eq_mul_inv, f]\n  ac_rfl\n",
+          "detail": "ASTIS completion of the phase-law proportionality. Exact compiled region; every analytic ingredient is derived from the original assumptions.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+            "source_raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4",
+            "start_line": 139,
+            "end_line": 145,
+            "exact_code_raw_sha256": "ed19381fb9d0615448d75bdb12f3305b94cbebe4dd914c283fac0c6c3a2acfb7"
+          }
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product space equipped with its Borel sigma algebra and canonical Lebesgue measure, including dimension d=0. Let V:E->R be C2. Let alpha,beta>=0 with alpha>0 and alpha<=beta, and assume alpha||v||^2 <= D2 V(x)[v,v] <= beta||v||^2 for every x,v in E, where D2 is the genuine second Frechet derivative. Let eta>0 and beta*eta<=1.\nFor each y in E define Vy(x)=V(x)+||x-y||^2/(2 eta), U_y(x,p)=Vy(x)+||p||^2/2, w_y=exp(-U_y), and ell=volume_E times volume_E in position-momentum order. Define the real position partition Zx(y)=integral exp(-Vy(x)) dx, C_E=(sqrt(2 pi))^d using the natural-number power, and the extended nonnegative phase partition Zphase(y)=integral ofReal(w_y(z)) d ell(z). Let pi_y=volume_E.tilted(-Vy), meaning volume_E.withDensity(x -> ofReal(exp(-Vy(x))/Zx(y))). Let nu_y=ell.withDensity(z -> Zphase(y)^(-1)*ofReal(w_y(z))) and let gamma be the centered Gaussian on E with identity covariance.\nThen for every y, all seven assertions hold: exp(-Vy) is integrable; Zx(y)>0; Zphase(y)=ofReal(Zx(y)*C_E); Zphase(y)>0; Zphase(y)<infinity; nu_y is a probability measure; and nu_y=pi_y times gamma exactly as measures on E times E. The real and extended-real integrals are therefore finite before normalization is justified. This identifies the actual phase law rather than a supplied density or normalizer. In dimension zero C_E=1 and the normalized measure is the unit atom on the singleton phase space. No minimizer, critical point, Gaussian envelope, measurability, integrability or finite-mass premise is added. Upper curvature, alpha<=beta and beta*eta<=1 remain as original source assumptions even though this analytic normalization proof needs only the lower curvature, C2 and eta>0. This result does not assert a process law, stationary averaging, countable sector assembly, invariance, a Markov property, hypocoercivity, simulation error, expected oracle cost or whole-paper/composition completion.",
+      "lean_proof": "Obtain the integrable Gibbs tail; Control every conditional position partition; Evaluate the Gaussian momentum factor; Factor the actual phase partition; Normalize only after positivity and finiteness; Identify standard Gaussian momentum; Match the normalized product density",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_normalization_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability.lintegral_exp_neg_mul_norm_sq_eq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs.isProbabilityMeasure_withDensity_normalized_gibbs"
+      ],
+      "mathlib_dependencies": [
+        "Integrable.mono'",
+        "integral_exp_pos",
+        "lintegral_prod_mul",
+        "ofReal_integral_eq_lintegral_ofReal",
+        "Real.rpow_mul_natCast",
+        "Measure.tilted",
+        "prod_withDensity",
+        "withDensity_congr_ae",
+        "ENNReal.mul_inv"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+      "role": "proof-edge",
+      "supports": [
+        "phase-gibbs-normalization"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Eq3.1 defines a proportional phase density and product probability law.",
+        "lean": "Proves the actual partitions positive finite and the exact equality of canonical measures."
+      },
+      {
+        "source": "Euclidean finite-dimensional phase.",
+        "lean": "Finite real Hilbert Borel formulation including rank zero."
+      },
+      {
+        "source": "Original sampler assumptions.",
+        "lean": "All six retained, including unused upper/step-size bounds."
+      },
+      {
+        "source": "Stationary averaging and process invariance.",
+        "lean": "Only phase normalization and product-law identification."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Independent mathematical reconstruction\n\nLet E be an arbitrary finite-dimensional real inner-product space, equipped with its normed additive-group structure, its Borel measurable structure, and canonical volume measure lambda. Write d = dim_R(E), a natural number which may be zero. Let V:E -> R, let alpha and beta be nonnegative real parameters, and let eta be real. The following hypotheses are imposed:\n\n(1) alpha > 0 and alpha <= beta.\n(2) V is twice continuously Frechet differentiable over R on all of E.\n(3) For every x,v in E,\n    alpha ||v||^2 <= (D(DV)(x)[v])[v] <= beta ||v||^2.\n    The displayed Hessian evaluation uses the same direction v twice; the bounds are global in both x and v. The nonnegative-real parameters are coerced into R in these inequalities.\n(4) eta > 0 and beta eta <= 1.\n\nDefine, for every center y in E, position x in E, and ordered pair (x,p) in E x E,\n    V_y(x) = V(x) + ||x-y||^2/(2 eta),\n    U_y(x,p) = V(x) + ||x-y||^2/(2 eta) + ||p||^2/2,\n    w_y(x,p) = exp(-U_y(x,p)).\nLet ell = lambda product lambda on the ordered space E x E. Define the real position integral and real Gaussian constant by\n    Z_x(y) = integral_E exp(-V_y(x)) d lambda(x),\n    C = (sqrt(2 pi))^d.\nDefine an extended-nonnegative-real phase integral by\n    Z_phase(y) = lintegral_(E x E) ofReal(w_y(x,p)) d ell(x,p).\nHere lintegral is the nonnegative Lebesgue integral with values in [0,infinity], and ofReal(t) embeds max(t,0) into that extended range.\n\nLet pi_y be the exponential tilt of lambda by -V_y. Literally, using the supplied definition of tilt, this is\n    pi_y = lambda.withDensity(x -> ofReal(exp(-V_y(x))/Z_x(y))).\nLet\n    nu_y = ell.withDensity((x,p) -> Z_phase(y)^(-1) * ofReal(w_y(x,p))).\nThe inverse and multiplication in this density are in the extended nonnegative reals. Finally let gamma = stdGaussian(E), the centered Gaussian probability measure with identity covariance on E, independent of y.\n\nConclusion: for every y in E, all seven of the following hold simultaneously:\n\n1. The real-valued function x -> exp(-V_y(x)) is integrable with respect to lambda.\n2. Z_x(y) > 0.\n3. Z_phase(y) = ofReal(Z_x(y) * (sqrt(2 pi))^d).\n4. Z_phase(y) > 0 in the extended nonnegative reals.\n5. Z_phase(y) < infinity in the extended nonnegative reals.\n6. nu_y is a probability measure on E x E, that is, its total mass is one.\n7. nu_y = pi_y product gamma as measures on the ordered product E x E. Thus the first coordinate has the tilted position law pi_y, and the second coordinate has the centered identity-covariance Gaussian law gamma; their joint measure is exactly their product. Equivalently, for measurable A,B in E, nu_y(A x B) = pi_y(A) gamma(B), with this coordinate order.\n\nQuantification and scope\n\nThe claim is universal over every E and the indicated compatible structures, every V, every nonnegative alpha,beta, and every real eta satisfying the stated hypotheses. All displayed constructions are local definitions after these hypotheses. The final universal quantifier ranges over every y in E, with no restriction on the center. There is no selected minimizer, initial distribution, random evolution, time index, asymptotic limit, approximation tolerance, or algorithm in this proposition. Equality in item 7 is exact measure equality, not merely an equality of formal densities or an almost-everywhere identity of scalar functions.\n\nFinite-dimensional and totalization boundaries\n\nThere is no positive-dimension assumption. When d=0, E has only its zero vector and C=1 by the zeroth-power convention; the same formulas and conclusions apply. The use of canonical volume and stdGaussian is on the specified finite-dimensional Borel inner-product space, not an asserted construction of infinite-dimensional Lebesgue measure.\n\nReal division and the real integral expressions are Lean's total operations. In particular, division by zero is syntactically defined, and real Bochner integrals are defined even without a supplied integrability proof. These conventions alone do not prove that a tilt is normalized. Here eta>0 ensures 2 eta is nonzero, item 1 supplies the actual integrability of the position weight, and item 2 supplies its positive normalizer. Similarly, before conclusions 4 and 5, Z_phase is an extended integral potentially taking 0 or infinity. Extended inversion is totalized (0^(-1)=infinity and infinity^(-1)=0, with 0*infinity=0). The positive, finite conclusions ensure that nu_y uses an ordinary finite positive normalization. Every exponential weight is pointwise strictly positive. The occurrences of ofReal are positive-part embeddings, not absolute values and not logarithms. On the quantities proved positive here, they embed those quantities without truncation. No normalization follows just by naming a measure pi_y or nu_y; normalization of nu_y is explicitly part of the conclusion.\n\nConstant dependencies\n\nThere are no unspecified constants or existential numerical bounds. C depends only on d and the fixed mathematical constant pi. The two copies of volume and gamma depend on E and its inner-product/Borel structures. V_y, U_y, w_y, Z_x(y), Z_phase(y), pi_y, and nu_y depend on V, eta, E and y through their literal definitions; the kinetic factor and gamma do not depend on y or V. Alpha and beta certify the global Hessian bounds and admissible step parameter but do not occur as extra factors in these densities or normalizers. The exact phase normalization is the product of the position integral with C.\n\nThis reconstruction reports only the supplied proposition and definition context. It gives no source identification or source-fidelity verdict. The packet's compiled flag is supplied metadata, not an independent compilation performed by this decoder.\n",
+    "text_sha256": "83df922838beaed805384a4934ff52dccb38fddb487af27aff3519e0c2881aa9",
+    "decoder": "/root/blind_decoder103",
+    "decoder_run_sha256": "8e66a827415365514d257ec6e0c2aa2ac7fa0db8e0e10075c513d8f36be6c11a",
+    "decoder_packet_sha256": "bf6b3152a849bcea0a996638f62726cbc2e37077c68c37a8f4b54bc754499132",
+    "source_text_visible": false,
+    "lean_statement_sha256": "95983255fa6575692d215b80eb67de77899ce25acea5850ca07ef41929c0ae47",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "runs/semantic-roundtrip/anonymous103/input.json",
+        "raw_sha256": "112ba7fd9de2df2fecb4d53fce76ff4c004da098b86057dbb2ee8c80bcf20bb9"
+      }
+    ],
+    "run_artifact": "runs/semantic-roundtrip/anonymous103/decoder-native/decoder-run.json",
+    "native_structured_payload": "runs/semantic-roundtrip/anonymous103/decoder-native/reconstruction.json",
+    "native_named_payload_sha256": "3571a6a10be9fa1c6929a50588caa8336029e5477a37b33c883014f181886922",
+    "native_semantic_slots": {
+      "schema_version": 1,
+      "decoder": "/root/blind_decoder103",
+      "packet_id": "ASTIS-BLIND-95983255fa657569",
+      "packet_sha256": "bf6b3152a849bcea0a996638f62726cbc2e37077c68c37a8f4b54bc754499132",
+      "reconstructed_theorem_text": "Independent mathematical reconstruction\n\nLet E be an arbitrary finite-dimensional real inner-product space, equipped with its normed additive-group structure, its Borel measurable structure, and canonical volume measure lambda. Write d = dim_R(E), a natural number which may be zero. Let V:E -> R, let alpha and beta be nonnegative real parameters, and let eta be real. The following hypotheses are imposed:\n\n(1) alpha > 0 and alpha <= beta.\n(2) V is twice continuously Frechet differentiable over R on all of E.\n(3) For every x,v in E,\n    alpha ||v||^2 <= (D(DV)(x)[v])[v] <= beta ||v||^2.\n    The displayed Hessian evaluation uses the same direction v twice; the bounds are global in both x and v. The nonnegative-real parameters are coerced into R in these inequalities.\n(4) eta > 0 and beta eta <= 1.\n\nDefine, for every center y in E, position x in E, and ordered pair (x,p) in E x E,\n    V_y(x) = V(x) + ||x-y||^2/(2 eta),\n    U_y(x,p) = V(x) + ||x-y||^2/(2 eta) + ||p||^2/2,\n    w_y(x,p) = exp(-U_y(x,p)).\nLet ell = lambda product lambda on the ordered space E x E. Define the real position integral and real Gaussian constant by\n    Z_x(y) = integral_E exp(-V_y(x)) d lambda(x),\n    C = (sqrt(2 pi))^d.\nDefine an extended-nonnegative-real phase integral by\n    Z_phase(y) = lintegral_(E x E) ofReal(w_y(x,p)) d ell(x,p).\nHere lintegral is the nonnegative Lebesgue integral with values in [0,infinity], and ofReal(t) embeds max(t,0) into that extended range.\n\nLet pi_y be the exponential tilt of lambda by -V_y. Literally, using the supplied definition of tilt, this is\n    pi_y = lambda.withDensity(x -> ofReal(exp(-V_y(x))/Z_x(y))).\nLet\n    nu_y = ell.withDensity((x,p) -> Z_phase(y)^(-1) * ofReal(w_y(x,p))).\nThe inverse and multiplication in this density are in the extended nonnegative reals. Finally let gamma = stdGaussian(E), the centered Gaussian probability measure with identity covariance on E, independent of y.\n\nConclusion: for every y in E, all seven of the following hold simultaneously:\n\n1. The real-valued function x -> exp(-V_y(x)) is integrable with respect to lambda.\n2. Z_x(y) > 0.\n3. Z_phase(y) = ofReal(Z_x(y) * (sqrt(2 pi))^d).\n4. Z_phase(y) > 0 in the extended nonnegative reals.\n5. Z_phase(y) < infinity in the extended nonnegative reals.\n6. nu_y is a probability measure on E x E, that is, its total mass is one.\n7. nu_y = pi_y product gamma as measures on the ordered product E x E. Thus the first coordinate has the tilted position law pi_y, and the second coordinate has the centered identity-covariance Gaussian law gamma; their joint measure is exactly their product. Equivalently, for measurable A,B in E, nu_y(A x B) = pi_y(A) gamma(B), with this coordinate order.\n\nQuantification and scope\n\nThe claim is universal over every E and the indicated compatible structures, every V, every nonnegative alpha,beta, and every real eta satisfying the stated hypotheses. All displayed constructions are local definitions after these hypotheses. The final universal quantifier ranges over every y in E, with no restriction on the center. There is no selected minimizer, initial distribution, random evolution, time index, asymptotic limit, approximation tolerance, or algorithm in this proposition. Equality in item 7 is exact measure equality, not merely an equality of formal densities or an almost-everywhere identity of scalar functions.\n\nFinite-dimensional and totalization boundaries\n\nThere is no positive-dimension assumption. When d=0, E has only its zero vector and C=1 by the zeroth-power convention; the same formulas and conclusions apply. The use of canonical volume and stdGaussian is on the specified finite-dimensional Borel inner-product space, not an asserted construction of infinite-dimensional Lebesgue measure.\n\nReal division and the real integral expressions are Lean's total operations. In particular, division by zero is syntactically defined, and real Bochner integrals are defined even without a supplied integrability proof. These conventions alone do not prove that a tilt is normalized. Here eta>0 ensures 2 eta is nonzero, item 1 supplies the actual integrability of the position weight, and item 2 supplies its positive normalizer. Similarly, before conclusions 4 and 5, Z_phase is an extended integral potentially taking 0 or infinity. Extended inversion is totalized (0^(-1)=infinity and infinity^(-1)=0, with 0*infinity=0). The positive, finite conclusions ensure that nu_y uses an ordinary finite positive normalization. Every exponential weight is pointwise strictly positive. The occurrences of ofReal are positive-part embeddings, not absolute values and not logarithms. On the quantities proved positive here, they embed those quantities without truncation. No normalization follows just by naming a measure pi_y or nu_y; normalization of nu_y is explicitly part of the conclusion.\n\nConstant dependencies\n\nThere are no unspecified constants or existential numerical bounds. C depends only on d and the fixed mathematical constant pi. The two copies of volume and gamma depend on E and its inner-product/Borel structures. V_y, U_y, w_y, Z_x(y), Z_phase(y), pi_y, and nu_y depend on V, eta, E and y through their literal definitions; the kinetic factor and gamma do not depend on y or V. Alpha and beta certify the global Hessian bounds and admissible step parameter but do not occur as extra factors in these densities or normalizers. The exact phase normalization is the product of the position integral with C.\n\nThis reconstruction reports only the supplied proposition and definition context. It gives no source identification or source-fidelity verdict. The packet's compiled flag is supplied metadata, not an independent compilation performed by this decoder.\n",
+      "reconstructed_text_sha256": "83df922838beaed805384a4934ff52dccb38fddb487af27aff3519e0c2881aa9",
+      "objects": "E with a real inner product, normed additive group, Borel measurable structure and canonical volume lambda; V:E->R; alpha,beta in nonnegative reals; eta in R; d=finrank_R E; center y; V_y; U_y; w_y; ell=lambda product lambda; real Z_x; real C=(sqrt(2 pi))^d; extended-real Z_phase; tilted position measure pi_y; phase measure nu_y; gamma=stdGaussian(E). All literal definitions are given in reconstructed_theorem_text.",
+      "domains": "E is finite-dimensional over R, including dimension zero. V and V_y are real functions on E; U_y and w_y are real functions on the ordered E x E. Z_x and C are real; Z_phase and density values are extended nonnegative reals. pi_y and gamma are Borel measures on E; nu_y and ell are measures on E x E.",
+      "quantifiers": "Universal over E, all indicated structures, V, alpha,beta,eta satisfying the hypotheses. The Hessian bounds quantify over every x,v in E. After the local definitions, all seven conclusions hold for every y in E. There are no existential choices or hidden positive-dimension restrictions.",
+      "assumptions": "alpha>0, alpha<=beta, alpha and beta nonnegative by type; V is C^2 over R on E; for all x,v, alpha||v||^2 <= (D(DV)(x)[v])[v] <= beta||v||^2; eta>0; beta eta<=1; finite-dimensional real inner-product and Borel-space structures.",
+      "conclusion": "For each y: exp(-V_y) is lambda-integrable; Z_x(y)>0; Z_phase(y)=ofReal(Z_x(y)*(sqrt(2 pi))^d); Z_phase(y)>0; Z_phase(y)<infinity; nu_y is a probability measure; nu_y=pi_y product gamma in that order.",
+      "scopes": "All centers y and all global Hessian points/directions. Exact equality of measures, with position first and Gaussian momentum second; no limiting or approximate assertion. Real integrals/division and extended inversion are totalized, but normalization relies on the explicit integrability and positive-finite conclusions. Finite dimension includes zero, giving C=1. No infinite-dimensional extension or omitted source result is inferred.",
+      "constant_dependencies": "C depends only on dimension d. gamma and volume depend on the inner-product space E. V_y,U_y,w_y,Z_x,Z_phase,pi_y,nu_y depend on V,eta,E,y through their definitions. alpha,beta occur in hypotheses but not as density factors. No unspecified constant or existential bound appears.",
+      "source_text_visible": false,
+      "source_identity_visible": false,
+      "prior_audit_visible": false,
+      "repair_proposals_visible": false
+    }
+  }
+}

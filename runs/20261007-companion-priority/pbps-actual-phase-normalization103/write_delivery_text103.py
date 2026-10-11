@@ -1,0 +1,13 @@
+from pathlib import Path
+import json
+r = Path(__file__).parent
+out = r / 'integration103'
+note = json.loads((r / 'integration.notes.json').read_bytes())
+assert note['state_distinctions']['local_aggregate_and_generated_site_gates']
+text = f'''The actual PBPS phase Gibbs density now has a proved positive finite normalizer. Under the original six sampler assumptions, for every conditioning center y, Zphase(y)=ofReal(Zx(y)*(sqrt(2*pi))^dimension), and its normalized phase measure is exactly the canonical tilted position law times standard Gaussian momentum. This includes dimension zero. Integrability, positive mass and the exact density identification are proved internally, without a supplied minimizer, critical point or normalizer.
+
+Five canonical shared producers supply strong convexity, Gibbs integrability, the Gaussian integral/density and normalized Gibbs probability. Seven adjacent formula/Lean steps explain the source-implicit normalization. Independent mathematics, original sealed-header kernel validation, fresh blind decoding, primary-first source/exposition and exact-commit reviews passed. All15 local contributor/publication/semantic/frontier/graph/site gates passed, including `lake build Tests`, `tools/astis.py check`, Python compilation and `git diff --check`. Reviewed science commit: `{note['science_commit']}`. Original evidence is losslessly recoverable.
+
+The prior unnormalized weighted-sector result and this analytic normalization are independent parents of future normalized averaging. Countable sector assembly, process invariance, Markov properties, hypocoercivity, simulation errors, expected oracle costs and actual-input composition remain open. The four-paper Goal remains incomplete (0/4 full papers). Generated-reader content and static affected-branch inspection passed; actual browser acceptance, main merge and postmerge purification remain pending. The sole stabilization lane and collaborator changes are preserved.
+'''
+(out / 'pr-body103.md').write_text(text, encoding='utf8', newline='\n')

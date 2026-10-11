@@ -3,6 +3,7 @@ import datetime,hashlib,json,os,subprocess,sys
 R=Path('E:/Samplinglib');r=Path(__file__).parent
 base='57ffbfed9ecde5d49c9dae4f9d2cb5aa593f26fe'
 checks={
+ 'publication-main':['tools/astis_publication.py','check','--base','origin/main'],
  'publication':['tools/astis_publication.py','check','--base',base],
  'contributor':['tools/astis_contributor_contract.py','check','--base',base],
  'semantic':['tools/astis_semantic_roundtrip.py','check'],

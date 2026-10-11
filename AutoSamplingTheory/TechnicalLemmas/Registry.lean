@@ -57,6 +57,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurv
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -101,6 +102,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualOrderedPrefix"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law"
+    upstreamDecl := "Actual PBPS strict ordered-prefix complete-history law"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A1 A2 A7 finite iteration ingredient and Appendix A2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "ordered-simplex", "finite-history", "density"]
+    saldUse := "Actual PBPS finite path-law substrate; no SALD claim"
+    note := "Independent science a4599f28131fcf91d6b0754003facbc46e23ad2e. With the six original analytic hypotheses, canonical iid Exp(1) product P and literal stopped recursion, every finite n and T>=0 has a strict ordered-prefix complete-history law. Delta_n(T) is the open ordered time simplex with actual subtype comap of product Lebesgue measure. K gives all n+1 live time/state records; q is the product of n pre-bounce rates and elapsed segment survivals. Derive joint Borel K/q, actual history/observer/guard measurability, nonnegative real product, pointwise full-history reconstruction, H_*(P restricted to B)=K_*(q m), all nonnegative extended Borel test identities and integral q=P(B)<=1. Covers n0/T0/rank0/stopped/top/zero-input boundaries without new density or integrability providers. No terminal survival: not an exactly-n count law or full A7. Terminal survival/path/count assembly, restart/Markovness, invariance/hypocoercivity/errors/unbounded costs/main/composition/four-paper Goal remain OPEN."
+  },
   {
     key := "pbps.actualAbsoluteNextEventTime"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime.actual_absolute_next_event_time_law"

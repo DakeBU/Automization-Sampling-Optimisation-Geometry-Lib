@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual ordered finite-prefix92 (2026-10-11)
+
+Independent science a4599f28131fcf91d6b0754003facbc46e23ad2e. With the six original analytic hypotheses, canonical iid Exp(1) product P and literal stopped recursion, every finite n and T>=0 has a strict ordered-prefix complete-history law. Delta_n(T) is the open ordered time simplex with actual subtype comap of product Lebesgue measure. K gives all n+1 live time/state records; q is the product of n pre-bounce rates and elapsed segment survivals. Derive joint Borel K/q, actual history/observer/guard measurability, nonnegative real product, pointwise full-history reconstruction, H_*(P restricted to B)=K_*(q m), all nonnegative extended Borel test identities and integral q=P(B)<=1. Covers n0/T0/rank0/stopped/top/zero-input boundaries without new density or integrability providers. No terminal survival: not an exactly-n count law or full A7. Terminal survival/path/count assembly, restart/Markovness, invariance/hypocoercivity/errors/unbounded costs/main/composition/four-paper Goal remain OPEN.
+
+Ten exact source-reviewed formula/Lean regions. Aggregate/rendered delivery/main merge/purification remain separate.
+
+
 ## Actual next absolute-event-time91 (2026-10-11)
 
 Independent science d62f7b2c89e749953a36d8922124865a4651e55e. Under the six original analytic assumptions, actual U reads the next stopped/live record. For each deterministic depth and every Borel finite-valued history horizon b, derive Borel observers/absolute append, all-prefix preservation, strict event equality Brel=B, actual guarded U=a+wait and complete-history append. The actual old-history/U law restricted to B has density D(h,u)=1_(a(h)<u<b(h))*rho(h_last,u-a(h)) against mu_n product real Lebesgue. Every-history density integral and total mass are at most1. Derive next-history joint/marginal transport and all joint ENNReal tests on all old-history events, including null events, without normalization or integrability premises. Direct parents90,89 and canonical exponential-product probability. Fiberwise translation plus Tonelli implements the needed weighted law; no separate broad unweighted shear theorem is claimed. Ordered iteration, final survival/path/count/fullA7, restart/Markov/invariance/hypocoercivity/errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN.

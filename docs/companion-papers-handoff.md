@@ -1,5 +1,62 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS ordered finite-prefix law (2026-10-11)
+
+Independent science a4599f28131fcf91d6b0754003facbc46e23ad2e. The six original analytic assumptions and
+literal stopped exponential-clock recursion are unchanged. For every finite n
+and T>=0, let Delta_n(T)={0<s1<...<sn<T}, with subtype comap m_n of product
+Lebesgue measure. K_n(s) stores all n+1 live time/state records, initialized at
+(0,z0), with each next state S Phi_(s_i-s_(i-1)) z_(i-1). Let
+
+q_n(s)=product_i lambda(Phi_gap z_(i-1)) exp(-Lambda_(z_(i-1))(gap)).
+
+A_n requires all-live, strictly increasing stored times and postinitial times
+below T; it does not itself constrain record0. The actual H_n starts at(0,z0),
+and B_n=H_n^-1(A_n). Derive Borel simplex/guard, joint parameter measurability
+of K_n and q_n, actual H_n and time observers, and nonnegativity of qReal_n.
+Every raw input in B_n reconstructs its entire history pointwise from observed
+times. The actual unnormalized history law and all Borel ENNReal tests satisfy
+
+H_n*(P restricted to B_n)=K_n*(q_n m_n),
+integral_B_n F(H_n)dP=integral_Delta_n F(K_n(s))q_n(s)dm_n,
+integral_Delta_n q_n dm_n=P(B_n)<=1.
+
+The actual absolute-time one-step law91 supplies the recurrence. Exact event
+splitting, state/history append, product factorization, Lebesgue insertion,
+subtype Tonelli and the n=0 base close finite induction. No density, independence,
+normalization, positive event probability or integrability premise was added.
+n=0,T=0,rank0,stopped/infinite waits and raw zero clocks remain explicit.
+
+Independent whole mathematics/kernel, blind decoding, primary-first source and
+ten formula/Lean proof-region reviews and exact-commit verification passed.
+Two implementation-only naming/visibility corrections were independently
+reviewed; the full sealed public proposition never changed. Direct public
+parents are actual91, harmonic flow, bounce rate, integrated hazard and the
+canonical exponential-product probability normalization.
+
+This closes the strict first-n prefix law, not an exactly-n count law: there is
+no terminal survival factor. Terminal survival, endpoint/count/path identity,
+hazard stitching and full A7 remain OPEN, as do restart/Markovness, invariance,
+hypocoercivity, implementation errors, expected costs, main results and original
+actual-input composition. Existing nonaccumulation78, interval coverage79 and
+physical-time measurability80 remain verified. Four-paper Goal remains active.
+
+Aggregate publication/site gates use the existing sole stabilization lane.
+Rendered page/fine-branch acceptance, main merge, postmerge purification and
+live deployment remain distinct. Continue the fixed four-paper priorities and
+Chapter1.3 reader contract in execution metadata.
+
+Next primary-first recommendation (not claimed or proved): combine terminal
+survival, finite count and complete-path identification. Reuse88/79/80/92;
+prove the weighted history adapter, fixed-T no-event-time atom, measurable
+count and finite path interpolation inside the next unit. Keep forall T a.e.
+distinct from a.e. forall T, and disclose the coordinate-generated path sigma
+algebra; Skorokhod compatibility is a separate dependency if the source needs
+it. Hazard stitching and infinite A7 assembly remain outside this candidate.
+Evidence: runs/20261007-companion-priority/pbps-actual-ordered-prefix92/
+next-boundary-preread93/recommendation93.v2.native.json.
+
+
 ## Actual PBPS next absolute-event-time law (2026-10-11)
 
 Independent science d62f7b2c89e749953a36d8922124865a4651e55e. Keep the six original analytic hypotheses and

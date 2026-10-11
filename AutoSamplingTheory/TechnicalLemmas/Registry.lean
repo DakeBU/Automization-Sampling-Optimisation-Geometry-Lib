@@ -62,6 +62,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -106,6 +107,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPhaseReversalVolume"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws"
+    upstreamDecl := "Actual PBPS phase product-volume and reversal laws"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 flow A5 A6 and elementary A8 mechanics"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "volume", "reflection", "reversal", "integrability"]
+    saldUse := "Actual PBPS phase-volume changes of variables; no SALD claim"
+    note := "Independent science 2f2e2c01856c902b07406db87026c50639454d71. Under the original six analytic assumptions, the literal harmonic flow, state-dependent bounce and momentum reversal preserve canonical phase product volume. Joint Borel maps, both flow inverses, bounce/reversal involutions, R Phi_u R=Phi_-u, R S=S R, rate(R S z)=rate(z), and the real integrable-test A6 identity are proved. Covers rank0, zero normals and all real times without an unscaled isometry claim. Volume and regularity are derived, not provider assumptions. Finite prescribed endpoint/time reversal, stationary averaging, invariance, Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open."
+  },
   {
     key := "pbps.actualBoundedPathExpansion"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion.actual_bounded_path_functional_expansion"

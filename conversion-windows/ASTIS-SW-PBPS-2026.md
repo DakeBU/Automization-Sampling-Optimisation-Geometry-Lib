@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual phase-volume and reversal96 (2026-10-12)
+
+Independent science 2f2e2c01856c902b07406db87026c50639454d71. Under the original six analytic assumptions, the literal harmonic flow, state-dependent bounce and momentum reversal preserve canonical phase product volume. Joint Borel maps, both flow inverses, bounce/reversal involutions, R Phi_u R=Phi_-u, R S=S R, rate(R S z)=rate(z), and the real integrable-test A6 identity are proved. Covers rank0, zero normals and all real times without an unscaled isometry claim. Volume and regularity are derived, not provider assumptions. Finite prescribed endpoint/time reversal, stationary averaging, invariance, Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open.
+
+Seven independently source-reviewed formula/Lean regions. Aggregate and visual checks, main merge and purification retain separate evidence.
+
+
 ## Actual bounded path expansion95 (2026-10-11)
 
 Independent science 5df604f6c9ddab63e552272b2e9056752616621e. Under the six original analytic assumptions, the literal stopped-clock process satisfies the full A7 expectation expansion for every bounded real functional measurable for the coordinate-product path sigma algebra. Every weighted finite-simplex term is integrable and the signed component integrals are absolutely summable. Actual finite-count joint laws and the whole-path density identity are consumed internally. Covers n=0,T=0,rank0,zero rates and infinite waits. ASTIS uses countable probability-partition integration as an alternative to the printed rate-cap/factorial proof. No Skorokhod assertion, unbounded-test/cost transfer, restart/Markovness, invariance, hypocoercivity, implementation error, main result or actual-input composition completion.

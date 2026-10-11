@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS phase-volume preservation and reversal (2026-10-12)
+
+Independent science 2f2e2c01856c902b07406db87026c50639454d71. The original six analytic hypotheses and eight
+literal definitions are unchanged. The actual harmonic flow Phi, state-dependent
+bounce S and momentum reversal R preserve ell=volume_E tensor volume_E:
+
+(Phi_u)_#ell = (S_r)_#ell = R_#ell = ell,
+R Phi_u R = Phi_(-u), R S_r = S_r R, lambda_r(R S_r z)=lambda_r(z).
+
+Joint Borel maps, both flow inverses and both involutions are proved/reused from
+actual parents. For every real ell-integrable F, F composed with S_r is integrable
+and its integral equals that of F (A6). Covers all real u, zero normals and rank0.
+The harmonic volume proof factors into translations and shears, with cos(u)=-1
+handled by simultaneous negation. No unscaled phase-norm isometry is asserted.
+
+Independent whole mathematics/kernel, anonymous decoding, primary-first source,
+seven formula/Lean proof explanations and exact science-commit verification passed.
+The next genuine source dependency is finite prescribed endpoint/time reversal
+in A8, followed by weighted A7 averaging and Gibbs density balance. At internal
+jumps, reversal must respect left limits/off-finite-event time equivalence, not
+naive equality of right-continuous path values. Restart/Markovness is separate.
+
+Aggregate publication/graph/site gates use the original sole stabilization lane.
+Actual paper-page/fine-branch visual acceptance, main merge and postmerge
+purification remain separate. No stationary invariant law, hypocoercivity,
+implementation error, expected cost, main theorem or actual-input composition
+is claimed. Four full papers remain open; the existing unbudgeted Goal is active.
+
+
 ## Actual PBPS bounded path functional expansion (2026-10-11)
 
 Independent science 5df604f6c9ddab63e552272b2e9056752616621e. Under the original six analytic assumptions,

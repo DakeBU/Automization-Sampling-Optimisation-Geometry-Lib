@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "reviewer": "/root/independent_math91",
+  "utc": "2026-10-11T07:19:53.544452+00:00",
+  "decision": "ACCEPT_GENERIC_PRIVATE_ALL_TESTS_TO_LAW_AND_MASS_CONVERSION",
+  "checked_HEAD": "57ffbfed9ecde5d49c9dae4f9d2cb5aa593f26fe",
+  "inputs": [
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-ordered-prefix92/MeasureClosure92.lean",
+      "raw_sha256": "0aeb5f6e6ac9b04b0deb724755f2bd241047634b86dc60fadba3f12fecd9b19d",
+      "bytes": 1381
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-ordered-prefix92/focused/closure2-explicit-integrand/receipt.json",
+      "raw_sha256": "90771e10b7f0bf590a659be072dfde4bdf51b5a0fbf1b8ba014123ab4d209cc4",
+      "bytes": 582
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-ordered-prefix92/root.statement-seal92.json",
+      "raw_sha256": "3e7214b5bb38bae92efc0b1621bd5cf93eef6ba9853143af8fb1f5ade1e7a5e7",
+      "bytes": 31217
+    },
+    {
+      "path": "E:/Samplinglib/.lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Restrict.lean",
+      "raw_sha256": "f6a9b2bfa13f5ca18d00b25138a3dff66fa19d773d4a86d5e358e1a21a4f5bbd",
+      "bytes": 57832
+    },
+    {
+      "path": "E:/Samplinglib/lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "bytes": 3234
+    },
+    {
+      "path": "E:/Samplinglib/lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "bytes": 26
+    },
+    {
+      "path": "E:/Samplinglib/.astis/toolchain/lean-4.33.0-windows/bin/lake.exe",
+      "raw_sha256": "a1aebb13fc502ae9190745c6b3bd2101d0fec39f030cfc07b1993799c2374644",
+      "bytes": 87552
+    },
+    {
+      "path": "E:/Samplinglib/.astis/toolchain/lean-4.33.0-windows/bin/lean.exe",
+      "raw_sha256": "dd86e9b24990b1da425ea4af910f016e4db8f9a25c9ddad27bc6bee3690e677f",
+      "bytes": 83456
+    }
+  ],
+  "source": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-ordered-prefix92/MeasureClosure92.lean",
+    "raw_sha256": "0aeb5f6e6ac9b04b0deb724755f2bd241047634b86dc60fadba3f12fecd9b19d",
+    "bytes": 1381
+  },
+  "scope": "Frozen private law_and_mass_of_all_tests only. It consumes an already-proved all-test identity. It does not prove the actual all-n history density law and is not a new source-backed SAU or VERIFIED result. Active Induction92 was not read or modified.",
+  "expanded_interface": {
+    "spaces": "Arbitrary measurable Omega,X,H",
+    "measures": "P probability on Omega; arbitrary m onX",
+    "maps": "Measurable history:Omega->H, K:X->H, q:X->ENNReal",
+    "event": "Arbitrary B subsetOmega",
+    "premise": "For every measurable ENNReal F onH, integral_B F(history) dP equals integral F(K)*q dm",
+    "conclusions": [
+      "map history (P.restrict B) = map K (m.withDensity q)",
+      "integral q dm = P(B)",
+      "P(B)<=1"
+    ]
+  },
+  "proof_audit": [
+    {
+      "step": "measure extensionality",
+      "finding": "Measure.ext_of_lintegral reduces equality of the two history measures to equality against every measurable ENNReal test F. This does not require either resulting measure to be a probability measure or a supplied density certificate."
+    },
+    {
+      "step": "pushforward integrals",
+      "finding": "lintegral_map is applied with measurable F and each proved/measurable map, respectively history under P.restrict B and K under m.withDensity q. Both domains and restrictions remain exactly those of the private interface."
+    },
+    {
+      "step": "weighted measure",
+      "finding": "lintegral_withDensity_eq_lintegral_mul uses hq and the explicitly typed measurable integrand t->F(K(t)), obtained by hF.comp hK. The formula has density-first multiplication; a pointwise mul_comm integral equality aligns it with the premise F(K(t))*q(t). Infinite values obey ENNReal conventions and no integrability is introduced."
+    },
+    {
+      "step": "mass",
+      "finding": "Specializes htest to constant1, reverses the resulting equality, and simplifies one_mul and lintegral_const. (P.restrict B)(univ)=P(univ intersectB)=P(B) by restrict_apply at measurable univ. The equality is derived from the test law, not assumed as normalization."
+    },
+    {
+      "step": "bound",
+      "finding": "prob_le_one supplies P(B)<=1 solely from IsProbabilityMeasure P. No positive probability of B or normalization of P.restrict B is required."
+    }
+  ],
+  "edge_case_audit": [
+    "B may be null or empty, and test/density values may be infinity. The proof uses nonnegative integrals only, so no boundedness, signed integrability or finite-value premise is hidden.",
+    "The generic theorem does not require MeasurableSet B: restrict_apply here needs measurability of its evaluated set univ, not of B. The actual application separately produces measurability of its prefix event.",
+    "m need not be probability or sigma-finite. No such instance is inferred or inserted in the elaborated type.",
+    "Measurable q and K suffice for the withDensity integrand transformation. No assertion that q itself is normalized is used before taking F1.",
+    "No parameter n or horizon enters this generic interface. Coverage of n0/T0 or other actual-process boundaries depends on the all-test identity supplied by the concrete proof, not this conversion alone."
+  ],
+  "public_binder_boundary": "Every generic parameter/premise is an internal interface ingredient. The main theorem must instantiate P,m,B,history,K,q with its sealed literal objects, produce their measurability and canonical probability normalization, and provide htest from the actual induction. In particular htest is not permitted to become a new public premise or be counted as the density-law proof.",
+  "kernel": {
+    "receipt": {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-ordered-prefix92/independent-measure-closure-fragment92/kernel.receipt.json",
+      "raw_sha256": "b6f8d0ca0d889bfe308646184ecd4d53952de58d6910b8075f91b0082aaea65d",
+      "bytes": 1777
+    },
+    "exit_code": 0,
+    "duration_seconds": 9.640999999945052,
+    "full_generic_type_inspected": true,
+    "axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "no_placeholder_closure": true
+  },
+  "findings_requiring_changes": [],
+  "remaining_open": "Actual all-n ENNReal test integral law and concrete instantiation/assembly into the sealed public theorem, followed by whole-result independent/source/publication review. No full mathematical completion follows from this private conversion.",
+  "canonical_or_production_mutation": false
+}

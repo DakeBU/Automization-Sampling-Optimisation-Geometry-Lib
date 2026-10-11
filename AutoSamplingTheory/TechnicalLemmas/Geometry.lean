@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates

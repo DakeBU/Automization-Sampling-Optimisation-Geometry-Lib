@@ -1,0 +1,235 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-finite-count-path",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS terminally survived finite-count complete-path law",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 (A.1),(A.2),(A.7), half-open arcs and prescribed-path paragraph; Appendix A.2 measurable realization. Source-implicit finite-count path ingredient with explicit ASTIS completions.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability\nimport Mathlib.Data.Set.Card\n\nnamespace Candidate93\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate_finite_count_path_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ n : ℕ, ∀ T : ℝ≥0,\n        Measurable (fun p : ((E × E) × (E × E)) × Hist n =>\n          Ψ p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧\n        Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n          Γ p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧\n        Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n          ρ p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E,\n          let H := history y xRef z₀ n\n          let ZT : (ℕ → ℝ) → Path T := fun w s => Z y xRef z₀ s.val w\n          Measurable H ∧ Measurable ZT ∧ Measurable (N y xRef z₀ T) ∧\n          MeasurableSet (C y xRef z₀ n T) ∧\n          (∀ t : Prefix n T, ∀ s : {s : ℝ≥0 // s ≤ T}, ∀ j : Fin (n + 1),\n            (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j ≤ (s.val : ℝ) →\n            (∀ k : Fin (n + 1), j < k → (s.val : ℝ) < (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) k) →\n            Γ y xRef z₀ n T t s =\n              Φ y xRef ((s.val : ℝ) - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j) (zAt y xRef z₀ n T t j)) ∧\n          (∀ w ∈ C y xRef z₀ n T, Ψ y xRef z₀ n T (H w) = ZT w) ∧\n          (∀ᵐ w ∂P, (∀ j : ℕ, 0 < j → eventTime y xRef z₀ w j ≠ (T : WithTop ℝ≥0)) ∧\n            (∀ k : ℕ, N y xRef z₀ T w = k ↔ w ∈ C y xRef z₀ k T) ∧\n            {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j < (T : WithTop ℝ≥0)}.Finite ∧\n            {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j ≤ (T : WithTop ℝ≥0)}.Finite ∧\n            N y xRef z₀ T w = {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j < (T : WithTop ℝ≥0)}.ncard ∧\n            N y xRef z₀ T w = {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j ≤ (T : WithTop ℝ≥0)}.ncard) ∧\n          (Pairwise fun i j : ℕ => Disjoint (C y xRef z₀ i T) (C y xRef z₀ j T)) ∧\n          P (⋃ k : ℕ, C y xRef z₀ k T) = 1 ∧\n          Measure.map (fun w => (H w, ZT w)) (P.restrict {w | N y xRef z₀ T w = n}) =\n            Measure.map (fun t => (K y xRef z₀ n T t, Γ y xRef z₀ n T t))\n              ((m n T).withDensity (ρ y xRef z₀ n T)) ∧\n          (∀ F : Hist n × Path T → ℝ≥0∞, Measurable F →\n            (∫⁻ w in {w | N y xRef z₀ T w = n}, F (H w, ZT w) ∂P) =\n              ∫⁻ t : Prefix n T, F (K y xRef z₀ n T t, Γ y xRef z₀ n T t) *\n                ρ y xRef z₀ n T t ∂m n T) ∧\n          (∫⁻ t : Prefix n T, ρ y xRef z₀ n T t ∂m n T) = P {w | N y xRef z₀ T w = n} ∧\n          P {w | N y xRef z₀ T w = n} ≤ 1))\n\n#check candidate_finite_count_path_statement\nend\nend Candidate93\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival.actual_conditional_next_wait_survival",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.2.2.2.1"
+  ],
+  "consumers": [
+    "PBPS A1.E7 after hazard stitching and countable path-law assembly (planned, unproved)"
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "The whole sealed production proposition compiles; independent whole mathematics, anonymous decoder, primary-first source/exposition and publication admission remain pending."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261011-PBPSActualFiniteCountPath",
+    "statement_seal": "runs/20261007-companion-priority/pbps-actual-finite-count-path93/root.statement-seal93.json",
+    "focused_checks": [
+      "runs/20261007-companion-priority/pbps-actual-finite-count-path93/focused93/production1-sealed-law/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteCountPath.lean"
+    ],
+    "truth_boundary": "Exactly six source analytic hypotheses. Literal actual stopped recurrence and canonical iid Exp(1) product; all finite n and NNReal T including zero. One jointly measurable actual phase Z with pointwise covered-arc and explicit uncovered fallback semantics; fixed-T coordinate-product path carrier. Total count is Nat.find of the half-open interval index, with zero fallback. Total history interpolation is an increasing-index Fin.foldl; its measurability and path identification are conclusions. Density is the ordered-prefix q times terminal survival, with unnormalized joint history/path pushforward, all ENNReal tests and exact count-event mass. Fixed-T endpoint nullity and simultaneous all-count/cardinality interpretation are AE, not a common no-jump event over all T. Raw C events are disjoint and their union has full measure. No law, positivity, independence, nonexplosion, measurable witness or integrability provider is a public premise. Hazard stitching, pre-jump left limits, infinite full A7 assembly/absolute convergence, Skorokhod compatibility, restart/Markovness, invariance, hypocoercivity, implementation errors, expected costs, main results, actual-input composition and full papers remain OPEN.",
+    "implementation_diagnosis": "runs/20261007-companion-priority/pbps-actual-finite-count-path93/implementation-route-diagnosis93.json",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteCountPath.lean",
+      "raw_sha256": "4926508e4b11b3d4823056e1068f601d4a95b6a5e1ec495b7902cc3c4a1d2943",
+      "bytes": 131773
+    }
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/compatible-upstream-inventory.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/fixed-lean-fold.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/frontier.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/mathlib.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/samplinglib.txt",
+      "Libraries/shared-foundations.yml",
+      "Libraries/frontloaded-shared-spine.json"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+    "canonical_shared_cell": "",
+    "reason": "Join existing actual PBPS parents with pinned measurable selection/product-measure APIs; no duplicate process construction."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/compatible-upstream-inventory.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/fixed-lean-fold.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/frontier.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/mathlib.txt",
+      "runs/20261007-companion-priority/pbps-finite-count-path-preread93/retrieval93/samplinglib.txt"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival.actual_conditional_next_wait_survival",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.2.2.2.1"
+    ],
+    "planned_dependencies": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival.actual_conditional_next_wait_survival",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS A1.E7 whole-path formula"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Terminal survival, count and path adapters are missing genuine joins; no new public premise."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-actual-finite-count-path93/root.statement-seal93.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+    "binder_audit": [
+      "hα,hαβ,hV,hH,hη,hβη are the six source assumptions.",
+      "Finite-dimensional real Hilbert/Borel structure includes the disclosed rank-zero extension.",
+      "Measurable F specifies the admissible nonnegative extended test class.",
+      "All process, count, density, endpoint, path and measurability obligations are conclusions or internal dependencies."
+    ],
+    "definition_kind": "36 literal lets: 34 outer objects plus local H and ZT. Existential Z retains proved covered/fallback characterization; no extra provider."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-proof-graph93.v2.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-coverage93.v2.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/topology-crosscheck93.native.json",
+    "coverage_status": "Independently reviewed pre-proof coverage only; no proof coverage credit."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 (A.1),(A.2),(A.7), half-open arcs and prescribed-path paragraph; Appendix A.2 measurable realization. Source-implicit finite-count path ingredient with explicit ASTIS completions.",
+    "fidelity_boundary": "Exactly six source analytic hypotheses. Literal actual stopped recurrence and canonical iid Exp(1) product; all finite n and NNReal T including zero. One jointly measurable actual phase Z with pointwise covered-arc and explicit uncovered fallback semantics; fixed-T coordinate-product path carrier. Total count is Nat.find of the half-open interval index, with zero fallback. Total history interpolation is an increasing-index Fin.foldl; its measurability and path identification are conclusions. Density is the ordered-prefix q times terminal survival, with unnormalized joint history/path pushforward, all ENNReal tests and exact count-event mass. Fixed-T endpoint nullity and simultaneous all-count/cardinality interpretation are AE, not a common no-jump event over all T. Raw C events are disjoint and their union has full measure. No law, positivity, independence, nonexplosion, measurable witness or integrability provider is a public premise. Hazard stitching, pre-jump left limits, infinite full A7 assembly/absolute convergence, Skorokhod compatibility, restart/Markovness, invariance, hypocoercivity, implementation errors, expected costs, main results, actual-input composition and full papers remain OPEN.",
+    "detail_status": "omitted",
+    "gap": "Source-implicit terminal weighting, fixed-horizon endpoint/count and measurable whole-path adapters.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and fixed Lean/Mathlib",
+        "anchor": "A1.E1; A1.E2; A1.E7; A1.SS2",
+        "hypothesis_adapter": "Six binders unchanged; explicit coordinate-path carrier and rank-zero/ENNReal extensions."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival.actual_conditional_next_wait_survival",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.2.2.2.1"
+    ],
+    "bookkeeping": [
+      "Total history interpolation and measurable count representation."
+    ],
+    "new_reusable": [],
+    "new_topology": "Derive the terminally survived finite-count complete-history and whole coordinate-measurable path law from the actual iid exponential-clock recursion, including fixed-horizon endpoint nullity, measurable count, total history interpolation and all nonnegative extended joint tests."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Proof not implemented.",
+    "duplicate_semantics_audit": "Bounded retrieval found no actual terminally survived whole-path law.",
+    "canonicalization": "Reuse existing actual phase and probability leaves.",
+    "compressed_spine_delta": "Derive the terminally survived finite-count complete-history and whole coordinate-measurable path law from the actual iid exponential-clock recursion, including fixed-horizon endpoint nullity, measurable count, total history interpolation and all nonnegative extended joint tests.",
+    "reader_default_view": "Full attributed statement/formula proof with adjacent initially folded exact Lean.",
+    "scope": "Exactly six source analytic hypotheses. Literal actual stopped recurrence and canonical iid Exp(1) product; all finite n and NNReal T including zero. One jointly measurable actual phase Z with pointwise covered-arc and explicit uncovered fallback semantics; fixed-T coordinate-product path carrier. Total count is Nat.find of the half-open interval index, with zero fallback. Total history interpolation is an increasing-index Fin.foldl; its measurability and path identification are conclusions. Density is the ordered-prefix q times terminal survival, with unnormalized joint history/path pushforward, all ENNReal tests and exact count-event mass. Fixed-T endpoint nullity and simultaneous all-count/cardinality interpretation are AE, not a common no-jump event over all T. Raw C events are disjoint and their union has full measure. No law, positivity, independence, nonexplosion, measurable witness or integrability provider is a public premise. Hazard stitching, pre-jump left limits, infinite full A7 assembly/absolute convergence, Skorokhod compatibility, restart/Markovness, invariance, hypocoercivity, implementation errors, expected costs, main results, actual-input composition and full papers remain OPEN."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Only pre-proof declaration elaboration corrections; no proof fragments discarded.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-count-path/terminal-weight/total-history-interpolation"
+      ],
+      "expected_information_gain": "One writer; independent mathematical and source uncertainties reviewed separately.",
+      "shared_verified_context_digest": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "One implementation route; source OR branches retained without proof credit."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "A1.E1",
+        "A1.E2",
+        "A1.E7"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+    ],
+    "visual_review": "Pending proof/publication; reuse existing paper route."
+  }
+}

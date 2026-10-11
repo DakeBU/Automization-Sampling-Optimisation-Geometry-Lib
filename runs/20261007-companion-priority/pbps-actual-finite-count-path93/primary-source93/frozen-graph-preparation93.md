@@ -1,0 +1,15 @@
+# Post-inventory frozen-graph comparison
+
+Written only after source-only-inventory93.md (SHA256 5a370edb3905d0af79b52a95ad4f064ad776302f8364daad4f602b482a7d8017).
+
+Frozen candidate graph v2: 21b72b610f1abdaa5b54e04e00f40289f0437f26746b81fa3833f3b2e1bd6922; 35 nodes, 94 edges. Frozen coverage v2: dcf8fba06f926ff9149920a997c95446b7693adaccabec3a388e4516a56147e6; 55 explicit dispositions. All nodes, consumer-use edge summaries, and 55 disposition reasons inspected. No canonical file altered.
+
+The graph covers the independently recovered finite-count mechanism. PREFIX93 supplies the completed-arrival density, SURV88/DUR93/LOCAL93 add survival to the horizon, DENS93 gives the complete-history density, HISTPATH93/PATHM93/IDENT93/TEST93 transport whole-path tests, and END93/SELECT93/COUNT93 relate the strict simplex to actual counts. ZERO93 preserves the zero horizon/empty history edge. Pointwise interpolation on the measurable C_n avoids both an uncountable intersection of separate almost-everywhere identities and an unjustified measurable diagonal claim for an uncountable product carrier.
+
+The source did not itself print the coordinate-generated path carrier, total arbitrary-history interpolation, measurable count selector, conditional endpoint-null argument, or finite-count history/path ENNReal identity. Graph labels these as explicit ASTIS completions. Finite Hilbert space including rank zero and ENNReal tests are disclosed extensions. Prescribed-path totalization outside legal histories must be distinguished from the source dynamics; the actual-path initial-phase fallback differs from A.2's zero terminal-limit fallback only as an explicit almost-everywhere version choice.
+
+The graph correctly leaves HAZARD93/LEFT93/TERM93 future: density as product of arc hazards plus terminal survival has not thereby been identified with the printed whole-path integral and left-limit factors. A7 additionally needs count assembly plus one integrability/convergence route. CAP93 (printed cap/simplex-volume route) and MASS93 (alternative probability/Tonelli route) are OR alternatives, not a false AND. SKOR93 changes the path carrier and cannot replace coordinate measurability without a compatibility theorem. Reversal, invariance, Markov uniqueness, half-turn averaging, and operator theorems remain excluded downstream results.
+
+One source-only inventory sentence says n+1 clocks are needed for the finite-count event. This is a finite-coordinate dependence observation; it does not prohibit canonical infinite-product clock realization. The law at fixed n depends only on its first n+1 coordinates, and later coordinates are integrated out. The frozen graph's INPUT93 is consistent with this.
+
+No missing bounded source region or wrong graph direction was found in this preparation pass. This is preparatory topology comparison only. Final source acceptance remains unavailable until a fresh canonical anti-anchored reviewer packet, completed source-blind reconstruction, exact whole module, and publication/lesson binding are inspected. Existing parent proofs are reused as bounded interfaces, not re-audited.

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-29f3f5e5f81c6d8a",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let rate : E → E × E → ℝ := fun r z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V r))\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    ∀ y r : E, ∀ z : E × E, ∀ n : ℕ, ∀ T : ℝ≥0, ∀ t : Prefix n T,\n      let gamma : ℝ → E × E := fun s =>\n        Γ y r z n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩\n      let A : E × E := Γ y r z n T t ⟨T, le_rfl⟩\n      let Iplus : ℝ := ∫ s in (0 : ℝ)..(T : ℝ), rate r (gamma s)\n      let Iminus : ℝ := ∫ s in (0 : ℝ)..(T : ℝ), rate r (R (gamma s))\n      IntervalIntegrable (fun s => rate r (gamma s)) volume 0 (T : ℝ) ∧\n      IntervalIntegrable (fun s => rate r (R (gamma s))) volume 0 (T : ℝ) ∧\n      U y A - U y z = Iplus - Iminus ∧\n      Real.exp (-U y z) * Real.exp (-Iplus) = Real.exp (-U y A) * Real.exp (-Iminus)",
+    "statement_sha256": "29f3f5e5f81c6d8aac470b0c49dfa3003850c7af2913fb8325d18c868843efc0",
+    "compiled": true,
+    "approved_definition_context": [
+      "gradient and fderiv denote real Hilbert gradient and Frechet derivative; the space is finite-dimensional with Borel structure.",
+      "Fin n indexes n coordinates from zero. Fin.cons prepends, Fin.induction is finite recursion, and Fin.foldl visits records in increasing index order.",
+      "Real division by zero equals zero. Real.toNNReal is the nonnegative part. Subtraction in the nonnegative reals is truncated at zero. Sum.inl is the live-record constructor; Unit is the cemetery branch.",
+      "The path domain is the nonnegative closed-interval subtype. Measure.comap uses the exact unnormalized subtype measure. volume on the real line is Lebesgue measure.",
+      "IntervalIntegrable f volume a b states integrability on both oriented interval restrictions; the interval integral uses the standard signed orientation. Real.exp is the real exponential. Unused let definitions do not introduce theorem hypotheses."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "010533e6a67b68e6153cfcef2297c02a0176a092d14fa3316a1ab632f07f4d39"
+}

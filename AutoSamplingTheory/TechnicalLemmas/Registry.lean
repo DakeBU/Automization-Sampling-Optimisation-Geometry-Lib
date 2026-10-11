@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5049,6 +5050,16 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "geometry.affine-restriction-gradient",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.hasGradientAt_affine_restriction",
+    upstreamDecl := "HasFDerivAt.comp; Submodule.inner_orthogonalProjectionOnto_eq_of_mem_right",
+    upstreamFile := "Mathlib.Analysis.Calculus.FDeriv.Comp; Mathlib.Analysis.InnerProductSpace.Projection.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Boumal", "gradient", "affine-subspace", "Hilbert", "orthogonal-projection"],
+    saldUse := "Shared inherited-metric restriction gradient for affine constrained objectives and the first-order embedded-geometry route",
+    note := "Genuine pointwise gradient derived by the chain rule, with explicit completeness. Canonical affine prerequisite only; not the nonlinear Boumal Proposition 3.61 or a smooth gradient-field theorem."
+  },
   {
     key := "geometry.chewi-definition-1-3-26",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity.IsAlphaGeodesicallyConvex",

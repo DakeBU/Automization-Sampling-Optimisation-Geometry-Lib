@@ -280,7 +280,7 @@ class PublicationTest(unittest.TestCase):
             block = text[start:end]
             self.assertEqual(block.count('data-source-comparison='), 1)
             self.assertIn(f'data-source-comparison="{name}"', block)
-            markers = ['Lean statement ·', 'Proof roadmap',
+            markers = ['Mathematical statement', 'Lean statement ·', 'Proof roadmap',
                        'Full assumptions and notation', 'Mathematical proof', 'Lean proof ·',
                        'Source assumptions versus formal assumptions',
                        'proof-reader-provenance', 'Mathlib API called (external library)']
@@ -319,6 +319,19 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(text.count('<summary>Corresponding Lean step</summary>'),
                          len(unit['steps']))
         self.assertNotRegex(text, r'<details\b[^>]*\bopen(?:\s|=|>)')
+
+    def test_chapter_map_is_mathematical_and_keeps_the_affine_boundary(self):
+        import library_shelves
+        text = library_shelves.mathematical_chapter_map('riemannian-optimization', '03')
+        self.assertIn('Mathematical knowledge map', text)
+        self.assertIn('Nonlinear tangent/differential identification', text)
+        self.assertIn('Only the affine Hilbert-space prerequisite', text)
+        self.assertNotIn('Upstream alignment', text)
+        self.assertIn('lean-foundations.html?view=lean&amp;focus=decl%3A', text)
+        self.assertIn('&amp;q=AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.', text)
+        self.assertNotIn('&amp;search=', text)
+        self.assertNotRegex(text, r'<details\b[^>]*\bopen(?:\s|=|>)')
+        self.assertEqual(library_shelves.mathematical_chapter_map('riemannian-optimization', '02'), '')
 
     def test_new_default_harness_schema_requires_publication(self):
         self.assertEqual(advance.ADVANCE_SCHEMA_VERSION, 4)

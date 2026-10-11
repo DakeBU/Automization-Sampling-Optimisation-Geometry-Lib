@@ -216,7 +216,7 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         + base.list_html(unit.get('conventions', []), empty='') + '</details>'
         + f'<h2>{proof_title}</h2>' + steps
         + '<section class="lean-verification"><h2>Lean verification</h2>'
-        '<p>The exact proof begins folded immediately after the mathematical argument.</p>'
+        '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>'
         + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
                                  helpers=proof_helpers,
                                  trim_following_docstring=True)

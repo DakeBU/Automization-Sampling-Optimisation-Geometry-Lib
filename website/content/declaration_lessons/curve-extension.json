@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension.fderiv_eq_on_curve_velocity",
+      "title": "Why the derivative along a feasible curve ignores the extension",
+      "statement": "Let E and V be real normed spaces, s⊆E, and f,g:E→V. At x=c(t₀), suppose f and g are genuinely differentiable, c has actual velocity v, c(t) lies in s for all t sufficiently near t₀, and f=g locally relative to s at x. Then Df(x)[v]=Dg(x)[v].",
+      "formula": "x=c(t_0),\\quad c\\prime(t_0)=v,\\qquad Df(x)[v]=Dg(x)[v].",
+      "assumptions": [
+        "E and V are real normed spaces, possibly infinite-dimensional and incomplete. No chosen Riemannian metric, inner product, Riesz gradient, orthogonal projector or manifold structure is required. This generalizes the finite-dimensional Euclidean source proof ingredient.",
+        "Both ambient maps have genuine pointwise Fréchet derivatives at x. Smoothness of the source extensions implies this condition. fderiv is not used to manufacture a derivative when none exists.",
+        "c:ℝ→E has a genuine derivative v at t₀ and lies locally in s. Source smooth manifold curves satisfy these weaker local requirements.",
+        "The two ambient maps agree on some relative neighborhood of x in s. They need not agree in any open ambient neighborhood. Source neighborhood extensions of the same manifold map supply this equality locally."
+      ],
+      "steps": [
+        {
+          "title": "Pull the agreement back to the curve",
+          "text": "A differentiable curve is continuous. Together with local feasibility, continuity sends sufficiently small parameter neighborhoods into relative neighborhoods of x in s. The two image curves therefore agree near t₀. This is a local argument: neither extension needs to agree off the feasible set.",
+          "formula": "f(c(t))=g(c(t))\\quad\\text{for all }t\\text{ sufficiently near }t_0.",
+          "lean": "  have hcts : Tendsto c (𝓝 t₀) (𝓝[s] (c t₀)) :=\n    tendsto_nhdsWithin_iff.mpr ⟨hc.continuousAt, hcs⟩\n  have hcomp : (f ∘ c) =ᶠ[𝓝 t₀] (g ∘ c) := hfg.comp_tendsto hcts\n",
+          "detail": "HasDerivAt.continuousAt and tendsto_nhdsWithin_iff construct the relative-neighborhood limit. Filter.EventuallyEq.comp_tendsto pulls back local equality."
+        },
+        {
+          "title": "Differentiate each image curve",
+          "text": "Apply the actual chain rule to each genuinely differentiable ambient map and the actual curve derivative. Its velocity is the ambient derivative applied to v. This derives both image derivatives inside the proof.",
+          "formula": "(f\\circ c)\\prime(t_0)=Df(x)[v],\\qquad (g\\circ c)\\prime(t_0)=Dg(x)[v].",
+          "lean": "  have hfc := hf.hasFDerivAt.comp_hasDerivAt t₀ hc\n  have hgc := hg.hasFDerivAt.comp_hasDerivAt t₀ hc\n",
+          "detail": "DifferentiableAt.hasFDerivAt gives a real derivative witness; HasFDerivAt.comp_hasDerivAt is the Fréchet/one-parameter chain rule."
+        },
+        {
+          "title": "Use locality and uniqueness",
+          "text": "Locally equal image curves share their derivative at t₀. Transfer the first derivative witness to the second image curve; uniqueness then equates the two velocities. For every source tangent vector represented by a smooth feasible curve, this gives the extension-choice equality. The remaining manifold tangent adapter must be supplied separately.",
+          "formula": "Df(x)[v]=(f\\circ c)\\prime(t_0)=(g\\circ c)\\prime(t_0)=Dg(x)[v].",
+          "lean": "  exact (hfc.congr_of_eventuallyEq hcomp.symm).unique hgc\n",
+          "detail": "HasDerivAt.congr_of_eventuallyEq transfers the witness. HasDerivAt.unique compares two genuine derivatives of one image curve."
+        }
+      ],
+      "lean_statement": "DifferentiableAt certifies both ambient derivatives; HasDerivAt certifies the actual curve velocity. Eventually in 𝓝 means locally near t₀. EventuallyEq in 𝓝[s] x means equality on a relative neighborhood. E→V are total Lean function types, but only their local germs enter this proof.",
+      "lean_proof": "Pull relative equality back by the continuous feasible curve, apply the two genuine chain rules, then compare derivatives by locality and uniqueness.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "tendsto_nhdsWithin_iff",
+        "HasDerivAt.continuousAt",
+        "Filter.EventuallyEq.comp_tendsto",
+        "DifferentiableAt.hasFDerivAt",
+        "HasFDerivAt.comp_hasDerivAt",
+        "HasDerivAt.congr_of_eventuallyEq",
+        "HasDerivAt.unique"
+      ],
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=52",
+          "label": "Boumal 2023 pre-publication, annotations2026-10-08, §3.4, printed35–36/PDF51–52",
+          "scope": "Attributed authored account of the explicit extension-independence verification following Proposition3.35. The preceding definition-based argument is an alternative sufficient route. No book prose or PDF bundled."
+        }
+      ],
+      "tests": [
+        "lake build Tests.Shared.CurveExtension"
+      ],
+      "boundary": "This proves the actual nonlinear-curve extension-independence edge. It does not identify the full embedded-manifold differential, prove its tangent-space domain/codomain adapter or complete Proposition3.35/3.61."
+    }
+  ]
+}

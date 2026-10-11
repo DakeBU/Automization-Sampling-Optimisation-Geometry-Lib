@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
@@ -4462,6 +4463,16 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "geometry.curve-extension-independence",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension.fderiv_eq_on_curve_velocity",
+    upstreamDecl := "HasFDerivAt.comp_hasDerivAt; HasDerivAt.congr_of_eventuallyEq; HasDerivAt.unique",
+    upstreamFile := "Mathlib.Analysis.Calculus.Deriv.Comp; Mathlib.Analysis.Calculus.Deriv.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Boumal", "extension-independence", "curve", "relative-germ", "Frechet-derivative"],
+    saldUse := "Shared derivative equality on actual nonlinear feasible velocities for embedded first-order geometry",
+    note := "Derives the extension-choice proof edge from genuine pointwise derivatives and relative local agreement. No intrinsic differential or tangent adapter and no full Proposition 3.35/3.61 completion."
+  },
   {
     key := "geometry.affine-restriction-gradient",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.hasGradientAt_affine_restriction",

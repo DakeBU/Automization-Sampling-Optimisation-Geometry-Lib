@@ -1,3 +1,4 @@
+import Tests.Shared.CurveExtension
 import Tests.Shared.AffineGradient
 import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher

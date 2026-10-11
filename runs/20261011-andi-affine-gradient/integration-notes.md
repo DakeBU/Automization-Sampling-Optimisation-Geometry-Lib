@@ -39,3 +39,46 @@ does not mean root CI exercises the test.
 
 The pre-existing `.DS_Store` files and optimisation reuse-audit note are
 preserved and excluded from this contribution.
+
+## Independent review checkpoint
+
+The anonymous decoder `/root/affine_blind_decoder` received only the statement
+and approved definition context. The anti-anchored source/mathematical reviewer
+`/root/affine_source_proof_review` inspected the official source, exact module,
+candidate lesson and blind reconstruction; it independently compiled the tests
+and checked the production/test bytes against `943666064`.
+
+Actual packets and outputs are retained here, with canonical input/output
+hashes and explicit digest boundaries. The review accepts the **affine
+prerequisite only**. Its full-source verdict is `domain-mismatch`, and three
+blocking deltas forbid full Proposition 3.61 equivalence/completion. No repairs
+to Boumal, historical evidence or exact/equivalent verdict were fabricated.
+The reviewer itself appended `VERIFIED` to the SAU ledger. Semantic and
+diff-aware publication gates passed; this does not confer source assimilation.
+
+The source-only topology review also located a concrete application in Boumal
+§2.1, printed4–5: affine-constrained localization. A feasible base point and
+the actual objective consumer remain separate work; no Chewi consumer has
+been invented.
+
+## Actual reader inspection and remaining integration work
+
+Opened generated `libraries/riemannian-optimization/chapter-03.html` in the
+browser. The formula and three mathematical proof steps render legibly;
+statement/proof disclosures begin closed; unfolding reveals the exact theorem
+and scoped-context module link. The source/hypothesis differences are visible.
+
+The shared renderer still puts the exact Lean statement after the proof, while
+the user requires it directly below the mathematical statement. Per-step
+disclosures presently contain correspondence explanations rather than exact
+code slices. The chapter's introductory map is still generic workflow text,
+not a mathematical knowledge map. These are genuine reader delivery gaps,
+reserved for the single stabilization lane; no `PUBLISHED` or `PURIFIED`
+status is claimed. Do not merely set those flags to bypass this inspection.
+
+Root aggregation must import the focused test and shared module before final
+integration. Local focused compilation, independent verification and a green
+metadata gate do not erase that missing CI coverage. The full root gate is
+running against the current root coverage; it must be distinguished from
+integration of this new module. Generated `_site/` files are preview outputs
+and are not committed.

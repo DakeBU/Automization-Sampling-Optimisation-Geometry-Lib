@@ -14,6 +14,8 @@ checks={
  'site-check':['website/scripts/check_site.py'],
  'site-regressions':['-m','unittest',*['tools.tests.'+n for n in ['test_astis_site','test_proof_readers','test_metadata_reader','test_astis_source','test_astis_advance','test_astis_semantic_roundtrip','test_astis_publication','test_astis_process_memory','test_harness_site','test_lean_tutor','test_undergrad_guides','test_chewi_source_first_contract','test_chewi_source_first_refinement','test_samplewiki_reader_contract','test_samplewiki_companions','test_underlying_lean_graph','test_cross_domain_program','test_discrete_sampling','test_mcmc_library','test_project_authors_footer']]],
  'astis':['tools/astis.py','check'],
+ 'canonical':['website/scripts/lean_gate.py'],
+ 'underlying-graph':['website/scripts/underlying_lean_graph.py'],
 }
 label=sys.argv[1];out=r/'checks91'/(sys.argv[2] if len(sys.argv)>2 else label);out.mkdir(parents=True,exist_ok=False)
 env=os.environ.copy();env['PATH']=str(R/'.astis/toolchain/lean-4.33.0-windows/bin')+os.pathsep+env['PATH'];env.pop('ELAN_TOOLCHAIN',None)

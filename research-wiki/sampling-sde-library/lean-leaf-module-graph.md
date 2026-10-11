@@ -174,6 +174,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | Module | Memory key | Local declaration | Upstream or source orientation |
 | --- | --- | --- | --- |
 | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime` | `pbps.actualAbsoluteNextEventTime` | `actual_absolute_next_event_time_law` | arXiv2609.06905v1 Appendix A1 A1 A2 A7 coordinate ingredient and Appendix A2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate` | `pbps.actualBounceRate` | `actual_bounce_rate_energy_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedTestContinuity` | `pbps.actualBoundedTestContinuity` | `actual_bounded_test_expectation_continuity` | arXiv2609.06905v1 AppendixA1 Ex22 and p6.1-p6.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity` | `pbps.actualConditionalNextWaitDensity` | `actual_conditional_next_wait_density` | arXiv2609.06905v1 AppendixA1 A1 A2 A7 strict finite density and AppendixA2 |

@@ -56,6 +56,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -100,6 +101,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualAbsoluteNextEventTime"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime.actual_absolute_next_event_time_law"
+    upstreamDecl := "Actual PBPS next absolute-event-time law"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A1 A2 A7 coordinate ingredient and Appendix A2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "absolute-time", "finite-history", "density"]
+    saldUse := "Actual PBPS ordered event-time iteration substrate; no SALD claim"
+    note := "Independent science d62f7b2c89e749953a36d8922124865a4651e55e. Under the six original analytic assumptions, actual U reads the next stopped/live record. For each deterministic depth and every Borel finite-valued history horizon b, derive Borel observers/absolute append, all-prefix preservation, strict event equality Brel=B, actual guarded U=a+wait and complete-history append. The actual old-history/U law restricted to B has density D(h,u)=1_(a(h)<u<b(h))*rho(h_last,u-a(h)) against mu_n product real Lebesgue. Every-history density integral and total mass are at most1. Derive next-history joint/marginal transport and all joint ENNReal tests on all old-history events, including null events, without normalization or integrability premises. Direct parents90,89 and canonical exponential-product probability. Fiberwise translation plus Tonelli implements the needed weighted law; no separate broad unweighted shear theorem is claimed. Ordered iteration, final survival/path/count/fullA7, restart/Markov/invariance/hypocoercivity/errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN."
+  },
   {
     key := "pbps.actualFiniteHistoryExtension"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension"

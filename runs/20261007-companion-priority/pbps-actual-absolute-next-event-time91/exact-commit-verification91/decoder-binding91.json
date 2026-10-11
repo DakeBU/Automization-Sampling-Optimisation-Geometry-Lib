@@ -1,0 +1,126 @@
+{
+  "native_manifest": {
+    "path": "runs/semantic-roundtrip/anonymous91/decoder-output/raw-manifest.json",
+    "raw_sha256": "11c68218192db678a36c147fd675921620d7b85d3557553ec1acdfb043e473bd",
+    "bytes": 1447
+  },
+  "native_run": {
+    "path": "runs/semantic-roundtrip/anonymous91/decoder-output/run.json",
+    "raw_sha256": "2a35e174d0ae1b44c50a86c5efa0ebeeb9bdaba2e3b3f7968f24f86659a55621",
+    "bytes": 2015
+  },
+  "native_result": {
+    "path": "runs/semantic-roundtrip/anonymous91/decoder-output/reconstruction.json",
+    "raw_sha256": "8ca96b1f7990d59bf7859c4db2325b465f41c123063a78577d407729c53b815d",
+    "bytes": 15047
+  },
+  "canonical_audit_reconstruction": {
+    "text": "Let E be an arbitrary finite-dimensional real inner-product space, equipped with its normed additive group structure and its Borel measurable structure. Dimension zero is allowed. Let V:E→ℝ be twice continuously Fréchet differentiable. Let α,β be nonnegative real numbers and η a real number. Assume α>0, α≤β, η>0, βη≤1, and, for every x,v∈E,\n  α‖v‖² ≤ (D(DV)(x)[v])[v] ≤ β‖v‖².\nHere α and β in real formulas denote their real coercions. There are no other assumptions on V or on the initial/reference points.\n\nFix any y,xRef∈E, initial phase point z₀∈E×E, and n∈ℕ. The functions below also exist before these points and n are fixed. Write a phase point as z=(x,v). Put g(x)=∇V(x)−∇V(xRef) and c=y−η∇V(xRef). For every real t define\n  Φ(t,(x,v))=(c+cos(t)(x−c)+√η sin(t)v,\n              −sin(t)/√η (x−c)+cos(t)v).\nDefine\n  S(x,v)=(x,v−[2⟨v,g(x)⟩/‖g(x)‖²]g(x)),\n  λ(x,v)=√η max(0,⟨v,g(x)⟩).\nAll products with vectors are real scalar multiplication. Division is total with division by zero equal to zero; in particular S(x,v)=(x,v) whenever g(x)=0. The flow Φ is defined on all real times, including negative times. For t∈ℝ≥0 define the real interval Bochner integral\n  Λ(z,t)=∫₀ᵗ λ(Φ(s,z)) ds.\nFor e∈ℝ≥0 define the extended nonnegative waiting time\n  τ(z,e)=inf{t∈ℝ≥0 : Λ(z,t)−e≥0} ∈ [0,∞],\nwhere the infimum of the empty hitting set is ∞, with the hitting search starting at time 0. The target is the closed nonnegative half-line, so equality Λ=e is included. Write τ₀(z,e) for τ(z,e) when finite and for 0 when τ(z,e)=∞. This is the literal untopD 0 default, not a claim that an infinite wait is a zero waiting event.\n\nThe tagged record space is Rec=(ℝ≥0×(E×E)) ⊔ {†}. Denote its two distinct tags by live(a,z) and †. A live record contains cumulative time a≥0 and a phase point z. The singleton tag has no such data. For an input e≥0 define\n  next(e,†)=†;\n  next(e,live(a,z))=† if τ(z,e)=∞;\n  next(e,live(a,z))=live(a+τ₀(z,e), S(Φ(τ₀(z,e),z))) otherwise.\nFor any sequence e:ℕ→ℝ≥0, the finite recursion starts at r₀(e)=live(0,z₀) and sets rₖ₊₁(e)=next(eₖ,rₖ(e)). Once † occurs it persists.\n\nThe underlying sample space is Ω=ℝ^ℕ, with P the canonical countable product of rate-one exponential probability laws on ℝ. For every w∈Ω define εₖ(w)=max(wₖ,0)∈ℝ≥0 and Rₖ(w)=rₖ(ε(w)). These definitions apply to every real sequence, not just to sequences in the almost-sure support of P. Put Hist=Rec^{0,…,n} and HistNext=Rec^{0,…,n+1}. Define H(w)=(R₀(w),…,Rₙ(w)) and Hnext(w)=(R₀(w),…,Rₙ₊₁(w)). In particular H includes the entire finite record tuple through stage n, with its tags. Products and finite function spaces carry the indicated Borel structures. Define readTime(live(a,z))=a as a real number and readTime(†)=0. For any h∈Hist define a(h)=readTime(hₙ), and for any w∈Ω define U(w)=readTime(Rₙ₊₁(w)). Thus U is the cumulative time of a live next record and is zero for a next record tagged †.\n\nFor r∈Rec and q∈ℝ define three observations. The extended wait is\n  W(live(a,z),q)=τ(z,max(q,0)),  W(†,q)=0.\nIts real-valued version T(r,q) is W(r,q) coerced to a real number when finite, and is zero when W(r,q)=∞. In particular T(†,q)=0. The nonnegative extended density observation is\n  ρ(live(a,z),t)=ofReal( λ(Φ(t,z)) exp(−Λ(z,max(t,0))) ),\n  ρ(†,t)=0,\nfor every real t. Here ofReal(r)=max(r,0), embedded into [0,∞]. The stored cumulative time a is ignored by W and ρ. In the formula for ρ, the flow uses the raw real t whereas the integrated rate uses max(t,0). These inputs must not be identified for negative t.\n\nFor h∈Hist and s∈ℝ define appendRel(h,s) to be the tuple h followed by\n  live(q+max(s,0), S(Φ(s,z))) if hₙ=live(q,z),\n  † if hₙ=†.\nThe flow again uses the raw real s, while the appended time uses max(s,0). Define\n  appendAbs(h,u)=appendRel(h,u−a(h)),\n  liftAbs(h,u)=(appendAbs(h,u),u).\nThese maps are defined for every h and every u∈ℝ, including h not arising from the recursion and u≤a(h). The first n+1 coordinates of appendAbs(h,u) are exactly h.\n\nThe proposition asserts that H, Hnext, a, U, appendAbs and liftAbs are Borel measurable, and that, for every (h,u)∈Hist×ℝ and every j∈{0,…,n}, the jth old coordinate of appendAbs(h,u) is hⱼ.\n\nIn addition, for EVERY Borel measurable function b:Hist→ℝ≥0, make the following definitions. This is an arbitrary cutoff depending on the whole history, not necessarily a constant, a function only of its last coordinate, or a bound beyond its current cumulative time. Let\n  d(h)=max(b(h)−a(h),0)∈ℝ≥0,\n  μ=H_*P.\nFor all h∈Hist and u∈ℝ set\n  D(h,u)=ρ(hₙ,u−a(h)) if a(h)<u<b(h),\n  D(h,u)=0 otherwise.\nBoth inequalities are strict. In particular when hₙ=live(q,z), the density on that interval is\n  ofReal(λ(Φ(u−q,z)) exp(−Λ(z,max(u−q,0))));\nwhen hₙ=† it is zero everywhere. This definition and the forthcoming fiber bound apply to every h, even histories not in the image or support of H.\n\nDefine events\n  Brel={w : 0<W(Rₙ(w),wₙ)<d(H(w))},\nwhere these comparisons take place in the extended nonnegative reals and the finite d is embedded there, and\n  B={w : Rₙ(w) has the live tag, Rₙ₊₁(w) has the live tag,\n           a(H(w))<U(w)<b(H(w))}.\nThe explicit live requirements cannot be replaced by inequalities using the zero-valued time defaults alone. Define X(w)=(H(w),U(w)), Y(w)=(Hnext(w),U(w)), and the measure ν on Hist×ℝ by\n  ν=(μ⊗Lebesgue).withDensity((h,u)↦D(h,u)).\nThus ν integrates the displayed nonnegative density against the history law and ordinary real Lebesgue measure.\n\nFor each such b the proposition asserts all of the following simultaneously:\n1. D is jointly Borel measurable. For EVERY h∈Hist,\n     ∫_[ℝ] D(h,u) du ≤ 1,\n   where this is a nonnegative extended Lebesgue integral.\n2. B is measurable; X and Y are measurable; and Brel=B as exact sets, with no almost-everywhere qualification.\n3. For EVERY w∈B,\n     U(w)=a(H(w))+T(Rₙ(w),wₙ),\n     Hnext(w)=appendAbs(X(w)).\n4. The following are equalities of measures:\n     X_*(P restricted to B)=ν,\n     Y_*(P restricted to B)=(liftAbs)_*ν,\n     (Hnext)_*(P restricted to B)=(appendAbs)_*ν.\n   Also ν(Hist×ℝ)≤1. Restrictions are unnormalized. In particular the first measure identity implies ν(Hist×ℝ)=P(B); the formula is valid also when P(B)=0. It does not divide by P(B) or assert that ν is a probability measure.\n5. For EVERY Borel measurable G:Hist×ℝ→[0,∞], the function\n     h↦∫_[ℝ] G(h,u)D(h,u) du\n   is measurable, and for EVERY Borel A⊆Hist,\n     ∫_[B∩H⁻¹(A)] G(X(w)) P(dw)\n       =∫_[A] [∫_[ℝ] G(h,u)D(h,u) du] μ(dh).\n6. For EVERY Borel measurable F:HistNext×ℝ→[0,∞], the function\n     h↦∫_[ℝ] F(liftAbs(h,u))D(h,u) du\n   is measurable, and for EVERY Borel A⊆Hist,\n     ∫_[B∩H⁻¹(A)] F(Y(w)) P(dw)\n       =∫_[A] [∫_[ℝ] F(liftAbs(h,u))D(h,u) du] μ(dh).\n   Expanding liftAbs, the test function on the right is F(appendAbs(h,u),u).\n\nAll integrals in items 1 and 5–6 and the withDensity construction take values in the extended nonnegative reals. G and F may take the value ∞ and no integrability or boundedness assumption is imposed; equality remains meaningful even when both sides are ∞. Products use extended-nonnegative arithmetic, in particular 0·∞=∞·0=0. Hence a zero density contributes zero even for an infinite test value. Null restrictions integrate every nonnegative extended test function to zero. No conditional probability on a positive-probability history event is needed: A is arbitrary measurable, and μ(A)=0 is permitted. The cutoff may satisfy b(h)≤a(h), in which case the interval at that h is empty and d(h)=0. Zero waits, infinite waits, and waits ending exactly at the upper cutoff are excluded by Brel; the assertion does not claim they are impossible for every input. The pointwise recursions and event equality include input sequences of P-measure zero, including coordinates that are negative or zero. There is no assertion of global non-explosion, eventual finiteness of each wait, normalization of each density fiber to one, stationarity, or a source-equivalence verdict. This is a statement at each finite index n with the displayed restrictions.\n",
+    "text_sha256": "fdf2c0404d6cec15066757edbac15bb9e6f034ef4e643c5826981adedb8ee3fe",
+    "decoder": "/root/blind_decoder91",
+    "decoder_run_sha256": "2a35e174d0ae1b44c50a86c5efa0ebeeb9bdaba2e3b3f7968f24f86659a55621",
+    "decoder_packet_sha256": "f1755cfd26059ed1b5e22dd3f001903d57e1b80c7f7c5282ed92a6ff1b4d4da0",
+    "source_text_visible": false,
+    "lean_statement_sha256": "f60ed522348868bdf77ad4e756c5c22f40975051b875df1ae3b0f63f2cec2d3a",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "E:/Samplinglib/runs/semantic-roundtrip/anonymous91/input.json",
+        "raw_sha256": "723ac1af8bbb7b6e443bbb23f0e34b5ce1d10e5336cba89c7d98ab4f753737da"
+      }
+    ],
+    "run_artifact": "runs/semantic-roundtrip/anonymous91/decoder-output/run.json",
+    "native_named_payload_sha256": "8ca96b1f7990d59bf7859c4db2325b465f41c123063a78577d407729c53b815d",
+    "native_run_manifest_RAW_sha256": "11c68218192db678a36c147fd675921620d7b85d3557553ec1acdfb043e473bd",
+    "unresolved_semantics": [],
+    "native_semantic_uncertainties": [
+      "The supplied packet reports compiled=true; the decoder did not inspect or compile any Lean implementation and does not independently certify that report.",
+      "No mathematical source identity, original prose, theorem purpose or source-equivalence verdict can be reconstructed or certified from this anonymous packet.",
+      "The packet exposes no hitting-time proof or conditional-law construction beyond the literal statement and approved definitions. The reconstruction claims exactly the displayed restricted identities, with no inferred global finite-wait or non-explosion theorem.",
+      "The packet supplies a packet_sha256 field but no canonicalization procedure for that field. It is recorded verbatim separately from the independently computed raw input-file SHA-256. The statement SHA-256 is independently verified."
+    ],
+    "native_structured_payload": "runs/semantic-roundtrip/anonymous91/decoder-output/reconstruction.json",
+    "run_hash_recipe": "Exact native run bytes. Source-blind decoder reports compilation only from packet; independent mathematics/kernel review supplies compiler evidence. Root independently verifies canonical packet hash; original decoder uncertainty retained."
+  },
+  "decoder_run": {
+    "schema_version": 1,
+    "record_kind": "source-blind-decoder-run",
+    "decoder": "/root/blind_decoder91",
+    "decoder_identity": {
+      "agent": "/root/blind_decoder91",
+      "role": "independent source-blind theorem decoder"
+    },
+    "source_text_visible": false,
+    "source_anchor_visible": false,
+    "source_identity_visible": false,
+    "implementation_visible": false,
+    "packet_id": "ASTIS-BLIND-f60ed522348868bd",
+    "packet_sha256": "f1755cfd26059ed1b5e22dd3f001903d57e1b80c7f7c5282ed92a6ff1b4d4da0",
+    "input_file_sha256": "723ac1af8bbb7b6e443bbb23f0e34b5ce1d10e5336cba89c7d98ab4f753737da",
+    "statement_sha256": "f60ed522348868bdf77ad4e756c5c22f40975051b875df1ae3b0f63f2cec2d3a",
+    "statement_hash_verified": true,
+    "input_artifacts": [
+      {
+        "path": "E:/Samplinglib/runs/semantic-roundtrip/anonymous91/input.json",
+        "sha256": "723ac1af8bbb7b6e443bbb23f0e34b5ce1d10e5336cba89c7d98ab4f753737da",
+        "selected_content": [
+          "lean.statement",
+          "lean.approved_definition_context"
+        ],
+        "role": "sole mathematical input"
+      }
+    ],
+    "approved_input_artifact_labels": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "utc": "2026-10-11T05:13:11.126294+00:00",
+    "reconstruction_path": "E:/Samplinglib/runs/semantic-roundtrip/anonymous91/decoder-output/reconstruction.json",
+    "reconstruction_hash": "fdf2c0404d6cec15066757edbac15bb9e6f034ef4e643c5826981adedb8ee3fe",
+    "reconstruction_hash_scope": "UTF-8 bytes of reconstructed_theorem_text, without any JSON encoding; full artifact hash is in raw-manifest.json",
+    "reconstructed_text_sha256": "fdf2c0404d6cec15066757edbac15bb9e6f034ef4e643c5826981adedb8ee3fe",
+    "external_browsing_used": false,
+    "other_mathematical_inputs_read": [],
+    "status": "completed",
+    "source_equivalence_verdict": null,
+    "hash_link_design": "Run record hashes reconstructed theorem text. Reconstruction record hashes the exact run.json file. The closed RAW manifest hashes both complete files, avoiding circular full-file hashes."
+  },
+  "decoder_manifest": {
+    "schema_version": 1,
+    "record_kind": "RAW",
+    "status": "closed",
+    "closed": true,
+    "decoder": "/root/blind_decoder91",
+    "source_text_visible": false,
+    "packet_id": "ASTIS-BLIND-f60ed522348868bd",
+    "packet_sha256": "f1755cfd26059ed1b5e22dd3f001903d57e1b80c7f7c5282ed92a6ff1b4d4da0",
+    "utc_closed": "2026-10-11T05:13:11.126810+00:00",
+    "inputs": [
+      {
+        "path": "E:/Samplinglib/runs/semantic-roundtrip/anonymous91/input.json",
+        "sha256": "723ac1af8bbb7b6e443bbb23f0e34b5ce1d10e5336cba89c7d98ab4f753737da",
+        "kind": "anonymous-input-packet"
+      }
+    ],
+    "outputs": [
+      {
+        "path": "E:/Samplinglib/runs/semantic-roundtrip/anonymous91/decoder-output/reconstruction.json",
+        "sha256": "8ca96b1f7990d59bf7859c4db2325b465f41c123063a78577d407729c53b815d",
+        "bytes": 15047,
+        "kind": "native-reconstruction"
+      },
+      {
+        "path": "E:/Samplinglib/runs/semantic-roundtrip/anonymous91/decoder-output/run.json",
+        "sha256": "2a35e174d0ae1b44c50a86c5efa0ebeeb9bdaba2e3b3f7968f24f86659a55621",
+        "bytes": 2015,
+        "kind": "decoder-run"
+      }
+    ],
+    "reconstructed_text_sha256": "fdf2c0404d6cec15066757edbac15bb9e6f034ef4e643c5826981adedb8ee3fe",
+    "closure": "All listed input/output artifact byte hashes were computed locally. No further output mutation is intended. Manifest does not recursively hash itself; its exact hash is returned to the coordinator.",
+    "source_equivalence_verdict": null
+  }
+}

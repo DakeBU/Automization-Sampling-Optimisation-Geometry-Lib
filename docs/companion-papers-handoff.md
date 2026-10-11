@@ -1,5 +1,61 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS next absolute-event-time law (2026-10-11)
+
+Independent science d62f7b2c89e749953a36d8922124865a4651e55e. Keep the six original analytic hypotheses and
+literal stopped recursion driven by the canonical iid Exp(1) product P. At each
+deterministic depth n, H and Hnext are the complete old/next histories. Let
+a(h) read the old last record time, and U(w) read the actual next record time;
+both use0 on stopped records as an explicit auxiliary fallback.
+
+For every fixed Borel finite-valued history horizon b, possibly globally
+unbounded, define d(h)=max(b(h)-a(h),0) and
+
+D(h,u)=1_(a(h)<u<b(h))*rho(h_last,u-a(h)), mu=H_*P, nu=D(mu product du).
+
+Derive Borel H,Hnext,a,U, absolute append A(h,u)=A_rel(h,u-a(h)) and lift
+L(h,u)=(A(h,u),u). Every old coordinate is preserved. Absolute append uses
+raw-real harmonic flow and cumulative T+max(u-T,0) on a live last record;
+negative-time/stopped cases remain auxiliary totalizations.
+
+The relative event Brel={0<W_n<d(H)} equals pointwise the actual event
+B={old and next records live; a(H)<U<b(H)}. On B derive U=a(H)+finite_wait
+and Hnext=A(H,U), using the literal next-record recursion. Joint D is Borel
+and every abstract history satisfies integral D(h,u)du<=1. With X=(H,U),
+Y=(Hnext,U), derive
+
+X_*(P restricted to B)=nu, Y_*(P restricted to B)=L_*nu,
+Hnext_*(P restricted to B)=A_*nu, nu(univ)<=1.
+
+All jointly Borel ENNReal tests G(h,u) and F(hnext,u) have Borel parameter
+integrals and exact unnormalized iterated-integral identities localized to
+every Borel old-history event, including null events. No boundedness,
+integrability, positive event mass, finite-wait/no-atom/density/normalization
+or independence provider was added. Includes rank0,n=0,zero hazard,stopped,
+live infinite waits,b<=a and unrealizable histories.
+
+Independent whole mathematics/kernel and leaf build, fresh blind decoder,
+primary-first anti-anchored source review and exact-commit verification passed.
+Seven exact BODY regions142-527 accompany the full attributed statement and
+formula proof. Direct public parents are90,89 and canonical UnitExponentialProduct
+probability normalization. The implemented fiber translation plus Tonelli closes
+the needed weighted coordinate law; it does not claim the broader planned
+standalone unweighted shear/inverse theorem in source node S91-T.
+
+Only this strict next absolute-coordinate edge closes. Ordered finite iteration,
+terminal survival/path/count identification and full(A.7), physical-time
+restart/Markovness, invariance/semigroup/all-L2/hypocoercivity, implementation
+errors/unbounded costs/main/composition/full papers/Goal remain OPEN. Existing
+actual-input nonaccumulation78 and half-open physical-time coverage79 remain
+verified; they are not reopened by the missing full path-density assembly.
+
+The existing sole stabilization lane handles aggregate/publication/graph/site
+checks. Actual page/fine-branch visual acceptance, main merge, postmerge
+purification and live verification remain separate. Continue the four fixed
+papers in execution priority, with Chapter1.3 reading standards, no TV transfer
+of unbounded costs and no added higher derivatives for midpoint.
+
+
 ## Actual PBPS complete finite-history extension (2026-10-11)
 
 Independent science e8d38b3002f4562ef254205135c0d213f9efe410. The six original analytic hypotheses and actual

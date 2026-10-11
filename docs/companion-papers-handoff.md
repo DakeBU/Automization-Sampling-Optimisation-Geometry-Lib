@@ -1,5 +1,40 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS weighted finite-sector substitution (2026-10-12)
+
+Independent science 320ad09ccfd3bc05a9ec3d909c9c19d236c9a232. Under the original six analytic assumptions,
+the phase-first measure mu = phase Lebesgue times strict event-simplex volume
+and literal actual weight W=ofReal(exp(-U))*rho satisfy
+
+integral W(q) F(Theta(q)) dmu(q) = integral W(q) F(q) dmu(q).
+
+Here q=(z,t), A(q)=actual Gamma(q)(T), Theta(q)=(R(A(q)),rhoTime(t)),
+and rho is the original q_n times terminal live survival. A single produced
+rhoTime has zero-based coordinates rhoTime(t)_i=T-t_(n-1-i), uniformly in
+y,r and the observable. F is any measurable nonnegative extended-real test.
+This explicitly extends the printed bounded-test mechanism; infinite integrals
+are allowed and no normalization or finite-integral assumption is inserted.
+
+Actual93 supplies joint density measurability,97 the actual phase-first
+measure-preserving map,101 pointwise weight balance. C2 V produces the
+continuous Gibbs factor. Fixed Mathlib nonnegative integration performs
+substitution. Zero event count, horizon, dimension, normals and rates remain
+covered. Six adjacent formula/Lean steps distinguish source argument from
+ASTIS measurability and witness-alignment completion.
+
+Independent whole mathematics, sealed-header kernel witness, anonymous
+reconstruction and primary-first source/exposition review passed. This is
+only the unnormalized finite-sector integral identity. Next: endpoint-pair
+reversal and normalized Gibbs averaging with countable sector assembly;
+invariance, restart/Markovness, hypocoercivity, implementation errors,
+actual expected costs and actual-input composition remain open. Full papers
+completed remains 0/4.
+
+The existing sole SAU94 lane owns aggregate publication/graph/site integration.
+Page/fine-branch visual acceptance, main merge and postmerge purification retain
+separate evidence; the original four-paper Goal and reading contract persist.
+
+
 ## Actual PBPS weighted prescribed density matching (2026-10-12)
 
 Independent science 4713623d3edbc5d258e563e8521271c316f0dc8c. Under the original six analytic assumptions,

@@ -68,6 +68,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -112,6 +113,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualWeightedSector"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral"
+    upstreamDecl := "Actual PBPS weighted finite-sector substitution"
+    upstreamFile := "arXiv2609.06905v1 Eq3.1 and Appendix A1 A7/A8 sector substitution"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "weighted-sector", "reversal", "lintegral"]
+    saldUse := "Actual finite PBPS weighted sector substitution; no SALD claim"
+    note := "Independent science 320ad09ccfd3bc05a9ec3d909c9c19d236c9a232. Original six analytic assumptions and actual density rho=q*terminal survival. On the phase-first Lebesgue times strict-simplex measure mu, actual endpoint/time reversal Theta satisfies integral W(q)F(Theta(q)) dmu=integral W(q)F(q) dmu for every measurable ENNReal F, where W=ofReal(exp(-U))*rho. Three actual public parents93/97/101 supply joint density measurability, measure preservation and weight matching; all ingredients are derived internally. Explicit nonnegative-test extension permits infinite integrals and includes n=0,T=0,rank0,zero normals/rates. No normalization, invariant probability, Markovness, hypocoercivity, error, cost, main result or composition."
+  },
   {
     key := "pbps.actualPrescribedWeightedDensity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance"

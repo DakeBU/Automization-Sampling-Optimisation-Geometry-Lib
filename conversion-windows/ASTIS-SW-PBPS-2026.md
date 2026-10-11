@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual weighted sector102 (2026-10-12)
+
+Independent science 320ad09ccfd3bc05a9ec3d909c9c19d236c9a232. Original six analytic assumptions and actual density rho=q*terminal survival. On the phase-first Lebesgue times strict-simplex measure mu, actual endpoint/time reversal Theta satisfies integral W(q)F(Theta(q)) dmu=integral W(q)F(q) dmu for every measurable ENNReal F, where W=ofReal(exp(-U))*rho. Three actual public parents93/97/101 supply joint density measurability, measure preservation and weight matching; all ingredients are derived internally. Explicit nonnegative-test extension permits infinite integrals and includes n=0,T=0,rank0,zero normals/rates. No normalization, invariant probability, Markovness, hypocoercivity, error, cost, main result or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual prescribed weighted density101 (2026-10-12)
 
 Independent science 4713623d3edbc5d258e563e8521271c316f0dc8c. Original six analytic assumptions and exact actual density rho=q*terminalweight. One reversed event-time map yields both w(z)dReal(z,t)=w(RA)dReal(RA,rho(t)) and ofReal(w(z))*rho(z,t)=ofReal(w(RA))*rho(RA,rho(t)). Four public actual parents94/98/99/100 discharge density bridge, Gibbs survival, incoming product and reflected survival. Includes n=0,T=0,rank0,zero normals/rates; no rate division. No weighted sector/integral invariance, normalized invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition.

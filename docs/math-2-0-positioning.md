@@ -24,16 +24,12 @@ These experiments build on existing graph, source-review, proof-digestion and ev
 
 ## Public presentation
 
-Use the shared mission “human-understanding infrastructure for Math 2.0”, followed by the domain and a concrete capability. Label existing infrastructure, active work and research plans separately. Describe Tao's lecture as resonating with our original aims; attribute source authors accurately. Invite probability, geometry, education and mathematical-AI collaborators to improve explanations and test the potential of proof maps.
+Use Samplinglib's mission “human-understanding infrastructure for Math 2.0”, followed by the domain and a concrete capability. Label existing infrastructure, active work and research plans separately. Describe Tao's lecture as resonating with our original aims; attribute source authors accurately. Invite probability, geometry, education and mathematical-AI collaborators to improve explanations and test the potential of proof maps.
 
 README and home pages should introduce the library's purpose and provide three immediate routes: learn the mathematics, explore proof mechanisms, inspect Lean evidence. The nine directions belong on a dedicated page with links to current material and a specific next contribution. Mathematical pages retain the existing statement, readable proof, assumptions, source mapping and folded Lean publication contract.
 
 External references are not automatically model-development data. In particular, the ATLAS v1 restrictions recorded in [Attribution](attribution.md) remain binding; exclude that material from training, fine-tuning, distillation, evaluation and model development. Never advertise the entire reference collection as a freely usable training corpus.
 
-## Roles across the three libraries
+## Library identity and contributor scope
 
-- Samplinglib supplies the probability, geometry, optimisation and sampling perspective.
-- BanditRLlib supplies sequential feedback, information, regret and decision-theory perspectives.
-- QuantumComputinglib / ASPBE supplies state/operator contracts, constructive quantum semantics, circuit certificates and resource perspectives.
-
-Cross-library connections are proposed mechanisms until compatible imports or independently compiled adapters establish them. Shared publicity does not create shared formal truth.
+Present this library's own mission, contributors, achievements and research agenda in its README, home page and Math 2.0 page. Do not add prominent cross-library promotion, a joint-library section, or a common-collaborator claim. Contributor and achievement attribution must follow the actual scope of the work. Necessary external technical references belong in the relevant source or attribution notes, with precise scope; they do not establish shared maintenance or responsibility.

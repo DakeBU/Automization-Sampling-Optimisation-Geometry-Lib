@@ -27,8 +27,6 @@ The next research layer uses the Lean graph and Functor Hypergraph for **cross-p
 
 [**Nine directions, concrete roles, and current evidence →**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/math-2-0/) · [Publication and exploration protocol](docs/math-2-0-positioning.md)
 
-Our sister libraries apply the same mission to [sequential learning and decision theory (**BanditRLlib**)](https://dakebu.github.io/Auto-Bandit-RL-Proof-In-Sleep/) and [quantum state preparation and block encoding (**QuantumComputinglib / ASPBE**)](https://dakebu.github.io/Quantum-Computing-Block-Encoding/). The shared mission does not imply that their Lean toolchains or APIs are already interoperable.
-
 | Library | Primary source |
 |---|---|
 | Log-Concave Sampling | Sinho Chewi, textbook and official supplement |

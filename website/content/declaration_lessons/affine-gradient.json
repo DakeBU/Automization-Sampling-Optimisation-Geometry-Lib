@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.hasGradientAt_affine_restriction",
+      "title": "Project the gradient when restricting to an affine subspace",
+      "statement": "Let E be a real Hilbert space and K a complete linear subspace with inherited metric. If f has genuine ambient gradient g at a+u, then the affine restriction F_a(v)=f(a+v), v∈K, has genuine gradient P_K g at u.",
+      "formula": "F_a(v)=f(a+v),\\qquad \\nabla_KF_a(u)=P_K\\nabla_Ef(a+u).",
+      "assumptions": [
+        "E is a complete real inner-product space; K is a complete real linear subspace with the inherited inner product. These assumptions generalize the finite-dimensional Euclidean source.",
+        "f:E→ℝ, a,g:E and u∈K. The genuine ambient gradient g exists at a+u: HasGradientAt f g (a+u). No totalized derivative is used as a regularity witness.",
+        "The restriction is the literal map F_a:K→ℝ, v↦f(a+v). Its gradient is a direction in K, not the affine point a+P_K g."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate the affine parameterization",
+          "text": "For v in the direction space, the chart i_a(v)=a+v has derivative equal to the inclusion K↪E. The shift changes the evaluation point but contributes zero derivative.",
+          "formula": "Di_a(u)[v]=v,\\qquad i_a(u)=a+u.",
+          "lean": "  have hchart : HasFDerivAt (fun v : K => a + (v : E)) K.subtypeL u := by\n    convert (hasFDerivAt_const a u).add K.subtypeL.hasFDerivAt using 1 <;>\n      first | rfl | simp only [zero_add]\n",
+          "detail": "hchart: derivative of the constant plus the continuous linear inclusion."
+        },
+        {
+          "title": "Apply the actual chain rule",
+          "text": "The ambient gradient represents Df(a+u). Composing with the chart derivative produces the restriction derivative for every v∈K; this derivative is proved rather than supplied.",
+          "formula": "DF_a(u)[v]=Df(a+u)[v]=\\langle g,v\\rangle_E.",
+          "lean": "  have hcomp := hf.hasFDerivAt.comp u hchart\n",
+          "detail": "hf.hasFDerivAt.comp u hchart; the Riesz functional is InnerProductSpace.toDual."
+        },
+        {
+          "title": "Remove the normal component and identify the gradient",
+          "text": "The residual g−P_K g is perpendicular to K. Therefore all tangent pairings agree. With the inherited metric the projected vector represents exactly the restriction derivative, which proves the genuine gradient assertion and hence its uniqueness through the existing gradient API.",
+          "formula": "\\langle g,v\\rangle_E=\\langle P_Kg,v\\rangle_K\\quad(v\\in K),\\qquad \\nabla_KF_a(u)=P_Kg.",
+          "lean": "  have hdual : (InnerProductSpace.toDual ℝ E g).comp K.subtypeL =\n      InnerProductSpace.toDual ℝ K (K.orthogonalProjectionOnto g) := by\n    ext v\n    simp\n  rw [hdual] at hcomp\n  exact hasGradientAt_iff_hasFDerivAt.mpr hcomp\n",
+          "detail": "hdual uses Submodule.inner_orthogonalProjectionOnto_eq_of_mem_right; hasGradientAt_iff_hasFDerivAt finishes."
+        }
+      ],
+      "lean_statement": "K is a subtype with its own inherited inner product. HasGradientAt includes genuine differentiability. The result is typed in K; a is a point shift, not part of the gradient. Completeness supplies the Riesz gradient and orthogonal projector.",
+      "lean_proof": "Compose the genuine ambient derivative with the affine inclusion, then identify its Riesz functional using orthogonal projection. The typeclass conversion only reconciles equivalent submodule structures.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasGradientAt.hasFDerivAt",
+        "HasFDerivAt.comp",
+        "hasFDerivAt_const",
+        "HasFDerivAt.add",
+        "ContinuousLinearMap.hasFDerivAt",
+        "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_right",
+        "hasGradientAt_iff_hasFDerivAt"
+      ],
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=58",
+          "label": "Boumal 2023, annotation revision 2026-10-08, §3.8",
+          "scope": "Authored account of the affine restriction mechanism underlying Definition3.58 and equations3.36–3.38; no reproduction of book prose. Pre-publication PDF is personal-use-only; do not bundle the PDF."
+        }
+      ],
+      "tests": [
+        "lake build Tests.Shared.AffineGradient"
+      ],
+      "boundary": "This is the linear/affine restriction prerequisite for Boumal §3.8. Arbitrary embedded-manifold tangent identification, differential restriction, extension semantics and smooth gradient fields remain open; Proposition 3.61 and Chapter 3 are not complete."
+    }
+  ]
+}

@@ -193,6 +193,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation` | `pbps.actualNonaccumulation` | `actual_fixed_reference_event_time_nonaccumulation` | arXiv2609.06905v1 AppendixA1 Ex8-Ex9 and SLLN/nonaccumulation |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix` | `pbps.actualOrderedPrefix` | `actual_ordered_prefix_law` | arXiv2609.06905v1 Appendix A1 A1 A2 A7 finite iteration ingredient and Appendix A2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity` | `pbps.actualOuterBoundedL2Continuity` | `actual_outer_bounded_l2_continuity` | arXiv2609.06905v1 AppendixA1 Ex22 p6.2 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization` | `pbps.actualPhaseNormalization` | `actual_phase_gibbs_normalization` | arXiv2609.06905v1 conditional energy and Eq3.1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume` | `pbps.actualPhaseReversalVolume` | `actual_phase_reversal_volume_laws` | arXiv2609.06905v1 Appendix A1 flow A5 A6 and elementary A8 mechanics |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel` | `pbps.actualPhaseTransitionKernel` | `actual_phase_transition_kernel` | arXiv2609.06905v1 AppendixA1 p3.1 p5.2 p6.1 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover` | `pbps.actualPhysicalTimeCover` | `actual_fixed_reference_physical_time_cover` | arXiv2609.06905v1 AppendixA1 A2, E2 and between-jump formula p2.2 |

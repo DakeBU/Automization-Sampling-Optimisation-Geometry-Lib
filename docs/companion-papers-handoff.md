@@ -1,5 +1,36 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS phase Gibbs normalization (2026-10-12)
+
+Independent science 030f4f70feb3641cafca981ee81c48a2687db1ee. For every y, define
+Vy(x)=V(x)+||x-y||^2/(2 eta), U_y(x,p)=Vy(x)+||p||^2/2,
+Zx(y)=integral exp(-Vy(x)) dx and C_E=(sqrt(2*pi))^dim(E).
+Under the original six analytic assumptions, exp(-Vy) is integrable,
+Zx(y)>0 and the actual phase partition satisfies
+
+Zphase(y)=ofReal(Zx(y)*C_E), with 0<Zphase(y)<infinity.
+
+Consequently the phase measure with density Zphase(y)^(-1)*exp(-U_y)
+is a probability measure, exactly the canonical tilted position law times
+standard Gaussian momentum, in position-first order. Rank zero is included.
+No normalizer, minimizer, critical point or regularity ingredient is a new
+public assumption. Five shared public producers and fixed Mathlib supply
+the analytic tail, Gaussian factor, product integral and density identification.
+
+This is ASTIS completion of the proportionality in PBPS Eq3.1, with seven
+adjacent formula/Lean steps. Whole mathematics, exact sealed kernel witness,
+blind reconstruction and primary-first source/exposition review passed.
+NORM is analytically independent of sector102; their next joint consumer
+is normalized finite-sector averaging and later countable assembly.
+Process invariance, restart/Markovness, hypocoercivity, implementation errors,
+actual expected costs, main results and actual-input composition remain open.
+Full papers completed remains 0/4. Existing four-paper priorities persist.
+
+The same sole SAU94 lane owns aggregate publication, graph and site integration.
+Actual browser acceptance, main merge and postmerge purification retain
+separate evidence and are not inferred from compilation or source review.
+
+
 ## Actual PBPS weighted finite-sector substitution (2026-10-12)
 
 Independent science 320ad09ccfd3bc05a9ec3d909c9c19d236c9a232. Under the original six analytic assumptions,

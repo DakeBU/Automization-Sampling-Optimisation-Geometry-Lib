@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual phase normalization103 (2026-10-12)
+
+Independent science 030f4f70feb3641cafca981ee81c48a2687db1ee. Under the original six analytic assumptions, for every y the actual position Gibbs factor is integrable with positive Zx, and the phase partition is Zphase=ofReal(Zx*(sqrt(2*pi))^dim), positive and finite. The normalized phase withDensity is a probability measure exactly equal to the canonical tilted position law times stdGaussian momentum. Includes rank zero; no minimizer, critical point, normalizer or integrability premise. Existing shared Hessian, Gibbs tail, Gaussian integral/density and Gibbs normalization producers are consumed. Analytically independent of weighted sector102; both are parents only of later normalized averaging. No process invariance, countable assembly, Markovness, hypocoercivity, error, expected cost, main result or composition.
+
+Seven source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual weighted sector102 (2026-10-12)
 
 Independent science 320ad09ccfd3bc05a9ec3d909c9c19d236c9a232. Original six analytic assumptions and actual density rho=q*terminal survival. On the phase-first Lebesgue times strict-simplex measure mu, actual endpoint/time reversal Theta satisfies integral W(q)F(Theta(q)) dmu=integral W(q)F(q) dmu for every measurable ENNReal F, where W=ofReal(exp(-U))*rho. Three actual public parents93/97/101 supply joint density measurability, measure preservation and weight matching; all ingredients are derived internally. Explicit nonnegative-test extension permits infinite integrals and includes n=0,T=0,rank0,zero normals/rates. No normalization, invariant probability, Markovness, hypocoercivity, error, cost, main result or composition.

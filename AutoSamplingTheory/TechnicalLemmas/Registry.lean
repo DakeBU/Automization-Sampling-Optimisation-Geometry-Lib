@@ -69,6 +69,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -113,6 +114,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPhaseNormalization"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization"
+    upstreamDecl := "Actual PBPS phase Gibbs normalization"
+    upstreamFile := "arXiv2609.06905v1 conditional energy and Eq3.1"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gibbs", "normalization", "Gaussian"]
+    saldUse := "Actual conditional position-momentum phase law; no SALD claim"
+    note := "Independent science 030f4f70feb3641cafca981ee81c48a2687db1ee. Under the original six analytic assumptions, for every y the actual position Gibbs factor is integrable with positive Zx, and the phase partition is Zphase=ofReal(Zx*(sqrt(2*pi))^dim), positive and finite. The normalized phase withDensity is a probability measure exactly equal to the canonical tilted position law times stdGaussian momentum. Includes rank zero; no minimizer, critical point, normalizer or integrability premise. Existing shared Hessian, Gibbs tail, Gaussian integral/density and Gibbs normalization producers are consumed. Analytically independent of weighted sector102; both are parents only of later normalized averaging. No process invariance, countable assembly, Markovness, hypocoercivity, error, expected cost, main result or composition."
+  },
   {
     key := "pbps.actualWeightedSector"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral"

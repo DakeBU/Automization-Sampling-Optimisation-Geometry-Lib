@@ -11,8 +11,11 @@ decl, parents = claim['target_declarations'][0], claim['dag_inputs']
 ids = {'decl:' + x for x in parents + [decl]}
 nodes = [n for n in g['nodes'] if n['id'] in ids]
 assert len(nodes) == 6
-edges = [e for e in g['edges'] if e['target'] == 'decl:' + decl and e['source'] in ids]
-assert {e['source'] for e in edges} == {'decl:' + p for p in parents}
+scanner_edges = [e for e in g['edges'] if e['target'] == 'decl:' + decl and e['source'].startswith('decl:')]
+review_path = r / 'independent-whole-math103/whole-math-decision103.native.json'
+review = json.loads(review_path.read_bytes())
+assert {x['declaration'] for x in review['direct_consumed_public_producers']} == set(parents)
+edges = [dict(source='decl:' + p, target='decl:' + decl, relation='independently reviewed exact public producer call', evidence=str(review_path)) for p in parents]
 labels = [
     ('Hessian lower bound', 'C2 + lower Hessian ⇒ strong convexity'),
     ('Gibbs integrable tail', 'Positive strong convexity ⇒ exp(-V) in L1'),
@@ -50,9 +53,9 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1270" height="820" view
 <text x="212" y="593" class="small">No supplied minimizer, normalizer or integrability. No process-invariance or cost claim.</text>
 <text x="25" y="641" class="node">Exact independently checked public producer calls</text>
 {exact}
-<text x="25" y="797" class="small">Generated reference slice checked against independent proof review. NORM is independent of sector102; they join only at a future consumer.</text>
+<text x="25" y="797" class="small">Exact producer calls from independent proof review; scanner references are incomplete. NORM is independent of sector102; they join only at a future consumer.</text>
 </svg>'''
 p = out / 'phase-normalization103.svg'
 p.write_text(svg, encoding='utf8', newline='\n')
-(out / 'branch-slice103.json').write_text(json.dumps(dict(source_graph=graphp.as_posix(), source_graph_RAW_sha256=hashlib.sha256(graphp.read_bytes()).hexdigest(), nodes=nodes, edges=edges, exact_review=str(r / 'independent-whole-math103/whole-math-decision103.native.json'), svg=str(p), svg_RAW_sha256=hashlib.sha256(p.read_bytes()).hexdigest(), viewed=False, interactive_page=False), indent=2) + '\n', encoding='utf8', newline='\n')
+(out / 'branch-slice103.json').write_text(json.dumps(dict(source_graph=graphp.as_posix(), source_graph_RAW_sha256=hashlib.sha256(graphp.read_bytes()).hexdigest(), nodes=nodes, edges=edges, scanner_edges=scanner_edges, scanner_is_not_kernel_dependency_certificate=True, exact_review=str(r / 'independent-whole-math103/whole-math-decision103.native.json'), svg=str(p), svg_RAW_sha256=hashlib.sha256(p.read_bytes()).hexdigest(), viewed=False, interactive_page=False), indent=2) + '\n', encoding='utf8', newline='\n')
 print(p)

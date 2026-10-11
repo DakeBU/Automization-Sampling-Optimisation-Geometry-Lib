@@ -7,7 +7,7 @@
   "declaration_level": "source-anchor",
   "source_anchor": "Eq3.1 and conditional energy: positive finite phase partition and exact conditional-Gibbs times standard-Gaussian identification; source-implicit normalization used by Appendix A.1 averaging.",
   "target_statement": "import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability\nimport AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity\nimport AutoSamplingTheory.TechnicalLemmas.Measure.Gibbs\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.MeasureTheory.Integral.Prod\n\n/- Prospective type-only header. No proof, Statement Seal or SAU claim. -/\nnamespace PBPSPhaseNormalizationCandidate103\nopen MeasureTheory InnerProductSpace ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let d : ℕ := Module.finrank ℝ E\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    let Zx : E → ℝ := fun y => ∫ x : E, Real.exp (-Vy y x) ∂volume\n    let C : ℝ := (Real.sqrt (2 * Real.pi)) ^ d\n    let Zphase : E → ℝ≥0∞ := fun y => ∫⁻ z, ENNReal.ofReal (w y z) ∂ell\n    let piY : E → Measure E := fun y => (volume : Measure E).tilted (fun x => -Vy y x)\n    let nu : E → Measure (E × E) := fun y =>\n      ell.withDensity (fun z => (Zphase y)⁻¹ * ENNReal.ofReal (w y z))\n    let gamma : Measure E := ProbabilityTheory.stdGaussian E\n    ∀ y : E,\n      Integrable (fun x => Real.exp (-Vy y x)) (volume : Measure E) ∧\n      0 < Zx y ∧\n      Zphase y = ENNReal.ofReal (Zx y * C) ∧\n      0 < Zphase y ∧\n      Zphase y < ⊤ ∧\n      IsProbabilityMeasure (nu y) ∧\n      nu y = (piY y).prod gamma\n\n#check candidate\nend\nend PBPSPhaseNormalizationCandidate103\n",
-  "status": "proved_locally",
+  "status": "independently_verified",
   "parents": [
     "AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower",
     "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn",
@@ -61,7 +61,8 @@
       "independent_math": "runs\\20261007-companion-priority\\pbps-actual-phase-normalization103\\independent-whole-math103\\whole-math-decision103.native.json",
       "source_review": "Independent blind decoding completed; primary-first final source/exposition review pending.",
       "remaining": "Final source verdict, exact-commit verification, sole-lane aggregate integration and reader delivery."
-    }
+    },
+    "independent_verification": "runs/20261007-companion-priority/pbps-actual-phase-normalization103/exact-commit-verification103/verified.json"
   },
   "shared_floor_audit": {
     "searched": [

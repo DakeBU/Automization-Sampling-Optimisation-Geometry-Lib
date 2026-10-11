@@ -1,0 +1,53 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate
+import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
+import Mathlib.MeasureTheory.Measure.Prod
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+/- Type-only candidate. No theorem is proved and no Statement Seal is asserted. -/
+namespace PBPSPhaseReversalVolumeCandidate96
+open MeasureTheory InnerProductSpace
+open scoped ContDiff NNReal ENNReal
+noncomputable section
+set_option autoImplicit false
+
+def candidate
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=
+    let c : E → E → E := fun y r => y - η • gradient V r
+    let h : E → E → E := fun r x => gradient V x - gradient V r
+    let B : E → E → E := fun n p => p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n
+    let S : E → (E × E) → (E × E) := fun r z => (z.1, B (h r z.1) z.2)
+    let R : (E × E) → (E × E) := fun z => (z.1, -z.2)
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y r u z =>
+      (c y r + Real.cos u • (z.1 - c y r) + (Real.sqrt η * Real.sin u) • z.2,
+       (-Real.sin u / Real.sqrt η) • (z.1 - c y r) + Real.cos u • z.2)
+    let rate : E → (E × E) → ℝ := fun r z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (h r z.1))
+    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)
+    Measurable (fun a : (E × E) × ℝ × (E × E) => Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧
+    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧
+    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧
+    (∀ y r : E, ∀ u : ℝ, MeasurePreserving (Φ y r u) ell ell) ∧
+    (∀ r : E, MeasurePreserving (S r) ell ell) ∧
+    MeasurePreserving R ell ell ∧
+    (∀ y r : E, ∀ u : ℝ, ∀ z : E × E,
+      Φ y r (-u) (Φ y r u z) = z ∧ Φ y r u (Φ y r (-u) z) = z) ∧
+    (∀ r : E, ∀ z : E × E, S r (S r z) = z) ∧
+    (∀ z : E × E, R (R z) = z) ∧
+    (∀ y r : E, ∀ u : ℝ, ∀ z : E × E, R (Φ y r u (R z)) = Φ y r (-u) z) ∧
+    (∀ r : E, ∀ z : E × E, R (S r z) = S r (R z)) ∧
+    (∀ r : E, ∀ z : E × E, rate r (R (S r z)) = rate r z) ∧
+    (∀ r : E, ∀ F : (E × E) → ℝ, Integrable F ell →
+      Integrable (fun z => F (S r z)) ell ∧
+      (∫ z, F (S r z) ∂ell) = ∫ z, F z ∂ell)
+
+#check candidate
+end
+end PBPSPhaseReversalVolumeCandidate96

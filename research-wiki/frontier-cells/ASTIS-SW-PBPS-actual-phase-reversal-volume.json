@@ -1,0 +1,196 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-phase-reversal-volume",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS phase volume preservation and reversal",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 actual harmonic flow, A5 rate pairing, A6 bounce volume and direct elementary A8 reversal dependencies.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate\nimport Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace\nimport Mathlib.MeasureTheory.Measure.Prod\nimport Mathlib.MeasureTheory.Integral.Bochner.Basic\n\n/- Type-only candidate. No theorem is proved and no Statement Seal is asserted. -/\nnamespace PBPSPhaseReversalVolumeCandidate96\nopen MeasureTheory InnerProductSpace\nopen scoped ContDiff NNReal ENNReal\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y r => y - η • gradient V r\n    let h : E → E → E := fun r x => gradient V x - gradient V r\n    let B : E → E → E := fun n p => p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun r z => (z.1, B (h r z.1) z.2)\n    let R : (E × E) → (E × E) := fun z => (z.1, -z.2)\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y r u z =>\n      (c y r + Real.cos u • (z.1 - c y r) + (Real.sqrt η * Real.sin u) • z.2,\n       (-Real.sin u / Real.sqrt η) • (z.1 - c y r) + Real.cos u • z.2)\n    let rate : E → (E × E) → ℝ := fun r z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h r z.1))\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    Measurable (fun a : (E × E) × ℝ × (E × E) => Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ y r : E, ∀ u : ℝ, MeasurePreserving (Φ y r u) ell ell) ∧\n    (∀ r : E, MeasurePreserving (S r) ell ell) ∧\n    MeasurePreserving R ell ell ∧\n    (∀ y r : E, ∀ u : ℝ, ∀ z : E × E,\n      Φ y r (-u) (Φ y r u z) = z ∧ Φ y r u (Φ y r (-u) z) = z) ∧\n    (∀ r : E, ∀ z : E × E, S r (S r z) = z) ∧\n    (∀ z : E × E, R (R z) = z) ∧\n    (∀ y r : E, ∀ u : ℝ, ∀ z : E × E, R (Φ y r u (R z)) = Φ y r (-u) z) ∧\n    (∀ r : E, ∀ z : E × E, R (S r z) = S r (R z)) ∧\n    (∀ r : E, ∀ z : E × E, rate r (R (S r z)) = rate r z) ∧\n    (∀ r : E, ∀ F : (E × E) → ℝ, Integrable F ell →\n      Integrable (fun z => F (S r z)) ell ∧\n      (∫ z, F (S r z) ∂ell) = ∫ z, F z ∂ell)\n\n#check candidate\nend\nend PBPSPhaseReversalVolumeCandidate96\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+  ],
+  "consumers": [
+    "PBPS A8 finite prescribed endpoint/time reversal (planned, not proved)"
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Independent mathematics, blind decoding and final source/exposition accepted. Exact science-commit verification and aggregate stabilization pending."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261011-PBPSActualPhaseReversalVolume",
+    "statement_seal": "runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/root.statement-seal96.json",
+    "focused_checks": [
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-reversal-volume96/checks96/exact-sealed-kernel/receipt.json",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-reversal-volume96/checks96/production-build/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseReversalVolume.lean"
+    ],
+    "truth_boundary": "No false unscaled harmonic isometry; no naive pointwise time reversal at right-continuous jump values; no stationary law, semigroup, hypocoercivity, unbounded cost or main/composition result.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseReversalVolume.lean",
+      "raw_sha256": "4b144dfa25d9521803e37518b8a6386fff08396c5804e410e9be593d46833a7b",
+      "bytes": 11983
+    }
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib local declarations: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/local.stdout.log",
+      "Mathlib pinned4.33.0: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/mathlib.stdout.log",
+      "Shared Frontier Cells: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/frontiers.stdout.log",
+      "Compatible upstream inventory: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/compatible-inventory.stdout.log"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+    "canonical_shared_cell": "",
+    "reason": "Reuse fixed Mathlib skew-product and fiber isometry volume theorems; adapt to literal PBPS maps without a new generic duplicate."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib local declarations: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/local.stdout.log",
+      "Mathlib pinned4.33.0: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/mathlib.stdout.log",
+      "Shared Frontier Cells: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/frontiers.stdout.log",
+      "Compatible upstream inventory: runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/reuse-search96/compatible-inventory.stdout.log"
+    ],
+    "reused_declarations": [],
+    "planned_dependencies": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS A8 finite prescribed endpoint/time reversal"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "The missing actual phase-volume laws are proved from geometric transformations; they are never assumed as providers. Existing flow and bounce algebra are consumed internally."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-phase-reversal-volume-preread96/root.statement-seal96.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "7a3d1929ccc6f1ae01ac3187040ad032515df7af0d627636d646d7f4df382a91",
+    "binder_audit": [
+      "Six original analytic assumptions; no dynamics/volume provider.",
+      "Finite Hilbert Borel typing includes rank0.",
+      "A6 real F integrability is local to the test-function conclusion."
+    ],
+    "definition_kind": "Eight literal definitions: c,h,B,S,R,Phi,rate,ell. ell explicitly equals volume(E).prod(volume(E)); zero division is Lean totalized zero, matching identity reflection at zero normal."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-bounded-path-expansion95/next-primary96/source-proof-graph-delta96.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-bounded-path-expansion95/next-primary96/source-coverage-delta96.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-phase-reversal-volume96/independent-final-source96/compiled-source-coverage96.native.json",
+    "coverage_status": "Independent compiled source, seven-slot semantic and seven-region exposition review accepted; no stationary-law or whole-paper claim."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 actual harmonic flow, A5 rate pairing, A6 bounce volume and direct elementary A8 reversal dependencies.",
+    "fidelity_boundary": "No false unscaled harmonic isometry; no naive pointwise time reversal at right-continuous jump values; no stationary law, semigroup, hypocoercivity, unbounded cost or main/composition result.",
+    "detail_status": "omitted",
+    "gap": "State-dependent reflection measurability and full product-Lebesgue change of variables require explicit completion.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and Mathlib",
+        "anchor": "Appendix A1 A5/A6 and A8 justification",
+        "hypothesis_adapter": "Explicit product volume, zero-safe reflection and joint Borel maps; no false unscaled harmonic isometry."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    ],
+    "bookkeeping": [
+      "Literal phase product measure and map composition",
+      "Time-reversal algebra"
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual harmonic flow, state-dependent bounce and momentum reversal preserve phase product volume; their joint Borel laws and exact reversal/rate identities are proved conclusions. Existing inversion/measurability producers are reused."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Eight private mathematical helpers are consumed by the public proof through reflection and harmonic affine volume preservation. Postmerge purification pending.",
+    "duplicate_semantics_audit": "Local/fixed Mathlib/frontier/compatible searches pinned.",
+    "canonicalization": "Reuse actual harmonic-flow/bounce and fixed Mathlib measure-preserving APIs.",
+    "compressed_spine_delta": "Actual harmonic flow, state-dependent bounce and momentum reversal preserve phase product volume; their joint Borel laws and exact reversal/rate identities are proved conclusions. Existing inversion/measurability producers are reused.",
+    "reader_default_view": "Attributed volume/reversal statement and stepwise proof, adjacent initially folded Lean.",
+    "scope": "No false unscaled harmonic isometry; no naive pointwise time reversal at right-continuous jump values; no stationary law, semigroup, hypocoercivity, unbounded cost or main/composition result."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No theorem proof attempted yet.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-phase/product-volume/fiber-reflection/harmonic-shears"
+      ],
+      "expected_information_gain": "One proof writer; independent prospective math/source audits already closed.",
+      "shared_verified_context_digest": "7a3d1929ccc6f1ae01ac3187040ad032515df7af0d627636d646d7f4df382a91"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "One implementation route; no parallel theorem variants."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "A1.E5",
+        "A1.E6",
+        "A1.E8"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws"
+    ],
+    "visual_review": "Pending implementation/publication; reuse PBPS page and route."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Uses existing Haar translation, skew-product disintegration and isometry-volume mechanisms; no new cross-domain transport is introduced.",
+    "discovery_ids": []
+  }
+}

@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual prescribed weighted density101 (2026-10-12)
+
+Independent science 4713623d3edbc5d258e563e8521271c316f0dc8c. Original six analytic assumptions and exact actual density rho=q*terminalweight. One reversed event-time map yields both w(z)dReal(z,t)=w(RA)dReal(RA,rho(t)) and ofReal(w(z))*rho(z,t)=ofReal(w(RA))*rho(RA,rho(t)). Four public actual parents94/98/99/100 discharge density bridge, Gibbs survival, incoming product and reflected survival. Includes n=0,T=0,rank0,zero normals/rates; no rate division. No weighted sector/integral invariance, normalized invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual prescribed path reversal100 (2026-10-12)
 
 Independent science d9850090b15210e29ecd9b932f02c358d2c9e786. Original six analytic assumptions and literal actual path definitions. On 0<=s<=T away from finitely many reversed event times, barGamma(s)=R Gamma(T-s). Both actual scalar rates are interval integrable and their survival integrals agree. Actual state reversal, path interpolation, harmonic flow, phase reversal and prescribed-density integrability discharge all private premises. Endpoints, n=0,T=0,rank0,zero normals/rates included. No genuine-jump pointwise equality, weighted density/sector, invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition.

@@ -67,6 +67,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -111,6 +112,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPrescribedWeightedDensity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance"
+    upstreamDecl := "Actual PBPS weighted prescribed density matching"
+    upstreamFile := "arXiv2609.06905v1 Eq3.1 and Appendix A1 A7/A8 weighted density"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "weighted-density", "reversal", "finite-path"]
+    saldUse := "Actual finite PBPS weighted density matching; no SALD claim"
+    note := "Independent science 4713623d3edbc5d258e563e8521271c316f0dc8c. Original six analytic assumptions and exact actual density rho=q*terminalweight. One reversed event-time map yields both w(z)dReal(z,t)=w(RA)dReal(RA,rho(t)) and ofReal(w(z))*rho(z,t)=ofReal(w(RA))*rho(RA,rho(t)). Four public actual parents94/98/99/100 discharge density bridge, Gibbs survival, incoming product and reflected survival. Includes n=0,T=0,rank0,zero normals/rates; no rate division. No weighted sector/integral invariance, normalized invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition."
+  },
   {
     key := "pbps.actualPrescribedPathReversal"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"

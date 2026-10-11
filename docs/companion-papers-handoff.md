@@ -1,5 +1,36 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS weighted prescribed density matching (2026-10-12)
+
+Independent science 4713623d3edbc5d258e563e8521271c316f0dc8c. Under the original six analytic assumptions,
+the exact actual density rho=q times terminal live survival satisfies
+
+w(z) dReal(z,t) = w(RA) dReal(RA,rho(t)),
+ofReal(w(z)) rho(z,t) = ofReal(w(RA)) rho(RA,rho(t)).
+
+Here A is the actual terminal state, R flips momentum, w=exp(-U) uses
+the target energy, and the same produced reversal map has zero-based
+coordinates rho(t)_i=T-t_(n-1-i). The proof combines actual density94,
+Gibbs survival98, incoming product99 and scalar integral reversal100.
+No rate is divided out; zero rates, normals, dimension and horizon remain
+covered. This is pointwise unnormalized density matching.
+
+Independent whole mathematics, sealed-header kernel witness, fresh anonymous
+decoding and primary-first source/exposition reviews passed. The six adjacent
+formula/Lean steps state the indexing convention explicitly; its small
+exposition clarification was independently reviewed. The original mathematical
+statement and Lean proof are unchanged.
+
+Next: weighted-sector substitution using the actual endpoint/time volume map,
+then normalized Gibbs averaging/invariance. Markovness, hypocoercivity,
+implementation errors, actual expected costs and actual-input composition
+remain open. Full papers completed remains 0/4.
+
+The existing sole SAU94 lane owns aggregate publication/graph/site integration.
+Page/fine-branch visual acceptance, main merge and postmerge purification retain
+separate evidence; the original four-paper Goal and reading contract persist.
+
+
 ## Actual PBPS path reversal and survival substitution (2026-10-12)
 
 Independent science d9850090b15210e29ecd9b932f02c358d2c9e786. With the original six analytic assumptions and

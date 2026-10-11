@@ -128,7 +128,10 @@ def enrich_site(output: Path) -> None:
         marker = status(items[0]['library'], items[0]['chapter'])
         text = re.sub(r'(<div class="tag-row">)<span class="status[^>]*>.*?</span>',
                       lambda m: m[1] + marker, text, count=1)
-        block = ''.join(source_card(i, rel) for i in items)
+        # Explicit book order takes precedence over metadata fragment filenames.
+        # Unordered legacy items retain their existing relative order.
+        ordered = sorted(items, key=lambda i: i.get('source_order', float('inf')))
+        block = ''.join(source_card(i, rel) for i in ordered)
         text = text.replace('</main>', block + '</main>', 1)
         path.write_text(text, encoding='utf-8', newline='\n')
         index = path.parent / 'index.html'

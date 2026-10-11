@@ -289,12 +289,14 @@ class PublicationTest(unittest.TestCase):
             self.assertNotRegex(block, r'<details\b[^>]*\bopen(?:\s|=|>)')
             self.assertNotIn('<summary>Source and reuse</summary>', block)
 
-    def test_chapter_map_is_mathematical_and_keeps_the_affine_boundary(self):
+    def test_chapter_map_keeps_curve_progress_and_full_source_boundaries(self):
         import library_shelves
         text = library_shelves.mathematical_chapter_map('riemannian-optimization', '03')
         self.assertIn('Mathematical knowledge map', text)
         self.assertIn('Nonlinear tangent/differential identification', text)
-        self.assertIn('Only the affine Hilbert-space prerequisite', text)
+        self.assertIn('explicit extension-choice proof edge', text)
+        self.assertIn('projection prerequisite', text)
+        self.assertIn('not completion of either proposition or Chapter3', text)
         self.assertNotIn('Upstream alignment', text)
         self.assertIn('lean-foundations.html?view=lean&amp;focus=decl%3A', text)
         self.assertIn('&amp;q=AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.', text)

@@ -21,9 +21,9 @@ STYLE_NAMES = ("quantumcomputinglib-polish.css", "quantumcomputinglib-detail-pol
 HOME = Path("index.html")
 LIBRARY_SUBTITLE = "Verified Sampling, Optimisation, Geometry Theory in Lean"
 HOME_LEDE = (
-    "A readable formal library for sampling, optimisation, and geometry: "
-    "Chewi's sampling and optimisation texts, Boumal's Riemannian optimisation route, "
-    "statistical optimal transport, a live SampleWiki frontier, and the shared Lean proof graph beneath them."
+    "Understand sampling, optimisation, and geometry through readable explanations, "
+    "shared proof mechanisms, and exact Lean evidence. Start with an idea; "
+    "follow its assumptions and proof at the depth you need."
 )
 OLD_REPO = "https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep"
 NEW_REPO = "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"

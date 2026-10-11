@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "reconstructed_theorem_text": "Let E be any finite-dimensional real inner-product normed additive commutative group, with its Borel measurable space. Dimension zero is permitted. Let V:E→R be twice continuously Frechet differentiable. Let alpha,beta be nonnegative real numbers and eta a real number. Assume alpha>0, alpha≤beta, eta>0, beta*eta≤1, and, for every x,v∈E,\n  alpha*||v||² ≤ (D(DV)(x)[v])[v] ≤ beta*||v||².\nHere every occurrence of alpha and beta in a real expression uses its real coercion. These are the analytic assumptions; the process, observations, and density below are literal definitions.\n\nFor arbitrary y,xRef∈E define c(y,xRef)=y−eta*grad V(xRef). For every real t and phase state z=(x,v)∈E×E define\n  Phi(y,xRef,t,(x,v))=(c+cos(t)*(x−c)+sqrt(eta)*sin(t)*v,\n                         −sin(t)/sqrt(eta)*(x−c)+cos(t)*v).\nAll products with vectors here denote real scalar multiplication. Define g(x,xRef)=grad V(x)−grad V(xRef), and\n  S(xRef,(x,v))=(x, v−[2*<v,g(x,xRef)>/||g(x,xRef)||²]*g(x,xRef)),\n  rate(xRef,(x,v))=sqrt(eta)*max(0,<v,g(x,xRef)>).\nThe abbreviation g only expands the displayed gradient difference. Real division is total: division by zero gives zero. In particular S leaves (x,v) unchanged when the gradient difference vanishes. Eta>0 makes sqrt(eta)>0.\n\nFor t∈R_{≥0}, put\n  Lambda(y,xRef,z,t)=integral from 0 to the real value of t of rate(xRef,Phi(y,xRef,s,z)) ds,\nwhere this is the displayed real Bochner interval integral. For each threshold e∈R_{≥0}, put\n  tau(y,xRef,z,e)=inf{t∈R_{≥0}: Lambda(y,xRef,z,t)−e≥0},\nwith values in R_{≥0}∪{infinity}; an empty entry-time set has infimum infinity under the stipulated hittingAfter convention. This expands hittingAfter of the function (t,a)↦Lambda(a.1.1,a.1.2,a.2.1,t)−a.2.2 against the target [0,infinity), starting at time 0 and parameter a=((y,xRef),z,e). The parameter product associates to the right. No strictly positive threshold is imposed in this definition. Write finite0(u)=u if u is finite and finite0(infinity)=0.\n\nLet Rec=(R_{≥0}×(E×E)) disjoint-union Unit. Write active(T,z) for its left tag and stopped for its right singleton tag. For every threshold e define\n  next(y,xRef,e,stopped)=stopped;\n  next(y,xRef,e,active(T,z))=stopped if tau(y,xRef,z,e)=infinity;\n  next(y,xRef,e,active(T,z))=active(T+finite0(tau), S(xRef,Phi(y,xRef,real(finite0(tau)),z))) otherwise.\nFor any threshold sequence e:N→R_{≥0}, any initial phase state z0, and any n∈N, define r0=active(0,z0) and r(k+1)=next(y,xRef,e(k),r(k)); record(y,xRef,z0,e,n)=rn. This is finite recursion only, with stopped absorbing. It does not prescribe an extra rule for infinitely many events accumulating in finite elapsed time.\n\nLet W=R^N and P be the canonical countable product of rate-one exponential laws on R. Define epsilon(w,k)=max(w(k),0), represented as a nonnegative real. For every m∈N define history(y,xRef,z0,m,w) to be the (m+1)-tuple whose j-th coordinate is record(y,xRef,z0,epsilon(w),j), for j=0,...,m.\n\nFor q=(r,s)∈Rec×R define three observations, with all tags and defaults retained:\n  waitObs(y,xRef,(active(T,z),s))=tau(y,xRef,z,max(s,0));\n  waitObs(y,xRef,(stopped,s))=0;\n  timeObs(y,xRef,q)=real(finite0(waitObs(y,xRef,q)));\n  density(y,xRef,(active(T,z),s))=ofReal(rate(xRef,Phi(y,xRef,s,z))*exp(−Lambda(y,xRef,z,max(s,0))));\n  density(y,xRef,(stopped,s))=0.\nHere ofReal(a) is max(a,0) embedded in the extended nonnegative reals. The elapsed time T is not used in these three observations. In density the flow uses the original real s, while the cumulative-hazard argument uses max(s,0). A stopped observation has time 0; an infinite wait also has timeObs 0 even though next then produces stopped. A finite zero wait has timeObs 0 and next follows its finite branch. Negative real coordinates are clamped only at the explicitly displayed max operations.\n\nFor every y,xRef∈E, every z0∈E×E, and every n∈N, make the following definitions. Hist=Rec^{0,...,n}, HistNext=Rec^{0,...,n+1}, and last=n. H(w)=history(y,xRef,z0,n,w); Hnext(w)=history(y,xRef,z0,n+1,w). Define append:Hist×R→HistNext by retaining all old coordinates and appending to h the following record:\n  active(T+max(s,0), S(xRef,Phi(y,xRef,s,z))) if h(last)=active(T,z);\n  stopped if h(last)=stopped.\nDefine lift(h,s)=(append(h,s),s)∈HistNext×R. The definition of append is total for all h and all real s, without requiring h to be a realizable history or s to be nonnegative. At negative s it adds zero to elapsed time while evaluating Phi at that negative s; it has no tau=infinity test. It appends the stopped tag when the last input record is stopped.\n\nThe first conclusions are: Hnext, append, and lift are Borel measurable; and for every p=(h,s)∈Hist×R and every j=0,...,n,\n  append(p)(j)=h(j),\nwhere the old finite index is embedded in the larger tuple without changing its value.\n\nFurther, for every Borel measurable d:Hist→R_{≥0}, with no continuity or deterministic-constant requirement, put mu=H_*P and define D:Hist×R→[0,infinity] by\n  D(h,s)=density(y,xRef,(h(last),s)) if 0<s and s<real(d(h));\n  D(h,s)=0 otherwise.\nThus on the nonzero branch h(last) must be active to contribute, and the explicit active formula there is\n  ofReal(rate(xRef,Phi(y,xRef,s,z))*exp(−Lambda(y,xRef,z,s)))\nfor h(last)=active(T,z) and 0<s<d(h); on this branch s is nonnegative so max(s,0)=s. D vanishes for stopped records, nonpositive s, s=d(h), and s>d(h). Its guarded definition still uses the original, explicitly total density outside any inferred probability support.\n\nFor w∈W define r=record(y,xRef,z0,epsilon(w),n)=H(w)(last) and u=waitObs(y,xRef,(r,w(n))). Set\n  B={w: 0<u<d(H(w))},\nwhere both comparisons are in R_{≥0}∪{infinity} and the finite nonnegative cap is embedded in that ordered space. Set\n  X(w)=(H(w),timeObs(y,xRef,(r,w(n))));\n  Y(w)=(Hnext(w),timeObs(y,xRef,(r,w(n))));\n  nu=(mu product Lebesgue_measure_on_R) with density (h,s)↦D(h,s).\nThis is the unnormalized density measure. P restricted to B is also unnormalized. The strict guard excludes stopped states, zero waits, infinite waits, and finite waits at or beyond the cap. When d(H(w))=0 the event cannot hold. No restriction of F to bounded functions, and no normalization by P(B), occurs.\n\nFor each such measurable cap d the theorem concludes all of the following:\n  (1) B is measurable and Y is Borel measurable on all W.\n  (2) For every w∈B, Hnext(w)=append(X(w)).\n  (3) Y_*(P restricted to B)=lift_*nu, as measures on HistNext×R.\n  (4) Hnext_*(P restricted to B)=append_*nu, as measures on HistNext.\n  (5) (lift_*nu)(HistNext×R)≤1.\n  (6) For every jointly Borel measurable test F:HistNext×R→[0,infinity], the function\n        h↦integral over s∈R of F(lift(h,s))*D(h,s) ds\n      is Borel measurable. Moreover, for every Borel measurable A⊆Hist,\n        integral over w∈B intersect H^{-1}(A) of F(Y(w)) dP(w)\n          = integral over h∈A of [integral over s∈R of F(lift(h,s))*D(h,s) ds] dmu(h).\nAll integrals in (6) are extended nonnegative Lebesgue integrals, so no integrability premise is added and either side may take the value infinity. The Borel requirement on F is joint in the entire next-history/time pair, rather than merely a separate measurability claim. A ranges over the whole finite-history space, not just the last record. The same y,xRef,z0,n and cap d are fixed throughout (1)–(6).\n\nThe statement concerns every finite history length and its next update with a history-dependent strict waiting-time cap. It asserts neither a law on an infinite accumulated trajectory nor a full unconditional density at zero or infinity. No source-fidelity verdict is part of this reconstruction.\n",
+  "reconstructed_text_utf8_sha256": "f710344e026c23973bd2e75feb063d7a459e73b25cc47a998d322e37dcae4b51",
+  "reconstructed_text_sha256": "f710344e026c23973bd2e75feb063d7a459e73b25cc47a998d322e37dcae4b51",
+  "statement_utf8_sha256": "79c106af5583c8f3d50944ed43e5a9db90a295c79752b70de10b47d0534a686c",
+  "objects": {
+    "E": "finite-dimensional real inner-product Borel normed additive commutative group, possibly dimension zero",
+    "V": "twice continuously Frechet differentiable real potential",
+    "parameters": "alpha,beta in NNReal; eta in R; y,xRef in E; z0 in E×E",
+    "c": "y−eta*gradient V xRef",
+    "Phi": "displayed affine two-component flow for all real times",
+    "S": "displayed velocity reflection formula with total division",
+    "rate": "sqrt(eta)*positive part of velocity/gradient-difference inner product",
+    "Lambda": "real interval integral of rate along Phi from zero to nonnegative time",
+    "tau": "WithTop NNReal infimum of nonnegative times where Lambda reaches threshold",
+    "next": "absorbing-stop update or finite waiting-time flow followed by S",
+    "record": "finite Nat.rec over thresholds from active(0,z0)",
+    "P": "countable product exponential(1) measure on real sequences",
+    "epsilon": "coordinatewise Real.toNNReal",
+    "history": "tuple of records from index zero through its history length",
+    "waitObs": "tau on active record with clamped threshold; zero on stopped record",
+    "timeObs": "finite wait as real, zero default for infinity",
+    "density": "ofReal(rate at real time times exponential negative cumulative hazard at clamped time); stopped zero",
+    "Rec": "(NNReal×(E×E)) disjoint-union Unit",
+    "Hist": "Fin(n+1)→Rec",
+    "HistNext": "Fin(n+2)→Rec",
+    "last": "index n",
+    "H": "history at length n",
+    "Hnext": "history at length n+1",
+    "append": "keep prior coordinates and append displayed flow/reflection or stopped record",
+    "lift": "(append(h,s),s)",
+    "d": "arbitrary measurable finite NNReal-valued history cap",
+    "mu": "pushforward H_*P",
+    "D": "density masked by 0<s<d(h)",
+    "B": "strictly positive finite wait strictly below history cap",
+    "X": "current history and default-real wait",
+    "Y": "next history and same default-real wait",
+    "nu": "density D relative to mu product real Lebesgue measure",
+    "F": "arbitrary jointly Borel extended-nonnegative test of next history and real waiting time",
+    "A": "arbitrary Borel subset of Hist"
+  },
+  "domains": {
+    "base": [
+      "E",
+      "R",
+      "NNReal",
+      "WithTop NNReal",
+      "ENNReal",
+      "N"
+    ],
+    "phase": "E×E",
+    "sample": "N→R",
+    "threshold_sequence": "N→NNReal",
+    "record": "(NNReal×(E×E)) disjoint-union Unit",
+    "finite_history": "Fin(n+1)→Rec",
+    "next_history": "Fin(n+2)→Rec",
+    "append_input": "Hist×R",
+    "lift_output": "HistNext×R",
+    "cap": "Hist→NNReal",
+    "test": "HistNext×R→ENNReal",
+    "measures": [
+      "P on W",
+      "mu on Hist",
+      "nu on Hist×R",
+      "lift_*nu on HistNext×R",
+      "append_*nu on HistNext"
+    ]
+  },
+  "quantifiers": [
+    {
+      "scope": "global",
+      "binders": "E and its listed structures; V:E→R; alpha,beta:NNReal; eta:R",
+      "requirements": "analytic assumptions listed separately"
+    },
+    {
+      "scope": "Hessian bounds",
+      "binders": "every x,v:E",
+      "predicate": "both lower and upper bounds"
+    },
+    {
+      "scope": "literal definitions",
+      "binders": "all inputs in each displayed function type",
+      "requirements": "none beyond global structures and assumptions"
+    },
+    {
+      "scope": "main conclusion",
+      "binders": "every y,xRef:E; every z0:E×E; every n:N"
+    },
+    {
+      "scope": "coordinate preservation",
+      "binders": "every p:Hist×R; every j:Fin(n+1)"
+    },
+    {
+      "scope": "capped law",
+      "binders": "every d:Hist→NNReal",
+      "requirements": "Measurable d"
+    },
+    {
+      "scope": "trajectory update",
+      "binders": "every w:W with w∈B"
+    },
+    {
+      "scope": "test identity",
+      "binders": "every F:HistNext×R→ENNReal",
+      "requirements": "Measurable F jointly"
+    },
+    {
+      "scope": "history localization inside the F clause",
+      "binders": "every A:Set Hist",
+      "requirements": "MeasurableSet A"
+    }
+  ],
+  "assumptions": {
+    "structural": [
+      "NormedAddCommGroup E",
+      "InnerProductSpace R E",
+      "FiniteDimensional R E",
+      "MeasurableSpace E",
+      "BorelSpace E"
+    ],
+    "analytic": [
+      "alpha>0 as real",
+      "alpha≤beta in NNReal",
+      "ContDiff R 2 V",
+      "for every x,v: alpha*||v||²≤D²V(x)[v,v]≤beta*||v||²",
+      "eta>0",
+      "beta*eta≤1"
+    ],
+    "local_test_premises": [
+      "Measurable d for every selected cap",
+      "Measurable F for every selected test",
+      "MeasurableSet A for every selected localized history event"
+    ],
+    "not_assumed": [
+      "positive dimension",
+      "bounded F",
+      "finite test integral",
+      "continuity of cap d",
+      "d constant",
+      "d strictly positive",
+      "global non-explosion",
+      "normalization of restrictions",
+      "positive threshold in literal definitions",
+      "source identity or source-fidelity verdict"
+    ]
+  },
+  "conclusion": {
+    "outer": [
+      "Measurable Hnext",
+      "Measurable append",
+      "Measurable lift",
+      "append preserves every old coordinate on all Hist×R"
+    ],
+    "for_every_measurable_d": [
+      "MeasurableSet B",
+      "Measurable Y",
+      "Hnext(w)=append(X(w)) for every w∈B",
+      "map Y (P.restrict B)=map lift nu",
+      "map Hnext (P.restrict B)=map append nu",
+      "(map lift nu)(univ)≤1"
+    ],
+    "for_every_jointly_measurable_F": [
+      "h↦lintegral_s F(lift(h,s))*D(h,s) is measurable",
+      "for every measurable A, lintegral_(B∩H^{-1}A) F(Y(w)) dP = lintegral_A lintegral_s F(lift(h,s))*D(h,s) ds dmu"
+    ]
+  },
+  "scopes": {
+    "global": "the analytic data precede every literal function definition",
+    "outer_function_lets": [
+      "c",
+      "Phi",
+      "S",
+      "rate",
+      "Lambda",
+      "tau",
+      "next",
+      "record",
+      "P",
+      "epsilon",
+      "history",
+      "waitObs",
+      "timeObs",
+      "density"
+    ],
+    "after_y_xRef_z0_n": [
+      "Rec",
+      "Hist",
+      "HistNext",
+      "last",
+      "H",
+      "Hnext",
+      "append",
+      "lift"
+    ],
+    "after_d_and_measurability": [
+      "mu",
+      "D",
+      "B",
+      "X",
+      "Y",
+      "nu"
+    ],
+    "F_clause": "inner-integral measurability and all A identities use the same chosen F,d,y,xRef,z0,n",
+    "guard_scope": "D masks only the density measure; B restricts P; append and lift remain defined on all histories and real times",
+    "finite_vs_infinite": "only the natural-number finite recursion is concluded; no infinite trajectory limit asserted"
+  },
+  "constant_dependencies": {
+    "c": [
+      "y",
+      "xRef",
+      "eta",
+      "V"
+    ],
+    "Phi": [
+      "c",
+      "eta"
+    ],
+    "S": [
+      "xRef",
+      "V"
+    ],
+    "rate": [
+      "xRef",
+      "V",
+      "eta"
+    ],
+    "Lambda": [
+      "y",
+      "xRef",
+      "z",
+      "Phi",
+      "rate",
+      "t"
+    ],
+    "tau": [
+      "y",
+      "xRef",
+      "z",
+      "e",
+      "Lambda"
+    ],
+    "next": [
+      "y",
+      "xRef",
+      "e",
+      "tau",
+      "Phi",
+      "S",
+      "input record"
+    ],
+    "record": [
+      "y",
+      "xRef",
+      "z0",
+      "threshold sequence e",
+      "n",
+      "next"
+    ],
+    "P": [
+      "rate-one exponential measure",
+      "natural-number product"
+    ],
+    "epsilon": [
+      "w",
+      "k"
+    ],
+    "history": [
+      "y",
+      "xRef",
+      "z0",
+      "length m",
+      "w",
+      "record",
+      "epsilon"
+    ],
+    "waitObs": [
+      "y",
+      "xRef",
+      "input record",
+      "real threshold",
+      "tau"
+    ],
+    "timeObs": [
+      "waitObs",
+      "finite0 default zero"
+    ],
+    "density": [
+      "y",
+      "xRef",
+      "input record",
+      "real time",
+      "rate",
+      "Phi",
+      "Lambda"
+    ],
+    "Rec": [
+      "E"
+    ],
+    "Hist": [
+      "Rec",
+      "n"
+    ],
+    "HistNext": [
+      "Rec",
+      "n"
+    ],
+    "last": [
+      "n"
+    ],
+    "H": [
+      "y",
+      "xRef",
+      "z0",
+      "n",
+      "history"
+    ],
+    "Hnext": [
+      "y",
+      "xRef",
+      "z0",
+      "n+1",
+      "history"
+    ],
+    "append": [
+      "n",
+      "xRef",
+      "y",
+      "last record",
+      "real time",
+      "Phi",
+      "S"
+    ],
+    "lift": [
+      "append",
+      "real time"
+    ],
+    "mu": [
+      "H",
+      "P"
+    ],
+    "D": [
+      "d",
+      "last",
+      "density"
+    ],
+    "B": [
+      "record at n",
+      "epsilon",
+      "w(n)",
+      "waitObs",
+      "d",
+      "H"
+    ],
+    "X": [
+      "H",
+      "record at n",
+      "epsilon",
+      "w(n)",
+      "timeObs"
+    ],
+    "Y": [
+      "Hnext",
+      "record at n",
+      "epsilon",
+      "w(n)",
+      "timeObs"
+    ],
+    "nu": [
+      "mu",
+      "real Lebesgue measure",
+      "D"
+    ],
+    "parameter_roles": "alpha and beta enter the assumptions but are not explicit arguments of the flow, recursion, rate, or measures; eta and V enter their literal formulas. y,xRef,z0,n are arbitrary fixed parameters of each claimed law."
+  },
+  "decoder": {
+    "identity": "independent-source-blind-decoder-round90",
+    "agent_task": "/root/blind_decoder90",
+    "role": "statement reconstruction from anonymous Lean statement and neutral glossary only"
+  },
+  "decoder_run_sha256": "b4134e2f1891da784d224913c4e66ffe1bcbfd1c25386bb599102b8064070c98",
+  "source_text_visible": false,
+  "disclosure_flags": {
+    "source_text_visible": false,
+    "source_identity_visible": false,
+    "source_anchor_visible": false,
+    "declaration_identity_visible": false,
+    "proof_visible": false,
+    "source_review_visible": false,
+    "source_fidelity_verdict_visible": false
+  },
+  "semantic_uncertainties": [
+    "The neutral glossary defines hittingAfter as an infimum of entry times. I do not infer, solely from that definition, that every finite infimum is attained; the reconstruction retains the infimum definition.",
+    "No original source statement, proof, anchor, identity, repair overlay, or independent source-review verdict was available to this decoder. Source fidelity cannot be assessed from this packet.",
+    "The packet does not supply or claim an infinite-event non-explosion theorem, unconditional normalization of the guarded density, or an unconditional law covering zero and infinite waits; none is inferred."
+  ],
+  "fidelity_verdict": "not assessed; no source input available"
+}

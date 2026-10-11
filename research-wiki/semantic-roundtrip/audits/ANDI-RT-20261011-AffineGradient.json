@@ -1,0 +1,144 @@
+{
+  "id": "ANDI-RT-20261011-AffineGradient",
+  "state": "draft",
+  "source": {
+    "source_id": "boumal-2023-annotations-20261008",
+    "anchor": "§3.8, Definition3.58 and equations3.36–3.38; Proposition3.61 (3.39), printed42–44 / PDF58–60",
+    "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=60",
+    "original_text": "On a Riemannian submanifold of Euclidean space with the induced metric, the gradient of a smooth function is the tangent-space orthogonal projection of the ambient gradient of any smooth neighborhood extension. The selected canonical prerequisite concerns affine restriction with inherited inner product; it is not the full nonlinear source theorem.",
+    "text_sha256": "beba11e4821819830069d11cd8f1d39b88bfd2e8e2ac3eee2379ed7ca937fc70"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.hasGradientAt_affine_restriction",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/AffineGradient.lean",
+    "statement": "∀ (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] (K : Submodule ℝ E) [CompleteSpace K] (f : E → ℝ) (a g : E) (u : K), HasGradientAt f g (a + (u : E)) → HasGradientAt (fun v : K => f (a + (v : E))) (K.orthogonalProjectionOnto g) u",
+    "statement_sha256": "a31d84bb5507523ef3fdc915ab3897420375716f99422c547118c81453e8a49b",
+    "formalizer": "andi-affine-root",
+    "compiled": true,
+    "decoder_context": [
+      "HasGradientAt f g x means that f has genuine Frechet derivative v ↦ inner g v at x.",
+      "Submodule ℝ E is a real linear subspace with inherited norm and inner product. CompleteSpace supplies metric completeness.",
+      "orthogonalProjectionOnto maps an ambient vector to its orthogonal projection as a vector in the subspace."
+    ]
+  },
+  "verdict": "pending",
+  "repairs": [],
+  "publication_binding_sha256": "5fb88e36f8786014d55f702dd46fc3d7ac844b58e903e5d26eb8d15f9e803738",
+  "publication_context": {
+    "file": "f971c9d225d051a1a77a3b269075b469f3a7cb3bcf15c6ced32cfbb4bc8fa811",
+    "current_lean_module": "import Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.Calculus.FDeriv.Add\nimport Mathlib.Analysis.Calculus.FDeriv.Comp\nimport Mathlib.Analysis.InnerProductSpace.Projection.Basic\n\n/-!\n# Gradients under affine subspace restriction\n\nThe inherited inner product identifies the derivative of `v ↦ f (a + v)`\nwith the orthogonal projection of the ambient gradient. This is a canonical\nHilbert-space prerequisite for Boumal §3.8's projection argument, not a\nformalization of the nonlinear embedded-manifold differential adapter.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient\n\nopen scoped InnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- Restricting an ambient differentiable objective to an affine subspace\nprojects its genuine gradient into the direction subspace, with its inherited\nmetric. Completeness is explicit; no restriction derivative is assumed. -/\ntheorem hasGradientAt_affine_restriction\n    (K : Submodule ℝ E) [CompleteSpace K]\n    {f : E → ℝ} {a g : E} {u : K}\n    (hf : HasGradientAt f g (a + (u : E))) :\n    HasGradientAt (fun v : K => f (a + (v : E)))\n      (K.orthogonalProjectionOnto g) u := by\n  have hchart : HasFDerivAt (fun v : K => a + (v : E)) K.subtypeL u := by\n    convert (hasFDerivAt_const a u).add K.subtypeL.hasFDerivAt using 1 <;>\n      first | rfl | simp only [zero_add]\n  have hcomp := hf.hasFDerivAt.comp u hchart\n  have hdual : (InnerProductSpace.toDual ℝ E g).comp K.subtypeL =\n      InnerProductSpace.toDual ℝ K (K.orthogonalProjectionOnto g) := by\n    ext v\n    simp\n  rw [hdual] at hcomp\n  exact hasGradientAt_iff_hasFDerivAt.mpr hcomp\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "boumal-2023-annotations-20261008",
+      "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=60",
+      "edition": "2023 pre-publication edition, annotations through 2026-10-08",
+      "anchor": "§3.8, Definition3.58 and equations3.36–3.38; Proposition3.61 (3.39), printed42–44 / PDF58–60",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Nicolas Boumal. Samplinglib attributed restatement; library prerequisite is explicitly narrower in geometry and broader in pointwise regularity."
+    },
+    "statement": "On a Riemannian submanifold of Euclidean space with the induced metric, the gradient of a smooth function is the tangent-space orthogonal projection of the ambient gradient of any smooth neighborhood extension.",
+    "formulae": [
+      {
+        "label": "Source projection formula",
+        "tex": "\\operatorname{grad}_Mf(x)=P_{T_xM}\\operatorname{grad}_E\\bar f(x)."
+      }
+    ],
+    "assumptions": [
+      "Finite-dimensional Euclidean ambient space and embedded submanifold with induced Riemannian metric.",
+      "Smooth real-valued f on the manifold and a smooth extension to a neighborhood."
+    ],
+    "obligations": [
+      {
+        "id": "affine-gradient",
+        "label": "Canonical gradient under linear/affine restriction with inherited metric."
+      },
+      {
+        "id": "nonlinear-differential",
+        "label": "Actual nonlinear tangent/differential and extension-independence adapter."
+      },
+      {
+        "id": "smooth-field",
+        "label": "Smoothness of the resulting manifold gradient field."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.hasGradientAt_affine_restriction",
+      "title": "Project the gradient when restricting to an affine subspace",
+      "statement": "Let E be a real Hilbert space and K a complete linear subspace with inherited metric. If f has genuine ambient gradient g at a+u, then the affine restriction F_a(v)=f(a+v), v∈K, has genuine gradient P_K g at u.",
+      "formula": "F_a(v)=f(a+v),\\qquad \\nabla_KF_a(u)=P_K\\nabla_Ef(a+u).",
+      "assumptions": [
+        "E is a complete real inner-product space; K is a complete real linear subspace with the inherited inner product. These assumptions generalize the finite-dimensional Euclidean source.",
+        "f:E→ℝ, a,g:E and u∈K. The genuine ambient gradient g exists at a+u: HasGradientAt f g (a+u). No totalized derivative is used as a regularity witness.",
+        "The restriction is the literal map F_a:K→ℝ, v↦f(a+v). Its gradient is a direction in K, not the affine point a+P_K g."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate the affine parameterization",
+          "text": "For v in the direction space, the chart i_a(v)=a+v has derivative equal to the inclusion K↪E. The shift changes the evaluation point but contributes zero derivative.",
+          "formula": "Di_a(u)[v]=v,\\qquad i_a(u)=a+u.",
+          "lean": "hchart: derivative of the constant plus the continuous linear inclusion."
+        },
+        {
+          "title": "Apply the actual chain rule",
+          "text": "The ambient gradient represents Df(a+u). Composing with the chart derivative produces the restriction derivative for every v∈K; this derivative is proved rather than supplied.",
+          "formula": "DF_a(u)[v]=Df(a+u)[v]=\\langle g,v\\rangle_E.",
+          "lean": "hf.hasFDerivAt.comp u hchart; the Riesz functional is InnerProductSpace.toDual."
+        },
+        {
+          "title": "Remove the normal component and identify the gradient",
+          "text": "The residual g−P_K g is perpendicular to K. Therefore all tangent pairings agree. With the inherited metric the projected vector represents exactly the restriction derivative, which proves the genuine gradient assertion and hence its uniqueness through the existing gradient API.",
+          "formula": "\\langle g,v\\rangle_E=\\langle P_Kg,v\\rangle_K\\quad(v\\in K),\\qquad \\nabla_KF_a(u)=P_Kg.",
+          "lean": "hdual uses Submodule.inner_orthogonalProjectionOnto_eq_of_mem_right; hasGradientAt_iff_hasFDerivAt finishes."
+        }
+      ],
+      "lean_statement": "K is a subtype with its own inherited inner product. HasGradientAt includes genuine differentiability. The result is typed in K; a is a point shift, not part of the gradient. Completeness supplies the Riesz gradient and orthogonal projector.",
+      "lean_proof": "Compose the genuine ambient derivative with the affine inclusion, then identify its Riesz functional using orthogonal projection. The typeclass conversion only reconciles equivalent submodule structures.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasGradientAt.hasFDerivAt",
+        "HasFDerivAt.comp",
+        "hasFDerivAt_const",
+        "HasFDerivAt.add",
+        "ContinuousLinearMap.hasFDerivAt",
+        "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_right",
+        "hasGradientAt_iff_hasFDerivAt"
+      ],
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=58",
+          "label": "Boumal 2023, annotation revision 2026-10-08, §3.8",
+          "scope": "Authored account of the affine restriction mechanism underlying Definition3.58 and equations3.36–3.38; no reproduction of book prose. Pre-publication PDF is personal-use-only; do not bundle the PDF."
+        }
+      ],
+      "tests": [
+        "lake build Tests.Shared.AffineGradient"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.hasGradientAt_affine_restriction",
+      "role": "prerequisite",
+      "supports": [
+        "affine-gradient"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite Euclidean ambient and tangent subspaces.",
+        "lean": "Complete real Hilbert E and complete linear subspace K."
+      },
+      {
+        "source": "Smooth function and smooth neighborhood extension.",
+        "lean": "Pointwise genuine HasGradientAt for f:E→ℝ; literal affine restriction."
+      },
+      {
+        "source": "Induced metric and tangent gradient.",
+        "lean": "Inherited inner product on K and gradient typed in K."
+      }
+    ]
+  },
+  "source_review": {
+    "state": "pending"
+  }
+}

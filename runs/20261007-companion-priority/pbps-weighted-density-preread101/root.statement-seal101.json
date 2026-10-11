@@ -1,0 +1,412 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_AND_TOPOLOGY_AUDITS",
+  "sealed_utc": "2026-10-11T20:38:23.145175+00:00",
+  "statement_version": 1,
+  "owner": "companion_root_20261005",
+  "baseline_commit": "1dda6b4bbcdcd3b3131d86a5d90e5f9743e250b3",
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/Header101.lean",
+    "raw_sha256": "95693f5ab9b8da50fabdc4da9deeaf6f4950cc4cdd4d60e0a53e0412bfa31c27",
+    "bytes": 6019
+  },
+  "expanded_literal_Prop": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let P : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => ∏ i : Fin n,\n        rate r (Φ y r (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n+1) → ℝ) i.castSucc)\n          (zAt y r z n T t i.castSucc))\n    let I : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => ∫ s in (0 : ℝ)..(T : ℝ),\n        rate r (Γ y r z n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩)\n    let dReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => Real.exp (-I y r z n T t) * P y r z n T t\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      ∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        let A : E × E := Γ y r z n T t ⟨T, le_rfl⟩\n        w y z * dReal y r z n T t = w y (R A) * dReal y r (R A) n T (rho t) ∧\n        ENNReal.ofReal (w y z) * ρ y r z n T t =\n          ENNReal.ofReal (w y (R A)) * ρ y r (R A) n T (rho t)",
+  "proposed_public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance",
+  "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+  "source_anchor": "Appendix A.1 Eq A7/A8 actual prescribed trajectory weighted-density matching, target energy Eq3.1",
+  "independent_math_header": {
+    "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/header-math-decision101.native.json",
+    "raw_sha256": "56001ff9efae6ef5bb79dd25215a37760d1c68909852fd56ceb3b39b211fad95",
+    "bytes": 6531
+  },
+  "independent_source_header": {
+    "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-decision101.native.json",
+    "raw_sha256": "ec4041d7d693c852ccf5ad782da0d7d7b2ed12c5de3e5d478bbb7ea5c18bc5b1",
+    "bytes": 6308
+  },
+  "independent_topology": {
+    "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/source-topology-decision101.native.json",
+    "raw_sha256": "1cc14e179285a07e025daf06806654abbf918c2ea04ac2a19e9651a29e29d0fb",
+    "bytes": 4918
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-proof-graph-delta101.native.json",
+    "raw_sha256": "b8e92ccbaafd8a0c146ff0d939f7a0a9f9087431acdfd3fd35aefe2c52d02d3b",
+    "bytes": 7498
+  },
+  "source_coverage": {
+    "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-coverage-delta101.native.json",
+    "raw_sha256": "6dd591723dbc1ceb11545f2b988129ff8df9177044d6f2f5ee6df167d4feb97f",
+    "bytes": 9220
+  },
+  "primary": {
+    "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+    "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+    "bytes": 1482128
+  },
+  "all_review_artifacts_rehashed": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/closed-RAW-review101.native.json",
+      "raw_sha256": "4a7ef66224ceccebda10825bb004f1060adb6c9aa1466e131927c259d2e94c6d",
+      "bytes": 9554
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/header-math-decision101.native.json",
+      "raw_sha256": "56001ff9efae6ef5bb79dd25215a37760d1c68909852fd56ceb3b39b211fad95",
+      "bytes": 6531
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/pre-graph-reconstruction101.native.json",
+      "raw_sha256": "825eb215a51060f0d6d1d0abf5a89997352130a9bbe01d6b0caa615ad8102dc6",
+      "bytes": 4396
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/reuse-api-audit101.native.json",
+      "raw_sha256": "24ed93db70077ec8edcd5966d708f8ab81f93e29a66d9dd001c3ea30f4124e5b",
+      "bytes": 3055
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/source-topology-decision101.native.json",
+      "raw_sha256": "1cc14e179285a07e025daf06806654abbf918c2ea04ac2a19e9651a29e29d0fb",
+      "bytes": 4918
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/type-only-receipt101.native.json",
+      "raw_sha256": "84c100ecb4702e51fd87b793ecd7a83cc982d53762a9c3054788298efdad3fcc",
+      "bytes": 802
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/closed-RAW-header-source101.native.json",
+      "raw_sha256": "063f4819b422e706fbb40eb0c177f3590564be6461dfdf74ef85c56909a322d2",
+      "bytes": 4638
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/definition-boundary101.native.json",
+      "raw_sha256": "6085dae09e3c9ad4674d069c2c5e4dddcb1425d05b20223f043ce62ad4ac9e57",
+      "bytes": 3885
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-coverage101.native.json",
+      "raw_sha256": "5be3d8541fc39099d3bcb5ed9cf668ccfe0edf43c913948fec9ba72128e972bf",
+      "bytes": 7415
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-decision101.native.json",
+      "raw_sha256": "ec4041d7d693c852ccf5ad782da0d7d7b2ed12c5de3e5d478bbb7ea5c18bc5b1",
+      "bytes": 6308
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-run101.native.json",
+      "raw_sha256": "17cdd55da1a3beae7b27a869d8aad910af1527862e9168d353ba04a61db21791",
+      "bytes": 3866
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/closed-RAW-preread101.native.json",
+      "raw_sha256": "9c27cc070e7d4eed45d2d92f0198890e2020b72f637821cbd54c8b12e0103b80",
+      "bytes": 6465
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/expected-semantic-slots101.native.json",
+      "raw_sha256": "5d27b63a31e68f50f7fb766436fbc8e47d1353113ff4ea27a23ec5208315e410",
+      "bytes": 7166
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/primary-first101.native.json",
+      "raw_sha256": "f9b283bdb1f3698949d51b8cb0473762fcb7ba4273565fcf4f62542988d579c5",
+      "bytes": 1920
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/recommendation101.native.json",
+      "raw_sha256": "561f73cbb04814e2c0d1547c213e963faa30db50af3a7d1c28ea3194ff388a10",
+      "bytes": 9640
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/retrieval101.native.json",
+      "raw_sha256": "1b58fecd579ba4ac1260b240d182f718db540ec52c85158a29e74af067c664be",
+      "bytes": 5385
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-coverage-delta101.native.json",
+      "raw_sha256": "6dd591723dbc1ceb11545f2b988129ff8df9177044d6f2f5ee6df167d4feb97f",
+      "bytes": 9220
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-proof-graph-delta101.native.json",
+      "raw_sha256": "b8e92ccbaafd8a0c146ff0d939f7a0a9f9087431acdfd3fd35aefe2c52d02d3b",
+      "bytes": 7498
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "bytes": 26
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "bytes": 3234
+    },
+    {
+      "path": "research-wiki/process-memory.json",
+      "raw_sha256": "48b21952889ebecd6816d30a8d7662bcba9715994084a92d0059a15d95515004",
+      "bytes": 3236
+    }
+  ],
+  "all_bound_RAW_inputs_rehashed": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/expected-semantic-slots101.native.json",
+      "raw_sha256": "5d27b63a31e68f50f7fb766436fbc8e47d1353113ff4ea27a23ec5208315e410",
+      "bytes": 7166
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/primary-first101.native.json",
+      "raw_sha256": "f9b283bdb1f3698949d51b8cb0473762fcb7ba4273565fcf4f62542988d579c5",
+      "bytes": 1920
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/recommendation101.native.json",
+      "raw_sha256": "561f73cbb04814e2c0d1547c213e963faa30db50af3a7d1c28ea3194ff388a10",
+      "bytes": 9640
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/retrieval101.native.json",
+      "raw_sha256": "1b58fecd579ba4ac1260b240d182f718db540ec52c85158a29e74af067c664be",
+      "bytes": 5385
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-coverage-delta101.native.json",
+      "raw_sha256": "6dd591723dbc1ceb11545f2b988129ff8df9177044d6f2f5ee6df167d4feb97f",
+      "bytes": 9220
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-proof-graph-delta101.native.json",
+      "raw_sha256": "b8e92ccbaafd8a0c146ff0d939f7a0a9f9087431acdfd3fd35aefe2c52d02d3b",
+      "bytes": 7498
+    },
+    {
+      "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+      "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "bytes": 1482128
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/next-primary99-source-completion/source-proof-graph99.native.json",
+      "raw_sha256": "7fa150fe5c15b9e3d408f920a7004e5b0dfd1967a8b4c7327a9b6a4ec091f525",
+      "bytes": 10142
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/next-primary99-source-completion/source-coverage99.native.json",
+      "raw_sha256": "06102b3c03f6918ac878236aa33c124b0ac7f22f4725cba7e3970a9b89a42e69",
+      "bytes": 11324
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-state-reversal99/next-primary100/source-slice-delta100.native.json",
+      "raw_sha256": "aed24c19addba88e74ed9fea7d552226f0ba4a8521fceb8cecded0e37d42f07e",
+      "bytes": 6747
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-state-reversal99/next-primary100/graph-refinement100/source-graph-overlay100.native.json",
+      "raw_sha256": "10e3a03424bb0fcf0df371bb23986a2d58250c5fc9456887025c238b64fbff33",
+      "bytes": 4679
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-path-reversal-preread100/independent-header-math100/topology-overlay100/source-topology-admission100.native.json",
+      "raw_sha256": "c9d26198921eac188fe70226921713e5c3325203ef4724c4634edd149a32f6fc",
+      "bytes": 6477
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/next-primary99-source-completion/retrieval99.native.json",
+      "raw_sha256": "d0d62df29377b19bfc2783971380466390a7715652bcb1afc2377ebafbef4afe",
+      "bytes": 8836
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/final-source100/compiled-source-coverage100.native.json",
+      "raw_sha256": "ce263cd50f95d2a1b32693a94dcdc98e2ddc3d940982387547a5c7ffceaf7e79",
+      "bytes": 18867
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedPathDensity.lean",
+      "raw_sha256": "60792981d3d2bac30d78a2373f7eed0002def8600e92553e9b5b0c87761599ec",
+      "bytes": 39708
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedGibbsSurvival.lean",
+      "raw_sha256": "f4856a5f059ef9875e481830cbd1a6152d7bc7de690ed325a71390a791098b95",
+      "bytes": 18529
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedStateReversal.lean",
+      "raw_sha256": "687ff485725aaf3e03e67f57e16df6632e085d129d4cbd30f8a4ab0ce356a3e5",
+      "bytes": 10494
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedPathReversal.lean",
+      "raw_sha256": "59d3131209605d2df34e74abb098f42d41338ae44f7e4f4bee4d75ac7bc0a3c8",
+      "bytes": 14327
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualEndpointTimeReversal.lean",
+      "raw_sha256": "01816c27c8371ba9f81e24217ef7732b6c541066cb0b0f37e6494ffd8c58d27a",
+      "bytes": 29462
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Data/ENNReal/Real.lean",
+      "raw_sha256": "2a8c2d46ac04cfcb604177ebcb3a7537a8299d5c80ee3f7d2c8d7a7cbbe4dd66",
+      "bytes": 16365
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Complex/Exponential.lean",
+      "raw_sha256": "6f4a343eee249fb3bfa7434c6c50e335cc9b4f6c4fbdb4b2756cc953e4a97b35",
+      "bytes": 29355
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Normed/Group/Basic.lean",
+      "raw_sha256": "59170354e6f426acb5e881cf588dc8288defc1b9c06b825b61c822de883b1f95",
+      "bytes": 46499
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "bytes": 26
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "bytes": 3234
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/closed-RAW-preread101.native.json",
+      "raw_sha256": "9c27cc070e7d4eed45d2d92f0198890e2020b72f637821cbd54c8b12e0103b80",
+      "bytes": 6465
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/Header101.lean",
+      "raw_sha256": "95693f5ab9b8da50fabdc4da9deeaf6f4950cc4cdd4d60e0a53e0412bfa31c27",
+      "bytes": 6019
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/close_review101.py",
+      "raw_sha256": "4afb83452906f0bd2bf87c4486f05086a2c8f2747200189ad43237117fbacd53",
+      "bytes": 11465
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/header-math-decision101.native.json",
+      "raw_sha256": "56001ff9efae6ef5bb79dd25215a37760d1c68909852fd56ceb3b39b211fad95",
+      "bytes": 6531
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/Header101.TypeOnly.lean",
+      "raw_sha256": "95693f5ab9b8da50fabdc4da9deeaf6f4950cc4cdd4d60e0a53e0412bfa31c27",
+      "bytes": 6019
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/local-retrieval.stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/local-retrieval.stdout.log",
+      "raw_sha256": "f4fc84731a40e92ecf2f9ccc05da59908f98756b596f7805475e5c53174a90ba",
+      "bytes": 8903
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/pre-graph-reconstruction101.native.json",
+      "raw_sha256": "825eb215a51060f0d6d1d0abf5a89997352130a9bbe01d6b0caa615ad8102dc6",
+      "bytes": 4396
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/prepare101.py",
+      "raw_sha256": "33cfc2ee2540299a6f5098e08742b2164144b0963a2ded2e96b01346cb0d72cb",
+      "bytes": 5417
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/reuse-api-audit101.native.json",
+      "raw_sha256": "24ed93db70077ec8edcd5966d708f8ab81f93e29a66d9dd001c3ea30f4124e5b",
+      "bytes": 3055
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/source-topology-decision101.native.json",
+      "raw_sha256": "1cc14e179285a07e025daf06806654abbf918c2ea04ac2a19e9651a29e29d0fb",
+      "bytes": 4918
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/type-only-receipt101.native.json",
+      "raw_sha256": "84c100ecb4702e51fd87b793ecd7a83cc982d53762a9c3054788298efdad3fcc",
+      "bytes": 802
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/type-only.stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-math101/type-only.stdout.log",
+      "raw_sha256": "e3715739c9358e974366a2e40eca5f1c77bbfa9e760484596f88406f72ce42df",
+      "bytes": 3040
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/typecheck101/header.exactraw.snapshot.lean",
+      "raw_sha256": "95693f5ab9b8da50fabdc4da9deeaf6f4950cc4cdd4d60e0a53e0412bfa31c27",
+      "bytes": 6019
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/typecheck101/receipt.json",
+      "raw_sha256": "bd29e331c50c69338fe31402ce88f7921b9240c00864f00ae9c83fa78240a33f",
+      "bytes": 392
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/typecheck101/stdout.log",
+      "raw_sha256": "97ad8c40069270260eb3c56255b62524cc8f41b3d4a674dbdda225fc2f657c8e",
+      "bytes": 2824
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/typecheck101/stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/definition-boundary101.native.json",
+      "raw_sha256": "6085dae09e3c9ad4674d069c2c5e4dddcb1425d05b20223f043ce62ad4ac9e57",
+      "bytes": 3885
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-coverage101.native.json",
+      "raw_sha256": "5be3d8541fc39099d3bcb5ed9cf668ccfe0edf43c913948fec9ba72128e972bf",
+      "bytes": 7415
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-decision101.native.json",
+      "raw_sha256": "ec4041d7d693c852ccf5ad782da0d7d7b2ed12c5de3e5d478bbb7ea5c18bc5b1",
+      "bytes": 6308
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-weighted-density-preread101/independent-header-source101/header-source-run101.native.json",
+      "raw_sha256": "17cdd55da1a3beae7b27a869d8aad910af1527862e9168d353ba04a61db21791",
+      "bytes": 3866
+    }
+  ],
+  "binder_audit": {
+    "SOURCE": [
+      "hα",
+      "hαβ",
+      "hV",
+      "hH",
+      "hη",
+      "hβη"
+    ],
+    "TYPING": [
+      "Finite real Hilbert Borel E, rank zero included"
+    ],
+    "EXCESS": []
+  },
+  "definition_audit": "First20 literal actual definitions from94 including rho=q*terminalweight. Six explicit definitions R,U,w,P,I,dReal; actual target U, unnormalized w. No supplied density, reversal, product identity or integrability.",
+  "core_delta": "Actual finite prescribed trajectory weighted real density and actual ENNReal density match under reversed event times and momentum-reversed terminal state.",
+  "actual_producer_plan": [
+    "ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite",
+    "ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance",
+    "ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+    "ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+  ],
+  "consumer": "Actual weighted-sector substitution using97 measure-preserving endpoint/time map; later normalized stationary averaging. Neither later node is assumed or claimed.",
+  "truth_boundary": "Pointwise unnormalized weighted-density matching only; no weighted integral/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition.",
+  "proof_search_started": false,
+  "sau_claimed": false,
+  "Goal_complete": false
+}

@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual prescribed-path density94 (2026-10-11)
+
+Independent science ad3b80a339bf1cf0dd88685f202632a92eeb0797. Under exactly the six original analytic assumptions and the literal actual93 prescribed interpolation, every finite strict event tuple has integrable path rate, an exact n+1-arc hazard integral sum, incoming phase and rate left limits, and rho=ofReal(exp(-whole-path hazard integral) times product of incoming jump rates). Terminal survival, n=0, T=0, rank0 and zero rates are retained. No additional path/integrability/limit provider. This deterministic ingredient does not yet compose the actual finite-count measure with the printed density or sum full A7. Restart/Markovness, invariance, hypocoercivity, implementation errors, expected cost, paper mains, actual-input composition and four-paper completion remain OPEN.
+
+Seven source-reviewed formula/Lean proof regions; visual/main merge/purification remain distinct.
+
+
 ## Actual finite-count complete-path93 (2026-10-11)
 
 Independent science 8ec33d055fb8a9b3ba376d4113e388b00882026f. Six source analytic assumptions and actual stopped iid exponential-clock recursion unchanged. For every finite n and deterministic finite nonnegative horizon T, the unnormalized joint complete-history/coordinate-product-path law on N(T)=n is the pushforward of ordered-prefix density times terminal survival. One jointly measurable actual phase supplies pointwise interpolation on raw survived events, fixed-T endpoint nullity, measurable count, AE finite cardinalities, raw disjointness and full-probability union. All nonnegative tests measurable for the stated sigma algebras and count-sector mass identities are proved. No extra probability, density, measurability, nonexplosion or integrability provider. Hazard stitching, pre-jump left limits, infinite full A7, Skorokhod compatibility, restart/Markovness, invariance/hypocoercivity, errors/cost/main/composition/four-paper completion remain OPEN.

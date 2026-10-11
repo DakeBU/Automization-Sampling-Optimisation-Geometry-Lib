@@ -59,6 +59,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -103,6 +104,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPrescribedPathDensity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite"
+    upstreamDecl := "Actual PBPS prescribed-path hazard and density identity"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A7 prescribed trajectory ingredient"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "path", "hazard", "left-limit", "density"]
+    saldUse := "Finite PBPS prescribed-path density consumer; no SALD claim"
+    note := "Independent science ad3b80a339bf1cf0dd88685f202632a92eeb0797. Under exactly the six original analytic assumptions and the literal actual93 prescribed interpolation, every finite strict event tuple has integrable path rate, an exact n+1-arc hazard integral sum, incoming phase and rate left limits, and rho=ofReal(exp(-whole-path hazard integral) times product of incoming jump rates). Terminal survival, n=0, T=0, rank0 and zero rates are retained. No additional path/integrability/limit provider. This deterministic ingredient does not yet compose the actual finite-count measure with the printed density or sum full A7. Restart/Markovness, invariance, hypocoercivity, implementation errors, expected cost, paper mains, actual-input composition and four-paper completion remain OPEN."
+  },
   {
     key := "pbps.actualFiniteCountPath"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"

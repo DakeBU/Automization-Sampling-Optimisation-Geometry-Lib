@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS prescribed-path hazard and density identity (2026-10-11)
+
+Independent science ad3b80a339bf1cf0dd88685f202632a92eeb0797. All six original analytic assumptions and
+twenty actual93 definitions are unchanged. For every finite strict event tuple,
+the actual prescribed path Gamma, extended only by clamping real time, satisfies
+
+integral_0^T lambda(gamma(s))ds = sum_(j=0)^n Lambda_(z_j)(a_(j+1)-a_j),
+rho_n = ofReal(exp(-integral_0^T lambda(gamma(s))ds) product_(i=1)^n lambda(z_(i-))).
+
+Rate interval integrability and the incoming phase/rate left limits are proved.
+The terminal survival arc, zero-event and zero-horizon cases, rank0 and zero rates
+are included. No continuity of reflection at zero normal or integrability/limit
+provider has been added. The phase limit topology is ordinary E x E; there is no
+new topology or Skorokhod assertion on the space of paths.
+
+Independent whole math/kernel, anonymous decoder, primary-first source and seven
+adjacent formula/Lean explanations passed, including exact science-commit review.
+Proof prose explicitly records ordered intervals and continuous comparison arcs.
+Only deterministic DENSITY94 closes. The next mathematical edge is TERM93: insert
+this formula into the already verified actual finite-count history/path measure,
+then assemble the source A7 all-count expansion with its exact test-function scope.
+Markovness/restart, invariance, hypocoercivity, implementation errors, expected cost,
+paper main results, actual-input composition and all four full papers remain OPEN.
+
+Aggregate gates use the original sole stabilization lane. Actual paper-page and
+fine-branch visual acceptance, main merge and postmerge purification remain separate.
+The existing unbudgeted four-paper Goal remains active.
+
+
 ## Actual PBPS finite-count complete-path law (2026-10-11)
 
 Independent science 8ec33d055fb8a9b3ba376d4113e388b00882026f. The six original analytic assumptions,

@@ -1,0 +1,84 @@
+{
+  "schema_version": 2,
+  "cell_id": "ASTIS-SHARED-kernel-invariant-powers",
+  "route": "shared",
+  "title": "Invariant laws remain invariant under n-step kernel powers",
+  "mode": "faithfulPaper",
+  "source_anchor": "Fearnhead–Nemeth–Oates–Sherlock arXiv:2407.12751v1 §1.3, printed pp.17–19 / PDF pp.23–25; Chen–Štefankovič–Vigoda arXiv:2307.13826v4 §3 mixing arguments using ν P^t",
+  "target_statement": "For any measurable state space, kernel κ and measure μ, if κ.Invariant μ then (κ ^ n).Invariant μ for every n : ℕ; equivalently μ.bind (κ ^ n) = μ.",
+  "status": "stabilized",
+  "parents": [
+    "ProbabilityTheory.Kernel.Invariant",
+    "ProbabilityTheory.Kernel.Invariant.comp",
+    "Mathlib.Probability.Kernel.Composition.Comp"
+  ],
+  "consumers": [
+    "mcmc",
+    "discrete-sampling"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib TechnicalLemmas/Probability and StochasticProcesses",
+      "Mathlib Probability.Kernel.Invariance",
+      "Mathlib Probability.Kernel.Composition.Comp",
+      "Libraries/shared-foundations.yml"
+    ],
+    "classification": "missing",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance.invariant_pow",
+    "canonical_shared_cell": "ASTIS-SHARED-kernel-invariant-powers",
+    "notes": "Exact lower nodes are reused from Mathlib: Kernel.Invariant, Kernel.IsReversible.invariant, the kernel monoid/powers, Chapman–Kolmogorov and Invariant.comp. The missing delta is only closure of invariance under finite powers; no duplicate detailed-balance theorem is introduced."
+  },
+  "evidence": {
+    "focused_checks": ["2026-09-08: lake build Tests.KernelInvariance passed; Lean 4.33.0, Mathlib db584cd6d46c92f209a44c0f1c829460d327499d"],
+    "independent_verification": "2026-09-08: kernel_packet_review independently checked commit 51dbfae5089e163b7e28195591df7010d5850ada. Tests.KernelInvariance passed (1884 jobs), Frontier Cell check passed, scoped fake-closure scan clean, and compiled signatures/axioms checked. Accepted only as a source-neutral reusable interface; root build and stabilization remain pending. See runs/20260908-samplewiki-resume/independent-review.md.",
+    "root_build": "2026-09-08: canonical python website/scripts/lean_gate.py -> tools/astis.py check passed at 1d400af1eda6ffabbb2ef3221965d0261afc4b10, source digest 29e77dfebb2e350586003913264452ee8a78f06ac1911c57d9ebce668cc12213. Lake build, Tests (9050 jobs), ATLAS memory and fake-closure gates passed; Registry 394. Physical original-repository .lake, pinned Lean 4.33.0.",
+    "graph_regeneration": "2026-09-08: website/scripts/build_site.py and check_site.py passed (12 Chewi chapters, 509 modules, 3568 source declarations). Run-local shared-kernel-frontier.svg and matching PNG regenerated from cells and visually inspected. No public deployment.",
+    "publication_note": "Local stabilization only. The PR URL is the incoming source reference; its remote head has not been updated and it has not been merged by this run.",
+    "pr": "https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/pull/246"
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "source_detail_audit": {
+    "primary_edition": "Fearnhead–Nemeth–Oates–Sherlock, arXiv:2407.12751v1; Chen–Štefankovič–Vigoda, arXiv:2307.13826v4",
+    "primary_anchor": "MCMC §1.3: stationary law is preserved by repeated induction; §1.3.1: detailed balance implies stationarity. Discrete Sampling §3/§3.7 uses ν P^t in mixing bounds.",
+    "detail_status": "sufficient",
+    "gap": "",
+    "consulted": [],
+    "fidelity_boundary": "Only finite-step propagation of an already invariant law is formalized. No uniqueness, irreducibility, aperiodicity, convergence from nonstationary starts, spectral gap or mixing rate is inferred."
+  },
+  "mcmc_contract": {
+    "state_space": "Arbitrary measurable state space; no topology or density is required.",
+    "target": "A measure μ already invariant for the one-step kernel κ.",
+    "support": "No extra support restriction beyond the well-typed kernel/measure; downstream MH adapters retain their own support/Radon–Nikodym contracts.",
+    "operator": "Discrete-time transition kernel κ and its Mathlib monoid power κ ^ n.",
+    "clock": "One application of κ is one transition; κ ^ n is n transitions.",
+    "invariance": "Exact target invariance is assumed for κ and propagated to κ ^ n.",
+    "ergodicity": "Not required and not concluded.",
+    "initialization": "The law starts exactly at μ; the theorem does not treat another initial distribution.",
+    "metric": "Exact equality of measures; no TV/KL/Wasserstein error bound.",
+    "cost": "Abstract n kernel applications only; no implementation/query cost theorem.",
+    "objective": "Propagate a stationary law through a finite number of MCMC transitions, not estimate a mixing time or expectation error.",
+    "source_proof_status": "The MCMC primary explicitly states repeated stationarity; the Lean proof reduces it to Mathlib's invariant-composition API.",
+    "time_model": "discrete-time",
+    "periodicity": "Not required for this theorem: a periodic chain may still preserve a stationary law. Periodicity or laziness becomes relevant only for convergence/mixing claims, which are explicitly outside this cell.",
+    "invariance_class": "exact-target"
+  },
+  "discrete_state_contract": {
+    "state_space": "Shared theorem is state-neutral; the Discrete Sampling consumer specializes to a finite configuration type.",
+    "support": "No additional support condition at this shared layer; finite Gibbs adapters specify feasible configurations and positive-probability conditioning events.",
+    "target": "An invariant measure μ; finite applications may instantiate a Gibbs law.",
+    "operator": "Markov transition kernel κ and n-step kernel κ ^ n.",
+    "time_model": "discrete-time",
+    "clock": "One κ application is one update in the downstream model's declared clock; no sweep/per-site conversion is made here.",
+    "reversibility": "Not required. Reversibility is an upstream sufficient condition for invariance via Mathlib Kernel.IsReversible.invariant.",
+    "pinning": "Not applicable to the shared theorem itself; each pinned Gibbs law is a separate downstream instantiation.",
+    "regime": "All n : ℕ and every kernel/measure satisfying exact one-step invariance.",
+    "metric": "Exact measure equality; no mixing discrepancy.",
+    "cost": "No model-specific update or sweep complexity claim.",
+    "source_proof_status": "The discrete textbook uses P^t for the evolved law; this cell supplies only the stationary special case.",
+    "aperiodicity_or_absolute_gap": "Not required because this theorem makes no convergence or spectral-gap claim."
+  }
+}

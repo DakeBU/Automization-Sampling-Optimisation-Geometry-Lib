@@ -1,5 +1,35 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS path reversal and survival substitution (2026-10-12)
+
+Independent science d9850090b15210e29ecd9b932f02c358d2c9e786. With the original six analytic assumptions and
+literal actual finite prescribed path, the same reversed event tuple from the
+finite-state theorem produces
+
+barGamma(s)=R Gamma(T-s), for 0<=s<=T excluding internal reversed events,
+integral_0^T lambda(barGamma(s)) ds = integral_0^T lambda(R Gamma(s)) ds.
+
+Both scalar rates are interval integrable. The state identity includes 0,T;
+the finite excluded set has Lebesgue measure zero. The proof discharges its
+arc and scalar helper premises using actual finite-state reversal, finite-count
+path interpolation, harmonic flow, phase reversal and path-density integrability.
+There is no pointwise reversal claim at genuine jumps or outside the horizon.
+Zero events, horizon, dimension, normals and rates remain covered.
+
+Independent whole mathematics, a fresh sealed-header kernel witness, anonymous
+decoding and primary-first source/exposition reviews passed. Six adjacent
+formula/Lean steps retain the complete statement and exact reviewed code.
+Next: combine finite-path Gibbs/survival balance, incoming-rate products and
+this substitution for actual weighted density matching, then weighted sector
+substitution and Gibbs averaging. Invariance, Markovness, hypocoercivity,
+implementation errors, actual expected costs and composition remain open.
+Full papers completed remains 0/4.
+
+The existing sole SAU94 lane owns aggregate publication/graph/site integration.
+Page/fine-branch visual acceptance, main merge and postmerge purification retain
+separate evidence; the original four-paper Goal and reading contract persist.
+
+
 ## Actual PBPS finite-state and incoming-rate reversal (2026-10-12)
 
 Independent science ce675a4cfad2d35cc8c4fec2c26979728742ac27. Under the original six analytic assumptions and

@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual prescribed path reversal100 (2026-10-12)
+
+Independent science d9850090b15210e29ecd9b932f02c358d2c9e786. Original six analytic assumptions and literal actual path definitions. On 0<=s<=T away from finitely many reversed event times, barGamma(s)=R Gamma(T-s). Both actual scalar rates are interval integrable and their survival integrals agree. Actual state reversal, path interpolation, harmonic flow, phase reversal and prescribed-density integrability discharge all private premises. Endpoints, n=0,T=0,rank0,zero normals/rates included. No genuine-jump pointwise equality, weighted density/sector, invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual prescribed state reversal99 (2026-10-12)
 
 Independent science ce675a4cfad2d35cc8c4fec2c26979728742ac27. Original six analytic assumptions and actual path definitions. Reversing the strict event tuple gives barPost_j=R(arrive_(n-j)) and barArrive_j=R(post_(n-j)) on all n+1 arcs; products of the n incoming event rates agree. Actual phase reversal and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and rates. No all-time right-continuous path equality, survival time substitution, weighted density equality, invariant probability, Markovness, hypocoercivity, errors, expected costs, main results or composition.

@@ -66,6 +66,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -110,6 +111,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPrescribedPathReversal"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+    upstreamDecl := "Actual PBPS path reversal and survival-integral substitution"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A8 off-event reversal and survival substitution"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "reversal", "survival", "finite-path"]
+    saldUse := "Actual finite PBPS path reversal and survival substitution; no SALD claim"
+    note := "Independent science d9850090b15210e29ecd9b932f02c358d2c9e786. Original six analytic assumptions and literal actual path definitions. On 0<=s<=T away from finitely many reversed event times, barGamma(s)=R Gamma(T-s). Both actual scalar rates are interval integrable and their survival integrals agree. Actual state reversal, path interpolation, harmonic flow, phase reversal and prescribed-density integrability discharge all private premises. Endpoints, n=0,T=0,rank0,zero normals/rates included. No genuine-jump pointwise equality, weighted density/sector, invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition."
+  },
   {
     key := "pbps.actualPrescribedStateReversal"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product"

@@ -206,6 +206,31 @@ def index_body(*, eyebrow: str, title: str, lede: str, source: str, chapters: tu
 """
 
 
+def mathematical_chapter_map(library: str, chapter: str) -> str:
+    """Author chapter goals once in source publication metadata; no status inference."""
+    maps = [item['chapter_reader'] for item in publication_reader.publication.load()
+            if item['library'] == library and item['chapter'] == chapter
+            and item.get('chapter_reader')]
+    if not maps:
+        return ''
+    if any(m != maps[0] for m in maps[1:]):
+        raise ValueError(f'Conflicting reader maps for {library}/{chapter}')
+    reader = maps[0]
+    route = ''.join(
+        f'<li><h3>{escape(step["title"])}</h3><p>{escape(step["text"])}</p></li>'
+        for step in reader['route'])
+    roots = ''.join(
+        f'<li><a href="../../underlying-lean-graph/index.html?view=lean&amp;search={escape(name)}">'
+        f'<code>{escape(name)}</code></a></li>' for name in reader['shared_roots'])
+    return ('<section class="library-chapter-contract" data-chapter-knowledge-map="1">'
+            f'<div class="section-heading"><span>Chapter goal</span><h2>{escape(reader["title"])}</h2></div>'
+            f'<p class="lede">{escape(reader["goal"])}</p>'
+            '<h2>Mathematical knowledge map</h2><ol>' + route + '</ol>'
+            f'<p><strong>Current boundary.</strong> {escape(reader["boundary"])}</p>'
+            '<details><summary>Source anchors and shared formal roots</summary>'
+            f'<p>{escape(reader["source_scope"])}</p><ul>{roots}</ul></details></section>')
+
+
 def chapter_body(library: str, number: str, title: str, source: str, upstream: str, source_label: str = "Primary source", publication_status: str = "") -> str:
     return f"""
 <section class="page-hero compact library-chapter-hero">
@@ -271,6 +296,11 @@ def write_pages(output: Path) -> None:
     for i, title in enumerate(BOUMAL, 1):
         path = f"libraries/riemannian-optimization/chapter-{i:02d}.html"
         body = chapter_body("Riemannian Optimization", f"Chapter {i:02d}", title, BOUMAL_URL, "Search Mathlib and local geometry interfaces; adapt only real statement or convention differences.")
+        reader_map = mathematical_chapter_map('riemannian-optimization', f'{i:02d}')
+        if reader_map:
+            start = body.index('<section class="library-chapter-contract">')
+            end = body.index('</section>', start) + len('</section>')
+            body = body[:start] + reader_map + body[end:]
         astis_site.write_page(output, path, astis_site.page(f"Riemannian Optimization {i}: {title}", path, body, active="Libraries"))
 
     optimisation = f"""

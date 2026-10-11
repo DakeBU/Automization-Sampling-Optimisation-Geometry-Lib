@@ -194,16 +194,16 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         '<div class="reader-first-pass-label">Read this first</div>'
         f'<h2>Mathematical statement</h2><p class="reader-claim">{base.esc(unit["statement"])}</p>'
         f'<div class="proof-reader-equation reader-main-equation">\\[{base.esc(unit["formula"])}\\]</div>'
-        '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol></section>'
+        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
+                                 page=page, trim_following_docstring=True)
+        + '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol></section>'
         '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
         '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
         + base.list_html(unit.get('conventions', []), empty='') + '</details>'
         + f'<h2>{proof_title}</h2>' + steps
         + '<section class="lean-verification"><h2>Lean verification</h2>'
-        '<p>The exact proposition and proof begin folded so the mathematical argument remains the primary reading path.</p>'
-        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
-                                 page=page, trim_following_docstring=True)
+        '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>'
         + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
                                  helpers=tuple(unit.get('helpers', [])),
                                  trim_following_docstring=True)

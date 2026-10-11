@@ -120,3 +120,50 @@ not full nonlinear Proposition3.61. This is a candidate, not a claimed SAU.
 
 The overall Chewi/Boumal Goal stays active. This single verified interface does
 not complete a chapter, either book, reader purification or repository integration.
+
+
+## Integration checkpoint after explicit user authorization (2026-10-11)
+
+The notes above are historical checkpoints, not the current pending-work list.
+Main was safely fetched and merged at `50d427787`; untracked collaborator files
+were preserved. A separate independent reconciler confirmed that the old
+phase-kernel commit was already in main, that its exact module and historical
+review were unchanged, and restored its stale STABILIZING record to VERIFIED.
+No old integration owner was impersonated; no historical merge was claimed.
+The current package entered the now-free single stabilization lane under
+`andi-affine-root`.
+
+Root Tests imports `Tests.Shared.AffineGradient`; Geometry and Registry import
+the canonical module, Registry includes its bounded formalized-local entry, and
+the existing Registry cardinality test is synchronized from486 to487.
+The complete ASTIS gate passed on this integration working tree, including
+main build, root Tests (9427 jobs), pinned ATLAS inventory and fake-closure scan.
+The initial root test caught the stale cardinality; no assertion was removed.
+
+The shared reader now places folded exact Lean statement directly below the
+mathematical claim/formula and folded full proof immediately after the natural
+proof. Each of the three affine steps has its exact production proof slice plus
+explanation. Chapter03 opens with an authored mathematical goal and four-step
+knowledge map, stored once in publication metadata. This adds no new theorem.
+
+The fresh anti-anchored source/exposition reviewer accepted the prerequisite
+binding and exact snippet correspondence. The unchanged genuinely blind
+reconstruction was reused; no decoder rerun or source-equivalent verdict was
+invented. Full-source domain mismatch and all nonlinear/extension/field
+residuals remain public. Independent review and actual visual checks are in
+`integration-source-review.json` and `integration-visual-inspection.json`.
+
+Contributor, semantic (272 audits), publication (206 source items), Frontier
+(269 cells) and process-memory gates passed. All45 focused publication
+regressions passed. Harness ran297 tests, with six Windows-only skips and one
+initial IDE compile-service failure because Lake was absent from PATH. The
+six actual IDE tests were rerun with the pinned elan path and all passed; no
+application fix or weakened test was needed.
+
+After regeneration the actual browser graph shows compiled Registry-backed
+module/declaration nodes, Geometry/Registry/focused-test import consumers,
+and honest prerequisite-only chapter/source correspondence. No new Functor
+edge; reference scans still do not certify elaborated proof implication.
+The affected graph gate passed before the final visual/evidence metadata
+refresh. Final site/graph generation and exact-commit CI remain required before
+merge; generated output is excluded from commits. Purification remains pending.

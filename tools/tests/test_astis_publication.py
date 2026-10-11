@@ -280,13 +280,24 @@ class PublicationTest(unittest.TestCase):
             block = text[start:end]
             self.assertEqual(block.count('data-source-comparison='), 1)
             self.assertIn(f'data-source-comparison="{name}"', block)
-            markers = ['Mathematical proof', 'Lean statement ·', 'Lean proof ·',
+            markers = ['Mathematical statement', 'Lean statement ·', 'Proof roadmap',
+                       'Mathematical proof', 'Lean proof ·',
                        'Source assumptions versus formal assumptions',
                        'proof-reader-provenance', 'Mathlib API called (external library)']
             positions = [block.index(marker) for marker in markers]
             self.assertEqual(positions, sorted(positions))
             self.assertNotRegex(block, r'<details\b[^>]*\bopen(?:\s|=|>)')
             self.assertNotIn('<summary>Source and reuse</summary>', block)
+
+    def test_chapter_map_is_mathematical_and_keeps_the_affine_boundary(self):
+        import library_shelves
+        text = library_shelves.mathematical_chapter_map('riemannian-optimization', '03')
+        self.assertIn('Mathematical knowledge map', text)
+        self.assertIn('Nonlinear tangent/differential identification', text)
+        self.assertIn('Only the affine Hilbert-space prerequisite', text)
+        self.assertNotIn('Upstream alignment', text)
+        self.assertNotRegex(text, r'<details\b[^>]*\bopen(?:\s|=|>)')
+        self.assertEqual(library_shelves.mathematical_chapter_map('riemannian-optimization', '02'), '')
 
     def test_new_default_harness_schema_requires_publication(self):
         self.assertEqual(advance.ADVANCE_SCHEMA_VERSION, 4)

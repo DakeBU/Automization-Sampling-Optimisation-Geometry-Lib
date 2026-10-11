@@ -30,7 +30,7 @@ for p in sorted(files):
     if sha(raw)=='d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760':continue
     if name in tracked and git('show','HEAD:'+name)==raw:continue
     if name not in owned and sha(raw) in old_raw.get(name,set()):continue
-    if p.suffix=='.gz':
+    if p.suffix.lower() in {'.gz', '.png', '.jpg', '.jpeg', '.webp', '.pdf'}:
         git('-c','core.autocrlf=false','add','-f','--',name);staged.append(name);continue
     opaque=name.startswith(r.as_posix()+'/') and (p.suffix in {'.log','.html','.lean','.snapshot','.stdout','.stderr','.exactraw'} or '.snapshot.' in p.name or len(raw)>200000)
     normalized=raw.replace(b'\r\n',b'\n')

@@ -1,3 +1,5 @@
+Current closeout: PR319 actually merged at a47d39a. Independent post-merge review accepts scoped curve PURIFIED; full-source propositions and affine import cleanup remain open. Earlier pending sections below are historical checkpoints.
+
 # Curve extension independence — contribution checkpoint
 
 Owner: `andi-curve-root`; branch: `codex/andi-curve-extension`.
@@ -122,3 +124,49 @@ was regenerated; site check passed. The new cell now carries the explicit
 §13 proof_digestion and pending purification summaries as well as the existing
 reader-backpressure fields. This is a metadata completion, not another math
 advance or a PURIFIED certificate.
+
+## Actual merge closeout
+
+PR319 merged after all exact-head checks passed. Head:453ba678ef21b4d2dded384c33e3c03934982395;
+merge:a47d39a5292b6441ef6c84b81829044fa4fca712; mergedAt:2026-10-11T22:27:20Z. Real responses and gate
+identity are in integration-closeout.json. MERGED transition is actual, not inferred.
+
+Contribution report (scoped to this package):
+
+1. Source: explicit extension-choice verification following BoumalProp3.35,
+   §3.4 printed35–36/PDF51–52, pinned2026-10-08 annotations; genuine proof edge,
+   not full Prop3.35/3.61.
+2. Lean: one canonical CurveExtension.fderiv_eq_on_curve_velocity; existing
+   Mathlib facts reused. Root Tests imports the nonlinear test, Registry488.
+3. Assumptions: genuine ambient pointwise differentiability, actual curve
+   derivative, eventual feasibility and relative germ agreement; normed/local
+   generalization explicit versus finite-dimensional smooth manifold source.
+4. External dependencies: pinned Mathlib only; bounded Optlib/CvxLean retrieval,
+   no external port or ATLAS proof certificate.
+5. Round trip: actual blind decoder and independent anti-anchored source review;
+   scoped edge accepted, overall lean-weakened-conclusion/full-source blocker kept.
+6. Reuse: single shared interface, no duplicate alias/wrapper; real planned
+   vector differential and scalar objective extension-choice consumers.
+7. Graph: actual Lean ownership plus source/audit overlays, existing Chapter3
+   Overview route/map; no Functor edge; generated branch visually inspected.
+8. Remaining: current audits are real, historical evidence never fabricated;
+   unrelated legacy debt not certified away. Full intrinsic tangent/differential,
+   nonlinear gradient and smooth-field obligations remain open. Affine import
+   cleanup pending; curve purification requires actual post-merge review.
+
+Curve post-merge purification pending its actual independent review. Already
+merged affine prerequisite remains pending only demonstrated import cleanup,
+recorded in affine-post-merge-purification-review.json and its original cell.
+Full sourceProp3.35/3.61 and entire Chewi/Boumal Goal remain open.
+
+Next bounded mathematical edge should inspect sphere's intrinsic-to-ambient
+inclusion differential: pinned Mathlib already supplies
+range_mvfderiv_subtypeVal / injective_mvfderiv_subtypeVal_sphere
+(global declarations in Manifold/Instances/Sphere.lean), and Samplinglib UnitSphere
+already supplies genuine signed-geodesic derivatives. Preserve tangent and
+induced-metric adapters; do not duplicate these existing results or infer
+nonlinear gradient identification from an affine or curve-only theorem.
+
+## Independent post-merge purification closeout
+
+Actual curve-post-merge-purification-review.json accepts scoped PURIFIED (review SHA 8353ac7d72ca54a64101c5318ba3edc13b082340e68707054f2f0cfa1a80661e). Current cell projects this independent result after actual merge; frozen preflight and append-only MERGED history remain unchanged. Canonical merge-head Lean/ASTIS gate passed, including root Tests9429jobs. Proof/source/lesson bytes are unchanged; full-source lean-weakened-conclusion and intrinsic tangent/differential boundaries remain explicit. Affine import minimization is separate pending work.

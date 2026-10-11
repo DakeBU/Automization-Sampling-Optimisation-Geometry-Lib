@@ -1,0 +1,1686 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime
+import Mathlib.MeasureTheory.Constructions.Pi
+import Mathlib.Order.Fin.Tuple
+/-!
+# Actual PBPS ordered finite-prefix law
+
+Source: arXiv:2609.06905v1, Appendix A.1, the ordered-prefix component used
+in the expansion around (A.7). This theorem retains the six original analytic
+hypotheses and derives the law from the literal iid exponential-clock recursion.
+It includes complete finite histories and arbitrary nonnegative measurable tests.
+
+This is the strict first-n-prefix law. There is no terminal-survival factor,
+and the statement does not identify a raw event count or assert the full path
+expansion, invariance, mixing, implementation error, or expected oracle cost.
+The rank-zero and ENNReal-valued-test extensions are ASTIS completions.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ENNReal Topology ContDiff Interval
+noncomputable section
+set_option autoImplicit false
+
+private theorem measurable_cons_zero (n : ℕ) (j : Fin (n + 1)) :
+    Measurable (fun t : Fin n → ℝ => (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) j) := by
+  induction j using Fin.cases with
+  | zero => simpa only [Fin.cons_zero] using (measurable_const : Measurable (fun _ : Fin n → ℝ => (0 : ℝ)))
+  | succ i => simpa only [Fin.cons_succ] using (measurable_pi_apply i : Measurable (fun t : Fin n → ℝ => t i))
+
+private theorem simplex_measurable (n : ℕ) (T : ℝ≥0) :
+    MeasurableSet {t : Fin n → ℝ |
+      StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)} := by
+  simp only [StrictMono, Set.ofPred_and, Set.ofPred_forall]
+  apply MeasurableSet.inter
+  · exact MeasurableSet.iInter fun i => MeasurableSet.iInter fun j =>
+      MeasurableSet.iInter fun _ => measurableSet_lt (measurable_cons_zero n i) (measurable_cons_zero n j)
+  · exact MeasurableSet.iInter fun i => measurableSet_lt (measurable_pi_apply i) measurable_const
+
+private def readTime {Z : Type*} (r : (ℝ≥0 × Z) ⊕ Unit) : ℝ :=
+  match r with
+  | Sum.inl q => q.1
+  | Sum.inr _ => 0
+
+private theorem readTime_measurable {Z : Type*} [MeasurableSpace Z] :
+    Measurable (@readTime Z) := by
+  apply Measurable.sumElim
+  · exact measurable_coe_nnreal_real.comp measurable_fst
+  · exact measurable_const
+
+private theorem live_measurable {Z : Type*} [MeasurableSpace Z] :
+    MeasurableSet {r : (ℝ≥0 × Z) ⊕ Unit | ∃ a, r = Sum.inl a} := by
+  have heq : {r : (ℝ≥0 × Z) ⊕ Unit | ∃ a, r = Sum.inl a} = Set.range Sum.inl := by
+    ext r
+    simp only [Set.mem_ofPred_eq, Set.mem_range, eq_comm]
+  rw [heq]
+  exact measurableSet_range_inl
+
+private theorem history_guard_measurable {Z : Type*} [MeasurableSpace Z] (n : ℕ) (T : ℝ≥0) :
+    MeasurableSet {h : Fin (n + 1) → ((ℝ≥0 × Z) ⊕ Unit) |
+      (∀ j, ∃ a : ℝ≥0 × Z, h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)} := by
+  simp only [StrictMono, Set.ofPred_and, Set.ofPred_forall]
+  apply MeasurableSet.inter
+  · exact MeasurableSet.iInter fun j => live_measurable.preimage (measurable_pi_apply j)
+  · apply MeasurableSet.inter
+    · exact MeasurableSet.iInter fun i => MeasurableSet.iInter fun j =>
+        MeasurableSet.iInter fun _ => measurableSet_lt
+          (readTime_measurable.comp (measurable_pi_apply i))
+          (readTime_measurable.comp (measurable_pi_apply j))
+    · exact MeasurableSet.iInter fun i => measurableSet_lt
+        (readTime_measurable.comp (measurable_pi_apply i.succ)) measurable_const
+
+
+private theorem ordered_prefix_borel_data
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let readTime : Rec → ℝ := fun r => match r with
+      | Sum.inl q => (q.1 : ℝ)
+      | Sum.inr _ => 0
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ := fun y xRef z₀ n T t =>
+      ∏ i : Fin n,
+        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+          (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+      ENNReal.ofReal (qReal y xRef z₀ n T t)
+    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+        StrictMono (fun j => readTime (h j)) ∧
+        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+    ∀ n : ℕ, ∀ T : ℝ≥0,
+      MeasurableSet (Δ n T) ∧ MeasurableSet (A n T) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        K p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        q p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : Prefix n T, 0 ≤ qReal y xRef z₀ n T t) := by
+  classical
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let S : E → (E × E) → (E × E) := fun xRef z =>
+    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+  let rate : E → (E × E) → ℝ := fun xRef z =>
+    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+    MeasureTheory.hittingAfter
+      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+    match r with
+    | Sum.inr _ => Sum.inr ()
+    | Sum.inl a =>
+      if τ y xRef a.2 e = ⊤ then Sum.inr () else
+        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+  let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+      (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+    fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+  let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+  let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+  let readTime : Rec → ℝ := fun r => match r with
+    | Sum.inl q => (q.1 : ℝ)
+    | Sum.inr _ => 0
+  let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+    {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+  let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+  let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+    Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+  let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+    Fin.induction z₀ (fun i z =>
+      S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+  let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+    Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+  let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ := fun y xRef z₀ n T t =>
+    ∏ i : Fin n,
+      rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+        (zAt y xRef z₀ n T t i.castSucc)) *
+      Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+        (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+  let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+    ENNReal.ofReal (qReal y xRef z₀ n T t)
+  let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+    {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+  change ∀ n : ℕ, ∀ T : ℝ≥0,
+      MeasurableSet (Δ n T) ∧ MeasurableSet (A n T) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        K p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        q p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : Prefix n T, 0 ≤ qReal y xRef z₀ n T t)
+  have hΦ : Measurable (fun a : (E × E) × ℝ × (E × E) =>
+      Φ a.1.1 a.1.2 a.2.1 a.2.2) :=
+    (AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws
+      hα hαβ hV hH hη hβη).2.1
+  have hb := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws
+    hα hαβ hV hH hη hβη
+  have hS : Measurable (fun a : E × (E × E) => S a.1 a.2) := hb.1
+  have hr : Measurable (fun a : E × (E × E) => rate a.1 a.2) := hb.2.2.1
+  have hΛ : Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>
+      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) :=
+    (AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws
+      hα hαβ hV hH hη hβη).2.1
+  intro n T
+  have hd (i : Fin n) : Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+      p.2.val i - (Fin.cons (0 : ℝ) (p.2.val : Fin n → ℝ) : Fin (n+1) → ℝ) i.castSucc) :=
+    ((measurable_pi_apply i).comp measurable_snd.subtype_val).sub
+      ((measurable_cons_zero n i.castSucc).comp measurable_snd.subtype_val)
+  have hz (j : Fin (n + 1)) :
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        zAt p.1.1.1 p.1.1.2 p.1.2 n T p.2 j) := by
+    induction j using Fin.induction with
+    | zero => simpa only [zAt, Fin.induction_zero] using
+        (measurable_fst.snd : Measurable (fun p : ((E × E) × (E × E)) × Prefix n T => p.1.2))
+    | succ i ih =>
+      change Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        S p.1.1.2 (Φ p.1.1.1 p.1.1.2
+          (p.2.val i - (Fin.cons (0 : ℝ) (p.2.val : Fin n → ℝ) : Fin (n+1) → ℝ) i.castSucc)
+          (zAt p.1.1.1 p.1.1.2 p.1.2 n T p.2 i.castSucc)))
+      exact hS.comp (measurable_fst.fst.snd.prodMk
+        (hΦ.comp (measurable_fst.fst.prodMk ((hd i).prodMk ih))))
+  have hf (i : Fin n) : Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+      Φ p.1.1.1 p.1.1.2
+        (p.2.val i - (Fin.cons (0 : ℝ) (p.2.val : Fin n → ℝ) : Fin (n+1) → ℝ) i.castSucc)
+        (zAt p.1.1.1 p.1.1.2 p.1.2 n T p.2 i.castSucc)) :=
+    hΦ.comp (measurable_fst.fst.prodMk ((hd i).prodMk (hz i.castSucc)))
+  have hread : readTime = @AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.readTime (E × E) := by
+    funext r
+    cases r <;> rfl
+  refine ⟨simplex_measurable n T, ?_, ?_, ?_, ?_⟩
+  · simpa only [A, hread] using
+      (history_guard_measurable (Z := E × E) n T)
+  · apply measurable_pi_lambda
+    intro j
+    exact measurable_inl.comp (((measurable_cons_zero n j).comp
+      measurable_snd.subtype_val).real_toNNReal.prodMk (hz j))
+  · apply Measurable.ennreal_ofReal
+    apply Finset.measurable_prod
+    intro i _
+    exact (hr.comp (measurable_fst.fst.snd.prodMk (hf i))).mul
+      ((hΛ.comp ((measurable_fst.fst.prodMk (hz i.castSucc)).prodMk
+        (hd i).real_toNNReal)).neg.exp)
+  · intro y xRef z₀ t
+    apply Finset.prod_nonneg
+    intro i _
+    exact mul_nonneg (mul_nonneg (Real.sqrt_nonneg η) (le_max_left 0 _))
+      (Real.exp_pos _).le
+
+
+private theorem actual_prefix_identification
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let readTime : Rec → ℝ := fun r => match r with
+      | Sum.inl q => (q.1 : ℝ)
+      | Sum.inr _ => 0
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ := fun y xRef z₀ n T t =>
+      ∏ i : Fin n,
+        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+          (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+      ENNReal.ofReal (qReal y xRef z₀ n T t)
+    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+        StrictMono (fun j => readTime (h j)) ∧
+        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+    ∀ n : ℕ, ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      let H : (ℕ → ℝ) → Hist n := history y xRef z₀ n
+      let B : Set (ℕ → ℝ) := H ⁻¹' A n T
+      let obs : (ℕ → ℝ) → Fin n → ℝ := fun w i => readTime (H w i.succ)
+      ∀ w ∈ B, ∃ t : Prefix n T, t.val = obs w ∧ H w = K y xRef z₀ n T t := by
+  classical
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let S : E → (E × E) → (E × E) := fun xRef z =>
+    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+  let rate : E → (E × E) → ℝ := fun xRef z =>
+    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+    MeasureTheory.hittingAfter
+      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+    match r with
+    | Sum.inr _ => Sum.inr ()
+    | Sum.inl a =>
+      if τ y xRef a.2 e = ⊤ then Sum.inr () else
+        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+  let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+      (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+    fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+  let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+  let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+  let readTime : Rec → ℝ := fun r => match r with
+    | Sum.inl q => (q.1 : ℝ)
+    | Sum.inr _ => 0
+  let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+    {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+  let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+  let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+    Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+  let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+    Fin.induction z₀ (fun i z =>
+      S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+  let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+    Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+  let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ := fun y xRef z₀ n T t =>
+    ∏ i : Fin n,
+      rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+        (zAt y xRef z₀ n T t i.castSucc)) *
+      Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+        (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+  let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+    ENNReal.ofReal (qReal y xRef z₀ n T t)
+  let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+    {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+  change ∀ n : ℕ, ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      let H : (ℕ → ℝ) → Hist n := history y xRef z₀ n
+      let B : Set (ℕ → ℝ) := H ⁻¹' A n T
+      let obs : (ℕ → ℝ) → Fin n → ℝ := fun w i => readTime (H w i.succ)
+      ∀ w ∈ B, ∃ t : Prefix n T, t.val = obs w ∧ H w = K y xRef z₀ n T t
+  intro n T y xRef z₀
+  dsimp only
+  intro w hw
+  let H : Fin (n + 1) → Rec := history y xRef z₀ n w
+  let tv : Fin n → ℝ := fun i => readTime (H i.succ)
+  have htimes : (Fin.cons (0 : ℝ) tv : Fin (n+1) → ℝ) = fun j => readTime (H j) := by
+    funext j
+    induction j using Fin.cases with
+    | zero => rfl
+    | succ i => rfl
+  have hmem : tv ∈ Δ n T := by
+    change StrictMono (Fin.cons (0 : ℝ) tv) ∧ ∀ i, tv i < (T : ℝ)
+    rw [htimes]
+    exact ⟨hw.2.1, hw.2.2⟩
+  let t : Prefix n T := ⟨tv, hmem⟩
+  refine ⟨t, rfl, ?_⟩
+  change H = K y xRef z₀ n T t
+  funext j
+  induction j using Fin.induction with
+  | zero => simp [H, history, record, K, zAt]
+  | succ i ih =>
+    let s : ℝ := (Fin.cons (0 : ℝ) tv : Fin (n+1) → ℝ) i.castSucc
+    let z : E × E := zAt y xRef z₀ n T t i.castSucc
+    let a : ℝ≥0 := Real.toNNReal s
+    let e : ℝ≥0 := ε w i.val
+    let d : ℝ≥0 := (τ y xRef z e).untopD 0
+    have hprev : H i.castSucc = Sum.inl (a, z) := ih
+    have hrec : H i.succ = next y xRef e (H i.castSucc) := rfl
+    rw [hprev] at hrec
+    change H i.succ = (if τ y xRef z e = ⊤ then Sum.inr () else
+      Sum.inl (a + d, S xRef (Φ y xRef (d : ℝ) z))) at hrec
+    have hfinite : τ y xRef z e ≠ ⊤ := by
+      intro he
+      rw [if_pos he] at hrec
+      obtain ⟨v, hv⟩ := hw.1 i.succ
+      have hc : H i.succ = Sum.inl v := hv
+      rw [hc] at hrec
+      cases hrec
+    rw [if_neg hfinite] at hrec
+    have hs : (a : ℝ) = s := by
+      have hp := congrArg readTime hprev
+      change readTime (H i.castSucc) = (a : ℝ) at hp
+      have ht := congrFun htimes i.castSucc
+      change s = readTime (H i.castSucc) at ht
+      exact hp.symm.trans ht.symm
+    have hnext : (a : ℝ) + (d : ℝ) = tv i := by
+      have hp := congrArg readTime hrec
+      change tv i = ((a + d : ℝ≥0) : ℝ) at hp
+      exact hp.symm
+    have hd : (d : ℝ) = tv i - s := by linarith
+    have htime : a + d = Real.toNNReal (tv i) := by
+      apply NNReal.coe_injective
+      rw [Real.coe_toNNReal _ (by rw [← hnext]; positivity)]
+      exact hnext
+    change H i.succ = Sum.inl (Real.toNNReal (tv i),
+      S xRef (Φ y xRef (tv i - s) z))
+    rw [hrec, htime, hd]
+
+
+private theorem actual_prefix_base_integral
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let readTime : Rec → ℝ := fun r => match r with
+      | Sum.inl q => (q.1 : ℝ)
+      | Sum.inr _ => 0
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ := fun y xRef z₀ n T t =>
+      ∏ i : Fin n,
+        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+          (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+      ENNReal.ofReal (qReal y xRef z₀ n T t)
+    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+        StrictMono (fun j => readTime (h j)) ∧
+        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+    ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      let H : (ℕ → ℝ) → Hist 0 := history y xRef z₀ 0
+      let B : Set (ℕ → ℝ) := H ⁻¹' A 0 T
+      ∀ F : Hist 0 → ℝ≥0∞, Measurable F →
+        (∫⁻ w in B, F (H w) ∂P) =
+          ∫⁻ t : Prefix 0 T, F (K y xRef z₀ 0 T t) * q y xRef z₀ 0 T t ∂m 0 T := by
+  classical
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let S : E → (E × E) → (E × E) := fun xRef z =>
+    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+  let rate : E → (E × E) → ℝ := fun xRef z =>
+    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+    MeasureTheory.hittingAfter
+      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+    match r with
+    | Sum.inr _ => Sum.inr ()
+    | Sum.inl a =>
+      if τ y xRef a.2 e = ⊤ then Sum.inr () else
+        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+  let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+      (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+    fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+  let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+  let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+  let readTime : Rec → ℝ := fun r => match r with
+    | Sum.inl q => (q.1 : ℝ)
+    | Sum.inr _ => 0
+  let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+    {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+  let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+  let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+    Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+  let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+    Fin.induction z₀ (fun i z =>
+      S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+  let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+    Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+  let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ := fun y xRef z₀ n T t =>
+    ∏ i : Fin n,
+      rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+        (zAt y xRef z₀ n T t i.castSucc)) *
+      Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+        (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+  let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+    ENNReal.ofReal (qReal y xRef z₀ n T t)
+  let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+    {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+  change ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      let H : (ℕ → ℝ) → Hist 0 := history y xRef z₀ 0
+      let B : Set (ℕ → ℝ) := H ⁻¹' A 0 T
+      ∀ F : Hist 0 → ℝ≥0∞, Measurable F →
+        (∫⁻ w in B, F (H w) ∂P) =
+          ∫⁻ t : Prefix 0 T, F (K y xRef z₀ 0 T t) * q y xRef z₀ 0 T t ∂m 0 T
+  intro T y xRef z₀
+  dsimp only
+  intro F _
+  let h₀ : Hist 0 := fun _ => Sum.inl (0, z₀)
+  have hhistory (w : ℕ → ℝ) : history y xRef z₀ 0 w = h₀ := by
+    funext j
+    have hj : j = 0 := Fin.ext (by omega)
+    subst j
+    rfl
+  have hA : h₀ ∈ A 0 T := by
+    refine ⟨fun _ => ⟨(0,z₀), rfl⟩, ?_, ?_⟩
+    · intro i j hij
+      have he : i = j := Fin.ext (by omega)
+      exact False.elim (by simpa only [he, lt_self_iff_false] using hij)
+    · intro i
+      exact i.elim0
+  have hB : history y xRef z₀ 0 ⁻¹' A 0 T = Set.univ := by
+    ext w
+    simp only [Set.mem_preimage, hhistory, Set.mem_univ, iff_true]
+    exact hA
+  have hΔ : Δ 0 T = Set.univ := by
+    ext t
+    simp only [Set.mem_univ, iff_true]
+    refine ⟨?_, ?_⟩
+    · intro i j hij
+      have he : i = j := Fin.ext (by omega)
+      exact False.elim (by simpa only [he, lt_self_iff_false] using hij)
+    · intro i
+      exact i.elim0
+  have hm : (m 0 T) Set.univ = 1 := by
+    have hmap := map_comap_subtype_coe (μ := (volume : Measure (Fin 0 → ℝ)))
+      (show MeasurableSet (Δ 0 T) by rw [hΔ]; exact MeasurableSet.univ)
+    have hmass := congrArg (fun μ => μ Set.univ) hmap
+    rw [Measure.map_apply measurable_subtype_coe MeasurableSet.univ,
+      Set.preimage_univ, Measure.restrict_apply MeasurableSet.univ, Set.univ_inter] at hmass
+    conv_rhs at hmass => rw [hΔ]
+    change (m 0 T) Set.univ = (volume : Measure (Fin 0 → ℝ)) Set.univ at hmass
+    rw [hmass]
+    change (Measure.pi (fun _ : Fin 0 => (volume : Measure ℝ))) Set.univ = 1
+    simp only [Measure.pi_univ, Fin.prod_univ_zero]
+  have hK (t : Prefix 0 T) : K y xRef z₀ 0 T t = h₀ := by
+    funext j
+    have hj : j = 0 := Fin.ext (by omega)
+    subst j
+    simp [K, zAt, h₀]
+  have hq (t : Prefix 0 T) : q y xRef z₀ 0 T t = 1 := by
+    simp [q, qReal]
+  letI : IsProbabilityMeasure P :=
+    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1
+  simp only [hB, Measure.restrict_univ, hhistory, hK, hq, mul_one, lintegral_const,
+    measure_univ, hm, mul_one]
+
+
+private def guard {Z : Type*} (n : ℕ) (T : ℝ≥0)
+    (h : Fin (n+1) → ((ℝ≥0 × Z) ⊕ Unit)) : Prop :=
+  (∀ j, ∃ a, h j = Sum.inl a) ∧
+  StrictMono (fun j => readTime (h j)) ∧
+  ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)
+
+private theorem guard_snoc {Z : Type*} (n : ℕ) (T : ℝ≥0)
+    (h : Fin (n+1) → ((ℝ≥0 × Z) ⊕ Unit)) (r : (ℝ≥0 × Z) ⊕ Unit) :
+    guard (n+1) T (Fin.snoc h r) ↔
+      guard n T h ∧ (∃ a, r = Sum.inl a) ∧
+        readTime (h (Fin.last n)) < readTime r ∧ readTime r < (T : ℝ) := by
+  unfold guard
+  have ht : (fun j => readTime ((Fin.snoc h r : Fin (n+2) → _) j)) =
+      Fin.snoc (fun j => readTime (h j)) (readTime r) := by
+    funext j
+    induction j using Fin.lastCases with
+    | last => simp only [Fin.snoc_last]
+    | cast i => simp only [Fin.snoc_castSucc]
+  rw [ht, Fin.strictMono_iff_lt_succ]
+  simp only [Fin.forall_iff_castSucc, Fin.snoc_castSucc, Fin.snoc_last,
+    Fin.succ_castSucc, Fin.succ_last]
+  rw [Fin.strictMono_iff_lt_succ]
+  tauto
+
+private theorem record_history_snoc {Z : Type*}
+    (record : ℕ → ((ℝ≥0 × Z) ⊕ Unit)) (n : ℕ) :
+    (fun j : Fin (n+2) => record j.val) =
+      Fin.snoc (fun j : Fin (n+1) => record j.val) (record (n+1)) := by
+  funext j
+  induction j using Fin.lastCases with
+  | last => simp only [Fin.snoc_last, Fin.val_last]
+  | cast i => simp only [Fin.snoc_castSucc, Fin.val_castSucc]
+
+private theorem record_guard_step {Z : Type*}
+    (record : ℕ → ((ℝ≥0 × Z) ⊕ Unit)) (n : ℕ) (T : ℝ≥0) :
+    guard (n+1) T (fun j => record j.val) ↔
+      guard n T (fun j => record j.val) ∧
+      ((∃ a, record n = Sum.inl a) ∧ (∃ a, record (n+1) = Sum.inl a) ∧
+        readTime (record n) < readTime (record (n+1)) ∧
+        readTime (record (n+1)) < (T : ℝ)) := by
+  rw [record_history_snoc, guard_snoc]
+  simp only [Fin.val_last]
+  constructor
+  · rintro ⟨hg, hn, hlo, hhi⟩
+    exact ⟨hg, hg.1 (Fin.last n), hn, hlo, hhi⟩
+  · rintro ⟨hg, _, hn, hlo, hhi⟩
+    exact ⟨hg, hn, hlo, hhi⟩
+
+private theorem record_event_step {Ω Z : Type*}
+    (record : Ω → ℕ → ((ℝ≥0 × Z) ⊕ Unit)) (n : ℕ) (T : ℝ≥0) :
+    {w | guard (n+1) T (fun j => record w j.val)} =
+      {w | guard n T (fun j => record w j.val)} ∩
+      {w | (∃ a, record w n = Sum.inl a) ∧
+        (∃ a, record w (n+1) = Sum.inl a) ∧
+        readTime (record w n) < readTime (record w (n+1)) ∧
+        readTime (record w (n+1)) < (T : ℝ)} := by
+  ext w
+  exact record_guard_step (record w) n T
+
+
+set_option maxHeartbeats 2400000 in
+private theorem actual_prefix_step_integral
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let readTime : Rec → ℝ := fun r => match r with
+      | Sum.inl q => (q.1 : ℝ)
+      | Sum.inr _ => 0
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ := fun y xRef z₀ n T t =>
+      ∏ i : Fin n,
+        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+          (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+      ENNReal.ofReal (qReal y xRef z₀ n T t)
+    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+        StrictMono (fun j => readTime (h j)) ∧
+        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+    ∀ n : ℕ, ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      let a : Hist n → ℝ := fun h => readTime (h (Fin.last n))
+      let append : Hist n × ℝ → Hist (n+1) := fun p =>
+        Fin.snoc p.1 (match p.1 (Fin.last n) with
+          | Sum.inl r => Sum.inl (r.1 + Real.toNNReal (p.2 - a p.1),
+              S xRef (Φ y xRef (p.2 - a p.1) r.2))
+          | Sum.inr _ => Sum.inr ())
+      let D : Hist n → ℝ → ℝ≥0∞ := fun h u =>
+        if a h < u ∧ u < (T : ℝ) then
+          match h (Fin.last n) with
+          | Sum.inl r => ENNReal.ofReal (rate xRef (Φ y xRef (u - a h) r.2) *
+              Real.exp (-Λ y xRef r.2 (Real.toNNReal (u - a h))))
+          | Sum.inr _ => 0
+        else 0
+      ∀ F : Hist (n+1) → ℝ≥0∞, Measurable F →
+        let J : Hist n → ℝ≥0∞ := fun h => ∫⁻ u : ℝ, F (append (h,u)) * D h u
+        Measurable J ∧
+        (∫⁻ w in history y xRef z₀ (n+1) ⁻¹' A (n+1) T,
+          F (history y xRef z₀ (n+1) w) ∂P) =
+        ∫⁻ w in history y xRef z₀ n ⁻¹' A n T,
+          J (history y xRef z₀ n w) ∂P := by
+  classical
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let S : E → (E × E) → (E × E) := fun xRef z =>
+    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+  let rate : E → (E × E) → ℝ := fun xRef z =>
+    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+    MeasureTheory.hittingAfter
+      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+    match r with
+    | Sum.inr _ => Sum.inr ()
+    | Sum.inl a =>
+      if τ y xRef a.2 e = ⊤ then Sum.inr () else
+        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+  let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+      (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+    fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+  let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+  let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+  let readTime : Rec → ℝ := fun r => match r with
+    | Sum.inl q => (q.1 : ℝ)
+    | Sum.inr _ => 0
+  let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+    {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+  let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+  let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+    Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+  let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+    Fin.induction z₀ (fun i z =>
+      S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+  let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+    Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+  let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ := fun y xRef z₀ n T t =>
+    ∏ i : Fin n,
+      rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+        (zAt y xRef z₀ n T t i.castSucc)) *
+      Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+        (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+  let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+    ENNReal.ofReal (qReal y xRef z₀ n T t)
+  let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+    {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+  change ∀ n : ℕ, ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      let a : Hist n → ℝ := fun h => readTime (h (Fin.last n))
+      let append : Hist n × ℝ → Hist (n+1) := fun p =>
+        Fin.snoc p.1 (match p.1 (Fin.last n) with
+          | Sum.inl r => Sum.inl (r.1 + Real.toNNReal (p.2 - a p.1),
+              S xRef (Φ y xRef (p.2 - a p.1) r.2))
+          | Sum.inr _ => Sum.inr ())
+      let D : Hist n → ℝ → ℝ≥0∞ := fun h u =>
+        if a h < u ∧ u < (T : ℝ) then
+          match h (Fin.last n) with
+          | Sum.inl r => ENNReal.ofReal (rate xRef (Φ y xRef (u - a h) r.2) *
+              Real.exp (-Λ y xRef r.2 (Real.toNNReal (u - a h))))
+          | Sum.inr _ => 0
+        else 0
+      ∀ F : Hist (n+1) → ℝ≥0∞, Measurable F →
+        let J : Hist n → ℝ≥0∞ := fun h => ∫⁻ u : ℝ, F (append (h,u)) * D h u
+        Measurable J ∧
+        (∫⁻ w in history y xRef z₀ (n+1) ⁻¹' A (n+1) T,
+          F (history y xRef z₀ (n+1) w) ∂P) =
+        ∫⁻ w in history y xRef z₀ n ⁻¹' A n T,
+          J (history y xRef z₀ n w) ∂P
+
+  intro n T y xRef z₀
+  dsimp only
+  intro F hF
+  let a : Hist n → ℝ := fun h => readTime (h (Fin.last n))
+  let append : Hist n × ℝ → Hist (n+1) := fun p =>
+    Fin.snoc p.1 (match p.1 (Fin.last n) with
+      | Sum.inl r => Sum.inl (r.1 + Real.toNNReal (p.2 - a p.1),
+          S xRef (Φ y xRef (p.2 - a p.1) r.2))
+      | Sum.inr _ => Sum.inr ())
+  let D : Hist n → ℝ → ℝ≥0∞ := fun h u =>
+    if a h < u ∧ u < (T : ℝ) then
+      match h (Fin.last n) with
+      | Sum.inl r => ENNReal.ofReal (rate xRef (Φ y xRef (u - a h) r.2) *
+          Real.exp (-Λ y xRef r.2 (Real.toNNReal (u - a h))))
+      | Sum.inr _ => 0
+    else 0
+  let J : Hist n → ℝ≥0∞ := fun h => ∫⁻ u : ℝ, F (append (h,u)) * D h u
+  change Measurable J ∧ _
+  have h91 := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime.actual_absolute_next_event_time_law
+    hα hαβ hV hH hη hβη y xRef z₀ n
+  rcases h91 with ⟨hHist, _, _, _, _, _, _, hb⟩
+  have hconst := hb (fun _ => T) measurable_const
+  rcases hconst with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, hf⟩
+  obtain ⟨hJ, hloc⟩ := hf (fun p => F p.1) (hF.comp measurable_fst)
+  have hread : readTime = @AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.readTime (E × E) := by
+    funext r; cases r <;> rfl
+  have hA : MeasurableSet (A n T) := by
+    simpa only [A, hread] using history_guard_measurable (Z := E × E) n T
+  have hid := hloc (A n T) hA
+  have hAeq (k : ℕ) : A k T = {h | guard k T h} := by
+    dsimp only [A, guard]
+    rw [hread]
+  have hevent :
+      {w | (∃ r, record y xRef z₀ (ε w) n = Sum.inl r) ∧
+        (∃ r, record y xRef z₀ (ε w) (n+1) = Sum.inl r) ∧
+        readTime (record y xRef z₀ (ε w) n) < readTime (record y xRef z₀ (ε w) (n+1)) ∧
+        readTime (record y xRef z₀ (ε w) (n+1)) < (T : ℝ)} ∩
+        history y xRef z₀ n ⁻¹' A n T = history y xRef z₀ (n+1) ⁻¹' A (n+1) T := by
+    rw [Set.inter_comm]
+    symm
+    rw [hAeq, hAeq, hread]
+    exact record_event_step (fun w => record y xRef z₀ (ε w)) n T
+  change Measurable J at hJ
+  refine ⟨hJ, ?_⟩
+  change (∫⁻ w in
+      {w | (∃ r, record y xRef z₀ (ε w) n = Sum.inl r) ∧
+        (∃ r, record y xRef z₀ (ε w) (n+1) = Sum.inl r) ∧
+        readTime (record y xRef z₀ (ε w) n) < readTime (record y xRef z₀ (ε w) (n+1)) ∧
+        readTime (record y xRef z₀ (ε w) (n+1)) < (T : ℝ)} ∩
+      history y xRef z₀ n ⁻¹' A n T,
+      F (history y xRef z₀ (n+1) w) ∂P) =
+    ∫⁻ h in A n T, J h ∂(Measure.map (history y xRef z₀ n) P) at hid
+  rw [hevent] at hid
+  have hHist' : Measurable (history y xRef z₀ n) := hHist
+  exact hid.trans (setLIntegral_map (μ := P) hA hJ hHist')
+
+
+private theorem strictMono_snoc (n : ℕ) (f : Fin (n + 1) → ℝ) (u : ℝ) :
+    StrictMono (Fin.snoc f u) ↔ StrictMono f ∧ f (Fin.last n) < u := by
+  rw [Fin.strictMono_iff_lt_succ, Fin.forall_iff_castSucc]
+  simp only [Fin.succ_castSucc, Fin.snoc_castSucc,
+    Fin.snoc_last, Fin.succ_last]
+  rw [← Fin.strictMono_iff_lt_succ, and_comm]
+
+private theorem simplex_snoc (n : ℕ) (T : ℝ≥0) (t : Fin n → ℝ) (u : ℝ) :
+    (StrictMono (Fin.cons (0 : ℝ) (Fin.snoc t u)) ∧
+      ∀ i, (Fin.snoc t u : Fin (n+1) → ℝ) i < (T : ℝ)) ↔
+    (StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)) ∧
+      (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n) < u ∧ u < (T : ℝ) := by
+  rw [Fin.cons_snoc_eq_snoc_cons, strictMono_snoc]
+  simp only [Fin.forall_iff_castSucc, Fin.snoc_castSucc, Fin.snoc_last]
+  tauto
+
+private theorem snoc_volume_preserving (n : ℕ) :
+    MeasurePreserving (fun p : ℝ × (Fin n → ℝ) => Fin.snoc p.2 p.1)
+      (volume.prod volume) (volume : Measure (Fin (n+1) → ℝ)) := by
+  have h := (volume_preserving_piFinSuccAbove (fun _ : Fin (n+1) => ℝ) (Fin.last n)).symm
+  change MeasurePreserving (fun p : ℝ × (Fin n → ℝ) =>
+    @Fin.insertNth n (fun _ : Fin (n+1) => ℝ) (Fin.last n) p.1 p.2) (volume.prod volume) volume at h
+  simpa only [Fin.insertNth_last'] using h
+
+private def orderedSimplex (n : ℕ) (T : ℝ≥0) : Set (Fin n → ℝ) :=
+  {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+
+private theorem simplex_lintegral_snoc (n : ℕ) (T : ℝ≥0)
+    (hn : MeasurableSet (orderedSimplex n T)) (hs : MeasurableSet (orderedSimplex (n+1) T))
+    (F : (Fin (n+1) → ℝ) → ℝ≥0∞) (hF : Measurable F) :
+    (∫⁻ t in orderedSimplex (n+1) T, F t) =
+      ∫⁻ t in orderedSimplex n T, ∫⁻ u in Set.Ioo
+        ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ),
+        F (Fin.snoc t u) := by
+  let G : (Fin (n+1) → ℝ) → ℝ≥0∞ := (orderedSimplex (n+1) T).indicator F
+  have hg : Measurable G := hF.indicator hs
+  have hcomp := (snoc_volume_preserving n).lintegral_comp hg
+  rw [lintegral_indicator hs] at hcomp
+  rw [← hcomp]
+  rw [lintegral_prod_symm (μ := volume) (ν := volume)
+    (fun p : ℝ × (Fin n → ℝ) => G (Fin.snoc p.2 p.1))
+    (hg.comp (snoc_volume_preserving n).measurable).aemeasurable]
+  rw [← lintegral_indicator hn]
+  apply lintegral_congr
+  intro t
+  by_cases ht : t ∈ orderedSimplex n T
+  · rw [Set.indicator_of_mem ht, ← lintegral_indicator measurableSet_Ioo]
+    apply lintegral_congr
+    intro u
+    have he : (Fin.snoc t u : Fin (n+1) → ℝ) ∈ orderedSimplex (n+1) T ↔
+        ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n) < u ∧ u < (T : ℝ)) := by
+      change (StrictMono (Fin.cons (0 : ℝ) (Fin.snoc t u)) ∧
+        ∀ i, (Fin.snoc t u : Fin (n+1) → ℝ) i < (T : ℝ)) ↔ _
+      rw [simplex_snoc]
+      exact and_iff_right ht
+    change (orderedSimplex (n+1) T).indicator F (Fin.snoc t u) =
+      (Set.Ioo ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ)).indicator
+        (fun u => F (Fin.snoc t u)) u
+    by_cases hu : (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n) < u ∧ u < (T : ℝ)
+    · rw [Set.indicator_of_mem (he.mpr hu), Set.indicator_of_mem (s := Set.Ioo ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ)) hu]
+    · rw [Set.indicator_of_notMem (fun h => hu (he.mp h)), Set.indicator_of_notMem (s := Set.Ioo ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ)) hu]
+  · rw [Set.indicator_of_notMem ht]
+    have hz : ∀ u : ℝ, G (Fin.snoc t u) = 0 := by
+      intro u
+      apply Set.indicator_of_notMem
+      intro h
+      exact ht ((simplex_snoc n T t u).mp h).1
+    simp only [hz, lintegral_zero]
+
+
+private def snocPrefix (n : ℕ) (T : ℝ≥0) (t : orderedSimplex n T)
+    (u : Set.Ioo ((Fin.cons (0 : ℝ) t.val : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ)) :
+    orderedSimplex (n+1) T :=
+  ⟨Fin.snoc t.val u.val, (simplex_snoc n T t.val u.val).mpr ⟨t.property, u.property⟩⟩
+
+private theorem subtype_simplex_lintegral_snoc (n : ℕ) (T : ℝ≥0)
+    (hn : MeasurableSet (orderedSimplex n T)) (hs : MeasurableSet (orderedSimplex (n+1) T))
+    (F : orderedSimplex (n+1) T → ℝ≥0∞) (hF : Measurable F) :
+    (∫⁻ t : orderedSimplex (n+1) T, F t ∂(volume.comap Subtype.val)) =
+      ∫⁻ t : orderedSimplex n T,
+        ∫⁻ u : Set.Ioo ((Fin.cons (0 : ℝ) t.val : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ),
+          F (snocPrefix n T t u) ∂(volume.comap Subtype.val)
+        ∂(volume.comap Subtype.val) := by
+  obtain ⟨G, hG, hext⟩ := (MeasurableEmbedding.subtype_coe hs).exists_measurable_extend hF
+    (fun _ => inferInstance)
+  have he (t : orderedSimplex (n+1) T) : G t.val = F t := congrFun hext t
+  calc
+    (∫⁻ t : orderedSimplex (n+1) T, F t ∂(volume.comap Subtype.val)) =
+        ∫⁻ t : orderedSimplex (n+1) T, G t.val ∂(volume.comap Subtype.val) :=
+      lintegral_congr fun t => (he t).symm
+    _ = ∫⁻ t in orderedSimplex (n+1) T, G t := lintegral_subtype_comap hs G
+    _ = ∫⁻ t in orderedSimplex n T,
+        ∫⁻ u in Set.Ioo ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ),
+          G (Fin.snoc t u) := simplex_lintegral_snoc n T hn hs G hG
+    _ = ∫⁻ t : orderedSimplex n T,
+        (∫⁻ u in Set.Ioo ((Fin.cons (0 : ℝ) t.val : Fin (n+1) → ℝ) (Fin.last n)) (T : ℝ),
+          G (Fin.snoc t.val u)) ∂(volume.comap Subtype.val) :=
+      (lintegral_subtype_comap hn _).symm
+    _ = _ := by
+      apply lintegral_congr
+      intro t
+      rw [← lintegral_subtype_comap measurableSet_Ioo (fun u => G (Fin.snoc t.val u))]
+      apply lintegral_congr
+      intro u
+      exact he (snocPrefix n T t u)
+
+
+private def state {Z : Type*} (step : ℝ → Z → Z) (z₀ : Z) (n : ℕ) (t : Fin n → ℝ) :
+    Fin (n+1) → Z :=
+  Fin.induction z₀ (fun i z => step
+    (t i - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) i.castSucc) z)
+
+private theorem state_snoc_prefix {Z : Type*} (step : ℝ → Z → Z) (z₀ : Z)
+    (n : ℕ) (t : Fin n → ℝ) (u : ℝ) (j : Fin (n+1)) :
+    state step z₀ (n+1) (Fin.snoc t u) j.castSucc = state step z₀ n t j := by
+  induction j using Fin.induction with
+  | zero => rfl
+  | succ i ih =>
+    rw [← Fin.succ_castSucc]
+    change step ((Fin.snoc t u : Fin (n+1) → ℝ) i.castSucc -
+      (Fin.cons (0 : ℝ) (Fin.snoc t u) : Fin (n+2) → ℝ) i.castSucc.castSucc)
+      (state step z₀ (n+1) (Fin.snoc t u) i.castSucc.castSucc) =
+      step (t i - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) i.castSucc)
+        (state step z₀ n t i.castSucc)
+    rw [ih, Fin.snoc_castSucc, Fin.cons_snoc_eq_snoc_cons, Fin.snoc_castSucc]
+
+private theorem state_snoc_last {Z : Type*} (step : ℝ → Z → Z) (z₀ : Z)
+    (n : ℕ) (t : Fin n → ℝ) (u : ℝ) :
+    state step z₀ (n+1) (Fin.snoc t u) (Fin.last (n+1)) =
+      step (u - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n))
+        (state step z₀ n t (Fin.last n)) := by
+  rw [show Fin.last (n+1) = (Fin.last n).succ from rfl]
+  change step ((Fin.snoc t u : Fin (n+1) → ℝ) (Fin.last n) -
+    (Fin.cons (0 : ℝ) (Fin.snoc t u) : Fin (n+2) → ℝ) (Fin.last n).castSucc)
+    (state step z₀ (n+1) (Fin.snoc t u) (Fin.last n).castSucc) = _
+  rw [Fin.snoc_last, Fin.cons_snoc_eq_snoc_cons, Fin.snoc_castSucc, state_snoc_prefix]
+
+private def weight {Z : Type*} (step : ℝ → Z → Z) (factor : Z → ℝ → ℝ)
+    (z₀ : Z) (n : ℕ) (t : Fin n → ℝ) : ℝ :=
+  ∏ i : Fin n, factor (state step z₀ n t i.castSucc)
+    (t i - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) i.castSucc)
+
+private theorem weight_snoc {Z : Type*} (step : ℝ → Z → Z) (factor : Z → ℝ → ℝ)
+    (z₀ : Z) (n : ℕ) (t : Fin n → ℝ) (u : ℝ) :
+    weight step factor z₀ (n+1) (Fin.snoc t u) = weight step factor z₀ n t *
+      factor (state step z₀ n t (Fin.last n))
+        (u - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) := by
+  simp only [weight, Fin.prod_univ_castSucc]
+  rw [state_snoc_prefix, Fin.snoc_last, Fin.cons_snoc_eq_snoc_cons, Fin.snoc_castSucc]
+  congr 1
+  apply Finset.prod_congr rfl
+  intro i _
+  simp only [state_snoc_prefix, Fin.snoc_castSucc]
+
+
+private def timedHistory {Z : Type*} (step : ℝ → Z → Z) (z₀ : Z)
+    (n : ℕ) (t : Fin n → ℝ) : Fin (n+1) → ((ℝ≥0 × Z) ⊕ Unit) :=
+  fun j => Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) j),
+    state step z₀ n t j)
+
+private theorem timedHistory_snoc {Z : Type*} (step : ℝ → Z → Z) (z₀ : Z)
+    (n : ℕ) (t : Fin n → ℝ) (u : ℝ)
+    (ht : 0 ≤ (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n))
+    (hu : (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n) ≤ u) :
+    timedHistory step z₀ (n+1) (Fin.snoc t u) =
+      Fin.snoc (timedHistory step z₀ n t)
+        (Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)) +
+          Real.toNNReal (u - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n)),
+          step (u - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n))
+            (state step z₀ n t (Fin.last n)))) := by
+  funext j
+  induction j using Fin.lastCases with
+  | last =>
+    simp only [timedHistory, Fin.snoc_last, Fin.cons_snoc_eq_snoc_cons, state_snoc_last]
+    congr 2
+    apply NNReal.eq
+    simp only [NNReal.coe_add, Real.coe_toNNReal _ ht,
+      Real.coe_toNNReal _ (sub_nonneg.mpr hu), Real.coe_toNNReal _ (ht.trans hu)]
+    ring
+  | cast i =>
+    simp only [timedHistory, Fin.snoc_castSucc, Fin.cons_snoc_eq_snoc_cons,
+      state_snoc_prefix]
+
+private theorem ordered_last_nonneg (n : ℕ) (t : Fin n → ℝ)
+    (ht : StrictMono (Fin.cons (0 : ℝ) t)) :
+    0 ≤ (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n) := by
+  have h := ht.monotone (Fin.zero_le (Fin.last n))
+  simpa only [Fin.cons_zero] using h
+
+private theorem weight_snoc_ofReal {Z : Type*} (step : ℝ → Z → Z)
+    (factor : Z → ℝ → ℝ) (z₀ : Z) (n : ℕ) (t : Fin n → ℝ) (u : ℝ)
+    (hweight : 0 ≤ weight step factor z₀ n t) :
+    ENNReal.ofReal (weight step factor z₀ (n+1) (Fin.snoc t u)) =
+      ENNReal.ofReal (weight step factor z₀ n t) *
+      ENNReal.ofReal (factor (state step z₀ n t (Fin.last n))
+        (u - (Fin.cons (0 : ℝ) t : Fin (n+1) → ℝ) (Fin.last n))) := by
+  rw [weight_snoc, ENNReal.ofReal_mul hweight]
+
+
+set_option maxHeartbeats 2400000 in
+private theorem actual_prefix_all_integrals
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let readTime : Rec → ℝ := fun r => match r with
+      | Sum.inl q => (q.1 : ℝ)
+      | Sum.inr _ => 0
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ := fun y xRef z₀ n T t =>
+      ∏ i : Fin n,
+        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+          (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+      ENNReal.ofReal (qReal y xRef z₀ n T t)
+    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+        StrictMono (fun j => readTime (h j)) ∧
+        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+    ∀ n : ℕ, ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      ∀ F : Hist n → ℝ≥0∞, Measurable F →
+        (∫⁻ w in history y xRef z₀ n ⁻¹' A n T, F (history y xRef z₀ n w) ∂P) =
+          ∫⁻ t : Prefix n T, F (K y xRef z₀ n T t) * q y xRef z₀ n T t ∂m n T := by
+  classical
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let S : E → (E × E) → (E × E) := fun xRef z =>
+    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+  let rate : E → (E × E) → ℝ := fun xRef z =>
+    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+    MeasureTheory.hittingAfter
+      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+    match r with
+    | Sum.inr _ => Sum.inr ()
+    | Sum.inl a =>
+      if τ y xRef a.2 e = ⊤ then Sum.inr () else
+        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+  let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+      (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+    fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+  let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+  let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+  let readTime : Rec → ℝ := fun r => match r with
+    | Sum.inl q => (q.1 : ℝ)
+    | Sum.inr _ => 0
+  let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+    {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+  let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+  let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+    Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+  let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+    Fin.induction z₀ (fun i z =>
+      S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+  let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+    Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+  let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ := fun y xRef z₀ n T t =>
+    ∏ i : Fin n,
+      rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+        (zAt y xRef z₀ n T t i.castSucc)) *
+      Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+        (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+  let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+    ENNReal.ofReal (qReal y xRef z₀ n T t)
+  let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+    {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+  change ∀ n : ℕ, ∀ T : ℝ≥0, ∀ y xRef : E, ∀ z₀ : E × E,
+      ∀ F : Hist n → ℝ≥0∞, Measurable F →
+        (∫⁻ w in history y xRef z₀ n ⁻¹' A n T, F (history y xRef z₀ n w) ∂P) =
+          ∫⁻ t : Prefix n T, F (K y xRef z₀ n T t) * q y xRef z₀ n T t ∂m n T
+
+  intro n
+  induction n with
+  | zero => exact actual_prefix_base_integral hα hαβ hV hH hη hβη
+  | succ n ih =>
+    intro T y xRef z₀ F hF
+    let a : Hist n → ℝ := fun h => readTime (h (Fin.last n))
+    let append : Hist n × ℝ → Hist (n+1) := fun p =>
+      Fin.snoc p.1 (match p.1 (Fin.last n) with
+        | Sum.inl r => Sum.inl (r.1 + Real.toNNReal (p.2 - a p.1),
+            S xRef (Φ y xRef (p.2 - a p.1) r.2))
+        | Sum.inr _ => Sum.inr ())
+    let D : Hist n → ℝ → ℝ≥0∞ := fun h u =>
+      if a h < u ∧ u < (T : ℝ) then
+        match h (Fin.last n) with
+        | Sum.inl r => ENNReal.ofReal (rate xRef (Φ y xRef (u - a h) r.2) *
+            Real.exp (-Λ y xRef r.2 (Real.toNNReal (u - a h))))
+        | Sum.inr _ => 0
+      else 0
+    let J : Hist n → ℝ≥0∞ := fun h => ∫⁻ u : ℝ, F (append (h,u)) * D h u
+
+    have hs := actual_prefix_step_integral hα hαβ hV hH hη hβη n T y xRef z₀ F hF
+    change Measurable J ∧ _ at hs
+    have hn := ordered_prefix_borel_data hα hαβ hV hH hη hβη n T
+    have hn1 := ordered_prefix_borel_data hα hαβ hV hH hη hβη (n+1) T
+    have hparams : Measurable (fun t : Prefix (n+1) T => (((y, xRef), z₀), t)) :=
+      measurable_const.prodMk measurable_id
+    have hKjoint : Measurable (fun p : ((E × E) × (E × E)) × Prefix (n+1) T =>
+        K p.1.1.1 p.1.1.2 p.1.2 (n+1) T p.2) := hn1.2.2.1
+    have hqjoint : Measurable (fun p : ((E × E) × (E × E)) × Prefix (n+1) T =>
+        q p.1.1.1 p.1.1.2 p.1.2 (n+1) T p.2) := hn1.2.2.2.1
+    have hKn1 := hKjoint.comp hparams
+    have hqn1 := hqjoint.comp hparams
+    dsimp only [Function.comp_def] at hKn1 hqn1
+    have hG : Measurable (fun t : Prefix (n+1) T =>
+        F (K y xRef z₀ (n+1) T t) * q y xRef z₀ (n+1) T t) :=
+      (hF.comp hKn1).mul hqn1
+    calc
+      (∫⁻ w in history y xRef z₀ (n+1) ⁻¹' A (n+1) T,
+          F (history y xRef z₀ (n+1) w) ∂P) =
+        ∫⁻ w in history y xRef z₀ n ⁻¹' A n T, J (history y xRef z₀ n w) ∂P := hs.2
+      _ = ∫⁻ t : Prefix n T, J (K y xRef z₀ n T t) * q y xRef z₀ n T t ∂m n T :=
+        ih T y xRef z₀ J hs.1
+      _ = _ := by
+        refine Eq.trans ?_ (subtype_simplex_lintegral_snoc n T hn.1 hn1.1 _ hG).symm
+        apply lintegral_congr
+        intro t
+        let s : ℝ := (Fin.cons (0 : ℝ) t.val : Fin (n+1) → ℝ) (Fin.last n)
+        let z := zAt y xRef z₀ n T t (Fin.last n)
+        let rho : ℝ → ℝ≥0∞ := fun u => ENNReal.ofReal
+          (rate xRef (Φ y xRef (u-s) z) * Real.exp (-Λ y xRef z (Real.toNNReal (u-s))))
+        have hnonneg : 0 ≤ s := ordered_last_nonneg n t.val t.property.1
+        have ha : a (K y xRef z₀ n T t) = s := by
+          change (Real.toNNReal s : ℝ) = s
+          exact Real.coe_toNNReal _ hnonneg
+        have hD (u : ℝ) : D (K y xRef z₀ n T t) u =
+            (Set.Ioo s (T : ℝ)).indicator rho u := by
+          dsimp only [D]
+          rw [ha]
+          change (if s < u ∧ u < (T : ℝ) then rho u else 0) = _
+          by_cases hu : u ∈ Set.Ioo s (T : ℝ)
+          · have hu' : s < u ∧ u < (T : ℝ) := hu
+            rw [if_pos hu', Set.indicator_of_mem hu]
+          · have hu' : ¬ (s < u ∧ u < (T : ℝ)) := hu
+            rw [if_neg hu', Set.indicator_of_notMem hu]
+        have hfinite : q y xRef z₀ n T t ≠ ⊤ := ENNReal.ofReal_ne_top
+        change (∫⁻ u : ℝ, F (append (K y xRef z₀ n T t,u)) * D (K y xRef z₀ n T t) u) *
+          q y xRef z₀ n T t = _
+        rw [← lintegral_mul_const' _ _ hfinite]
+        have hcut : (∫⁻ u : ℝ,
+            F (append (K y xRef z₀ n T t,u)) * D (K y xRef z₀ n T t) u * q y xRef z₀ n T t) =
+            ∫⁻ u in Set.Ioo s (T : ℝ),
+              F (append (K y xRef z₀ n T t,u)) * rho u * q y xRef z₀ n T t := by
+          rw [← lintegral_indicator measurableSet_Ioo]
+          apply lintegral_congr
+          intro u
+          rw [hD]
+          by_cases hu : u ∈ Set.Ioo s (T : ℝ)
+          · simp only [Set.indicator_of_mem hu]
+          · simp only [Set.indicator_of_notMem hu, mul_zero, zero_mul]
+        rw [hcut, ← lintegral_subtype_comap measurableSet_Ioo]
+        apply lintegral_congr
+        intro u
+        have happ : K y xRef z₀ (n+1) T (snocPrefix n T t u) =
+            append (K y xRef z₀ n T t, u.val) := by
+          dsimp only [append]
+          rw [ha]
+          exact timedHistory_snoc (fun d z => S xRef (Φ y xRef d z)) z₀ n t.val u.val
+            hnonneg u.property.1.le
+        have hprod : q y xRef z₀ (n+1) T (snocPrefix n T t u) =
+            q y xRef z₀ n T t * rho u.val := by
+          exact weight_snoc_ofReal (fun d z => S xRef (Φ y xRef d z))
+            (fun z d => rate xRef (Φ y xRef d z) * Real.exp (-Λ y xRef z (Real.toNNReal d)))
+            z₀ n t.val u.val (hn.2.2.2.2 y xRef z₀ t)
+        rw [happ, hprod]
+        ac_rfl
+
+
+private theorem law_and_mass_of_all_tests {Ω X H : Type*}
+    [MeasurableSpace Ω] [MeasurableSpace X] [MeasurableSpace H]
+    (P : Measure Ω) [IsProbabilityMeasure P] (m : Measure X)
+    (B : Set Ω) (history : Ω → H) (K : X → H) (q : X → ℝ≥0∞)
+    (hH : Measurable history) (hK : Measurable K) (hq : Measurable q)
+    (htest : ∀ F : H → ℝ≥0∞, Measurable F →
+      (∫⁻ w in B, F (history w) ∂P) = ∫⁻ t, F (K t) * q t ∂m) :
+    Measure.map history (P.restrict B) = Measure.map K (m.withDensity q) ∧
+      (∫⁻ t, q t ∂m) = P B ∧ P B ≤ 1 := by
+  refine ⟨?_, ?_, prob_le_one⟩
+  · apply Measure.ext_of_lintegral
+    intro F hF
+    rw [lintegral_map hF hH, lintegral_map hF hK,
+      lintegral_withDensity_eq_lintegral_mul m hq (g := fun t => F (K t)) (hF.comp hK)]
+    exact (htest F hF).trans (lintegral_congr fun _ => mul_comm _ _)
+  · have h := htest (fun _ => 1) measurable_const
+    simpa only [one_mul, lintegral_const, Measure.restrict_apply MeasurableSet.univ,
+      Set.univ_inter] using h.symm
+
+
+private def actual_ordered_prefix_statement
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let rate : E → (E × E) → ℝ := fun xRef z =>
+      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+      MeasureTheory.hittingAfter
+        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+      match r with
+      | Sum.inr _ => Sum.inr ()
+      | Sum.inl a =>
+        if τ y xRef a.2 e = ⊤ then Sum.inr () else
+          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let readTime : Rec → ℝ := fun r => match r with
+      | Sum.inl q => (q.1 : ℝ)
+      | Sum.inr _ => 0
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ := fun y xRef z₀ n T t =>
+      ∏ i : Fin n,
+        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+          (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+      ENNReal.ofReal (qReal y xRef z₀ n T t)
+    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+        StrictMono (fun j => readTime (h j)) ∧
+        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+    ∀ n : ℕ, ∀ T : ℝ≥0,
+      MeasurableSet (Δ n T) ∧ MeasurableSet (A n T) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        K p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        q p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E,
+        let H : (ℕ → ℝ) → Hist n := history y xRef z₀ n
+        let B : Set (ℕ → ℝ) := H ⁻¹' A n T
+        let obs : (ℕ → ℝ) → Fin n → ℝ := fun w i => readTime (H w i.succ)
+        Measurable H ∧ MeasurableSet B ∧ Measurable obs ∧
+        (∀ t : Prefix n T, 0 ≤ qReal y xRef z₀ n T t) ∧
+        (∀ w ∈ B, ∃ t : Prefix n T, t.val = obs w ∧ H w = K y xRef z₀ n T t) ∧
+        Measure.map H (P.restrict B) =
+          Measure.map (K y xRef z₀ n T) ((m n T).withDensity (q y xRef z₀ n T)) ∧
+        (∀ F : Hist n → ℝ≥0∞, Measurable F →
+          (∫⁻ w in B, F (H w) ∂P) =
+            ∫⁻ t : Prefix n T, F (K y xRef z₀ n T t) * q y xRef z₀ n T t ∂m n T) ∧
+        (∫⁻ t : Prefix n T, q y xRef z₀ n T t ∂m n T) = P B ∧
+        P B ≤ 1)
+
+
+set_option maxHeartbeats 2400000 in
+theorem actual_ordered_prefix_law
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    actual_ordered_prefix_statement hα hαβ hV hH hη hβη := by
+  classical
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let S : E → (E × E) → (E × E) := fun xRef z =>
+    (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+      ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+  let rate : E → (E × E) → ℝ := fun xRef z =>
+    Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+  let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>
+    ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)
+  let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>
+    MeasureTheory.hittingAfter
+      (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>
+        Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))
+      (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)
+  let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>
+    match r with
+    | Sum.inr _ => Sum.inr ()
+    | Sum.inl a =>
+      if τ y xRef a.2 e = ⊤ then Sum.inr () else
+        Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,
+          S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))
+  let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →
+      ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>
+    Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n
+  let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))
+  let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)
+  let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →
+      (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=
+    fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val
+  let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+  let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+  let readTime : Rec → ℝ := fun r => match r with
+    | Sum.inl q => (q.1 : ℝ)
+    | Sum.inr _ => 0
+  let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+    {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+  let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+  let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+    Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+  let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+    Fin.induction z₀ (fun i z =>
+      S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+  let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+    Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+  let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ := fun y xRef z₀ n T t =>
+    ∏ i : Fin n,
+      rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)
+        (zAt y xRef z₀ n T t i.castSucc)) *
+      Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)
+        (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))
+  let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+      Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>
+    ENNReal.ofReal (qReal y xRef z₀ n T t)
+  let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>
+    {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧
+      StrictMono (fun j => readTime (h j)) ∧
+      ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}
+  change ∀ n : ℕ, ∀ T : ℝ≥0,
+      MeasurableSet (Δ n T) ∧ MeasurableSet (A n T) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        K p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        q p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧
+      (∀ y xRef : E, ∀ z₀ : E × E,
+        let H : (ℕ → ℝ) → Hist n := history y xRef z₀ n
+        let B : Set (ℕ → ℝ) := H ⁻¹' A n T
+        let obs : (ℕ → ℝ) → Fin n → ℝ := fun w i => readTime (H w i.succ)
+        Measurable H ∧ MeasurableSet B ∧ Measurable obs ∧
+        (∀ t : Prefix n T, 0 ≤ qReal y xRef z₀ n T t) ∧
+        (∀ w ∈ B, ∃ t : Prefix n T, t.val = obs w ∧ H w = K y xRef z₀ n T t) ∧
+        Measure.map H (P.restrict B) =
+          Measure.map (K y xRef z₀ n T) ((m n T).withDensity (q y xRef z₀ n T)) ∧
+        (∀ F : Hist n → ℝ≥0∞, Measurable F →
+          (∫⁻ w in B, F (H w) ∂P) =
+            ∫⁻ t : Prefix n T, F (K y xRef z₀ n T t) * q y xRef z₀ n T t ∂m n T) ∧
+        (∫⁻ t : Prefix n T, q y xRef z₀ n T t ∂m n T) = P B ∧
+        P B ≤ 1)
+  intro n T
+  have hg := ordered_prefix_borel_data hα hαβ hV hH hη hβη n T
+  refine ⟨hg.1, hg.2.1, hg.2.2.1, hg.2.2.2.1, ?_⟩
+  intro y xRef z₀
+  dsimp only
+  have h91 := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime.actual_absolute_next_event_time_law
+    hα hαβ hV hH hη hβη y xRef z₀ n
+  have hHist : Measurable (history y xRef z₀ n) := h91.1
+  have hB : MeasurableSet (history y xRef z₀ n ⁻¹' A n T) := hg.2.1.preimage hHist
+  have hread : readTime = @AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.readTime (E × E) := by
+    funext r; cases r <;> rfl
+  have hObs : Measurable (fun w : ℕ → ℝ => fun i : Fin n =>
+      readTime (history y xRef z₀ n w i.succ)) := by
+    rw [hread]
+    apply measurable_pi_lambda
+    intro i
+    exact readTime_measurable.comp ((measurable_pi_apply i.succ).comp hHist)
+  have hparams : Measurable (fun t : Prefix n T => (((y, xRef), z₀), t)) :=
+    measurable_const.prodMk measurable_id
+  have hKjoint : Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+      K p.1.1.1 p.1.1.2 p.1.2 n T p.2) := hg.2.2.1
+  have hqjoint : Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+      q p.1.1.1 p.1.1.2 p.1.2 n T p.2) := hg.2.2.2.1
+  have hK := hKjoint.comp hparams
+  have hq := hqjoint.comp hparams
+  dsimp only [Function.comp_def] at hK hq
+  have htest := actual_prefix_all_integrals hα hαβ hV hH hη hβη n T y xRef z₀
+  letI : IsProbabilityMeasure P :=
+    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1
+  have hclosure := law_and_mass_of_all_tests P (m n T)
+    (history y xRef z₀ n ⁻¹' A n T) (history y xRef z₀ n)
+    (K y xRef z₀ n T) (q y xRef z₀ n T) hHist hK hq htest
+  refine ⟨hHist, hB, hObs, hg.2.2.2.2 y xRef z₀, ?_, hclosure.1, htest,
+    hclosure.2.1, hclosure.2.2⟩
+  exact actual_prefix_identification hα hαβ hV hH hη hβη n T y xRef z₀
+
+end
+end AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix

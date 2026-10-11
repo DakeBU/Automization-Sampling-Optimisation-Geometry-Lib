@@ -1,0 +1,80 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
+import Mathlib.Data.Fin.Rev
+
+/- Type-only proposal for independent source and mathematical header review.
+No theorem proof, claim or completion is asserted. -/
+namespace PBPSEndpointReversalCandidate97
+open MeasureTheory InnerProductSpace
+open scoped ContDiff NNReal ENNReal Classical
+noncomputable section
+set_option autoImplicit false
+
+def candidate
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by
+  classical
+  exact
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let S : E → (E × E) → (E × E) := fun xRef z =>
+      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))
+    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit
+    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec
+    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>
+      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}
+    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}
+    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>
+      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))
+    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>
+      Fin.induction z₀ (fun i z =>
+        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))
+    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →
+        Prefix n T → Hist n := fun y xRef z₀ n T t j =>
+      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)
+    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E
+    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=
+      fun y xRef z₀ n T h s =>
+        Fin.foldl (n + 1) (fun z j => (h j).elim
+          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)
+          (fun _ => z)) z₀
+    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=
+      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)
+    let R : (E × E) → (E × E) := fun z => (z.1, -z.2)
+    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)
+    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,
+      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧
+      Measurable rho ∧ Function.Involutive rho ∧ MeasurePreserving rho (m n T) (m n T) ∧
+      let A : E → E → (E × E) → Prefix n T → (E × E) :=
+        fun y r z t => Γ y r z n T t ⟨T, le_rfl⟩
+      let Theta : E → E → ((E × E) × Prefix n T) → ((E × E) × Prefix n T) :=
+        fun y r q => (R (A y r q.1 q.2), rho q.2)
+      (∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,
+        A y r z t = Φ y r ((T : ℝ) -
+          (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) (Fin.last n))
+          (zAt y r z n T t (Fin.last n))) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        A p.1.1.1 p.1.1.2 p.1.2 p.2) ∧
+      (∀ y r : E, ∀ t : Prefix n T,
+        MeasurePreserving (fun z => A y r z t) ell ell) ∧
+      (∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,
+        A y r (R (A y r z t)) (rho t) = R z) ∧
+      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+        Theta p.1.1.1 p.1.1.2 (p.1.2, p.2)) ∧
+      (∀ y r : E, Function.Involutive (Theta y r)) ∧
+      (∀ y r : E, MeasurePreserving (Theta y r) (ell.prod (m n T)) (ell.prod (m n T)))
+
+#check candidate
+end
+end PBPSEndpointReversalCandidate97

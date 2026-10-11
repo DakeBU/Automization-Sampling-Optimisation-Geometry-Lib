@@ -1,0 +1,199 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-endpoint-time-reversal",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS finite endpoint/time reversal",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 A8 actual prescribed endpoint/time reversal and product-volume change of variables.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume\nimport Mathlib.Data.Fin.Rev\n\n/- Type-only proposal for independent source and mathematical header review.\nNo theorem proof, claim or completion is asserted. -/\nnamespace PBPSEndpointReversalCandidate97\nopen MeasureTheory InnerProductSpace\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let R : (E × E) → (E × E) := fun z => (z.1, -z.2)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      Measurable rho ∧ Function.Involutive rho ∧ MeasurePreserving rho (m n T) (m n T) ∧\n      let A : E → E → (E × E) → Prefix n T → (E × E) :=\n        fun y r z t => Γ y r z n T t ⟨T, le_rfl⟩\n      let Theta : E → E → ((E × E) × Prefix n T) → ((E × E) × Prefix n T) :=\n        fun y r q => (R (A y r q.1 q.2), rho q.2)\n      (∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        A y r z t = Φ y r ((T : ℝ) -\n          (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) (Fin.last n))\n          (zAt y r z n T t (Fin.last n))) ∧\n      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n        A p.1.1.1 p.1.1.2 p.1.2 p.2) ∧\n      (∀ y r : E, ∀ t : Prefix n T,\n        MeasurePreserving (fun z => A y r z t) ell ell) ∧\n      (∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        A y r (R (A y r z t)) (rho t) = R z) ∧\n      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n        Theta p.1.1.1 p.1.1.2 (p.1.2, p.2)) ∧\n      (∀ y r : E, Function.Involutive (Theta y r)) ∧\n      (∀ y r : E, MeasurePreserving (Theta y r) (ell.prod (m n T)) (ell.prod (m n T)))\n\n#check candidate\nend\nend PBPSEndpointReversalCandidate97\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law"
+  ],
+  "consumers": [
+    "PBPS A8 weighted sector change of variables (planned, not proved)"
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Frozen full theorem compiled; independent whole mathematics, anonymous decoding, source and exposition reviews pending."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261012-PBPSActualEndpointTimeReversal",
+    "statement_seal": "runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/root.statement-seal97.json",
+    "focused_checks": [
+      "runs\\20261007-companion-priority\\pbps-actual-endpoint-time-reversal97\\focused97\\production2\\receipt.json",
+      "runs\\20261007-companion-priority\\pbps-actual-endpoint-time-reversal97\\checks97\\production-build\\receipt.json",
+      "runs\\20261007-companion-priority\\pbps-actual-endpoint-time-reversal97\\independent-whole-math97\\whole-math-decision97.native.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualEndpointTimeReversal.lean"
+    ],
+    "truth_boundary": "No pointwise reversal of right-continuous path values at jumps; no Gibbs density balance, stationary initial averaging/invariance, Markovness, hypocoercivity, implementation error, expected costs, main results or composition.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualEndpointTimeReversal.lean",
+      "raw_sha256": "01816c27c8371ba9f81e24217ef7732b6c541066cb0b0f37e6494ffd8c58d27a",
+      "bytes": 29462
+    },
+    "independent_whole_math": "runs/20261007-companion-priority/pbps-actual-endpoint-time-reversal97/independent-whole-math97/whole-math-decision97.native.json",
+    "semantic_audit": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261012-PBPSActualEndpointTimeReversal.json",
+    "source_review": "runs/20261007-companion-priority/pbps-actual-endpoint-time-reversal97/independent-final-source97/source-review97.native.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Source-first exact local and pinned Mathlib reuse search: runs/20261007-companion-priority/pbps-actual-phase-reversal-volume96/next-primary97/reuse-search97.native.json",
+      "Independent exact-header mathematical/API audit: runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/independent-header-math97/header-math-decision97.native.json",
+      "Independent source graph/coverage validation: runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/independent-header-math97/topology97/source-topology-decision97.native.json"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+    "canonical_shared_cell": "",
+    "reason": "Reuse actual phase preserving laws and actual finite path; construct the exact simplex reversal and deterministic finite-word inverse, then use Mathlib skew product."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Source-first exact local and pinned Mathlib reuse search: runs/20261007-companion-priority/pbps-actual-phase-reversal-volume96/next-primary97/reuse-search97.native.json",
+      "Independent exact-header mathematical/API audit: runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/independent-header-math97/header-math-decision97.native.json",
+      "Independent source graph/coverage validation: runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/independent-header-math97/topology97/source-topology-decision97.native.json"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS A8 weighted sector change of variables and Gibbs averaging"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "The actual finite endpoint is identified with Gamma(T); preserving and inverse conclusions are produced from exact parents, never assumed."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/root.statement-seal97.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "2f27a049026ab398bfc85cecf1b2a450e8fef17c45e3a79e8b492c731343800b",
+    "binder_audit": [
+      "Six original analytic assumptions; no dynamics/volume provider.",
+      "Finite Hilbert Borel typing includes rank0.",
+      "rho is an existential conclusion uniquely determined by its coordinate formula, not a provider hypothesis."
+    ],
+    "definition_kind": "Thirteen exact inherited actual-path literals c,Phi,S,Rec,Hist,Delta,Prefix,m,zAt,K,Path,Psi,Gamma; literal R,ell; A directly evaluates Gamma(T), Theta=(R A,rho). Strict simplex, exact comap and phase-first ell.prod m."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-endpoint-time-reversal-preread97/source-proof-graph97.v2.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-phase-reversal-volume96/next-primary97/source-coverage97.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-endpoint-time-reversal97/independent-final-source97/compiled-source-coverage97.native.json",
+    "coverage_status": "Independent compiled source, seven-slot semantic and six-region exposition review accepted; full weighted invariance and whole-paper completion remain open."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 A8 actual prescribed endpoint/time reversal and product-volume change of variables.",
+    "fidelity_boundary": "No pointwise reversal of right-continuous path values at jumps; no Gibbs density balance, stationary initial averaging/invariance, Markovness, hypocoercivity, implementation error, expected costs, main results or composition.",
+    "detail_status": "omitted",
+    "gap": "Finite event-word reversal, affine tuple reversal and exact comap/product-volume transport require explicit completion.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and Mathlib",
+        "anchor": "Appendix A1 A8",
+        "hypothesis_adapter": "Actual Gamma(T), strict simplex comap volume, joint Borel and phase-first product measure; no pointwise jump reversal."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law"
+    ],
+    "bookkeeping": [
+      "Literal phase/simplex product measure and actual Gamma terminal evaluation",
+      "Reverse finite event-word algebra"
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual finite prescribed endpoint/time reversal is a jointly Borel measure-preserving involution on phase times the exact strict ordered simplex; terminal Gamma identification, fiber phase volume and reversed endpoint identity are conclusions."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Private simplex, finite-word and terminal-data helpers are consumed by the public theorem. Postmerge purification pending.",
+    "duplicate_semantics_audit": "Local/fixed Mathlib/frontier/compatible searches pinned.",
+    "canonicalization": "Reuse actual phase-volume and actual finite path laws, and fixed Mathlib finite-product/restriction APIs.",
+    "compressed_spine_delta": "Actual finite prescribed endpoint/time reversal is a jointly Borel measure-preserving involution on phase times the exact strict ordered simplex; terminal Gamma identification, fiber phase volume and reversed endpoint identity are conclusions.",
+    "reader_default_view": "Attributed volume/reversal statement and stepwise proof, adjacent initially folded Lean.",
+    "scope": "No pointwise reversal of right-continuous path values at jumps; no Gibbs density balance, stationary initial averaging/invariance, Markovness, hypocoercivity, implementation error, expected costs, main results or composition."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No theorem proof attempted yet.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-endpoint/finite-word/reversed-simplex/comap-product-volume"
+      ],
+      "expected_information_gain": "One proof writer; independent prospective math/source audits already closed.",
+      "shared_verified_context_digest": "2f27a049026ab398bfc85cecf1b2a450e8fef17c45e3a79e8b492c731343800b"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "One implementation route; no parallel theorem variants."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "A1.E8",
+        "A1.SS1.SSS0.Px1.p4.4"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+    ],
+    "visual_review": "Pending implementation/publication; reuse PBPS page and route."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Finite-word cancellation and existing measure-preserving skew-product mechanisms are used within one actual PBPS endpoint construction. No new cross-domain transport with distinct consumers is claimed."
+  }
+}

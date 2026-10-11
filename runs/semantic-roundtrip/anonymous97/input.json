@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-0c6bd1da8fa06340",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let R : (E × E) → (E × E) := fun z => (z.1, -z.2)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      Measurable rho ∧ Function.Involutive rho ∧ MeasurePreserving rho (m n T) (m n T) ∧\n      let A : E → E → (E × E) → Prefix n T → (E × E) :=\n        fun y r z t => Γ y r z n T t ⟨T, le_rfl⟩\n      let Theta : E → E → ((E × E) × Prefix n T) → ((E × E) × Prefix n T) :=\n        fun y r q => (R (A y r q.1 q.2), rho q.2)\n      (∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        A y r z t = Φ y r ((T : ℝ) -\n          (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) (Fin.last n))\n          (zAt y r z n T t (Fin.last n))) ∧\n      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n        A p.1.1.1 p.1.1.2 p.1.2 p.2) ∧\n      (∀ y r : E, ∀ t : Prefix n T,\n        MeasurePreserving (fun z => A y r z t) ell ell) ∧\n      (∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        A y r (R (A y r z t)) (rho t) = R z) ∧\n      Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n        Theta p.1.1.1 p.1.1.2 (p.1.2, p.2)) ∧\n      (∀ y r : E, Function.Involutive (Theta y r)) ∧\n      (∀ y r : E, MeasurePreserving (Theta y r) (ell.prod (m n T)) (ell.prod (m n T)))",
+    "statement_sha256": "0c6bd1da8fa063401669032c0df0369e069dda7e6d96ec425a63334ff7623674",
+    "compiled": true,
+    "approved_definition_context": [
+      "The real Hilbert gradient and Frechet derivative are gradient and fderiv. All measurable spaces on the ambient finite-dimensional real inner-product space are its Borel structure.",
+      "volume is canonical Hilbert-space Lebesgue measure. Measure.prod is product measure. Measure.comap under a measurable subtype inclusion gives the subtype measure. MeasurePreserving includes measurability and equality of pushforward measures.",
+      "Fin n indexes n coordinates from zero. Fin.cons prepends a coordinate. Fin.rev reverses the index order. Fin.induction is recursion on this finite index, and Fin.foldl applies updates in increasing index order.",
+      "Real division by zero equals zero. Real.toNNReal is the nonnegative part. Subtraction in the nonnegative reals is truncated at zero. Sum.inl is the live-record constructor; the other summand has one cemetery value.",
+      "A function-valued path has the product measurable structure, and its argument subtype is the closed interval from zero to the displayed horizon. Function.Involutive means composing the map with itself gives the identity. The zero-coordinate tuple is unique."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "91037b7f7b1c32ce1819d252b109280576dc8881ac4f6b1c36175e4bbecc59bd"
+}

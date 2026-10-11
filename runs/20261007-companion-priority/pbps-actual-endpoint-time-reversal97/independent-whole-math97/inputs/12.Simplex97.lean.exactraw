@@ -1,0 +1,83 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
+import Mathlib.Data.Fin.Rev
+import Mathlib.Order.Fin.Tuple
+
+namespace PBPSReversalWork97
+open MeasureTheory
+open scoped NNReal ENNReal Classical
+noncomputable section
+set_option autoImplicit false
+
+def delta (n : ℕ) (T : ℝ) : Set (Fin n → ℝ) :=
+  {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < T}
+def reverseTime {n : ℕ} (T : ℝ) (t : Fin n → ℝ) : Fin n → ℝ :=
+  fun i => T - t i.rev
+
+theorem reverseTime_involutive (n : ℕ) (T : ℝ) :
+    Function.Involutive (reverseTime (n := n) T) := by
+  intro t; funext i
+  simp [reverseTime]
+
+theorem reverseTime_mem {n : ℕ} {T : ℝ} {t : Fin n → ℝ}
+    (ht : t ∈ delta n T) : reverseTime T t ∈ delta n T := by
+  obtain ⟨hpos, hmono⟩ := Fin.strictMono_cons.mp ht.1
+  refine ⟨Fin.strictMono_cons.mpr ⟨?_, ?_⟩, ?_⟩
+  · intro i
+    exact sub_pos.mpr (ht.2 i.rev)
+  · intro i j hij
+    exact sub_lt_sub_left (hmono (Fin.rev_lt_rev.mpr hij)) T
+  · intro i
+    exact sub_lt_self T (hpos i.rev)
+
+theorem reverseTime_measurable (n : ℕ) (T : ℝ) :
+    Measurable (reverseTime (n := n) T) := by
+  apply measurable_pi_lambda
+  intro i
+  exact measurable_const.sub (measurable_pi_apply i.rev)
+
+theorem reverseTime_volume (n : ℕ) (T : ℝ) :
+    MeasurePreserving (reverseTime (n := n) T) volume volume := by
+  have hp := volume_measurePreserving_piCongrLeft (fun _ : Fin n => ℝ) Fin.revPerm
+  have heq : (fun t : Fin n → ℝ => fun i : Fin n => t i.rev) =
+      MeasurableEquiv.piCongrLeft (fun _ : Fin n => ℝ) Fin.revPerm := by
+    funext t i
+    symm
+    simpa only [Fin.revPerm_apply, Fin.rev_rev] using
+      (MeasurableEquiv.piCongrLeft_apply_apply (β := fun _ : Fin n => ℝ) Fin.revPerm t i.rev)
+  rw [← heq] at hp
+  have hc : MeasurePreserving (fun t : Fin n → ℝ => fun i => T - t i) volume volume :=
+    volume_preserving_pi (fun _ : Fin n => (volume : Measure ℝ).measurePreserving_sub_left T)
+  exact hc.comp hp
+
+def rho (n : ℕ) (T : ℝ) (t : delta n T) : delta n T :=
+  ⟨reverseTime T t.val, reverseTime_mem t.property⟩
+
+theorem rho_measurable (n : ℕ) (T : ℝ) : Measurable (rho n T) :=
+  ((reverseTime_measurable n T).comp measurable_subtype_coe).subtype_mk
+
+theorem rho_involutive (n : ℕ) (T : ℝ) : Function.Involutive (rho n T) := by
+  intro t; apply Subtype.ext
+  exact reverseTime_involutive n T t.val
+
+theorem rho_volume (n : ℕ) (T : ℝ) (hs : MeasurableSet (delta n T)) :
+    MeasurePreserving (rho n T) (Measure.comap Subtype.val volume)
+      (Measure.comap Subtype.val volume) := by
+  have he : reverseTime (n := n) T ⁻¹' delta n T = delta n T := by
+    ext t
+    constructor
+    · intro ht
+      have hh := reverseTime_mem ht
+      simpa only [reverseTime_involutive n T t] using hh
+    · exact reverseTime_mem
+  have hr := (reverseTime_volume n T).restrict_preimage hs
+  rw [he] at hr
+  have hcoe := measurePreserving_subtype_coe (μa := (volume : Measure (Fin n → ℝ))) hs
+  refine ⟨rho_measurable n T, ?_⟩
+  apply (MeasurableEmbedding.subtype_coe hs).map_injective
+  rw [Measure.map_map measurable_subtype_coe (rho_measurable n T)]
+  exact (hr.comp hcoe).map_eq.trans hcoe.map_eq.symm
+
+#print axioms rho_volume
+end
+end PBPSReversalWork97

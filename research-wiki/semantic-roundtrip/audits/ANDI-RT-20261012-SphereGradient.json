@@ -1,0 +1,277 @@
+{
+  "id": "ANDI-RT-20261012-SphereGradient",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "boumal-2023-annotations-20261008",
+    "anchor": "Boumal 2023 pre-publication annotations through2026-10-08, §3.7 Def3.55 and §3.8 Def3.58/(3.34), (3.36)–(3.39), Prop3.61 and Example3.62 sphere tangent space; printed41–44/PDF57–60",
+    "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=60",
+    "original_text": "Let M be a Riemannian submanifold of a Euclidean space E with the metric induced by E, and let F:M→ℝ be smooth. Its Riemannian gradient is characterized by DF(x)[v]=⟨v,grad F(x)⟩x for every tangent vector v. For any smooth ambient neighborhood extension f of F, grad F(x)=Proj_x(grad f(x)). For the unit sphere the tangent space at x is the orthogonal complement of the line spanned by x.",
+    "text_sha256": "171bc0ec0f635cc96c0fd8d6fb16ace2b43c78529fff80f6e4500301961321fa"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereGradient.lean",
+    "statement": "∀ (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)] (x : Metric.sphere (0 : E) 1) (f : E → ℝ) (g : E), HasGradientAt f g (x : E) → ∀ z : (ℝ ∙ (x : E))ᗮ, ((∀ w : TangentSpace (𝓡 n) x, mvfderiv (𝓡 n) (fun y : Metric.sphere (0 : E) 1 => f (y : E)) x w = inner ℝ (mvfderiv (𝓡 n) ((↑) : Metric.sphere (0 : E) 1 → E) x w) (z : E)) ↔ z = (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto g)",
+    "statement_sha256": "457b9872e9ffe35c6efe91a029531000f10806ea0956719b78203b420d6e4cf2",
+    "formalizer": "andi-sphere-root",
+    "compiled": true,
+    "decoder_context": [
+      "Metric.sphere (0:E) 1 is the set of vectors with norm1. (ℝ ∙ x)ᗮ is the orthogonal complement of the real linear span of x, with its inherited inner product.",
+      "Fact (Module.finrank ℝ E=n+1) supplies the finite-dimensional sphere model dimension. 𝓡 n is the real n-dimensional manifold model.",
+      "TangentSpace I x is the abstract tangent type of the manifold modeled on I. mvfderiv I h x is the actual differential of h into a vector space, as a continuous linear map on that tangent type; it is totalized to zero without differentiability.",
+      "HasGradientAt f g x certifies a genuine ambient Fréchet derivative represented by the linear functional v↦inner ℝ g v.",
+      "The inclusion ((↑):sphere (0:E)1→E) is the literal subtype inclusion. orthogonalProjectionOnto maps an ambient vector into the indicated orthogonal subspace. Subtype coercions send candidate vectors into E."
+    ]
+  },
+  "verdict": "domain-mismatch",
+  "repairs": [],
+  "publication_binding_sha256": "f5f6d75206b42457770c9a3f2fa8fe1cc2c82f27c7163adefa1abab58e597e39",
+  "publication_context": {
+    "file": "88c5e07b2ad389e890facf958b689ddb3f5ba00bee35bfdbc271906d6c974059",
+    "current_lean_module": "import Mathlib.Geometry.Manifold.Instances.Sphere\nimport Mathlib.Analysis.Calculus.Gradient.Basic\n\n/-!\n# The induced gradient on a sphere\n\nThe actual derivative of the sphere inclusion identifies chart tangent directions\nwith the ambient orthogonal tangent plane. Pairing through this inclusion gives\nthe induced metric, rather than the default inner product on chart coordinates.\nA genuine ambient gradient therefore determines the unique tangent representative\nof the actual restricted manifold differential by orthogonal projection.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient\n\nopen Metric\nopen scoped Manifold InnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E]\n\n/-- The orthogonal projection of the genuine ambient gradient is exactly the\nunique ambient tangent vector representing the true sphere differential with\nits induced pairing. No default chart metric is identified with this pairing. -/\ntheorem sphere_gradient_characterization\n    (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (x : sphere (0 : E) 1) {f : E → ℝ} {g : E}\n    (hf : HasGradientAt f g (x : E)) :\n    ∀ z : (ℝ ∙ (x : E))ᗮ,\n      ((∀ w : TangentSpace (𝓡 n) x,\n        mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n          ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w, (z : E)⟫_ℝ) ↔\n        z = (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto g) := by\n  let K := (ℝ ∙ (x : E))ᗮ\n  let A := mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x\n  have hA : A.range = K := range_mvfderiv_subtypeVal x\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n  have hd : ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n        ⟪A w, g⟫_ℝ := by\n    intro w\n    have hchain := mvfderiv_comp x hf.differentiableAt.mdifferentiableAt hco\n    change mvfderiv (𝓡 n) (f ∘ ((↑) : sphere (0 : E) 1 → E)) x w = _\n    rw [hchain]\n    convert! (hf.fderiv_apply (y := A w)) using 1 <;>\n      simp [A, mvfderiv, NormedSpace.fromTangentSpace, real_inner_comm] <;> rfl\n  have hp : ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n        ⟪A w, (K.orthogonalProjectionOnto g : E)⟫_ℝ := by\n    intro w\n    have hw : A w ∈ K := hA ▸ (show A w ∈ A.range from ⟨w, rfl⟩)\n    rw [hd w]\n    exact (K.inner_orthogonalProjectionOnto_eq_of_mem_left ⟨A w, hw⟩ g).symm\n  intro z\n  constructor\n  · intro hz\n    apply ext_inner_left ℝ\n    intro v\n    have hv : (v : E) ∈ A.range := hA.symm ▸ v.property\n    obtain ⟨w, hw⟩ := hv\n    change ⟪(v : E), (z : E)⟫_ℝ = ⟪(v : E), (K.orthogonalProjectionOnto g : E)⟫_ℝ\n    rw [← hw]\n    exact (hz w).symm.trans (hp w)\n  · rintro rfl\n    exact hp\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "boumal-2023-annotations-20261008",
+      "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=60",
+      "edition": "2023 pre-publication edition, annotations through 2026-10-08",
+      "anchor": "§3.8, Definition3.58 and equations3.36–3.38; Proposition3.61 (3.39), printed42–44 / PDF58–60",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Nicolas Boumal. ASTIS attributed restatement. Affine restriction is a prerequisite; sphere projection is a scoped nonlinear application. Neither completes the general embedded-manifold theorem."
+    },
+    "statement": "On a Riemannian submanifold of Euclidean space with the induced metric, the gradient of a smooth function is the tangent-space orthogonal projection of the ambient gradient of any smooth neighborhood extension.",
+    "formulae": [
+      {
+        "label": "Source projection formula",
+        "tex": "\\operatorname{grad}_Mf(x)=P_{T_xM}\\operatorname{grad}_E\\bar f(x)."
+      }
+    ],
+    "assumptions": [
+      "Finite-dimensional Euclidean ambient space and embedded submanifold with induced Riemannian metric.",
+      "Smooth real-valued f on the manifold and a smooth extension to a neighborhood."
+    ],
+    "obligations": [
+      {
+        "id": "affine-gradient",
+        "label": "Canonical gradient under linear/affine restriction with inherited metric."
+      },
+      {
+        "id": "nonlinear-differential",
+        "label": "Actual nonlinear tangent/differential and extension-independence adapter."
+      },
+      {
+        "id": "smooth-field",
+        "label": "Smoothness of the resulting manifold gradient field."
+      },
+      {
+        "id": "sphere-projection-characterization",
+        "label": "Unit-sphere specialization: use the actual manifold differential and inclusion derivative to construct and uniquely characterize its ambient induced-gradient representative."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization",
+      "title": "The induced gradient on the sphere is a projection",
+      "statement": "Let E be a finite-dimensional real inner-product space of dimension n+1 and let x be on its unit sphere. If the ambient objective f has genuine gradient g at x, its restriction F to the sphere has a unique ambient tangent representative of its actual manifold differential. That representative is the orthogonal projection of g onto T=x⊥. The pairing uses the actual inclusion derivative Aₓ, so it specifies the induced metric rather than a default chart inner product.",
+      "formula": "T=(\\mathbb R x)^\\perp,\\quad A_x=D\\iota(x),\\quad F=f\\circ\\iota,\\qquad DF(x)[w]=\\langle A_xw,z\\rangle_E\\ \\forall w\\ \\Longleftrightarrow\\ z=P_Tg\\quad(z\\in T).",
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space; dim E=n+1 and n may be0. Finite dimension supplies completeness and closedness of the tangent subspace, so no extra analytical premise is added.",
+        "x lies on the unit sphere, and f:E→ℝ has a genuine gradient g at x. Source smoothness implies this pointwise HasGradientAt witness; the theorem explicitly allows weaker pointwise regularity.",
+        "F is the literal restriction y↦f(y). Source maps on an ambient open neighborhood can be represented by their local germs, but arbitrary smooth extension construction is not proved.",
+        "Mathlib chart tangent directions are sent into the ambient tangent plane by the actual derivative Aₓ of the sphere inclusion. Its exact range is proved by Mathlib and used internally, not assumed. The induced pairing is ⟨Aₓw,Aₓw′⟩E; no default chart norm/inner product is identified with it."
+      ],
+      "steps": [
+        {
+          "title": "Identify actual tangent directions",
+          "text": "The sphere inclusion is differentiable. Its differential Aₓ has range exactly the ambient plane T orthogonal to x. Thus every actual chart tangent direction maps into T, and every vector in T has a preimage. The companion injectivity theorem makes the pullback of the ambient pairing positive definite; the present ambient-representative proof uses the exact range.",
+          "formula": "\\operatorname{range} A_x=T=(\\mathbb R x)^\\perp,\\qquad \\langle w,w\\prime\\rangle_x=\\langle A_xw,A_xw\\prime\\rangle_E.",
+          "lean": "  let K := (ℝ ∙ (x : E))ᗮ\n  let A := mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x\n  have hA : A.range = K := range_mvfderiv_subtypeVal x\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n",
+          "detail": "contMDiff_coe_sphere gives actual differentiability; range_mvfderiv_subtypeVal supplies both directions of the tangent identification. injective_mvfderiv_subtypeVal_sphere is background for interpreting the induced metric, not a call in this proof."
+        },
+        {
+          "title": "Differentiate the actual restricted objective",
+          "text": "Apply the manifold chain rule to F=f∘ι. The ambient gradient is a genuine derivative witness, so evaluating the result at w gives the ambient pairing with its true direction Aₓw. Explicit vector-space tangent identification reconciles target types; it changes neither the differential nor the metric.",
+          "formula": "DF(x)[w]=Df(x)[A_xw]=\\langle g,A_xw\\rangle_E=\\langle A_xw,g\\rangle_E.",
+          "lean": "  have hd : ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n        ⟪A w, g⟫_ℝ := by\n    intro w\n    have hchain := mvfderiv_comp x hf.differentiableAt.mdifferentiableAt hco\n    change mvfderiv (𝓡 n) (f ∘ ((↑) : sphere (0 : E) 1 → E)) x w = _\n    rw [hchain]\n    convert! (hf.fderiv_apply (y := A w)) using 1 <;>\n      simp [A, mvfderiv, NormedSpace.fromTangentSpace, real_inner_comm] <;> rfl\n",
+          "detail": "mvfderiv_comp and HasGradientAt.fderiv_apply provide the mathematical equalities. NormedSpace.fromTangentSpace is the explicit trivial-vector-space tangent identification; convert/rfl only reconciles its identity map."
+        },
+        {
+          "title": "Remove the normal component",
+          "text": "For each w, Aₓw belongs to T. Orthogonal projection changes g only by a vector perpendicular to T, so it preserves this pairing. The projected vector is already typed in T, furnishing an actual candidate gradient representative.",
+          "formula": "\\langle A_xw,g\\rangle_E=\\langle A_xw,P_Tg\\rangle_E.",
+          "lean": "  have hp : ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n        ⟪A w, (K.orthogonalProjectionOnto g : E)⟫_ℝ := by\n    intro w\n    have hw : A w ∈ K := hA ▸ (show A w ∈ A.range from ⟨w, rfl⟩)\n    rw [hd w]\n    exact (K.inner_orthogonalProjectionOnto_eq_of_mem_left ⟨A w, hw⟩ g).symm\n",
+          "detail": "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left applies to the proved tangent membership. No differential equality for the candidate is supplied as a premise."
+        },
+        {
+          "title": "Prove uniqueness on the whole tangent plane",
+          "text": "Suppose a tangent candidate z has the same differential pairings for every chart direction. Given any v in T, use the exact-range identity to choose w with Aₓw=v. The two candidates pair equally with every v in T. Nondegeneracy of its inherited inner product gives z=P_Tg. Conversely, the projected candidate satisfies all pairings by the preceding step.",
+          "formula": "\\forall v\\in T,\\ \\langle v,z\\rangle_E=\\langle v,P_Tg\\rangle_E\\quad\\Longrightarrow\\quad z=P_Tg.",
+          "lean": "  intro z\n  constructor\n  · intro hz\n    apply ext_inner_left ℝ\n    intro v\n    have hv : (v : E) ∈ A.range := hA.symm ▸ v.property\n    obtain ⟨w, hw⟩ := hv\n    change ⟪(v : E), (z : E)⟫_ℝ = ⟪(v : E), (K.orthogonalProjectionOnto g : E)⟫_ℝ\n    rw [← hw]\n    exact (hz w).symm.trans (hp w)\n  · rintro rfl\n    exact hp\n",
+          "detail": "Range surjectivity supplies each test direction; ext_inner_left proves uniqueness in the ambient tangent subspace. This constructs the candidate and proves its characterization before defining any chosen gradient object."
+        }
+      ],
+      "lean_statement": "TangentSpace (𝓡 n) x is the actual Mathlib tangent type for the unit sphere. mvfderiv is the true vector/scalar-valued manifold differential. z is in the ambient orthogonal tangent subspace; all w are quantified. The conclusion is a characterization, so it supplies existence by setting z=P_Tg and uniqueness for any candidate.",
+      "lean_proof": "Use the actual sphere inclusion and manifold chain rule, remove the normal component with projection, then test every ambient tangent direction through the exact range. No project-owned gradient definition or fallback semantics are introduced.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "range_mvfderiv_subtypeVal",
+        "contMDiff_coe_sphere",
+        "ContMDiffAt.mdifferentiableAt",
+        "HasGradientAt.differentiableAt",
+        "DifferentiableAt.mdifferentiableAt",
+        "mvfderiv_comp",
+        "HasGradientAt.fderiv_apply",
+        "NormedSpace.fromTangentSpace",
+        "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left",
+        "ext_inner_left"
+      ],
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=58",
+          "label": "Boumal2023, annotations2026-10-08, §§3.7–3.8; printed41–44/PDF57–60",
+          "scope": "ASTIS-authored sphere specialization of Definition3.58 and Proposition3.61, using the inherited metric in Example3.56/3.62. No book prose or source PDF is bundled."
+        }
+      ],
+      "tests": [
+        "lake build Tests.Shared.SphereGradient"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization",
+      "role": "proof-edge",
+      "supports": [
+        "sphere-projection-characterization"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Smooth objective and neighborhood extension.",
+        "lean": "Actual pointwise ambient HasGradientAt f g; literal restriction of total f."
+      },
+      {
+        "source": "General Riemannian submanifold with induced Euclidean metric.",
+        "lean": "Unit sphere with actual Mathlib inclusion differential and ambient tangent-subspace pairing."
+      },
+      {
+        "source": "Finite Euclidean space and tangent vector at x.",
+        "lean": "FiniteDimensional real inner-product E, finrank=n+1, x:sphere0E1, candidate z:x⊥ and chart tangent w transported by the true inclusion derivative."
+      }
+    ]
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/sphere_source_topology",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "63d20d244b765ce4f99c9cfdd5d7bcc34b2f9e201360ef872b81c3ccc92f5adc",
+    "review_run_sha256": "b3c8cc1431ce91d2e0f7689308ab75dc38e9e14573df427cd456223e4197764f",
+    "evidence": "Independent source-informed semantic review of the fresh consolidated anti-anchored packet. The entire original source restatement, anonymous reconstruction, exact module, lesson and publication candidate context were compared across all seven slots. No canonical draft audit or old semantic slots/verdicts/repairs were inspected. The full original-vs-reconstruction verdict is domain-mismatch because arbitrary manifold/general field scope is missing; compilation and prior mathematical review were not used to turn specialization into equivalence. Separately, source Def3.55, Def3.58/(3.34), projection argument3.36–3.39 and sphere induced metric/tangent example substantiate the sole supported sphere-projection-characterization binding. No source repair is proposed: source is not erroneous; any audit-source narrowing requires a new explicit contract/packet.",
+    "run_artifact": "runs/20261012-andi-sphere-gradient/source-semantic-review.json"
+  },
+  "reconstruction": {
+    "text": "Let E be a finite-dimensional real inner-product space with its normed additive group structure. For every natural number n with dim_R(E) = n + 1, every x on the unit sphere S = {u in E : ||u|| = 1}, every function f : E -> R, and every vector g in E, suppose f has a genuine ambient Frechet derivative at x represented by v |-> <g,v>. Put L = (R x)^perp. Then for every candidate z in L the following are equivalent:\n(1) For every abstract tangent vector w in T_x S, using the real n-dimensional manifold model, the differential of the restricted function f|_S at x evaluated on w equals <d(iota)_x(w), z>, where iota : S -> E is the literal inclusion and z is coerced into E for the pairing.\n(2) z is exactly the orthogonal projection of g onto L, with both sides regarded as elements of L.\nThus the projection is the unique vector in the orthogonal complement of x that represents the restricted differential through the inner product induced by the inclusion. The pairing uses the ambient image d(iota)_x(w); it does not identify the candidate's subtype with the abstract tangent type by an unstated equality. The differential expressions are the specified mvfderiv operators, which return zero when differentiability is absent. In this sphere setting the ambient HasGradientAt hypothesis gives differentiability of the restriction at x, and the inclusion is differentiable, so the characterization concerns genuine differentials at that point, rather than freely supplied linear maps or a condition that holds merely because a nondifferentiable map has a totalized zero derivative.\nThe claim is local at x. It assumes no global smoothness of f, imposes no positivity or nonzero condition on g or z, and includes n = 0 (ambient dimension one). It asserts an exact iff for all candidates z, not just that the projected candidate satisfies the pairing identity. It gives no differential equation, convergence bound, global gradient field, or formula for derivatives away from x.",
+    "text_sha256": "75d21433adfdcc3e35198583ec0adcce9304f4b20a8b73cffad5ce66dd219603",
+    "decoder": "/root/anon_decoder_20261012_2",
+    "decoder_run_sha256": "6e6f5e485d0c7a610c2745add7fb4dae938722b5df729b698327923272f92574",
+    "decoder_packet_sha256": "c399b924ad615b7229f5b3314173e7ab16fe62bed2b746e09624d4f29ef615be",
+    "source_text_visible": false,
+    "lean_statement_sha256": "457b9872e9ffe35c6efe91a029531000f10806ea0956719b78203b420d6e4cf2",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261012-andi-sphere-gradient/decoder-result.json",
+    "actual_packet_artifacts": [
+      "runs/20261012-andi-sphere-gradient/decoder-packet.json"
+    ],
+    "projection_note": "Canonical input_artifacts names the two anonymous content fields; unchanged independent raw decoder run records the actual packet path. No decoder output or run hash is rewritten."
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "An arbitrary Riemannian submanifold M of finite-dimensional Euclidean E, smooth manifold objective F, any smooth neighborhood extension f, and the Riemannian gradient grad F characterized as a tangent vector field. The original includes sphere tangent context.",
+      "reconstructed": "The unit sphere S in a finite-dimensional real inner-product E, total ambient f, genuine ambient gradient witness g at x, abstract chart tangent w and ambient tangent candidate z in L=(R x) orthogonal complement. No chosen manifold gradient field is defined.",
+      "relation": "different",
+      "evidence": "Reconstruction accurately expands the Lean carriers; it is a source-present sphere specialization, but has neither arbitrary M nor a globally defined smooth gradient field."
+    },
+    "domains": {
+      "original": "M ranges over Riemannian submanifolds of Euclidean E, with exactly the induced metric. Ambient extension is defined on any neighborhood U of M; source tangent vectors are embedded in E. Sphere is one particular example.",
+      "reconstructed": "M is fixed to Metric.sphere 0 1. dim E=n+1 for n natural, including n=0; f:E→R is total. w lives in actual TangentSpace(𝓡 n)x and z in ambient orthogonal subspace L.",
+      "relation": "different",
+      "evidence": "The full arbitrary-manifold domain is absent. For the source sphere example, finrank typing entails no extra nonempty-point restriction: x on a unit sphere already forces nonzero ambient dimension. Given a source smooth extension on open U containing S, a total function equal to it on U and arbitrary outside U has the same local derivative and sphere restriction; no globally smooth total extension is claimed."
+    },
+    "quantifiers": {
+      "original": "For any induced-metric Riemannian submanifold M, smooth F and smooth neighborhood extension f, the pointwise gradient formula holds at every x and is characterized against every embedded tangent v.",
+      "reconstructed": "For every E,n,x,f,g satisfying ambient HasGradientAt at x, and every ambient tangent candidate z, all abstract chart tangent w pair correctly iff z is the projection of g.",
+      "relation": "different",
+      "evidence": "Universality over arbitrary M is lost. Universality over x and all test directions is preserved on sphere instances. The candidate iff makes source uniqueness explicit; source arbitrary extensions can be specialized locally, but neither arbitrary extension construction nor general-manifold quantification is supplied."
+    },
+    "assumptions": {
+      "original": "Finite Euclidean carrier, embedded Riemannian submanifold with induced metric, globally smooth F and a smooth extension to a neighborhood.",
+      "reconstructed": "FiniteDimensional real inner-product carrier, sphere dimension typing and x in sphere, only pointwise HasGradientAt f g x. Actual inclusion differentiability/range are internally proved library inputs, not extra premises.",
+      "relation": "weaker-in-lean",
+      "evidence": "For the selected sphere geometry, source smoothness implies a genuine pointwise derivative represented by its Euclidean gradient. Pointwise HasGradientAt does not imply source global smoothness; this is an explicit valid generalization, not literal assumption equivalence or a source correction. There are no convenience metric/differential/pairing hypotheses."
+    },
+    "conclusion": {
+      "original": "grad_M F(x)=Proj_x grad_E f(x) for arbitrary induced-metric submanifolds, with grad F the uniquely characterized Riemannian gradient.",
+      "reconstructed": "On the sphere only, z represents the genuine restricted manifold differential through <dι_x w,z> iff z=P_Lg; setting z=P_Lg yields unique existence of that ambient representative.",
+      "relation": "different",
+      "evidence": "The sphere iff faithfully realizes the pointwise source characterization after actual inclusion identification. The whole arbitrary-manifold conclusion is unproved. A gradient object on abstract TangentSpace, global metric structure, or smooth gradient field is not a conclusion of this declaration."
+    },
+    "scopes": {
+      "original": "General Riemannian-submanifold projection recipe, under smooth source data. Definition3.58 names a gradient vector field; the source exercise and later smooth-field discussion address its well-definedness/smoothness.",
+      "reconstructed": "Local at x, with a genuine differential ensured by HasGradientAt plus analytic inclusion. It supplies an ambient tangent representative and an exact iff; no default chart metric, global metric typeclass, smooth field, general extension existence, or Rayleigh computation.",
+      "relation": "different",
+      "evidence": "The anonymous reconstruction explicitly states locality and excludes global fields. Candidate binding supports ONLY sphere-projection-characterization; unbound nonlinear-differential and smooth-field obligations correctly remain open. This scope limitation prevents whole-source equivalence."
+    },
+    "constant_dependencies": {
+      "original": "No rate constants or hidden parameter dependencies. The source sphere example has unit radius and finite ambient dimension.",
+      "reconstructed": "No estimates or constants; unit radius fixed, dimension n+1, no positivity/nonzero restriction on g or z, n=0 allowed.",
+      "relation": "same",
+      "evidence": "Exact unit-sphere normalization is retained; real inner-product symmetry changes pairing order without changing a constant. No numerical coefficient, endpoint, probability or rate statement is introduced."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "blocking",
+      "description": "The complete original source ranges over arbitrary induced-metric Riemannian submanifolds; the reconstructed theorem handles only the unit sphere. This blocks full-source equivalence, while it is intentional and accepted for the separate sphere binding.",
+      "evidence": "Independent geometry-specialization; blocking scope full-source-equivalence-only. See actual runs/20261012-andi-sphere-gradient/source-semantic-review.json",
+      "blocking_scope": "full-source-equivalence-only"
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "blocking",
+      "description": "The universal arbitrary-M source conclusion is absent. General nonlinear-differential obligation remains open; source sphere application quantifiers are preserved.",
+      "evidence": "Independent scope-restriction; blocking scope full-source-equivalence-only. See actual runs/20261012-andi-sphere-gradient/source-semantic-review.json",
+      "blocking_scope": "full-source-equivalence-only"
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Pointwise ambient HasGradientAt is weaker than smooth source data. Correct for local characterization and explicitly disclosed; it does not certify source smoothness or smooth field.",
+      "evidence": "Independent generalization; blocking scope informational-no-selected-binding-block. See actual runs/20261012-andi-sphere-gradient/source-semantic-review.json",
+      "blocking_scope": "informational-no-selected-binding-block"
+    },
+    {
+      "slot": "scopes",
+      "severity": "blocking",
+      "description": "The source names a general gradient vector field; Lean constructs only a local sphere ambient representative. Global metric/gradient-field and general well-definedness construction are not discharged. This is a full-source fidelity boundary, not a mathematical defect in the sphere theorem.",
+      "evidence": "Independent scope-restriction; blocking scope full-source-equivalence-only. See actual runs/20261012-andi-sphere-gradient/source-semantic-review.json",
+      "blocking_scope": "full-source-equivalence-only"
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "Source embedded tangent v corresponds to A_x w, the actual inclusion differential applied to an abstract chart tangent direction. Exact range gives all source directions; injectivity supports induced pullback metric interpretation. Candidate z is ambient tangent, not identified with abstract tangent by an unstated equality.",
+      "evidence": "Independent explicit-elaboration; blocking scope informational-no-selected-binding-block. See actual runs/20261012-andi-sphere-gradient/source-semantic-review.json",
+      "blocking_scope": "informational-no-selected-binding-block"
+    },
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Lean f is total; a source neighborhood extension gives the same local instance by taking a total function agreeing on its open domain and arbitrary outside. No smooth extension construction/global smooth total map is claimed.",
+      "evidence": "Independent local-germ-representation; blocking scope informational-no-selected-binding-block. See actual runs/20261012-andi-sphere-gradient/source-semantic-review.json",
+      "blocking_scope": "informational-no-selected-binding-block"
+    }
+  ]
+}

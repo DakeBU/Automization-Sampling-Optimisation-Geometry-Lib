@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
@@ -4463,6 +4464,16 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "geometry.sphere-gradient-characterization",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization",
+    upstreamDecl := "range_mvfderiv_subtypeVal; mvfderiv_comp; HasGradientAt.fderiv_apply; Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left; ext_inner_left",
+    upstreamFile := "Mathlib.Geometry.Manifold.Instances.Sphere; Mathlib.Geometry.Manifold.MFDeriv.NormedSpace; Mathlib.Analysis.Calculus.Gradient.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Boumal", "sphere", "gradient", "manifold-differential", "induced-metric", "orthogonal-projection"],
+    saldUse := "Shared actual nonlinear sphere differential and unique induced tangent-gradient representative for first-order geometry",
+    note := "The actual inclusion derivative identifies the ambient tangent plane; its pairing yields the unique projected gradient. No default chart metric, general embedded-manifold theorem, global metric or smooth gradient-field completion is claimed."
+  },
   {
     key := "geometry.curve-extension-independence",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension.fderiv_eq_on_curve_velocity",

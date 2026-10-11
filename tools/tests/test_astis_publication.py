@@ -293,9 +293,11 @@ class PublicationTest(unittest.TestCase):
         import library_shelves
         text = library_shelves.mathematical_chapter_map('riemannian-optimization', '03')
         self.assertIn('Mathematical knowledge map', text)
-        self.assertIn('Nonlinear tangent/differential identification', text)
+        self.assertIn('General embedded-manifold tangent/differential', text)
+        self.assertIn('sphere theorem closes the actual induced-gradient characterization', text)
         self.assertIn('explicit extension-choice proof edge', text)
-        self.assertIn('projection prerequisite', text)
+        self.assertIn('affine restriction supplies a projection prerequisite', text)
+        self.assertIn('&amp;q=AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.', text)
         self.assertIn('not completion of either proposition or Chapter3', text)
         self.assertNotIn('Upstream alignment', text)
         self.assertIn('lean-foundations.html?view=lean&amp;focus=decl%3A', text)

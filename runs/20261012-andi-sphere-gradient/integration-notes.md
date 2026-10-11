@@ -36,3 +36,13 @@ Contribution report for this package:
 8. Remaining: no fabricated historical evidence or unrelated legacy debt clearance. General embedded-manifold adapter, global smooth induced metric/gradient field and Rayleigh calculation remain open. Affine import purification debt remains separate. Sphere actual post-merge purification pending.
 
 No current PR, main merge or remote website deployment is claimed at this checkpoint. Final metadata snapshot must regenerate graph/site digest before delivery.
+
+## Actual merge and pending post-merge admission
+
+PR320 actually MERGED at2026-10-11T23:47:22Z; reviewed headb5df438a6824602b39e2c08e27d0f63471544cf6; merge30652c89b19e79dbc78fe14f0f576a8858013ebb. Read-only gh response retained in remote-merge-response.json and integration-closeout.json. Root/test/proof/lesson/source publication remain unchanged. The three omitted expansion ids identified in independent preflight are now added, preserving all13 source nodes. Actual independent post-merge purification still pending; no whole-source equivalence or affine debt clearance.
+
+## Independent post-merge purification closeout
+
+Actual sphere-post-merge-purification-review.json accepts scoped PURIFIED (review SHA e98a6359766d06062190aaa0aa0cf45827f6ad2841690099a0dab7bd0b1a742f). Both minimal direct imports were independently checked and are necessary; no dead provider or duplicate wrapper. All13 reviewed source expansions and four mathematical moves are retained. The real merge-head root Lean/ASTIS gate passed9431tasks; source/proof/test/lesson/common source card bytes remain unchanged. Current cell projects the actual independent result; historical WIP/pending/MERGED evidence stays lossless. Full-source domain-mismatch, general manifold/metric/smooth-field/Rayleigh obligations and separate affine import debt remain open. No whole textbook Goal completion.
+
+Final cell metadata snapshot regenerated and passed site/affected graph checks; actual native browser followup confirms current merge-head gate and unchanged compiled/source-fidelity separation. Exact proof/lesson signatures and old historical audit snapshots remain unchanged. Evidence-only closeout goes to contribution branch and safe fast-forward main; no new mathematical delta.

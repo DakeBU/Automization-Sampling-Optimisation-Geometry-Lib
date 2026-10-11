@@ -61,6 +61,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -105,6 +106,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualBoundedPathExpansion"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion.actual_bounded_path_functional_expansion"
+    upstreamDecl := "Actual PBPS bounded real path functional expansion"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A7"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "path", "density", "integrability", "summation"]
+    saldUse := "Actual PBPS bounded path expectations; no SALD claim"
+    note := "Independent science 5df604f6c9ddab63e552272b2e9056752616621e. Under the six original analytic assumptions, the literal stopped-clock process satisfies the full A7 expectation expansion for every bounded real functional measurable for the coordinate-product path sigma algebra. Every weighted finite-simplex term is integrable and the signed component integrals are absolutely summable. Actual finite-count joint laws and the whole-path density identity are consumed internally. Covers n=0,T=0,rank0,zero rates and infinite waits. ASTIS uses countable probability-partition integration as an alternative to the printed rate-cap/factorial proof. No Skorokhod assertion, unbounded-test/cost transfer, restart/Markovness, invariance, hypocoercivity, implementation error, main result or actual-input composition completion."
+  },
   {
     key := "pbps.actualPrescribedPathDensity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite"

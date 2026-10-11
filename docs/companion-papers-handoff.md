@@ -1,5 +1,39 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS bounded path functional expansion (2026-10-11)
+
+Independent science 5df604f6c9ddab63e552272b2e9056752616621e. Under the original six analytic assumptions,
+the actual jointly measurable stopped-clock process Z satisfies the full A7
+identity for every globally bounded real F measurable for the coordinate-product
+sigma algebra on phase-valued paths over [0,T]:
+
+E[F(Z_T)] = sum_(n>=0) integral_Delta_n(T) F(Gamma_n(t)) w_n(t) dm_n(t),
+w_n(t) = exp(-integral_0^T lambda(Gamma_n(t)(s))ds) product_i lambda(z_(i-)).
+
+The left observable and every weighted simplex term are integrable. The family
+of signed component integrals is unconditionally summable, hence absolutely
+summable. The finite-count joint law and prescribed-path density are proved
+parents, not supplied hypotheses. Zero events, zero horizon, rank0, zero rates,
+stopping and infinite waits remain covered with the same actual raw fallback.
+The source printed cap/factorial route remains separately indexed; the ASTIS
+proof uses countable probability-partition integration to justify signed sums.
+
+Independent mathematics/kernel, source-blind decoding, primary-first source
+review, five adjacent formula/Lean explanations and exact-commit review passed.
+The next source dependency is actual phase-volume preservation and reversal
+mechanics (A6 and the flow), consumed by finite prescribed endpoint/time reversal
+in A8. Restart/Markovness is separate from fixed-time stationarity. Reversal at
+internal jump times must use the correct left-limit convention, not naive
+pointwise reversal of a right-continuous path.
+
+The sole existing stabilization lane handles aggregate publication/graph/site
+checks. Actual page/fine-branch visual acceptance, main merge and postmerge
+purification remain separate. No unbounded expectation or oracle-cost transfer,
+Skorokhod identification, invariance, hypocoercivity, implementation errors,
+main paper results or actual-input composition is claimed. All four full papers
+remain open and the existing unbudgeted Goal remains active.
+
+
 ## Actual PBPS prescribed-path hazard and density identity (2026-10-11)
 
 Independent science ad3b80a339bf1cf0dd88685f202632a92eeb0797. All six original analytic assumptions and

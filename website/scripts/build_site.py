@@ -24,6 +24,7 @@ import formalization_progress  # noqa: E402
 import declaration_lessons  # noqa: E402
 import publication_reader  # noqa: E402
 import metadata_lessons  # noqa: E402
+import math_2_0  # noqa: E402
 import inline_lean  # noqa: E402
 import proof_readers  # noqa: E402
 import harness  # noqa: E402
@@ -229,6 +230,8 @@ def main() -> int:
     publication_reader.enrich_site(output)
     metadata_lessons.enrich_site(output)
     inline_lean.enrich_textbook(output)
+
+    math_2_0.enrich_site(output)
 
     inherit_final_reader_contract(output)
     repair_project_author_footer(output)

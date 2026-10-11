@@ -1,0 +1,67 @@
+Anonymous theorem reconstruction
+
+Ambient data and hypotheses.
+Let E be any finite-dimensional real inner-product space with its normed additive group structure and Borel measurable structure. Dimension zero is allowed. Let V:E -> R be twice continuously Frechet differentiable. Let alpha,beta be nonnegative real numbers, regarded also as ordinary real scalars, with alpha>0 and alpha<=beta. For every x,v in E, assume
+  alpha ||v||^2 <= D(DV)(x)[v][v] <= beta ||v||^2.
+Let eta be a real number with eta>0 and beta eta<=1. The gradient below is the real Hilbert-space gradient of V. All following displayed constructions are definitions from these data, not additional assumptions or freely supplied interfaces.
+
+Deterministic phase-space constructions.
+For y,r in E, put c=y-eta grad V(r). For z=(x,v) in E x E and a real time u define
+  Phi(y,r,u,(x,v)) = (c+cos(u)(x-c)+sqrt(eta)sin(u)v,
+                      -sin(u)/sqrt(eta)(x-c)+cos(u)v).
+Set g_r(x)=grad V(x)-grad V(r) and define
+  S_r(x,v) = (x, v-[2 <v,g_r(x)> / ||g_r(x)||^2] g_r(x)),
+  rate_r(x,v) = sqrt(eta) max(0,<v,g_r(x)>).
+Real division by zero is zero. Thus S_r(x,v)=(x,v) when g_r(x)=0; there is no requirement that this gradient difference be nonzero. For h>=0 define the real cumulative rate
+  Lambda(y,r,z,h) = integral from 0 to h of rate_r(Phi(y,r,u,z)) du,
+where the integral is the real interval integral with respect to real Lebesgue measure.
+
+Finite ordered times and event states.
+For an integer n>=0 and a finite nonnegative real horizon T, let D(n,T) be the subset of R^n consisting of t=(t_1,...,t_n) with
+  0<t_1<...<t_n<T.
+The Lean definition expresses this by strict monotonicity after prepending zero and by the upper bound for every coordinate. For n=0 all conditions are vacuous, so D(0,T) is a singleton, including T=0. Prefix(n,T) is the subtype of R^n specified by D(n,T). Set t_0=0. Given an initial phase state z_0 and t in Prefix(n,T), recursively define, for j=1,...,n,
+  delta_j=t_j-t_(j-1),
+  b_j=Phi(y,r,delta_j,z_(j-1)),
+  z_j=S_r(b_j).
+Here b_j is the state immediately before the prescribed event and z_j is the state after its reflection. The delta_j are strictly positive. zAt is the sequence z_0,...,z_n. K is the history with n+1 live records (t_j,z_j), j=0,...,n. In the literal definition times are converted by Real.toNNReal, which takes positive part and hence leaves these valid nonnegative times unchanged.
+
+Histories, path evaluation, and terminal survival.
+The full record type Rec is the disjoint union of ([0,infinity) x (E x E)) and a one-point cemetery. Hist(n) is the set of arrays of n+1 such records. liveTime is the stored nonnegative time on a live record and zero on the cemetery. d(n,T,h) is the truncated nonnegative difference T-liveTime(h_n). For a duration u>=0, weight(y,r,record,u) is exp(-Lambda(y,r,z,u)), embedded into the extended nonnegative reals, for a live record whose stored phase state is z; for the cemetery it is zero. Its stored time does not otherwise enter weight.
+
+Path(T) is the space of all functions from the closed nonnegative interval [0,T] into E x E. For a general history h, Psi(y,r,z_0,n,T,h)(s) is computed by starting from z_0 and visiting records in ascending index order j=0,...,n. A live record (a,z) with a<=s replaces the current value by Phi(y,r,s-a,z); a live record with a>s or a cemetery record leaves it unchanged. The subtraction used here is nonnegative truncated subtraction, equal to ordinary subtraction when a<=s. Consequently it is the last eligible record by index, not necessarily the largest record time for an arbitrary unsorted history, that determines the final value. Gamma(y,r,z_0,n,T,t) is Psi evaluated on the particular ordered, fully live history K. Equivalently, on this valid history Gamma(s)=Phi(y,r,s-t_j,z_j), where j is the largest index with t_j<=s. This includes the after-reflection state at an event time, and includes both endpoints 0 and T. In particular its terminal value is Phi(y,r,T-t_n,z_n), with t_n=0 and z_n=z_0 when n=0. The actual theorem only evaluates this path at T; it does not quantify over path-space tests or assert a path-space identity. The packet's contextual convention about a clamped real-time extension adds no such extension or claim to this displayed statement.
+
+Prefix and complete finite-history densities.
+For each valid prefix define the nonnegative real number
+  qReal(y,r,z_0,n,T,t)
+    = product over j=1,...,n of
+        [rate_r(b_j) exp(-Lambda(y,r,z_(j-1),delta_j))].
+q is qReal embedded in the extended nonnegative reals by ENNReal.ofReal. Empty products equal one. Define
+  density(y,r,z_0,n,T,t)
+    = q(y,r,z_0,n,T,t)
+      * exp(-Lambda(y,r,z_n,T-t_n)),
+with the exponential embedded in the extended nonnegative reals. This is exactly the literal rho/density definition using K, d and weight; the live ordered histories make its final duration T-t_n. The terminal survival factor remains present for n=0. Every potential event factor uses the rate at the state b_j before reflection, not at z_j. These definitions use real exponentials and extended-nonnegative multiplication; they contain no normalization constant.
+
+Energy and integration measures.
+Define R(x,v)=(x,-v),
+  U_y(x,v)=V(x)+||x-y||^2/(2 eta)+||v||^2/2,
+  w_y(x,v)=exp(-U_y(x,v)).
+Let ell be the product of Lebesgue volume on the position E and Lebesgue volume on the velocity E, in that order. Let m(n,T) be Measure.comap of Lebesgue volume on Fin(n)->R along the inclusion of Prefix(n,T) into that finite-coordinate real vector space. In ordinary terms this is the induced Lebesgue measure on the ordered open simplex of event times, with no n! factor or probability normalization. For n=0 it is the mass-one measure on the sole empty time vector. The final integration measure is ell.prod(m(n,T)): the phase-state variable (position,velocity) is the first product component, and the ordered time vector is the second. If written as iterated nonnegative integrals, this has outer phase-state integration and inner prefix-time integration.
+
+Exact quantified assertion.
+For every integer n>=0 and every finite T>=0, there exists a map revTimes:Prefix(n,T)->Prefix(n,T) such that, in one-based coordinates,
+  revTimes(t)_j = T-t_(n+1-j),  j=1,...,n.
+Equivalently the original zero-based coordinate i is sent to T-t_(n-1-i). The map is chosen after n,T and before y,r, so the same map works for every y,r in E. Its coordinate formula specifies its value completely.
+
+For every y,r in E, on Q=(E x E) x Prefix(n,T), write a point as p=(z_0,t) and define
+  A(p)=Gamma(y,r,z_0,n,T,t)(T),
+  Theta(p)=(R(A(p)),revTimes(t)),
+  W(p)=ENNReal.ofReal(w_y(z_0)) * density(y,r,z_0,n,T,t).
+Then for every measurable F:Q->[0,infinity],
+  integral_Q W(p) F(Theta(p)) d(ell.prod(m(n,T)))(p)
+    = integral_Q W(p) F(p) d(ell.prod(m(n,T)))(p).
+These are nonnegative Lebesgue integrals with values in the extended nonnegative reals, not real integrals. Thus the assertion includes cases where either side is infinite; it asserts equality of the extended values and requires neither integrability nor boundedness nor finiteness of F. Standard extended-nonnegative conventions apply, including 0 times infinity equals 0.
+
+Scope and degenerate cases.
+There is no probability normalization, sum over event counts, random event-count variable, stationary-process construction, non-explosion assertion, path-space reversal assertion, or complexity assertion in this theorem. It establishes the displayed weighted integral identity separately for each fixed n and T. It does not separately state measurability, bijectivity, an involution law, or ordinary unweighted measure preservation of Theta; those must not be substituted for its literal conclusion. revTimes has the stated coordinate property, but the conclusion is precisely its existence together with the integral identity.
+
+When n=0, Prefix is a singleton, K contains just (0,z_0), q=1, the density is exp(-Lambda(y,r,z_0,T)), and A=Phi(y,r,T,z_0). When T=0 and n>0, the strict simplex is empty and both integrals are zero; revTimes is the unique empty map. When T=0 and n=0, the sole path value is z_0, the density is one, and Theta flips the initial velocity. Dimension zero is permitted; in that case all rates vanish, all positive-count densities vanish, and no positive-dimensional assumption may be inserted. A zero event rate at any prescribed event likewise makes its full density zero. All horizons, coordinates, energies, and parameters are finite real or nonnegative-real objects; only F, density/weights as typed, and integral values inhabit extended nonnegative reals. The constructed weights are pointwise finite, though this assertion does not supply a finiteness conclusion for all the displayed integrals. All parameters alpha,beta,eta,V,E are shared throughout, and no extra constants or uniform estimates are asserted.

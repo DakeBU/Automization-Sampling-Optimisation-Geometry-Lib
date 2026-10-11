@@ -55,6 +55,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitSurvival
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -99,6 +100,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualFiniteHistoryExtension"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension"
+    upstreamDecl := "Actual PBPS complete finite-history extension"
+    upstreamFile := "arXiv2609.06905v1 AppendixA1 A1 A2 A7 update iteration ingredient and AppendixA2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "finite-history", "measurability", "restricted-law"]
+    saldUse := "Actual PBPS ordered finite-event iteration substrate; no SALD claim"
+    note := "Independent science e8d38b3002f4562ef254205135c0d213f9efe410. Same six original analytic hypotheses and literal stopped iid exponential-clock recursion. Derive Borel actual full next history H_(n+1), total complete-history append A(h,s) and lift L(h,s)=(A(h,s),s); preserve every old coordinate on every abstract history/real s. Live append uses cumulative T+max(s,0), raw-real harmonic flow and actual reflection; stopped append absorbs. Negative time is an auxiliary totalization only. On B={0<W_n<d(H_n)} for every fixed Borel finite-valued history cap d (possibly globally unbounded), derive pointwise actual H_(n+1)=A(H_n,finiteWait), restricted joint/marginal next-history pushforward laws and mass<=1, plus all jointly Borel ENNReal next-history/wait test identities localized to every Borel old-history event. No bounded/integrable test, positive event mass, normalization, density/finite-wait/no-atom/constructor provider. Four actual compiled public parents: conditional density89, history/tail87, harmonic flow and bounce rate; survival88 is not an AND dependency. Only one actual complete-history extension edge within S87-I5/G86-11 closes. Unrestricted next-history laws, ordered absolute-time iteration/final survival/path/count assembly/fullA7, physical-time residual restart/Markovness, global nonexplosion/invariance/hypocoercivity/errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN."
+  },
   {
     key := "pbps.actualConditionalNextWaitDensity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity.actual_conditional_next_wait_density"

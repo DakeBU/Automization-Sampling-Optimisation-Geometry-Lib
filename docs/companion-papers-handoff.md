@@ -1,5 +1,61 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS complete finite-history extension (2026-10-11)
+
+Independent science e8d38b3002f4562ef254205135c0d213f9efe410. The six original analytic hypotheses and actual
+stopped iid exponential-clock recursion are unchanged. For each deterministic
+event depth n, H_n and H_(n+1) are COMPLETE tagged histories. Derive their actual
+next-history measurability and the Borel total append A(h,s), preserving all old
+coordinates and appending the last record:
+
+live(T,z) -> live(T+max(s,0), S(Phi_s z)); stopped -> stopped.
+
+L(h,s)=(A(h,s),s) is Borel. The raw real flow at negative s with clipped time
+increment and stopped branch are auxiliary totalizations, not asserted physical
+dynamics. For EVERY fixed Borel finite-valued d on old histories (possibly
+globally unbounded), use89 D_d, mu_n and nu_d=D_d(mu_n product real Lebesgue).
+For B_d={0<W_n<d(H_n)}, X_n=(H_n,finite_wait) and
+Y_n=(H_(n+1),finite_wait), derive pointwise on actual B_d:
+
+H_(n+1)=A(X_n), Y_n=L(X_n),
+(Y_n)_*(P restricted to B_d)=L_*nu_d,
+(H_(n+1))_*(P restricted to B_d)=A_*nu_d, (L_*nu_d)(univ)<=1.
+
+Every jointly Borel F:Hist_(n+1) x real -> extended nonnegative reals has a
+Borel parameter integral. For every Borel OLD-history event E,
+
+integral_(B_d and H_n in E) F(Y_n) dP
+  = integral_E [integral_real F(L(h,s)) D_d(h,s) ds] mu_n(dh).
+
+No boundedness/integrability, positive event probability, normalization,
+finite-wait/no-atom/density/constructor or independence premise was added.
+Includes n=0,d=0,stopped/live-infinite waits, null events, rank zero and
+unrealizable histories; missing outside-cutoff mass is not normalized.
+Four genuine public kernel parents are conditional density89, actual
+history/tail87, harmonic flow and bounce rate. Survival88 is not an AND parent.
+Six exhaustive BODY regions120-340 accompany the attributed full statement and
+formula proof with adjacent initially folded exact Lean. Independent whole
+mathematics, fresh source-blind decoding, anti-anchored primary-first source
+review and distinct two-field total-append formula repair acceptance are
+separate native evidence. Lean, Statement Seal and decoder input did not change.
+
+Only one actual complete-history extension edge inside S87-I5/G86-11 closes.
+Unrestricted next-history law, ordered absolute-time iteration and final
+survival/path/count assembly/full(A.7), physical-time residual memorylessness,
+random stopping/restart/Markovness, global nonexplosion/invariance/semigroup/
+all-L2/hypocoercivity, implementation/errors/unbounded costs/main/composition
+and wholepaper/Goal remain OPEN. Read a fresh capsule and exact primary source
+before choosing the next bounded actual-process edge; proof ingredients stay
+dependencies, never new public hypotheses.
+
+Use the existing sole stabilization lane. Actual page/fine-branch visual
+acceptance, full Exposition Seal, main merge, postmerge PURIFIED and live
+verification remain separate. Four-paper priorities and Chapter1.3 reading
+requirements remain in execution metadata. PBPS/SPHMC and actual-input
+composition precede Gaussian Cloud, then midpoint. No TV transfer of unbounded
+costs or extra higher-derivative midpoint assumptions.
+
+
 ## Actual PBPS conditional finite next-wait density (2026-10-11)
 
 Independent science 58ddf518b7c75537680526fa809624ac7fe0b4c7. The six source analytic hypotheses and actual

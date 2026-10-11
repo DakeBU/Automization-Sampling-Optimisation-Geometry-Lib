@@ -63,6 +63,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -107,6 +108,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualEndpointTimeReversal"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+    upstreamDecl := "Actual PBPS finite endpoint and event-time reversal"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 endpoint/time substitution surrounding A8"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "endpoint", "simplex", "reversal", "volume"]
+    saldUse := "Actual finite PBPS endpoint/time change of variables; no SALD claim"
+    note := "Independent science 7089dfb0698c50d3ffd0180fb58d06bb32e5d7dd. Under the original six analytic assumptions, rho(t)_i=T-t_(n-1-i) is a measurable involution preserving exact strict-simplex comap volume m. A=Gamma(T) equals the final flow after the recursive post-bounce state, is jointly Borel and preserves phase volume ell for each event tuple. A(R A(z,t),rho t)=Rz. Theta(z,t)=(R A(z,t),rho t) is jointly Borel, involutive and preserves ell tensor m. Includes n=0, T=0, rank0 and zero normals. Actual OrderedPrefix, FiniteCountPath and PhaseReversalVolume supply dependencies internally. Gibbs-weight balance, stationary averaging/invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open."
+  },
   {
     key := "pbps.actualPhaseReversalVolume"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws"

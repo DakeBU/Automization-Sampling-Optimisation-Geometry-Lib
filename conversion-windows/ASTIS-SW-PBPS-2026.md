@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual endpoint and time reversal97 (2026-10-12)
+
+Independent science 7089dfb0698c50d3ffd0180fb58d06bb32e5d7dd. Under the original six analytic assumptions, rho(t)_i=T-t_(n-1-i) is a measurable involution preserving exact strict-simplex comap volume m. A=Gamma(T) equals the final flow after the recursive post-bounce state, is jointly Borel and preserves phase volume ell for each event tuple. A(R A(z,t),rho t)=Rz. Theta(z,t)=(R A(z,t),rho t) is jointly Borel, involutive and preserves ell tensor m. Includes n=0, T=0, rank0 and zero normals. Actual OrderedPrefix, FiniteCountPath and PhaseReversalVolume supply dependencies internally. Gibbs-weight balance, stationary averaging/invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual phase-volume and reversal96 (2026-10-12)
 
 Independent science 2f2e2c01856c902b07406db87026c50639454d71. Under the original six analytic assumptions, the literal harmonic flow, state-dependent bounce and momentum reversal preserve canonical phase product volume. Joint Borel maps, both flow inverses, bounce/reversal involutions, R Phi_u R=Phi_-u, R S=S R, rate(R S z)=rate(z), and the real integrable-test A6 identity are proved. Covers rank0, zero normals and all real times without an unscaled isometry claim. Volume and regularity are derived, not provider assumptions. Finite prescribed endpoint/time reversal, stationary averaging, invariance, Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open.

@@ -1,5 +1,37 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite endpoint and event-time reversal (2026-10-12)
+
+Independent science 7089dfb0698c50d3ffd0180fb58d06bb32e5d7dd. The original six analytic assumptions and thirteen
+actual path definitions are unchanged. For every n>=0 and T>=0, rho reverses the
+strict ordered event tuple and preserves its exact unnormalized comap volume m.
+The actual terminal map A=Gamma(T) is jointly Borel and preserves phase volume
+ell for every tuple. Its finite flow/bounce word gives
+
+A(R A(z,t),rho t)=R z,
+Theta(z,t)=(R A(z,t),rho t), Theta^2=id,
+Theta_#(ell tensor m)=ell tensor m.
+
+Independent whole mathematics, fresh sealed-header kernel witness, anonymous
+decoding, primary-first source and six formula/Lean proof-region reviews passed.
+Actual OrderedPrefix, FiniteCountPath and PhaseReversalVolume are the three
+compiled parent producers. All generic helper premises are discharged internally.
+The exact subtype measure is proved sigma finite before the skew-product step.
+Zero events, zero horizon, rank zero and zero reflection normals are included.
+
+The next bounded source dependency is Gibbs-weight balance for finite prescribed
+paths, leading to weighted A8 sector substitution and stationary averaging.
+At internal jumps use left/right limits or off-finite-event time equality;
+pointwise reversal of right-continuous path values is not claimed.
+Restart/Markovness remains separate. No invariant probability law, hypocoercivity,
+implementation error, expected query cost, main theorem or composition is closed.
+
+Aggregate publication/graph/site checks use the existing sole SAU94 lane.
+Actual paper-page/fine-branch visual acceptance, main merge and postmerge
+purification remain separate. All four full papers remain open; retain the
+existing Goal and its four-paper priority, fixed versions and reader contract.
+
+
 ## Actual PBPS phase-volume preservation and reversal (2026-10-12)
 
 Independent science 2f2e2c01856c902b07406db87026c50639454d71. The original six analytic hypotheses and eight

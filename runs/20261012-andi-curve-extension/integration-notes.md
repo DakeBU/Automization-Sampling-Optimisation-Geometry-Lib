@@ -115,3 +115,10 @@ No full intrinsic manifold consumer or full proposition badge is claimed.
 Remote exact-head CI and actual merge remain pending. Purification stays pending
 until a scoped post-integration review. Source/Lean expansion nodes and all
 lossless historical evidence remain preserved.
+
+The reviewed integration was committed as6c72df775 and pushed in PR319.
+Its actual-HEAD canonical Lean/ASTIS gate passed again and site/affected graph
+was regenerated; site check passed. The new cell now carries the explicit
+§13 proof_digestion and pending purification summaries as well as the existing
+reader-backpressure fields. This is a metadata completion, not another math
+advance or a PURIFIED certificate.

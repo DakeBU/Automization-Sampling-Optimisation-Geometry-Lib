@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization",
+      "title": "The induced gradient on the sphere is a projection",
+      "statement": "Let E be a finite-dimensional real inner-product space of dimension n+1 and let x be on its unit sphere. If the ambient objective f has genuine gradient g at x, its restriction F to the sphere has a unique ambient tangent representative of its actual manifold differential. That representative is the orthogonal projection of g onto T=x⊥. The pairing uses the actual inclusion derivative Aₓ, so it specifies the induced metric rather than a default chart inner product.",
+      "formula": "T=(\\mathbb R x)^\\perp,\\quad A_x=D\\iota(x),\\quad F=f\\circ\\iota,\\qquad DF(x)[w]=\\langle A_xw,z\\rangle_E\\ \\forall w\\ \\Longleftrightarrow\\ z=P_Tg\\quad(z\\in T).",
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space; dim E=n+1 and n may be0. Finite dimension supplies completeness and closedness of the tangent subspace, so no extra analytical premise is added.",
+        "x lies on the unit sphere, and f:E→ℝ has a genuine gradient g at x. Source smoothness implies this pointwise HasGradientAt witness; the theorem explicitly allows weaker pointwise regularity.",
+        "F is the literal restriction y↦f(y). Source maps on an ambient open neighborhood can be represented by their local germs, but arbitrary smooth extension construction is not proved.",
+        "Mathlib chart tangent directions are sent into the ambient tangent plane by the actual derivative Aₓ of the sphere inclusion. Its exact range is proved by Mathlib and used internally, not assumed. The induced pairing is ⟨Aₓw,Aₓw′⟩E; no default chart norm/inner product is identified with it."
+      ],
+      "steps": [
+        {
+          "title": "Identify actual tangent directions",
+          "text": "The sphere inclusion is differentiable. Its differential Aₓ has range exactly the ambient plane T orthogonal to x. Thus every actual chart tangent direction maps into T, and every vector in T has a preimage. The companion injectivity theorem makes the pullback of the ambient pairing positive definite; the present ambient-representative proof uses the exact range.",
+          "formula": "\\operatorname{range} A_x=T=(\\mathbb R x)^\\perp,\\qquad \\langle w,w\\prime\\rangle_x=\\langle A_xw,A_xw\\prime\\rangle_E.",
+          "lean": "  let K := (ℝ ∙ (x : E))ᗮ\n  let A := mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x\n  have hA : A.range = K := range_mvfderiv_subtypeVal x\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n",
+          "detail": "contMDiff_coe_sphere gives actual differentiability; range_mvfderiv_subtypeVal supplies both directions of the tangent identification. injective_mvfderiv_subtypeVal_sphere is background for interpreting the induced metric, not a call in this proof."
+        },
+        {
+          "title": "Differentiate the actual restricted objective",
+          "text": "Apply the manifold chain rule to F=f∘ι. The ambient gradient is a genuine derivative witness, so evaluating the result at w gives the ambient pairing with its true direction Aₓw. Explicit vector-space tangent identification reconciles target types; it changes neither the differential nor the metric.",
+          "formula": "DF(x)[w]=Df(x)[A_xw]=\\langle g,A_xw\\rangle_E=\\langle A_xw,g\\rangle_E.",
+          "lean": "  have hd : ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n        ⟪A w, g⟫_ℝ := by\n    intro w\n    have hchain := mvfderiv_comp x hf.differentiableAt.mdifferentiableAt hco\n    change mvfderiv (𝓡 n) (f ∘ ((↑) : sphere (0 : E) 1 → E)) x w = _\n    rw [hchain]\n    convert! (hf.fderiv_apply (y := A w)) using 1 <;>\n      simp [A, mvfderiv, NormedSpace.fromTangentSpace, real_inner_comm] <;> rfl\n",
+          "detail": "mvfderiv_comp and HasGradientAt.fderiv_apply provide the mathematical equalities. NormedSpace.fromTangentSpace is the explicit trivial-vector-space tangent identification; convert/rfl only reconciles its identity map."
+        },
+        {
+          "title": "Remove the normal component",
+          "text": "For each w, Aₓw belongs to T. Orthogonal projection changes g only by a vector perpendicular to T, so it preserves this pairing. The projected vector is already typed in T, furnishing an actual candidate gradient representative.",
+          "formula": "\\langle A_xw,g\\rangle_E=\\langle A_xw,P_Tg\\rangle_E.",
+          "lean": "  have hp : ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => f (y : E)) x w =\n        ⟪A w, (K.orthogonalProjectionOnto g : E)⟫_ℝ := by\n    intro w\n    have hw : A w ∈ K := hA ▸ (show A w ∈ A.range from ⟨w, rfl⟩)\n    rw [hd w]\n    exact (K.inner_orthogonalProjectionOnto_eq_of_mem_left ⟨A w, hw⟩ g).symm\n",
+          "detail": "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left applies to the proved tangent membership. No differential equality for the candidate is supplied as a premise."
+        },
+        {
+          "title": "Prove uniqueness on the whole tangent plane",
+          "text": "Suppose a tangent candidate z has the same differential pairings for every chart direction. Given any v in T, use the exact-range identity to choose w with Aₓw=v. The two candidates pair equally with every v in T. Nondegeneracy of its inherited inner product gives z=P_Tg. Conversely, the projected candidate satisfies all pairings by the preceding step.",
+          "formula": "\\forall v\\in T,\\ \\langle v,z\\rangle_E=\\langle v,P_Tg\\rangle_E\\quad\\Longrightarrow\\quad z=P_Tg.",
+          "lean": "  intro z\n  constructor\n  · intro hz\n    apply ext_inner_left ℝ\n    intro v\n    have hv : (v : E) ∈ A.range := hA.symm ▸ v.property\n    obtain ⟨w, hw⟩ := hv\n    change ⟪(v : E), (z : E)⟫_ℝ = ⟪(v : E), (K.orthogonalProjectionOnto g : E)⟫_ℝ\n    rw [← hw]\n    exact (hz w).symm.trans (hp w)\n  · rintro rfl\n    exact hp\n",
+          "detail": "Range surjectivity supplies each test direction; ext_inner_left proves uniqueness in the ambient tangent subspace. This constructs the candidate and proves its characterization before defining any chosen gradient object."
+        }
+      ],
+      "lean_statement": "TangentSpace (𝓡 n) x is the actual Mathlib tangent type for the unit sphere. mvfderiv is the true vector/scalar-valued manifold differential. z is in the ambient orthogonal tangent subspace; all w are quantified. The conclusion is a characterization, so it supplies existence by setting z=P_Tg and uniqueness for any candidate.",
+      "lean_proof": "Use the actual sphere inclusion and manifold chain rule, remove the normal component with projection, then test every ambient tangent direction through the exact range. No project-owned gradient definition or fallback semantics are introduced.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "range_mvfderiv_subtypeVal",
+        "contMDiff_coe_sphere",
+        "ContMDiffAt.mdifferentiableAt",
+        "HasGradientAt.differentiableAt",
+        "DifferentiableAt.mdifferentiableAt",
+        "mvfderiv_comp",
+        "HasGradientAt.fderiv_apply",
+        "NormedSpace.fromTangentSpace",
+        "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left",
+        "ext_inner_left"
+      ],
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=58",
+          "label": "Boumal2023, annotations2026-10-08, §§3.7–3.8; printed41–44/PDF57–60",
+          "scope": "ASTIS-authored sphere specialization of Definition3.58 and Proposition3.61, using the inherited metric in Example3.56/3.62. No book prose or source PDF is bundled."
+        }
+      ],
+      "tests": [
+        "lake build Tests.Shared.SphereGradient"
+      ],
+      "boundary": "Unit-sphere specialization with true Mathlib manifold differential and ambient tangent representation using actual inclusion derivative; pointwise ambient HasGradientAt generalizes smoothness. No general embedded-manifold theorem, chosen default chart metric identification, global smooth field, general neighborhood extension construction or Rayleigh quotient computation. No global Riemannian metric typeclass or smooth-field construction is certified by the pointwise pairing."
+    }
+  ]
+}

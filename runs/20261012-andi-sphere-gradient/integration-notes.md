@@ -15,3 +15,7 @@ Before push/integration: focused tests, literal lesson and source binding, curre
 ## Focused checkpoint
 
 Canonical proof builds2536; real linear/radial consumers build2537; standard three axioms only. Sealed signature unchanged. This is a WIP delivery checkpoint, not PROVED_LOCAL/VERIFIED admission: publication/independent audits and root test import remain pending. No green CI status on this checkpoint may be used to claim its new test is root-covered.
+
+## Source-card consolidation draft
+
+The existing Proposition3.61 card is the sole original source statement. A new exact sphere-projection-characterization obligation/binding is added alongside the affine prerequisite; general nonlinear and smooth-field obligations remain open. Initial sphere publication is preserved byte-for-byte as publication-draft-sphere.json, matching the historical whole-proof review hash; its separate site file is removed. Affine prior publication/audit are preserved in this run. Both changed current publication bindings explicitly await fresh anti-anchored source reviews; unchanged affine blind reconstruction is reused honestly, never re-created as a new worker run. The new mathematical lesson/module remain unchanged.

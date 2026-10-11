@@ -23,7 +23,7 @@
   },
   "verdict": "domain-mismatch",
   "repairs": [],
-  "publication_binding_sha256": "dcc4e975bc58c1247a258818e1d706ef12ef3488276f2f233f48f0f9c5976319",
+  "publication_binding_sha256": "e3f04f3acbf663943a304c87b32287b8414af67fc686303f6a53f1bdb3967a51",
   "publication_context": {
     "file": "f971c9d225d051a1a77a3b269075b469f3a7cb3bcf15c6ced32cfbb4bc8fa811",
     "current_lean_module": "import Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.Calculus.FDeriv.Add\nimport Mathlib.Analysis.Calculus.FDeriv.Comp\nimport Mathlib.Analysis.InnerProductSpace.Projection.Basic\n\n/-!\n# Gradients under affine subspace restriction\n\nThe inherited inner product identifies the derivative of `v ↦ f (a + v)`\nwith the orthogonal projection of the ambient gradient. This is a canonical\nHilbert-space prerequisite for Boumal §3.8's projection argument, not a\nformalization of the nonlinear embedded-manifold differential adapter.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient\n\nopen scoped InnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\n/-- Restricting an ambient differentiable objective to an affine subspace\nprojects its genuine gradient into the direction subspace, with its inherited\nmetric. Completeness is explicit; no restriction derivative is assumed. -/\ntheorem hasGradientAt_affine_restriction\n    (K : Submodule ℝ E) [CompleteSpace K]\n    {f : E → ℝ} {a g : E} {u : K}\n    (hf : HasGradientAt f g (a + (u : E))) :\n    HasGradientAt (fun v : K => f (a + (v : E)))\n      (K.orthogonalProjectionOnto g) u := by\n  have hchart : HasFDerivAt (fun v : K => a + (v : E)) K.subtypeL u := by\n    convert (hasFDerivAt_const a u).add K.subtypeL.hasFDerivAt using 1 <;>\n      first | rfl | simp only [zero_add]\n  have hcomp := hf.hasFDerivAt.comp u hchart\n  have hdual : (InnerProductSpace.toDual ℝ E g).comp K.subtypeL =\n      InnerProductSpace.toDual ℝ K (K.orthogonalProjectionOnto g) := by\n    ext v\n    simp\n  rw [hdual] at hcomp\n  exact hasGradientAt_iff_hasFDerivAt.mpr hcomp\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient\n",
@@ -35,7 +35,7 @@
       "edition": "2023 pre-publication edition, annotations through 2026-10-08",
       "anchor": "§3.8, Definition3.58 and equations3.36–3.38; Proposition3.61 (3.39), printed42–44 / PDF58–60",
       "wording_status": "faithful paraphrase",
-      "attribution": "Nicolas Boumal. Samplinglib attributed restatement; library prerequisite is explicitly narrower in geometry and broader in pointwise regularity."
+      "attribution": "Nicolas Boumal. ASTIS attributed restatement. Affine restriction is a prerequisite; sphere projection is a scoped nonlinear application. Neither completes the general embedded-manifold theorem."
     },
     "statement": "On a Riemannian submanifold of Euclidean space with the induced metric, the gradient of a smooth function is the tangent-space orthogonal projection of the ambient gradient of any smooth neighborhood extension.",
     "formulae": [
@@ -60,6 +60,10 @@
       {
         "id": "smooth-field",
         "label": "Smoothness of the resulting manifold gradient field."
+      },
+      {
+        "id": "sphere-projection-characterization",
+        "label": "Unit-sphere specialization: use the actual manifold differential and inclusion derivative to construct and uniquely characterize its ambient induced-gradient representative."
       }
     ],
     "lesson": {
@@ -142,14 +146,14 @@
     ]
   },
   "source_review": {
-    "reviewer": "/root/affine_integration_source_review",
+    "state": "accepted",
+    "reviewer": "/root/curve_source_reviewer",
     "independent_from_formalizer": true,
     "independent_from_decoder": true,
-    "reviewer_packet_sha256": "2dc276fef9aefa80811f53811880f6081f367b6564b4430d2531aefabb77c14b",
-    "review_run_sha256": "5232ba0a68ae6dbe15846f26d4cd6758e99cb68ed400a2a103cfc63d62b8edef",
-    "state": "accepted",
-    "evidence": "Fresh anti-anchored comparison of the candidate packet, unchanged production declaration, focused tests/import, pinned Boumal §3.8 pages58–60, chapter_reader only, and the two allowed rendering scripts. Seven slots audited independently; accepted prerequisite and exposition, with intentional source-domain mismatch expressly retained.",
-    "run_artifact": "runs/20261011-andi-affine-gradient/integration-source-review.json"
+    "reviewer_packet_sha256": "53debff84f0c3a98c816e0b615aa2717c24beeb2057c05a847d206fd47ea4537",
+    "review_run_sha256": "f1aecfcff35e9484af5c7891333c09e972df055ff72ea36a00996258dcfc81e8",
+    "evidence": "Independently compared the immutable current consolidated source-review packet with direct pinned Boumal PDF58–60/printed42–44 extraction. Checked current exact affine module/lesson bytes against packet and all three Lean snippets. All seven semantic slots reviewed from present inputs, preserving geometrical full-source mismatch. Current context adds a separate sphere child while affine binding remains prerequisite-only. No prior semantic slot/verdict/canonical audit was read during this task. Original independent blind reconstruction/decoder identity and hashes are reused unchanged; no decoder was invoked or fabricated. Reviewer has previous independent affine purification familiarity in this thread; this current source comparison is newly authored from the permitted anti-anchored packet, not claimed to erase prior familiarity.",
+    "run_artifact": "runs/20261012-andi-sphere-gradient/affine-source-semantic-review.json"
   },
   "reconstruction": {
     "text": "Let E be a complete real inner product space and let K be a real linear subspace of E, equipped with its inherited norm and inner product, which is itself complete. For every function f : E → ℝ, every a, g ∈ E, and every u ∈ K, if f has a genuine Fréchet derivative at a + u represented by the ambient gradient g, then the function F : K → ℝ defined by F(v) = f(a + v) has a genuine Fréchet derivative at u represented by the orthogonal projection of g onto K. Thus ∇F(u) = P_K g as a vector in K; equivalently, for every h ∈ K, DF(u)[h] = ⟨P_K g, h⟩_K = ⟨g, h⟩_E, where u, v, and h are included into E in the ambient expressions.",
@@ -165,70 +169,6 @@
     ],
     "run_artifact": "runs/20261011-andi-affine-gradient/decoder-result.json"
   },
-  "semantic_slots": {
-    "objects": {
-      "original": "Boumal: a Riemannian submanifold M of Euclidean E, smooth f:M→ℝ, any smooth neighborhood extension f̄, tangent spaces T_xM, and their orthogonal projectors. The candidate intentionally selects their affine restriction mechanism.",
-      "reconstructed": "Complete real inner-product E, complete linear subspace K with inherited inner product, ambient f:E→ℝ, shift a, gradient vector g, u∈K, and F_a(v)=f(a+v).",
-      "relation": "different",
-      "evidence": "PDF58–60/printed42–44, Definition3.58, equations3.36–3.38 and Proposition3.61 versus production binders and literal restriction. M=a+K gives the affine geometric specialization; no nonlinear manifold objects are formalized."
-    },
-    "domains": {
-      "original": "Finite-dimensional Euclidean ambient space; f is defined on a smooth submanifold and f̄ on a neighborhood; the gradient at x lies in T_xM.",
-      "reconstructed": "Real Hilbert E and complete K; f is globally typed on E, restriction globally typed on K, evaluation at a+u; projected gradient is a K subtype vector.",
-      "relation": "different",
-      "evidence": "The theorem uses [CompleteSpace E], (K:Submodule ℝ E), [CompleteSpace K], and K.orthogonalProjectionOnto g. Infinite-dimensional completeness extends the ambient setting; a fixed affine subspace and globally typed ambient function restrict the geometric representation. Neither is full-source equivalence."
-    },
-    "quantifiers": {
-      "original": "For every smooth manifold objective and every x∈M, the projection identity holds for any smooth neighborhood extension; the gradient is identified by pairings with every v∈T_xM.",
-      "reconstructed": "For every admitted E,K,f,a,g,u, HasGradientAt f g (a+u) implies the restriction gradient assertion at u; equality of functionals is proved for every v∈K.",
-      "relation": "different",
-      "evidence": "All production parameters are arbitrary and the hf implication is pointwise. hdual uses ext v. The theorem does not quantify over smooth extensions of one fixed manifold function and does not establish their independence."
-    },
-    "assumptions": {
-      "original": "Smooth f and smooth neighborhood extension; induced Riemannian metric on finite-dimensional embedded M. Finite-dimensional inner-product spaces and tangent subspaces are complete.",
-      "reconstructed": "Explicit real inner-product structure and completeness for E and K; hf is genuine HasGradientAt at a+u. The K metric is inherited. No derivative or gradient of the restriction is assumed.",
-      "relation": "different",
-      "evidence": "Pointwise HasGradientAt supplies the ambient Fréchet derivative for hcomp; hchart constructs the restriction parameterization derivative. Source smoothness entails pointwise differentiability in the affine specialization; the local theorem has weaker regularity and explicit Hilbert completeness."
-    },
-    "conclusion": {
-      "original": "The Riemannian gradient field satisfies grad_M f(x)=Proj_x(grad_E f̄(x)) for all x, with tangent-space metric and any extension.",
-      "reconstructed": "HasGradientAt (fun v:K=>f(a+(v:E))) (K.orthogonalProjectionOnto g) u. The projected vector represents the genuine restriction derivative at u.",
-      "relation": "different",
-      "evidence": "The pointwise affine conclusion matches the projection pairing mechanism. It does not prove a manifold gradient-field construction, nonlinear differential identification, smooth-field regularity, or general neighborhood-extension independence. The lesson explicitly labels this boundary."
-    },
-    "scopes": {
-      "original": "The smooth embedded-manifold projection recipe with induced metric, summarizing equations3.36–3.38 in Proposition3.61.",
-      "reconstructed": "A single arbitrary affine point and inherited subspace metric; a is a point translation, g and P_K g are vectors. The binding supports only affine-gradient with role prerequisite.",
-      "relation": "different",
-      "evidence": "The production module docstring, lesson assumptions and packet binding all restrict scope to a canonical prerequisite. The chapter_reader separately leaves nonlinear tangent/differential, neighborhood-extension semantics and smooth-field work open."
-    },
-    "constant_dependencies": {
-      "original": "No numerical constants or rate parameters; projector and gradient depend on ambient/induced inner products and the base point tangent space.",
-      "reconstructed": "No numerical constants; the projector depends on K and its inherited inner product; the derivative is evaluated at a+u and shift a has zero derivative.",
-      "relation": "equivalent",
-      "evidence": "All three formulas preserve this absence of numerical constants. Source base-point-varying tangent spaces specialize to the fixed K of an affine space; no dimension, norm or smoothness constants are introduced."
-    }
-  },
-  "deltas": [
-    {
-      "slot": "domains",
-      "severity": "informational",
-      "description": "Complete Hilbert E with complete K is broader than finite Euclidean ambient geometry, while the fixed affine restriction is narrower than arbitrary embedded M. Accept the prerequisite binding only; reject interpreting this as Proposition3.61 completion.",
-      "evidence": "Independent source review classification: intentional-prerequisite-domain-change; nonblocking."
-    },
-    {
-      "slot": "assumptions",
-      "severity": "informational",
-      "description": "The theorem assumes genuine ambient gradient existence at one point rather than source smoothness of a manifold function and neighborhood extension. It proves the restriction derivative; it never assumes that derivative as an extra public premise.",
-      "evidence": "Independent source review classification: explicit-pointwise-prerequisite; nonblocking."
-    },
-    {
-      "slot": "scopes",
-      "severity": "informational",
-      "description": "Nonlinear tangent/differential identification, neighborhood-extension semantics and smoothness of the manifold gradient field remain open. The candidate publication and chapter map retain all three boundaries.",
-      "evidence": "Independent source review classification: explicit-unproved-source-boundary; nonblocking."
-    }
-  ],
   "source_review_history": [
     {
       "publication_binding_sha256": "5fb88e36f8786014d55f702dd46fc3d7ac844b58e903e5d26eb8d15f9e803738",
@@ -325,6 +265,80 @@
           "evidence": "Independent reviewer /root/affine_source_proof_review: explicit-scope-boundary"
         }
       ]
+    }
+  ],
+  "semantic_slots": {
+    "objects": {
+      "original": "Smooth embedded Riemannian submanifold M of Euclidean E with induced metric, intrinsic f:M→ℝ, any smooth neighborhood extension f̄, tangent-space projector and intrinsic gradient. The supplied source text appends an explicit affine-prerequisite disclaimer.",
+      "reconstructed": "Complete real inner-product E, complete linear subspace K, total ambient f, shift a, ambient gradient g, point u:K, and literal pullback F_a(v)=f(a+v).",
+      "relation": "different",
+      "evidence": "PDF58 Definition3.58 defines intrinsic gradient via tangent pairings. PDF59–60 equations3.36–3.39 use variable tangent spaces of arbitrary M. Lean has Submodule K and literal affine composition, no manifold/differential or tangent-bundle type. The source disclaimer defines the intended binding scope; it does not turn full Proposition3.61 into an affine theorem."
+    },
+    "domains": {
+      "original": "Finite-dimensional Euclidean ambient space, arbitrary embedded M, smooth f on M and extension on open neighborhood; gradient tangent at each manifold point.",
+      "reconstructed": "Possibly infinite-dimensional complete real inner-product ambient E and complete fixed subspace K; globally typed f:E→ℝ and pullback defined on all K.",
+      "relation": "different",
+      "evidence": "[CompleteSpace E] and [CompleteSpace K] are explicit with no FiniteDimensional class. Infinite-dimensional Hilbert generality is broader, fixed affine geometry is narrower. Globally typed ambient f is local theorem presentation; identifying an intrinsic function with neighborhood extensions remains separate. No sphere manifold construction occurs in this declaration."
+    },
+    "quantifiers": {
+      "original": "Every x∈M and every smooth extension of the same intrinsic f yield the same intrinsic gradient; pairings are with every v∈TₓM.",
+      "reconstructed": "For every E,K,f,a,g,u admitted by the explicit classes, one HasGradientAt premise yields a genuine restricted gradient at u; equality of functionals is checked for every v:K.",
+      "relation": "different",
+      "evidence": "The forall/implication quantifiers are faithful to the blind reconstruction. Neither universal u nor arbitrary f supplies quantification over agreeing extensions of one intrinsic manifold function. No extension-independence comparison or tangent-representation adapter is a conclusion."
+    },
+    "assumptions": {
+      "original": "Smooth intrinsic objective and smooth neighborhood extension; manifold metric is ambient Euclidean inner product restricted to tangent spaces. Finite dimensions provide completeness.",
+      "reconstructed": "Explicit complete ambient/subspace inner-product structures with inherited metric; hf:HasGradientAt f g (a+u), without any premise about derivative/gradient of F_a.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source smoothness supplies a genuine ambient gradient in the affine specialization. Hilbert completeness is disclosed, and one-point gradient existence weakens smoothness for this library prerequisite. hchart and hcomp prove the needed restriction derivative internally. The inherited K metric preserves the induced-metric convention; no arbitrary Riemannian metric theorem is asserted."
+    },
+    "conclusion": {
+      "original": "Intrinsic grad_M f(x) equals the tangent-space projection of grad_E f̄(x) for arbitrary Riemannian submanifold and any smooth extension.",
+      "reconstructed": "HasGradientAt F_a (K.orthogonalProjectionOnto g) u; projected gradient is a vector of K, and DF_a(u)[v]=⟨g,v⟩_E=⟨P_Kg,v⟩_K.",
+      "relation": "weaker-in-lean",
+      "evidence": "Affine statement genuinely proves its pointwise projection formula. It does not construct/identify nonlinear intrinsic gradient, actual manifold differential, tangent spaces or extension independence for full Proposition3.61. Real inner-product symmetry reconciles source pairing order. Projection is a direction in K, not affine point a+P_Kg."
+    },
+    "scopes": {
+      "original": "Proposition3.61 summarizes arbitrary induced-metric embedded-manifold projection, supported by intrinsic differential and tangent identification in equations3.36–3.38.",
+      "reconstructed": "Pointwise affine canonical prerequisite with generalized Hilbert/regularity boundary; current binding role=prerequisite supports only affine-gradient.",
+      "relation": "different",
+      "evidence": "Current packet keeps nonlinear-differential and smooth-field obligations open and adds a separate sphere-projection-characterization child. It does not add that child to affine binding supports. The source unit-sphere example motivates a sphere specialization, but affine theorem alone cannot close it. Smoothness of the resulting full field is a later source development, not an extra conclusion magically proved here."
+    },
+    "constant_dependencies": {
+      "original": "No numeric constants or rates; projection/gradient depend on actual tangent metric and point.",
+      "reconstructed": "No numeric constants or rates; projector depends on K/inherited inner product and derivative on a+u.",
+      "relation": "same",
+      "evidence": "Equations3.36–3.39 and Lean conclusion are qualitative pairing/projection identities. No dimension factor, norm rescaling, unknown regularity constant or uniform estimate is introduced."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "objects",
+      "severity": "blocking",
+      "description": "Fixed affine restriction and ambient pointwise gradient do not formalize arbitrary nonlinear embedded M or its intrinsic differential/gradient. This blocks full-source equivalence while leaving declared affine prerequisite valid.",
+      "evidence": "Independent domain-clarification; blocking scope full-source-equivalence-only. See actual runs/20261012-andi-sphere-gradient/affine-source-semantic-review.json",
+      "blocking_scope": "full-source-equivalence-only"
+    },
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Complete Hilbert ambient/subspace and pointwise HasGradientAt generalize finite Euclidean smoothness, while total literal affine pullback specializes geometry. Both changes are explicitly disclosed rather than proposed source repairs.",
+      "evidence": "Independent domain-clarification; blocking scope none. See actual runs/20261012-andi-sphere-gradient/affine-source-semantic-review.json",
+      "blocking_scope": "none"
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "blocking",
+      "description": "For every smooth extension of one fixed intrinsic f is absent from this affine statement. General tangent/differential identification and extension semantics remain unbound source obligations.",
+      "evidence": "Independent quantifier-clarification; blocking scope full-source-equivalence-only. See actual runs/20261012-andi-sphere-gradient/affine-source-semantic-review.json",
+      "blocking_scope": "full-source-equivalence-only"
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The separate unit-sphere characterization obligation is mathematically compatible with the source specialization, and does not change affine supports=[affine-gradient]. This review neither certifies the sphere Lean declaration nor closes generic nonlinear/smooth-field obligations.",
+      "evidence": "Independent domain-clarification; blocking scope none. See actual runs/20261012-andi-sphere-gradient/affine-source-semantic-review.json",
+      "blocking_scope": "none"
     }
   ]
 }

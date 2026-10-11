@@ -1,5 +1,37 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite-count complete-path law (2026-10-11)
+
+Independent science 8ec33d055fb8a9b3ba376d4113e388b00882026f. The six original analytic assumptions,
+canonical iid Exp(1) input and literal stopped recurrence are unchanged.
+For each finite n and fixed T>=0, let K_n be the ordered prescribed history,
+Gamma_n its finite interpolation, q_n the prefix density, and W the remaining
+no-event survival from its terminal state. The proved actual joint law is
+
+(H_n,Z_T)_*(P restricted to {N(T)=n})=(K_n,Gamma_n)_*((q_n W) m_n).
+
+This includes joint measurability of total interpolation and density, measurable
+count, pointwise complete-path identification on raw strict survived events C_n,
+fixed-T endpoint nullity and AE count/cardinality interpretation. The raw C_n
+are disjoint and their union has probability one. All nonnegative tests
+measurable for the stated sigma algebras satisfy the corresponding integral
+identity; each density mass is P(N(T)=n)<=1. Covers n=0, T=0, rank0, stopped and
+infinite-wait cases. The path sigma algebra is coordinate-product. Fixed-T AE
+no-event-at-T is not a uniform assertion over all real horizons.
+
+Whole mathematics/kernel, source-blind decoding, primary-first source review,
+nine adjacent formula/Lean regions and exact science-commit verification passed.
+The sole implementation syntax correction opens the standard Classical scope;
+its independent kernel/source transfer preserves the exact Statement Seal.
+
+Aggregate publication/graph/site gates are handled by the existing sole lane.
+Actual paper-page/fine-branch visual acceptance, main merge and postmerge
+purification remain separate. Hazard stitching, pre-jump left limits, full A7,
+Skorokhod compatibility, restart/Markovness, invariance, hypocoercivity, errors,
+expected cost, main results and actual-input composition remain OPEN.
+The four-paper Goal remains active. Next mathematical edge: source-faithful
+hazard/left-limit rewriting and full A7, after this packet's aggregate delivery.
+
 ## Actual PBPS ordered finite-prefix law (2026-10-11)
 
 Independent science a4599f28131fcf91d6b0754003facbc46e23ad2e. The six original analytic assumptions and

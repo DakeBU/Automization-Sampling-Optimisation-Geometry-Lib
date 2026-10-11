@@ -12,7 +12,7 @@ run = Path('runs/20261007-companion-priority/pbps-actual-finite-count-path93')
 claim = json.loads((run / 'claim.json').read_bytes())
 assert advance.current_advances()[claim['advance_id']]['state'] == 'VERIFIED'
 assert [s['advance_id'] for s in advance.current_advances().values() if s['state'] == 'STABILIZING'] == ['ASTIS-SA-20261005-SPHMCImplementedPhaseKernel']
-out = run / 'integration93/affected-graph'
+out = run / 'integration93/affected-graph-final'
 out.mkdir(exist_ok=False)
 records = a.lean_module_records()
 name = 'AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath'

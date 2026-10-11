@@ -1,6 +1,6 @@
 """Execute only after an independent verifier admits the exact science commit."""
 from pathlib import Path
-import hashlib,json,subprocess,sys
+import hashlib,json,subprocess,sys,re
 R=Path(__file__).resolve().parents[3];r=Path(__file__).resolve().parent
 sys.path.insert(0,str(R/'tools'));import astis_advance as adv
 load=lambda p:json.loads(p.read_bytes())
@@ -12,17 +12,21 @@ assert subprocess.run(['git','merge-base','--is-ancestor','origin/main','HEAD'],
 lanes=[v for v in adv.current_advances().values() if v['state']=='STABILIZING']
 assert len(lanes)==1 and lanes[0]['advance_id']=='ASTIS-SA-20261005-SPHMCImplementedPhaseKernel'
 assert lanes[0]['latest_evidence']['integration_owner']=='companion_root_20261005'
-out=r/'integration93';out.mkdir(exist_ok=False)
+out=r/'integration93';out.mkdir(exist_ok=True)
 owned=['AutoSamplingTheory/ExampleCases.lean','AutoSamplingTheory/TechnicalLemmas/Registry.lean','Tests/Basic.lean','docs/companion-papers-handoff.md','website/content/samplewiki_companion_frontiers.json','conversion-windows/ASTIS-SW-PBPS-2026.md','research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl']
 before=[]
 for i,name in enumerate(owned):
-    b=(R/name).read_bytes();p=out/f'{i}.before.exactraw.snapshot';p.write_bytes(b)
+    b=(R/name).read_bytes();p=out/f'{i}.before.exactraw.snapshot'
+    if p.exists():assert p.read_bytes()==b,name
+    else:p.write_bytes(b)
     before.append(dict(path=name,raw_sha256=hashlib.sha256(b).hexdigest(),snapshot=p.relative_to(R).as_posix()))
 (out/'owned-before.json').write_bytes((json.dumps(before,indent=2)+'\n').encode())
 def after(name,anchor,text):
-    p=R/name;b=p.read_bytes();nl=b'\r\n' if b'\r\n' in b else b'\n';a=anchor.encode()+nl
-    assert b.count(a)==1 and text.encode() not in b
-    p.write_bytes(b.replace(a,a+text.encode().replace(b'\n',nl),1))
+    p=R/name;b=p.read_bytes()
+    hits=list(re.finditer(rb'(?m)^'+re.escape(anchor.encode())+rb'(\r?\n|$)',b))
+    assert len(hits)==1 and text.encode() not in b,name
+    h=hits[0];nl=h.group(1) or b'\n'
+    p.write_bytes(b[:h.end()]+text.encode().replace(b'\n',nl)+b[h.end():])
 module='AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath';decl=claim['target_declarations'][0]
 for name in owned[:2]:after(name,'import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix','import '+module+'\n')
 note=f'Independent science {science}. Six source analytic assumptions and actual stopped iid exponential-clock recursion unchanged. For every finite n and deterministic finite nonnegative horizon T, the unnormalized joint complete-history/coordinate-product-path law on N(T)=n is the pushforward of ordered-prefix density times terminal survival. One jointly measurable actual phase supplies pointwise interpolation on raw survived events, fixed-T endpoint nullity, measurable count, AE finite cardinalities, raw disjointness and full-probability union. All nonnegative tests measurable for the stated sigma algebras and count-sector mass identities are proved. No extra probability, density, measurability, nonexplosion or integrability provider. Hazard stitching, pre-jump left limits, infinite full A7, Skorokhod compatibility, restart/Markovness, invariance/hypocoercivity, errors/cost/main/composition/four-paper completion remain OPEN.'

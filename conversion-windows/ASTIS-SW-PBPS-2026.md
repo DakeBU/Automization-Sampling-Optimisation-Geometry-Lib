@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual finite-count complete-path93 (2026-10-11)
+
+Independent science 8ec33d055fb8a9b3ba376d4113e388b00882026f. Six source analytic assumptions and actual stopped iid exponential-clock recursion unchanged. For every finite n and deterministic finite nonnegative horizon T, the unnormalized joint complete-history/coordinate-product-path law on N(T)=n is the pushforward of ordered-prefix density times terminal survival. One jointly measurable actual phase supplies pointwise interpolation on raw survived events, fixed-T endpoint nullity, measurable count, AE finite cardinalities, raw disjointness and full-probability union. All nonnegative tests measurable for the stated sigma algebras and count-sector mass identities are proved. No extra probability, density, measurability, nonexplosion or integrability provider. Hazard stitching, pre-jump left limits, infinite full A7, Skorokhod compatibility, restart/Markovness, invariance/hypocoercivity, errors/cost/main/composition/four-paper completion remain OPEN.
+
+Nine source-reviewed adjacent formula/Lean regions. Aggregate/visual/main merge/purification acceptance remain distinct.
+
+
 ## Actual ordered finite-prefix92 (2026-10-11)
 
 Independent science a4599f28131fcf91d6b0754003facbc46e23ad2e. With the six original analytic hypotheses, canonical iid Exp(1) product P and literal stopped recursion, every finite n and T>=0 has a strict ordered-prefix complete-history law. Delta_n(T) is the open ordered time simplex with actual subtype comap of product Lebesgue measure. K gives all n+1 live time/state records; q is the product of n pre-bounce rates and elapsed segment survivals. Derive joint Borel K/q, actual history/observer/guard measurability, nonnegative real product, pointwise full-history reconstruction, H_*(P restricted to B)=K_*(q m), all nonnegative extended Borel test identities and integral q=P(B)<=1. Covers n0/T0/rank0/stopped/top/zero-input boundaries without new density or integrability providers. No terminal survival: not an exactly-n count law or full A7. Terminal survival/path/count assembly, restart/Markovness, invariance/hypocoercivity/errors/unbounded costs/main/composition/four-paper Goal remain OPEN.

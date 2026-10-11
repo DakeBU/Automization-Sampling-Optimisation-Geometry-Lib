@@ -58,6 +58,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDens
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -102,6 +103,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualFiniteCountPath"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+    upstreamDecl := "Actual PBPS finite-count complete-history and coordinate-path law"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A7 finite-count ingredient and Appendix A2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "actual-input", "finite-count", "history", "path-law"]
+    saldUse := "Actual PBPS finite path-law substrate; no SALD claim"
+    note := "Independent science 8ec33d055fb8a9b3ba376d4113e388b00882026f. Six source analytic assumptions and actual stopped iid exponential-clock recursion unchanged. For every finite n and deterministic finite nonnegative horizon T, the unnormalized joint complete-history/coordinate-product-path law on N(T)=n is the pushforward of ordered-prefix density times terminal survival. One jointly measurable actual phase supplies pointwise interpolation on raw survived events, fixed-T endpoint nullity, measurable count, AE finite cardinalities, raw disjointness and full-probability union. All nonnegative tests measurable for the stated sigma algebras and count-sector mass identities are proved. No extra probability, density, measurability, nonexplosion or integrability provider. Hazard stitching, pre-jump left limits, infinite full A7, Skorokhod compatibility, restart/Markovness, invariance/hypocoercivity, errors/cost/main/composition/four-paper completion remain OPEN."
+  },
   {
     key := "pbps.actualOrderedPrefix"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix.actual_ordered_prefix_law"

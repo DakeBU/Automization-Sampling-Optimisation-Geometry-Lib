@@ -11,6 +11,7 @@ import re
 import shutil
 from html import escape
 from pathlib import Path
+from urllib.parse import quote
 
 import astis_site
 import cross_domain
@@ -220,7 +221,7 @@ def mathematical_chapter_map(library: str, chapter: str) -> str:
         f'<li><h3>{escape(step["title"])}</h3><p>{escape(step["text"])}</p></li>'
         for step in reader['route'])
     roots = ''.join(
-        f'<li><a href="../../underlying-lean-graph/index.html?view=lean&amp;search={escape(name)}">'
+        f'<li><a href="../../lean-foundations.html?view=lean&amp;focus={quote("decl:" + name, safe="")}&amp;q={quote(name, safe="")}">'
         f'<code>{escape(name)}</code></a></li>' for name in reader['shared_roots'])
     return ('<section class="library-chapter-contract" data-chapter-knowledge-map="1">'
             f'<div class="section-heading"><span>Chapter goal</span><h2>{escape(reader["title"])}</h2></div>'

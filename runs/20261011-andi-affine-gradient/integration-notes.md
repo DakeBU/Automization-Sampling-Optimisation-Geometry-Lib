@@ -167,3 +167,17 @@ edge; reference scans still do not certify elaborated proof implication.
 The affected graph gate passed before the final visual/evidence metadata
 refresh. Final site/graph generation and exact-commit CI remain required before
 merge; generated output is excluded from commits. Purification remains pending.
+
+
+## Navigation correction before merge
+
+All applicable CI passed on e814fbf3d, including the full Lean gate. A final
+reader navigation check found that the authored shared-root URL used the
+unsupported search parameter. The generator now emits supported view=lean,
+exact decl: focus and q. A separate reviewer accepted the static binding;
+the root actually clicked the generated chapter link using native browser
+accessibility and observed the exact compiled declaration inspector with
+five nodes/four edges. The original visual evidence remains intact, with
+a timestamped navigation supplement. Focused regression passed. This UI
+change does not change the theorem, source seal or independent decoder.
+The new exact head still requires checks before merge.

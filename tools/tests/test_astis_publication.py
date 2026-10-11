@@ -296,6 +296,9 @@ class PublicationTest(unittest.TestCase):
         self.assertIn('Nonlinear tangent/differential identification', text)
         self.assertIn('Only the affine Hilbert-space prerequisite', text)
         self.assertNotIn('Upstream alignment', text)
+        self.assertIn('lean-foundations.html?view=lean&amp;focus=decl%3A', text)
+        self.assertIn('&amp;q=AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient.', text)
+        self.assertNotIn('&amp;search=', text)
         self.assertNotRegex(text, r'<details\b[^>]*\bopen(?:\s|=|>)')
         self.assertEqual(library_shelves.mathematical_chapter_map('riemannian-optimization', '02'), '')
 

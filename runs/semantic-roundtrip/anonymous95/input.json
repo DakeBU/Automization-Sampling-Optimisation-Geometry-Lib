@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-2ecf04a01e74a6b2",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let wgt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y xRef z₀ n T t =>\n        Real.exp (-(∫ s in (0 : ℝ)..(T : ℝ),\n          rate xRef (Γ y xRef z₀ n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩))) *\n        ∏ i : Fin n,\n          rate xRef (Φ y xRef (t.val i -\n            (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n            (zAt y xRef z₀ n T t i.castSucc))\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ T : ℝ≥0,\n        let ZT : (ℕ → ℝ) → Path T := fun u s => Z y xRef z₀ s.val u\n        ∀ F : Path T → ℝ, Measurable F → ∀ M : ℝ, 0 ≤ M →\n          (∀ p : Path T, |F p| ≤ M) →\n          Integrable (fun u => F (ZT u)) P ∧\n          (∀ n : ℕ, Integrable (fun t : Prefix n T =>\n            F (Γ y xRef z₀ n T t) * wgt y xRef z₀ n T t) (m n T)) ∧\n          Summable (fun n : ℕ => |∫ t : Prefix n T,\n            F (Γ y xRef z₀ n T t) * wgt y xRef z₀ n T t ∂m n T|) ∧\n          (∫ u, F (ZT u) ∂P) = ∑' n : ℕ, ∫ t : Prefix n T,\n            F (Γ y xRef z₀ n T t) * wgt y xRef z₀ n T t ∂m n T)",
+    "statement_sha256": "2ecf04a01e74a6b26af0696f3f7442d4f1b4fd59136c157963afc11bf3e827ed",
+    "compiled": true,
+    "approved_definition_context": [
+      "The ambient norm and inner product are real; gradient and fderiv denote Hilbert gradient and Frechet derivative. The indicated measurable structure on the ambient space is Borel.",
+      "A function space has the coordinate-product sigma algebra. Measurable therefore refers to that sigma algebra; no path-space topology is implicitly supplied.",
+      "Measure.infinitePi is the countable product measure. expMeasure(1) is the real unit-rate exponential law. Measure.comap under a measurable subtype inclusion is the restriction pulled back to that subtype; volume on a finite real-coordinate product is product Lebesgue measure.",
+      "hittingAfter at0 is the infimum of nonnegative hitting times, with top when the hitting set is empty. WithTop adjoins infinity; untopD returns the finite value or its specified default at top.",
+      "Fin n lists integers0 through n-1. Fin.cons prepends a value; castSucc preserves the numeric index. Fin.induction recursively constructs a finite indexed family. Fin.foldl visits indices in increasing order.",
+      "Sum.inl and Sum.inr are distinct tags; Unit has one element. Nonnegative subtraction truncates at zero. Real.toNNReal(x)=max(x,0), and real division by zero equals zero.",
+      "Integrable is Bochner integrability, including absolute integrability for real functions. Summable and tsum use the ordinary unconditional sum; over real sequences this entails absolute convergence. AE quantifiers refer only to their displayed measure.",
+      "Empty finite products are1. All universal quantifiers retain their ordinary scope, including zero-dimensional ambient spaces and empty subtypes."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "c6d572fb9e6d23dce359fdc669cea86170269fd295cffe7bd8fb1664bf28371d"
+}

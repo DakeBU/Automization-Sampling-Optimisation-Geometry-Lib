@@ -1,0 +1,268 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_MATH_SOURCE_AND_TOPOLOGY_AUDITS",
+  "sealed_utc": "2026-10-11T12:31:51.871622+00:00",
+  "statement_version": 1,
+  "owner": "companion_root_20261005",
+  "baseline_commit": "2ebf4ad2e323ad26f62fcf0c9859e66579549536",
+  "header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/Header95.lean",
+    "raw_sha256": "2a9d3052c353ab8aab448de05a05beeadab320def15ee31b1d353abbb063d002",
+    "bytes": 6885
+  },
+  "expanded_literal_Prop": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let wgt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y xRef z₀ n T t =>\n        Real.exp (-(∫ s in (0 : ℝ)..(T : ℝ),\n          rate xRef (Γ y xRef z₀ n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩))) *\n        ∏ i : Fin n,\n          rate xRef (Φ y xRef (t.val i -\n            (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n            (zAt y xRef z₀ n T t i.castSucc))\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ T : ℝ≥0,\n        let ZT : (ℕ → ℝ) → Path T := fun u s => Z y xRef z₀ s.val u\n        ∀ F : Path T → ℝ, Measurable F → ∀ M : ℝ, 0 ≤ M →\n          (∀ p : Path T, |F p| ≤ M) →\n          Integrable (fun u => F (ZT u)) P ∧\n          (∀ n : ℕ, Integrable (fun t : Prefix n T =>\n            F (Γ y xRef z₀ n T t) * wgt y xRef z₀ n T t) (m n T)) ∧\n          Summable (fun n : ℕ => |∫ t : Prefix n T,\n            F (Γ y xRef z₀ n T t) * wgt y xRef z₀ n T t ∂m n T|) ∧\n          (∫ u, F (ZT u) ∂P) = ∑' n : ℕ, ∫ t : Prefix n T,\n            F (Γ y xRef z₀ n T t) * wgt y xRef z₀ n T t ∂m n T)\n\n",
+  "proposed_public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion.actual_bounded_path_functional_expansion",
+  "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+  "source_anchor": "Appendix A.1 (A.7), all finite counts and bounded measurable real path functionals",
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/candidate-source-proof-graph95.native.json",
+    "raw_sha256": "0e6399af8b78e366e7b741c01491ef3d6671e5bc86a37ebde55ade105b6c5a60",
+    "bytes": 37533
+  },
+  "source_coverage": {
+    "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/candidate-source-coverage95.v2.native.json",
+    "raw_sha256": "7859bfb339e70ee509dd3964497edbcfcb76fc6e3be1e238d82a18c19258c7ab",
+    "bytes": 125201
+  },
+  "primary": {
+    "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+    "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+    "bytes": 1482128
+  },
+  "independent_math_header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/decision.native.json",
+    "raw_sha256": "fd0abe377c171dc41b7ad3f9d9a4c1d9fe660430347f083f4f6df9ce6f18ac65",
+    "bytes": 9122
+  },
+  "independent_source_header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-source95/header-source-audit95.native.json",
+    "raw_sha256": "91b0e4eb222300f22283cf61b0a558075a67bb4017995dbea02460284b2bc1d3",
+    "bytes": 33112
+  },
+  "all_review_bound_inputs_rehashed": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/Header95.lean",
+      "raw_sha256": "2a9d3052c353ab8aab448de05a05beeadab320def15ee31b1d353abbb063d002",
+      "bytes": 6885
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteCountPath.lean",
+      "raw_sha256": "5467078f497e0d40e1916550b2e5e9a5be992a69b20fc143bda06dd988d86d9d",
+      "bytes": 131744
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedPathDensity.lean",
+      "raw_sha256": "60792981d3d2bac30d78a2373f7eed0002def8600e92553e9b5b0c87761599ec",
+      "bytes": 39708
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/checks94/header95-type-only/receipt.json",
+      "raw_sha256": "a6f52301e5b9363e8becde157ce03938e8dd4e35bdb1013e02f1546fe4038f2a",
+      "bytes": 401
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/checks94/header95-type-only/stdout.log",
+      "raw_sha256": "e803a547eb65e9ce6123808b3212efbb581a21cf08a0acada60e91e4a0d5043a",
+      "bytes": 3207
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/checks94/header95-type-only/stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/independent-whole-math94/whole-math-decision94.native.json",
+      "raw_sha256": "b585a404ecd67d368d075471e2ddef970c510e197ed1f88662303038f0ab60d3",
+      "bytes": 13801
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/independent-whole-math94/lf-transfer94/LF-transfer-decision94.native.json",
+      "raw_sha256": "a0c35d1af3683546b5a535b5c3df437767f16a14d207e4633688a10848bad9d0",
+      "bytes": 9012
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/exact-commit-verification94/verified.json",
+      "raw_sha256": "4fb7357c2d94f75c05ee59072e4e3964c862173deb1c3846e27940974f0c880e",
+      "bytes": 10722
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "bytes": 26
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "bytes": 3234
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/audit95.py",
+      "raw_sha256": "743d08e8a4b74a063f386cd8c6e7c348af291b35ea73c0505e6001cfb9180e4f",
+      "bytes": 3211
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/close95.py",
+      "raw_sha256": "d84f0b8630d1c35ddac0ac2f0f4bf18710de3ffffb7d9879ab1157a663a16387",
+      "bytes": 9955
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/decision.native.json",
+      "raw_sha256": "fd0abe377c171dc41b7ad3f9d9a4c1d9fe660430347f083f4f6df9ce6f18ac65",
+      "bytes": 9122
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/Header95.exactraw.snapshot",
+      "raw_sha256": "2a9d3052c353ab8aab448de05a05beeadab320def15ee31b1d353abbb063d002",
+      "bytes": 6885
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/inputs.native.json",
+      "raw_sha256": "eafdb5161aadada7505d1da05506e0fe389ed7f43bdd88f3964f2f17cd0a488c",
+      "bytes": 2454
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/literal-interface-comparison.native.json",
+      "raw_sha256": "3366df27ca6ee6962460ac0a923e5bb219c549c0aa583ab208bfd7fd60ffadbd",
+      "bytes": 870
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-math95/closed-RAW-manifest.native.json",
+      "raw_sha256": "539509c8dd635c4016fbac9d25ad2ab21248fc89b2cc82e476f781355abc2340",
+      "bytes": 4375
+    },
+    {
+      "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+      "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "bytes": 1482128
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/candidate-source-proof-graph95.native.json",
+      "raw_sha256": "0e6399af8b78e366e7b741c01491ef3d6671e5bc86a37ebde55ade105b6c5a60",
+      "bytes": 37533
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/candidate-source-coverage95.v2.native.json",
+      "raw_sha256": "7859bfb339e70ee509dd3964497edbcfcb76fc6e3be1e238d82a18c19258c7ab",
+      "bytes": 125201
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-proof-graph93.v2.native.json",
+      "raw_sha256": "21b72b610f1abdaa5b54e04e00f40289f0437f26746b81fa3833f3b2e1bd6922",
+      "bytes": 54791
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-source95/artifact-consistency95.native.json",
+      "raw_sha256": "243488b8265e2ac9d3742a2db7083552c7870ec4a2fd64f67610db5299dfdbf2",
+      "bytes": 689
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-source95/header-source-audit95.native.json",
+      "raw_sha256": "91b0e4eb222300f22283cf61b0a558075a67bb4017995dbea02460284b2bc1d3",
+      "bytes": 33112
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-source95/source-coverage-pins95.native.json",
+      "raw_sha256": "457148b0e632f99b7d0df3e399f17499afc0293e80b3adbebd95b169271241e4",
+      "bytes": 14050
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-source95/write_header_source_audit95.py",
+      "raw_sha256": "e36388de0e59d437436c248abeb7115dbd556d71ca9aba07ab6de13201feed33",
+      "bytes": 18597
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/independent-header-source95/closed-raw-manifest95.native.json",
+      "raw_sha256": "66a0350c179221f3ce4eb64aae0b77f0c94c2ac4df356f32c269055512fa98fb",
+      "bytes": 3421
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-count-path93/next-source-graph94/candidate-source-proof-graph94.native.json",
+      "raw_sha256": "b5d208ff901715bd55e2b465d47a1e6994f6c72fb04581a0f90af0b1eaf8b68a",
+      "bytes": 33429
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-count-path93/next-source-graph94/candidate-source-coverage94.native.json",
+      "raw_sha256": "64b1f545dd297e5b0ff066cd160ef4da0268f588b8fbd312fa2eea776bef49c0",
+      "bytes": 70096
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-primary95/next-edge-recommendation95.native.json",
+      "raw_sha256": "f4c29c482ae5c8d4b1d00eb174f8cf632c464a78dd52e5d4c32871f5485e140f",
+      "bytes": 12004
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-primary95/immutable-source-coverage-pins95.native.json",
+      "raw_sha256": "b64083d24e8336b369777d0df0aa308058de00c3e6067bdb56cc1f64189b1ea6",
+      "bytes": 5861
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/source-first-provenance95.native.json",
+      "raw_sha256": "87fa3d39d164d827db7a836ce6befd11c3460aea8af26bce0da70c4f63783e15",
+      "bytes": 1955
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/candidate-source-coverage95.native.json",
+      "raw_sha256": "4284855e6c9f5574dc232a4c0ddb43913ab97907c1386970743f86dd64693da3",
+      "bytes": 123597
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/artifact-consistency95.native.json",
+      "raw_sha256": "a6e8449e425d0392cb02e2aa3f8b2b7d7eb54d9274b00f88d6c7184b4f907d69",
+      "bytes": 420
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/write_graph95.py",
+      "raw_sha256": "bb294fdd241965e0afeef3d864f72133f08acdf96e6baccecc7e481afd385fda",
+      "bytes": 23240
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/finalize_graph95.py",
+      "raw_sha256": "466a30a9016833ffc542010734cb786ed9ae713eaa93c0145dbc55187ea4ea55",
+      "bytes": 3271
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/next-source-graph95/closed-RAW-source-graph95.native.json",
+      "raw_sha256": "4fab81b057c0f28fc0ab9d027c61348f69e6d662ddbed206eacc46c3b5695528",
+      "bytes": 4071
+    },
+    {
+      "path": "research-wiki/process-memory.json",
+      "raw_sha256": "48b21952889ebecd6816d30a8d7662bcba9715994084a92d0059a15d95515004",
+      "bytes": 3236
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-path-expansion-preread95/reuse-search95/receipt.json",
+      "raw_sha256": "811a61685a098af1ec7117ec5e5abac5db8b7bc06fafc819ad94c4111b89cbf8",
+      "bytes": 2128
+    }
+  ],
+  "binder_audit": {
+    "SOURCE": [
+      "hα",
+      "hαβ",
+      "hV",
+      "hH",
+      "hη",
+      "hβη"
+    ],
+    "TYPING": [
+      "finite-dimensional real Hilbert E; Borel measurable structure"
+    ],
+    "observable_scope": [
+      "all coordinate-product measurable real path F",
+      "every nonnegative global bound M for |F|"
+    ],
+    "EXCESS": []
+  },
+  "definition_audit": "22 inherited literal definitions agree with93; wgt is the94 whole-path hazard and incoming-rate expression. Z is bound to raw covered arcs and uncovered z0 fallback with AE initialization; it is not an unspecified law witness.",
+  "proof_ingredients_are_dependencies": [
+    "actual finite-count joint law93",
+    "density identity94",
+    "derive each real sector integrability",
+    "derive absolute summability by probability-sector masses",
+    "derive the all-count signed identity"
+  ],
+  "alternative_routes": "Mass partition route is an ASTIS completion; printed rate-cap/simplex-factorial domination remains an explicit source OR route. No cap premise added.",
+  "truth_boundary": "Coordinate-product path sigma only. Covers n0,T0,rank0,zero rates,stopping and infinite waits. Fixed deterministic parameters and horizon precede AE/integration. No Skorokhod assertion, unbounded-observable or cost claim, restart/Markovness, invariance, hypocoercivity, main theorem or composition completion.",
+  "proof_search_started": false,
+  "Goal_complete": false
+}

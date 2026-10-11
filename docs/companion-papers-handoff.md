@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS finite-state and incoming-rate reversal (2026-10-12)
+
+Independent science ce675a4cfad2d35cc8c4fec2c26979728742ac27. Under the original six analytic assumptions and
+literal actual path definitions, reversing the strict event tuple produces
+
+barPost_j=R(arrive_(n-j)), barArrive_j=R(post_(n-j)) for j=0,...,n,
+product_(i<n) lambda(barArrive_i)=product_(i<n) lambda(arrive_i).
+
+The n+1 arc indices and n event indices have distinct reversals. The terminal
+arrival is not an event-rate factor. A reversed post-bounce state corresponds
+to an original incoming state. Right-continuous path values at genuine jumps
+are not asserted to reverse pointwise. Actual phase-volume/reversal and actual
+endpoint/time-reversal laws are the two invoked producers; finite induction,
+reverse grid gaps and incoming-rate reindexing are proved internally.
+Zero events, horizon, dimension, reflection normals and rates remain included.
+
+Independent whole mathematics, fresh sealed-header kernel witness, anonymous
+decoding and primary-first source/exposition reviews passed. Six adjacent
+formula/Lean steps preserve the reviewed exact code and full assumptions.
+Next: actual open-arc/off-event reversal and survival-integral time substitution,
+then weighted sector substitution and Gibbs averaging. Invariance, Markovness,
+hypocoercivity, implementation errors, actual expected costs and composition
+remain open; full papers completed remains 0/4.
+
+The existing sole SAU94 lane owns aggregate publication/graph/site integration.
+Actual page/fine-branch visual acceptance, main merge and postmerge purification
+remain separate; retain the four-paper Goal and its reading contract.
+
+
 ## Actual PBPS finite-path Gibbs and survival balance (2026-10-12)
 
 Independent science 530a58f7c036a67787956b20d2d390890ec2fec7. The original six analytic assumptions and literal

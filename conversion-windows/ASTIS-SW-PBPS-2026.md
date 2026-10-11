@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual prescribed state reversal99 (2026-10-12)
+
+Independent science ce675a4cfad2d35cc8c4fec2c26979728742ac27. Original six analytic assumptions and actual path definitions. Reversing the strict event tuple gives barPost_j=R(arrive_(n-j)) and barArrive_j=R(post_(n-j)) on all n+1 arcs; products of the n incoming event rates agree. Actual phase reversal and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and rates. No all-time right-continuous path equality, survival time substitution, weighted density equality, invariant probability, Markovness, hypocoercivity, errors, expected costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual prescribed Gibbs and survival balance98 (2026-10-12)
 
 Independent science 530a58f7c036a67787956b20d2d390890ec2fec7. Under the original six analytic assumptions, both actual prescribed-path rate integrals are finite and U_y(A)-U_y(z)=Iplus-Iminus, hence exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus). The reverse rate uses momentum reversal along the same path. Actual flow, bounce, finite-count path and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and zero rates. No reverse-event density matching, weighted Theta preservation, invariant probability, Markovness, hypocoercivity, errors, actual expected costs, main results or composition.

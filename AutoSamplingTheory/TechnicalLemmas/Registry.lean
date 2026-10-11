@@ -65,6 +65,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -109,6 +110,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPrescribedStateReversal"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product"
+    upstreamDecl := "Actual PBPS finite-state reversal and incoming-rate product"
+    upstreamFile := "arXiv2609.06905v1 Appendix A1 A5 and A8 finite incoming-state reversal"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "reversal", "incoming-rates", "finite-path"]
+    saldUse := "Actual finite PBPS paired-state reversal and rate product; no SALD claim"
+    note := "Independent science ce675a4cfad2d35cc8c4fec2c26979728742ac27. Original six analytic assumptions and actual path definitions. Reversing the strict event tuple gives barPost_j=R(arrive_(n-j)) and barArrive_j=R(post_(n-j)) on all n+1 arcs; products of the n incoming event rates agree. Actual phase reversal and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and rates. No all-time right-continuous path equality, survival time substitution, weighted density equality, invariant probability, Markovness, hypocoercivity, errors, expected costs, main results or composition."
+  },
   {
     key := "pbps.actualPrescribedGibbsSurvival"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance"

@@ -181,3 +181,18 @@ five nodes/four edges. The original visual evidence remains intact, with
 a timestamped navigation supplement. Focused regression passed. This UI
 change does not change the theorem, source seal or independent decoder.
 The new exact head still requires checks before merge.
+
+
+## Actual merge closeout
+
+PR317 (https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/317) was actually merged at 2026-10-11T11:41:38Z,
+merge commit `550f26b2e9393535f118a6c0654093dea60986c1`, after all applicable exact-head CI and local gates
+passed on `c7b11d07a1ed333df722754cb736f2cc88d3b6ea`. Root test coverage,
+Registry imports, source-adjacent exact Lean and the chapter knowledge map
+are delivered in main. The actual MERGED ledger event is appended after
+GitHub confirmation; no future merge or historical review evidence is invented.
+The single stabilization lane is released. The Frontier record is synchronized
+with this actual PR and commit. Remaining nonlinear source boundaries and
+pending purification are unchanged; neither textbook Goal is complete.
+The wider Chewi/Boumal Goal was paused at the start of this bounded integration
+request; this closeout does not reset, resume or complete that Goal.

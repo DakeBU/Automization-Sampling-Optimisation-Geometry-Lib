@@ -1,3 +1,4 @@
+import Tests.Shared.SphereRayleigh
 import Tests.Shared.SphereGradient
 import Tests.Shared.CurveExtension
 import Tests.Shared.AffineGradient

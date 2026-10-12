@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
@@ -5173,6 +5174,26 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "geometry.sphere-rayleigh-gradient",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_characterization",
+    upstreamDecl := "SphereGradient.sphere_gradient_characterization; LinearMap.IsSymmetric.hasStrictFDerivAt_reApplyInnerSelf; Submodule.starProjection_orthogonal_val; Submodule.starProjection_unit_singleton",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient; Mathlib.Analysis.InnerProductSpace.Rayleigh; Mathlib.Analysis.InnerProductSpace.Projection.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Boumal", "Example3.62", "sphere", "Rayleigh", "induced-gradient", "symmetric-quadratic"],
+    saldUse := "Concrete textbook consumer of the canonical true sphere differential and quadratic derivative",
+    note := "Unit induced-sphere gradient representative2(Ax-<x,Ax>x), uniquely characterized against the actual inclusion differential. No general manifold/global field/algorithm completion."
+  },
+  {
+    key := "geometry.sphere-rayleigh-critical-eigenvectors",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_stationary_iff",
+    upstreamDecl := "SphereRayleigh.sphere_rayleigh_characterization; Module.End.mem_eigenspace_iff; Module.End.HasEigenvector.apply_eq_smul",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh; Mathlib.LinearAlgebra.Eigenspace.Basic",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Boumal", "Example3.62", "sphere", "stationary", "eigenvector", "Rayleigh"],
+    saldUse := "Actual unit-sphere differential-zero/eigenvector equivalences with both directions and exact eigenvalue coefficient",
+    note := "Derives nonzero vectorhood and the Rayleigh eigenvalue from unit membership. Negative and zero eigenvalues allowed; no extremal spectral or convergence theorem."
+  },
   {
     key := "geometry.sphere-gradient-characterization",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization",

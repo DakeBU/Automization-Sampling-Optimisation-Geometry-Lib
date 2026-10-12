@@ -32,7 +32,7 @@ for p in sorted(set(files)):
  if p.suffix=='.gz' and sha(gzip.decompress(raw))==primary_hash:continue
  if p.suffix.lower() in {'.gz', '.png', '.jpg', '.jpeg', '.webp', '.pdf'}:
   git('-c','core.autocrlf=false','add','-f','--',name);staged.append(name);continue
- archive_only=name.startswith('runs/') and (p.suffix in {'.lean','.log','.html','.snapshot','.exactraw','.stdout','.stderr'} or 'exactraw.snapshot' in p.name or len(raw)>200000)
+ archive_only=name != 'runs/substantive_advances.jsonl' and name.startswith('runs/') and (p.suffix in {'.lean','.log','.html','.snapshot','.exactraw','.stdout','.stderr'} or 'exactraw.snapshot' in p.name or len(raw)>200000)
  normal=raw.replace(b'\r\n',b'\n')
  if name.startswith('runs/') and normal:
   normal=b'\n'.join(x.rstrip(b' \t') for x in normal.split(b'\n')).rstrip(b'\n')+b'\n'

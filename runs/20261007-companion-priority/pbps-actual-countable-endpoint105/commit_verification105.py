@@ -27,7 +27,7 @@ for p in sorted(set(paths)):
  if p.suffix.lower() in {'.gz','.png','.jpg','.pdf'}:
   git('-c','core.autocrlf=false','add','-f','--',name);staged.append(name);continue
  normalized=b'\n'.join(x.rstrip(b' \t') for x in raw.replace(b'\r\n',b'\n').split(b'\n')).rstrip(b'\n')+b'\n'
- opaque=name.startswith('runs/') and (p.suffix in {'.log','.lean','.html','.snapshot','.exactraw'} or len(raw)>200000)
+ opaque=name != 'runs/substantive_advances.jsonl' and name.startswith('runs/') and (p.suffix in {'.log','.lean','.html','.snapshot','.exactraw'} or len(raw)>200000)
  if opaque or normalized!=raw:
   z=Path(str(p)+'.verification105.raw.gz')
   assert not z.exists() or gzip.decompress(z.read_bytes())==raw

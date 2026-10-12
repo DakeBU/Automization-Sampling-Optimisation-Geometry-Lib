@@ -73,6 +73,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensi
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -117,6 +118,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualCountableEndpointLaw"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law"
+    upstreamDecl := "Actual PBPS countable endpoint probability and reversal"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 A7 and nonnegative Gibbs averaging before A8"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gibbs", "endpoint", "reversal"]
+    saldUse := "Actual countable endpoint law; no SALD claim"
+    note := "Independent science a6060928c393d3efe4c85d4cab2b9af166ab6b37. Under the original six assumptions, one global jointly measurable actual clock process Z retains the exact arc/fallback/zero-time contract. For every y,r,T, its Gibbs-initialized endpoint law Q is the countable sum of all actual normalized fixed-count endpoint sectors, is a probability, and is preserved by J(z0,zT)=(RzT,Rz0). Actual93, normalization103, UnitExponentialProduct and sector reversal104 are the four direct producers. Fixed-initial measurable count fibers, jointly measurable sector integrals and nonnegative Tonelli close assembly without a joint-count premise or signed uniform domination. Signed bilinear duality, marginal phase invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, full composition and all four full papers remain open."
+  },
   {
     key := "pbps.actualNormalizedEndpointSector"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal"

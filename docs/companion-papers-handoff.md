@@ -1,5 +1,33 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS countable endpoint law (2026-10-12)
+
+Independent science a6060928c393d3efe4c85d4cab2b9af166ab6b37. Under the original six analytic assumptions,
+one global jointly measurable actual process Z retains its arc, fallback and
+almost-sure zero-time characterization. For every y,r and finite nonnegative T,
+let Q be the endpoint-pair pushforward of actual Gibbs phase law times the
+countable unit-exponential input. Then Q is exactly the sum of all actual
+fixed-count endpoint sectors, Q has mass one, and J(z0,zT)=(RzT,Rz0) preserves Q.
+
+The proof uses actual93 once for the same global witness, normalization103
+for the actual initial probability, UnitExponentialProduct for the clock
+probability and its sigma-finiteness, and104 for each normalized sector.
+Count fibers are partitioned at fixed initial phase. Jointly measurable
+prescribed-sector integrals and nonnegative Tonelli justify the subsequent
+averaging and countable exchange, with no joint-count assumption or uniform
+signed energy bound.
+
+Eight adjacent formula/Lean regions explain this ASTIS completion of the
+Appendix A.1 A7 averaging step. The full sealed statement, fresh blind decoder,
+whole mathematical proof and independent source/exposition reviews passed.
+Signed bilinear duality, marginal phase invariance, restart/Markovness,
+hypocoercivity, implementation error, actual expected costs and full
+composition remain red. Full paper completion remains0/4.
+
+The sole SAU94 lane serializes integration. Actual browser acceptance, main
+merge of this PBPS contribution and postmerge purification remain distinct.
+
+
 ## Actual normalized PBPS endpoint-pair sector reversal (2026-10-12)
 
 Independent science 1a0fb58a061845fc5ac7623e4d62b5e301d7eb78. For every y,r,n and finite nonnegative T,

@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual countable endpoint law105 (2026-10-12)
+
+Independent science a6060928c393d3efe4c85d4cab2b9af166ab6b37. Under the original six assumptions, one global jointly measurable actual clock process Z retains the exact arc/fallback/zero-time contract. For every y,r,T, its Gibbs-initialized endpoint law Q is the countable sum of all actual normalized fixed-count endpoint sectors, is a probability, and is preserved by J(z0,zT)=(RzT,Rz0). Actual93, normalization103, UnitExponentialProduct and sector reversal104 are the four direct producers. Fixed-initial measurable count fibers, jointly measurable sector integrals and nonnegative Tonelli close assembly without a joint-count premise or signed uniform domination. Signed bilinear duality, marginal phase invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, full composition and all four full papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual normalized endpoint-pair sector104 (2026-10-12)
 
 Independent science 1a0fb58a061845fc5ac7623e4d62b5e301d7eb78. Under the original six assumptions and every y,r,n,T, the actual density q_n times terminal survival weights the product of the normalized phase law and strict-simplex measure. Its pushforward through B(z,t)=(z,Gamma(z,t)(T)) is preserved by J(z0,zT)=(RzT,Rz0). Four actual public parents supply finite-count density measurability, endpoint reversal, unnormalized weighted substitution and phase normalization. Same reversal witness, simplex sigma-finiteness and normalized-sector preservation are derived internally. No additional premise or claim that a fixed-count sector is a probability measure. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, errors, expected costs and whole-paper/composition remain open.

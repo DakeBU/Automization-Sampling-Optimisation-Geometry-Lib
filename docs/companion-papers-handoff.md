@@ -1,5 +1,32 @@
 # Companion-paper formalization handoff
 
+## Actual normalized PBPS endpoint-pair sector reversal (2026-10-12)
+
+Independent science 1a0fb58a061845fc5ac7623e4d62b5e301d7eb78. For every y,r,n and finite nonnegative T,
+let sigma be the product of the actual conditional Gibbs phase probability
+and strict-simplex measure, weighted by the actual event-density times terminal
+survival. Let B(z,t)=(z,Gamma(z,t)(T)) and L=B_*sigma. The original six analytic
+assumptions imply that J(z0,zT)=(RzT,Rz0) is measurable and J_*L=L.
+
+The proof identifies the same reversal witness in the endpoint and weighted
+substitution parents, proves simplex sigma-finiteness, normalizes the full
+sector measure using phase normalization103, then pushes the identity through B.
+All four dependencies are actual public producers93/97/102/103. No proof
+ingredient becomes a public assumption. Initial phase is normalized; no
+fixed-count sector mass-one or finite-mass conclusion is asserted.
+
+This is ASTIS completion of the Appendix A.1 fixed-count calculation and Eq3.1
+Gibbs averaging, with eight adjacent formula/Lean steps. Whole mathematics,
+exact sealed kernel, fresh blind reconstruction and independent primary-first
+source/exposition review passed. Countable sector assembly and signed bilinear
+averaging toward the actual process law remain red, as do restart/Markovness,
+hypocoercivity, implementation error, actual costs and full composition.
+Full papers completed remains 0/4. Existing four-paper priorities persist.
+
+The sole SAU94 stabilization lane serializes aggregate publication. Browser
+acceptance, main merge and postmerge purification retain separate evidence.
+
+
 ## Actual PBPS phase Gibbs normalization (2026-10-12)
 
 Independent science 030f4f70feb3641cafca981ee81c48a2687db1ee. For every y, define

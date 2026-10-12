@@ -9,7 +9,7 @@ sha = lambda b: hashlib.sha256(b).hexdigest()
 def git(*a):
     return subprocess.check_output(['git', *a])
 
-head = '82d544e79ddc48726f9aea16b1b144f68ba4f049'
+head = json.loads((folder / 'storage-decision104.native.json').read_bytes())['checked_integration_commit']
 assert git('rev-parse', 'HEAD').decode().strip() == head
 assert not git('diff', '--cached', '--name-only').strip()
 decision = json.loads((folder / 'storage-decision104.native.json').read_bytes())

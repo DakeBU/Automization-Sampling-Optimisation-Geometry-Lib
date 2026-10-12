@@ -71,6 +71,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -115,6 +116,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualNormalizedEndpointSector"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal"
+    upstreamDecl := "Actual normalized PBPS endpoint-pair sector reversal"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 fixed-count reversal and Eq3.1 averaging"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gibbs", "endpoint", "reversal"]
+    saldUse := "Actual normalized endpoint-pair sector; no SALD claim"
+    note := "Independent science 1a0fb58a061845fc5ac7623e4d62b5e301d7eb78. Under the original six assumptions and every y,r,n,T, the actual density q_n times terminal survival weights the product of the normalized phase law and strict-simplex measure. Its pushforward through B(z,t)=(z,Gamma(z,t)(T)) is preserved by J(z0,zT)=(RzT,Rz0). Four actual public parents supply finite-count density measurability, endpoint reversal, unnormalized weighted substitution and phase normalization. Same reversal witness, simplex sigma-finiteness and normalized-sector preservation are derived internally. No additional premise or claim that a fixed-count sector is a probability measure. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, errors, expected costs and whole-paper/composition remain open."
+  },
   {
     key := "pbps.actualPhaseNormalization"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization"

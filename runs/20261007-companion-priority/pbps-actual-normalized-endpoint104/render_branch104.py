@@ -53,7 +53,7 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1270" height="820" view
 <text x="212" y="593" class="small">Original six assumptions. Initial phase normalized; no fixed-sector mass-one or process-invariance claim.</text>
 <text x="25" y="641" class="node">Exact independently checked public producer calls</text>
 {exact}
-<text x="25" y="797" class="small">Exact producer calls from independent proof review; scanner references are incomplete. Phase normalization103 and weighted sector102 now join in actual104.</text>
+<text x="25" y="797" class="small">Exact producer calls independently reviewed; scanner references are not a kernel certificate. Phase normalization103 and weighted sector102 now join in actual104.</text>
 </svg>'''
 p = out / 'normalized-endpoint104.svg'
 p.write_text(svg, encoding='utf8', newline='\n')

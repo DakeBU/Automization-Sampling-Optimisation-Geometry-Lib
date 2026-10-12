@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual normalized endpoint-pair sector104 (2026-10-12)
+
+Independent science 1a0fb58a061845fc5ac7623e4d62b5e301d7eb78. Under the original six assumptions and every y,r,n,T, the actual density q_n times terminal survival weights the product of the normalized phase law and strict-simplex measure. Its pushforward through B(z,t)=(z,Gamma(z,t)(T)) is preserved by J(z0,zT)=(RzT,Rz0). Four actual public parents supply finite-count density measurability, endpoint reversal, unnormalized weighted substitution and phase normalization. Same reversal witness, simplex sigma-finiteness and normalized-sector preservation are derived internally. No additional premise or claim that a fixed-count sector is a probability measure. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, errors, expected costs and whole-paper/composition remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual phase normalization103 (2026-10-12)
 
 Independent science 030f4f70feb3641cafca981ee81c48a2687db1ee. Under the original six analytic assumptions, for every y the actual position Gibbs factor is integrable with positive Zx, and the phase partition is Zphase=ofReal(Zx*(sqrt(2*pi))^dim), positive and finite. The normalized phase withDensity is a probability measure exactly equal to the canonical tilted position law times stdGaussian momentum. Includes rank zero; no minimizer, critical point, normalizer or integrability premise. Existing shared Hessian, Gibbs tail, Gaussian integral/density and Gibbs normalization producers are consumed. Analytically independent of weighted sector102; both are parents only of later normalized averaging. No process invariance, countable assembly, Markovness, hypocoercivity, error, expected cost, main result or composition.

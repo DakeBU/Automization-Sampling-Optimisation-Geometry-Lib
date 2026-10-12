@@ -191,6 +191,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow` | `pbps.actualHarmonicFlow` | `actual_harmonic_flow_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock` | `pbps.actualHazardClock` | `actual_integrated_hazard_clock_laws` | arXiv2609.06905v1 Algorithm1 and AppendixA1 equation(A1) |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation` | `pbps.actualNonaccumulation` | `actual_fixed_reference_event_time_nonaccumulation` | arXiv2609.06905v1 AppendixA1 Ex8-Ex9 and SLLN/nonaccumulation |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector` | `pbps.actualNormalizedEndpointSector` | `actual_normalized_endpoint_sector_reversal` | arXiv2609.06905v1 Appendix A.1 fixed-count reversal and Eq3.1 averaging |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix` | `pbps.actualOrderedPrefix` | `actual_ordered_prefix_law` | arXiv2609.06905v1 Appendix A1 A1 A2 A7 finite iteration ingredient and Appendix A2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity` | `pbps.actualOuterBoundedL2Continuity` | `actual_outer_bounded_l2_continuity` | arXiv2609.06905v1 AppendixA1 Ex22 p6.2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization` | `pbps.actualPhaseNormalization` | `actual_phase_gibbs_normalization` | arXiv2609.06905v1 conditional energy and Eq3.1 |
@@ -453,6 +454,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.TwoPointEntropy` | `entropy.two-point.signed-squared` | `two_point_squared_entropy_le_half_sq_sub` | SLT d0f506f0a695018265dccb33bcb05e2f5ca1c876; no Lake upstream dependency |
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2` | `functional-inequality.gibbs-local-l2` | `lp_locallyMemLp_volume` | Mathlib MeasureTheory; authored PBPS arXiv2609.06905v1 Appendix C.1 prerequisite |
 | `AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient` | `geometry.affine-restriction-gradient` | `hasGradientAt_affine_restriction` | Mathlib.Analysis.Calculus.FDeriv.Comp; Mathlib.Analysis.InnerProductSpace.Projection.Basic |
+| `AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension` | `geometry.curve-extension-independence` | `fderiv_eq_on_curve_velocity` | Mathlib.Analysis.Calculus.Deriv.Comp; Mathlib.Analysis.Calculus.Deriv.Basic |
 | `AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates` | `geometry.euclidean-space.inner-toLp-toLp-sum` | `euclideanSpace_inner_toLp_toLp_eq_sum_mul` | Mathlib.Analysis.InnerProductSpace.PiL2 |
 | `AutoSamplingTheory.TechnicalLemmas.Geometry.EuclideanSpaceCoordinates` | `geometry.euclidean-space.inner-sum` | `euclideanSpace_inner_eq_sum_mul` | Mathlib.Analysis.InnerProductSpace.PiL2 |
 | `AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity` | `geometry.chewi-definition-1-3-26` | `IsAlphaGeodesicallyConvex` | Log-Concave Sampling, book page 31 / PDF page 43 |

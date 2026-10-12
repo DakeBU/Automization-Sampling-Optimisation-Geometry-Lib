@@ -23,7 +23,7 @@ checks={
 claim=json.loads((r/'claim.json').read_bytes());assert checks['graph'][-1]==claim['frontier_cell']
 label=sys.argv[1];out=r/'checks109'/(sys.argv[2] if len(sys.argv)>2 else label);out.mkdir(parents=True,exist_ok=False)
 env=os.environ.copy();env['PATH']=str(R/'.astis/toolchain/lean-4.33.0-windows/bin')+os.pathsep+env['PATH'];env.pop('ELAN_TOOLCHAIN',None);env['PYTHONUTF8']='1';env['LEAN_NUM_THREADS']='2'
-if label=='diff-check':cmd=['git','-c','core.autocrlf=false','-c','core.fscache=false','diff','--check']
+if label=='diff-check':cmd=['git','-c','core.fscache=false','diff','--check']
 elif label=='focused-build':cmd=[str(R/'.astis/toolchain/lean-4.33.0-windows/bin/lake.exe'),'build','AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging']
 elif label=='tests':cmd=[str(R/'.astis/toolchain/lean-4.33.0-windows/bin/lake.exe'),'build','Tests']
 else:cmd=[sys.executable,'-X','utf8',*checks[label]]

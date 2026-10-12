@@ -78,6 +78,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -122,6 +123,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualPositionL2Averaging"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging"
+    upstreamDecl := "Actual PBPS Gaussian momentum averaging and position L2 contraction"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1(iii) final averaging proof"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "Gaussian-average", "self-adjoint"]
+    saldUse := "Actual PBPS position averaging; no SALD claim"
+    note := "Independent science 86e2da02b6b1a855916adcd46363e34d8a6ecb5b. Under the original six assumptions, retain the same108 global actual process Z, phase family A and canonical flip J. Construct the position lift B and Gaussian adjoint M=B*. For every arbitrary MemLp phase representative, derive Gaussian section integrability, output L2 membership and the literal Gaussian mean class. Prove JB=B and MJ=M, then K_T=M A_T B is selfadjoint, norm at most1 and K_0=id. Identify its literal Gaussian-outer clock-inner position expectation, with both nested AE integrability statements. Rank0 included. No new source premise. Markov positivity/constants, strong continuity, restart/semigroup, separate kernel witnesses, independent-reference averaging, hypocoercivity, errors, actual expected costs, composition and all four complete papers remain open."
+  },
   {
     key := "pbps.actualL2FlipDuality"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality"

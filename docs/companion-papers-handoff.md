@@ -1,5 +1,35 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS Gaussian position L2 averaging (2026-10-12)
+
+Independent science 86e2da02b6b1a855916adcd46363e34d8a6ecb5b. Original six analytic assumptions and all108
+outputs remain on the same global actual process Z, phase family A_T and
+canonical momentum flip J. With pi_y the actual tilted position law and
+gamma the probability standard Gaussian, the canonical position lift B
+pulls back along fst. Its adjoint M is identified with the literal Gaussian
+integral for every arbitrary MemLp phase representative. Section integrability,
+output L2 membership and quotient equality are proved internally.
+
+Flip absorption JB=B and MJ=M gives the compressed position operator
+K_T=M A_T B: K_T.adjoint=K_T, norm at most1, and K_0=id. The same108 actual
+clock expectation identifies K_T[f] with the Gaussian-outer, clock-inner
+position integral. Both nested AE integrability conclusions are proved;
+there is no interchange of integrals or extra Borel assumption on MemLp inputs.
+
+The source graph has123 nodes and247 edges after independently admitted
+namespace and L1-indicator implementation adapters. The original sealed graph
+and all source slices are retained. The L2-inner integrability route remains
+an unselected alternative. Eight adjacent formula/Lean regions explain the
+proof. Independent exact header, whole mathematics, fresh source-blind decoding,
+primary-first source/exposition review and exact-commit admission passed.
+
+Markov positivity/constants, strong continuity, restart/semigroup, separate
+kernel-witness identification, independent-reference half-turn averaging,
+hypocoercivity, implementation errors, actual expected costs and composition
+remain red. Full paper completion remains0/4. Public integration uses the sole
+SAU94 lane; actual browser acceptance, main merge and purification are separate.
+
+
 ## Actual PBPS full real-L2 flip duality (2026-10-12)
 
 Independent science 25a3e47e3e171f2d5584a6568ce685c6f546e529. The original six analytic assumptions and

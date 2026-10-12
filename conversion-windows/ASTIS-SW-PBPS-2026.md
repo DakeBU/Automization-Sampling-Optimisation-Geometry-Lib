@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual Gaussian position L2 averaging109 (2026-10-12)
+
+Independent science 86e2da02b6b1a855916adcd46363e34d8a6ecb5b. Under the original six assumptions, retain the same108 global actual process Z, phase family A and canonical flip J. Construct the position lift B and Gaussian adjoint M=B*. For every arbitrary MemLp phase representative, derive Gaussian section integrability, output L2 membership and the literal Gaussian mean class. Prove JB=B and MJ=M, then K_T=M A_T B is selfadjoint, norm at most1 and K_0=id. Identify its literal Gaussian-outer clock-inner position expectation, with both nested AE integrability statements. Rank0 included. No new source premise. Markov positivity/constants, strong continuity, restart/semigroup, separate kernel witnesses, independent-reference averaging, hypocoercivity, errors, actual expected costs, composition and all four complete papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification remain separate.
+
+
 ## Actual full real-L2 flip duality108 (2026-10-12)
 
 Independent science 25a3e47e3e171f2d5584a6568ce685c6f546e529. Under the original six assumptions, the same global actual PBPS process and the same real L2 expectation family from107 retain all path, Borel, Gibbs, bounded-duality, integrability, contraction and initialization conclusions. The canonical momentum-flip pullback J is an involutive L2 isometry and A_T.adjoint = J A_T J for every nonnegative T, on all real L2 classes. Gaussian reflection and product maps prove phase preservation. Bounded simple representatives give the signed pairing; continuity and two-variable density extend it to all L2, then adjoint uniqueness closes Eq A.3. No new source premise. Restart/Markov/semigroup, strong continuity, separate kernel witnesses, actual position averaging, hypocoercivity, errors, actual expected costs, composition and four complete papers remain open.

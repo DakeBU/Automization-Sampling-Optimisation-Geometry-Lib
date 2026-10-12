@@ -5,7 +5,7 @@ sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 old=r.parent/'pbps-actual-finite-first-event-law86/inspect_reader_html86.py'
 source=old.read_text(encoding='utf8').split('run = Path(',1)[0]
 ns={};exec(compile(source.replace('pbps-actual-finite-first-event-law','pbps-actual-position-l2-averaging'),str(old),'exec'),ns)
-gate=load(r/'checks109/integration-site-build/receipt.json');assert gate['terminal_closed'] and gate['exit_code']==0
+gate=load(r/'checks109/display-site-build/receipt.json');assert gate['terminal_closed'] and gate['exit_code']==0
 page=Path('_site/example-cases/samplewiki/companions/proximal-bouncy-particle.html')
 p=ns['Unit']();p.feed(page.read_text(encoding='utf8'))
 lesson=load('website/content/declaration_lessons/pbps-actual-position-l2-averaging.json')['units'][0]

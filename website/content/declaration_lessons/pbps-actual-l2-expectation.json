@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_contraction",
+      "title": "Actual PBPS fixed-time L2 expectation contraction",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1.E3",
+          "label": "Appendix A.1 bounded signed duality toward Eq A.3: actual fixed-time L2 operator construction and contraction, before density extension.",
+          "scope": "Fixed-time real L2 expectation contraction with inherited106 bounded duality/invariance. Full A.3 identity, strong continuity, restart/Markov/semigroup, separate kernel-witness identification, hypocoercivity, implementation errors, actual expected costs, composition and all four full papers remain open."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation"
+      ],
+      "assumptions": [
+        "Finite-dimensional real inner-product Borel E with canonical volume, including rank zero.",
+        "alpha,beta>=0; alpha>0; alpha<=beta; V is C2; alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v; eta>0; beta*eta<=1.",
+        "A single global actual process is constructed in the conclusion, with the literal joint measurability, arc/fallback and parameterwise almost-sure initialization contracts; every y,r and finite nonnegative T is included.",
+        "The universal bounded-observable conclusion ranges over measurable real F,G and finite nonnegative C_F,C_G with pointwise absolute-value bounds. These are test domains, not extra assumptions on the sampler.",
+        "For the L2 conclusion G is any real function with MemLp G 2 nu_y. For joint Borel dependence G is Borel; every-section L1 additionally uses a finite nonnegative pointwise bound. Operator existence, integrability, output membership and bound1 are conclusions.",
+        "All actual algorithm, clock and Gibbs phase objects are literal. No supplied Z/kernel/operator, integrability, normalizer, momentum symmetry, restart or Markov premise."
+      ],
+      "statement": "Let E be any finite-dimensional real inner-product Borel space, including dimension zero. Let V:E→ℝ be C², α,β≥0 and η∈ℝ with α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0 and βη≤1. The following literal constructions are made for all y,r∈E and initial phases z₀∈E×E; the existential process witness below is global in these parameters. Put c=y−η∇V(r), Φ_t(x,p)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), g_r(x)=∇V(x)−∇V(r), S_r(x,p)=(x,p−2〈p,g_r(x)〉g_r(x)/‖g_r(x)‖²), λ_r(x,p)=√η max{0,〈p,g_r(x)〉}, Λ_z(t)=∫₀ᵗλ_r(Φ_s(z))ds and τ_z(e)=inf{t≥0:Λ_z(t)≥e}∈[0,∞], with inf empty=∞. Total real division makes S_r the identity at g_r(x)=0. The record space is D=([0,∞)×(E×E))⊕{stopped}, with Borel sum structure. Define next(e,stopped)=stopped; for a live record (T,z), next(e,(T,z))=stopped if τ_z(e)=∞, and otherwise next(e,(T,z))=(T+τ_z(e),S_rΦ_(τ_z(e))(z)). In the Lean definition untopD0 is used only in this non-top branch. Define R₀(e)=live(0,z₀) and R_(j+1)(e)=next(e_j,R_j(e)). Let Ω=ℝ^ℕ with its product Borel structure and P=⊗_(k≥0)Exp(1). Let ε(w)_k=max{w_k,0}; this is an ambient coordinate extension on a P-null nonpositive-clock set, not new source dynamics for negative clocks. \nWrite T_j(w)=a for a live record R_j(ε(w))=live(a,z), and T_j(w)=∞ for a stopped record. Define I_n(T)={T_n≤T<T_(n+1)}, and the total selector N(T,w)=min{n:w∈I_n(T)} when such an n exists, and 0 otherwise. For n≥0 let Hist_n=D^(Fin(n+1)) and H_n(w)_j=R_j(ε(w)). Write readTime(live(a,z))=a and readTime(stopped)=0. The abstract guard A_n(T) consists of histories all of whose records are live, whose read times are strictly increasing and whose positive-index read times are strictly below T; it does not constrain record0 itself. Actual H_n starts at live(0,z₀). For h∈Hist_n set d_n(T,h)=max{T−readTime(h_n),0}. Define survival(live(a,z),u,e) to mean u<τ_z(max{e,0}); on stopped it is false. Define W(live(a,z),u)=exp(−Λ_z(u)); on stopped W=0. Put C_n(T)={w:H_n(w)∈A_n(T), survival(R_n(ε(w)),d_n(T,H_n(w)),w_n)}.\nFor a fixed finite T≥0 let Path_T be all functions from [0,T] into E×E, with its coordinate-product sigma algebra. On every history, including unrealizable ones, define Ψ_n(T,h)(s) by starting at z₀ and visiting j=0,…,n in increasing order: a live record (a,z) with a≤s replaces the current value by Φ_(s−a)(z), and an ineligible live or stopped record leaves it unchanged. All elapsed times in this total definition use nonnegative subtraction.\nDefine Δ_n(T)={t∈ℝ^n:0<t₁<⋯<t_n<T}, and let m_n be the comap of product Lebesgue measure to this subtype, without normalization. For t∈Δ_n(T), put s₀=0,s_i=t_i, z₀ equal to the prescribed initial phase and z_i=S_rΦ_(s_i−s_(i−1))(z_(i−1)). Set K_n(t)_j=live(s_j,z_j), Γ_n(T,t)=Ψ_n(T,K_n(t)), q_n(t)=ofReal(∏_(i=1)^n λ_r(Φ_(s_i−s_(i−1))(z_(i−1)))exp[−Λ_(z_(i−1))(s_i−s_(i−1))]), and ρ_n(T,t)=q_n(t)W(K_n(t)_n,d_n(T,K_n(t))). The literal toNNReal conversions agree with these nonnegative simplex times.\nThere exists one actual phase representative Z(y,r,z₀,t,w), jointly Borel in all deterministic parameters, finite time and raw input, with the following properties. On every raw covering interval T_n(w)≤s<T_(n+1)(w), if R_n(ε(w))=live(a,z), then Z(s,w)=Φ_(s−a)(z). If no interval covers s, Z(s,w)=z₀. For each fixed parameter tuple, Z(0,w)=z₀ almost surely.\n\nPut R(x,p)=(x,-p), V_y(x)=V(x)+||x-y||^2/(2 eta), and nu_y=(volume_E.tilted(-V_y)) times stdGaussian(E), in position/momentum order. Here tilted(-V_y) has density ofReal(exp(-V_y(x))/integral exp(-V_y) dx), and stdGaussian is the centered identity-covariance Gaussian. Normalizability is a consequence, not a premise.\n\nWrite H=E times E, pi_y=volume_E.tilted(-V_y), gamma=stdGaussian(E), so nu_y=pi_y times gamma. For the same single global actual Z described above, every y,r in E and every finite T>=0, define op_T G(z)=integral G(Z(y,r,z,T,w)) dP(w), a real Bochner integral, and endpoint_T(z,w)=Z(y,r,z,T,w). Then endpoint_T is measurable and its pushforward of nu_y times P is exactly nu_y.\nFor every pair F,G:H->R of Borel measurable functions and finite real bounds C_F,C_G>=0 with |F(z)|<=C_F and |G(z)|<=C_G for all z, both z->F(z)*op_T G(z) and z->G(R(z))*op_T(F composed R)(z) are integrable against nu_y, and their real integrals are equal. Thus integral F(z)*op_T G(z) dnu_y(z) = integral G(R(z))*op_T(F composed R)(z) dnu_y(z).\nAll these conclusions use the same Z, existentially chosen before all centers, references, horizons and observables. Products are phase first, clock input second. No process, kernel, finite mass, signed integrability, momentum symmetry or normalizability is a supplied premise. Dimension zero, T=0, vanishing test bounds, zero bounce rates, infinite waits and raw exceptional fallback remain included. Almost-sure initialization stays parameterwise; no uniform all-parameter null set or pointwise reversed path at jumps is asserted.\n\nFor every Borel G:H->R, the total real clock expectation (y,r,z,T)->integral G(Z(y,r,z,T,w)) dP(w) is jointly Borel. If C is a finite nonnegative real number and |G(z)|<=C for all z, then for every y,r,z,T the clock section is P-integrable and the absolute value of this expectation is at most C.\nFor every y,r in E there exists a family A indexed by finite nonnegative T, where A_T:L2(nu_y;R)->L2(nu_y;R) is a continuous real linear operator, A_0 is the identity and ||A_T||<=1 for every T. For every real function G with MemLp G 2 nu_y (almost-everywhere strong measurability and finite L2 seminorm), the section w->G(Z(y,r,z,T,w)) is P-integrable for nu_y-almost every z. The literal expectation op_T G belongs to L2(nu_y;R), and A_T[G]=[op_T G]. Thus integral |op_T G|^2 dnu_y <= integral |G|^2 dnu_y. Brackets denote equality classes modulo nu_y-almost-everywhere equality; no pointwise identification of arbitrary L2 representatives is asserted. The operator, section integrability and output L2 membership are conclusions, not supplied premises.\nThese operators use the same single global Z as all inherited path, initialization, invariance and bounded-duality conclusions. The bound1 is exact and independent of dimension, center, reference and horizon. The joint Borel assertion concerns Borel input G; arbitrary MemLp representatives receive the stated almost-everywhere conclusions. There is no joint measurability or continuity claim for the operator-valued family, no strong-continuity claim, and no assertion of full L2 momentum-flip duality Eq A.3, restart/Markov/semigroup, equality with a separately existential kernel, hypocoercivity, implementation accuracy or actual expected costs. Full papers and actual-input composition remain open.\n",
+      "formula": "\\int|\\operatorname{op}_TG|^2\\,d\\nu_y=\\|A_T[G]\\|_2^2\\le\\|[G]\\|_2^2=\\int|G|^2\\,d\\nu_y.",
+      "boundary": "Fixed-time real L2 expectation contraction with inherited106 bounded duality/invariance. Full A.3 identity, strong continuity, restart/Markov/semigroup, separate kernel-witness identification, hypocoercivity, implementation errors, actual expected costs, composition and all four full papers remain open.",
+      "steps": [
+        {
+          "title": "Retain the same actual process and all bounded results",
+          "text": "Consume the actual bounded-duality producer once. Preserve its joint measurable process, exact live arcs and fallback, parameterwise clock-almost-sure initialization, fixed-time Gibbs preservation and bounded momentum-flip duality. Every new expectation below uses this same witness.",
+          "formula": "Z\\text{ fixed globally};\\quad (Z_T)_*(\\nu_y\\otimes P)=\\nu_y;\\quad Z_0(z,w)=z\\quad P\\text{-a.e.}",
+          "lean": "  obtain ⟨Z, hZm, hZa, hZf, hZ0, h106⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality\n      hα hαβ hV hH hη hβη\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 180,
+            "end_line": 182,
+            "exact_code_raw_sha256": "1c81c03debb656a63366fc9b2add8a7856e6125f8a9cca714f731ad975536d87"
+          }
+        },
+        {
+          "title": "Construct the Hilbert-space averaging contraction",
+          "text": "For a probability input mu times nu and a measure-preserving endpoint, pullback along first projection and endpoint gives L2 isometries B and C. Define the operator internally by A=B* C. Adjoint norm preservation gives ||A||<=1. The adjoint identity and the exact pullback representatives give the displayed product pairing. This proof-local lemma is later instantiated with the actual Gibbs and clock laws, not assumed about the sampler.",
+          "formula": "Bf(z,w)=f(z),\\quad Cg(z,w)=g(Z_T(z,w)),\\quad A=B^*C,\\quad\\|A\\|\\le1,\\quad\\langle f,Ag\\rangle=\\int f(z)g(Z_T(z,w))\\,d(\\mu\\otimes\\nu).",
+          "lean": "  have hpair_core\n      (μ : Measure (E × E)) (ν : Measure (ℕ → ℝ)) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n      (Z : (E × E) × (ℕ → ℝ) → (E × E)) (hZ : MeasurePreserving Z (μ.prod ν) μ) :\n      ∃ A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ, ‖A‖ ≤ 1 ∧\n        ∀ f g : Lp ℝ 2 μ,\n          ⟪f, A g⟫_ℝ = ∫ p : (E × E) × (ℕ → ℝ), f p.1 * g (Z p) ∂μ.prod ν := by\n    have hfst : MeasurePreserving Prod.fst (μ.prod ν) μ := by\n      refine ⟨measurable_fst, ?_⟩\n      simp only [Measure.map_fst_prod, measure_univ, one_smul]\n    let B : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 (μ.prod ν) :=\n      (Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hfst).toContinuousLinearMap\n    let C : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 (μ.prod ν) :=\n      (Lp.compMeasurePreservingₗᵢ ℝ Z hZ).toContinuousLinearMap\n    let A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ := B.adjoint.comp C\n    have hB : ‖B‖ ≤ 1 := LinearIsometry.norm_toContinuousLinearMap_le _\n    have hC : ‖C‖ ≤ 1 := LinearIsometry.norm_toContinuousLinearMap_le _\n    refine ⟨A, ?_, ?_⟩\n    · calc\n        ‖A‖ ≤ ‖B.adjoint‖ * ‖C‖ := ContinuousLinearMap.opNorm_comp_le _ _\n        _ = ‖B‖ * ‖C‖ := by rw [ContinuousLinearMap.adjoint.norm_map]\n        _ ≤ 1 * 1 := mul_le_mul hB hC (norm_nonneg _) zero_le_one\n        _ = 1 := one_mul 1\n    · intro f g\n      change ⟪f, B.adjoint (C g)⟫_ℝ = _\n      rw [ContinuousLinearMap.adjoint_inner_right, L2.inner_def]\n      have hb : (B f : (E × E) × (ℕ → ℝ) → ℝ) =ᵐ[μ.prod ν] (fun p => f p.1) :=\n        Lp.coeFn_compMeasurePreserving f hfst\n      have hc : (C g : (E × E) × (ℕ → ℝ) → ℝ) =ᵐ[μ.prod ν] (fun p => g (Z p)) :=\n        Lp.coeFn_compMeasurePreserving g hZ\n      apply integral_congr_ae\n      filter_upwards [hb, hc] with p hp hq\n      rw [hp, hq]\n      simp [RCLike.inner_apply, mul_comm]\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 183,
+            "end_line": 215,
+            "exact_code_raw_sha256": "60a38c47cae6ba9eadf98af72deadf78db689106d71ce8c02062f63346917b0e"
+          }
+        },
+        {
+          "title": "Prove product and outer integrability before identification",
+          "text": "For arbitrary MemLp input G, endpoint preservation transports L2 to the input product probability, hence to L1. Signed Fubini gives almost-everywhere clock-section integrability and outer L1. The constructed operator output is itself in L2 and therefore L1. These facts precede the uniqueness argument; output expectation L2 has not been assumed.",
+          "formula": "G\\in L^2(\\mu)\\Rightarrow G\\circ Z_T\\in L^2(\\mu\\otimes\\nu)\\subset L^1;\\qquad z\\mapsto\\int G(Z_T(z,w))\\,d\\nu(w)\\in L^1(\\mu).",
+          "lean": "  have haverage_core\n      (μ : Measure (E × E)) (ν : Measure (ℕ → ℝ)) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n      (Z : (E × E) × (ℕ → ℝ) → (E × E)) (hZ : MeasurePreserving Z (μ.prod ν) μ) :\n      ∃ A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ, ‖A‖ ≤ 1 ∧\n        ∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 μ,\n          (∀ᵐ x ∂μ, Integrable (fun w => G (Z (x, w))) ν) ∧\n          ∃ hOp : MemLp (fun x => ∫ w, G (Z (x, w)) ∂ν) 2 μ,\n            A (hG.toLp G) = hOp.toLp (fun x => ∫ w, G (Z (x, w)) ∂ν) := by\n    classical\n    obtain ⟨A, hA, hpair⟩ := hpair_core μ ν Z hZ\n    refine ⟨A, hA, ?_⟩\n    intro G hG\n    have hfst : MeasurePreserving Prod.fst (μ.prod ν) μ := by\n      refine ⟨measurable_fst, ?_⟩\n      simp only [Measure.map_fst_prod, measure_univ, one_smul]\n    have hprod : Integrable (fun p : (E × E) × (ℕ → ℝ) => G (Z p)) (μ.prod ν) :=\n      (hG.comp_measurePreserving hZ).integrable (by norm_num)\n    have hop : Integrable (fun x => ∫ w, G (Z (x, w)) ∂ν) μ := hprod.integral_prod_left\n    have hAg : Integrable (A (hG.toLp G) : (E × E) → ℝ) μ :=\n      (Lp.memLp (A (hG.toLp G))).integrable (by norm_num)\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 216,
+            "end_line": 235,
+            "exact_code_raw_sha256": "7b77e09a0459ab08fd43af25ece3d0b4eed4b50a59430bbda73a05c369477b07"
+          }
+        },
+        {
+          "title": "Identify the average through measurable-set indicators",
+          "text": "Test the product pairing against the L2 class of 1_s for each measurable set s. Pullback preserves almost-everywhere changes of both indicator and G representatives. The indicator-weighted product is integrable; signed Fubini equates the two set integrals. L1 set-integral uniqueness then identifies the operator representative with the literal clock expectation almost everywhere.",
+          "formula": "\\int_s A[G]\\,d\\mu=\\langle1_s,A[G]\\rangle=\\int1_s(z)G(Z_T(z,w))\\,d(\\mu\\otimes\\nu)=\\int_s\\operatorname{op}_TG\\,d\\mu.",
+          "lean": "    have heq : (A (hG.toLp G) : (E × E) → ℝ) =ᵐ[μ] (fun x => ∫ w, G (Z (x, w)) ∂ν) := by\n      apply Integrable.ae_eq_of_forall_setIntegral_eq _ _ hAg hop\n      intro s hs hms\n      let i : Lp ℝ 2 μ := indicatorConstLp 2 hs hms.ne (1 : ℝ)\n      have hi : (i : (E × E) → ℝ) =ᵐ[μ] s.indicator (fun _ => (1 : ℝ)) := indicatorConstLp_coeFn\n      have hi' := hfst.quasiMeasurePreserving.ae_eq hi\n      have hg' := hZ.quasiMeasurePreserving.ae_eq hG.coeFn_toLp\n      let H : (E × E) × (ℕ → ℝ) → ℝ := fun p => (s.indicator (fun _ => (1 : ℝ)) p.1) * G (Z p)\n      have hH : Integrable H (μ.prod ν) := by\n        have hfun : H = (Prod.fst ⁻¹' s).indicator (fun p : (E × E) × (ℕ → ℝ) => G (Z p)) := by\n          funext p\n          by_cases hp : p.1 ∈ s <;> simp [H, Set.indicator, hp]\n        rw [hfun]\n        exact hprod.indicator (hs.preimage measurable_fst)\n      calc\n        (∫ x in s, A (hG.toLp G) x ∂μ) = ⟪i, A (hG.toLp G)⟫_ℝ :=\n          (L2.inner_indicatorConstLp_one hs hms.ne _).symm\n        _ = ∫ p : (E × E) × (ℕ → ℝ), i p.1 * (hG.toLp G) (Z p) ∂μ.prod ν := hpair i (hG.toLp G)\n        _ = ∫ p : (E × E) × (ℕ → ℝ), H p ∂μ.prod ν := by\n          apply integral_congr_ae\n          filter_upwards [hi', hg'] with p hp hq\n          change i p.1 = s.indicator (fun _ => (1 : ℝ)) p.1 at hp\n          change (hG.toLp G) (Z p) = G (Z p) at hq\n          dsimp only [H]\n          rw [hp, hq]\n        _ = ∫ x, ∫ w, H (x, w) ∂ν ∂μ := integral_prod H hH\n        _ = ∫ x, s.indicator (fun _ => (1 : ℝ)) x * (∫ w, G (Z (x, w)) ∂ν) ∂μ := by\n          simp only [H, integral_const_mul]\n        _ = ∫ x in s, (∫ w, G (Z (x, w)) ∂ν) ∂μ := by\n          rw [← integral_indicator hs]\n          congr 1\n          funext x\n          by_cases hx : x ∈ s <;> simp [Set.indicator, hx]\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 236,
+            "end_line": 268,
+            "exact_code_raw_sha256": "4e745291f213d38773ac74cb25d79b843d4077f9e72456d7de31e03bdc84239c"
+          }
+        },
+        {
+          "title": "Transfer L2 membership to the actual expectation",
+          "text": "The identified operator representative is L2. Transfer this membership across the proved almost-everywhere equality and use Lp extensionality to certify the exact quotient equality. Together with product Fubini this returns the section L1 and output membership conclusions for arbitrary MemLp representatives.",
+          "formula": "\\operatorname{op}_TG=A[G]\\quad\\mu\\text{-a.e.}\\quad\\Rightarrow\\quad\\operatorname{op}_TG\\in L^2(\\mu),\\quad[\\operatorname{op}_TG]=A[G].",
+          "lean": "    have hOp : MemLp (fun x => ∫ w, G (Z (x, w)) ∂ν) 2 μ := MemLp.ae_eq heq (Lp.memLp (A (hG.toLp G)))\n    refine ⟨hprod.prod_right_ae, hOp, ?_⟩\n    apply Lp.ext\n    exact heq.trans hOp.coeFn_toLp.symm\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 269,
+            "end_line": 272,
+            "exact_code_raw_sha256": "7ec88cc911349545164bf96c03fff0e655d452f3df6312a2a09f5e1ad9cdd4bd"
+          }
+        },
+        {
+          "title": "Relate the scalar square integral to the L2 norm",
+          "text": "The canonical toLp representative agrees almost everywhere with the raw function. Substitute this equality in the real inner-product integral; the Hilbert norm identity gives the exact square integral. This converts the operator norm bound into the requested scalar inequality.",
+          "formula": "\\int |G|^2\\,d\\mu=\\langle[G],[G]\\rangle=\\|[G]\\|_2^2.",
+          "lean": "  have hsquare_core\n      (μ : Measure (E × E)) (G : (E × E) → ℝ) (hG : MemLp G 2 μ) :\n      (∫ x, |G x| ^ 2 ∂μ) = ‖hG.toLp G‖ ^ 2 := by\n    calc\n      (∫ x, |G x| ^ 2 ∂μ) = ∫ x, ⟪(hG.toLp G) x, (hG.toLp G) x⟫_ℝ ∂μ := by\n        apply integral_congr_ae\n        filter_upwards [hG.coeFn_toLp] with x hx\n        rw [hx]\n        simp [RCLike.inner_apply, sq_abs, pow_two]\n      _ = ⟪hG.toLp G, hG.toLp G⟫_ℝ := rfl\n      _ = ‖hG.toLp G‖ ^ 2 := real_inner_self_eq_norm_sq _\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 273,
+            "end_line": 283,
+            "exact_code_raw_sha256": "48911fc1afb546b0ceaf4af86b7fc2cd07903fbe0adfc0859c4d4b2a0daa0423"
+          }
+        },
+        {
+          "title": "Prove joint Borel expectation and every bounded section",
+          "text": "For Borel G, compose the jointly measurable actual Z with G and integrate out the clock variable under its probability law. Product-integral measurability gives joint Borel dependence on y,r,z,T. A pointwise finite bound C proves every clock section integrable and the expectation bound, including C=0.",
+          "formula": "(y,r,z,T)\\mapsto\\int G(Z(y,r,z,T,w))\\,dP(w)\\text{ is Borel};\\quad |G|\\le C\\Rightarrow |\\operatorname{op}_TG|\\le C.",
+          "lean": "  refine ⟨Z, hZm, hZa, hZf, hZ0, h106, ?_, ?_⟩\n  · letI : IsProbabilityMeasure P :=\n      AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1\n    intro G hG\n    constructor\n    · have hmap : Measurable (fun a : (((E × E) × (E × E)) × ℝ≥0) × (ℕ → ℝ) =>\n          G (Z a.1.1.1.1 a.1.1.1.2 a.1.1.2 a.1.2 a.2)) :=\n        hG.comp (hZm.comp (measurable_fst.fst.prodMk\n          (measurable_fst.snd.prodMk measurable_snd)))\n      exact hmap.stronglyMeasurable.integral_prod_right.measurable\n    · intro C hC hbound y xRef z T\n      have hemb : Measurable (fun w : ℕ → ℝ => (((y, xRef), z), T, w)) :=\n        measurable_const.prodMk (measurable_const.prodMk measurable_id)\n      have hm : Measurable (fun w => G (Z y xRef z T w)) := hG.comp (hZm.comp hemb)\n      have hb : ∀ᵐ w ∂P, ‖G (Z y xRef z T w)‖ ≤ C :=\n        Filter.Eventually.of_forall fun w => by simpa only [Real.norm_eq_abs] using hbound (Z y xRef z T w)\n      refine ⟨Integrable.of_bound hm.aestronglyMeasurable C hb, ?_⟩\n      simpa using norm_integral_le_of_norm_le_const hb\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 284,
+            "end_line": 301,
+            "exact_code_raw_sha256": "c093a51c3bfad68aef7fd236ce94951177ae809486badf848b71ff03de89b9df"
+          }
+        },
+        {
+          "title": "Instantiate the construction at the actual probability laws",
+          "text": "Recover nu_y probability from actual Gibbs normalization and P probability from the countable exponential producer. Actual fixed-time endpoint preservation, inherited from the same Z, supplies the input to the proved local averaging construction. Choose one operator for each T; no regularity of the operator-valued family is inferred.",
+          "formula": "\\mu=\\nu_y,\\quad\\nu=P,\\quad(Z_T)_*(\\nu_y\\otimes P)=\\nu_y\\Rightarrow\\exists(A_T)_{T\\ge0}\\text{ with }\\|A_T\\|\\le1.",
+          "lean": "  · intro y xRef\n    have h103 := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization\n      hα hαβ hV hH hη hβη y\n    letI : IsProbabilityMeasure (nu y) := by\n      have hp := h103.2.2.2.2.2.1\n      rw [h103.2.2.2.2.2.2] at hp\n      exact hp\n    letI : IsProbabilityMeasure P :=\n      AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1\n    have hfor : ∀ T : ℝ≥0,\n        ∃ L : Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 (nu y), ‖L‖ ≤ 1 ∧\n          ∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 (nu y),\n            (∀ᵐ z ∂nu y, Integrable (fun w => G (Z y xRef z T w)) P) ∧\n            ∃ hOp : MemLp (fun z => ∫ w, G (Z y xRef z T w) ∂P) 2 (nu y),\n              L (hG.toLp G) = hOp.toLp (fun z => ∫ w, G (Z y xRef z T w) ∂P) := by\n      intro T\n      exact haverage_core (nu y) P (fun a => Z y xRef a.1 T a.2) (h106 y xRef T).1\n    choose L hL hrep using hfor\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 302,
+            "end_line": 319,
+            "exact_code_raw_sha256": "129a44a9f7126fbdef65da6b6ab727e2b28eaf16fb7c694fea7cc34eeef2112b"
+          }
+        },
+        {
+          "title": "Prove the zero-time operator is the identity",
+          "text": "Apply representative identification to the canonical representative of an arbitrary L2 class. The inherited parameterwise clock-almost-sure equality Z_0(z,w)=z makes its clock integral equal to that representative for each z. Lp and continuous-linear-map extensionality imply A_0=id without a uniform parameter-null-set assumption.",
+          "formula": "\\int f(Z_0(z,w))\\,dP(w)=f(z)\\quad\\Rightarrow\\quad A_0[f]=[f],\\qquad A_0=\\mathrm{id}.",
+          "lean": "    refine ⟨L, ?_, ?_⟩\n    · apply ContinuousLinearMap.ext\n      intro f\n      obtain ⟨_, hm, he⟩ := hrep 0 (f : (E × E) → ℝ) (Lp.memLp f)\n      rw [Lp.toLp_coeFn] at he\n      apply Lp.ext\n      change (L 0 f : (E × E) → ℝ) =ᵐ[nu y] (f : (E × E) → ℝ)\n      have hpoint : ∀ z, (∫ w, f (Z y xRef z 0 w) ∂P) = f z := by\n        intro z\n        exact integral_eq_const ((hZ0 y xRef z).mono (fun w hw => congrArg f hw))\n      rw [he]\n      exact hm.coeFn_toLp.trans (Filter.Eventually.of_forall hpoint)\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 320,
+            "end_line": 331,
+            "exact_code_raw_sha256": "91b72f78c12ce49ec2d0dea2f91e42ffe47ed3cbee338d93c7ddaf5aaab17544"
+          }
+        },
+        {
+          "title": "Return the actual L2 representative and square contraction",
+          "text": "For every T and every MemLp G, return the previously proved section integrability and exact toLp equality. Express both scalar square integrals as L2 norm squares, use the operator bound1, then square the nonnegative norm inequality. This completes the fixed-time result; full L2 momentum-flip duality remains a separate density argument.",
+          "formula": "\\int|\\operatorname{op}_TG|^2\\,d\\nu_y=\\|A_T[G]\\|_2^2\\le\\|[G]\\|_2^2=\\int|G|^2\\,d\\nu_y.",
+          "lean": "    · intro T\n      refine ⟨hL T, ?_⟩\n      intro G hG opG\n      obtain ⟨hsec, hOp, he⟩ := hrep T G hG\n      refine ⟨hsec, ⟨hOp, he⟩, ?_⟩\n      rw [hsquare_core (nu y) opG hOp, hsquare_core (nu y) G hG, ← he]\n      have hn : ‖L T (hG.toLp G)‖ ≤ ‖hG.toLp G‖ :=\n        (ContinuousLinearMap.le_opNorm (L T) (hG.toLp G)).trans\n          (mul_le_of_le_one_left (norm_nonneg _) (hL T))\n      nlinarith [norm_nonneg (L T (hG.toLp G)), norm_nonneg (hG.toLp G)]\n",
+          "detail": "ASTIS completion of actual fixed-time L2 averaging. Exact compiled region; original six analytic assumptions and same global process are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2Expectation.lean",
+            "source_raw_sha256": "4c35e0b71362bec3563e3d07c9f122d6b7ca4cae604f7a88aad397d2a028f4d6",
+            "start_line": 332,
+            "end_line": 341,
+            "exact_code_raw_sha256": "bbcffd815dd9892ef1b2fb91e2ea7067d8792aea380d970531be9e0e420179bd"
+          }
+        }
+      ],
+      "lean_statement": "Let E be any finite-dimensional real inner-product Borel space, including dimension zero. Let V:E→ℝ be C², α,β≥0 and η∈ℝ with α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0 and βη≤1. The following literal constructions are made for all y,r∈E and initial phases z₀∈E×E; the existential process witness below is global in these parameters. Put c=y−η∇V(r), Φ_t(x,p)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), g_r(x)=∇V(x)−∇V(r), S_r(x,p)=(x,p−2〈p,g_r(x)〉g_r(x)/‖g_r(x)‖²), λ_r(x,p)=√η max{0,〈p,g_r(x)〉}, Λ_z(t)=∫₀ᵗλ_r(Φ_s(z))ds and τ_z(e)=inf{t≥0:Λ_z(t)≥e}∈[0,∞], with inf empty=∞. Total real division makes S_r the identity at g_r(x)=0. The record space is D=([0,∞)×(E×E))⊕{stopped}, with Borel sum structure. Define next(e,stopped)=stopped; for a live record (T,z), next(e,(T,z))=stopped if τ_z(e)=∞, and otherwise next(e,(T,z))=(T+τ_z(e),S_rΦ_(τ_z(e))(z)). In the Lean definition untopD0 is used only in this non-top branch. Define R₀(e)=live(0,z₀) and R_(j+1)(e)=next(e_j,R_j(e)). Let Ω=ℝ^ℕ with its product Borel structure and P=⊗_(k≥0)Exp(1). Let ε(w)_k=max{w_k,0}; this is an ambient coordinate extension on a P-null nonpositive-clock set, not new source dynamics for negative clocks. \nWrite T_j(w)=a for a live record R_j(ε(w))=live(a,z), and T_j(w)=∞ for a stopped record. Define I_n(T)={T_n≤T<T_(n+1)}, and the total selector N(T,w)=min{n:w∈I_n(T)} when such an n exists, and 0 otherwise. For n≥0 let Hist_n=D^(Fin(n+1)) and H_n(w)_j=R_j(ε(w)). Write readTime(live(a,z))=a and readTime(stopped)=0. The abstract guard A_n(T) consists of histories all of whose records are live, whose read times are strictly increasing and whose positive-index read times are strictly below T; it does not constrain record0 itself. Actual H_n starts at live(0,z₀). For h∈Hist_n set d_n(T,h)=max{T−readTime(h_n),0}. Define survival(live(a,z),u,e) to mean u<τ_z(max{e,0}); on stopped it is false. Define W(live(a,z),u)=exp(−Λ_z(u)); on stopped W=0. Put C_n(T)={w:H_n(w)∈A_n(T), survival(R_n(ε(w)),d_n(T,H_n(w)),w_n)}.\nFor a fixed finite T≥0 let Path_T be all functions from [0,T] into E×E, with its coordinate-product sigma algebra. On every history, including unrealizable ones, define Ψ_n(T,h)(s) by starting at z₀ and visiting j=0,…,n in increasing order: a live record (a,z) with a≤s replaces the current value by Φ_(s−a)(z), and an ineligible live or stopped record leaves it unchanged. All elapsed times in this total definition use nonnegative subtraction.\nDefine Δ_n(T)={t∈ℝ^n:0<t₁<⋯<t_n<T}, and let m_n be the comap of product Lebesgue measure to this subtype, without normalization. For t∈Δ_n(T), put s₀=0,s_i=t_i, z₀ equal to the prescribed initial phase and z_i=S_rΦ_(s_i−s_(i−1))(z_(i−1)). Set K_n(t)_j=live(s_j,z_j), Γ_n(T,t)=Ψ_n(T,K_n(t)), q_n(t)=ofReal(∏_(i=1)^n λ_r(Φ_(s_i−s_(i−1))(z_(i−1)))exp[−Λ_(z_(i−1))(s_i−s_(i−1))]), and ρ_n(T,t)=q_n(t)W(K_n(t)_n,d_n(T,K_n(t))). The literal toNNReal conversions agree with these nonnegative simplex times.\nThere exists one actual phase representative Z(y,r,z₀,t,w), jointly Borel in all deterministic parameters, finite time and raw input, with the following properties. On every raw covering interval T_n(w)≤s<T_(n+1)(w), if R_n(ε(w))=live(a,z), then Z(s,w)=Φ_(s−a)(z). If no interval covers s, Z(s,w)=z₀. For each fixed parameter tuple, Z(0,w)=z₀ almost surely.\n\nPut R(x,p)=(x,-p), V_y(x)=V(x)+||x-y||^2/(2 eta), and nu_y=(volume_E.tilted(-V_y)) times stdGaussian(E), in position/momentum order. Here tilted(-V_y) has density ofReal(exp(-V_y(x))/integral exp(-V_y) dx), and stdGaussian is the centered identity-covariance Gaussian. Normalizability is a consequence, not a premise.\n\nWrite H=E times E, pi_y=volume_E.tilted(-V_y), gamma=stdGaussian(E), so nu_y=pi_y times gamma. For the same single global actual Z described above, every y,r in E and every finite T>=0, define op_T G(z)=integral G(Z(y,r,z,T,w)) dP(w), a real Bochner integral, and endpoint_T(z,w)=Z(y,r,z,T,w). Then endpoint_T is measurable and its pushforward of nu_y times P is exactly nu_y.\nFor every pair F,G:H->R of Borel measurable functions and finite real bounds C_F,C_G>=0 with |F(z)|<=C_F and |G(z)|<=C_G for all z, both z->F(z)*op_T G(z) and z->G(R(z))*op_T(F composed R)(z) are integrable against nu_y, and their real integrals are equal. Thus integral F(z)*op_T G(z) dnu_y(z) = integral G(R(z))*op_T(F composed R)(z) dnu_y(z).\nAll these conclusions use the same Z, existentially chosen before all centers, references, horizons and observables. Products are phase first, clock input second. No process, kernel, finite mass, signed integrability, momentum symmetry or normalizability is a supplied premise. Dimension zero, T=0, vanishing test bounds, zero bounce rates, infinite waits and raw exceptional fallback remain included. Almost-sure initialization stays parameterwise; no uniform all-parameter null set or pointwise reversed path at jumps is asserted.\n\nFor every Borel G:H->R, the total real clock expectation (y,r,z,T)->integral G(Z(y,r,z,T,w)) dP(w) is jointly Borel. If C is a finite nonnegative real number and |G(z)|<=C for all z, then for every y,r,z,T the clock section is P-integrable and the absolute value of this expectation is at most C.\nFor every y,r in E there exists a family A indexed by finite nonnegative T, where A_T:L2(nu_y;R)->L2(nu_y;R) is a continuous real linear operator, A_0 is the identity and ||A_T||<=1 for every T. For every real function G with MemLp G 2 nu_y (almost-everywhere strong measurability and finite L2 seminorm), the section w->G(Z(y,r,z,T,w)) is P-integrable for nu_y-almost every z. The literal expectation op_T G belongs to L2(nu_y;R), and A_T[G]=[op_T G]. Thus integral |op_T G|^2 dnu_y <= integral |G|^2 dnu_y. Brackets denote equality classes modulo nu_y-almost-everywhere equality; no pointwise identification of arbitrary L2 representatives is asserted. The operator, section integrability and output L2 membership are conclusions, not supplied premises.\nThese operators use the same single global Z as all inherited path, initialization, invariance and bounded-duality conclusions. The bound1 is exact and independent of dimension, center, reference and horizon. The joint Borel assertion concerns Borel input G; arbitrary MemLp representatives receive the stated almost-everywhere conclusions. There is no joint measurability or continuity claim for the operator-valued family, no strong-continuity claim, and no assertion of full L2 momentum-flip duality Eq A.3, restart/Markov/semigroup, equality with a separately existential kernel, hypocoercivity, implementation accuracy or actual expected costs. Full papers and actual-input composition remain open.\n",
+      "lean_proof": "Retain the same actual process and all bounded results; Construct the Hilbert-space averaging contraction; Prove product and outer integrability before identification; Identify the average through measurable-set indicators; Transfer L2 membership to the actual expectation; Relate the scalar square integral to the L2 norm; Prove joint Borel expectation and every bounded section; Instantiate the construction at the actual probability laws; Prove the zero-time operator is the identity; Return the actual L2 representative and square contraction",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+      ],
+      "mathlib_dependencies": [
+        "StronglyMeasurable.integral_prod_right",
+        "Integrable.of_bound",
+        "norm_integral_le_of_norm_le_const",
+        "Lp.compMeasurePreservingₗᵢ",
+        "Lp.coeFn_compMeasurePreserving",
+        "ContinuousLinearMap.adjoint_inner_right",
+        "ContinuousLinearMap.opNorm_comp_le",
+        "LinearIsometry.norm_toContinuousLinearMap_le",
+        "MemLp.integrable",
+        "Integrable.prod_right_ae",
+        "Integrable.integral_prod_left",
+        "L2.inner_indicatorConstLp_one",
+        "integral_prod",
+        "Integrable.ae_eq_of_forall_setIntegral_eq",
+        "memLp_congr_ae",
+        "Lp.ext",
+        "integral_eq_const",
+        "Lp.toLp_coeFn"
+      ]
+    }
+  ]
+}

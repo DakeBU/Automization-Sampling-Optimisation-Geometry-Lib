@@ -1,0 +1,129 @@
+Anonymous statement reconstruction
+
+1. Ambient data and assumptions
+
+E is an arbitrary type with NormedAddCommGroup E, InnerProductSpace R E, FiniteDimensional R E, MeasurableSpace E, and BorelSpace E. Thus it is a finite-dimensional real inner-product Borel space, possibly of dimension zero, with canonical volume. Fix V:E->R, alpha,beta in NNReal, and eta in R. The complete explicit named assumptions are:
+ h_alpha: real(alpha)>0;
+ h_alpha_beta: alpha<=beta;
+ hV: V is twice continuously Frechet differentiable over R;
+ hH: for every x,v in E,
+     alpha||v||^2 <= D(DV)(x)[v][v] <= beta||v||^2;
+ h_eta: eta>0;
+ h_beta_eta: real(beta)*eta<=1.
+All nonnegative constants in real formulas are coerced to R. D(DV) is the actual second Frechet derivative; grad V is the real Hilbert gradient. No additional hypotheses are supplied by the let definitions below. Their being explicit assumptions does not disclose whether the original source contained them or whether they serve proof infrastructure; the packet supplies no such provenance classification.
+
+2. Deterministic motion, thresholds, records and noise
+
+Write b for xRef, and z=(x,v) for a phase point in E x E. Define
+ c(y,b)=y-eta grad V(b),
+ Phi(y,b,t,(x,v))=
+  (c(y,b)+cos(t)(x-c(y,b))+sqrt(eta) sin(t) v,
+   -sin(t)/sqrt(eta) (x-c(y,b))+cos(t) v), for t in R.
+Vector products by real coefficients denote scalar multiplication. Put g_b(x)=grad V(x)-grad V(b). Define
+ S(b,(x,v))=(x,v-[2<v,g_b(x)>/||g_b(x)||^2]g_b(x)),
+ rate(b,(x,v))=sqrt(eta) max(0,<v,g_b(x)>).
+Inner products are real. Real division by zero is zero, so S(b,(x,v))=(x,v) if g_b(x)=0. The different denominator sqrt(eta) in Phi is nonzero because eta>0.
+
+For u in NNReal, Lambda(y,b,z,u) is the real Lebesgue interval integral from 0 to real(u) of rate(b,Phi(y,b,s,z)). For e in NNReal, tau(y,b,z,e) is the infimum in WithTop NNReal of t>=0 such that Lambda(y,b,z,t)-real(e)>=0. This is the displayed hittingAfter applied at starting time 0 with parameter ((y,b),z,e). The empty infimum is top. untopD 0 extracts a finite value and returns 0 for top. The definition is an infimum and contains no separate hitting-attainment hypothesis.
+
+Rec=(NNReal x (E x E)) plus Unit. Denote its alternatives Live(u,z) and Dead. Given e>=0,
+ next(y,b,e,Dead)=Dead.
+If tau(y,b,z,e)=top, next(y,b,e,Live(u,z))=Dead; otherwise, with a=untopD 0(tau(y,b,z,e)), it equals
+ Live(u+a,S(b,Phi(y,b,real(a),z))).
+For an arbitrary sequence e:N->NNReal, record(y,b,z0,e,0)=Live(0,z0) and record(...,k+1)=next(y,b,e(k),record(...,k)). Death is absorbing. Finite waits need not be strictly positive: Lambda(...,0)=0 implies tau(...,0)=0.
+
+P is the countable product on real sequences w:N->R of unit-rate exponential probability measures. The sequence space has the coordinate-product measurable structure. Set epsilon(w,k)=Real.toNNReal(w(k)), the nonnegative positive part. All pointwise clauses below allow arbitrary real sequences, including negative and zero coordinates. Hist(n)=Fin(n+1)->Rec, and
+ history(y,b,z0,n,w)(j)=record(y,b,z0,epsilon(w),j.val).
+readTime(Live(u,z))=real(u), readTime(Dead)=0.
+
+3. Finite prefix definitions
+
+Delta(n,T), for n in N and T in NNReal, consists of t:Fin(n)->R such that prepending 0 makes a strictly increasing sequence, and t(i)<real(T) for every i. Thus for n>0 these are 0<t_1<...<t_n<T. Prefix(n,T) is the subtype with this property. m(n,T) is Measure.comap along its inclusion t->t.val of volume on Fin(n)->R, the induced subtype measure in the supplied context.
+
+For t in Prefix(n,T), let t_0=0 and name its n entries t_1,...,t_n. Define z_0=z0 and
+ z_i=S(b,Phi(y,b,t_i-t_(i-1),z_(i-1))), 1<=i<=n.
+This is zAt(y,b,z0,n,T,t) at indices 0,...,n. Define K(y,b,z0,n,T,t) by
+ K(t)(i)=Live(toNNReal(t_i),z_i), 0<=i<=n.
+Define qReal(y,b,z0,n,T,t) as the product over i=1,...,n of the entire factor
+ rate(b,Phi(y,b,t_i-t_(i-1),z_(i-1)))
+ * exp(-Lambda(y,b,z_(i-1),toNNReal(t_i-t_(i-1)))).
+Set q=ENNReal.ofReal(qReal); ofReal embeds the positive part into extended nonnegative reals. The empty product is 1.
+
+The history set A(n,T) comprises h:Hist(n) with every h(j) live, strictly increasing real readTime(h(j)), and readTime(h(i.succ))<real(T) for every i in Fin(n). It does not require h(0) to have time 0 or state z0; it does not require the deterministic recursion or survival. For n=0 it accepts any single live record. The specially constructed K has additional properties supplied by its definition, not by A's definition.
+
+4. Interval selection and survival definitions
+
+Set eventTime(y,b,z0,w,j) equal to the accumulated time of record(y,b,z0,epsilon(w),j), as an element of WithTop NNReal, if live, and top if dead. Define
+ I(y,b,z0,T,n)={w: eventTime(...,n)<=T<eventTime(...,n+1)}.
+The interval includes its left endpoint and excludes its next-event endpoint. N(y,b,z0,T,w) is the least n satisfying membership in I if such n exists, and is 0 otherwise. This default does not assert existence of a finite interval index.
+
+liveTime(Live(u,z))=u and liveTime(Dead)=0 in NNReal. Define d(n,T,h)=T-liveTime(h(n)), where h(n) is the last of its n+1 entries and subtraction in NNReal is truncated at zero. Thus arbitrary histories whose last time exceeds T have d=0. For r=Live(a,z), u in NNReal and e in R, define
+ survival(y,b,r,u,e) iff u<tau(y,b,z,toNNReal(e)),
+ weight(y,b,r,u)=ofReal(exp(-Lambda(y,b,z,u))).
+For Dead, survival is False and weight is 0. These two definitions ignore a, the stored accumulated time; u is the supplied duration. Define
+ C(y,b,z0,n,T)={w: history(y,b,z0,n,w) belongs to A(n,T) and
+ survival(y,b,record(...,n),d(n,T,history(...,n,w)),w(n))}.
+No identification of C with I is part of the asserted conclusion.
+
+5. Paths and weighted prefixes
+
+Path(T) is the full function type {s:NNReal | s<=T}->E x E. No path regularity is imposed by this type. Psi(y,b,z0,n,T,h)(s) is the following ascending-index fold over j=0,...,n, initialized at z0: when h(j)=Live(a,z) and a<=s.val, replace the accumulator by Phi(y,b,real(s.val-a),z); otherwise leave it unchanged, including for Dead. Subtraction here is truncated NNReal subtraction. Thus the last eligible index wins. In an arbitrary history this need not be the largest stored time. If no index is eligible the value is z0. The non-strict comparison uses a constructed history's post-update state at an event time.
+
+Gamma(y,b,z0,n,T,t)=Psi(y,b,z0,n,T,K(t)). Define
+ rho(y,b,z0,n,T,t)=q(y,b,z0,n,T,t)
+  *weight(y,b,K(t)(n),d(n,T,K(t))).
+For n=0, Delta and Prefix contain the unique empty sequence for every T, including T=0; zAt has only z0; K has only Live(0,z0); q=1; d=T; Gamma(s)=Phi(y,b,real(s),z0); rho=ofReal(exp(-Lambda(y,b,z0,T))). For T=0 and n>0, Prefix(n,T) is empty. The singleton strict-monotonicity condition for A(0,T) is vacuous, while the record must still be live.
+
+6. Reference measure
+
+Define R(x,v)=(x,-v), Vy(y,x)=V(x)+||x-y||^2/(2 eta). The measure nu(y) is the product, in position/velocity order, of volume.tilted(x->-Vy(y,x)) and stdGaussian(E). The latter is the centered identity-covariance Gaussian. The tilt explicitly means volume.withDensity with density
+ x |-> ofReal(exp(-Vy(y,x))/(integral exp(-Vy(y,u)) dvolume(u))).
+The denominator is the actual normalization integral, not an unspecified constant. Real division uses the zero-denominator convention. Positivity or integrability of the normalization integral and IsProbabilityMeasure(nu(y)) are neither extra binders nor separate explicit conclusion conjuncts in this statement. The formulas retain canonical volume and Gaussian also in dimension zero.
+
+7. Main assertion: one process and its simultaneous properties
+
+There exists a single
+ Z:E->E->(E x E)->NNReal->(N->R)->(E x E)
+for the fixed ambient data and hypotheses, satisfying all clauses below.
+
+(a) Joint measurability. The map (((y,b),z0),(s,w)) |-> Z(y,b,z0,s,w) is measurable for the displayed product structures. All parameters, initial state, time and noise are included.
+
+(b) Pointwise selected-interval interpolation. For every y,b,z0,w,s,n and every pair (u,z) in NNReal x (E x E), if w belongs to I(y,b,z0,s,n) and record(y,b,z0,epsilon(w),n)=Live(u,z), then
+ Z(y,b,z0,s,w)=Phi(y,b,real(s-u),z),
+with NNReal subtraction. There is no almost-everywhere qualification here.
+
+(c) Pointwise fallback. For every y,b,z0,w,s, if no n satisfies w in I(y,b,z0,s,n), then Z(y,b,z0,s,w)=z0. This specifies the process even if interval selection fails. It does not assert nonexplosion or that failure has probability zero.
+
+(d) Initialization. For every fixed y,b,z0, Z(y,b,z0,0,w)=z0 for P-almost every w. The null set may depend on y,b,z0. This clause is not pointwise in all w and gives no common exceptional set over all initial states and parameters.
+
+(e) Endpoint invariance and the flipped integral identity. For every y,b,T define
+ op(G)(z)=integral G(Z(y,b,z,T,w)) dP(w),
+ endpoint(z,w)=Z(y,b,z,T,w).
+Then endpoint is MeasurePreserving from nu(y) product P to nu(y): it is measurable and its pushforward equals nu(y). Also for every F,G:E x E->R and every real C_F,C_G, if F,G are measurable, C_F,C_G>=0, |F(z)|<=C_F for every z, and |G(z)|<=C_G for every z, then both
+ z |-> F(z) op(G)(z),
+ z |-> G(R(z)) op(F composed with R)(z)
+are integrable against nu(y), and
+ integral F(z) op(G)(z) dnu(y)(z)
+ = integral G(R(z)) op(F composed with R)(z) dnu(y)(z).
+On the right G is flipped in the outer factor, F is flipped inside the operator, and the operator is evaluated at z. The reference measure depends on y, not on b. No ordinary unflipped self-adjointness is asserted.
+
+(f) General Borel observable measurability and bounded-observable estimates. For every measurable G:E x E->R, the map (((y,b),z),T) |-> integral G(Z(y,b,z,T,w)) dP(w) is jointly measurable. This part has no boundedness hypothesis. For every real C>=0 satisfying |G(z)|<=C for every z, and every y,b,z,T, the function w|->G(Z(y,b,z,T,w)) is P-integrable and the absolute value of its integral is at most C. These bounded-observable conclusions hold at every initial z, not merely almost everywhere.
+
+(g) L2 contraction family for arbitrary MemLp representatives. For each y,b there exists a family
+ A:NNReal->(Lp(R,2,nu(y))->L[R]Lp(R,2,nu(y)))
+with A(0)=the identity and, for every T, ||A(T)||<=1. For every raw G:E x E->R and every witness hG:MemLp(G,2,nu(y)), set
+ opG(z)=integral G(Z(y,b,z,T,w)) dP(w).
+Then the following three facts hold:
+ (i) for nu(y)-almost every z, the noise function w|->G(Z(y,b,z,T,w)) is P-integrable;
+ (ii) there exists hOp:MemLp(opG,2,nu(y)) such that
+      A(T)(hG.toLp(G))=hOp.toLp(opG);
+ (iii) integral |opG(z)|^2 dnu(y)(z) <= integral |G(z)|^2 dnu(y)(z).
+Lp is the real Hilbert space of square-integrable functions modulo almost-everywhere equality; MemLp for raw G provides the appropriate almost-everywhere strong measurability and finite L2 seminorm. Unlike (f), this clause has no separate global Borel-measurability premise for G and no boundedness premise. Section integrability in (i) is only almost everywhere in initial z. Clause (ii) gives membership of the integral representative and equality of L2 classes, not pointwise equality of every representative. Its hOp witness is inside the quantifiers T,G,hG. The A family is chosen once after y,b and works for every T,G,hG. The same Z chosen before (a) is used in all clauses.
+
+8. Constant dependencies, quantifier limits and nonassertions
+
+Alpha and beta appear in assumptions but not in the update formulas. V and eta enter the dynamics and reference measure. The center y enters c and nu; b enters c, S and rate, but not nu. The exponential product P is fixed independently of all these parameters. C_F,C_G,C are universally supplied bounds; no optimality is claimed. The L2 norm bound is exactly 1 and the squared-integral inequality has coefficient 1. No hidden normalization or dimension-dependent constants occur. All structures and hypotheses remain explicit even if someone might later prove some redundant.
+
+The universal ambient binders and assumptions precede the existential Z. Initialization has order forall y b z0, for P-almost every w. The operator clause has order forall y b, exists A, A(0)=id and forall T, norm<=1 and forall G hG, the three properties above. There is no claim of regular dependence of A on y,b. The history-set A(n,T) and the shadowing operator-family A(T) are distinct objects in different scopes.
+
+m,q,A(history set),C,Psi,Gamma,rho and N are definitions within the statement, not additional law identities. The conclusion does not assert a prefix or path density formula, count or tail bound, event-count complexity, path reversal, equality of C and I, or almost-sure finite interval selection. It does not assert a Markov property, semigroup composition law, continuity or measurability of T|->A(T), strong continuity, a generator equation, path continuity, or convergence/mixing. A continuous linear map is continuous in its vector argument; that gives no continuity in its time index. No source-equivalence verdict is supplied.

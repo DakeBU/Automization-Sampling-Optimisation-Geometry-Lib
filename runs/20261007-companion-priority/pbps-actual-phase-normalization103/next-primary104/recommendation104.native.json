@@ -1,0 +1,89 @@
+{
+  "kind": "one prospective substantive endpoint-pair measure edge",
+  "author": "/root/source_final96",
+  "selection": "Actual normalized fixed-count endpoint-pair reversal",
+  "proposed_name": "actual_normalized_endpoint_sector_reversal",
+  "ambient": "For every finite-dimensional real inner-product space E with its Borel measurable structure, V:E->Real, alpha beta:NNReal, eta:Real, under the original six conditions.",
+  "conditions": [
+    "0 < (alpha : Real), with alpha beta : NNReal",
+    "alpha <= beta",
+    "ContDiff Real 2 V",
+    "For every x v : E, alpha*norm(v)^2 <= (fderiv Real (fderiv Real V) x v) v <= beta*norm(v)^2",
+    "0 < eta, eta : Real",
+    "(beta : Real)*eta <= 1"
+  ],
+  "literal_definition_contract": {
+    "source": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualWeightedSector.lean",
+      "raw_sha256": "9fa8aee0014fc558c455f0350ffab8c43804645d2878b19d7704c8b6bea5f92b",
+      "bytes": 9433
+    },
+    "first20_names": [
+      "c",
+      "Phi",
+      "S",
+      "rate",
+      "Lambda",
+      "Rec",
+      "Hist",
+      "Delta",
+      "Prefix",
+      "zAt",
+      "K",
+      "qReal",
+      "q",
+      "liveTime",
+      "d",
+      "weight",
+      "Path",
+      "Psi",
+      "Gamma",
+      "rho"
+    ],
+    "exact_existing_definition_text_LF": "    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n",
+    "status": "Existing definitions quoted for exact interface binding only; not a new header or implementation."
+  },
+  "remaining_definitions": [
+    "H=E×E, in position then momentum order. R(x,p)=(x,-p).",
+    "Vy(y,x)=V(x)+norm(x-y)^2/(2*eta). piY(y)=volume.tilted(x -> -Vy(y,x)).",
+    "nu(y)=piY(y).prod(stdGaussian E), exactly the actual source phase law, not a supplied arbitrary measure.",
+    "m(n,T)=Measure.comap(Subtype.val)(volume on Fin n -> Real), on Prefix n T. This is unnormalized ordered-simplex volume; no factorial multiplier.",
+    "X(n,T)=H×Prefix n T, phase first. A(y,r,n,T)(z,t)=Gamma y r z n T t evaluated at <T,le_rfl>.",
+    "sigma(y,r,n,T)=((nu(y)).prod(m(n,T))).withDensity(q -> rho y r q.1 n T q.2).",
+    "B(y,r,n,T)(q)=(q.1,A(y,r,n,T)(q)) in H×H; L(y,r,n,T)=Measure.map B sigma.",
+    "J:H×H->H×H, J(z0,zT)=(R(zT),R(z0))."
+  ],
+  "single_public_conclusion": "For every n:Nat, T:NNReal, y r:E, MeasurePreserving J (L(y,r,n,T)) (L(y,r,n,T)). Equivalently, the globally measurable flipped swap pushes the actual normalized endpoint-pair sector measure to itself.",
+  "quantifier_note": "n,T,y,r all universal. No public event-time-reversal witness, observable, normalizer, density, finiteness, measurability or integrability provider is a binder. Internal rho-time witnesses are identified by coordinates.",
+  "normalization_constant": "Internally U=Vy+norm(p)^2/2, w=exp(-U), ell=volume.prod volume, Zphase=lintegral ofReal(w) ell, C=(sqrt(2*pi))^finrank(E), Zphase=ofReal(Zx*C), cNorm=Zphase^-1. sigma=(ell.prod m).withDensity(q -> cNorm*ofReal(w(q.1))*rho(q)). All constants are actual; no new parameter.",
+  "actual_consumer": "AVG100 can apply this measure equality to endpoint tests F(z0)G(zT), then assemble actual count sectors. The target supplies actual normalized initial-law integration and endpoint transport, which102 alone does not export.",
+  "why_substantive": "One actual measure interface joins normalized Gibbs law, true prescribed density, event-simplex measure and terminal path endpoint. It requires density/product adapters, measurable pushforward, common-witness alignment and endpoint commutation; it is not a one-line specialization F=f*g(A).",
+  "seven_step_route": [
+    "Extract actual93 joint rho measurability and actual97 joint A/Theta measurability. Derive measurability of strict Delta and SigmaFinite(m) via map_comap_subtype_coe, volume.restrict and SigmaFinite.of_map.",
+    "Use actual103 to identify the actual product phase law with ell.withDensity(cNorm*ofReal w), with finite positive Zphase. No repeat of normalization analysis.",
+    "Use prod_withDensity_left and withDensity_mul, with actual measurable densities and SFinite(m), to rewrite sigma as (ell.prod m).withDensity(cNorm*W).",
+    "Extract97 and102 reversal witnesses. TIME97 and the coordinate conjunct of102 identify them by extensionality on Prefix and Fin coordinates; then retain endpoint inverse and Theta measurability for that same witness.",
+    "Multiply102's all-test equality by cNorm, use lintegral_withDensity and lintegral_map, and Measure.ext_of_lintegral to obtain MeasurePreserving Theta sigma sigma. This completes the existing normalized SECTOR100 internal node.",
+    "Use97's actual endpoint inverse to prove B(Theta q)=J(B q), with B and J measurable; use R involution only as the literal coordinate fact.",
+    "Push sigma forward by B and use map_map plus the commutation identity to obtain the single exported MeasurePreserving J L L conclusion."
+  ],
+  "edge_cases": {
+    "n0": "Prefix 0 T is the unique empty tuple; no jump factors, final actual flow from z0. Include T=0.",
+    "T0_positive_n": "Strict positive ordered times below zero give an empty Prefix. Sector measure is zero; no division by simplex mass.",
+    "rank0": "Volume/Gaussian conventions inherited unchanged. C=1; positive-count rates vanish, with no positive-dimension premise.",
+    "zero_normal_or_rate": "Existing total reflection definition and nonnegative density retained; no rate division or strict positive-rate premise.",
+    "endpoints_and_jumps": "Use actual endpoint at finite T and strict interior event times. No pointwise right-continuous path reversal at jumps is asserted.",
+    "infinite_integrals": "All measure/extensionality arguments allow infinite nonnegative integrals. No signed integrability or finite sector mass claim."
+  },
+  "source_completion_delta": "Endpoint-pair measure equality packages the fixed-count change of variables stated in A.1. All measurable nonnegative endpoint tests are covered; the paper phrases the step for bounded tests. This is explicit elaboration, not a full semigroup claim.",
+  "remaining_reds": [
+    "Identify the countable sum of endpoint sectors with the actual full finite-horizon process law and justify initial-law averaging of that sum.",
+    "Countable Tonelli assembly, bounded signed decomposition and the displayed full bilinear operator identity.",
+    "Invariant probability for the actual full process, L2 adjoint identity/hypocoercivity and any semigroup or restart/Markovness result.",
+    "Finite/subprobability mass of each endpoint sector is not part of this target, even though actual finite-count law APIs may later prove it.",
+    "Implementation/discretization error, oracle cost, Gaussian Cloud/midpoint composition and full-paper or whole-Goal completion."
+  ],
+  "proof_credit": false,
+  "header_created": false,
+  "readiness": "Analytically dependency-ready on actual93/97/102/103 interfaces; scheduling/proof must wait for root's103 delivery/admission boundary."
+}

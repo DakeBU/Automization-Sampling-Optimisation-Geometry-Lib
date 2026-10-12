@@ -1,0 +1,11 @@
+from pathlib import Path
+import json
+r=Path(__file__).parent;out=r/'integration104';note=json.loads((r/'integration.notes.json').read_bytes())
+assert note['state_distinctions']['local_aggregate_and_generated_site_gates']
+text=f'''The actual PBPS normalized fixed-count endpoint-pair measure is now preserved by swapping its endpoints and reversing both momenta. Under the original six sampler assumptions, for every center/reference, event count and finite nonnegative horizon, let sigma be the actual event density times the normalized Gibbs phase law and strict-simplex measure, and let L be its endpoint-pair pushforward. The theorem proves that J(z0,zT)=(RzT,Rz0) is measurable and J_*L=L, including zero dimension/count/time. Measurability, simplex sigma-finiteness, reversal-witness alignment and phase normalization are discharged internally.
+
+Four existing actual public producers are composed: finite-count density, endpoint reversal, unnormalized weighted substitution and phase Gibbs normalization. Eight adjacent formula/Lean steps explain the new measure identity. Independent mathematics, sealed-header kernel validation, fresh source-blind decoding, primary-first source/exposition and exact-commit reviews passed. One independently reviewed notation correction explicitly distinguishes zero-based event-coordinate indices from the one-based simplex description; the theorem and Lean proof did not change. Reviewed science: `{note['science_commit']}`. All15 local integration gates passed, including Tests, ASTIS, publication/contributor/semantic/frontier/graph/site, Python compilation and diff checks.
+
+This normalizes the initial phase distribution, without claiming each fixed-count sector has mass one. Signed bilinear identities, countable event-count assembly, actual process invariance, restart/Markovness, hypocoercivity, simulation errors, expected costs and actual-input composition remain open. Full papers completed remains0/4. Generated reader content and static graph inspection have separate evidence; actual browser acceptance, main merge and postmerge purification remain pending. Existing sole stabilization lane and collaborator changes are preserved.
+'''
+(out/'pr-body104.md').write_text(text,encoding='utf8',newline='\n')

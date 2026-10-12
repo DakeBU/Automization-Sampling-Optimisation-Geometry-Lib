@@ -77,6 +77,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSecto
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -121,6 +122,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualL2FlipDuality"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality"
+    upstreamDecl := "Actual PBPS full real-L2 momentum-flip adjoint identity"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 Eq A.3 and density extension"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "adjoint", "momentum-flip"]
+    saldUse := "Actual same-process full real-L2 flip duality; no SALD claim"
+    note := "Independent science 25a3e47e3e171f2d5584a6568ce685c6f546e529. Under the original six assumptions, the same global actual PBPS process and the same real L2 expectation family from107 retain all path, Borel, Gibbs, bounded-duality, integrability, contraction and initialization conclusions. The canonical momentum-flip pullback J is an involutive L2 isometry and A_T.adjoint = J A_T J for every nonnegative T, on all real L2 classes. Gaussian reflection and product maps prove phase preservation. Bounded simple representatives give the signed pairing; continuity and two-variable density extend it to all L2, then adjoint uniqueness closes Eq A.3. No new source premise. Restart/Markov/semigroup, strong continuity, separate kernel witnesses, actual position averaging, hypocoercivity, errors, actual expected costs, composition and four complete papers remain open."
+  },
   {
     key := "pbps.actualL2Expectation"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_contraction"

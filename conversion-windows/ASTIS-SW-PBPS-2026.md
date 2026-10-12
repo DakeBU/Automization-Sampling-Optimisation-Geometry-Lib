@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual full real-L2 flip duality108 (2026-10-12)
+
+Independent science 25a3e47e3e171f2d5584a6568ce685c6f546e529. Under the original six assumptions, the same global actual PBPS process and the same real L2 expectation family from107 retain all path, Borel, Gibbs, bounded-duality, integrability, contraction and initialization conclusions. The canonical momentum-flip pullback J is an involutive L2 isometry and A_T.adjoint = J A_T J for every nonnegative T, on all real L2 classes. Gaussian reflection and product maps prove phase preservation. Bounded simple representatives give the signed pairing; continuity and two-variable density extend it to all L2, then adjoint uniqueness closes Eq A.3. No new source premise. Restart/Markov/semigroup, strong continuity, separate kernel witnesses, actual position averaging, hypocoercivity, errors, actual expected costs, composition and four complete papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual L2 expectation contraction107 (2026-10-12)
 
 Independent science 2b657840a2f21c5d8001c83e4625a1ab13ef70ba. Under the original six assumptions, the same global jointly measurable actual PBPS Z retains live arcs, fallback, parameterwise initialization, Gibbs preservation and bounded flip duality. Every Borel test has a joint Borel total clock expectation; a uniform finite bound proves every section L1. For each y,r an internally constructed real L2 contraction family A_T realizes the literal clock expectation of every MemLp representative, with almost-everywhere section L1, output L2 membership, exact quotient identity, square-integral contraction and A_0=id. Actual106, normalization103 and UnitExponentialProduct are the three producers. Adjoint pullbacks, product L1, signed Fubini and indicator uniqueness are internal dependencies. Representative independence is a consequence of universal quotient identification; the planned direct-AE route remains an unselected alternative. Full L2 flip identity A.3, restart/Markov/semigroup, separate kernel witness identification, strong continuity, hypocoercivity, errors, actual expected costs, composition and all four papers remain open.

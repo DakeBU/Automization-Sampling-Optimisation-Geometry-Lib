@@ -32,7 +32,7 @@ for i, (label, meaning) in enumerate(labels):
     # Separate rails for upper and lower rows keep arrows out of boxes.
     rail = 270 if row == 0 else 430
     side = 15 if row == 0 else 1245
-    parts.append(f'<path d="M{x+195} {y+112} V{rail} H{side} V460 H635 V480" fill="none" stroke="#43858d" stroke-width="1.5" marker-end="url(#arrow)"/>')
+    parts.append(f'<path d="M{x+195} {y+112} V460 H635 V480" fill="none" stroke="#43858d" stroke-width="1.5" marker-end="url(#arrow)"/>')
 exact = ''.join(f'<text x="35" y="{670+21*i}" class="code">{html.escape(p)}</text>' for i, p in enumerate(parents))
 svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1270" height="820" viewBox="0 0 1270 820">
 <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#43858d"/></marker></defs>

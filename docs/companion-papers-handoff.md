@@ -1,5 +1,37 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS full real-L2 flip duality (2026-10-12)
+
+Independent science 25a3e47e3e171f2d5584a6568ce685c6f546e529. The original six analytic assumptions and
+one global actual process Z are unchanged. All107 conclusions remain on
+that same witness and the same family A_T: actual expectations, joint
+Borel dependence for Borel tests, AE section integrability for MemLp inputs,
+Gibbs preservation, bounded duality, contraction and A_0=id.
+
+For the literal momentum reflection R(x,p)=(x,-p), prove R preserves nu_y
+and define the canonical L2 pullback J. It is an isometry, J^2=id, and
+A_T.adjoint = J A_T J for every finite nonnegative T and all real L2 classes.
+The proof consumes actual107 once. Gaussian symmetry and product maps
+establish reflection preservation; simple representatives and inherited
+bounded duality give the pairing on a dense subset; two-variable continuity
+extends it to all L2 before adjoint uniqueness. Rank0 and T0 are included.
+
+The independently admitted source graph has107 nodes and196 edges.
+Implementation uses AE composition and Lp.ext for involution and class
+conversion, and ext_inner_right for adjoint uniqueness. These are faithful
+implementations of the same reviewed semantic dependencies, not route changes.
+Eight adjacent formula/Lean regions explain the proof. The region-only
+step2/3 adjacency repair has separate independent admission.
+
+Independent header, whole mathematics, fresh source-blind reconstruction,
+primary-first source/exposition review and exact-commit admission passed.
+Restart/Markov/semigroup, strong continuity, separate kernel identification,
+actual momentum-averaged position operator, hypocoercivity, implementation
+errors, actual expected costs and complete composition remain red.
+Full paper completion remains0/4. Public integration uses the sole SAU94 lane;
+actual browser acceptance, main merge and purification remain separate.
+
+
 ## Actual PBPS L2 expectation contraction (2026-10-12)
 
 Independent science 2b657840a2f21c5d8001c83e4625a1ab13ef70ba. Under the original six analytic assumptions,

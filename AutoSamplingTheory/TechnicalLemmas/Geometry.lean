@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient

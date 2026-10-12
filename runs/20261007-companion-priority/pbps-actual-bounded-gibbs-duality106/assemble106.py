@@ -1,0 +1,7 @@
+from pathlib import Path
+import json,subprocess,os,sys,hashlib
+r=Path(__file__).parent;pre=r.parent/'pbps-bounded-gibbs-duality-preread106';s=(pre/'Header106.lean').read_text();before=s.split('#check candidate',1)[0];binders=s.split('def candidate',1)[1].split(' : Prop := by',1)[0]
+body=(r/'Body106.txt').read_text();out=before+'\nset_option maxHeartbeats 1800000\nset_option maxRecDepth 10000\ntheorem candidate_proof'+binders+' : candidate hα hαβ hV hH hη hβη := by\n'+body+'\n#print axioms candidate_proof\nend\nend PBPSBoundedGibbsDualityCandidate106\n';(r/'Assembly106.lean').write_text(out,encoding='utf8',newline='\n')
+check=r/'focused106'/sys.argv[1];check.mkdir(parents=True,exist_ok=False);raw=(r/'Assembly106.lean').read_bytes();(check/'input.exactraw.lean').write_bytes(raw)
+env=os.environ.copy();env['PATH']=str(Path.cwd()/'.astis/toolchain/lean-4.33.0-windows/bin')+os.pathsep+env['PATH'];env.pop('ELAN_TOOLCHAIN',None);env['PYTHONUTF8']='1';env['LEAN_NUM_THREADS']='2'
+q=subprocess.run([str(Path.cwd()/'.astis/toolchain/lean-4.33.0-windows/bin/lake.exe'),'env','lean',str(r/'Assembly106.lean')],env=env,capture_output=True);(check/'stdout.log').write_bytes(q.stdout);(check/'stderr.log').write_bytes(q.stderr);(check/'receipt.json').write_text(json.dumps({'exit_code':q.returncode,'input_raw_sha256':hashlib.sha256(raw).hexdigest(),'terminal_closed':True},indent=2)+'\n');print(q.stdout.decode(errors='replace')[-14000:]);print(q.stderr.decode(errors='replace')[-1000:]);print('exit',q.returncode)

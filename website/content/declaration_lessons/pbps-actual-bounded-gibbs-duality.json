@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality",
+      "title": "Actual PBPS bounded Gibbs duality and fixed-time invariance",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1.E8",
+          "label": "Appendix A.1 final bounded signed bilinear identity (A8 averaging) and F=1 fixed-time Gibbs stationarity.",
+          "scope": "Bounded signed Gibbs duality and fixed-time actual phase invariance only. L2 operator/domain identity, restart/Markovness, kernel-witness identification, hypocoercivity, simulation errors, actual expected costs, composition and all four full papers remain open."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality"
+      ],
+      "assumptions": [
+        "Finite-dimensional real inner-product Borel E with canonical volume, including rank zero.",
+        "alpha,beta>=0; alpha>0; alpha<=beta; V is C2; alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v; eta>0; beta*eta<=1.",
+        "A single global actual process is constructed in the conclusion, with the literal joint measurability, arc/fallback and parameterwise almost-sure initialization contracts; every y,r and finite nonnegative T is included.",
+        "The universal bounded-observable conclusion ranges over measurable real F,G and finite nonnegative C_F,C_G with pointwise absolute-value bounds. These are test domains, not extra assumptions on the sampler.",
+        "All actual algorithm, clock and Gibbs phase objects are defined literally; no supplied Z/kernel, integrability, normalizer, momentum symmetry, restart or Markov premise."
+      ],
+      "statement": "Let E be any finite-dimensional real inner-product Borel space, including dimension zero. Let V:E→ℝ be C², α,β≥0 and η∈ℝ with α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0 and βη≤1. The following literal constructions are made for all y,r∈E and initial phases z₀∈E×E; the existential process witness below is global in these parameters. Put c=y−η∇V(r), Φ_t(x,p)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), g_r(x)=∇V(x)−∇V(r), S_r(x,p)=(x,p−2〈p,g_r(x)〉g_r(x)/‖g_r(x)‖²), λ_r(x,p)=√η max{0,〈p,g_r(x)〉}, Λ_z(t)=∫₀ᵗλ_r(Φ_s(z))ds and τ_z(e)=inf{t≥0:Λ_z(t)≥e}∈[0,∞], with inf empty=∞. Total real division makes S_r the identity at g_r(x)=0. The record space is D=([0,∞)×(E×E))⊕{stopped}, with Borel sum structure. Define next(e,stopped)=stopped; for a live record (T,z), next(e,(T,z))=stopped if τ_z(e)=∞, and otherwise next(e,(T,z))=(T+τ_z(e),S_rΦ_(τ_z(e))(z)). In the Lean definition untopD0 is used only in this non-top branch. Define R₀(e)=live(0,z₀) and R_(j+1)(e)=next(e_j,R_j(e)). Let Ω=ℝ^ℕ with its product Borel structure and P=⊗_(k≥0)Exp(1). Let ε(w)_k=max{w_k,0}; this is an ambient coordinate extension on a P-null nonpositive-clock set, not new source dynamics for negative clocks. \nWrite T_j(w)=a for a live record R_j(ε(w))=live(a,z), and T_j(w)=∞ for a stopped record. Define I_n(T)={T_n≤T<T_(n+1)}, and the total selector N(T,w)=min{n:w∈I_n(T)} when such an n exists, and 0 otherwise. For n≥0 let Hist_n=D^(Fin(n+1)) and H_n(w)_j=R_j(ε(w)). Write readTime(live(a,z))=a and readTime(stopped)=0. The abstract guard A_n(T) consists of histories all of whose records are live, whose read times are strictly increasing and whose positive-index read times are strictly below T; it does not constrain record0 itself. Actual H_n starts at live(0,z₀). For h∈Hist_n set d_n(T,h)=max{T−readTime(h_n),0}. Define survival(live(a,z),u,e) to mean u<τ_z(max{e,0}); on stopped it is false. Define W(live(a,z),u)=exp(−Λ_z(u)); on stopped W=0. Put C_n(T)={w:H_n(w)∈A_n(T), survival(R_n(ε(w)),d_n(T,H_n(w)),w_n)}.\nFor a fixed finite T≥0 let Path_T be all functions from [0,T] into E×E, with its coordinate-product sigma algebra. On every history, including unrealizable ones, define Ψ_n(T,h)(s) by starting at z₀ and visiting j=0,…,n in increasing order: a live record (a,z) with a≤s replaces the current value by Φ_(s−a)(z), and an ineligible live or stopped record leaves it unchanged. All elapsed times in this total definition use nonnegative subtraction.\nDefine Δ_n(T)={t∈ℝ^n:0<t₁<⋯<t_n<T}, and let m_n be the comap of product Lebesgue measure to this subtype, without normalization. For t∈Δ_n(T), put s₀=0,s_i=t_i, z₀ equal to the prescribed initial phase and z_i=S_rΦ_(s_i−s_(i−1))(z_(i−1)). Set K_n(t)_j=live(s_j,z_j), Γ_n(T,t)=Ψ_n(T,K_n(t)), q_n(t)=ofReal(∏_(i=1)^n λ_r(Φ_(s_i−s_(i−1))(z_(i−1)))exp[−Λ_(z_(i−1))(s_i−s_(i−1))]), and ρ_n(T,t)=q_n(t)W(K_n(t)_n,d_n(T,K_n(t))). The literal toNNReal conversions agree with these nonnegative simplex times.\nThere exists one actual phase representative Z(y,r,z₀,t,w), jointly Borel in all deterministic parameters, finite time and raw input, with the following properties. On every raw covering interval T_n(w)≤s<T_(n+1)(w), if R_n(ε(w))=live(a,z), then Z(s,w)=Φ_(s−a)(z). If no interval covers s, Z(s,w)=z₀. For each fixed parameter tuple, Z(0,w)=z₀ almost surely.\n\nPut R(x,p)=(x,-p), V_y(x)=V(x)+||x-y||^2/(2 eta), and nu_y=(volume_E.tilted(-V_y)) times stdGaussian(E), in position/momentum order. Here tilted(-V_y) has density ofReal(exp(-V_y(x))/integral exp(-V_y) dx), and stdGaussian is the centered identity-covariance Gaussian. Normalizability is a consequence, not a premise.\n\nWrite H=E times E, pi_y=volume_E.tilted(-V_y), gamma=stdGaussian(E), so nu_y=pi_y times gamma. For the same single global actual Z described above, every y,r in E and every finite T>=0, define op_T G(z)=integral G(Z(y,r,z,T,w)) dP(w), a real Bochner integral, and endpoint_T(z,w)=Z(y,r,z,T,w). Then endpoint_T is measurable and its pushforward of nu_y times P is exactly nu_y.\nFor every pair F,G:H->R of Borel measurable functions and finite real bounds C_F,C_G>=0 with |F(z)|<=C_F and |G(z)|<=C_G for all z, both z->F(z)*op_T G(z) and z->G(R(z))*op_T(F composed R)(z) are integrable against nu_y, and their real integrals are equal. Thus integral F(z)*op_T G(z) dnu_y(z) = integral G(R(z))*op_T(F composed R)(z) dnu_y(z).\nAll these conclusions use the same Z, existentially chosen before all centers, references, horizons and observables. Products are phase first, clock input second. No process, kernel, finite mass, signed integrability, momentum symmetry or normalizability is a supplied premise. Dimension zero, T=0, vanishing test bounds, zero bounce rates, infinite waits and raw exceptional fallback remain included. Almost-sure initialization stays parameterwise; no uniform all-parameter null set or pointwise reversed path at jumps is asserted.\nThe phase-invariance conclusion is fixed-time stationarity of the actual output under Gibbs initialization. It does not assert Markov/restart, Chapman-Kolmogorov, an L2 operator/domain identity, identification with a different existential kernel witness, hypocoercivity, implementation accuracy or actual expected oracle costs. Full paper results and actual-input composition remain open.\n",
+      "formula": "\\int F(a)G(b)\\,dQ=\\int F(Rb)G(Ra)\\,dQ=\\int G(Rz)\\,\\operatorname{op}_T(F\\circ R)(z)\\,\\nu_y(dz).",
+      "boundary": "Bounded signed Gibbs duality and fixed-time actual phase invariance only. L2 operator/domain identity, restart/Markovness, kernel-witness identification, hypocoercivity, simulation errors, actual expected costs, composition and all four full papers remain open.",
+      "steps": [
+        {
+          "title": "Keep the same global actual process",
+          "text": "Consume the actual countable endpoint-law producer once. Retain the exact joint measurability, live-arc, raw fallback and parameterwise almost-sure initialization of its single global Z. All subsequent maps and test integrals use this witness.",
+          "formula": "Z(y,r,z,s,w)=\\Phi_{s-a}(b)\\text{ on a live arc};\\qquad Z(y,r,z,0,w)=z\\quad P\\text{-a.e.}",
+          "lean": "  obtain ⟨Z, hZm, hZa, hZf, hZ0, h105⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law\n      hα hαβ hV hH hη hβη\n  refine ⟨Z, hZm, hZa, hZf, hZ0, ?_⟩\n  intro y r T op endpoint\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 164,
+            "end_line": 168,
+            "exact_code_raw_sha256": "cfff605dce8d8dc146110dccc738a6515e90de2e44a680451821d7fdfe19f9d0"
+          }
+        },
+        {
+          "title": "Recover the actual probability laws and endpoint reversal",
+          "text": "Write H=E×E, pi_y=volume_E.tilted(-V_y), gamma=stdGaussian(E), and nu_y=pi_y times gamma. The normalization and clock producers prove that nu_y and P are probability measures. Joint Z makes endpoint and M measurable. The countable-law producer gives probability of Q and J-preservation; these are internal dependencies.",
+          "formula": "M(z,w)=(z,Z_T(z,w)),\\quad Q=M_*(\\nu_y\\otimes P),\\quad J(a,b)=(Rb,Ra),\\quad J_*Q=Q.",
+          "lean": "  have h103 := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization\n    hα hαβ hV hH hη hβη y\n  letI : IsProbabilityMeasure (nu y) := by\n    have hp := h103.2.2.2.2.2.1\n    rw [h103.2.2.2.2.2.2] at hp\n    exact hp\n  letI : IsProbabilityMeasure P :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1\n  have hemb : Measurable (fun a : (E × E) × (ℕ → ℝ) => (((y, r), a.1), T, a.2)) :=\n    (measurable_const.prodMk measurable_fst).prodMk (measurable_const.prodMk measurable_snd)\n  have he : Measurable endpoint := hZm.comp hemb\n  let M : (E × E) × (ℕ → ℝ) → (E × E) × (E × E) := fun a => (a.1, endpoint a)\n  let Q : Measure ((E × E) × (E × E)) := Measure.map M ((nu y).prod P)\n  let J : (E × E) × (E × E) → (E × E) × (E × E) := fun a => (R a.2, R a.1)\n  have hM : Measurable M := measurable_fst.prodMk he\n  have hJ : MeasurePreserving J Q Q := (h105 y r T).2.2\n  letI : IsProbabilityMeasure Q := (h105 y r T).2.1\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 169,
+            "end_line": 185,
+            "exact_code_raw_sha256": "4b0ffe108740ada4400d023fdfad8d99f14bf3f0f023f8faf6659abeb109afee"
+          }
+        },
+        {
+          "title": "Prove momentum-flip symmetry of the actual phase law",
+          "text": "Negation is a linear isometry of E, so it preserves the standard Gaussian, including dimension zero. Product pushforward leaves the tilted position factor unchanged and negates only the momentum factor. Thus the literal R is measurable and preserves nu_y.",
+          "formula": "(-\\mathrm{id})_*\\gamma=\\gamma,\\qquad R_*(\\pi_y\\otimes\\gamma)=\\pi_y\\otimes\\gamma=\\nu_y.",
+          "lean": "  have hRm : Measurable R := by dsimp [R]; fun_prop\n  have hneg : Measure.map (fun p : E => -p) (stdGaussian E) = stdGaussian E := by\n    simpa using (stdGaussian_map (LinearIsometryEquiv.neg ℝ (E := E)))\n  have hR : MeasurePreserving R (nu y) (nu y) := by\n    refine ⟨hRm, ?_⟩\n    change Measure.map (Prod.map id (fun p : E => -p))\n      (((volume : Measure E).tilted (fun x => -Vy y x)).prod (stdGaussian E)) = _\n    rw [← Measure.map_prod_map _ _ measurable_id (by fun_prop), hneg, Measure.map_id]\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 186,
+            "end_line": 193,
+            "exact_code_raw_sha256": "23d5c4856b30e7a3a6bad2e53872be35408c0143926183966744eb81ae005a04"
+          }
+        },
+        {
+          "title": "Identify the actual fixed-time Gibbs marginal",
+          "text": "The initial marginal of Q is nu_y because P has mass one. Compose the preserving maps M, J, first projection and R. Since R is an involution, R composed fst composed J is the second projection; the resulting map is the actual endpoint. This is the explicitly recorded direct-marginal implementation of the source stationarity consequence. The printed F=1 argument follows from the bounded identity proved below.",
+          "formula": "\\mathrm{fst}_*Q=\\nu_y,\\quad R\\circ\\mathrm{fst}\\circ J=\\mathrm{snd},\\quad (\\mathrm{endpoint}_T)_*(\\nu_y\\otimes P)=\\nu_y.",
+          "lean": "  have hMP : MeasurePreserving M ((nu y).prod P) Q := ⟨hM, rfl⟩\n  have hfst : MeasurePreserving Prod.fst Q (nu y) := by\n    refine ⟨measurable_fst, ?_⟩\n    change Measure.map Prod.fst (Measure.map M ((nu y).prod P)) = nu y\n    rw [Measure.map_map measurable_fst hM]\n    change Measure.map Prod.fst ((nu y).prod P) = nu y\n    simp only [Measure.map_fst_prod, measure_univ, one_smul]\n  have hinvariant : MeasurePreserving endpoint ((nu y).prod P) (nu y) := by\n    have h := hR.comp ((hfst.comp hJ).comp hMP)\n    simpa only [Function.comp_def, M, J, R, neg_neg] using h\n  refine ⟨hinvariant, ?_⟩\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 194,
+            "end_line": 204,
+            "exact_code_raw_sha256": "2c349660e87bc93d899bd03d89b4d032aed0413b317b43c7854b09a3bd533d7b"
+          }
+        },
+        {
+          "title": "Derive product integrability from the observable bounds",
+          "text": "Fix arbitrary measurable real F,G with finite nonnegative bounds C_F,C_G. Their actual-input product H_FG(z,w)=F(z)G(Z_T(z,w)) is measurable and bounded by C_F C_G. The input product is probability, so this bound proves honest real Bochner integrability without any integrability premise.",
+          "formula": "|F(z)G(Z_T(z,w))|\\le C_FC_G,\\qquad H_{F,G}\\in L^1(\\nu_y\\otimes P).",
+          "lean": "  have htest (F G : (E × E) → ℝ) (CF CG : ℝ)\n      (hF : Measurable F) (hG : Measurable G) (hCF : 0 ≤ CF) (hCG : 0 ≤ CG)\n      (hFb : ∀ z, |F z| ≤ CF) (hGb : ∀ z, |G z| ≤ CG) :\n      Integrable (fun z => F z * op G z) (nu y) ∧\n      (∫ z, F z * op G z ∂nu y) = ∫ a, F a.1 * G a.2 ∂Q := by\n    let H : (E × E) × (ℕ → ℝ) → ℝ := fun a => F a.1 * G (endpoint a)\n    have hHm : Measurable H := (hF.comp measurable_fst).mul (hG.comp he)\n    have hHi : Integrable H ((nu y).prod P) :=\n      Integrable.of_bound hHm.aestronglyMeasurable (CF * CG)\n        (Filter.Eventually.of_forall fun a => by\n          change |F a.1 * G (endpoint a)| ≤ CF * CG\n          rw [abs_mul]\n          exact mul_le_mul (hFb a.1) (hGb (endpoint a)) (abs_nonneg _) hCF)\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 205,
+            "end_line": 217,
+            "exact_code_raw_sha256": "59ac81a0cc5ee700e7b2a978c0a9cbc78a0e5daffeb0ef00fa2149e2aacc3fcd"
+          }
+        },
+        {
+          "title": "Use signed Fubini and pushforward for the test identity",
+          "text": "Product integrability yields integrability of the inner integral. Pull F(z) through the clock integral, then apply signed Fubini. The measurable pushforward M identifies the resulting integral with the endpoint-pair test under Q. This proves both the outer L1 conclusion and its exact integral representation.",
+          "formula": "\\int F(z)\\,\\operatorname{op}_TG(z)\\,\\nu_y(dz)=\\int F(z)G(Z_T(z,w))\\,d(\\nu_y\\otimes P)=\\int F(a)G(b)\\,Q(d(a,b)).",
+          "lean": "    have houter : Integrable (fun z => F z * op G z) (nu y) := by\n      simpa only [H, endpoint, integral_const_mul] using hHi.integral_prod_left\n    refine ⟨houter, ?_⟩\n    have hpair : Measurable (fun a : (E × E) × (E × E) => F a.1 * G a.2) :=\n      (hF.comp measurable_fst).mul (hG.comp measurable_snd)\n    calc\n      (∫ z, F z * op G z ∂nu y) = ∫ a, H a ∂((nu y).prod P) := by\n        rw [integral_prod H hHi]\n        simp only [H, endpoint, op, integral_const_mul]\n      _ = ∫ a, F a.1 * G a.2 ∂Q :=\n        (integral_map hM.aemeasurable hpair.aestronglyMeasurable).symm\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 218,
+            "end_line": 228,
+            "exact_code_raw_sha256": "62ac32aed2e263e476e000bc27dc66613dc34e37b95c16a74649f3858910b0fe"
+          }
+        },
+        {
+          "title": "Apply the same integrability argument to the flipped tests",
+          "text": "Apply the already proved test identity first to F,G and then to G composed R,F composed R. Measurability of R and the original pointwise bounds give all required hypotheses. Both displayed outer integrals are therefore integrable, including when either bound vanishes.",
+          "formula": "(F,G)\\quad\\text{and}\\quad(G\\circ R,F\\circ R)\\quad\\Longrightarrow\\quad\\text{both outer tests belong to }L^1(\\nu_y).",
+          "lean": "  intro F G CF CG hF hG hCF hCG hFb hGb\n  have hleft := htest F G CF CG hF hG hCF hCG hFb hGb\n  have hright := htest (fun z => G (R z)) (fun z => F (R z)) CG CF\n    (hG.comp hRm) (hF.comp hRm) hCG hCF (fun z => hGb (R z)) (fun z => hFb (R z))\n  refine ⟨hleft.1, hright.1, ?_⟩\n  rw [hleft.2, hright.2]\n  have hpair : Measurable (fun a : (E × E) × (E × E) => F a.1 * G a.2) :=\n    (hF.comp measurable_fst).mul (hG.comp measurable_snd)\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 229,
+            "end_line": 236,
+            "exact_code_raw_sha256": "ffb071a72ad17fc4f7faf955d300d598dd292ef603f600bdc64a61624f082df7"
+          }
+        },
+        {
+          "title": "Transfer endpoint reversal to bounded signed duality",
+          "text": "Use the measurable map J and J_*Q=Q in the real integral-map identity for F(a)G(b). After the flipped swap the integrand is F(Rb)G(Ra); commute the real factors and combine the two test representations. No unbounded observable or L2 extension is inferred.",
+          "formula": "\\int F(a)G(b)\\,dQ=\\int F(Rb)G(Ra)\\,dQ=\\int G(Rz)\\,\\operatorname{op}_T(F\\circ R)(z)\\,\\nu_y(dz).",
+          "lean": "  calc\n    (∫ a, F a.1 * G a.2 ∂Q) = ∫ a, F (J a).1 * G (J a).2 ∂Q := by\n      conv_lhs => rw [← hJ.map_eq]\n      exact integral_map hJ.measurable.aemeasurable hpair.aestronglyMeasurable\n    _ = ∫ a, G (R a.1) * F (R a.2) ∂Q := by\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun a => mul_comm _ _\n",
+          "detail": "ASTIS completion of bounded signed averaging and fixed-time stationarity. Exact compiled region; the original six analytic assumptions are unchanged.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean",
+            "source_raw_sha256": "4fad17d78149b7a4a784170309e9de3f70941ef533f90228b0405dee5fc2707d",
+            "start_line": 237,
+            "end_line": 243,
+            "exact_code_raw_sha256": "658daeb974eb1cf917e76d1ab440452f9926266d9ea4ff77586dbee4460b7425"
+          }
+        }
+      ],
+      "lean_statement": "Let E be any finite-dimensional real inner-product Borel space, including dimension zero. Let V:E→ℝ be C², α,β≥0 and η∈ℝ with α>0, α≤β, α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, η>0 and βη≤1. The following literal constructions are made for all y,r∈E and initial phases z₀∈E×E; the existential process witness below is global in these parameters. Put c=y−η∇V(r), Φ_t(x,p)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p), g_r(x)=∇V(x)−∇V(r), S_r(x,p)=(x,p−2〈p,g_r(x)〉g_r(x)/‖g_r(x)‖²), λ_r(x,p)=√η max{0,〈p,g_r(x)〉}, Λ_z(t)=∫₀ᵗλ_r(Φ_s(z))ds and τ_z(e)=inf{t≥0:Λ_z(t)≥e}∈[0,∞], with inf empty=∞. Total real division makes S_r the identity at g_r(x)=0. The record space is D=([0,∞)×(E×E))⊕{stopped}, with Borel sum structure. Define next(e,stopped)=stopped; for a live record (T,z), next(e,(T,z))=stopped if τ_z(e)=∞, and otherwise next(e,(T,z))=(T+τ_z(e),S_rΦ_(τ_z(e))(z)). In the Lean definition untopD0 is used only in this non-top branch. Define R₀(e)=live(0,z₀) and R_(j+1)(e)=next(e_j,R_j(e)). Let Ω=ℝ^ℕ with its product Borel structure and P=⊗_(k≥0)Exp(1). Let ε(w)_k=max{w_k,0}; this is an ambient coordinate extension on a P-null nonpositive-clock set, not new source dynamics for negative clocks. \nWrite T_j(w)=a for a live record R_j(ε(w))=live(a,z), and T_j(w)=∞ for a stopped record. Define I_n(T)={T_n≤T<T_(n+1)}, and the total selector N(T,w)=min{n:w∈I_n(T)} when such an n exists, and 0 otherwise. For n≥0 let Hist_n=D^(Fin(n+1)) and H_n(w)_j=R_j(ε(w)). Write readTime(live(a,z))=a and readTime(stopped)=0. The abstract guard A_n(T) consists of histories all of whose records are live, whose read times are strictly increasing and whose positive-index read times are strictly below T; it does not constrain record0 itself. Actual H_n starts at live(0,z₀). For h∈Hist_n set d_n(T,h)=max{T−readTime(h_n),0}. Define survival(live(a,z),u,e) to mean u<τ_z(max{e,0}); on stopped it is false. Define W(live(a,z),u)=exp(−Λ_z(u)); on stopped W=0. Put C_n(T)={w:H_n(w)∈A_n(T), survival(R_n(ε(w)),d_n(T,H_n(w)),w_n)}.\nFor a fixed finite T≥0 let Path_T be all functions from [0,T] into E×E, with its coordinate-product sigma algebra. On every history, including unrealizable ones, define Ψ_n(T,h)(s) by starting at z₀ and visiting j=0,…,n in increasing order: a live record (a,z) with a≤s replaces the current value by Φ_(s−a)(z), and an ineligible live or stopped record leaves it unchanged. All elapsed times in this total definition use nonnegative subtraction.\nDefine Δ_n(T)={t∈ℝ^n:0<t₁<⋯<t_n<T}, and let m_n be the comap of product Lebesgue measure to this subtype, without normalization. For t∈Δ_n(T), put s₀=0,s_i=t_i, z₀ equal to the prescribed initial phase and z_i=S_rΦ_(s_i−s_(i−1))(z_(i−1)). Set K_n(t)_j=live(s_j,z_j), Γ_n(T,t)=Ψ_n(T,K_n(t)), q_n(t)=ofReal(∏_(i=1)^n λ_r(Φ_(s_i−s_(i−1))(z_(i−1)))exp[−Λ_(z_(i−1))(s_i−s_(i−1))]), and ρ_n(T,t)=q_n(t)W(K_n(t)_n,d_n(T,K_n(t))). The literal toNNReal conversions agree with these nonnegative simplex times.\nThere exists one actual phase representative Z(y,r,z₀,t,w), jointly Borel in all deterministic parameters, finite time and raw input, with the following properties. On every raw covering interval T_n(w)≤s<T_(n+1)(w), if R_n(ε(w))=live(a,z), then Z(s,w)=Φ_(s−a)(z). If no interval covers s, Z(s,w)=z₀. For each fixed parameter tuple, Z(0,w)=z₀ almost surely.\n\nPut R(x,p)=(x,-p), V_y(x)=V(x)+||x-y||^2/(2 eta), and nu_y=(volume_E.tilted(-V_y)) times stdGaussian(E), in position/momentum order. Here tilted(-V_y) has density ofReal(exp(-V_y(x))/integral exp(-V_y) dx), and stdGaussian is the centered identity-covariance Gaussian. Normalizability is a consequence, not a premise.\n\nWrite H=E times E, pi_y=volume_E.tilted(-V_y), gamma=stdGaussian(E), so nu_y=pi_y times gamma. For the same single global actual Z described above, every y,r in E and every finite T>=0, define op_T G(z)=integral G(Z(y,r,z,T,w)) dP(w), a real Bochner integral, and endpoint_T(z,w)=Z(y,r,z,T,w). Then endpoint_T is measurable and its pushforward of nu_y times P is exactly nu_y.\nFor every pair F,G:H->R of Borel measurable functions and finite real bounds C_F,C_G>=0 with |F(z)|<=C_F and |G(z)|<=C_G for all z, both z->F(z)*op_T G(z) and z->G(R(z))*op_T(F composed R)(z) are integrable against nu_y, and their real integrals are equal. Thus integral F(z)*op_T G(z) dnu_y(z) = integral G(R(z))*op_T(F composed R)(z) dnu_y(z).\nAll these conclusions use the same Z, existentially chosen before all centers, references, horizons and observables. Products are phase first, clock input second. No process, kernel, finite mass, signed integrability, momentum symmetry or normalizability is a supplied premise. Dimension zero, T=0, vanishing test bounds, zero bounce rates, infinite waits and raw exceptional fallback remain included. Almost-sure initialization stays parameterwise; no uniform all-parameter null set or pointwise reversed path at jumps is asserted.\nThe phase-invariance conclusion is fixed-time stationarity of the actual output under Gibbs initialization. It does not assert Markov/restart, Chapman-Kolmogorov, an L2 operator/domain identity, identification with a different existential kernel witness, hypocoercivity, implementation accuracy or actual expected oracle costs. Full paper results and actual-input composition remain open.\n",
+      "lean_proof": "Keep the same global actual process; Recover the actual probability laws and endpoint reversal; Prove momentum-flip symmetry of the actual phase law; Identify the actual fixed-time Gibbs marginal; Derive product integrability from the observable bounds; Use signed Fubini and pushforward for the test identity; Apply the same integrability argument to the flipped tests; Transfer endpoint reversal to bounded signed duality",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+      ],
+      "mathlib_dependencies": [
+        "stdGaussian_map",
+        "Measure.map_prod_map",
+        "Measure.map_map",
+        "Measure.map_fst_prod",
+        "MeasurePreserving.comp",
+        "Integrable.of_bound",
+        "Integrable.integral_prod_left",
+        "integral_const_mul",
+        "integral_prod",
+        "integral_map"
+      ]
+    }
+  ]
+}

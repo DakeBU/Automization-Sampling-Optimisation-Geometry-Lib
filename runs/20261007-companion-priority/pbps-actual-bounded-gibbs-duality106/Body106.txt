@@ -1,0 +1,83 @@
+  classical
+  unfold candidate
+  intro c Φ S rate Λ τ next record P ε history Rec Hist readTime Δ Prefix m zAt K qReal q A eventTime I N liveTime d survival weight C Path Ψ Γ ρ R Vy nu
+  obtain ⟨Z, hZm, hZa, hZf, hZ0, h105⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law
+      hα hαβ hV hH hη hβη
+  refine ⟨Z, hZm, hZa, hZf, hZ0, ?_⟩
+  intro y r T op endpoint
+  have h103 := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization
+    hα hαβ hV hH hη hβη y
+  letI : IsProbabilityMeasure (nu y) := by
+    have hp := h103.2.2.2.2.2.1
+    rw [h103.2.2.2.2.2.2] at hp
+    exact hp
+  letI : IsProbabilityMeasure P :=
+    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1
+  have hemb : Measurable (fun a : (E × E) × (ℕ → ℝ) => (((y, r), a.1), T, a.2)) :=
+    (measurable_const.prodMk measurable_fst).prodMk (measurable_const.prodMk measurable_snd)
+  have he : Measurable endpoint := hZm.comp hemb
+  let M : (E × E) × (ℕ → ℝ) → (E × E) × (E × E) := fun a => (a.1, endpoint a)
+  let Q : Measure ((E × E) × (E × E)) := Measure.map M ((nu y).prod P)
+  let J : (E × E) × (E × E) → (E × E) × (E × E) := fun a => (R a.2, R a.1)
+  have hM : Measurable M := measurable_fst.prodMk he
+  have hJ : MeasurePreserving J Q Q := (h105 y r T).2.2
+  letI : IsProbabilityMeasure Q := (h105 y r T).2.1
+  have hRm : Measurable R := by dsimp [R]; fun_prop
+  have hneg : Measure.map (fun p : E => -p) (stdGaussian E) = stdGaussian E := by
+    simpa using (stdGaussian_map (LinearIsometryEquiv.neg ℝ (E := E)))
+  have hR : MeasurePreserving R (nu y) (nu y) := by
+    refine ⟨hRm, ?_⟩
+    change Measure.map (Prod.map id (fun p : E => -p))
+      (((volume : Measure E).tilted (fun x => -Vy y x)).prod (stdGaussian E)) = _
+    rw [← Measure.map_prod_map _ _ measurable_id (by fun_prop), hneg, Measure.map_id]
+  have hMP : MeasurePreserving M ((nu y).prod P) Q := ⟨hM, rfl⟩
+  have hfst : MeasurePreserving Prod.fst Q (nu y) := by
+    refine ⟨measurable_fst, ?_⟩
+    change Measure.map Prod.fst (Measure.map M ((nu y).prod P)) = nu y
+    rw [Measure.map_map measurable_fst hM]
+    change Measure.map Prod.fst ((nu y).prod P) = nu y
+    simp only [Measure.map_fst_prod, measure_univ, one_smul]
+  have hinvariant : MeasurePreserving endpoint ((nu y).prod P) (nu y) := by
+    have h := hR.comp ((hfst.comp hJ).comp hMP)
+    simpa only [Function.comp_def, M, J, R, neg_neg] using h
+  refine ⟨hinvariant, ?_⟩
+  have htest (F G : (E × E) → ℝ) (CF CG : ℝ)
+      (hF : Measurable F) (hG : Measurable G) (hCF : 0 ≤ CF) (hCG : 0 ≤ CG)
+      (hFb : ∀ z, |F z| ≤ CF) (hGb : ∀ z, |G z| ≤ CG) :
+      Integrable (fun z => F z * op G z) (nu y) ∧
+      (∫ z, F z * op G z ∂nu y) = ∫ a, F a.1 * G a.2 ∂Q := by
+    let H : (E × E) × (ℕ → ℝ) → ℝ := fun a => F a.1 * G (endpoint a)
+    have hHm : Measurable H := (hF.comp measurable_fst).mul (hG.comp he)
+    have hHi : Integrable H ((nu y).prod P) :=
+      Integrable.of_bound hHm.aestronglyMeasurable (CF * CG)
+        (Filter.Eventually.of_forall fun a => by
+          change |F a.1 * G (endpoint a)| ≤ CF * CG
+          rw [abs_mul]
+          exact mul_le_mul (hFb a.1) (hGb (endpoint a)) (abs_nonneg _) hCF)
+    have houter : Integrable (fun z => F z * op G z) (nu y) := by
+      simpa only [H, endpoint, integral_const_mul] using hHi.integral_prod_left
+    refine ⟨houter, ?_⟩
+    have hpair : Measurable (fun a : (E × E) × (E × E) => F a.1 * G a.2) :=
+      (hF.comp measurable_fst).mul (hG.comp measurable_snd)
+    calc
+      (∫ z, F z * op G z ∂nu y) = ∫ a, H a ∂((nu y).prod P) := by
+        rw [integral_prod H hHi]
+        simp only [H, endpoint, op, integral_const_mul]
+      _ = ∫ a, F a.1 * G a.2 ∂Q :=
+        (integral_map hM.aemeasurable hpair.aestronglyMeasurable).symm
+  intro F G CF CG hF hG hCF hCG hFb hGb
+  have hleft := htest F G CF CG hF hG hCF hCG hFb hGb
+  have hright := htest (fun z => G (R z)) (fun z => F (R z)) CG CF
+    (hG.comp hRm) (hF.comp hRm) hCG hCF (fun z => hGb (R z)) (fun z => hFb (R z))
+  refine ⟨hleft.1, hright.1, ?_⟩
+  rw [hleft.2, hright.2]
+  have hpair : Measurable (fun a : (E × E) × (E × E) => F a.1 * G a.2) :=
+    (hF.comp measurable_fst).mul (hG.comp measurable_snd)
+  calc
+    (∫ a, F a.1 * G a.2 ∂Q) = ∫ a, F (J a).1 * G (J a).2 ∂Q := by
+      conv_lhs => rw [← hJ.map_eq]
+      exact integral_map hJ.measurable.aemeasurable hpair.aestronglyMeasurable
+    _ = ∫ a, G (R a.1) * F (R a.2) ∂Q := by
+      apply integral_congr_ae
+      exact Filter.Eventually.of_forall fun a => mul_comm _ _

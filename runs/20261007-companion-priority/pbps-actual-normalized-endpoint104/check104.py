@@ -8,7 +8,7 @@ checks={
  'contributor':['tools/astis_contributor_contract.py','check','--base',base],
  'semantic':['tools/astis_semantic_roundtrip.py','check'],
  'frontier':['tools/astis_frontier_cells.py','check'],
- 'graph':['tools/astis_publication.py','graph-check','--cell','ASTIS-SW-PBPS-actual-phase-normalization'],
+ 'graph':['tools/astis_publication.py','graph-check','--cell','ASTIS-SW-PBPS-actual-normalized-endpoint-sector'],
  'python-compile':['-m','py_compile','tools/astis.py'],
  'contributor-regressions':['-m','unittest','tools.tests.test_astis_contributor_contract','tools.tests.test_astis_publication'],
  'site-build':['website/scripts/build_site.py'],

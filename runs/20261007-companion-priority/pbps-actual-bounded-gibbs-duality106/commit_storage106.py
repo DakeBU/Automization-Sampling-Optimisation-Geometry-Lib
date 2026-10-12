@@ -17,7 +17,12 @@ assert decision['verdict'] == 'ACCEPT_IMMUTABLE_STORAGE_AND_GENERATED_READER_ONL
 assert decision['checked_integration_commit'] == head
 manifest = json.loads((folder / 'closed-RAW-manifest106.native.json').read_bytes())
 assert manifest['checked_integration_commit'] == head
-assert sha((folder / 'storage-decision106.native.json').read_bytes()) == manifest['decision']['raw_sha256']
+decision_ref = next(row for row in manifest['owned_artifacts'] if row['path'] == (folder / 'storage-decision106.native.json').as_posix())
+assert sha((folder / 'storage-decision106.native.json').read_bytes()) == decision_ref['raw_sha256']
+for row in manifest['owned_artifacts']:
+    assert sha(Path(row['path']).read_bytes()) == row['raw_sha256']
+for row in manifest['preserved_collaborator_inputs']:
+    assert sha(Path(row['path']).read_bytes()) == row['raw_sha256']
 rows, staged = [], []
 for p in sorted(folder.rglob('*')):
     if not p.is_file() or '__pycache__' in p.parts or p.suffix == '.pyc':
@@ -29,7 +34,7 @@ for p in sorted(folder.rglob('*')):
         staged.append(name)
         continue
     normalized = b'\n'.join(x.rstrip(b' \t') for x in raw.replace(b'\r\n', b'\n').split(b'\n')).rstrip(b'\n') + b'\n'
-    opaque = p.suffix in {'.log', '.lean', '.html', '.snapshot'} or len(raw) > 200000
+    opaque = p.suffix in {'.log', '.lean', '.html', '.snapshot', '.py'} or len(raw) > 200000
     if opaque or normalized != raw:
         archive = Path(str(p) + '.delivery106.raw.gz')
         assert not archive.exists() or gzip.decompress(archive.read_bytes()) == raw

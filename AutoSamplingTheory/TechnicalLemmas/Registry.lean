@@ -75,6 +75,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -119,6 +120,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualBoundedGibbsDuality"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality"
+    upstreamDecl := "Actual PBPS bounded signed Gibbs duality and fixed-time invariance"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 final bounded signed bilinear identity and Gibbs stationarity"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "Gibbs", "endpoint", "reversal"]
+    saldUse := "Actual bounded duality and fixed-time invariance; no SALD claim"
+    note := "Independent science edc917ec4c792bfe1308eee35a5d183c3768703c. Under the original six assumptions, one global jointly measurable actual PBPS process retains its exact arc/fallback/zero-time contract. For every y,r,T its endpoint pushes the actual Gibbs phase law times countable exponential clocks to the same Gibbs phase law. For every pair of bounded Borel real F,G, both outer tests are integrable and integral F op(G) equals integral (G composed R) op(F composed R). Actual105, actual normalization103 and UnitExponentialProduct are the three direct producers. Momentum symmetry and signed Fubini are internally discharged. The selected direct-marginal proof and printed F=1 route have separate independently admitted source graph alternatives. L2 operators/domains, restart/Markovness, separate kernel witness identification, hypocoercivity, errors, actual expected costs, full composition and all four full papers remain open."
+  },
   {
     key := "pbps.actualCountableEndpointLaw"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law"

@@ -1,4 +1,4 @@
-"""Admit independently verified normalization through the existing sole lane."""
+"""Admit independently verified bounded Gibbs duality through the existing sole lane."""
 from pathlib import Path
 import hashlib, json, re, subprocess, sys
 root = Path.cwd()
@@ -65,14 +65,14 @@ probabilities. Gaussian negation gives R_*nu_y=nu_y. The direct-marginal route
 identifies the endpoint law; finite test bounds justify signed Fubini and
 both outer L1 conclusions. The original printed F=1 source route is retained
 as an alternative, with the selected extra source edge independently reviewed.
-The effective source graph has62 nodes123 edges, without a new source premise.
+The effective source graph has 62 nodes and 123 edges, without a new source premise.
 
 Eight adjacent formula/Lean regions explain the ASTIS completion. Header,
 whole mathematics, fresh blind decoding and primary-first source/exposition
 reviews have passed. L2 operator/domain identity, restart/Markovness,
 identification with a separate existential kernel witness, hypocoercivity,
 implementation errors, actual expected costs and full composition remain red.
-Full paper completion remains0/4. The original sole SAU94 lane handles public
+Full paper completion remains 0/4. The original sole SAU94 lane handles public
 integration; actual browser acceptance, main merge and purification retain
 separate evidence.
 

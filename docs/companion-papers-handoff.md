@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS bounded Gibbs duality and fixed-time invariance (2026-10-12)
+
+Independent science edc917ec4c792bfe1308eee35a5d183c3768703c. Under the original six analytic assumptions,
+one global jointly measurable actual process Z retains its exact live-arc,
+raw fallback and parameterwise almost-sure zero-time contract. For every y,r
+and finite nonnegative T, endpoint(z,w)=Z(y,r,z,T,w) is measurable and sends
+the actual Gibbs phase law nu_y times the countable exponential law P to nu_y.
+For all bounded Borel real F,G with finite nonnegative bounds, both outer tests
+are integrable and integral F op_T(G) dnu_y equals
+integral (G composed R) op_T(F composed R) dnu_y, with R(x,p)=(x,-p).
+
+Actual105 supplies the same global process and endpoint-pair reversal.
+Actual normalization103 and UnitExponentialProduct provide the exact input
+probabilities. Gaussian negation gives R_*nu_y=nu_y. The direct-marginal route
+identifies the endpoint law; finite test bounds justify signed Fubini and
+both outer L1 conclusions. The original printed F=1 source route is retained
+as an alternative, with the selected extra source edge independently reviewed.
+The effective source graph has 62 nodes and 123 edges, without a new source premise.
+
+Eight adjacent formula/Lean regions explain the ASTIS completion. Header,
+whole mathematics, fresh blind decoding and primary-first source/exposition
+reviews have passed. L2 operator/domain identity, restart/Markovness,
+identification with a separate existential kernel witness, hypocoercivity,
+implementation errors, actual expected costs and full composition remain red.
+Full paper completion remains 0/4. The original sole SAU94 lane handles public
+integration; actual browser acceptance, main merge and purification retain
+separate evidence.
+
+
 ## Actual PBPS countable endpoint law (2026-10-12)
 
 Independent science a6060928c393d3efe4c85d4cab2b9af166ab6b37. Under the original six analytic assumptions,

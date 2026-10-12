@@ -1,4 +1,4 @@
-"""Render only the admitted endpoint node and its exact four public parents."""
+"""Render only the admitted bounded duality node and its exact three public parents."""
 from pathlib import Path
 import hashlib, html, json
 r = Path(__file__).resolve().parent

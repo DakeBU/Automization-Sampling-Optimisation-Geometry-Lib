@@ -1,0 +1,121 @@
+  classical
+  unfold candidate
+  intro c Φ S rate Λ τ next record P ε history Rec Hist readTime Δ Prefix m zAt K qReal q A eventTime I N liveTime d survival weight C Path Ψ Γ ρ R Vy nu
+  obtain ⟨Z, hZm, hZa, hZf, hZ0, h93⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law
+      hα hαβ hV hH hη hβη
+  refine ⟨Z, hZm, hZa, hZf, hZ0, ?_⟩
+  intro y r T B sigma L M Q J
+  have h103 := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization
+    hα hαβ hV hH hη hβη y
+  letI : IsProbabilityMeasure (nu y) := by
+    have hp := h103.2.2.2.2.2.1
+    rw [h103.2.2.2.2.2.2] at hp
+    exact hp
+  letI : IsProbabilityMeasure P :=
+    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1
+  have hembZ : Measurable (fun q : (E × E) × (ℕ → ℝ) => (((y, r), q.1), T, q.2)) :=
+    (measurable_const.prodMk measurable_fst).prodMk (measurable_const.prodMk measurable_snd)
+  have hZend := hZm.comp hembZ
+  have hM : Measurable M := measurable_fst.prodMk hZend
+  have hQ : IsProbabilityMeasure Q := Measure.isProbabilityMeasure_map hM.aemeasurable
+  have hB (n : ℕ) : Measurable (B n) := by
+    have hemb : Measurable (fun q : (E × E) × Prefix n T => (((y, r), q.1), q.2)) :=
+      (measurable_const.prodMk measurable_fst).prodMk measurable_snd
+    have hp := (h93 n T).2.1.comp hemb
+    have he := (measurable_pi_apply (⟨T, le_rfl⟩ : {s : ℝ≥0 // s ≤ T})).comp hp
+    exact measurable_fst.prodMk he
+  have hρ (n : ℕ) : Measurable (fun q : (E × E) × Prefix n T => ρ y r q.1 n T q.2) := by
+    have hemb : Measurable (fun q : (E × E) × Prefix n T => (((y, r), q.1), q.2)) :=
+      (measurable_const.prodMk measurable_fst).prodMk measurable_snd
+    have h := (h93 n T).2.2.1.comp hemb
+    simpa only [Function.comp_def] using h
+  have hm (n : ℕ) : SigmaFinite (m n T) := by
+    have hcons (i : Fin (n + 1)) :
+        Measurable (fun t : Fin n → ℝ => (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i) := by
+      induction i using Fin.cases with
+      | zero => exact measurable_const
+      | succ i => exact measurable_pi_apply i
+    have hs : MeasurableSet (Δ n T) := by
+      change MeasurableSet {t : Fin n → ℝ |
+        (∀ i j : Fin (n + 1), i < j → (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i < (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) j) ∧
+        ∀ i : Fin n, t i < (T : ℝ)}
+      rw [Set.ofPred_and]
+      apply MeasurableSet.inter
+      · simpa only [← Set.ofPred_forall] using (MeasurableSet.iInter fun (i : Fin (n + 1)) =>
+          MeasurableSet.iInter fun (j : Fin (n + 1)) =>
+          MeasurableSet.iInter fun (_ : i < j) => measurableSet_lt (hcons i) (hcons j))
+      · simpa only [← Set.ofPred_forall] using (MeasurableSet.iInter fun (i : Fin n) =>
+          measurableSet_lt (measurable_pi_apply i) (measurable_const (a := (T : ℝ))))
+    have hmσ : SigmaFinite ((m n T).map (fun t : Prefix n T => t.val)) := by
+      change SigmaFinite ((Measure.comap (fun t : Prefix n T => t.val)
+        (volume : Measure (Fin n → ℝ))).map (fun t : Prefix n T => t.val))
+      rw [map_comap_subtype_coe hs]
+      infer_instance
+    exact SigmaFinite.of_map (m n T) measurable_subtype_coe.aemeasurable hmσ
+  have hsum : Q = Measure.sum L := by
+    apply Measure.ext_of_lintegral
+    intro F hF
+    let D : ℕ → (E × E) → ℝ≥0∞ := fun n z =>
+      ∫⁻ t : Prefix n T, F (B n (z, t)) * ρ y r z n T t ∂m n T
+    have hD (n : ℕ) : Measurable (D n) := by
+      letI := hm n
+      exact ((hF.comp (hB n)).mul (hρ n)).lintegral_prod_right'
+    have hz (z : E × E) :
+        (∫⁻ w, F (z, Z y r z T w) ∂P) = ∑' n, D n z := by
+      have hN : Measurable (N y r z T) := ((h93 0 T).2.2.2 y r z).2.2.1
+      have hsets (n : ℕ) : MeasurableSet {w | N y r z T w = n} :=
+        (measurableSet_singleton n).preimage hN
+      have hdis : Pairwise (fun i j : ℕ => Disjoint {w | N y r z T w = i} {w | N y r z T w = j}) := by
+        intro i j hij
+        exact Set.disjoint_left.mpr (fun w hi hj => hij (hi.symm.trans hj))
+      have hu : (⋃ n : ℕ, {w | N y r z T w = n}) = Set.univ := by
+        ext w
+        simp
+      calc
+        (∫⁻ w, F (z, Z y r z T w) ∂P) =
+            ∑' n, ∫⁻ w in {w | N y r z T w = n}, F (z, Z y r z T w) ∂P := by
+          simpa only [hu, Measure.restrict_univ] using
+            (lintegral_iUnion hsets hdis (fun w => F (z, Z y r z T w)))
+        _ = ∑' n, D n z := by
+          apply tsum_congr
+          intro n
+          rcases (h93 n T).2.2.2 y r z with
+            ⟨hH, hZT, hNN, hC, hGamma, hactual, hAE, hdisjoint, hcover, hlaw, hint, hmass, hbound⟩
+          exact hint (fun hp => F (z, hp.2 ⟨T, le_rfl⟩))
+            (hF.comp (measurable_const.prodMk ((measurable_pi_apply (⟨T, le_rfl⟩ : {s : ℝ≥0 // s ≤ T})).comp measurable_snd)))
+    calc
+      (∫⁻ x, F x ∂Q) = ∫⁻ z, ∫⁻ w, F (z, Z y r z T w) ∂P ∂nu y := by
+        change (∫⁻ x, F x ∂Measure.map M ((nu y).prod P)) = _
+        rw [lintegral_map hF hM]
+        exact lintegral_prod (f := fun x => F (M x)) (hF.comp hM).aemeasurable
+      _ = ∫⁻ z, ∑' n, D n z ∂nu y := lintegral_congr hz
+      _ = ∑' n, ∫⁻ z, D n z ∂nu y := lintegral_tsum (fun n => (hD n).aemeasurable)
+      _ = ∑' n, ∫⁻ x, F x ∂L n := by
+        apply tsum_congr
+        intro n
+        letI := hm n
+        change (∫⁻ z, ∫⁻ t : Prefix n T, F (B n (z, t)) * ρ y r z n T t ∂m n T ∂nu y) =
+          ∫⁻ x, F x ∂Measure.map (B n) (sigma n)
+        rw [lintegral_map hF (hB n)]
+        change _ = ∫⁻ x, F (B n x) ∂(((nu y).prod (m n T)).withDensity (fun x => ρ y r x.1 n T x.2))
+        rw [lintegral_withDensity_eq_lintegral_mul _
+          (f := fun x : (E × E) × Prefix n T => ρ y r x.1 n T x.2)
+          (g := fun x => F (B n x)) (hρ n) (hF.comp (hB n))]
+        simp only [Pi.mul_apply]
+        rw [lintegral_prod (f := fun x : (E × E) × Prefix n T =>
+          ρ y r x.1 n T x.2 * F (B n x)) ((hρ n).mul (hF.comp (hB n))).aemeasurable]
+        apply lintegral_congr
+        intro z
+        apply lintegral_congr
+        intro t
+        exact mul_comm _ _
+      _ = ∫⁻ x, F x ∂Measure.sum L := (lintegral_sum_measure F L).symm
+  have hsector (n : ℕ) : MeasurePreserving J (L n) (L n) :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal
+      hα hαβ hV hH hη hβη y r n T
+  refine ⟨hsum, hQ, (hsector 0).measurable, ?_⟩
+  rw [hsum, Measure.map_sum (hsector 0).measurable.aemeasurable]
+  congr 1
+  funext n
+  exact (hsector n).map_eq

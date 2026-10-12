@@ -1,0 +1,120 @@
+Anonymous mathematical reconstruction
+
+Objects, hypotheses, and quantification
+
+Let E be any finite-dimensional real inner-product space, equipped with its normed additive-group structure and a measurable structure equal to the Borel structure. The dimension is not required to be positive; the zero-dimensional space is included. Use the canonical volume measure on E. Let V:E→R be twice continuously Frechet differentiable. Let α and β be nonnegative real numbers and η be a real number. Assume α>0, α≤β, η>0, βη≤1, and, for every x,v∈E,
+    α||v||² ≤ D²V(x)[v,v] ≤ β||v||².
+Here D²V is the genuine iterated Frechet derivative and ∇V is the real Hilbert-space gradient. These are all the hypotheses. In particular the definitions and probability/measure assertions below are not additional hypotheses.
+
+All constructions below have V and η fixed; the theorem is universally quantified over E, its displayed structures, V, α, β, η, and proofs of the stated hypotheses. The conclusion supplies one jointly measurable function Z that works simultaneously for every center y, reference point r, initial phase-space state z₀, nonnegative time, and real sequence. The variables y and r range independently over E; no relation between them or z₀ is assumed.
+
+Deterministic flow, reflection, and event recursion
+
+Write z=(x,v)∈E×E, and define c(y,r)=y−η∇V(r). For every real t, set
+    Φ(y,r,t,(x,v)) = (
+      c(y,r)+cos(t)(x−c(y,r))+sqrt(η) sin(t) v,
+      −sin(t)/sqrt(η) (x−c(y,r))+cos(t) v).
+Scalar multiplication in these formulas is real scalar multiplication in E. Set g_r(x)=∇V(x)−∇V(r), and define
+    S(r,(x,v))=(x, v−[2⟨v,g_r(x)⟩/||g_r(x)||²]g_r(x)),
+    rate(r,(x,v))=sqrt(η) max(0,⟨v,g_r(x)⟩).
+Real division is totalized, with division by zero equal to zero. Consequently when g_r(x)=0 the reflection fixes (x,v), and its event rate is zero. The hypotheses give sqrt(η)>0, so the flow's displayed division by sqrt(η) is nondegenerate.
+
+For u≥0, define the real integrated rate
+    Λ(y,r,z,u)=∫₀ᵘ rate(r,Φ(y,r,s,z)) ds,
+where the integral is a real interval integral against Lebesgue measure. For e≥0, define
+    τ(y,r,z,e)=inf {u≥0 : Λ(y,r,z,u)−e≥0},
+with values in [0,∞], with the infimum of the empty set equal to ∞. This is a hitting-time definition starting at time zero. A finite value is extracted by untopD 0; this operation would return zero on ∞. In particular e=0 has τ=0 since Λ at time zero is zero.
+
+A record is either live, written live(t,z), with t≥0 and z∈E×E, or stopped, written stopped. For a threshold e≥0, next(y,r,e,stopped)=stopped. From live(t,z), next returns stopped if τ(y,r,z,e)=∞; otherwise it returns
+    live(t+τ(y,r,z,e), S(r,Φ(y,r,τ(y,r,z,e),z))).
+The flow receives the finite waiting time as a real number. For any sequence e:N→[0,∞), define record(y,r,z₀,e,0)=live(0,z₀) and
+    record(y,r,z₀,e,k+1)=next(y,r,e(k),record(y,r,z₀,e,k)).
+Thus a stopped record remains stopped, and every finite event record contains the state after reflection.
+
+Random input and finite histories
+
+Let Ω=R^N, with the coordinate-product measurable structure, and let P be the countable product of unit-rate exponential probability measures on R. Define ε(w)(k)=max(w(k),0), regarded as a nonnegative real. All pointwise definitions are made for every real sequence w, including sequences with nonpositive coordinates; the probability law P is the specified exponential product law.
+
+For n∈N, Hist(n) is the space of sequences of n+1 records, indexed by 0,...,n. Define
+    history(y,r,z₀,n,w)(j)=record(y,r,z₀,ε(w),j).
+For a live record define readTime(live(t,z))=t as a real number and liveTime(live(t,z))=t as a nonnegative real number. Both functions return zero on stopped.
+
+For T≥0, let Δ(n,T) consist of real n-tuples t=(t₁,...,t_n) such that the prepended sequence (0,t₁,...,t_n) is strictly increasing and every t_i<T. Let Prefix(n,T) be this set as a subtype. For n≥1 this means 0<t₁<⋯<t_n<T. For n=0 the tuple is empty and both conditions are vacuous, including when T=0. The measure m(n,T) is the induced subtype measure obtained by comapping Lebesgue volume on R^n along the inclusion of Prefix(n,T).
+
+For a prefix put t₀=0, z₀ equal to the given initial state, and recursively for i=1,...,n put
+    δ_i=t_i−t_(i−1),
+    z_i=S(r,Φ(y,r,δ_i,z_(i−1))).
+This finite sequence is zAt. Its associated history K(y,r,z₀,n,T,t) is (live(t_j,z_j))_(j=0,...,n); the literal definition converts each real t_j to its nonnegative part. These conversions have no effect on a valid prefix.
+
+Define the real and extended-nonnegative prefix densities by
+    qReal(y,r,z₀,n,T,t)=Π_(i=1)^n [
+      rate(r,Φ(y,r,δ_i,z_(i−1))) exp(−Λ(y,r,z_(i−1),max(δ_i,0)))],
+    q(y,r,z₀,n,T,t)=ofReal(qReal(y,r,z₀,n,T,t)).
+The exponential factor is inside the product, one factor for each event. The increments are strictly positive on a valid nonempty prefix. The empty product for n=0 is one. The operation ofReal embeds the nonnegative part of a real number in [0,∞].
+
+Let A(n,T) be the set of arbitrary histories h∈Hist(n) for which every record is live, their readTime values are strictly increasing, and the records with indices 1,...,n have readTime<T. The condition defining A does not itself prescribe a zero initial record time, an initial state, or the state recursion. Those properties belong to history or K where applicable. For n=0, membership in A only requires that the sole record be live, so there is no strict horizon test on its time.
+
+Define eventTime(y,r,z₀,w,j) to be the cumulative time of the j-th record if that record is live, and ∞ if it is stopped. Define
+    I(y,r,z₀,T,n)={w : eventTime(w,n)≤T<eventTime(w,n+1)},
+using the displayed fixed parameters in the event times and inequalities in [0,∞]. Thus equality of the n-th event time to T is permitted, and equality of the next event time to T is excluded. Define N(y,r,z₀,T,w) as the least natural number n for which w belongs to I(y,r,z₀,T,n), if any such n exists, and as zero otherwise. This is a totalized definition; the final assertions do not separately state a theorem about N.
+
+For an arbitrary history h define
+    d(n,T,h)=T−liveTime(h_n)
+in nonnegative reals, so this subtraction is truncated at zero. For a record a, u≥0, and real e define survival(y,r,a,u,e) by the following cases: it is u<τ(y,r,z,max(e,0)) when a=live(t,z), and is false when a=stopped. Also define
+    weight(y,r,live(t,z),u)=ofReal(exp(−Λ(y,r,z,u))),
+    weight(y,r,stopped,u)=0.
+The cumulative time t of a live record is not an argument to the rate integral in these two definitions. Define C(y,r,z₀,n,T) as the set of w such that history(y,r,z₀,n,w) lies in A(n,T) and survival holds for the n-th record, residual duration d(n,T,history(y,r,z₀,n,w)), and threshold w(n). C is defined in the statement, but no separate identity or probability formula about C is asserted in the conclusion.
+
+Path reconstruction and full density
+
+Path(T) is the space of all functions [0,T]→E×E, with time represented by nonnegative reals at most T. For an arbitrary history h, define Ψ(y,r,z₀,n,T,h)(s) by starting with accumulator z₀, visiting indices j=0,...,n in ascending order, and applying the following update. If h_j=live(t_j,z_j) and t_j≤s, replace the accumulator with Φ(y,r,s−t_j,z_j), where subtraction is nonnegative truncated subtraction. If that record is stopped or its time exceeds s, keep the accumulator. Thus the final result uses the last eligible index in the finite sequence; arbitrary histories need not be ordered. If no index is eligible the value is z₀.
+
+Define Γ(y,r,z₀,n,T,t)=Ψ(y,r,z₀,n,T,K(y,r,z₀,n,T,t)). For a valid prefix it follows the prescribed flow from each recorded state between successive times and uses the post-reflection state at an event time. Define
+    ρ(y,r,z₀,n,T,t)=q(y,r,z₀,n,T,t)
+      ·weight(y,r,K(y,r,z₀,n,T,t)_n,d(n,T,K(y,r,z₀,n,T,t))).
+Equivalently on valid prefixes this is the product of all n event-rate/exponential factors above multiplied by exp(−Λ(y,r,z_n,T−t_n)), embedded in the extended nonnegative reals. For n=0 it is exp(−Λ(y,r,z₀,T)) with that same embedding. Prefixes exclude events exactly at T when n≥1; the event-index definition I uses the distinct weak/strict inequalities given above.
+
+Initial-state measure and reversal
+
+Define R(x,v)=(x,−v). For each y∈E define
+    V_y(x)=V(x)+||x−y||²/(2η),
+    H_y=∫_E exp(−V_y(x)) dvolume(x).
+The position measure is volume tilted by −V_y, meaning the density with respect to volume is
+    ofReal(exp(−V_y(x))/H_y).
+Define ν_y to be the product of this position measure and the centered identity-covariance Gaussian on E, in position-then-velocity coordinate order. The normalization uses the real integral and totalized real division; positivity or finiteness of H_y is not an extra hypothesis in the supplied statement. In particular the definition itself would give a zero density if its real normalization value were zero. The theorem makes its probability assertion in the conclusion below.
+
+Exact existential conclusion
+
+There exists a function
+    Z:E→E→(E×E)→[0,∞)→Ω→(E×E)
+with all of the following properties simultaneously.
+
+1. Joint measurability: the function (y,r,z₀,s,w)↦Z(y,r,z₀,s,w) is measurable for the displayed product measurable structures and the Borel structure on E×E. The Lean tuple grouping is ((y,r),z₀) paired with (s,w).
+
+2. Pointwise interpolation: for every y,r,z₀,w,s≥0 in their respective domains, every n∈N, and every live record a=(t,z), if w∈I(y,r,z₀,s,n) and record(y,r,z₀,ε(w),n)=live(t,z), then
+    Z(y,r,z₀,s,w)=Φ(y,r,s−t,z),
+where the time difference is nonnegative truncated subtraction. This is an everywhere quantified implication, not merely an almost-everywhere statement.
+
+3. Pointwise fallback: for every y,r,z₀,w,s, if there is no n with w∈I(y,r,z₀,s,n), then Z(y,r,z₀,s,w)=z₀. This covers all exceptional real sequences or times lacking a finite index satisfying the specified event-time bracket. The statement does not replace this fallback by an undefined value or a separate cemetery state for Z.
+
+4. Almost-everywhere initialization: for every fixed y,r,z₀, for P-almost every w,
+    Z(y,r,z₀,0,w)=z₀.
+The null set may depend on the fixed y,r,z₀; a single universal null set over all those parameters is not asserted. The initialization clause is not stated for every w.
+
+5. Endpoint measure expansion, probability, and reversal: for every y,r∈E and T≥0, make the following definitions. For every n∈N let
+    B_n(z,t)=(z,Γ(y,r,z,n,T,t)(T)),
+    σ_n=(ν_y×m(n,T)).withDensity((z,t)↦ρ(y,r,z,n,T,t)),
+    L_n=(B_n)_*σ_n.
+These are measures on ordered pairs of phase-space states after pushing forward. Define
+    M(z,w)=(z,Z(y,r,z,T,w)),
+    Q=M_*(ν_y×P),
+    J(z,z')=(R(z'),R(z)).
+Then all three assertions hold:
+    Q=Σ_(n=0)^∞ L_n;
+    Q has total mass one;
+    J is measurable and J_*Q=Q.
+The sum is the countable sum of measures, and equality is equality of measures on (E×E)×(E×E). Each L_n uses n strictly positive, strictly ordered event times strictly below T, with the final survival weight. The measure Q is the joint law of initial and time-T states when initial state and threshold sequence are drawn independently from ν_y and P. Reversal both swaps the two endpoint states and negates each velocity. It uses the same y and r on both sides. The theorem's last clause concerns this endpoint measure; it does not separately assert an equality of full path laws, Markovness, uniqueness of Z, a convergence rate, a numerical error bound, or an everywhere finite event count.
+
+Constants, dependence, and edge cases
+
+All numerical constants are the displayed 0, 1, and 2: exponential thresholds have rate 1, the Hessian upper bound is constrained by βη≤1, the reflection coefficient has numerator 2, and the additional potential has denominator 2η. The parameters α and β restrict the theorem's admissible V and η; they do not appear as extra free inputs to Z or in the literal definitions of flow, rates, measures, or densities. Z may depend on the fixed ambient space, V, η, and the theorem's fixed admissible data. There is no hidden dimension lower bound or separate bound on y,r,z₀,T. Times T and s may be zero; η is strictly positive. For n=0 all empty-prefix conventions above apply. No nonexplosion, nonzero gradient-difference, distinctness of y and r, or positivity of individual real coordinates w(k) is an additional assumption. Infinite waiting times, stopped records, zero thresholds, nonpositive raw thresholds, truncated time differences, and absent finite event brackets are handled by the explicit totalized definitions.

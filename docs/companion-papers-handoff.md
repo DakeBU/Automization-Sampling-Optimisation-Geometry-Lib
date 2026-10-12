@@ -1,5 +1,39 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS L2 expectation contraction (2026-10-12)
+
+Independent science 2b657840a2f21c5d8001c83e4625a1ab13ef70ba. Under the original six analytic assumptions,
+the same global actual process Z retains joint measurability, exact live arcs,
+raw fallback, parameterwise zero-time initialization, fixed-time Gibbs
+preservation and bounded signed momentum-flip duality.
+
+Every Borel real observable has a jointly Borel total clock expectation.
+A finite pointwise bound proves every clock section integrable. For each y,r,
+there exists a family of continuous real linear operators A_T on L2(nu_y)
+with norm at most1 and A_0=id. Every arbitrary MemLp representative G has
+integrable clock sections for nu_y-almost every phase point, its actual
+expectation belongs to L2, A_T[G]=[op_T G], and
+integral |op_T G|^2 dnu_y <= integral |G|^2 dnu_y.
+
+The proof consumes actual106, actual normalization103 and UnitExponentialProduct.
+First-coordinate and endpoint pullbacks are L2 isometries; their adjoint
+composition constructs the contraction. Product L1 and signed Fubini precede
+indicator-test uniqueness, which identifies the operator with the literal
+expectation. Universal quotient identification supplies representative
+independence. The retained direct-AE route is an unselected source-graph
+alternative, not an asserted invocation of ae_ae_of_ae_prod. The effective
+source graph has85 nodes and161 edges, with no new source premise.
+
+Ten adjacent formula/Lean regions explain this ASTIS completion. Header,
+whole mathematics, fresh blind reconstruction and final primary-first
+source/exposition reviews passed. Full L2 momentum-flip identity Eq A.3,
+restart/Markov/semigroup, strong continuity, separate kernel-witness equality,
+hypocoercivity, implementation errors, actual expected costs and complete
+composition remain red. No time-index regularity of A_T is asserted.
+Full paper completion remains0/4. Public integration uses the sole SAU94 lane;
+actual browser acceptance, main merge and purification remain separate.
+
+
 ## Actual PBPS bounded Gibbs duality and fixed-time invariance (2026-10-12)
 
 Independent science edc917ec4c792bfe1308eee35a5d183c3768703c. Under the original six analytic assumptions,

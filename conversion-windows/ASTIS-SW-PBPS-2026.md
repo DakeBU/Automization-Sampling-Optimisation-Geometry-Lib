@@ -1,5 +1,12 @@
 # Proximal BPS · formalization result window
 
+## Actual L2 expectation contraction107 (2026-10-12)
+
+Independent science 2b657840a2f21c5d8001c83e4625a1ab13ef70ba. Under the original six assumptions, the same global jointly measurable actual PBPS Z retains live arcs, fallback, parameterwise initialization, Gibbs preservation and bounded flip duality. Every Borel test has a joint Borel total clock expectation; a uniform finite bound proves every section L1. For each y,r an internally constructed real L2 contraction family A_T realizes the literal clock expectation of every MemLp representative, with almost-everywhere section L1, output L2 membership, exact quotient identity, square-integral contraction and A_0=id. Actual106, normalization103 and UnitExponentialProduct are the three producers. Adjoint pullbacks, product L1, signed Fubini and indicator uniqueness are internal dependencies. Representative independence is a consequence of universal quotient identification; the planned direct-AE route remains an unselected alternative. Full L2 flip identity A.3, restart/Markov/semigroup, separate kernel witness identification, strong continuity, hypocoercivity, errors, actual expected costs, composition and all four papers remain open.
+
+Ten source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
 ## Actual bounded Gibbs duality106 (2026-10-12)
 
 Independent science edc917ec4c792bfe1308eee35a5d183c3768703c. Under the original six assumptions, one global jointly measurable actual PBPS process retains its exact arc/fallback/zero-time contract. For every y,r,T its endpoint pushes the actual Gibbs phase law times countable exponential clocks to the same Gibbs phase law. For every pair of bounded Borel real F,G, both outer tests are integrable and integral F op(G) equals integral (G composed R) op(F composed R). Actual105, actual normalization103 and UnitExponentialProduct are the three direct producers. Momentum symmetry and signed Fubini are internally discharged. The selected direct-marginal proof and printed F=1 route have separate independently admitted source graph alternatives. L2 operators/domains, restart/Markovness, separate kernel witness identification, hypocoercivity, errors, actual expected costs, full composition and all four full papers remain open.

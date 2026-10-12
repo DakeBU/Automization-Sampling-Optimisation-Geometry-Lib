@@ -76,6 +76,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -120,6 +121,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualL2Expectation"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_contraction"
+    upstreamDecl := "Actual PBPS L2 expectation contraction and zero-time identity"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 expectation operator and L2 domain toward Eq A.3"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "expectation", "contraction"]
+    saldUse := "Actual same-process L2 expectation contraction; no SALD claim"
+    note := "Independent science 2b657840a2f21c5d8001c83e4625a1ab13ef70ba. Under the original six assumptions, the same global jointly measurable actual PBPS Z retains live arcs, fallback, parameterwise initialization, Gibbs preservation and bounded flip duality. Every Borel test has a joint Borel total clock expectation; a uniform finite bound proves every section L1. For each y,r an internally constructed real L2 contraction family A_T realizes the literal clock expectation of every MemLp representative, with almost-everywhere section L1, output L2 membership, exact quotient identity, square-integral contraction and A_0=id. Actual106, normalization103 and UnitExponentialProduct are the three producers. Adjoint pullbacks, product L1, signed Fubini and indicator uniqueness are internal dependencies. Representative independence is a consequence of universal quotient identification; the planned direct-AE route remains an unselected alternative. Full L2 flip identity A.3, restart/Markov/semigroup, separate kernel witness identification, strong continuity, hypocoercivity, errors, actual expected costs, composition and all four papers remain open."
+  },
   {
     key := "pbps.actualBoundedGibbsDuality"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality"

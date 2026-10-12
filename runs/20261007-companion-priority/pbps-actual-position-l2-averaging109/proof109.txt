@@ -1,0 +1,136 @@
+  classical
+  unfold actual_position_l2_statement
+  intro c Φ S rate Λ τ next record P ε history Rec Hist readTime Δ Prefix m zAt K qReal q A eventTime I N liveTime d survival weight C Path Ψ Γ ρ R Vy nu
+  obtain ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, h108⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality
+      hα hαβ hV hH hη hβη
+  refine ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, ?_⟩
+  intro y xRef
+  obtain ⟨L, hL0, hL, hR, hJrep, hJJ, hLadj⟩ := h108 y xRef
+  refine ⟨L, hL0, hL, hR, ?_⟩
+  intro J
+  refine ⟨hJrep, hJJ, hLadj, ?_⟩
+  intro mu
+  have hfst : MeasurePreserving Prod.fst (nu y) mu := measurePreserving_fst
+  refine ⟨hfst, ?_⟩
+  intro B M
+  have hBrep (f : Lp ℝ 2 mu) :
+      (B f : (E × E) → ℝ) =ᵐ[nu y] fun z => f z.1 :=
+    Lp.coeFn_compMeasurePreserving f hfst
+  have hBn : ‖B.toContinuousLinearMap‖ ≤ 1 := B.norm_toContinuousLinearMap_le
+  have hMn : ‖M‖ ≤ 1 := by
+    change ‖B.toContinuousLinearMap.adjoint‖ ≤ 1
+    rw [ContinuousLinearMap.adjoint.norm_map]
+    exact hBn
+  have hMB : M.comp B.toContinuousLinearMap = ContinuousLinearMap.id ℝ (Lp ℝ 2 mu) :=
+    B.adjoint_comp_self
+  have havg (G : (E × E) → ℝ) (hG : MemLp G 2 (nu y)) :
+      (∀ᵐ x ∂mu, Integrable (fun p => G (x, p)) (stdGaussian E)) ∧
+      ∃ hbar : MemLp (fun x => ∫ p, G (x, p) ∂stdGaussian E) 2 mu,
+        M (hG.toLp G) = hbar.toLp (fun x => ∫ p, G (x, p) ∂stdGaussian E) := by
+    have hprod : Integrable G (mu.prod (stdGaussian E)) := hG.integrable (by norm_num)
+    have hbar1 : Integrable (fun x => ∫ p, G (x, p) ∂stdGaussian E) mu :=
+      hprod.integral_prod_left
+    have hMg : Integrable (M (hG.toLp G) : E → ℝ) mu :=
+      (Lp.memLp (M (hG.toLp G))).integrable (by norm_num)
+    have heq : (M (hG.toLp G) : E → ℝ) =ᵐ[mu]
+        (fun x => ∫ p, G (x, p) ∂stdGaussian E) := by
+      apply Integrable.ae_eq_of_forall_setIntegral_eq _ _ hMg hbar1
+      intro s hs hms
+      let i : Lp ℝ 2 mu := indicatorConstLp 2 hs hms.ne (1 : ℝ)
+      have hi : (i : E → ℝ) =ᵐ[mu] s.indicator (fun _ => (1 : ℝ)) :=
+        indicatorConstLp_coeFn
+      have hi' := hfst.quasiMeasurePreserving.ae_eq hi
+      let H : E × E → ℝ := fun z => s.indicator (fun _ => (1 : ℝ)) z.1 * G z
+      have hH : Integrable H (mu.prod (stdGaussian E)) := by
+        have hfun : H = (Prod.fst ⁻¹' s).indicator G := by
+          funext z
+          by_cases hz : z.1 ∈ s <;> simp [H, Set.indicator, hz]
+        rw [hfun]
+        exact hprod.indicator (hs.preimage measurable_fst)
+      calc
+        (∫ x in s, M (hG.toLp G) x ∂mu) = ⟪i, M (hG.toLp G)⟫_ℝ :=
+          (L2.inner_indicatorConstLp_one hs hms.ne _).symm
+        _ = ⟪B i, hG.toLp G⟫_ℝ := ContinuousLinearMap.adjoint_inner_right _ _ _
+        _ = ∫ z, H z ∂nu y := by
+          rw [L2.inner_def]
+          apply integral_congr_ae
+          filter_upwards [hBrep i, hi', hG.coeFn_toLp] with z hb hi hg
+          change i z.1 = s.indicator (fun _ => (1 : ℝ)) z.1 at hi
+          simp only [hb, hi, hg, H, RCLike.inner_apply, conj_trivial]
+          exact mul_comm _ _
+        _ = ∫ x, ∫ p, H (x, p) ∂stdGaussian E ∂mu := integral_prod H hH
+        _ = ∫ x, s.indicator (fun _ => (1 : ℝ)) x *
+            (∫ p, G (x, p) ∂stdGaussian E) ∂mu := by
+          simp only [H, integral_const_mul]
+        _ = ∫ x in s, (∫ p, G (x, p) ∂stdGaussian E) ∂mu := by
+          rw [← integral_indicator hs]
+          congr 1
+          funext x
+          by_cases hx : x ∈ s <;> simp [Set.indicator, hx]
+    have hbar : MemLp (fun x => ∫ p, G (x, p) ∂stdGaussian E) 2 mu :=
+      MemLp.ae_eq heq (Lp.memLp (M (hG.toLp G)))
+    refine ⟨hprod.prod_right_ae, hbar, ?_⟩
+    apply Lp.ext
+    exact heq.trans hbar.coeFn_toLp.symm
+  have hJB (f : Lp ℝ 2 mu) : J (B f) = B f := by
+    apply Lp.ext
+    filter_upwards [hJrep (B f), hR.quasiMeasurePreserving.ae_eq_comp (hBrep f),
+      hBrep f] with z hj hb hb'
+    change (J (B f)) z = (B f) z
+    rw [hj, hb']
+    simpa only [Function.comp_def, R] using hb
+  have hJadj : J.toContinuousLinearMap.adjoint = J.toContinuousLinearMap := by
+    apply ContinuousLinearMap.ext
+    intro f
+    apply ext_inner_right ℝ
+    intro g
+    rw [ContinuousLinearMap.adjoint_inner_left]
+    change ⟪f, J g⟫_ℝ = ⟪J f, g⟫_ℝ
+    calc
+      ⟪f, J g⟫_ℝ = ⟪J f, J (J g)⟫_ℝ := (J.inner_map_map f (J g)).symm
+      _ = ⟪J f, g⟫_ℝ := by rw [hJJ]
+  have hJBmap : J.toContinuousLinearMap.comp B.toContinuousLinearMap = B.toContinuousLinearMap :=
+    ContinuousLinearMap.ext hJB
+  have hMJ : M.comp J.toContinuousLinearMap = M := by
+    have hh := congrArg (fun U => ContinuousLinearMap.adjoint U) hJBmap
+    simpa only [ContinuousLinearMap.adjoint_comp, hJadj] using hh
+  refine ⟨hBrep, hBn, hMn, hMB, havg, hJB, hMJ, ?_⟩
+  intro Kpos
+  refine ⟨?_, ?_⟩
+  · change M.comp ((L 0).comp B.toContinuousLinearMap) = _
+    rw [hL0, ContinuousLinearMap.id_comp, hMB]
+  · intro T
+    refine ⟨?_, ?_, ?_⟩
+    · change (M.comp ((L T).comp B.toContinuousLinearMap)).adjoint = _
+      rw [ContinuousLinearMap.adjoint_comp, ContinuousLinearMap.adjoint_comp]
+      change (M.comp (L T).adjoint).comp B.toContinuousLinearMap.adjoint.adjoint = _
+      rw [ContinuousLinearMap.adjoint_adjoint, hLadj T]
+      apply ContinuousLinearMap.ext
+      intro f
+      change M (J (L T (J (B f)))) = M (L T (B f))
+      rw [hJB]
+      exact congrArg (fun U : Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 mu => U (L T (B f))) hMJ
+    · change ‖M.comp ((L T).comp B.toContinuousLinearMap)‖ ≤ 1
+      have hn : ‖(L T).comp B.toContinuousLinearMap‖ ≤ 1 := by
+        calc
+          _ ≤ ‖L T‖ * ‖B.toContinuousLinearMap‖ := ContinuousLinearMap.opNorm_comp_le _ _
+          _ ≤ 1 * 1 := mul_le_mul (hL T).1 hBn (norm_nonneg _) zero_le_one
+          _ = 1 := one_mul 1
+      calc
+        _ ≤ ‖M‖ * ‖(L T).comp B.toContinuousLinearMap‖ := ContinuousLinearMap.opNorm_comp_le _ _
+        _ ≤ 1 * 1 := mul_le_mul hMn hn (norm_nonneg _) zero_le_one
+        _ = 1 := one_mul 1
+    · intro f hf kTf
+      let F : E × E → ℝ := fun z => f z.1
+      have hF : MemLp F 2 (nu y) := hf.comp_measurePreserving hfst
+      have hBF : B (hf.toLp f) = hF.toLp F := by
+        apply Lp.ext
+        exact (hBrep (hf.toLp f)).trans
+          ((hfst.quasiMeasurePreserving.ae_eq_comp hf.coeFn_toLp).trans hF.coeFn_toLp.symm)
+      obtain ⟨hsec, ⟨hop, heop⟩, _⟩ := (hL T).2 F hF
+      obtain ⟨houter, hk, he⟩ := havg (fun z => ∫ w, F (Z y xRef z T w) ∂P) hop
+      refine ⟨Measure.ae_ae_of_ae_prod hsec, houter, hk, ?_⟩
+      change M (L T (B (hf.toLp f))) = _
+      rw [hBF, heop]
+      exact he
